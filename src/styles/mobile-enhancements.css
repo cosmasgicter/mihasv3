@@ -1,0 +1,289 @@
+/* Mobile Enhancements and Touch Target Styles */
+
+/* Touch Target Styles - 44px minimum */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Enhanced touch targets for interactive elements */
+.touch-target::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+/* Safe area insets for devices with notches */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Mobile container with proper padding */
+.container-mobile {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-mobile {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-mobile {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    max-width: 1200px;
+  }
+}
+
+/* Enhanced scrolling for mobile */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Prevent zoom on input focus (iOS) */
+.no-zoom {
+  font-size: 16px;
+}
+
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+/* Mobile-first tap highlights */
+.tap-highlight-none {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Loading animations optimized for mobile */
+@keyframes mobile-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.mobile-pulse {
+  animation: mobile-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Mobile-specific button styles */
+.mobile-button {
+  min-height: 48px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.mobile-button:active {
+  transform: scale(0.98);
+}
+
+/* Enhanced focus states for accessibility */
+.focus-visible:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Mobile navigation improvements */
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  min-height: 56px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.98);
+}
+
+.mobile-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.mobile-nav-item:hover::before {
+  opacity: 1;
+}
+
+/* Performance optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Disable text selection for UI elements */
+.ui-element {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .touch-target {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-pulse,
+  .mobile-nav-item,
+  .mobile-button {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Dark mode considerations */
+@media (prefers-color-scheme: dark) {
+  .mobile-nav-item {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .mobile-nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .ios-fix {
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+}
+
+/* Drag and drop enhancements for mobile */
+.drag-active {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-color: #3b82f6;
+  transform: scale(1.02);
+}
+
+/* File upload progress animations */
+@keyframes upload-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.upload-shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: upload-progress 2s infinite;
+}
+
+/* Error state animations */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.error-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Success state animations */
+@keyframes success-bounce {
+  0%, 20%, 60%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  80% {
+    transform: translateY(-5px);
+  }
+}
+
+.success-bounce {
+  animation: success-bounce 0.6s ease;
+}

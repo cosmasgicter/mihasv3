@@ -1,0 +1,131 @@
+/* Accreditation Section Optimizations */
+.accreditation-grid {
+  display: grid;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+@media (min-width: 640px) {
+  .accreditation-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .accreditation-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+}
+
+.accreditation-card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid #f3f4f6;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.accreditation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.accreditation-logo-container {
+  height: 4rem;
+  width: 4rem;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+}
+
+.accreditation-logo {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.accreditation-card:hover .accreditation-logo {
+  transform: scale(1.05);
+}
+
+/* Image optimization for large files */
+.accreditation-logo[src*="eczlogo"] {
+  filter: contrast(1.1) brightness(1.05);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transform: scale(0.95);
+}
+
+/* Preload critical images */
+.accreditation-logo {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Ensure consistent text alignment */
+.accreditation-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.accreditation-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .accreditation-title {
+    font-size: 1.25rem;
+  }
+}
+
+.accreditation-subtitle {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .accreditation-subtitle {
+    font-size: 0.875rem;
+  }
+}
+
+.accreditation-description {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: auto;
+}
+
+/* Loading state */
+.accreditation-loading {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
