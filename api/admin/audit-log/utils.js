@@ -147,7 +147,7 @@ async function fetchAllAuditRecords({
   return results
 }
 
-module.exports = {
+export {
   BATCH_SIZE,
   parseAction,
   normalizeRecord,

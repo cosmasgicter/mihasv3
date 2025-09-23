@@ -2,6 +2,7 @@
   "name": "mihas-application-system-v2",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "engines": {
     "node": ">=24.0.0",
     "npm": ">=10.0.0"

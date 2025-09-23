@@ -1,4 +1,4 @@
-const { supabaseAdminClient } = require('./supabaseClient')
+import { supabaseAdminClient } from './supabaseClient.js'
 
 async function fetchUserProfile(userId) {
   const { data, error } = await supabaseAdminClient
@@ -150,7 +150,7 @@ async function updateAuthUserMetadata(userId, updates) {
   }
 }
 
-module.exports = {
+export {
   fetchUserProfile,
   fetchActiveRole,
   syncUserRole,

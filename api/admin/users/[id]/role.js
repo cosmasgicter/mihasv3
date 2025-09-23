@@ -1,7 +1,7 @@
-const { requireUser } = require('../../../_lib/supabaseClient')
-const { logAuditEvent } = require('../../../_lib/auditLogger')
-const { fetchActiveRole, parseUserId } = require('../../../_lib/adminUserHelpers')
-const { withNetlifyHandler } = require('../../../_lib/netlifyHandler')
+import { requireUser } from '../../../_lib/supabaseClient.js'
+import { logAuditEvent } from '../../../_lib/auditLogger.js'
+import { fetchActiveRole, parseUserId } from '../../../_lib/adminUserHelpers.js'
+import { withNetlifyHandler } from '../../../_lib/netlifyHandler.js'
 
 async function handler(req, res) {
   // Add CORS headers
@@ -50,5 +50,6 @@ async function handler(req, res) {
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

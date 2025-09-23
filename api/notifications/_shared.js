@@ -1,6 +1,6 @@
-const fetch = require('node-fetch')
+import fetch from 'node-fetch'
 
-const { supabaseAdminClient } = require('../_lib/supabaseClient')
+import { supabaseAdminClient } from '../_lib/supabaseClient.js'
 
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN
@@ -237,7 +237,7 @@ async function logChannelDelivery({ userId, type, channel, success, status, mess
   }
 }
 
-module.exports = {
+export {
   fetchUserNotificationPreferences,
   fetchUserNotificationPreferencesRecord,
   normalizePreferencesRecord,

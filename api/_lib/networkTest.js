@@ -1,5 +1,5 @@
-const https = require('https')
-const { URL } = require('url')
+import https from 'node:https'
+import { URL } from 'node:url'
 
 async function testSupabaseConnection(supabaseUrl) {
   return new Promise((resolve) => {
@@ -45,4 +45,4 @@ async function testSupabaseConnection(supabaseUrl) {
   })
 }
 
-module.exports = { testSupabaseConnection }
+export { testSupabaseConnection }

@@ -1,12 +1,12 @@
-const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
-const {
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
+import {
   checkRateLimit,
   buildRateLimitKey,
   getLimiterConfig,
   attachRateLimitHeaders
-} = require('../_lib/rateLimiter')
+} from '../_lib/rateLimiter.js'
 
-module.exports = async function handler(req, res) {
+export async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -52,3 +52,5 @@ module.exports = async function handler(req, res) {
 
   return res.status(200).json({ subjects: data || [] })
 }
+
+export default handler

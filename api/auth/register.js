@@ -1,6 +1,6 @@
-const { supabaseAdminClient } = require('../_lib/supabaseClient')
-const { logAuditEvent } = require('../_lib/auditLogger')
-const { withNetlifyHandler } = require('../_lib/netlifyHandler')
+import { supabaseAdminClient } from '../_lib/supabaseClient.js'
+import { logAuditEvent } from '../_lib/auditLogger.js'
+import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
 
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -75,5 +75,6 @@ async function handler(req, res) {
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

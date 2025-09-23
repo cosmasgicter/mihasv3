@@ -1,4 +1,4 @@
-const { withNetlifyHandler } = require('./_lib/netlifyHandler')
+import { withNetlifyHandler } from './_lib/netlifyHandler.js'
 
 function handler(req, res) {
   res.json({
@@ -11,5 +11,6 @@ function handler(req, res) {
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

@@ -1,5 +1,5 @@
-const { createClient } = require('@supabase/supabase-js');
-const { withNetlifyHandler } = require('../../../api/_lib/netlifyHandler');
+import { createClient } from '@supabase/supabase-js';
+import { withNetlifyHandler } from '../../../api/_lib/netlifyHandler.js';
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -65,7 +65,7 @@ async function handler(req, res) {
   }
 }
 
-const netlifyHandler = withNetlifyHandler(handler);
+const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler;
-module.exports = netlifyHandler;
+export { netlifyHandler as handler }
+export default netlifyHandler

@@ -1,4 +1,4 @@
-async function retryFetch(url, options = {}, maxRetries = 3) {
+export async function retryFetch(url, options = {}, maxRetries = 3) {
   const { timeout = 30000, ...fetchOptions } = options
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -27,5 +27,3 @@ async function retryFetch(url, options = {}, maxRetries = 3) {
     }
   }
 }
-
-module.exports = { retryFetch }

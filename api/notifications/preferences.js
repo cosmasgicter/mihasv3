@@ -1,6 +1,6 @@
-const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
-const { fetchUserNotificationPreferences } = require('./_shared')
-const { withNetlifyHandler } = require('../_lib/netlifyHandler')
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
+import { fetchUserNotificationPreferences } from './_shared.js'
+import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
 
 async function handler(req, res) {
   // Add CORS headers
@@ -43,5 +43,6 @@ async function handler(req, res) {
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

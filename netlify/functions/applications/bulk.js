@@ -1,12 +1,12 @@
-const {
+import {
   checkRateLimit,
   buildRateLimitKey,
   getLimiterConfig,
   attachRateLimitHeaders
-} = require('../_lib/rateLimiter')
-const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
+} from '../_lib/rateLimiter.js'
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
 
-module.exports = async function handler(req, res) {
+export async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -85,6 +85,8 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
+export default handler
 
 async function bulkUpdateStatus(res, userId, applicationIds, status) {
   if (!status) {

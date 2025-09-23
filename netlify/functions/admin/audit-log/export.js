@@ -1,6 +1,6 @@
-const { logAuditEvent } = require('../../_lib/auditLogger')
-const { supabaseAdminClient, getUserFromRequest } = require('../../_lib/supabaseClient')
-const { buildAuditLogFilters, normalizeRecord, fetchAllAuditRecords } = require('./utils')
+import { logAuditEvent } from '../../_lib/auditLogger.js'
+import { supabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js'
+import { buildAuditLogFilters, normalizeRecord, fetchAllAuditRecords } from './utils.js'
 
 function resolveSingleValue(value) {
   if (Array.isArray(value)) {
@@ -66,7 +66,7 @@ function buildFilename(extension) {
   return `mihas-audit-log-${timestamp}.${extension}`
 }
 
-module.exports = async function handler(req, res) {
+export async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -141,3 +141,5 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to export audit log entries' })
   }
 }
+
+export default handler

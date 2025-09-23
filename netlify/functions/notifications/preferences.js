@@ -1,7 +1,7 @@
-const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
-const { fetchUserNotificationPreferences } = require('./_shared')
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
+import { fetchUserNotificationPreferences } from './_shared.js'
 
-module.exports = async function handler(req, res) {
+export async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -39,3 +39,5 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to load notification preferences' })
   }
 }
+
+export default handler
