@@ -7,12 +7,12 @@
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "dev": "vite --config vite.config.local.ts --port 5173",
-    "dev:network": "vite --config vite.config.local.ts --host 0.0.0.0 --port 5173",
+    "dev": "vite --config vite.config.local.ts",
+    "dev:network": "vite --config vite.config.local.ts --host 0.0.0.0",
     "dev:prod": "vite build --config vite.config.production.ts && vite preview",
     "dev:api": "node local-server.js",
     "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\"",
-    "dev:netlify": "netlify dev --port 5173",
+    "dev:netlify": "netlify dev",
     "build": "tsc -p tsconfig.build.json && vite build --config vite.config.production.ts",
     "build:prod": "tsc -p tsconfig.build.json && vite build --config vite.config.production.ts --mode production",
     "build:analyze": "tsc -p tsconfig.build.json && vite build --mode production && npx vite-bundle-analyzer dist/stats.html",

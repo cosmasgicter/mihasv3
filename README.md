@@ -70,6 +70,9 @@ npm run dev
 npm run build:prod
 ```
 
+> The Vite development server reads its port from the `VITE_DEV_SERVER_PORT` environment variable (default `5173`).
+> Add it to your `.env.local` or `.env.development` file if you need to run on a different port.
+
 ### 📁 Project Structure
 
 ```
@@ -145,6 +148,10 @@ import { EnhancedLoadingSpinner } from '@/components/ui/EnhancedLoadingSpinner'
 ### 📋 Environment Variables
 
 All environment variables are pre-configured for production. See `.env.production` for the complete list.
+
+- `VITE_DEV_SERVER_PORT` (default `5173`) – overrides the port used by the local Vite development scripts:
+  - `npm run dev`
+  - `npm run dev:network`
 
 ### 📖 Documentation
 
