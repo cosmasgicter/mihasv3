@@ -1,7 +1,7 @@
-const { logAuditEvent } = require('../../_lib/auditLogger')
-const { supabaseAdminClient, getUserFromRequest } = require('../../_lib/supabaseClient')
-const { withNetlifyHandler } = require('../../_lib/netlifyHandler')
-const { buildAuditLogFilters, normalizeRecord, fetchAllAuditRecords } = require('./utils')
+import { logAuditEvent } from '../../_lib/auditLogger.js'
+import { supabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js'
+import { withNetlifyHandler } from '../../_lib/netlifyHandler.js'
+import { buildAuditLogFilters, normalizeRecord, fetchAllAuditRecords } from './utils.js'
 
 function resolveSingleValue(value) {
   if (Array.isArray(value)) {
@@ -145,5 +145,6 @@ async function handler(req, res) {
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

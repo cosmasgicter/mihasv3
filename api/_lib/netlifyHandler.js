@@ -241,7 +241,7 @@ function normalizeHandlerResult(result) {
   }
 }
 
-function withNetlifyHandler(expressHandler) {
+export function withNetlifyHandler(expressHandler) {
   if (typeof expressHandler !== 'function') {
     throw new TypeError('Expected a handler function')
   }
@@ -272,8 +272,4 @@ function withNetlifyHandler(expressHandler) {
   netlifyHandler.expressHandler = expressHandler
 
   return netlifyHandler
-}
-
-module.exports = {
-  withNetlifyHandler
 }

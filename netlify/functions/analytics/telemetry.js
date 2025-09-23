@@ -1,4 +1,4 @@
-const { withNetlifyHandler } = require('../../../api/_lib/netlifyHandler');
+import { withNetlifyHandler } from '../../../api/_lib/netlifyHandler.js';
 
 async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -20,7 +20,7 @@ async function handler(req, res) {
   }
 }
 
-const netlifyHandler = withNetlifyHandler(handler);
+const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler;
-module.exports = netlifyHandler;
+export { netlifyHandler as handler }
+export default netlifyHandler

@@ -1,6 +1,6 @@
-const { handleMetricsRequest } = require('../_lib/analytics/metrics')
+import { handleMetricsRequest } from '../_lib/analytics/metrics.js'
 
-module.exports = async function handler(req, res) {
+export async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -19,3 +19,5 @@ module.exports = async function handler(req, res) {
 
   return handleMetricsRequest(req, res)
 }
+
+export default handler

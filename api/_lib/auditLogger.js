@@ -1,4 +1,4 @@
-const { supabaseAdminClient } = require('./supabaseClient')
+import { supabaseAdminClient } from './supabaseClient.js'
 
 function normalizeMetadata(metadata) {
   if (metadata === null || metadata === undefined) {
@@ -81,6 +81,4 @@ async function logAuditEvent({
   }
 }
 
-module.exports = {
-  logAuditEvent
-}
+export { logAuditEvent }

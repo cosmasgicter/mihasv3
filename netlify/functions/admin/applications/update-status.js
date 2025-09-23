@@ -1,7 +1,7 @@
-const { supabaseAdminClient, getUserFromRequest } = require('../../_lib/supabaseClient')
-const { logAuditEvent } = require('../../_lib/auditLogger')
+import { supabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js'
+import { logAuditEvent } from '../../_lib/auditLogger.js'
 
-module.exports = async function handler(req, res) {
+export async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -76,3 +76,5 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
+export default handler

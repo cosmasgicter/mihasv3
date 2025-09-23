@@ -1,6 +1,6 @@
-const { createAuthHandler } = require('../_lib/createAuthHandler')
-const { createPasswordAuthHandler } = require('./_passwordAuthHandler')
-const { withNetlifyHandler } = require('../_lib/netlifyHandler')
+import { createAuthHandler } from '../_lib/createAuthHandler.js'
+import { createPasswordAuthHandler } from './_passwordAuthHandler.js'
+import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
 
 const handler = createAuthHandler(
   createPasswordAuthHandler({ auditEventBase: 'auth.login' })
@@ -8,5 +8,6 @@ const handler = createAuthHandler(
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

@@ -1,6 +1,9 @@
-const { createAuthHandler } = require('../_lib/createAuthHandler')
-const { createPasswordAuthHandler } = require('./_passwordAuthHandler')
+import { createAuthHandler } from '../_lib/createAuthHandler.js'
+import { createPasswordAuthHandler } from './_passwordAuthHandler.js'
 
-module.exports = createAuthHandler(
+const handler = createAuthHandler(
   createPasswordAuthHandler({ auditEventBase: 'auth.login' })
 )
+
+export { handler }
+export default handler

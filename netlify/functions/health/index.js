@@ -1,4 +1,4 @@
-const { testSupabaseConnection } = require('../_lib/networkTest')
+import { testSupabaseConnection } from '../_lib/networkTest.js'
 
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -31,5 +31,6 @@ async function handler(req, res) {
   })
 }
 
-module.exports = handler
-module.exports.handler = handler
+export { handler }
+export default handler
+

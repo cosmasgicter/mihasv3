@@ -1,4 +1,4 @@
-const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
 
 const APPLICATION_STATUSES = ['draft', 'submitted', 'under_review', 'approved', 'rejected']
 
@@ -320,4 +320,5 @@ handler.__testables__ = {
   getDependencies: () => ({ ...dependencies })
 }
 
-module.exports = handler
+export { handler }
+export default handler
