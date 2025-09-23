@@ -7,6 +7,7 @@ import {
   getLimiterConfig,
   attachRateLimitHeaders
 } from '../_lib/rateLimiter.js'
+import { withNetlifyHandler } from '../../../api/_lib/netlifyHandler.js'
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
 const ALLOWED_EXTENSIONS = new Set(['pdf', 'png', 'jpg', 'jpeg'])
@@ -188,7 +189,7 @@ async function scanForMalware(buffer) {
   return { clean: true }
 }
 
-export async function handler(req, res) {
+async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -346,4 +347,7 @@ export async function handler(req, res) {
   }
 }
 
-export default handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { netlifyHandler as handler }
+export default netlifyHandler
