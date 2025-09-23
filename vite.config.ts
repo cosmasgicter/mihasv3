@@ -12,6 +12,13 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'service-worker.ts',
+        injectManifest: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          maximumFileSizeToCacheInBytes: 4 * 1024 * 1024
+        },
         devOptions: {
           enabled: false
         },
@@ -35,72 +42,6 @@ export default defineConfig(({ mode }) => {
               src: 'favicon.ico',
               sizes: '16x16 32x32',
               type: 'image/x-icon'
-            }
-          ]
-        },
-        workbox: {
-          maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-          skipWaiting: true,
-          clientsClaim: true,
-          cleanupOutdatedCaches: true,
-          cacheId: 'mihas-v2',
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'google-fonts-cache',
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365
-                }
-              }
-            },
-            {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-              handler: 'NetworkOnly'
-            },
-            {
-              urlPattern: /\/api\/.*/,
-              handler: 'NetworkOnly'
-            },
-            {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/.*/i,
-              handler: 'NetworkOnly'
-            },
-            {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'supabase-storage-cache',
-                expiration: {
-                  maxEntries: 50,
-                  maxAgeSeconds: 60 * 60 * 24 * 7
-                }
-              }
-            },
-            {
-              urlPattern: ({ request }) => request.destination === 'document',
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'pages-cache',
-                expiration: {
-                  maxEntries: 20,
-                  maxAgeSeconds: 60 * 60 * 24
-                }
-              }
-            },
-            {
-              urlPattern: ({ request }) => request.destination === 'image',
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'images-cache',
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24 * 30
-                }
-              }
             }
           ]
         }
