@@ -8,15 +8,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      workbox: {
-        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'service-worker.ts',
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: 'NetworkOnly'
-          }
-        ]
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024
       }
     })
   ],
