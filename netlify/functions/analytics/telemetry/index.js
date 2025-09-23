@@ -1,4 +1,6 @@
-export async function handler(req, res) {
+import { withNetlifyHandler } from '../../../../api/_lib/netlifyHandler.js'
+
+async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -16,4 +18,7 @@ export async function handler(req, res) {
   return res.status(405).json({ error: 'Method not allowed' })
 }
 
-export default handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { netlifyHandler as handler }
+export default netlifyHandler

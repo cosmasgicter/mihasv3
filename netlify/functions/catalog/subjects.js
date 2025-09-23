@@ -5,8 +5,9 @@ import {
   getLimiterConfig,
   attachRateLimitHeaders
 } from '../_lib/rateLimiter.js'
+import { withNetlifyHandler } from '../../../api/_lib/netlifyHandler.js'
 
-export async function handler(req, res) {
+async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -53,4 +54,7 @@ export async function handler(req, res) {
   return res.status(200).json({ subjects: data || [] })
 }
 
-export default handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { netlifyHandler as handler }
+export default netlifyHandler
