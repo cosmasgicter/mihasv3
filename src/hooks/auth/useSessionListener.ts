@@ -11,6 +11,7 @@ import { sanitizeForLog } from '@/lib/security'
 import { authPersistence } from '@/lib/authPersistence'
 import { secureDisplay } from '@/lib/secureDisplay'
 import { sanitizeForDisplay } from '@/lib/sanitize'
+import { getApiBaseUrl } from '@/lib/apiConfig'
 
 export type SignInResult = {
   session?: any
@@ -25,6 +26,7 @@ export type SignUpResult = {
 }
 
 export function useSessionListener() {
+  const apiBaseUrl = getApiBaseUrl()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -112,7 +114,7 @@ export function useSessionListener() {
     }
 
     try {
-      const response = await fetch('http://localhost:8888/.netlify/functions/auth-login', {
+      const response = await fetch(`${apiBaseUrl}/.netlify/functions/auth-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -137,7 +139,7 @@ export function useSessionListener() {
     } catch (error) {
       return { error: error instanceof Error ? error.message : 'Login failed' }
     }
-  }, [])
+  }, [apiBaseUrl])
 
   const signUp = useCallback(async (email: string, password: string, userData: any): Promise<SignUpResult> => {
     if (!isSupabaseConfigured) {
@@ -145,7 +147,7 @@ export function useSessionListener() {
     }
 
     try {
-      const response = await fetch('http://localhost:8888/.netlify/functions/auth-register', {
+      const response = await fetch(`${apiBaseUrl}/.netlify/functions/auth-register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -167,7 +169,7 @@ export function useSessionListener() {
     } catch (error) {
       return { error: error instanceof Error ? error.message : 'Registration failed' }
     }
-  }, [])
+  }, [apiBaseUrl])
 
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured) {
