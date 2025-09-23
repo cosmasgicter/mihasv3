@@ -5,8 +5,27 @@ import { sanitizeForLog } from './security'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
+
+export const SUPABASE_STATUS_EVENT = 'mihas:supabase-status'
+
+export interface SupabaseStatusDetail {
+  available: boolean
+  message?: string
+}
+
+export const SUPABASE_MISSING_CONFIG_MESSAGE =
+  'Supabase environment variables are missing. Authentication features are disabled in this build.'
+
+function resolveSupabaseConfig() {
+  if (!isSupabaseConfigured) {
+    throw new Error(SUPABASE_MISSING_CONFIG_MESSAGE)
+  }
+
+  return {
+    url: supabaseUrl as string,
+    anonKey: supabaseAnonKey as string
+  }
 }
 
 const AUTH_STORAGE_KEY = 'mihas-auth-token'
@@ -52,6 +71,7 @@ function resolveStorage(adapter?: SupportedStorage) {
 }
 
 export function createSupabaseClient(options: SupabaseFactoryOptions = {}): SupabaseClient {
+  const { url, anonKey } = resolveSupabaseConfig()
   const { storage, isServerStorage } = resolveStorage(options.storage)
   const shouldRecreateClient =
     !supabaseClient || (!isServerStorage && usingServerStorage)
@@ -62,7 +82,7 @@ export function createSupabaseClient(options: SupabaseFactoryOptions = {}): Supa
       sessionInterval = null
     }
 
-    supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+    supabaseClient = createClient(url, anonKey, {
       auth: {
         autoRefreshToken: true,
         persistSession: true,

@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient, type QueryKey } from '@tanstack/react-query'
 import type {
   RealtimeChannel,
-  RealtimePostgresChangesPayload
+  RealtimePostgresChangesPayload,
+  SupabaseClient
 } from '@supabase/supabase-js'
-import { getSupabaseClient } from '@/lib/supabase'
+import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
 
 export type ApplicationStatus =
   | 'draft'
@@ -378,7 +379,13 @@ export function useAdminRealtimeMetrics(options: AdminRealtimeMetricsOptions = {
   const [error, setError] = useState<string | null>(null)
   const [lastEventAt, setLastEventAt] = useState<number | null>(null)
   const channelRef = useRef<RealtimeChannel | null>(null)
-  const supabase = useMemo(() => getSupabaseClient(), [])
+  const supabase = useMemo<SupabaseClient | null>(() => {
+    if (!isSupabaseConfigured) {
+      return null
+    }
+
+    return getSupabaseClient()
+  }, [])
 
   const statsQueryKey = options.queryKeys?.applicationsStats ?? DEFAULT_STATS_QUERY_KEY
   const recentActivityKey = options.queryKeys?.applicationsRecentActivity ?? DEFAULT_RECENT_ACTIVITY_KEY
@@ -489,6 +496,12 @@ export function useAdminRealtimeMetrics(options: AdminRealtimeMetricsOptions = {
   }, [options.currentUserId, queryClient])
 
   useEffect(() => {
+    if (!supabase) {
+      setIsConnected(false)
+      setError('Supabase configuration missing')
+      return
+    }
+
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current)
       channelRef.current = null
