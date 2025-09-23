@@ -1,5 +1,5 @@
-import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
-import { logAuditEvent } from '../_lib/auditLogger.js'
+const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
+const { logAuditEvent } = require('../_lib/auditLogger')
 
 function getQueryParam(req, name) {
   if (req.query && typeof req.query[name] === 'string') {
@@ -14,7 +14,7 @@ function getQueryParam(req, name) {
   }
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
