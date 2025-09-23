@@ -294,12 +294,47 @@ async function handler(req, res) {
         }
       }
 
+      if (!body || typeof body !== 'object' || Array.isArray(body)) {
+        return res.status(400).json({ error: 'Request body must be an object' })
+      }
+
+      const applicationId = body.id ?? body.application_id ?? body.applicationId
+      if (!applicationId) {
+        return res.status(400).json({ error: 'Application ID is required for updates' })
+      }
+
+      const {
+        data: existingApplication,
+        error: fetchError
+      } = await dependencies.supabaseClient
+        .from('applications_new')
+        .select('id, user_id')
+        .eq('id', applicationId)
+        .maybeSingle()
+
+      if (fetchError) {
+        return res.status(400).json({ error: fetchError.message })
+      }
+
+      if (!existingApplication) {
+        return res.status(404).json({ error: 'Application not found' })
+      }
+
+      const isOwner = existingApplication.user_id === authContext.user?.id
+      if (!authContext.isAdmin && !isOwner) {
+        return res.status(403).json({ error: 'Access denied' })
+      }
+
+      const updatePayload = { ...body }
+      delete updatePayload.id
+      delete updatePayload.application_id
+      delete updatePayload.applicationId
+      delete updatePayload.user_id
+
       const { data, error } = await dependencies.supabaseClient
         .from('applications_new')
-        .insert({
-          ...body,
-          user_id: authContext.user.id
-        })
+        .update(updatePayload)
+        .eq('id', applicationId)
         .select()
         .single()
 
@@ -307,9 +342,9 @@ async function handler(req, res) {
         return res.status(400).json({ error: error.message })
       }
 
-      return res.status(201).json(data)
+      return res.status(200).json(data)
     } catch (error) {
-      console.error('Application creation error:', error)
+      console.error('Application update error:', error)
       return res.status(500).json({ error: 'Internal server error' })
     }
   }
