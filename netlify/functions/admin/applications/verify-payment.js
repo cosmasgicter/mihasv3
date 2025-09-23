@@ -1,7 +1,8 @@
 import { supabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js'
 import { logAuditEvent } from '../../_lib/auditLogger.js'
+import { withNetlifyHandler } from '../../../../api/_lib/netlifyHandler.js'
 
-export async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -65,4 +66,7 @@ export async function handler(req, res) {
   }
 }
 
-export default handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { netlifyHandler as handler }
+export default netlifyHandler

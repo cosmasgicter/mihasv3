@@ -1,4 +1,5 @@
 import { testSupabaseConnection } from '../_lib/networkTest.js'
+import { withNetlifyHandler } from '../../../api/_lib/netlifyHandler.js'
 
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -31,6 +32,8 @@ async function handler(req, res) {
   })
 }
 
-export { handler }
-export default handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { netlifyHandler as handler }
+export default netlifyHandler
 

@@ -1,7 +1,8 @@
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
 import { fetchUserNotificationPreferences } from './_shared.js'
+import { withNetlifyHandler } from '../../../api/_lib/netlifyHandler.js'
 
-export async function handler(req, res) {
+async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -40,4 +41,7 @@ export async function handler(req, res) {
   }
 }
 
-export default handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { netlifyHandler as handler }
+export default netlifyHandler

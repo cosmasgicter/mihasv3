@@ -1,6 +1,7 @@
 import { logAuditEvent } from '../../_lib/auditLogger.js'
 import { supabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js'
 import { buildAuditLogFilters, normalizeRecord, fetchAllAuditRecords } from './utils.js'
+import { withNetlifyHandler } from '../../../../../api/_lib/netlifyHandler.js'
 
 function resolveSingleValue(value) {
   if (Array.isArray(value)) {
@@ -66,7 +67,7 @@ function buildFilename(extension) {
   return `mihas-audit-log-${timestamp}.${extension}`
 }
 
-export async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -142,4 +143,7 @@ export async function handler(req, res) {
   }
 }
 
-export default handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { netlifyHandler as handler }
+export default netlifyHandler
