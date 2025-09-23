@@ -1,4 +1,6 @@
-export function handler(req, res) {
+import { withNetlifyHandler } from '../../api/_lib/netlifyHandler.js'
+
+function handler(req, res) {
   res.json({
     message: 'API is working!',
     method: req.method,
@@ -7,4 +9,7 @@ export function handler(req, res) {
   })
 }
 
-export default handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { netlifyHandler as handler }
+export default netlifyHandler

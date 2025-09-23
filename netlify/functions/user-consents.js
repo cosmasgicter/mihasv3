@@ -6,6 +6,7 @@ import {
   revokeConsent,
   hasActiveConsent
 } from './_lib/userConsent.js'
+import { withNetlifyHandler } from '../../api/_lib/netlifyHandler.js'
 
 function normalizeConsent(record) {
   if (!record) {
@@ -27,7 +28,7 @@ function normalizeConsent(record) {
   }
 }
 
-export async function handler(req, res) {
+async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -148,4 +149,7 @@ export async function handler(req, res) {
   }
 }
 
-export default handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { netlifyHandler as handler }
+export default netlifyHandler

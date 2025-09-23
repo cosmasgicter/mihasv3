@@ -1,4 +1,5 @@
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
+import { withNetlifyHandler } from '../../../api/_lib/netlifyHandler.js'
 
 const APPLICATION_STATUSES = ['draft', 'submitted', 'under_review', 'approved', 'rejected']
 
@@ -320,5 +321,7 @@ handler.__testables__ = {
   getDependencies: () => ({ ...dependencies })
 }
 
-export { handler }
-export default handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { netlifyHandler as handler }
+export default netlifyHandler
