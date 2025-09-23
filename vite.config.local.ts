@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
+const devServerPort = Number(process.env.VITE_DEV_SERVER_PORT) || 5173
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -13,9 +15,9 @@ export default defineConfig({
     global: 'globalThis',
   },
   server: {
-    port: 5173,
+    port: devServerPort,
     host: '0.0.0.0', // Bind to all interfaces for network access
-    strictPort: true,
+    strictPort: false,
     cors: true
   },
   preview: {
