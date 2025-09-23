@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { supabase } from '@/lib/supabase'
 import { predictiveAnalytics } from '@/lib/predictiveAnalytics'
-import { documentAI } from '@/lib/documentAI'
 import { localAI } from '@/lib/localAI'
 
 

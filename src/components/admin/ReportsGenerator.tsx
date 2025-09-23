@@ -346,9 +346,13 @@ export function ReportsGenerator() {
         text: result.text
       })
 
-      if (action === 'pdf') {
-        const blob = result.pdf.blob ?? new Blob([result.pdf.bytes], { type: 'application/pdf' })
-        downloadPdfDocument(blob, result.pdf.fileName)
+        if (action === 'pdf') {
+          const { blob: generatedBlob, bytes } = result.pdf
+          const byteSource = bytes instanceof Uint8Array
+            ? bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+            : bytes
+          const blob = generatedBlob ?? new Blob([byteSource], { type: 'application/pdf' })
+          downloadPdfDocument(blob, result.pdf.fileName)
         alert('Document generated and downloaded successfully!')
         setPreviewMode('html')
         return

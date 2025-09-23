@@ -4,6 +4,7 @@ import { Menu, X, Home, FileText, User, Settings, Bell, LogOut } from 'lucide-re
 import { cn } from '@/lib/utils'
 import { MobileOptimizedButton } from './MobileOptimizedButton'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 
 interface NavigationItem {
   name: string
@@ -47,7 +48,8 @@ export function EnhancedMobileNavigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const location = useLocation()
-  const { user, isAdmin, signOut } = useAuth()
+  const { user, signOut } = useAuth()
+  const { isAdmin } = useRoleQuery({ user })
   const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
