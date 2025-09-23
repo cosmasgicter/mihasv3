@@ -4,6 +4,7 @@ import { Download, Mail, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { getSupabaseClient, isSupabaseConfigured, SUPABASE_MISSING_CONFIG_MESSAGE } from '@/lib/supabase'
+import { getApiBaseUrl } from '@/lib/apiConfig'
 
 interface ApplicationSlipActionsProps {
   applicationId: string
@@ -12,6 +13,7 @@ interface ApplicationSlipActionsProps {
 
 export function ApplicationSlipActions({ applicationId, applicationNumber }: ApplicationSlipActionsProps) {
   const { user } = useAuth()
+  const apiBaseUrl = getApiBaseUrl()
   const supabase = useMemo(() => {
     if (!isSupabaseConfigured) {
       return null
@@ -36,7 +38,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       const { data: { session } } = await supabase.auth.getSession()
       const accessToken = session?.access_token
 
-      const response = await fetch('/.netlify/functions/applications-generate-slip', {
+      const response = await fetch(`${apiBaseUrl}/.netlify/functions/applications-generate-slip`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +79,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       const { data: { session } } = await supabase.auth.getSession()
       const accessToken = session?.access_token
 
-      const response = await fetch('/.netlify/functions/applications-email-slip', {
+      const response = await fetch(`${apiBaseUrl}/.netlify/functions/applications-email-slip`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
