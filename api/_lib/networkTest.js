@@ -17,10 +17,30 @@ async function testSupabaseConnection(supabaseUrl) {
     }
 
     const req = https.request(options, (res) => {
+      const statusCode = res.statusCode ?? 0
+      const statusMessage = res.statusMessage?.trim()
+      const isSuccessful = statusCode >= 200 && statusCode < 400
+
+      if (typeof res.resume === 'function') {
+        res.resume()
+      }
+
+      if (isSuccessful) {
+        resolve({
+          success: true,
+          status: statusCode,
+          message: `Connected successfully (${statusCode})`
+        })
+        return
+      }
+
+      const description = statusMessage ? `${statusCode} ${statusMessage}` : `${statusCode}`
+
       resolve({
-        success: true,
-        status: res.statusCode,
-        message: `Connected successfully (${res.statusCode})`
+        success: false,
+        status: statusCode,
+        error: `HTTP ${statusCode}`,
+        message: `Unexpected response from Supabase: ${description}`
       })
     })
 
