@@ -1,4 +1,5 @@
 const { testSupabaseConnection } = require('../_lib/networkTest')
+const { withNetlifyHandler } = require('../_lib/netlifyHandler')
 
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -31,5 +32,7 @@ async function handler(req, res) {
   })
 }
 
-module.exports = handler
-module.exports.handler = handler
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler

@@ -1,11 +1,12 @@
 const { createClient } = require('@supabase/supabase-js')
+const { withNetlifyHandler } = require('./_lib/netlifyHandler')
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   const { data } = await supabase
     .from('email_notifications')
     .select('status, retry_count, error_message, created_at')
@@ -18,6 +19,10 @@ module.exports = async function handler(req, res) {
   }, {}) || {}
 
   const failures = data?.filter(row => row.status === 'failed').slice(0, 5) || []
-
   res.json({ stats, failures, total: data?.length || 0 })
 }
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler
