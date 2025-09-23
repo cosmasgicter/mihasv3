@@ -1,4 +1,4 @@
-import { requireUser } from './_lib/supabaseClient.js'
+import { getUserFromRequest } from './_lib/supabaseClient.js'
 import { logAuditEvent } from './_lib/auditLogger.js'
 import {
   listConsents,
@@ -40,11 +40,16 @@ async function handler(req, res) {
 
 
   try {
-    const authContext = await requireUser(req)
-    if (authContext.error) {
-      return res.status(401).json({ error: authContext.error })
+    const authContext = await getUserFromRequest(req)
+    if (authContext?.error) {
+      const status = authContext.error === 'Access denied' ? 403 : 401
+      return res.status(status).json({ error: authContext.error })
     }
-    const { user, roles, isAdmin } = authContext
+    if (!authContext || !authContext.user) {
+      return res.status(401).json({ error: 'Authentication required' })
+    }
+
+    const { user, roles = [], isAdmin = false } = authContext
 
     const requestedUserId = typeof req.query?.userId === 'string' ? req.query.userId : null
     const targetUserId = isAdmin && requestedUserId ? requestedUserId : user.id
