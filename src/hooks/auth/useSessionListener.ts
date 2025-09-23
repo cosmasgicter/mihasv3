@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
-import { getSupabaseClient } from '@/lib/supabase'
+import {
+  getSupabaseClient,
+  isSupabaseConfigured,
+  SUPABASE_STATUS_EVENT,
+  SUPABASE_MISSING_CONFIG_MESSAGE,
+  type SupabaseStatusDetail
+} from '@/lib/supabase'
 import { sanitizeForLog } from '@/lib/security'
 import { authPersistence } from '@/lib/authPersistence'
 import { secureDisplay } from '@/lib/secureDisplay'
@@ -25,6 +31,22 @@ export function useSessionListener() {
   useEffect(() => {
     if (typeof window === 'undefined') {
       setLoading(false)
+      return
+    }
+
+    if (!isSupabaseConfigured) {
+      console.warn('Supabase configuration missing. Authentication features are disabled.')
+
+      if (typeof window !== 'undefined') {
+        const detail: SupabaseStatusDetail = {
+          available: false,
+          message: SUPABASE_MISSING_CONFIG_MESSAGE
+        }
+        window.dispatchEvent(new CustomEvent(SUPABASE_STATUS_EVENT, { detail }))
+      }
+
+      setLoading(false)
+      setUser(null)
       return
     }
 
@@ -85,6 +107,10 @@ export function useSessionListener() {
   }, [])
 
   const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
+    if (!isSupabaseConfigured) {
+      return { error: SUPABASE_MISSING_CONFIG_MESSAGE }
+    }
+
     try {
       const response = await fetch('http://localhost:8888/.netlify/functions/auth-login', {
         method: 'POST',
@@ -114,6 +140,10 @@ export function useSessionListener() {
   }, [])
 
   const signUp = useCallback(async (email: string, password: string, userData: any): Promise<SignUpResult> => {
+    if (!isSupabaseConfigured) {
+      return { error: SUPABASE_MISSING_CONFIG_MESSAGE }
+    }
+
     try {
       const response = await fetch('http://localhost:8888/.netlify/functions/auth-register', {
         method: 'POST',
@@ -140,6 +170,11 @@ export function useSessionListener() {
   }, [])
 
   const signOut = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      setUser(null)
+      return
+    }
+
     const supabase = getSupabaseClient()
     await supabase.auth.signOut()
     setUser(null)

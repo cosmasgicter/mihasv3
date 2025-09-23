@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState, useEffect } from 'react'
+import React, { lazy, Suspense, useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/Button'
 import { MobileNavigation } from '@/components/ui/MobileNavigation'
 import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { GraduationCap, Users, Award, BookOpen, Star, ArrowRight, CheckCircle } from 'lucide-react'
+import { GraduationCap, Users, Award, BookOpen, Star, ArrowRight, CheckCircle, AlertTriangle } from 'lucide-react'
+import {
+  isSupabaseConfigured,
+  SUPABASE_MISSING_CONFIG_MESSAGE,
+  SUPABASE_STATUS_EVENT,
+  type SupabaseStatusDetail
+} from '@/lib/supabase'
 
 // Static import for AnimatedCard to avoid chunk conflicts
 import { AnimatedCard } from '@/components/ui/AnimatedCard'
@@ -29,18 +35,41 @@ export default function LandingPageNew() {
   const [showAnimations, setShowAnimations] = useState(false)
   const animationHelpersEnabled = showAnimations && !shouldReduceMotion
   const maybeMotion = <T,>(value: T) => (shouldReduceMotion ? undefined : value)
+  const [supabaseAvailable, setSupabaseAvailable] = useState(isSupabaseConfigured)
+  const [supabaseStatusMessage, setSupabaseStatusMessage] = useState<string | null>(
+    isSupabaseConfigured ? null : SUPABASE_MISSING_CONFIG_MESSAGE
+  )
 
   const heroFloatingCount = isMobile ? 16 : 30
   const statsFloatingCount = isMobile ? 5 : 10
   const programsFloatingCount = isMobile ? 8 : 15
   const ctaFloatingCount = isMobile ? 12 : 25
   const footerFloatingCount = isMobile ? 4 : 8
-  
+
   useEffect(() => {
     // Defer animations to improve LCP
     const timer = setTimeout(() => setShowAnimations(true), 300)
     return () => clearTimeout(timer)
   }, [])
+
+  const handleSupabaseStatus = useCallback((event: Event) => {
+    const detail = (event as CustomEvent<SupabaseStatusDetail>).detail
+    if (!detail) return
+
+    setSupabaseAvailable(detail.available)
+    setSupabaseStatusMessage(detail.available ? null : detail.message ?? SUPABASE_MISSING_CONFIG_MESSAGE)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    window.addEventListener(SUPABASE_STATUS_EVENT, handleSupabaseStatus as EventListener)
+    return () => {
+      window.removeEventListener(SUPABASE_STATUS_EVENT, handleSupabaseStatus as EventListener)
+    }
+  }, [handleSupabaseStatus])
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -129,6 +158,22 @@ export default function LandingPageNew() {
           <MobileNavigation />
         </nav>
       </motion.header>
+
+      {!supabaseAvailable && supabaseStatusMessage && (
+        <div className="mt-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto rounded-2xl border border-amber-200 bg-amber-50/95 p-4 shadow-sm">
+            <div className="flex items-start gap-3 text-amber-900">
+              <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div>
+                <p className="font-semibold">Supabase disabled</p>
+                <p className="text-sm leading-relaxed">
+                  {supabaseStatusMessage}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Enhanced Hero Section */}
       <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
