@@ -1,12 +1,12 @@
-const { supabaseAdminClient, getUserFromRequest } = require('../supabaseClient')
-const { logAuditEvent } = require('../auditLogger')
-const { listActiveConsentUserIds } = require('../userConsent')
-const {
+import { supabaseAdminClient, getUserFromRequest } from '../supabaseClient.js'
+import { logAuditEvent } from '../auditLogger.js'
+import { listActiveConsentUserIds } from '../userConsent.js'
+import {
   checkRateLimit,
   buildRateLimitKey,
   getLimiterConfig,
   attachRateLimitHeaders
-} = require('../rateLimiter')
+} from '../rateLimiter.js'
 
 const DEFAULT_PREDICTIVE_SUMMARY = {
   avgAdmissionProbability: 0,
@@ -380,6 +380,4 @@ async function handlePredictiveDashboardRequest(req, res) {
   }
 }
 
-module.exports = {
-  handlePredictiveDashboardRequest
-}
+export { handlePredictiveDashboardRequest }

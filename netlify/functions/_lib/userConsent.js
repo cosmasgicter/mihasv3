@@ -1,4 +1,4 @@
-const { supabaseAdminClient } = require('./supabaseClient')
+import { supabaseAdminClient } from './supabaseClient.js'
 
 async function getActiveConsent(userId, consentType) {
   if (!userId || !consentType) {
@@ -122,7 +122,7 @@ async function hasActiveConsent(userId, consentType) {
   return { active: Boolean(record), record }
 }
 
-module.exports = {
+export {
   getActiveConsent,
   hasActiveConsent,
   listConsents,

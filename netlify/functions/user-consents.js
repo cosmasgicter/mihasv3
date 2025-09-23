@@ -1,11 +1,11 @@
-const { requireUser } = require('./_lib/supabaseClient')
-const { logAuditEvent } = require('./_lib/auditLogger')
-const {
+import { requireUser } from './_lib/supabaseClient.js'
+import { logAuditEvent } from './_lib/auditLogger.js'
+import {
   listConsents,
   grantConsent,
   revokeConsent,
   hasActiveConsent
-} = require('./_lib/userConsent')
+} from './_lib/userConsent.js'
 
 function normalizeConsent(record) {
   if (!record) {
@@ -27,7 +27,7 @@ function normalizeConsent(record) {
   }
 }
 
-module.exports = async function handler(req, res) {
+export async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -147,3 +147,5 @@ module.exports = async function handler(req, res) {
     })
   }
 }
+
+export default handler

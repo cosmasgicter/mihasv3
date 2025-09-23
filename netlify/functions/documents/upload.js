@@ -1,12 +1,12 @@
-const path = require('path')
-const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
-const { logAuditEvent } = require('../_lib/auditLogger')
-const {
+import path from 'node:path'
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
+import { logAuditEvent } from '../_lib/auditLogger.js'
+import {
   checkRateLimit,
   buildRateLimitKey,
   getLimiterConfig,
   attachRateLimitHeaders
-} = require('../_lib/rateLimiter')
+} from '../_lib/rateLimiter.js'
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
 const ALLOWED_EXTENSIONS = new Set(['pdf', 'png', 'jpg', 'jpeg'])
@@ -188,7 +188,7 @@ async function scanForMalware(buffer) {
   return { clean: true }
 }
 
-module.exports = async function handler(req, res) {
+export async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -345,3 +345,5 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
+export default handler

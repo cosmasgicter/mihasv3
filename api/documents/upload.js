@@ -1,13 +1,13 @@
-const path = require('path')
-const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
-const { logAuditEvent } = require('../_lib/auditLogger')
-const {
+import path from 'node:path'
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
+import { logAuditEvent } from '../_lib/auditLogger.js'
+import {
   checkRateLimit,
   buildRateLimitKey,
   getLimiterConfig,
   attachRateLimitHeaders
-} = require('../_lib/rateLimiter')
-const { withNetlifyHandler } = require('../_lib/netlifyHandler')
+} from '../_lib/rateLimiter.js'
+import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
 const ALLOWED_EXTENSIONS = new Set(['pdf', 'png', 'jpg', 'jpeg'])
@@ -349,5 +349,6 @@ async function handler(req, res) {
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

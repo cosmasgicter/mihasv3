@@ -1,16 +1,16 @@
-const { z } = require('zod')
-const {
+import { z } from 'zod'
+import {
   supabaseAdminClient,
   getUserFromRequest
-} = require('../supabaseClient')
-const { logAuditEvent } = require('../auditLogger')
-const { listActiveConsentUserIds } = require('../userConsent')
-const {
+} from '../supabaseClient.js'
+import { logAuditEvent } from '../auditLogger.js'
+import { listActiveConsentUserIds } from '../userConsent.js'
+import {
   checkRateLimit,
   buildRateLimitKey,
   getLimiterConfig,
   attachRateLimitHeaders
-} = require('../rateLimiter')
+} from '../rateLimiter.js'
 
 const telemetryEventSchema = z.object({
   type: z.enum(['api_call', 'custom_metric', 'error', 'alert']),
@@ -228,7 +228,4 @@ async function handleTelemetryFetch(req, res) {
   return res.status(200).json(response)
 }
 
-module.exports = {
-  handleTelemetryFetch,
-  handleTelemetryIngest
-}
+export { handleTelemetryFetch, handleTelemetryIngest }

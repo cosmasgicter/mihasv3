@@ -1,13 +1,13 @@
-const {
+import {
   checkRateLimit,
   buildRateLimitKey,
   getLimiterConfig,
   attachRateLimitHeaders
-} = require('../_lib/rateLimiter')
-const { logAuditEvent } = require('../_lib/auditLogger')
-const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
+} from '../_lib/rateLimiter.js'
+import { logAuditEvent } from '../_lib/auditLogger.js'
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
 
-module.exports = async function handler(req, res) {
+export async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -155,3 +155,5 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to load admin dashboard overview' })
   }
 }
+
+export default handler

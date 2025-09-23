@@ -1,4 +1,4 @@
-const { supabaseAdminClient } = require('./supabaseClient')
+import { supabaseAdminClient } from './supabaseClient.js'
 
 const DEFAULT_WINDOW_MS = Number.parseInt(process.env.RATE_LIMIT_DEFAULT_WINDOW_MS || process.env.RATE_LIMIT_WINDOW_MS || '60000', 10)
 const DEFAULT_MAX_ATTEMPTS = Number.parseInt(process.env.RATE_LIMIT_DEFAULT_MAX_ATTEMPTS || process.env.RATE_LIMIT_MAX_REQUESTS || '60', 10)
@@ -197,7 +197,7 @@ function attachRateLimitHeaders(res, result) {
   res.setHeader('X-RateLimit-Reset', Math.floor(result.resetAt.getTime() / 1000).toString())
 }
 
-module.exports = {
+export {
   checkRateLimit,
   clearRateLimit,
   incrementRateLimit,
@@ -208,5 +208,3 @@ module.exports = {
   setRateLimiterStore,
   createInMemoryFallbackStore
 }
-
-module.exports.default = module.exports

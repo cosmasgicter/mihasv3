@@ -1,10 +1,10 @@
-const { supabaseAnonClient } = require('./supabaseClient')
-const {
+import { supabaseAnonClient } from './supabaseClient.js'
+import {
   checkRateLimit,
   buildRateLimitKey,
   getLimiterConfig,
   attachRateLimitHeaders
-} = require('./rateLimiter')
+} from './rateLimiter.js'
 
 function createAuthHandler(handler, options = {}) {
   const {
@@ -50,4 +50,4 @@ function createAuthHandler(handler, options = {}) {
   }
 }
 
-module.exports = { createAuthHandler }
+export { createAuthHandler }
