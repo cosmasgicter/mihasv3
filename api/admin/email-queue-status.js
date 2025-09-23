@@ -19,7 +19,9 @@ async function handler(req, res) {
 
     if (error) throw error
 
-    const summary = stats.reduce((acc, row) => {
+    const rows = stats ?? []
+
+    const summary = rows.reduce((acc, row) => {
       acc[row.status] = (acc[row.status] || 0) + 1
       if (row.status === 'failed') {
         acc.failed_retries = (acc.failed_retries || 0) + (row.retry_count || 0)
@@ -27,17 +29,22 @@ async function handler(req, res) {
       return acc
     }, {})
 
-    // Get recent failures
-    const { data: recentFailures } = await supabase
-      .from('email_notifications')
-      .select('id, recipient_email, error_message, retry_count, created_at')
-      .eq('status', 'failed')
-      .order('created_at', { ascending: false })
-      .limit(5)
+    let recentFailures = []
+
+    if (rows.some(row => row.status === 'failed')) {
+      const { data: failureRows } = await supabase
+        .from('email_notifications')
+        .select('id, recipient_email, error_message, retry_count, created_at')
+        .eq('status', 'failed')
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      recentFailures = failureRows ?? []
+    }
 
     res.status(200).json({
       summary,
-      recent_failures: recentFailures || [],
+      recent_failures: recentFailures,
       last_checked: new Date().toISOString()
     })
 
