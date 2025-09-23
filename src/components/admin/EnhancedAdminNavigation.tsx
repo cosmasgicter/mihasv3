@@ -356,8 +356,8 @@ export function EnhancedAdminNavigation() {
                               to={item.href!}
                               onClick={closeMenu}
                               className={`relative mobile-nav-item mobile-nav-focus transition-all duration-300 ${
-                                isActive 
-                                  ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg" 
+                                isActive
+                                  ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg"
                                   : "text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-gray-300"
                               } ${item.isNew ? 'ring-2 ring-purple-200' : ''}`}
                             >
@@ -386,7 +386,7 @@ export function EnhancedAdminNavigation() {
                           )}
                         </motion.div>
                       )
-                    })
+                    })}
 
                     {/* Role Badge */}
                     <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
