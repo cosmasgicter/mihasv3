@@ -1,6 +1,6 @@
 import {
   supabaseAdminClient,
-  requireUser,
+  getUserFromRequest,
   clearRequestRoleCache
 } from '../../_lib/supabaseClient.js'
 import { logAuditEvent } from '../../_lib/auditLogger.js'
@@ -25,7 +25,16 @@ async function handler(req, res) {
 
 
   try {
-    const { user, roles } = await requireUser(req, { requireAdmin: true })
+    const authContext = await getUserFromRequest(req, { requireAdmin: true })
+    if (authContext?.error) {
+      const status = authContext.error === 'Access denied' ? 403 : 401
+      return res.status(status).json({ error: authContext.error })
+    }
+    if (!authContext || !authContext.user) {
+      return res.status(401).json({ error: 'Authentication required' })
+    }
+
+    const { user, roles = [] } = authContext
     const userId = parseUserId(req.query?.id)
 
     if (!userId) {
