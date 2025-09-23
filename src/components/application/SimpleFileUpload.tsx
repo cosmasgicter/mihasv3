@@ -4,7 +4,7 @@ import { LoadingButton } from '@/components/ui/LoadingButton'
 import { ProgressBar } from '@/components/ui/ProgressIndicator'
 import { Upload, X, FileText, CheckCircle, AlertCircle, ImageIcon, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { uploadApplicationFile, validateApplicationFile } from '@/lib/storage'
+import { uploadApplicationFile, validateApplicationFile, type UploadResult } from '@/lib/storage'
 import { useAuth } from '@/contexts/AuthContext'
 import { useImageCompression } from '@/hooks/useImageCompression'
 import { formatFileSize, createUserFriendlyError } from '@/lib/utils'
@@ -18,13 +18,21 @@ interface UploadedFile {
   type?: string
   compressed?: boolean
   originalSize?: number
+  path?: string
 }
 
 interface SimpleFileUploadProps {
   uploadedFiles: UploadedFile[]
   uploadingFiles: string[]
   uploadProgress: {[key: string]: number}
-  onFileUpload?: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onFileUpload?: (
+    file: File,
+    context: {
+      applicationId?: string
+      userId?: string | null
+      fileType: string
+    }
+  ) => Promise<UploadResult>
   onRemoveFile: (fileId: string) => void
   error?: string
   applicationId?: string
@@ -102,80 +110,99 @@ export function SimpleFileUpload({
 
     setLocalError('')
     setIsUploading(true)
-    
-    const startTime = Date.now()
-    let totalBytes = 0
-    let uploadedBytes = 0
 
     try {
+      const processedFiles: Array<{
+        originalFile: File
+        fileToUpload: File
+        compressed: boolean
+        originalSize: number
+      }> = []
+
       for (const file of files) {
-        // Validate file
         const validation = validateFile(file)
         if (!validation.valid) {
           setLocalError(validation.error || 'Invalid file')
           continue
         }
 
-        totalBytes += file.size
+        const storageValidation = validateApplicationFile(file)
+        if (!storageValidation.valid) {
+          setLocalError(storageValidation.error || 'Invalid file')
+          continue
+        }
 
-        // Compress if needed
         let fileToUpload = file
         let isCompressed = false
-        let originalSize = file.size
-        
+        const originalSize = file.size
+
         if (enableCompression && file.type.startsWith('image/')) {
           fileToUpload = await compressFile(file)
           isCompressed = fileToUpload.size < file.size
         }
 
-        // Simulate upload progress tracking
-        const uploadFile = async (file: File) => {
-          return new Promise<{success: boolean, url?: string, error?: string}>((resolve) => {
-            let progress = 0
-            const interval = setInterval(() => {
-              progress += Math.random() * 20
-              if (progress >= 100) {
-                progress = 100
-                clearInterval(interval)
-                // Simulate successful upload
-                resolve({ success: true, url: URL.createObjectURL(file) })
-              }
-              
-              const elapsed = Date.now() - startTime
-              const speed = (uploadedBytes / elapsed) * 1000 // bytes per second
-              const remaining = totalBytes - uploadedBytes
-              const eta = remaining / speed
-              
-              setUploadStats({
-                progress: Math.round(progress),
-                speed,
-                eta: isNaN(eta) ? 0 : eta
-              })
-            }, 100)
-          })
-        }
+        processedFiles.push({
+          originalFile: file,
+          fileToUpload,
+          compressed: isCompressed,
+          originalSize
+        })
+      }
 
-        const result = await uploadFile(fileToUpload)
-        
-        if (result.success && result.url) {
-          const uploadedFile: UploadedFile = {
-            id: Date.now().toString() + Math.random(),
-            name: file.name,
-            size: fileToUpload.size,
-            url: result.url,
-            type: file.type,
-            compressed: isCompressed,
-            originalSize: isCompressed ? originalSize : undefined
-          }
-          
-          if (onUploadComplete) {
-            onUploadComplete(uploadedFile)
-          }
-        } else {
+      if (processedFiles.length === 0) {
+        return
+      }
+
+      const totalBytes = processedFiles.reduce((sum, item) => sum + item.fileToUpload.size, 0)
+      const uploadStart = Date.now()
+      let uploadedBytes = 0
+
+      setUploadStats({
+        progress: 0,
+        speed: 0,
+        eta: 0
+      })
+
+      for (const { originalFile, fileToUpload, compressed, originalSize } of processedFiles) {
+        const result = onFileUpload
+          ? await onFileUpload(fileToUpload, {
+              applicationId,
+              userId: user.id,
+              fileType
+            })
+          : await uploadApplicationFile(fileToUpload, user.id, applicationId, fileType)
+
+        if (!result.success || !result.url) {
           throw new Error(result.error || 'Upload failed')
         }
-        
+
         uploadedBytes += fileToUpload.size
+        const elapsed = Date.now() - uploadStart
+        const speed = elapsed > 0 ? (uploadedBytes / elapsed) * 1000 : 0
+        const remaining = totalBytes - uploadedBytes
+        const eta = speed > 0 ? remaining / speed : 0
+        const progress = totalBytes > 0 ? Math.min(100, Math.round((uploadedBytes / totalBytes) * 100)) : 0
+
+        setUploadStats({
+          progress,
+          speed,
+          eta: isNaN(eta) ? 0 : eta
+        })
+
+        const uploadedFile: UploadedFile = {
+          id: result.path || `${Date.now().toString()}-${Math.random()}`,
+          name: originalFile.name,
+          size: fileToUpload.size,
+          url: result.url,
+          type: originalFile.type,
+          compressed,
+          originalSize: compressed ? originalSize : undefined,
+          path: result.path
+        }
+
+        if (onUploadComplete) {
+          onUploadComplete(uploadedFile)
+        }
       }
     } catch (error) {
       setLocalError(createUserFriendlyError(error))
@@ -183,12 +210,21 @@ export function SimpleFileUpload({
       setIsUploading(false)
       setUploadStats({ progress: 0, speed: 0, eta: 0 })
     }
-  }, [user, applicationId, validateFile, enableCompression, compressFile, onUploadComplete])
+  }, [
+    user,
+    applicationId,
+    validateFile,
+    enableCompression,
+    compressFile,
+    onFileUpload,
+    fileType,
+    onUploadComplete
+  ])
 
   const handleInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
     if (files.length > 0) {
-      handleFileUpload(files)
+      void handleFileUpload(files)
     }
     event.target.value = ''
   }, [handleFileUpload])
@@ -196,10 +232,10 @@ export function SimpleFileUpload({
   const handleDrop = useCallback((event: React.DragEvent) => {
     event.preventDefault()
     setDragActive(false)
-    
+
     const files = Array.from(event.dataTransfer.files)
     if (files.length > 0) {
-      handleFileUpload(files)
+      void handleFileUpload(files)
     }
   }, [handleFileUpload])
 
@@ -235,16 +271,17 @@ export function SimpleFileUpload({
           <input
             type="file"
             accept={acceptedTypes.join(',')}
-            onChange={onFileUpload || handleInputChange}
+            onChange={handleInputChange}
             className="hidden"
             disabled={isUploading_}
             multiple
           />
-          <div 
+          <div
+            data-testid="file-upload-dropzone"
             className={cn(
               'border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 min-h-[48px] touch-target',
-              isUploading_ 
-                ? 'border-gray-200 bg-gray-50 cursor-not-allowed' 
+              isUploading_
+                ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
                 : dragActive
                 ? 'border-primary bg-primary/5 cursor-pointer'
                 : 'border-gray-300 hover:border-primary hover:bg-primary/5 cursor-pointer'
