@@ -6,6 +6,12 @@ import {
 } from '../_lib/rateLimiter.js'
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
+import {
+  updateStatusForApplications,
+  insertStatusHistoryEntries,
+  updatePaymentStatusForApplications,
+  softDeleteApplications
+} from './applicationActions.js'
 
 async function handler(req, res) {
   // Add CORS headers
@@ -98,35 +104,13 @@ async function bulkUpdateStatus(res, userId, applicationIds, status) {
     return res.status(400).json({ error: 'Status is required' })
   }
 
-  const now = new Date().toISOString()
-  const updateData = { status, updated_at: now }
-  if (status === 'under_review') {
-    updateData.review_started_at = now
-  }
-  if (['approved', 'rejected'].includes(status)) {
-    updateData.decision_date = now
-  }
-
-  const { error } = await supabaseAdminClient
-    .from('applications_new')
-    .update(updateData)
-    .in('id', applicationIds)
-
-  if (error) {
+  try {
+    await updateStatusForApplications(applicationIds, status)
+    await insertStatusHistoryEntries(applicationIds, status, userId)
+    return res.status(200).json({ successCount: applicationIds.length })
+  } catch (error) {
     return res.status(400).json({ error: error.message })
   }
-
-  const historyRows = applicationIds.map(id => ({
-    application_id: id,
-    status,
-    changed_by: userId
-  }))
-
-  await supabaseAdminClient
-    .from('application_status_history')
-    .insert(historyRows)
-
-  return res.status(200).json({ successCount: applicationIds.length })
 }
 
 async function bulkUpdatePaymentStatus(res, applicationIds, paymentStatus) {
@@ -134,29 +118,21 @@ async function bulkUpdatePaymentStatus(res, applicationIds, paymentStatus) {
     return res.status(400).json({ error: 'paymentStatus is required' })
   }
 
-  const { error } = await supabaseAdminClient
-    .from('applications_new')
-    .update({ payment_status: paymentStatus, updated_at: new Date().toISOString() })
-    .in('id', applicationIds)
-
-  if (error) {
+  try {
+    await updatePaymentStatusForApplications(applicationIds, paymentStatus)
+    return res.status(200).json({ successCount: applicationIds.length })
+  } catch (error) {
     return res.status(400).json({ error: error.message })
   }
-
-  return res.status(200).json({ successCount: applicationIds.length })
 }
 
 async function bulkDeleteApplications(res, applicationIds) {
-  const { error } = await supabaseAdminClient
-    .from('applications_new')
-    .update({ status: 'deleted', updated_at: new Date().toISOString() })
-    .in('id', applicationIds)
-
-  if (error) {
+  try {
+    await softDeleteApplications(applicationIds)
+    return res.status(200).json({ successCount: applicationIds.length })
+  } catch (error) {
     return res.status(400).json({ error: error.message })
   }
-
-  return res.status(200).json({ successCount: applicationIds.length })
 }
 
 async function bulkSendNotifications(res, applicationIds, notification) {
