@@ -96,8 +96,6 @@ async function handler(req, res) {
     return res.status(200).end()
   }
 
-  console.log(`${req.method} /api/applications - Headers:`, req.headers)
-
   if (req.method === 'GET') {
     try {
       const authContext = await dependencies.getUserFromRequest(req)
@@ -146,6 +144,23 @@ async function handler(req, res) {
 
       const sortColumn = determineSortColumn(sortBy)
       const sortAscending = typeof sortOrder === 'string' && sortOrder.toLowerCase() === 'asc'
+
+      console.log('[applications] request metadata', {
+        method: req.method,
+        userId,
+        page: pageNumber,
+        pageSize: pageSizeNumber,
+        status,
+        mine: mineRequested,
+        program,
+        institution,
+        paymentStatus,
+        startDate,
+        endDate,
+        sortBy: sortColumn,
+        sortOrder: sortAscending ? 'asc' : 'desc',
+        includeStats: parseBoolean(includeStats)
+      })
 
       let query = applyFilters(
         dependencies.supabaseClient
