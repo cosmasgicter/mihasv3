@@ -1,9 +1,6 @@
-const { createClient } = require('@supabase/supabase-js');
+const { supabaseAdminClient } = require('../_lib/supabaseClient');
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const supabase = supabaseAdminClient;
 
 module.exports = async function handler(req, res) {
   const { id, include } = req.query;
@@ -16,7 +13,7 @@ module.exports = async function handler(req, res) {
     if (req.method === 'GET') {
       // Get basic application data
       const { data: application, error } = await supabase
-        .from('applications')
+        .from('applications_new')
         .select('*')
         .eq('id', id)
         .single();
@@ -72,7 +69,7 @@ module.exports = async function handler(req, res) {
       const updates = req.body;
 
       const { data, error } = await supabase
-        .from('applications')
+        .from('applications_new')
         .update(updates)
         .eq('id', id)
         .select()
