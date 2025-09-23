@@ -1,4 +1,4 @@
-const { logAuditEvent } = require('../_lib/auditLogger')
+import { logAuditEvent } from '../_lib/auditLogger.js'
 
 function createPasswordAuthHandler({ auditEventBase = 'auth.login' } = {}) {
   return async function passwordAuthHandler(req, res, { supabaseClient }) {
@@ -48,4 +48,4 @@ function createPasswordAuthHandler({ auditEventBase = 'auth.login' } = {}) {
   }
 }
 
-module.exports = { createPasswordAuthHandler }
+export { createPasswordAuthHandler }

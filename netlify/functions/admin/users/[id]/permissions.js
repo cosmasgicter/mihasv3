@@ -1,11 +1,11 @@
-const {
+import {
   supabaseAdminClient,
   requireUser
-} = require('../../../_lib/supabaseClient')
-const { logAuditEvent } = require('../../../_lib/auditLogger')
-const { parseUserId, parseRequestBody } = require('../../../_lib/adminUserHelpers')
+} from '../../../_lib/supabaseClient.js'
+import { logAuditEvent } from '../../../_lib/auditLogger.js'
+import { parseUserId, parseRequestBody } from '../../../_lib/adminUserHelpers.js'
 
-module.exports = async function handler(req, res) {
+export async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -111,3 +111,5 @@ module.exports = async function handler(req, res) {
     return res.status(statusCode).json({ error: error.message || 'Internal server error' })
   }
 }
+
+export default handler

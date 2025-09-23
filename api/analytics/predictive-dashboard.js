@@ -1,5 +1,5 @@
-const { handlePredictiveDashboardRequest } = require('../_lib/analytics/predictiveDashboard')
-const { withNetlifyHandler } = require('../_lib/netlifyHandler')
+import { handlePredictiveDashboardRequest } from '../_lib/analytics/predictiveDashboard.js'
+import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
 
 async function handler(req, res) {
   // Add CORS headers
@@ -23,5 +23,6 @@ async function handler(req, res) {
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

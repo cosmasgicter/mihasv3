@@ -1,12 +1,12 @@
-const { requireUser } = require('./_lib/supabaseClient')
-const { logAuditEvent } = require('./_lib/auditLogger')
-const {
+import { requireUser } from './_lib/supabaseClient.js'
+import { logAuditEvent } from './_lib/auditLogger.js'
+import {
   listConsents,
   grantConsent,
   revokeConsent,
   hasActiveConsent
-} = require('./_lib/userConsent')
-const { withNetlifyHandler } = require('./_lib/netlifyHandler')
+} from './_lib/userConsent.js'
+import { withNetlifyHandler } from './_lib/netlifyHandler.js'
 
 function normalizeConsent(record) {
   if (!record) {
@@ -151,5 +151,6 @@ async function handler(req, res) {
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

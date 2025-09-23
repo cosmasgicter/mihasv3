@@ -1,6 +1,6 @@
-const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
-const { logAuditEvent } = require('../_lib/auditLogger')
-const { withNetlifyHandler } = require('../_lib/netlifyHandler')
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
+import { logAuditEvent } from '../_lib/auditLogger.js'
+import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
 
 function getQueryParam(req, name) {
   if (req.query && typeof req.query[name] === 'string') {
@@ -95,5 +95,6 @@ async function handler(req, res) {
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

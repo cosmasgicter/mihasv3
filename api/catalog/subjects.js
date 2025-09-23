@@ -1,11 +1,11 @@
-const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
-const {
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
+import {
   checkRateLimit,
   buildRateLimitKey,
   getLimiterConfig,
   attachRateLimitHeaders
-} = require('../_lib/rateLimiter')
-const { withNetlifyHandler } = require('../_lib/netlifyHandler')
+} from '../_lib/rateLimiter.js'
+import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
 
 async function handler(req, res) {
   // Add CORS headers
@@ -56,5 +56,6 @@ async function handler(req, res) {
 
 const netlifyHandler = withNetlifyHandler(handler)
 
-exports.handler = netlifyHandler
-module.exports = netlifyHandler
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler
