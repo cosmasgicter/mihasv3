@@ -1,0 +1,1 @@
+import{j as r}from"./ui-BAug18Wv.js";import{d as s}from"./index-DUBIde8T.js";function o({className:o,...a}){return r.jsx("div",{className:s("rounded-lg border bg-card text-card-foreground shadow-sm",o),...a})}export{o as C};
