@@ -1,9 +1,6 @@
-const { createClient } = require('@supabase/supabase-js');
+const { supabaseAdminClient } = require('../_lib/supabaseClient');
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const supabase = supabaseAdminClient;
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -19,7 +16,7 @@ module.exports = async function handler(req, res) {
 
     // Get application details
     const { data: application, error } = await supabase
-      .from('applications')
+      .from('applications_new')
       .select(`
         *,
         application_documents(id, document_type, file_url, verification_status),
