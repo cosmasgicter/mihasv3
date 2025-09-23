@@ -226,6 +226,7 @@ export interface UserProfile {
   bio?: string
   created_at: string
   updated_at: string
+  [key: string]: unknown
 }
 
 export interface Institution {

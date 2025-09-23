@@ -2,7 +2,7 @@ import React from 'react'
 import { motion, type HTMLMotionProps, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
-interface ButtonProps extends HTMLMotionProps<'button'> {
+export interface ButtonProps extends HTMLMotionProps<'button'> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'gradient'
   size?: 'sm' | 'md' | 'lg' | 'xl'
   loading?: boolean

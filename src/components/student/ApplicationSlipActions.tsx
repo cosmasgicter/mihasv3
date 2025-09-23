@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { Download, Mail, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
+import { getSupabaseClient } from '@/lib/supabase'
 
 interface ApplicationSlipActionsProps {
   applicationId: string
@@ -10,7 +11,8 @@ interface ApplicationSlipActionsProps {
 }
 
 export function ApplicationSlipActions({ applicationId, applicationNumber }: ApplicationSlipActionsProps) {
-  const { session } = useAuth()
+  const { user } = useAuth()
+  const supabase = getSupabaseClient()
   const [isDownloading, setIsDownloading] = useState(false)
   const [isEmailing, setIsEmailing] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
@@ -18,11 +20,14 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
   const handleDownload = async () => {
     setIsDownloading(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const accessToken = session?.access_token
+
       const response = await fetch('/.netlify/functions/applications-generate-slip', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`
+          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
         },
         body: JSON.stringify({ applicationId })
       })
@@ -51,11 +56,14 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
   const handleEmailRequest = async () => {
     setIsEmailing(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const accessToken = session?.access_token
+
       const response = await fetch('/.netlify/functions/applications-email-slip', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`
+          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
         },
         body: JSON.stringify({ applicationId })
       })

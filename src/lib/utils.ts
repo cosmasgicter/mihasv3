@@ -20,8 +20,59 @@ export function formatFileSize(bytes: number): string {
 export function validateTouchTarget(element: HTMLElement): boolean {
   const rect = element.getBoundingClientRect()
   const minSize = 44 // 44px minimum as per Apple Human Interface Guidelines
-  
+
   return rect.width >= minSize && rect.height >= minSize
+}
+
+// Date formatting helper used across the application
+export function formatDate(value?: string | number | Date | null): string {
+  if (!value) {
+    return 'Not available'
+  }
+
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return 'Invalid date'
+  }
+
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+export function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
+  if (!value) {
+    return fallback
+  }
+
+  try {
+    return JSON.parse(value) as T
+  } catch (error) {
+    console.warn('Failed to parse JSON value:', error)
+    return fallback
+  }
+}
+
+// Consistent status badge styling helper
+const STATUS_COLOR_MAP: Record<string, string> = {
+  draft: 'bg-gray-100 text-gray-700 border border-gray-200',
+  pending: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+  pending_review: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+  under_review: 'bg-blue-100 text-blue-800 border border-blue-200',
+  in_progress: 'bg-blue-100 text-blue-800 border border-blue-200',
+  approved: 'bg-green-100 text-green-800 border border-green-200',
+  verified: 'bg-green-100 text-green-800 border border-green-200',
+  completed: 'bg-green-100 text-green-800 border border-green-200',
+  rejected: 'bg-red-100 text-red-800 border border-red-200',
+  declined: 'bg-red-100 text-red-800 border border-red-200',
+  cancelled: 'bg-red-100 text-red-800 border border-red-200',
+  expired: 'bg-slate-200 text-slate-700 border border-slate-300'
+}
+
+export function getStatusColor(status: string): string {
+  return STATUS_COLOR_MAP[status.toLowerCase()] ?? 'bg-gray-100 text-gray-800 border border-gray-200'
 }
 
 // Network status utilities
