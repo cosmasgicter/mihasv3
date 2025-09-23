@@ -1,5 +1,6 @@
 const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
 const { logAuditEvent } = require('../_lib/auditLogger')
+const { withNetlifyHandler } = require('../_lib/netlifyHandler')
 
 function getQueryParam(req, name) {
   if (req.query && typeof req.query[name] === 'string') {
@@ -14,7 +15,7 @@ function getQueryParam(req, name) {
   }
 }
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -91,3 +92,8 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to load schema information' })
   }
 }
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler

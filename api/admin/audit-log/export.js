@@ -1,5 +1,6 @@
 const { logAuditEvent } = require('../../_lib/auditLogger')
 const { supabaseAdminClient, getUserFromRequest } = require('../../_lib/supabaseClient')
+const { withNetlifyHandler } = require('../../_lib/netlifyHandler')
 const { buildAuditLogFilters, normalizeRecord, fetchAllAuditRecords } = require('./utils')
 
 function resolveSingleValue(value) {
@@ -66,7 +67,7 @@ function buildFilename(extension) {
   return `mihas-audit-log-${timestamp}.${extension}`
 }
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -141,3 +142,8 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to export audit log entries' })
   }
 }
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler

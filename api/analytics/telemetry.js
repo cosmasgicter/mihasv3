@@ -1,4 +1,6 @@
-module.exports = async function handler(req, res) {
+const { withNetlifyHandler } = require('../_lib/netlifyHandler')
+
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -16,4 +18,9 @@ module.exports = async function handler(req, res) {
     console.error('Telemetry error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
-};
+}
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler

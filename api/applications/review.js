@@ -1,8 +1,9 @@
 const { supabaseAdminClient } = require('../_lib/supabaseClient');
+const { withNetlifyHandler } = require('../_lib/netlifyHandler');
 
 const supabase = supabaseAdminClient;
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -59,4 +60,9 @@ module.exports = async function handler(req, res) {
     console.error('Review API error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
-};
+}
+
+const netlifyHandler = withNetlifyHandler(handler);
+
+exports.handler = netlifyHandler;
+module.exports = netlifyHandler;

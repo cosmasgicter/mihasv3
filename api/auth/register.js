@@ -1,7 +1,8 @@
 const { supabaseAdminClient } = require('../_lib/supabaseClient')
 const { logAuditEvent } = require('../_lib/auditLogger')
+const { withNetlifyHandler } = require('../_lib/netlifyHandler')
 
-module.exports = async (req, res) => {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -71,3 +72,8 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Database error creating new user' })
   }
 }
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler
