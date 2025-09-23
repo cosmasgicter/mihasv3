@@ -1,8 +1,9 @@
 const { requireUser } = require('../../../_lib/supabaseClient')
 const { logAuditEvent } = require('../../../_lib/auditLogger')
 const { fetchActiveRole, parseUserId } = require('../../../_lib/adminUserHelpers')
+const { withNetlifyHandler } = require('../../../_lib/netlifyHandler')
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -46,3 +47,8 @@ module.exports = async function handler(req, res) {
     return res.status(statusCode).json({ error: error.message || 'Internal server error' })
   }
 }
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler

@@ -7,6 +7,7 @@ const {
   getLimiterConfig,
   attachRateLimitHeaders
 } = require('../_lib/rateLimiter')
+const { withNetlifyHandler } = require('../_lib/netlifyHandler')
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
 const ALLOWED_EXTENSIONS = new Set(['pdf', 'png', 'jpg', 'jpeg'])
@@ -188,7 +189,7 @@ async function scanForMalware(buffer) {
   return { clean: true }
 }
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -345,3 +346,8 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler

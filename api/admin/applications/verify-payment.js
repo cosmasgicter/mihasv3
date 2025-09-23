@@ -1,7 +1,8 @@
 const { supabaseAdminClient, getUserFromRequest } = require('../../_lib/supabaseClient')
 const { logAuditEvent } = require('../../_lib/auditLogger')
+const { withNetlifyHandler } = require('../../_lib/netlifyHandler')
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -64,3 +65,8 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler
