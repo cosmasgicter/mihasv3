@@ -5,10 +5,15 @@ const mockSupabase: { from: ReturnType<typeof vi.fn> } = {
 }
 
 const getUserFromRequest = vi.fn()
+const logAuditEvent = vi.fn()
 
 vi.mock('../../api/_lib/supabaseClient.js', () => ({
   supabaseAdminClient: mockSupabase,
   getUserFromRequest
+}))
+
+vi.mock('../../api/_lib/auditLogger.js', () => ({
+  logAuditEvent
 }))
 
 function createResponse() {
@@ -39,6 +44,7 @@ beforeEach(() => {
   vi.resetModules()
   vi.clearAllMocks()
   getUserFromRequest.mockReset()
+  logAuditEvent.mockReset()
   mockSupabase.from = vi.fn()
   mockSupabase.from.mockImplementation(() => {
     throw new Error('Unexpected table access')
@@ -64,6 +70,7 @@ describe('applications/details handler access control', () => {
     expect(res.statusCode).toBe(401)
     expect(res.body).toEqual({ error: 'No authorization header provided' })
     expect(mockSupabase.from).not.toHaveBeenCalled()
+    expect(logAuditEvent).not.toHaveBeenCalled()
   })
 
   it('returns 403 when requester is not the owner', async () => {
@@ -198,15 +205,17 @@ describe('applications/generate-slip handler access control', () => {
     expect(res.statusCode).toBe(401)
     expect(res.body).toEqual({ error: 'No authorization header provided' })
     expect(mockSupabase.from).not.toHaveBeenCalled()
+    expect(logAuditEvent).not.toHaveBeenCalled()
   })
 
   it('returns 403 when requester is not the owner', async () => {
-    getUserFromRequest.mockResolvedValue({ user: { id: 'user-1' }, isAdmin: false })
+    getUserFromRequest.mockResolvedValue({ user: { id: 'user-1', email: 'user@example.com' }, isAdmin: false, roles: ['student'] })
 
-    const maybeSingle = vi.fn().mockResolvedValue({ data: { id: 'app-123', user_id: 'user-2' }, error: null })
-    const eq = vi.fn().mockReturnValue({ maybeSingle })
-    const select = vi.fn().mockReturnValue({ eq })
-    mockSupabase.from.mockImplementationOnce(() => ({ select } as any))
+    const ensureMaybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+    const ensureEqUser = vi.fn().mockReturnValue({ maybeSingle: ensureMaybeSingle })
+    const ensureEqId = vi.fn().mockReturnValue({ eq: ensureEqUser, maybeSingle: ensureMaybeSingle })
+    const ensureSelect = vi.fn().mockReturnValue({ eq: ensureEqId })
+    mockSupabase.from.mockImplementationOnce(() => ({ select: ensureSelect } as any))
 
     const { expressHandler } = await import('../../api/applications/generate-slip.js')
 
@@ -222,15 +231,31 @@ describe('applications/generate-slip handler access control', () => {
 
     expect(res.statusCode).toBe(403)
     expect(res.body).toEqual({ error: 'Access denied' })
-    expect(maybeSingle).toHaveBeenCalled()
+    expect(ensureEqId).toHaveBeenCalledWith('id', 'app-123')
+    expect(ensureEqUser).toHaveBeenCalledWith('user_id', 'user-1')
+    expect(ensureMaybeSingle).toHaveBeenCalled()
+    expect(logAuditEvent).toHaveBeenCalledTimes(1)
+    expect(logAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'application.slip.access.denied',
+        actorId: 'user-1',
+        targetId: 'app-123',
+        targetTable: 'applications_new'
+      })
+    )
   })
 
   it('allows the application owner to generate a slip', async () => {
-    getUserFromRequest.mockResolvedValue({ user: { id: 'user-1' }, isAdmin: false })
+    getUserFromRequest.mockResolvedValue({
+      user: { id: 'user-1', email: 'user@example.com' },
+      isAdmin: false,
+      roles: ['student']
+    })
 
-    const ensureMaybeSingle = vi.fn().mockResolvedValue({ data: { id: 'app-123', user_id: 'user-1' }, error: null })
-    const ensureEq = vi.fn().mockReturnValue({ maybeSingle: ensureMaybeSingle })
-    const ensureSelect = vi.fn().mockReturnValue({ eq: ensureEq })
+    const ensureMaybeSingle = vi.fn().mockResolvedValue({ data: { id: 'app-123' }, error: null })
+    const ensureEqUser = vi.fn().mockReturnValue({ maybeSingle: ensureMaybeSingle })
+    const ensureEqId = vi.fn().mockReturnValue({ eq: ensureEqUser, maybeSingle: ensureMaybeSingle })
+    const ensureSelect = vi.fn().mockReturnValue({ eq: ensureEqId })
     mockSupabase.from.mockImplementationOnce(() => ({ select: ensureSelect } as any))
 
     const fetchSingle = vi.fn().mockResolvedValue({
@@ -248,8 +273,9 @@ describe('applications/generate-slip handler access control', () => {
       },
       error: null
     })
-    const fetchEq = vi.fn().mockReturnValue({ single: fetchSingle })
-    const fetchSelect = vi.fn().mockReturnValue({ eq: fetchEq })
+    const fetchEqUser = vi.fn().mockReturnValue({ single: fetchSingle })
+    const fetchEqId = vi.fn().mockReturnValue({ eq: fetchEqUser, single: fetchSingle })
+    const fetchSelect = vi.fn().mockReturnValue({ eq: fetchEqId })
     mockSupabase.from.mockImplementationOnce(() => ({ select: fetchSelect } as any))
 
     const { expressHandler } = await import('../../api/applications/generate-slip.js')
@@ -279,12 +305,21 @@ describe('applications/generate-slip handler access control', () => {
         applicationFee: 153
       }
     })
+    expect(ensureEqId).toHaveBeenCalledWith('id', 'app-123')
+    expect(ensureEqUser).toHaveBeenCalledWith('user_id', 'user-1')
     expect(ensureMaybeSingle).toHaveBeenCalled()
+    expect(fetchEqId).toHaveBeenCalledWith('id', 'app-123')
+    expect(fetchEqUser).toHaveBeenCalledWith('user_id', 'user-1')
     expect(fetchSingle).toHaveBeenCalled()
+    expect(logAuditEvent).not.toHaveBeenCalled()
   })
 
   it('allows an admin to generate a slip', async () => {
-    getUserFromRequest.mockResolvedValue({ user: { id: 'admin-user' }, isAdmin: true })
+    getUserFromRequest.mockResolvedValue({
+      user: { id: 'admin-user', email: 'admin@example.com' },
+      isAdmin: true,
+      roles: ['admin']
+    })
 
     const fetchSingle = vi.fn().mockResolvedValue({
       data: {
@@ -333,6 +368,9 @@ describe('applications/generate-slip handler access control', () => {
         applicationFee: 200
       }
     })
+    expect(fetchEq).toHaveBeenCalledTimes(1)
+    expect(fetchEq).toHaveBeenCalledWith('id', 'app-123')
     expect(fetchSingle).toHaveBeenCalled()
+    expect(logAuditEvent).not.toHaveBeenCalled()
   })
 })

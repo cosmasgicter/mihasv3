@@ -1,4 +1,5 @@
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
+import { logAuditEvent } from '../_lib/auditLogger.js';
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js';
 
 const supabase = supabaseAdminClient;
@@ -10,25 +11,40 @@ async function ensureApplicationAccess(req, applicationId) {
     return { error: authContext.error, status };
   }
 
+  if (!authContext.user?.id) {
+    return { error: 'Access denied', status: 403 };
+  }
+
   if (authContext.isAdmin) {
     return { authContext };
   }
 
-  const { data, error } = await supabase
+  let ownershipQuery = supabase
     .from('applications_new')
-    .select('id, user_id')
-    .eq('id', applicationId)
-    .maybeSingle();
+    .select('id')
+    .eq('id', applicationId);
+
+  ownershipQuery = ownershipQuery.eq('user_id', authContext.user.id);
+
+  const { data, error } = await ownershipQuery.maybeSingle();
 
   if (error) {
-    return { error: error.message, status: 400 };
+    console.error('Failed to verify application ownership', error);
+    return { error: 'Failed to verify access', status: 500 };
   }
 
   if (!data) {
-    return { error: 'Application not found', status: 404 };
-  }
+    await logAuditEvent({
+      req,
+      action: 'application.slip.access.denied',
+      actorId: authContext.user.id,
+      actorEmail: authContext.user.email || null,
+      actorRoles: authContext.roles || [],
+      targetTable: 'applications_new',
+      targetId: applicationId,
+      metadata: { reason: 'ownership_mismatch' }
+    });
 
-  if (data.user_id !== authContext.user.id) {
     return { error: 'Access denied', status: 403 };
   }
 
@@ -47,17 +63,22 @@ async function handler(req, res) {
       return res.status(400).json({ error: 'Application ID is required' });
     }
 
-    const { error: authError, status: authStatus } = await ensureApplicationAccess(req, applicationId);
+    const { authContext, error: authError, status: authStatus } = await ensureApplicationAccess(req, applicationId);
     if (authError) {
       return res.status(authStatus).json({ error: authError });
     }
 
     // Get application data
-    const { data: application, error } = await supabase
+    let applicationQuery = supabase
       .from('applications_new')
       .select('*')
-      .eq('id', applicationId)
-      .single();
+      .eq('id', applicationId);
+
+    if (!authContext.isAdmin) {
+      applicationQuery = applicationQuery.eq('user_id', authContext.user.id);
+    }
+
+    const { data: application, error } = await applicationQuery.single();
 
     if (error || !application) {
       return res.status(404).json({ error: 'Application not found' });
