@@ -281,7 +281,7 @@ const mapRowToSummary = (row: AdminApplicationRow) => ({
   days_since_submission: row.days_since_submission ?? null
 })
 
-const deriveMetricsDelta = (
+export const deriveMetricsDelta = (
   payload: RealtimePostgresChangesPayload<AdminApplicationRow>
 ): AdminMetricsDelta => {
   const { eventType, new: newRow, old: oldRow } = payload
@@ -298,7 +298,7 @@ const deriveMetricsDelta = (
 
   if (eventType === 'INSERT' && newRow) {
     base.totalApplications = 1
-    if (newRow.status === 'submitted') {
+    if (newRow.status === 'submitted' || newRow.status === 'under_review') {
       base.pendingApplications = 1
     } else if (newRow.status === 'approved') {
       base.approvedApplications = 1
@@ -319,7 +319,7 @@ const deriveMetricsDelta = (
 
   if (eventType === 'DELETE' && oldRow) {
     base.totalApplications = -1
-    if (oldRow.status === 'submitted') {
+    if (oldRow.status === 'submitted' || oldRow.status === 'under_review') {
       base.pendingApplications = -1
     } else if (oldRow.status === 'approved') {
       base.approvedApplications = -1
@@ -340,10 +340,14 @@ const deriveMetricsDelta = (
 
   if (eventType === 'UPDATE' && newRow && oldRow) {
     if (newRow.status !== oldRow.status) {
-      if (oldRow.status === 'submitted') base.pendingApplications -= 1
+      if (oldRow.status === 'submitted' || oldRow.status === 'under_review') {
+        base.pendingApplications -= 1
+      }
       if (oldRow.status === 'approved') base.approvedApplications -= 1
       if (oldRow.status === 'rejected') base.rejectedApplications -= 1
-      if (newRow.status === 'submitted') base.pendingApplications += 1
+      if (newRow.status === 'submitted' || newRow.status === 'under_review') {
+        base.pendingApplications += 1
+      }
       if (newRow.status === 'approved') base.approvedApplications += 1
       if (newRow.status === 'rejected') base.rejectedApplications += 1
     }
