@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { User } from '@supabase/supabase-js'
 import { useAuth } from '@/contexts/AuthContext'
-import { getSupabaseClient } from '@/lib/supabase'
+import { getSupabaseClient, isSupabaseConfigured, SUPABASE_MISSING_CONFIG_MESSAGE } from '@/lib/supabase'
 import { sanitizeForLog } from '@/lib/security'
 import { isAdminRole } from '@/lib/auth/roles'
 
@@ -54,6 +54,11 @@ export function useRoleQuery(options: UseRoleQueryOptions = {}): RoleQueryResult
           department: null,
           is_active: true
         }
+      }
+
+      if (!isSupabaseConfigured) {
+        console.warn(SUPABASE_MISSING_CONFIG_MESSAGE)
+        return null
       }
 
       const supabase = getSupabaseClient()

@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Download, Mail, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
-import { getSupabaseClient } from '@/lib/supabase'
+import { getSupabaseClient, isSupabaseConfigured, SUPABASE_MISSING_CONFIG_MESSAGE } from '@/lib/supabase'
 
 interface ApplicationSlipActionsProps {
   applicationId: string
@@ -12,12 +12,25 @@ interface ApplicationSlipActionsProps {
 
 export function ApplicationSlipActions({ applicationId, applicationNumber }: ApplicationSlipActionsProps) {
   const { user } = useAuth()
-  const supabase = getSupabaseClient()
+  const supabase = useMemo(() => {
+    if (!isSupabaseConfigured) {
+      return null
+    }
+
+    return getSupabaseClient()
+  }, [])
   const [isDownloading, setIsDownloading] = useState(false)
   const [isEmailing, setIsEmailing] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
 
+  const authUnavailable = !supabase
+
   const handleDownload = async () => {
+    if (!supabase) {
+      alert(SUPABASE_MISSING_CONFIG_MESSAGE)
+      return
+    }
+
     setIsDownloading(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -54,6 +67,11 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
   }
 
   const handleEmailRequest = async () => {
+    if (!supabase) {
+      alert(SUPABASE_MISSING_CONFIG_MESSAGE)
+      return
+    }
+
     setIsEmailing(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -86,7 +104,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
     <div className="flex flex-col sm:flex-row gap-3">
       <Button
         onClick={handleDownload}
-        disabled={isDownloading}
+        disabled={isDownloading || authUnavailable}
         className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200"
       >
         {isDownloading ? (
@@ -99,7 +117,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
 
       <Button
         onClick={handleEmailRequest}
-        disabled={isEmailing || emailSent}
+        disabled={isEmailing || emailSent || authUnavailable}
         variant="outline"
         className="flex items-center justify-center space-x-2 border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400 transition-all duration-200"
       >
@@ -122,6 +140,12 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         >
           ✓ Application slip will be sent to your email shortly
         </motion.div>
+      )}
+
+      {authUnavailable && (
+        <p className="text-sm text-amber-600 font-medium">
+          {SUPABASE_MISSING_CONFIG_MESSAGE}
+        </p>
       )}
     </div>
   )

@@ -1,5 +1,5 @@
 import { monitoring } from '@/lib/monitoring'
-import { getSupabaseClient } from '@/lib/supabase'
+import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
 import { getApiBaseUrl } from '@/lib/apiConfig'
 
 const API_BASE = getApiBaseUrl()
@@ -72,6 +72,10 @@ class ApiClient {
     }
 
     if (typeof window === 'undefined') {
+      return baseHeaders
+    }
+
+    if (!isSupabaseConfigured) {
       return baseHeaders
     }
 

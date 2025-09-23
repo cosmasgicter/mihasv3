@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { User } from '@supabase/supabase-js'
 import { useAuth } from '@/contexts/AuthContext'
-import { getSupabaseClient, UserProfile } from '@/lib/supabase'
+import { getSupabaseClient, isSupabaseConfigured, SUPABASE_MISSING_CONFIG_MESSAGE, UserProfile } from '@/lib/supabase'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { secureDisplay } from '@/lib/secureDisplay'
 import { sanitizeForLog } from '@/lib/security'
@@ -63,6 +63,11 @@ function parseSignupData(user: User) {
 
 async function createUserProfile(user: User): Promise<UserProfile | null> {
   try {
+    if (!isSupabaseConfigured) {
+      console.warn(SUPABASE_MISSING_CONFIG_MESSAGE)
+      return null
+    }
+
     const supabase = getSupabaseClient()
     const signupData = parseSignupData(user)
     const metadata = user.user_metadata || {}
@@ -118,6 +123,11 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
     queryFn: async () => {
       if (!user) return null
 
+      if (!isSupabaseConfigured) {
+        console.warn(SUPABASE_MISSING_CONFIG_MESSAGE)
+        return null
+      }
+
       const supabase = getSupabaseClient()
       const { data: { session } } = await supabase.auth.getSession()
       const accessToken = session?.access_token
@@ -150,6 +160,10 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
     mutationFn: async (updates: ProfileUpdate) => {
       if (!user) {
         throw new Error('User not authenticated')
+      }
+
+      if (!isSupabaseConfigured) {
+        throw new Error(SUPABASE_MISSING_CONFIG_MESSAGE)
       }
 
       const supabase = getSupabaseClient()
