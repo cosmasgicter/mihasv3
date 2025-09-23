@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { sanitizeForLog } from '@/lib/security'
 import { getApiBaseUrl } from '@/lib/apiConfig'
 import { notificationService } from '@/services/notifications'
+import { pushSubscriptionsService } from '@/services/pushSubscriptions'
 
 // Get the application base URL for notification links
 const getAppBaseUrl = () => {
@@ -399,12 +400,24 @@ export class MultiChannelNotificationService {
 
   private async sendPushNotification(userId: string, title: string, content: string): Promise<boolean> {
     try {
-      // In production, integrate with push notification service
-      console.log('Push notification sent:', { userId: sanitizeForLog(userId), title: sanitizeForLog(title), content: sanitizeForLog(content) })
-      return true
+      const response = await pushSubscriptionsService.dispatch({
+        userId,
+        title,
+        body: content,
+        data: { url: getAppBaseUrl() }
+      })
+
+      if (!response || typeof response !== 'object') {
+        return false
+      }
+
+      const delivered = Number((response as { delivered?: number }).delivered ?? 0)
+      const success = Boolean((response as { success?: boolean }).success)
+
+      return success && delivered > 0
     } catch (error) {
-      const sanitizedError = error instanceof Error ? error.message : 'Unknown error'
-      console.error('Push notification failed:', sanitizedError)
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      console.error('Push notification failed:', sanitizeForLog(message))
       return false
     }
   }
