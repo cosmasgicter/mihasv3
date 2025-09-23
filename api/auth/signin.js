@@ -1,4 +1,10 @@
 const { createAuthHandler } = require('../_lib/createAuthHandler')
 const { createPasswordAuthHandler } = require('./_passwordAuthHandler')
+const { withNetlifyHandler } = require('../_lib/netlifyHandler')
 
-module.exports = createAuthHandler(createPasswordAuthHandler())
+const handler = createAuthHandler(createPasswordAuthHandler())
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler

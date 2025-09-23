@@ -5,8 +5,9 @@ const {
   attachRateLimitHeaders
 } = require('../_lib/rateLimiter')
 const { supabaseAdminClient, getUserFromRequest } = require('../_lib/supabaseClient')
+const { withNetlifyHandler } = require('../_lib/netlifyHandler')
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
@@ -85,6 +86,11 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler
 
 async function bulkUpdateStatus(res, userId, applicationIds, status) {
   if (!status) {

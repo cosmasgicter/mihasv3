@@ -1,6 +1,7 @@
 const { supabaseAdminClient } = require('../_lib/supabaseClient')
+const { withNetlifyHandler } = require('../_lib/netlifyHandler')
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -57,3 +58,8 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: error.message })
   }
 }
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+exports.handler = netlifyHandler
+module.exports = netlifyHandler
