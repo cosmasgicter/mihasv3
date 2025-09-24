@@ -1,4 +1,4 @@
 // Admin Audit Log Export Function - Netlify Function Entry Point
-const { handler } = require('./admin/audit-log/export.js');
+import { handler } from './admin/audit-log/export.js';
 
-exports.handler = handler;
+export { handler };
