@@ -22,5 +22,5 @@ export function getApiBaseUrl(): string {
     return normalizeBaseUrl('http://localhost:8888')
   }
 
-  return normalizeBaseUrl('https://application.mihas.edu.zm')
+  return normalizeBaseUrl('***REMOVED***')
 }
