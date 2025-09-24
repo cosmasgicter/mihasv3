@@ -2,7 +2,7 @@ import React from 'react'
 
 export function StudentDashboardSkeleton() {
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 pb-20 space-y-6 sm:space-y-8">
       <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-6 sm:p-8 text-white shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div className="space-y-3">

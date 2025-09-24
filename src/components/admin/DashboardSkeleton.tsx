@@ -3,7 +3,7 @@ import React from 'react'
 export function DashboardSkeleton() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container-mobile py-4 sm:py-6 lg:py-8 space-y-6">
+      <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 space-y-6">
         <div className="bg-white/80 backdrop-blur rounded-2xl p-6 sm:p-8 shadow-lg animate-pulse">
           <div className="h-6 sm:h-8 bg-gray-200 rounded w-48 mb-4" />
           <div className="h-4 bg-gray-100 rounded w-32 mb-6" />
