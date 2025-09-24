@@ -79,9 +79,10 @@ export default function StudentSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <AuthenticatedNavigation />
-      <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
+      <main className="w-full">
+        <div className="content-wrapper py-4 sm:py-6 lg:py-8 safe-area-bottom">
         {/* Header - Mobile First */}
         <div className="mb-6 sm:mb-8">
           <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4 font-medium transition-colors">
@@ -347,7 +348,8 @@ export default function StudentSettings() {
             </Button>
           </motion.div>
         </form>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

@@ -61,8 +61,9 @@ export default function AuthCallbackPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="page-container bg-gray-50 flex flex-col justify-center py-12">
+        <div className="content-wrapper">
+          <div className="mx-auto w-full max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
@@ -75,14 +76,16 @@ export default function AuthCallbackPage() {
               <p className="text-xs text-secondary">Redirecting to sign in page...</p>
             </div>
           </div>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="page-container bg-gray-50 flex flex-col justify-center py-12">
+      <div className="content-wrapper">
+        <div className="mx-auto w-full max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="text-center">
             <LoadingSpinner size="lg" className="mx-auto mb-4" />

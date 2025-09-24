@@ -257,11 +257,12 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
       <AdminNavigation />
 
-      <main className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
+      <main className="w-full">
+        <div className="content-wrapper py-4 sm:py-6 lg:py-8 safe-area-bottom">
         {/* Enhanced Welcome Section */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -549,6 +550,7 @@ export default function AdminDashboard() {
           </div>
         </motion.div>
 
+        </div>
       </main>
       
       <AdminDebug />

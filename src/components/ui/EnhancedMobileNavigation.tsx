@@ -134,7 +134,7 @@ export function EnhancedMobileNavigation() {
           // Styling
           'bg-white shadow-lg border border-gray-200 rounded-full',
           'flex items-center justify-center',
-          'transition-all duration-200 ease-in-out',
+          'smooth-transition',
           // Interactive states
           'hover:bg-gray-50 active:bg-gray-100',
           'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
@@ -152,21 +152,21 @@ export function EnhancedMobileNavigation() {
           {/* Animated hamburger/close icon */}
           <span
             className={cn(
-              'absolute block w-6 h-0.5 bg-gray-700 transition-all duration-300',
+              'absolute block w-6 h-0.5 bg-gray-700 smooth-transition-slow',
               'top-1.5 left-0',
               isOpen ? 'rotate-45 top-3' : 'rotate-0'
             )}
           />
           <span
             className={cn(
-              'absolute block w-6 h-0.5 bg-gray-700 transition-all duration-300',
+              'absolute block w-6 h-0.5 bg-gray-700 smooth-transition-slow',
               'top-3 left-0',
               isOpen ? 'opacity-0' : 'opacity-100'
             )}
           />
           <span
             className={cn(
-              'absolute block w-6 h-0.5 bg-gray-700 transition-all duration-300',
+              'absolute block w-6 h-0.5 bg-gray-700 smooth-transition-slow',
               'top-4.5 left-0',
               isOpen ? '-rotate-45 top-3' : 'rotate-0'
             )}
@@ -180,7 +180,7 @@ export function EnhancedMobileNavigation() {
           className={cn(
             'fixed inset-0 z-[45]',
             'bg-black/30 backdrop-blur-sm',
-            'transition-opacity duration-300',
+            'smooth-transition-slow',
             isOpen ? 'opacity-100' : 'opacity-0'
           )}
           onClick={() => setIsOpen(false)}
@@ -198,7 +198,7 @@ export function EnhancedMobileNavigation() {
           // Styling
           'bg-white shadow-2xl border-l border-gray-200',
           // Transform animation
-          'transition-transform duration-300 ease-in-out',
+          'smooth-transition-slow',
           isOpen ? 'translate-x-0' : 'translate-x-full',
           // Show only on mobile/tablet
           'md:hidden',
@@ -244,7 +244,7 @@ export function EnhancedMobileNavigation() {
                   className={cn(
                     // Base styling
                     'flex items-center justify-between px-4 py-3 rounded-lg',
-                    'text-sm font-medium transition-colors duration-200',
+                    'text-sm font-medium smooth-transition',
                     // Touch optimization
                     'min-h-[44px] touch-manipulation',
                     // Active state

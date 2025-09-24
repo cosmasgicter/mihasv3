@@ -36,7 +36,7 @@ export function EnhancedLoadingSpinner({
     const baseClasses = cn(
       sizeClasses[size],
       colorClasses[color],
-      'animate-spin',
+      'smooth-spin',
       className
     )
 
@@ -53,7 +53,7 @@ export function EnhancedLoadingSpinner({
                   colorClasses[color]
                 )}
                 style={{
-                  animation: `bounce 1.4s ease-in-out ${i * 0.16}s infinite both`
+                  animation: `smoothBounce 1.4s cubic-bezier(0.4, 0, 0.2, 1) ${i * 0.16}s infinite both`
                 }}
               />
             ))}
@@ -63,7 +63,7 @@ export function EnhancedLoadingSpinner({
       case 'pulse':
         return (
           <div className={cn(
-            'rounded-full bg-current animate-pulse',
+            'rounded-full bg-current smooth-pulse',
             sizeClasses[size],
             colorClasses[color],
             className
@@ -73,7 +73,7 @@ export function EnhancedLoadingSpinner({
       case 'bounce':
         return (
           <div className={cn(
-            'rounded-full bg-current animate-bounce',
+            'rounded-full bg-current smooth-bounce',
             sizeClasses[size], 
             colorClasses[color],
             className
@@ -130,11 +130,11 @@ export function FullScreenLoader({
 // Skeleton components for better loading states
 export function SkeletonCard() {
   return (
-    <div className="animate-pulse">
-      <div className="bg-gray-200 rounded-lg h-48 w-full mb-4"></div>
+    <div className="smooth-pulse">
+      <div className="smooth-skeleton rounded-lg h-48 w-full mb-4"></div>
       <div className="space-y-2">
-        <div className="bg-gray-200 rounded h-4 w-3/4"></div>
-        <div className="bg-gray-200 rounded h-4 w-1/2"></div>
+        <div className="smooth-skeleton rounded h-4 w-3/4"></div>
+        <div className="smooth-skeleton rounded h-4 w-1/2"></div>
       </div>
     </div>
   )
@@ -142,12 +142,12 @@ export function SkeletonCard() {
 
 export function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number, cols?: number }) {
   return (
-    <div className="animate-pulse">
-      <div className="bg-gray-200 rounded h-10 w-full mb-4"></div>
+    <div className="smooth-pulse">
+      <div className="smooth-skeleton rounded h-10 w-full mb-4"></div>
       {[...Array(rows)].map((_, i) => (
         <div key={i} className="flex space-x-4 mb-3">
           {[...Array(cols)].map((_, j) => (
-            <div key={j} className="bg-gray-200 rounded h-8 flex-1"></div>
+            <div key={j} className="smooth-skeleton rounded h-8 flex-1"></div>
           ))}
         </div>
       ))}
@@ -157,11 +157,11 @@ export function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number, cols?: nu
 
 export function SkeletonForm() {
   return (
-    <div className="animate-pulse space-y-4">
-      <div className="bg-gray-200 rounded h-10 w-full"></div>
-      <div className="bg-gray-200 rounded h-10 w-full"></div>
-      <div className="bg-gray-200 rounded h-20 w-full"></div>
-      <div className="bg-gray-200 rounded h-10 w-32"></div>
+    <div className="smooth-pulse space-y-4">
+      <div className="smooth-skeleton rounded h-10 w-full"></div>
+      <div className="smooth-skeleton rounded h-10 w-full"></div>
+      <div className="smooth-skeleton rounded h-20 w-full"></div>
+      <div className="smooth-skeleton rounded h-10 w-32"></div>
     </div>
   )
 }

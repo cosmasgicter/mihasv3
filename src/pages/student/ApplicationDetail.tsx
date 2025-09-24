@@ -80,9 +80,10 @@ export default function ApplicationDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <AuthenticatedNavigation />
-        <main className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto py-8">
+        <main className="w-full">
+          <div className="content-wrapper py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded w-1/3"></div>
             <div className="bg-white rounded-2xl shadow-lg p-8 space-y-4">
@@ -91,6 +92,7 @@ export default function ApplicationDetail() {
               <div className="h-4 bg-gray-200 rounded w-1/2"></div>
             </div>
           </div>
+          </div>
         </main>
       </div>
     )
@@ -98,9 +100,10 @@ export default function ApplicationDetail() {
 
   if (error || !application) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <AuthenticatedNavigation />
-        <main className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto py-8">
+        <main className="w-full">
+          <div className="content-wrapper py-8">
           <div className="text-center py-16">
             <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Not Found</h2>
@@ -109,16 +112,18 @@ export default function ApplicationDetail() {
               <Button>Return to Dashboard</Button>
             </Link>
           </div>
+          </div>
         </main>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <AuthenticatedNavigation />
       
-      <main className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto py-8">
+      <main className="w-full">
+        <div className="content-wrapper py-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -320,6 +325,7 @@ export default function ApplicationDetail() {
               </div>
             </div>
           </motion.div>
+        </div>
         </div>
       </main>
     </div>

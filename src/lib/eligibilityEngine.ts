@@ -193,9 +193,30 @@ export class EligibilityEngine {
   private async identifyMissingRequirements(
     programId: string,
     grades: SubjectGrade[],
-    _guidelines: RegulatoryGuideline[]
+    guidelines: RegulatoryGuideline[]
   ): Promise<MissingRequirement[]> {
     const missing: MissingRequirement[] = []
+
+    // Check regulatory compliance first
+    const { data: program } = await supabase
+      .from('programs')
+      .select('code')
+      .eq('id', programId)
+      .single()
+
+    if (program) {
+      const { regulatoryEngine } = await import('./regulatoryGuidelines')
+      const compliance = regulatoryEngine.checkCompliance(program.code, { grades })
+      
+      compliance.violations.forEach(violation => {
+        missing.push({
+          type: 'prerequisite',
+          description: violation,
+          severity: 'critical',
+          suggestion: `Ensure compliance with regulatory requirement: ${violation}`
+        })
+      })
+    }
 
     // Get course requirements
     const { data: requirements } = await supabase

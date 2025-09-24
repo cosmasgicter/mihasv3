@@ -79,6 +79,7 @@ export interface SubjectGrade {
 
 // Export the enhanced eligibility checker for use in components
 export { eligibilityEngine } from './eligibilityEngine'
+export { regulatoryEngine } from './regulatoryGuidelines'
 
 export function checkEligibility(
   program: string, 
@@ -193,6 +194,26 @@ export function checkEnhancedEligibility(
         suggestion: 'Please contact admissions for program requirements'
       }],
       recommendations: []
+    }
+  }
+
+  // Check regulatory compliance first
+  const programCode = getProgramCode(program)
+  const regulatoryCompliance = regulatoryEngine.checkCompliance(programCode, { grades })
+  
+  if (!regulatoryCompliance.compliant) {
+    return {
+      eligible: false,
+      status: 'not_eligible',
+      overallScore: 0,
+      breakdown: { subjectCount: 0, gradeAverage: 0, coreSubjects: 0, totalWeighted: 0 },
+      missingRequirements: regulatoryCompliance.violations.map(violation => ({
+        type: 'subject' as const,
+        description: violation,
+        severity: 'critical' as const,
+        suggestion: `Ensure compliance with regulatory requirement: ${violation}`
+      })),
+      recommendations: regulatoryCompliance.recommendations
     }
   }
 
@@ -367,4 +388,15 @@ function getAlternativePathways(program: string, score: number) {
   }
 
   return pathways[program as keyof typeof pathways] || []
+}
+
+// Map program names to codes for regulatory compliance
+function getProgramCode(programName: string): string {
+  const mapping: Record<string, string> = {
+    'Clinical Medicine': 'CMED',
+    'Environmental Health': 'ENVH', 
+    'Registered Nursing': 'RN',
+    'Teacher Education': 'TEACH'
+  }
+  return mapping[programName] || programName
 }

@@ -156,7 +156,7 @@ export default function LandingPageNew() {
   ]
 
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="page-container bg-white overflow-x-hidden">
       {/* Enhanced Header */}
       <motion.header
         className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/20"
@@ -164,9 +164,9 @@ export default function LandingPageNew() {
         animate={maybeMotion({ y: 0, opacity: 1 })}
         transition={maybeMotion({ duration: 0.6, ease: [0.25, 0.25, 0, 1] })}
       >
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="content-wrapper">
           <MobileNavigation />
-        </nav>
+        </div>
       </motion.header>
 
       {!supabaseAvailable && supabaseStatusMessage && (
@@ -199,7 +199,7 @@ export default function LandingPageNew() {
 
         <motion.div
           ref={heroRef}
-          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white"
+          className="relative z-10 content-wrapper text-center text-white"
           variants={shouldReduceMotion ? undefined : containerVariants}
           initial={shouldReduceMotion ? undefined : 'hidden'}
           animate={shouldReduceMotion ? undefined : (heroInView ? 'visible' : 'hidden')}
@@ -278,7 +278,7 @@ export default function LandingPageNew() {
         )}
         <motion.div
           ref={statsRef}
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          className="content-wrapper"
           variants={shouldReduceMotion ? undefined : containerVariants}
           initial={shouldReduceMotion ? undefined : 'hidden'}
           animate={shouldReduceMotion ? undefined : (statsInView ? 'visible' : 'hidden')}
@@ -313,7 +313,7 @@ export default function LandingPageNew() {
             <GeometricPatterns />
           </Suspense>
         )}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="content-wrapper">
           <motion.div
             className="text-center mb-16"
             initial={maybeMotion({ opacity: 0, y: 50 })}
@@ -370,7 +370,7 @@ export default function LandingPageNew() {
 
       {/* Accreditation Section */}
       <section className="py-16 bg-white relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="content-wrapper">
           <motion.div
             className="text-center mb-12"
             initial={maybeMotion({ opacity: 0, y: 30 })}
@@ -508,7 +508,7 @@ export default function LandingPageNew() {
             />
           </Suspense>
         )}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="content-wrapper">
           <motion.div
             className="text-center mb-16"
             initial={maybeMotion({ opacity: 0, y: 50 })}
@@ -640,7 +640,7 @@ export default function LandingPageNew() {
         )}
 
         <motion.div
-          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white"
+          className="relative z-10 content-wrapper text-center text-white"
           initial={maybeMotion({ opacity: 0, scale: 0.9 })}
           whileInView={maybeMotion({ opacity: 1, scale: 1 })}
           viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -685,7 +685,7 @@ export default function LandingPageNew() {
             />
           </Suspense>
         )}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="content-wrapper">
           <motion.div
             className="grid md:grid-cols-3 gap-12"
             variants={shouldReduceMotion ? undefined : containerVariants}

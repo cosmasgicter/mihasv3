@@ -34,8 +34,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (loading || !sessionChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg border border-gray-200 max-w-md mx-4">
+          <LoadingSpinner size="lg" message="Verifying your session..." />
+          <p className="mt-4 text-sm text-gray-600">Please wait while we authenticate you</p>
+        </div>
       </div>
     )
   }

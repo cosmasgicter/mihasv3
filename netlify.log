@@ -1,70 +1,38 @@
 ⬥ Injecting environment variable values for all scopes
 ⬥ Ignored general context env var: LANG (defined in process)
-⬥ Ignored .env file env var: APPLICATION_ADMIN_EMAILS (defined in .env.development file)
-⬥ Ignored project settings env var: APPLICATION_ADMIN_EMAILS (defined in .env.development file)
-⬥ Ignored .env file env var: EMAIL_FROM (defined in .env.development file)
-⬥ Ignored project settings env var: EMAIL_FROM (defined in .env.development file)
-⬥ Ignored .env file env var: EMAIL_PROVIDER (defined in .env.development file)
-⬥ Ignored project settings env var: EMAIL_PROVIDER (defined in .env.development file)
-⬥ Ignored project settings env var: NODE_ENV (defined in .env.local file)
-⬥ Ignored .env file env var: RATE_LIMIT_APPLICATIONS_MAX_ATTEMPTS (defined in .env.development file)
-⬥ Ignored project settings env var: RATE_LIMIT_APPLICATIONS_MAX_ATTEMPTS (defined in .env.development file)
-⬥ Ignored .env file env var: RATE_LIMIT_APPLICATIONS_WINDOW_MS (defined in .env.development file)
-⬥ Ignored project settings env var: RATE_LIMIT_APPLICATIONS_WINDOW_MS (defined in .env.development file)
-⬥ Ignored .env file env var: RATE_LIMIT_AUTH_MAX_ATTEMPTS (defined in .env.development file)
-⬥ Ignored project settings env var: RATE_LIMIT_AUTH_MAX_ATTEMPTS (defined in .env.development file)
-⬥ Ignored .env file env var: RATE_LIMIT_AUTH_WINDOW_MS (defined in .env.development file)
-⬥ Ignored project settings env var: RATE_LIMIT_AUTH_WINDOW_MS (defined in .env.development file)
-⬥ Ignored .env file env var: RATE_LIMIT_DEFAULT_MAX_ATTEMPTS (defined in .env.development file)
-⬥ Ignored project settings env var: RATE_LIMIT_DEFAULT_MAX_ATTEMPTS (defined in .env.development file)
-⬥ Ignored .env file env var: RATE_LIMIT_DEFAULT_WINDOW_MS (defined in .env.development file)
-⬥ Ignored project settings env var: RATE_LIMIT_DEFAULT_WINDOW_MS (defined in .env.development file)
-⬥ Ignored .env file env var: RATE_LIMIT_TABLE (defined in .env.development file)
-⬥ Ignored project settings env var: RATE_LIMIT_TABLE (defined in .env.development file)
-⬥ Ignored .env file env var: RESEND_API_KEY (defined in .env.development file)
-⬥ Ignored project settings env var: RESEND_API_KEY (defined in .env.development file)
-⬥ Ignored .env file env var: RESEND_FROM_EMAIL (defined in .env.development file)
-⬥ Ignored project settings env var: RESEND_FROM_EMAIL (defined in .env.development file)
-⬥ Ignored .env file env var: SMTP_FROM_EMAIL (defined in .env.development file)
-⬥ Ignored project settings env var: SMTP_FROM_EMAIL (defined in .env.development file)
-⬥ Ignored .env file env var: SMTP_HOST (defined in .env.development file)
-⬥ Ignored project settings env var: SMTP_HOST (defined in .env.development file)
-⬥ Ignored .env file env var: SMTP_PASSWORD (defined in .env.development file)
-⬥ Ignored project settings env var: SMTP_PASSWORD (defined in .env.development file)
-⬥ Ignored .env file env var: SMTP_PORT (defined in .env.development file)
-⬥ Ignored project settings env var: SMTP_PORT (defined in .env.development file)
-⬥ Ignored .env file env var: SMTP_SECURE (defined in .env.development file)
-⬥ Ignored project settings env var: SMTP_SECURE (defined in .env.development file)
-⬥ Ignored .env file env var: SMTP_USERNAME (defined in .env.development file)
-⬥ Ignored project settings env var: SMTP_USERNAME (defined in .env.development file)
+⬥ Ignored .env file env var: VITE_SUPABASE_URL (defined in .env.development file)
+⬥ Ignored .env file env var: VITE_SUPABASE_ANON_KEY (defined in .env.development file)
 ⬥ Ignored .env file env var: SUPABASE_SERVICE_ROLE_KEY (defined in .env.development file)
-⬥ Ignored project settings env var: SUPABASE_SERVICE_ROLE_KEY (defined in .env.development file)
 ⬥ Ignored .env file env var: SUPABASE_URL (defined in .env.development file)
-⬥ Ignored project settings env var: SUPABASE_URL (defined in .env.development file)
-⬥ Ignored .env file env var: VITE_ANALYTICS_BASE_URL (defined in .env.development file)
-⬥ Ignored project settings env var: VITE_ANALYTICS_BASE_URL (defined in .env.development file)
-⬥ Ignored .env file env var: VITE_ANALYTICS_SHARE_TOKEN (defined in .env.development file)
-⬥ Ignored project settings env var: VITE_ANALYTICS_SHARE_TOKEN (defined in .env.development file)
-⬥ Ignored .env file env var: VITE_ANALYTICS_SITE_ID (defined in .env.development file)
-⬥ Ignored project settings env var: VITE_ANALYTICS_SITE_ID (defined in .env.development file)
 ⬥ Ignored .env.development file env var: VITE_API_BASE_URL (defined in .env.local file)
 ⬥ Ignored .env file env var: VITE_API_BASE_URL (defined in .env.local file)
-⬥ Ignored project settings env var: VITE_API_BASE_URL (defined in .env.local file)
 ⬥ Ignored .env.development file env var: VITE_APP_BASE_URL (defined in .env.local file)
 ⬥ Ignored .env file env var: VITE_APP_BASE_URL (defined in .env.local file)
-⬥ Ignored project settings env var: VITE_APP_BASE_URL (defined in .env.local file)
-⬥ Ignored project settings env var: VITE_DEV_SERVER_PORT (defined in .env.development file)
-⬥ Ignored project settings env var: VITE_NODE_ENV (defined in .env.local file)
-⬥ Ignored .env file env var: VITE_SUPABASE_ANON_KEY (defined in .env.development file)
-⬥ Ignored project settings env var: VITE_SUPABASE_ANON_KEY (defined in .env.development file)
-⬥ Ignored .env file env var: VITE_SUPABASE_URL (defined in .env.development file)
-⬥ Ignored project settings env var: VITE_SUPABASE_URL (defined in .env.development file)
+⬥ Ignored .env file env var: RATE_LIMIT_TABLE (defined in .env.development file)
+⬥ Ignored .env file env var: RATE_LIMIT_DEFAULT_WINDOW_MS (defined in .env.development file)
+⬥ Ignored .env file env var: RATE_LIMIT_DEFAULT_MAX_ATTEMPTS (defined in .env.development file)
+⬥ Ignored .env file env var: RATE_LIMIT_AUTH_MAX_ATTEMPTS (defined in .env.development file)
+⬥ Ignored .env file env var: RATE_LIMIT_AUTH_WINDOW_MS (defined in .env.development file)
+⬥ Ignored .env file env var: RATE_LIMIT_APPLICATIONS_MAX_ATTEMPTS (defined in .env.development file)
+⬥ Ignored .env file env var: RATE_LIMIT_APPLICATIONS_WINDOW_MS (defined in .env.development file)
 ⬥ Ignored .env file env var: VITE_TURNSTILE_SITE_KEY (defined in .env.development file)
-⬥ Ignored project settings env var: VITE_TURNSTILE_SITE_KEY (defined in .env.development file)
-⬥ Injected project settings env vars: ALLOWED_FILE_TYPES, API_CACHE_TTL_MS, DEFAULT_FROM_EMAIL, EMAIL_FROM_ADDRESS, MAX_FILE_SIZE_MB, SESSION_TIMEOUT_MINUTES, SESSION_WARNING_MINUTES, STATIC_CACHE_TTL_SECONDS, TURNSTILE_SECRET_KEY
-⬥ Injected .env.development file env vars: APPLICATION_ADMIN_EMAILS, EMAIL_FROM, EMAIL_PROVIDER, RATE_LIMIT_APPLICATIONS_MAX_ATTEMPTS, RATE_LIMIT_APPLICATIONS_WINDOW_MS, RATE_LIMIT_AUTH_MAX_ATTEMPTS, RATE_LIMIT_AUTH_WINDOW_MS, RATE_LIMIT_DEFAULT_MAX_ATTEMPTS, RATE_LIMIT_DEFAULT_WINDOW_MS, RATE_LIMIT_TABLE, RESEND_API_KEY, RESEND_FROM_EMAIL, SMTP_FROM_EMAIL, SMTP_HOST, SMTP_PASSWORD, SMTP_PORT, SMTP_SECURE, SMTP_USERNAME, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL, VITE_ANALYTICS_BASE_URL, VITE_ANALYTICS_SHARE_TOKEN, VITE_ANALYTICS_SITE_ID, VITE_DEV_SERVER_PORT, VITE_SUPABASE_ANON_KEY, VITE_SUPABASE_URL, VITE_TURNSTILE_SITE_KEY
-⬥ Injected .env.local file env vars: NODE_ENV, VITE_API_BASE_URL, VITE_APP_BASE_URL, VITE_NODE_ENV
+⬥ Ignored .env file env var: EMAIL_PROVIDER (defined in .env.development file)
+⬥ Ignored .env file env var: EMAIL_FROM (defined in .env.development file)
+⬥ Ignored .env file env var: RESEND_API_KEY (defined in .env.development file)
+⬥ Ignored .env file env var: RESEND_FROM_EMAIL (defined in .env.development file)
+⬥ Ignored .env file env var: APPLICATION_ADMIN_EMAILS (defined in .env.development file)
+⬥ Ignored .env file env var: SMTP_HOST (defined in .env.development file)
+⬥ Ignored .env file env var: SMTP_PORT (defined in .env.development file)
+⬥ Ignored .env file env var: SMTP_USERNAME (defined in .env.development file)
+⬥ Ignored .env file env var: SMTP_PASSWORD (defined in .env.development file)
+⬥ Ignored .env file env var: SMTP_SECURE (defined in .env.development file)
+⬥ Ignored .env file env var: SMTP_FROM_EMAIL (defined in .env.development file)
+⬥ Ignored .env file env var: VITE_ANALYTICS_BASE_URL (defined in .env.development file)
+⬥ Ignored .env file env var: VITE_ANALYTICS_SITE_ID (defined in .env.development file)
+⬥ Ignored .env file env var: VITE_ANALYTICS_SHARE_TOKEN (defined in .env.development file)
 ⬥ Injected netlify.toml file env vars: NODE_VERSION
+⬥ Injected .env.development file env vars: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL, RATE_LIMIT_TABLE, RATE_LIMIT_DEFAULT_WINDOW_MS, RATE_LIMIT_DEFAULT_MAX_ATTEMPTS, RATE_LIMIT_AUTH_MAX_ATTEMPTS, RATE_LIMIT_AUTH_WINDOW_MS, RATE_LIMIT_APPLICATIONS_MAX_ATTEMPTS, RATE_LIMIT_APPLICATIONS_WINDOW_MS, VITE_TURNSTILE_SITE_KEY, EMAIL_PROVIDER, EMAIL_FROM, RESEND_API_KEY, RESEND_FROM_EMAIL, APPLICATION_ADMIN_EMAILS, SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, SMTP_SECURE, SMTP_FROM_EMAIL, VITE_ANALYTICS_BASE_URL, VITE_ANALYTICS_SITE_ID, VITE_ANALYTICS_SHARE_TOKEN, VITE_DEV_SERVER_PORT
+⬥ Injected .env.local file env vars: VITE_API_BASE_URL, VITE_APP_BASE_URL, NODE_ENV, VITE_NODE_ENV
 ⬥ Setting up local dev server
 
 ⬥ Starting framework dev server
@@ -74,13 +42,6 @@
 > mihas-application-system-v2@1.0.0 dev
 > vite --config vite.config.local.ts
 
-Port 5173 is in use, trying another one...
-Port 5174 is in use, trying another one...
-
-  VITE v6.3.6  ready in 594 ms
-
-  ➜  Local:   http://localhost:5175/
-  ➜  Network: http://192.168.215.173:5175/
 
    ╭─────────────────────── ⬥  ────────────────────────╮
    │                                                   │
@@ -88,92 +49,25 @@ Port 5174 is in use, trying another one...
    │                                                   │
    ╰───────────────────────────────────────────────────╯
 
-⬥ Loaded function test
-⬥ Loaded function admin-users-permissions
-⬥ Loaded function documents-upload
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+Port 5175 is in use, trying another one...
+Port 5176 is in use, trying another one...
+Port 5177 is in use, trying another one...
+Port 5178 is in use, trying another one...
+Port 5179 is in use, trying another one...
+
+  VITE v6.3.6  ready in 7795 ms
+
+  ➜  Local:   http://localhost:5180/
+  ➜  Network: http://192.168.215.173:5180/
 ⬥ Loaded function applications-id
-⬥ Loaded function admin-users-id
-⬥ Loaded function notifications-dispatch-channel
-⬥ Loaded function admin-audit-log-stats
+⬥ Loaded function test
 ⬥ Loaded function admin-audit-log-export
+⬥ Loaded function admin-users-id
+⬥ Loaded function documents-upload
+⬥ Loaded function admin-audit-log-stats
+⬥ Loaded function admin-users-permissions
+⬥ Loaded function notifications-dispatch-channel
 ⬥ Loaded function analytics-telemetry
 ⬥ Loaded function admin-users-role
-⬥ Loaded function admin-queue-status
-⬥ Loaded function admin-dashboard
-⬥ Loaded function user-consents
-⬥ Loaded function auth-register
-⬥ Loaded function notifications-process-email-queue
-⬥ Loaded function mcp-query
-⬥ Loaded function catalog-subjects
-⬥ Loaded function catalog-programs
-⬥ Loaded function catalog-intakes
-⬥ Loaded function notifications-send
-⬥ Loaded function auth-login
-⬥ Loaded function analytics-predictive-dashboard
-⬥ Loaded function push-subscriptions
-⬥ Loaded function applications in Lambda compatibility mode (https://ntl.fyi/lambda-compat)
-⬥ Loaded function health in Lambda compatibility mode (https://ntl.fyi/lambda-compat)
-⬥ Rewrote URL to /.netlify/functions/auth-login
-(node:50618) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-Request from ::1: HEAD /.netlify/functions/auth-login
-Response with status 405 in 568 ms.
-⬥ Rewrote URL to /.netlify/functions/auth-login
-Request from ::1: OPTIONS /.netlify/functions/auth-login
-Response with status 200 in 689 ms.
-⬥ Rewrote URL to /.netlify/functions/auth-login
-Request from ::1: POST /.netlify/functions/auth-login
-Response with status 200 in 1722 ms.
-⬥ Rewrote URL to /.netlify/functions/applications?page=0&pageSize=1&status=draft&sortBy=date&sortOrder=desc&mine=true
-Request from ::1: OPTIONS /.netlify/functions/applications?page=0&pageSize=1&status=draft&sortBy=date&sortOrder=desc&mine=true
-Response with status 200 in 169 ms.
-⬥ Rewrote URL to /.netlify/functions/applications?page=0&pageSize=1&status=draft&sortBy=date&sortOrder=desc&mine=true
-Request from ::1: GET /.netlify/functions/applications?page=0&pageSize=1&status=draft&sortBy=date&sortOrder=desc&mine=true
-[applications] request metadata {
-  method: 'GET',
-  userId: '6e147ead-e34d-41e2-bc05-358a653ff633',
-  page: 0,
-  pageSize: 1,
-  status: 'draft',
-  mine: true,
-  program: undefined,
-  institution: undefined,
-  paymentStatus: undefined,
-  startDate: undefined,
-  endDate: undefined,
-  sortBy: 'created_at',
-  sortOrder: 'desc',
-  includeStats: false
-}
-Response with status 200 in 1327 ms.
-⬥ Rewrote URL to /.netlify/functions/applications?page=0&pageSize=50&sortBy=date&sortOrder=desc&mine=true
-Request from ::1: OPTIONS /.netlify/functions/applications?page=0&pageSize=50&sortBy=date&sortOrder=desc&mine=true
-Response with status 200 in 10 ms.
-⬥ Rewrote URL to /.netlify/functions/applications?page=0&pageSize=50&sortBy=date&sortOrder=desc&mine=true
-Request from ::1: GET /.netlify/functions/applications?page=0&pageSize=50&sortBy=date&sortOrder=desc&mine=true
-[applications] request metadata {
-  method: 'GET',
-  userId: '6e147ead-e34d-41e2-bc05-358a653ff633',
-  page: 0,
-  pageSize: 50,
-  status: undefined,
-  mine: true,
-  program: undefined,
-  institution: undefined,
-  paymentStatus: undefined,
-  startDate: undefined,
-  endDate: undefined,
-  sortBy: 'created_at',
-  sortOrder: 'desc',
-  includeStats: false
-}
-Response with status 200 in 1076 ms.
-⬥ Rewrote URL to /.netlify/functions/catalog-programs
-⬥ Rewrote URL to /.netlify/functions/catalog-intakes
-Request from ::1: OPTIONS /.netlify/functions/catalog-programs
-Request from ::1: OPTIONS /.netlify/functions/catalog-intakes
-Response with status 200 in 627 ms.
-Response with status 200 in 680 ms.
-⬥ Rewrote URL to /.netlify/functions/analytics-telemetry
-Request from ::1: OPTIONS /.netlify/functions/analytics-telemetry
-Response with status 200 in 375 ms.
