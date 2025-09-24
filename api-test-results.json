@@ -1,0 +1,345 @@
+{
+  "timestamp": "2025-09-24T19:53:11.058Z",
+  "summary": {
+    "total": 15,
+    "passed": 4,
+    "failed": 11,
+    "skipped": 0
+  },
+  "tests": [
+    {
+      "name": "healthCheck",
+      "success": false,
+      "message": "Health check failed: Service Unavailable",
+      "details": {
+        "status": "unhealthy",
+        "supabase": {
+          "success": false,
+          "status": 401,
+          "error": "HTTP 401",
+          "message": "Unexpected response from Supabase: 401 Unauthorized"
+        },
+        "timestamp": "2025-09-24T19:53:11.787Z"
+      },
+      "timestamp": "2025-09-24T19:53:11.841Z"
+    },
+    {
+      "name": "testEndpoint",
+      "success": true,
+      "message": "Test endpoint working",
+      "details": {
+        "message": "API is working!",
+        "method": "GET",
+        "timestamp": "2025-09-24T19:53:12.875Z",
+        "url": "http://localhost:8888/.netlify/functions/test"
+      },
+      "timestamp": "2025-09-24T19:53:12.948Z"
+    },
+    {
+      "name": "studentLogin",
+      "success": false,
+      "message": "Authentication failed: OK",
+      "details": null,
+      "timestamp": "2025-09-24T19:53:15.534Z"
+    },
+    {
+      "name": "adminLogin",
+      "success": false,
+      "message": "Authentication failed: OK",
+      "details": null,
+      "timestamp": "2025-09-24T19:53:17.778Z"
+    },
+    {
+      "name": "getPrograms",
+      "success": true,
+      "message": "Found 0 programs",
+      "details": {
+        "programs": [
+          {
+            "id": "7fe6b676-d909-4160-a37b-3774c1f3c1bc",
+            "name": "Diploma in Clinical Medicine",
+            "code": "DCM",
+            "description": "Clinical Medicine program for healthcare professionals",
+            "duration_years": 3,
+            "qualification_level": "Diploma",
+            "department": "Health Sciences",
+            "requirements": null,
+            "is_active": true,
+            "created_at": "2025-09-13T10:46:35.414486+00:00",
+            "updated_at": "2025-09-13T10:46:35.414486+00:00",
+            "accreditation_body": "Ministry of Education",
+            "institution_id": "66d74594-571c-4f8d-8ecc-bc2f4eb10fac"
+          },
+          {
+            "id": "ea22895a-b3c5-44a9-a22e-773d45ab1c3f",
+            "name": "Diploma in Environmental Health",
+            "code": "DEH",
+            "description": "Environmental Health program",
+            "duration_years": 3,
+            "qualification_level": "Diploma",
+            "department": "Health Sciences",
+            "requirements": null,
+            "is_active": true,
+            "created_at": "2025-09-13T10:46:35.414486+00:00",
+            "updated_at": "2025-09-13T10:46:35.414486+00:00",
+            "accreditation_body": "Ministry of Education",
+            "institution_id": "66d74594-571c-4f8d-8ecc-bc2f4eb10fac"
+          },
+          {
+            "id": "f41bce6c-6704-4d6c-83e9-ed577ad125f5",
+            "name": "Diploma in Registered Nursing",
+            "code": "DRN",
+            "description": "Registered Nursing program",
+            "duration_years": 3,
+            "qualification_level": "Diploma",
+            "department": "Nursing",
+            "requirements": null,
+            "is_active": true,
+            "created_at": "2025-09-13T10:46:35.414486+00:00",
+            "updated_at": "2025-09-13T10:46:35.414486+00:00",
+            "accreditation_body": "Ministry of Education",
+            "institution_id": "c71d1a59-e37f-409c-9349-1af71a552722"
+          }
+        ]
+      },
+      "timestamp": "2025-09-24T19:53:20.372Z"
+    },
+    {
+      "name": "getSubjects",
+      "success": true,
+      "message": "Found 0 subjects",
+      "details": {
+        "subjects": [
+          {
+            "id": "c7d8f26e-c4a5-46b6-97d3-f27abffbf040",
+            "name": "Additional Mathematics",
+            "code": "ADD_MATH",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "ced8ac02-5035-498d-9b8e-8405ad18adb4",
+            "name": "Agricultural Science",
+            "code": "AGR",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "03bc0a03-81b0-41f4-bce6-ffa0fea3b4e6",
+            "name": "Art",
+            "code": "ART",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "6c150031-6e91-421f-931d-f012d8beb8f2",
+            "name": "Biology",
+            "code": "BIO",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "d1bfb2fd-0372-45c2-91d5-a2c3b89ca47f",
+            "name": "Chemistry",
+            "code": "CHEM",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "c64e5a46-642e-4acf-89a1-1a34818c7047",
+            "name": "Civic Education",
+            "code": "CE",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "0f6a7bd9-865a-4f3a-a4dd-e9e12968c145",
+            "name": "Computer Studies",
+            "code": "CS",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "cb9faffe-f74c-40df-b448-31c9d7cb217a",
+            "name": "English",
+            "code": "ENG",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "3f68f2e2-ae38-4764-bb9b-ae0c20cbfde3",
+            "name": "Geography",
+            "code": "GEO",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "2400abba-19a1-40b9-a6a4-fc2c503c1d6e",
+            "name": "History",
+            "code": "HIST",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "5e02d545-59df-46e0-888b-fb109d6f1a9e",
+            "name": "Home Economics",
+            "code": "HE",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "b7b33459-d2cc-401b-a9bd-e7fd3dfc6fd2",
+            "name": "Mathematics",
+            "code": "MATH",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "608e8312-d527-4f0e-a397-187b2a340408",
+            "name": "Music",
+            "code": "MUS",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "6751da5d-531c-44c8-b85b-739eabdb4208",
+            "name": "Physical Education",
+            "code": "PE",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "2f51162a-b5ea-4885-bc9d-33dfe021b086",
+            "name": "Physics",
+            "code": "PHY",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "a9757990-6263-493d-aa27-3bb9cd8b38f7",
+            "name": "Religious Education",
+            "code": "RE",
+            "is_active": true,
+            "created_at": "2025-09-12T21:45:57.322182+00:00"
+          },
+          {
+            "id": "52b7238f-76c2-4ff0-91aa-0687eb31a504",
+            "name": "Science",
+            "code": "SCI",
+            "is_active": true,
+            "created_at": "2025-09-12T22:41:28.136823+00:00"
+          }
+        ]
+      },
+      "timestamp": "2025-09-24T19:53:22.544Z"
+    },
+    {
+      "name": "getIntakes",
+      "success": true,
+      "message": "Found 0 intakes",
+      "details": {
+        "intakes": [
+          {
+            "id": "4b877b03-2260-4c26-b56c-0b9c840b8ccb",
+            "name": "January 2026 Intake",
+            "year": 2026,
+            "semester": "First Semester",
+            "start_date": "2026-01-15",
+            "end_date": "2026-06-30",
+            "application_deadline": "2025-12-15",
+            "total_capacity": 200,
+            "available_spots": 200,
+            "is_active": true,
+            "created_at": "2025-09-13T10:46:35.414486+00:00",
+            "updated_at": "2025-09-13T10:46:35.414486+00:00"
+          },
+          {
+            "id": "13ee0626-cc7a-4215-883a-55306c8e755f",
+            "name": "July 2026 Intake",
+            "year": 2026,
+            "semester": "Second Semester",
+            "start_date": "2026-07-15",
+            "end_date": "2026-12-31",
+            "application_deadline": "2026-06-15",
+            "total_capacity": 200,
+            "available_spots": 200,
+            "is_active": true,
+            "created_at": "2025-09-13T10:46:35.414486+00:00",
+            "updated_at": "2025-09-13T10:46:35.414486+00:00"
+          },
+          {
+            "id": "f82098c4-241d-47cd-8140-979795fa7759",
+            "name": "January 2027 Intake",
+            "year": 2027,
+            "semester": null,
+            "start_date": "2027-01-01",
+            "end_date": "2027-06-30",
+            "application_deadline": "2026-12-31",
+            "total_capacity": 150,
+            "available_spots": 150,
+            "is_active": true,
+            "created_at": "2025-09-18T15:25:17.180119+00:00",
+            "updated_at": "2025-09-18T15:25:17.180119+00:00"
+          }
+        ]
+      },
+      "timestamp": "2025-09-24T19:53:24.725Z"
+    },
+    {
+      "name": "getStudentApplications",
+      "success": false,
+      "message": "Student not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T19:53:25.226Z"
+    },
+    {
+      "name": "getAdminApplications",
+      "success": false,
+      "message": "Admin not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T19:53:25.729Z"
+    },
+    {
+      "name": "getAdminDashboard",
+      "success": false,
+      "message": "Admin not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T19:53:26.232Z"
+    },
+    {
+      "name": "getAnalyticsTelemetry",
+      "success": false,
+      "message": "Admin not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T19:53:26.735Z"
+    },
+    {
+      "name": "testNotifications",
+      "success": false,
+      "message": "Student not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T19:53:27.237Z"
+    },
+    {
+      "name": "getUserConsents",
+      "success": false,
+      "message": "Student not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T19:53:27.738Z"
+    },
+    {
+      "name": "getPushSubscriptions",
+      "success": false,
+      "message": "Student not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T19:53:28.239Z"
+    },
+    {
+      "name": "getAuditLogStats",
+      "success": false,
+      "message": "Admin not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T19:53:28.740Z"
+    }
+  ]
+}
