@@ -1,2 +1,2 @@
-const { handler } = require('./applications/index.js');
-exports.handler = handler;
+import { handler } from './applications/index.js';
+export { handler };

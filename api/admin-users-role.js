@@ -1,4 +1,4 @@
 // Admin Users Role Function - Netlify Function Entry Point
-const { handler } = require('./admin/users/[id].js');
+import { handler } from './admin/users/[id].js';
 
-exports.handler = handler;
+export { handler };

@@ -1,2 +1,2 @@
-const { handler } = require('./catalog/subjects.js');
-exports.handler = handler;
+import { handler } from './catalog/subjects.js';
+export { handler };
