@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import '@/styles/accreditation.css'
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { MobileNavigation } from '@/components/ui/MobileNavigation'
 import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useAuth } from '@/contexts/AuthContext'
 import { GraduationCap, Users, Award, BookOpen, Star, ArrowRight, CheckCircle, AlertTriangle } from 'lucide-react'
 import {
   isSupabaseConfigured,
@@ -24,6 +25,8 @@ const FloatingElements = lazy(() => import('@/components/ui/FloatingElements').t
 const GeometricPatterns = lazy(() => import('@/components/ui/FloatingElements').then(m => ({ default: m.GeometricPatterns })))
 
 export default function LandingPageNew() {
+  const { user, loading } = useAuth()
+  const navigate = useNavigate()
   const isMobile = useIsMobile()
   const shouldReduceMotion = useReducedMotion()
   const [heroRef, heroInView] = useInView({ threshold: 0.3, triggerOnce: true })
@@ -39,6 +42,13 @@ export default function LandingPageNew() {
   const [supabaseStatusMessage, setSupabaseStatusMessage] = useState<string | null>(
     isSupabaseConfigured ? null : SUPABASE_MISSING_CONFIG_MESSAGE
   )
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/student/dashboard')
+    }
+  }, [user, loading, navigate])
 
   const heroFloatingCount = isMobile ? 16 : 30
   const statsFloatingCount = isMobile ? 5 : 10
