@@ -1,2 +1,2 @@
-const { handler } = require('./health/index.js');
-exports.handler = handler;
+import { handler } from './health/index.js';
+export { handler };

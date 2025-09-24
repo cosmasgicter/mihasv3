@@ -1,2 +1,2 @@
-const { handler } = require('./documents/upload.js');
-exports.handler = handler;
+import { handler } from './documents/upload.js';
+export { handler };

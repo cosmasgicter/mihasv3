@@ -1,2 +1,2 @@
-const { handler } = require('./auth/login.js');
-exports.handler = handler;
+import { handler } from './auth/login.js';
+export { handler };
