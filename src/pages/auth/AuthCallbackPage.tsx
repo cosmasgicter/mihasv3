@@ -93,6 +93,7 @@ export default function AuthCallbackPage() {
             <p className="text-sm text-secondary">Please wait while we verify your account...</p>
           </div>
         </div>
+        </div>
       </div>
     </div>
   )
