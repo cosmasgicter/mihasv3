@@ -1,6 +1,9 @@
 import { monitoring } from '@/lib/monitoring'
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
 import { getApiBaseUrl } from '@/lib/apiConfig'
+import { fetchWithCache, invalidateCache } from '@/utils/api-cache'
+
+import type { FetchWithCacheOptions } from '@/utils/api-cache'
 
 const API_BASE = getApiBaseUrl()
 
@@ -93,22 +96,129 @@ class ApiClient {
     return baseHeaders
   }
 
-  async request<TResponse = unknown>(endpoint: string, options: RequestInit = {}): Promise<TResponse | null> {
+  private getInvalidationPatterns(
+    endpoint: string,
+    customTargets?: string | string[] | false
+  ): string[] {
+    if (customTargets === false) {
+      return []
+    }
+
+    const targets = new Set<string>()
+
+    if (customTargets) {
+      const entries = Array.isArray(customTargets) ? customTargets : [customTargets]
+      entries
+        .filter((value): value is string => typeof value === 'string' && value.length > 0)
+        .forEach(value => targets.add(value))
+    }
+
+    const normalizedEndpoint = endpoint.split('?')[0]
+    if (normalizedEndpoint) {
+      const segments = normalizedEndpoint.split('/').filter(Boolean)
+      if (segments.length > 0) {
+        const startIndex = segments[0] === 'api' ? 2 : 1
+        for (let i = startIndex; i <= segments.length; i++) {
+          const pattern = `/${segments.slice(0, i).join('/')}`
+          if (pattern.length > 1) {
+            targets.add(pattern)
+          }
+        }
+
+        if (segments[0] !== 'api') {
+          const fullPath = normalizedEndpoint.startsWith('/')
+            ? normalizedEndpoint
+            : `/${normalizedEndpoint}`
+          targets.add(fullPath)
+        }
+      }
+    }
+
+    return Array.from(targets)
+  }
+
+  private invalidateRelatedCaches(
+    endpoint: string,
+    customTargets?: string | string[] | false
+  ) {
+    const patterns = this.getInvalidationPatterns(endpoint, customTargets)
+    patterns.forEach(pattern => invalidateCache(pattern))
+  }
+
+  async request<TResponse = unknown>(
+    endpoint: string,
+    options: ApiRequestOptions = {}
+  ): Promise<TResponse | null> {
     const start = Date.now()
     const service = endpoint.split('/')[2] || 'unknown'
     const method = (options.method ?? 'GET').toString().toUpperCase()
 
     try {
+      const {
+        cacheTTL,
+        skipCache,
+        useCache,
+        cacheKey,
+        invalidateCache: invalidateTargets,
+        headers,
+        ...restOptions
+      } = options
+
       const authHeaders = await this.getAuthHeaders()
       const requestHeaders = {
         ...authHeaders,
-        ...this.normalizeHeaders(options.headers)
+        ...this.normalizeHeaders(headers)
       }
 
-      const response = await fetch(`${API_BASE}${endpoint}`, {
-        ...options,
+      const requestInit: RequestInit = {
+        ...restOptions,
+        method,
         headers: requestHeaders
-      })
+      }
+
+      if (method === 'GET') {
+        const shouldUseCache = (useCache ?? true) && !(skipCache ?? false)
+        const url = `${API_BASE}${endpoint}`
+
+        let responseMeta: { ok: boolean; statusCode: number; duration: number } | null = null
+
+        const fetchOptions: RequestInit & FetchWithCacheOptions = {
+          ...requestInit,
+          cache: shouldUseCache,
+          ...(cacheTTL !== undefined ? { cacheTTL } : {}),
+          ...(cacheKey ? { cacheKey } : {}),
+          transformResponse: (response: Response) =>
+            this.parseJsonSafely<TResponse>(response, service, endpoint),
+          onResponse: (response, duration) => {
+            responseMeta = {
+              ok: response.ok,
+              statusCode: response.status,
+              duration
+            }
+          }
+        }
+
+        const data = await fetchWithCache<TResponse | null>(url, fetchOptions)
+
+        if (responseMeta) {
+          monitoring.trackApiCall(service, endpoint, responseMeta.duration, responseMeta.ok, {
+            method,
+            statusCode: responseMeta.statusCode
+          })
+          monitoring.queueFlush(!responseMeta.ok)
+        } else {
+          const duration = Date.now() - start
+          monitoring.trackApiCall(service, endpoint, duration, true, {
+            method,
+            statusCode: 200
+          })
+          monitoring.queueFlush(false)
+        }
+
+        return data
+      }
+
+      const response = await fetch(`${API_BASE}${endpoint}`, requestInit)
 
       const duration = Date.now() - start
       monitoring.trackApiCall(service, endpoint, duration, response.ok, {
@@ -126,14 +236,25 @@ class ApiClient {
         throw new Error(`API Error: ${response.statusText}`)
       }
 
-      return this.parseJsonSafely<TResponse>(response, service, endpoint)
+      const payload = await this.parseJsonSafely<TResponse>(response, service, endpoint)
+
+      this.invalidateRelatedCaches(endpoint, invalidateTargets)
+
+      return payload
     } catch (error) {
       const duration = Date.now() - start
       monitoring.trackApiCall(service, endpoint, duration, false, { method })
-      monitoring.logError(service, error instanceof Error ? error : { message: 'Unknown error' }, {
-        endpoint,
-        method
-      })
+      const errorPayload = error instanceof Error ? error : { message: 'Unknown error' }
+      const statusCode = typeof (error as any)?.status === 'number' ? (error as any).status : undefined
+      monitoring.logError(
+        service,
+        errorPayload,
+        {
+          endpoint,
+          method,
+          ...(statusCode ? { statusCode } : {})
+        }
+      )
       monitoring.queueFlush(true)
       throw error
     }
@@ -170,3 +291,11 @@ export function buildQueryString(params: QueryParams = {}) {
 }
 
 export type ApiClientRequest = ApiClient['request']
+
+export interface ApiRequestOptions extends RequestInit {
+  cacheTTL?: number
+  skipCache?: boolean
+  useCache?: boolean
+  cacheKey?: string
+  invalidateCache?: string | string[] | false
+}

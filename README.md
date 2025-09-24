@@ -175,6 +175,39 @@ All environment variables are pre-configured for production. See `.env.productio
 - API response caching
 - Database query optimization
 
+### 🧠 Shared API Cache Usage
+
+Feature teams can use the shared API client cache without changing existing service layers. `apiClient.request` automatically serves GET requests through the cache with a default TTL of five minutes and invalidates related entries after successful mutations. Use the following options to tune behavior when needed:
+
+```ts
+// Adjust cache lifetime for high-churn data (value in milliseconds)
+const programs = await apiClient.request('/api/catalog/programs', {
+  cacheTTL: 2 * 60 * 1000 // Cache results for 2 minutes
+})
+
+// Skip the cache when a fresh fetch is required (e.g., admin overrides)
+const latest = await apiClient.request('/api/catalog/programs', {
+  skipCache: true
+})
+
+// Disable caching for a specific call without affecting global defaults
+await apiClient.request('/api/catalog/programs', {
+  useCache: false
+})
+
+// Provide explicit invalidation targets for mutations that affect multiple views
+await apiClient.request('/api/catalog/programs', {
+  method: 'POST',
+  body: JSON.stringify(newProgram),
+  invalidateCache: [
+    '/api/catalog/programs',
+    `/api/catalog/programs/${newProgram.id}`
+  ]
+})
+```
+
+Additional controls include the `cacheKey` option (for advanced scenarios such as multi-tenant caches) and the automatic cache purge for related REST routes when a mutation succeeds. Teams can also combine these options—e.g., `skipCache: true` together with a custom `invalidateCache` pattern—to orchestrate cache refreshes tailored to their feature domains.
+
 ### 🎯 Production Ready
 
 This application is fully configured and ready for production deployment with:
