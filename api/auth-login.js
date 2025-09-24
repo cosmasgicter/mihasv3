@@ -1,4 +1,4 @@
-import { supabaseClient } from './_lib/supabaseClient.js'
+import { supabaseAnonClient } from './_lib/supabaseClient.js'
 import { logAuditEvent } from './_lib/auditLogger.js'
 
 export default async (request, context) => {
@@ -24,7 +24,7 @@ export default async (request, context) => {
     return new Response(JSON.stringify({ error: 'Email and password are required' }), { status: 400, headers })
   }
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password })
+  const { data, error } = await supabaseAnonClient.auth.signInWithPassword({ email, password })
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 401, headers })

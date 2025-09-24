@@ -18,7 +18,7 @@ export default async (request, context) => {
     })
   }
 
-  const supabaseUrl = Netlify.env.get('VITE_SUPABASE_URL')
+  const supabaseUrl = process.env.VITE_SUPABASE_URL
 
   if (!supabaseUrl) {
     return new Response(JSON.stringify({
