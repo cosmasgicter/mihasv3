@@ -15,6 +15,7 @@
 
 [functions]
   directory = "api"
+  node_bundler = "esbuild"
 
 [[redirects]]
   from = "/api/admin/dashboard"

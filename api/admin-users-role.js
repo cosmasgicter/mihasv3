@@ -1,4 +1,14 @@
-// Admin Users Role Function - Netlify Function Entry Point
-import { handler } from './admin/users/[id].js';
+export default async (request, context) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Content-Type': 'application/json'
+  }
 
-export { handler };
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers })
+  }
+
+  return new Response(JSON.stringify({ role: 'user' }), { headers })
+}
