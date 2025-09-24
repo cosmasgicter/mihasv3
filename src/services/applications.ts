@@ -46,22 +46,24 @@ type CancelInterviewPayload = {
 export const applicationService = {
   list: (params?: QueryParams) =>
     apiClient.request<PaginatedApplicationsResponse>(
-      `/.netlify/functions/applications${buildQueryString(params ?? {})}`
+      `/api/applications${buildQueryString(params ?? {})}`
     ),
 
   // Alias for backward compatibility
   getAll: (params?: QueryParams) =>
     apiClient.request<PaginatedApplicationsResponse>(
-      `/.netlify/functions/applications${buildQueryString(params ?? {})}`
+      `/api/applications${buildQueryString(params ?? {})}`
     ),
 
-  getById: (id: string, options?: ApplicationIncludeOptions) =>
-    apiClient.request<ApplicationDetailResponse>(
-      `/.netlify/functions/applications-id?id=${id}${buildQueryString({ include: options?.include ?? [] }).replace('?', '&')}`
-    ),
+  getById: (id: string, options?: ApplicationIncludeOptions) => {
+    const includeQuery = buildQueryString({ include: options?.include ?? [] })
+    return apiClient.request<ApplicationDetailResponse>(
+      `/api/applications/${encodeURIComponent(id)}${includeQuery}`
+    )
+  },
 
   create: (data: ApplicationPayload) =>
-    apiClient.request<Application>('/.netlify/functions/applications', {
+    apiClient.request<Application>('/api/applications', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
