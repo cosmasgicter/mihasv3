@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { SubmissionResult, SubmissionStatus, EmailReceipt, RetryConfig } from '@/types/submission'
 import { ApplicationFormData } from '@/forms/applicationSchema'
 import { sanitizeForLog } from './security'
+import { renderApplicationReceiptEmail } from './emailTemplates'
 
 const RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
@@ -91,22 +92,28 @@ export const validateSubmissionData = (data: ApplicationFormData): string[] => {
 
 export const sendEmailReceipt = async (receipt: EmailReceipt): Promise<boolean> => {
   try {
-    const { error } = await supabase.functions.invoke('send-email', {
+    const html = renderApplicationReceiptEmail(receipt)
+
+    const { data, error } = await supabase.functions.invoke('send-email', {
       body: {
         to: receipt.to,
         subject: receipt.subject,
-        template: 'application-receipt',
-        data: {
-          applicationNumber: receipt.applicationNumber,
-          trackingCode: receipt.trackingCode,
-          programName: receipt.programName,
-          submissionDate: receipt.submissionDate,
-          paymentStatus: receipt.paymentStatus
-        }
+        html
       }
     })
 
-    return !error
+    if (error) {
+      console.error('Failed to invoke receipt email function:', sanitizeForLog(error.message || error))
+      return false
+    }
+
+    if (!data?.success) {
+      const providerMessage = data?.error?.message || data?.error?.code || 'Email provider rejected the receipt message'
+      console.error('Receipt email provider error:', sanitizeForLog(providerMessage))
+      return false
+    }
+
+    return true
   } catch (error) {
     console.error('Failed to send email receipt:', sanitizeForLog(error))
     return false

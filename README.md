@@ -153,6 +153,17 @@ All environment variables are pre-configured for production. See `.env.productio
   - `npm run dev`
   - `npm run dev:network`
 
+#### Email delivery configuration
+
+The Supabase edge function `send-email` expects the following secrets to be configured (via `supabase secrets set` or your hosting provider):
+
+- `EMAIL_PROVIDER` – set to `resend` or `sendgrid`.
+- `EMAIL_FROM_ADDRESS` – default sender address used when provider-specific values are not supplied.
+- `RESEND_API_KEY` and optionally `RESEND_FROM_EMAIL` – required when `EMAIL_PROVIDER=resend`.
+- `SENDGRID_API_KEY` and optionally `SENDGRID_FROM_EMAIL` – required when `EMAIL_PROVIDER=sendgrid`.
+
+You may also provide `DEFAULT_FROM_EMAIL` as a fallback sender address if `EMAIL_FROM_ADDRESS` is not available.
+
 ### 📖 Documentation
 
 - **DEPLOYMENT_GUIDE.md** - Complete deployment instructions
