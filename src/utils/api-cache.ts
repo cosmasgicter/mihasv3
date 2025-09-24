@@ -118,6 +118,10 @@ export interface FetchWithCacheOptions {
   timeout?: number
   headers?: Record<string, string>
   signal?: AbortSignal
+  cacheKey?: string
+  transformResponse?: (response: Response) => Promise<any>
+  onResponse?: (response: Response, duration: number) => void
+  onError?: (error: unknown, duration: number) => void
 }
 
 export async function fetchWithCache<T>(
@@ -132,21 +136,27 @@ export async function fetchWithCache<T>(
     timeout = 10000,
     headers = {},
     signal,
+    cacheKey,
+    transformResponse,
+    onResponse,
+    onError,
     ...fetchOptions
   } = options
 
   // Generate cache key
-  const cacheKey = `${options.method || 'GET'}:${url}:${JSON.stringify({
+  const normalizedHeaders = Object.keys(headers).sort().reduce((acc, key) => {
+    acc[key] = headers[key]
+    return acc
+  }, {} as Record<string, string>)
+
+  const resolvedCacheKey = cacheKey ?? `${options.method || 'GET'}:${url}:${JSON.stringify({
     body: options.body,
-    headers: Object.keys(headers).sort().reduce((acc, key) => {
-      acc[key] = headers[key]
-      return acc
-    }, {} as Record<string, string>)
+    headers: normalizedHeaders
   })}`
 
   // Check cache for GET requests
   if (cache && (!options.method || options.method === 'GET')) {
-    const cached = apiCache.get<T>(cacheKey)
+    const cached = apiCache.get<T>(resolvedCacheKey)
     if (cached) {
       return cached
     }
@@ -163,6 +173,7 @@ export async function fetchWithCache<T>(
 
   // Retry logic
   for (let attempt = 0; attempt <= retries; attempt++) {
+    const attemptStart = Date.now()
     try {
       const response = await fetch(url, {
         ...fetchOptions,
@@ -173,22 +184,46 @@ export async function fetchWithCache<T>(
         signal: combinedSignal
       })
 
+      const responseClone = response.clone()
+      const duration = Date.now() - attemptStart
+      onResponse?.(responseClone, duration)
+
       clearTimeout(timeoutId)
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as Error & {
+          status?: number
+          statusText?: string
+          __apiCacheNotified?: boolean
+        }
+        error.status = response.status
+        error.statusText = response.statusText
+        onError?.(error, duration)
+        error.__apiCacheNotified = true
+        throw error
       }
 
-      const data = await response.json()
+      let data: T
+
+      if (transformResponse) {
+        data = await transformResponse(response)
+      } else {
+        data = await response.json()
+      }
 
       // Cache successful GET responses
       if (cache && (!options.method || options.method === 'GET')) {
-        apiCache.set(cacheKey, data, cacheTTL)
+        apiCache.set(resolvedCacheKey, data, cacheTTL)
       }
 
       return data
     } catch (error) {
-      lastError = error as Error
+      const trackedError = error as Error & { __apiCacheNotified?: boolean }
+      lastError = trackedError
+      if (!trackedError.__apiCacheNotified) {
+        onError?.(trackedError, Date.now() - attemptStart)
+        trackedError.__apiCacheNotified = true
+      }
 
       // Don't retry on certain errors
       if (
