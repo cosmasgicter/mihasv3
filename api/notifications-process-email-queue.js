@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { withNetlifyHandler } from './_lib/netlifyHandler.js'
+import { createDurationTimer, reportFunctionExecution, reportQueueMetrics } from './_lib/scalingMetrics.js'
 
 function buildProviderErrorMessage(result, invocationError) {
   const providerError = result?.error
@@ -67,14 +68,35 @@ async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  const measureDuration = createDurationTimer()
+
   try {
-    const { data: emails } = await supabase
+    const { data: emails, count, error: fetchError } = await supabase
       .from('email_notifications')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('status', 'pending')
+      .order('created_at', { ascending: true })
       .limit(10)
 
+    if (fetchError) {
+      throw fetchError
+    }
+
     let sent = 0, failed = 0
+
+    const pendingCount = count ?? emails?.length ?? 0
+    const oldestEmail = emails?.[0] || null
+    const oldestEntryAgeMs = oldestEmail?.created_at
+      ? Date.now() - new Date(oldestEmail.created_at).getTime()
+      : null
+
+    if (pendingCount !== null && pendingCount !== undefined) {
+      await reportQueueMetrics('notifications-process-email-queue', {
+        depth: pendingCount,
+        oldestEntryAgeMs,
+        attributes: { stage: 'pre-dispatch' }
+      })
+    }
 
     for (const email of emails || []) {
       try {
@@ -120,8 +142,29 @@ async function handler(req, res) {
       }
     }
 
+    const remainingDepth = Math.max((pendingCount || 0) - sent, 0)
+
+    await reportQueueMetrics('notifications-process-email-queue', {
+      depth: remainingDepth,
+      oldestEntryAgeMs: null,
+      attributes: { stage: 'post-dispatch' }
+    })
+
+    await reportFunctionExecution('notifications-process-email-queue', {
+      durationMs: measureDuration(),
+      status: 'success',
+      queueDepth: remainingDepth,
+      attributes: { processed: sent, failed }
+    })
+
     res.json({ sent, failed })
   } catch (error) {
+    await reportFunctionExecution('notifications-process-email-queue', {
+      durationMs: measureDuration(),
+      status: 'error',
+      errorMessage: error?.message,
+      attributes: { stage: 'handler' }
+    })
     res.status(500).json({ error: error.message })
   }
 }

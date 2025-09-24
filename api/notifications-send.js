@@ -1,6 +1,7 @@
 import { supabaseAdminClient, getUserFromRequest } from './_lib/supabaseClient.js'
 import { logAuditEvent } from './_lib/auditLogger.js'
 import { withNetlifyHandler } from './_lib/netlifyHandler.js'
+import { createDurationTimer, reportFunctionExecution, reportQueueMetrics } from './_lib/scalingMetrics.js'
 
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -35,6 +36,8 @@ async function handler(req, res) {
     return res.status(400).json({ error: 'to, subject and message are required' })
   }
 
+  const measureDuration = createDurationTimer()
+
   try {
     const { data: notification, error } = await supabaseAdminClient
       .from('email_notifications')
@@ -48,7 +51,31 @@ async function handler(req, res) {
       .single()
 
     if (error) {
+      await reportFunctionExecution('notifications-send', {
+        durationMs: measureDuration(),
+        status: 'error',
+        errorMessage: error.message,
+        attributes: { stage: 'insert' }
+      })
       return res.status(400).json({ error: error.message })
+    }
+
+    const { count: pendingCount, error: countError } = await supabaseAdminClient
+      .from('email_notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending')
+
+    if (countError) {
+      console.error('Failed to fetch notification queue depth', countError)
+    }
+
+    const queueDepth = countError ? null : pendingCount ?? null
+
+    if (queueDepth !== null) {
+      await reportQueueMetrics('notifications-send', {
+        depth: queueDepth,
+        attributes: { action: 'enqueue' }
+      })
     }
 
     await logAuditEvent({
@@ -62,9 +89,22 @@ async function handler(req, res) {
       metadata: { to, subject }
     })
 
+    await reportFunctionExecution('notifications-send', {
+      durationMs: measureDuration(),
+      status: 'success',
+      queueDepth,
+      attributes: { action: 'enqueue' }
+    })
+
     return res.status(201).json(notification)
   } catch (error) {
     console.error('Notifications send error:', error)
+    await reportFunctionExecution('notifications-send', {
+      durationMs: measureDuration(),
+      status: 'error',
+      errorMessage: error?.message,
+      attributes: { stage: 'handler' }
+    })
     return res.status(500).json({ error: 'Failed to send notification' })
   }
 }
