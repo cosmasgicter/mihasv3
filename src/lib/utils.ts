@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { sanitizeForLog, sanitizeHtml, sanitizeFilePath } from './security'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -50,7 +51,7 @@ export function safeJsonParse<T>(value: string | null | undefined, fallback: T):
   try {
     return JSON.parse(value) as T
   } catch (error) {
-    console.warn('Failed to parse JSON value:', error)
+    console.warn('Failed to parse JSON value:', sanitizeForLog(error))
     return fallback
   }
 }
@@ -175,7 +176,7 @@ export function measurePerformance(name: string, fn: () => void): number {
   const end = performance.now()
   const duration = end - start
   
-  console.log(`[Performance] ${name}: ${duration.toFixed(2)}ms`)
+  console.log(`[Performance] ${sanitizeForLog(name)}: ${duration.toFixed(2)}ms`)
   return duration
 }
 
@@ -188,7 +189,7 @@ export async function measureAsyncPerformance<T>(
   const end = performance.now()
   const duration = end - start
   
-  console.log(`[Performance] ${name}: ${duration.toFixed(2)}ms`)
+  console.log(`[Performance] ${sanitizeForLog(name)}: ${duration.toFixed(2)}ms`)
   return { result, duration }
 }
 
@@ -235,7 +236,7 @@ export function getLocalStorage(key: string, defaultValue: any = null) {
     const item = window.localStorage.getItem(key)
     return item ? JSON.parse(item) : defaultValue
   } catch (error) {
-    console.warn(`Error reading from localStorage key "${key}":`, error)
+    console.warn(`Error reading from localStorage key "${sanitizeForLog(key)}":`, sanitizeForLog(error))
     return defaultValue
   }
 }
@@ -245,7 +246,7 @@ export function setLocalStorage(key: string, value: any): boolean {
     window.localStorage.setItem(key, JSON.stringify(value))
     return true
   } catch (error) {
-    console.warn(`Error writing to localStorage key "${key}":`, error)
+    console.warn(`Error writing to localStorage key "${sanitizeForLog(key)}":`, sanitizeForLog(error))
     return false
   }
 }
@@ -255,7 +256,7 @@ export function removeLocalStorage(key: string): boolean {
     window.localStorage.removeItem(key)
     return true
   } catch (error) {
-    console.warn(`Error removing localStorage key "${key}":`, error)
+    console.warn(`Error removing localStorage key "${sanitizeForLog(key)}":`, sanitizeForLog(error))
     return false
   }
 }
@@ -402,7 +403,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       return success
     }
   } catch (error) {
-    console.warn('Failed to copy text to clipboard:', error)
+    console.warn('Failed to copy text to clipboard:', sanitizeForLog(error))
     return false
   }
 }

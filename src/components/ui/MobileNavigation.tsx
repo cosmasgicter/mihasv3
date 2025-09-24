@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import { Button } from './Button'
 import { GraduationCap, Menu, X, LayoutDashboard, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -69,7 +68,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
   }
 
   return (
-    <NavigationMenu.Root className={cn("relative", className)}>
+    <div className={cn("relative", className)}>
       <div className="flex justify-between items-center py-4">
         {/* Logo */}
         <motion.div
@@ -93,55 +92,47 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
         </motion.div>
 
         {/* Desktop Navigation */}
-        <NavigationMenu.List className="hidden md:flex space-x-4">
-          <NavigationMenu.Item>
-            <Link to="/track-application">
-              <Button 
-                variant="gradient" 
-                size="md" 
-                magnetic
-                className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
-              >
-                Track Application
-              </Button>
-            </Link>
-          </NavigationMenu.Item>
-          <NavigationMenu.Item>
-            <Link to="/auth/signin">
+        <div className="hidden md:flex space-x-4">
+          <Link to="/track-application">
+            <Button 
+              variant="gradient" 
+              size="md" 
+              magnetic
+              className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
+            >
+              Track Application
+            </Button>
+          </Link>
+          <Link to="/auth/signin">
+            <Button 
+              variant="gradient" 
+              size="md" 
+              magnetic 
+              className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
+            >
+              Sign In
+            </Button>
+          </Link>
+          <Link to="/auth/signup">
+            <Button variant="gradient" size="md" magnetic glow className="font-semibold">
+              Sign Up
+            </Button>
+          </Link>
+          {user && (
+            <Link to="/student/dashboard">
               <Button 
                 variant="gradient" 
                 size="md" 
                 magnetic 
-                className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
+                glow 
+                className="font-semibold"
               >
-                Sign In
+                <LayoutDashboard className="w-4 h-4 mr-2" />
+                Dashboard
               </Button>
             </Link>
-          </NavigationMenu.Item>
-          <NavigationMenu.Item>
-            <Link to="/auth/signup">
-              <Button variant="gradient" size="md" magnetic glow className="font-semibold">
-                Sign Up
-              </Button>
-            </Link>
-          </NavigationMenu.Item>
-          {user && (
-            <NavigationMenu.Item>
-              <Link to="/student/dashboard">
-                <Button 
-                  variant="gradient" 
-                  size="md" 
-                  magnetic 
-                  glow 
-                  className="font-semibold"
-                >
-                  <LayoutDashboard className="w-4 h-4 mr-2" />
-                  Dashboard
-                </Button>
-              </Link>
-            </NavigationMenu.Item>
           )}
-        </NavigationMenu.List>
+        </div>
 
         {/* Mobile Menu Button */}
         <motion.button
@@ -217,94 +208,85 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
                 {/* Navigation Items */}
                 <div className="flex flex-col flex-1 overflow-hidden">
-                  <NavigationMenu.List className="flex flex-col space-y-3 p-6 flex-1 overflow-y-auto">
-                    <NavigationMenu.Item>
-                      <motion.div
-                        variants={itemVariants}
-                        custom={0}
-                        initial="closed"
-                        animate="open"
+                  <div className="flex flex-col space-y-3 p-6 flex-1 overflow-y-auto">
+                    <motion.div
+                      variants={itemVariants}
+                      custom={0}
+                      initial="closed"
+                      animate="open"
+                    >
+                      <Link 
+                        to="/"
+                        onClick={closeMenu}
+                        className="flex items-center px-4 py-4 rounded-xl text-white hover:bg-white/10 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
                       >
-                        <Link 
-                          to="/"
-                          onClick={closeMenu}
-                          className="flex items-center px-4 py-4 rounded-xl text-white hover:bg-white/10 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
-                        >
-                          <span className="text-white">Home</span>
-                        </Link>
-                      </motion.div>
-                    </NavigationMenu.Item>
-                    <NavigationMenu.Item>
-                      <motion.div
-                        variants={itemVariants}
-                        custom={1}
-                        initial="closed"
-                        animate="open"
+                        <span className="text-white">Home</span>
+                      </Link>
+                    </motion.div>
+                    
+                    <motion.div
+                      variants={itemVariants}
+                      custom={1}
+                      initial="closed"
+                      animate="open"
+                    >
+                      <Link 
+                        to="/track-application"
+                        onClick={closeMenu}
+                        className="flex items-center px-4 py-4 rounded-xl text-white hover:bg-white/10 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
                       >
-                        <Link 
-                          to="/track-application"
-                          onClick={closeMenu}
-                          className="flex items-center px-4 py-4 rounded-xl text-white hover:bg-white/10 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
-                        >
-                          <span className="text-white">Track Application</span>
-                        </Link>
-                      </motion.div>
-                    </NavigationMenu.Item>
+                        <span className="text-white">Track Application</span>
+                      </Link>
+                    </motion.div>
 
-                    <NavigationMenu.Item>
-                      <motion.div
-                        variants={itemVariants}
-                        custom={2}
-                        initial="closed"
-                        animate="open"
+                    <motion.div
+                      variants={itemVariants}
+                      custom={2}
+                      initial="closed"
+                      animate="open"
+                    >
+                      <Link 
+                        to="/auth/signin"
+                        onClick={closeMenu}
+                        className="flex items-center px-4 py-4 rounded-xl text-white hover:bg-white/10 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
                       >
-                        <Link 
-                          to="/auth/signin"
-                          onClick={closeMenu}
-                          className="flex items-center px-4 py-4 rounded-xl text-white hover:bg-white/10 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
-                        >
-                          <span className="text-white">Sign In</span>
-                        </Link>
-                      </motion.div>
-                    </NavigationMenu.Item>
+                        <span className="text-white">Sign In</span>
+                      </Link>
+                    </motion.div>
 
-                    <NavigationMenu.Item>
+                    <motion.div
+                      variants={itemVariants}
+                      custom={3}
+                      initial="closed"
+                      animate="open"
+                    >
+                      <Link 
+                        to="/auth/signup"
+                        onClick={closeMenu}
+                        className="flex items-center px-4 py-4 rounded-xl bg-primary/30 text-white hover:bg-primary/40 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
+                      >
+                        <span className="text-white">Sign Up</span>
+                      </Link>
+                    </motion.div>
+
+                    {user && (
                       <motion.div
                         variants={itemVariants}
-                        custom={3}
+                        custom={4}
                         initial="closed"
                         animate="open"
                       >
                         <Link 
-                          to="/auth/signup"
+                          to="/student/dashboard"
                           onClick={closeMenu}
                           className="flex items-center px-4 py-4 rounded-xl bg-primary/30 text-white hover:bg-primary/40 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
                         >
-                          <span className="text-white">Sign Up</span>
+                          <LayoutDashboard className="w-5 h-5 mr-3 text-white" />
+                          <span className="text-white">Dashboard</span>
                         </Link>
                       </motion.div>
-                    </NavigationMenu.Item>
-
-                    {user && (
-                      <NavigationMenu.Item>
-                        <motion.div
-                          variants={itemVariants}
-                          custom={4}
-                          initial="closed"
-                          animate="open"
-                        >
-                          <Link 
-                            to="/student/dashboard"
-                            onClick={closeMenu}
-                            className="flex items-center px-4 py-4 rounded-xl bg-primary/30 text-white hover:bg-primary/40 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
-                          >
-                            <LayoutDashboard className="w-5 h-5 mr-3 text-white" />
-                            <span className="text-white">Dashboard</span>
-                          </Link>
-                        </motion.div>
-                      </NavigationMenu.Item>
                     )}
-                  </NavigationMenu.List>
+                  </div>
 
                   {/* Fixed Sign Out Button for authenticated users */}
                   {user && (
@@ -340,6 +322,6 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
           </>
         )}
       </AnimatePresence>
-    </NavigationMenu.Root>
+    </div>
   )
 }

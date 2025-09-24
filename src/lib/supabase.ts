@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient, type SupportedStorage } from '@supabase/supabase-js'
-import { sanitizeForLog } from './security'
+import { sanitizeForLog, sanitizeUrl } from './security'
 
 // Supabase project configuration from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -102,19 +102,25 @@ export function createSupabaseClient(options: SupabaseFactoryOptions = {}): Supa
           'x-client-info': 'mihas-app@1.0.0'
         },
         fetch: (url, options = {}) => {
+          // Validate URL to prevent SSRF attacks
+          const sanitizedUrl = sanitizeUrl(url)
+          if (!sanitizedUrl) {
+            return Promise.reject(new Error('Invalid URL rejected for security'))
+          }
+          
           // Skip realtime connections in development to prevent WebSocket errors
-          if (url.includes('/realtime/') && import.meta.env.DEV) {
+          if (sanitizedUrl.includes('/realtime/') && import.meta.env.DEV) {
             return Promise.reject(new Error('Realtime disabled in development'))
           }
           
           // Longer timeout for auth requests
-          const isAuthRequest = url.includes('/auth/') || url.includes('/token')
+          const isAuthRequest = sanitizedUrl.includes('/auth/') || sanitizedUrl.includes('/token')
           const timeout = isAuthRequest ? 30000 : 8000
 
           const controller = new AbortController()
           const timeoutId = setTimeout(() => controller.abort(), timeout)
 
-          return fetch(url, {
+          return fetch(sanitizedUrl, {
             ...options,
             signal: controller.signal
           }).finally(() => {

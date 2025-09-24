@@ -15,7 +15,8 @@ export async function retryFetch(url, options = {}, maxRetries = 3) {
       return response
       
     } catch (error) {
-      console.warn(`Fetch attempt ${attempt}/${maxRetries} failed:`, error.message)
+      const sanitizedMessage = error?.message?.replace(/[<>"'`\\]/g, '').substring(0, 200) || 'Unknown error'
+      console.warn(`Fetch attempt ${attempt}/${maxRetries} failed:`, sanitizedMessage)
       
       if (attempt === maxRetries) {
         throw error

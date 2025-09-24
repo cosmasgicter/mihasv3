@@ -11,7 +11,7 @@ export async function validateTurnstileToken(token, remoteip) {
   }
 
   // Skip validation for test tokens in development
-  if (token === 'test-token' && process.env.NODE_ENV !== 'production') {
+  if (token === process.env.TEST_TOKEN && process.env.NODE_ENV !== 'production') {
     return { success: true, bypass: true }
   }
 

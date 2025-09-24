@@ -26,7 +26,7 @@ export const APPLICATION_FILTER_KEYS = [
 
 type ApplicationFilterKey = typeof APPLICATION_FILTER_KEYS[number]
 
-const STORAGE_KEY = 'admin_applications_filters'
+const STORAGE_KEY = process.env.VITE_ADMIN_FILTERS_STORAGE_KEY || 'admin_applications_filters'
 
 const isBrowserEnvironment = () => typeof window !== 'undefined'
 

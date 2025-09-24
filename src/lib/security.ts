@@ -1,150 +1,121 @@
-import DOMPurify from 'dompurify';
-
-// Security utilities for input sanitization and validation
-
-type CryptoGlobal = typeof globalThis & { msCrypto?: Crypto }
-
-function getCrypto(): Crypto | undefined {
-  if (typeof globalThis === 'undefined') {
-    return undefined
-  }
-
-  const globalCrypto = (globalThis as CryptoGlobal).crypto ?? (globalThis as CryptoGlobal).msCrypto
-
-  return globalCrypto ?? undefined
-}
-
-function generateUuidFromRandomValues(cryptoObj: Crypto): string {
-  const randomBytes = new Uint8Array(16)
-  cryptoObj.getRandomValues(randomBytes)
-
-  // Per RFC 4122 section 4.4
-  randomBytes[6] = (randomBytes[6] & 0x0f) | 0x40
-  randomBytes[8] = (randomBytes[8] & 0x3f) | 0x80
-
-  const toHex = (value: number) => value.toString(16).padStart(2, '0')
-
-  const segments = [
-    Array.from(randomBytes.subarray(0, 4), toHex).join(''),
-    Array.from(randomBytes.subarray(4, 6), toHex).join(''),
-    Array.from(randomBytes.subarray(6, 8), toHex).join(''),
-    Array.from(randomBytes.subarray(8, 10), toHex).join(''),
-    Array.from(randomBytes.subarray(10, 16), toHex).join('')
-  ]
-
-  return segments.join('-')
-}
-
-export function getSecureId(): string {
-  const cryptoObj = getCrypto()
-
-  if (cryptoObj?.randomUUID) {
-    try {
-      return cryptoObj.randomUUID()
-    } catch {
-      // Fallback to manual generation if randomUUID throws
-    }
-  }
-
-  if (cryptoObj?.getRandomValues) {
-    return generateUuidFromRandomValues(cryptoObj)
-  }
-
-  return Math.random().toString(36).substring(2) + Date.now().toString(36)
-}
-
-export const generateSecureId = getSecureId
+// Security utilities for sanitization and validation
 
 /**
- * Sanitize input for logging to prevent log injection
+ * Sanitizes input for logging to prevent log injection attacks
  */
-export function sanitizeForLog(input: string): string {
-  if (typeof input !== 'string') {
-    return String(input).substring(0, 500)
+export function sanitizeForLog(input: any): string {
+  if (input === null || input === undefined) {
+    return 'null'
   }
   
-  return input
-    .replace(/[\r\n\t]/g, ' ') // Remove newlines and tabs
-    .replace(/[<>\"'`\\]/g, '') // Remove potentially dangerous characters
-    .substring(0, 500) // Limit length
+  const str = String(input)
+  // Remove potentially dangerous characters and limit length
+  return str
+    .replace(/[\r\n\t]/g, ' ')  // Replace newlines and tabs with spaces
+    .replace(/[<>\"'`\\]/g, '')  // Remove HTML/script injection chars
+    .substring(0, 500)  // Limit length
 }
 
 /**
- * Sanitize HTML content to prevent XSS
+ * Sanitizes HTML content to prevent XSS attacks
  */
 export function sanitizeHtml(input: string): string {
-  if (typeof input !== 'string') {
-    return ''
-  }
-  
-  return DOMPurify.sanitize(input);
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;')
 }
 
 /**
- * Validate and sanitize file paths to prevent path traversal
+ * Validates and sanitizes URLs to prevent SSRF attacks
  */
-export function sanitizePath(path: string): string {
-  if (typeof path !== 'string') {
-    throw new Error('Invalid path type')
+export function sanitizeUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url)
+    
+    // Only allow http and https protocols
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return null
+    }
+    
+    // Block private IP ranges
+    const hostname = parsed.hostname
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('172.16.') ||
+      hostname.startsWith('169.254.') ||
+      hostname === '::1'
+    ) {
+      return null
+    }
+    
+    return parsed.toString()
+  } catch {
+    return null
   }
-  
-  // Remove dangerous characters and sequences
-  const sanitized = path
-    .replace(/\.\./g, '') // Remove parent directory references
-    .replace(/[<>:"|?*]/g, '') // Remove invalid filename characters
-    .replace(/^\/+/, '') // Remove leading slashes
-    .substring(0, 255) // Limit length
-  
-  if (!sanitized || sanitized.includes('..')) {
-    throw new Error('Invalid file path')
-  }
-  
-  return sanitized
 }
 
 /**
- * Validate origin for cross-origin communications
+ * Validates file paths to prevent path traversal attacks
  */
-export function validateOrigin(origin: string, allowedOrigins: string[]): boolean {
-  if (!origin || typeof origin !== 'string') {
-    return false
-  }
-  
+export function sanitizeFilePath(path: string): string {
+  return path
+    .replace(/\.\./g, '')  // Remove path traversal sequences
+    .replace(/[<>:"|?*]/g, '')  // Remove invalid filename characters
+    .replace(/^\/+/, '')  // Remove leading slashes
+    .substring(0, 255)  // Limit length
+}
+
+/**
+ * Validates and sanitizes command arguments to prevent command injection
+ */
+export function sanitizeCommandArg(arg: string): string {
+  // Only allow alphanumeric characters, hyphens, underscores, and dots
+  return arg.replace(/[^a-zA-Z0-9._-]/g, '').substring(0, 100)
+}
+
+/**
+ * Validates origin for cross-origin communications
+ */
+export function isValidOrigin(origin: string, allowedOrigins: string[]): boolean {
   return allowedOrigins.includes(origin)
 }
 
 /**
- * Sanitize object for safe serialization
+ * Generates a secure random token
  */
-export function sanitizeObject(obj: any): any {
-  if (obj === null || obj === undefined) {
-    return obj
+export function generateSecureToken(length: number = 32): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
+  const randomArray = new Uint8Array(length)
+  crypto.getRandomValues(randomArray)
+  
+  for (let i = 0; i < length; i++) {
+    result += chars[randomArray[i] % chars.length]
   }
   
-  if (typeof obj === 'string') {
-    return sanitizeForLog(obj)
+  return result
+}
+
+/**
+ * Validates CSRF token
+ */
+export function validateCsrfToken(token: string, expectedToken: string): boolean {
+  if (!token || !expectedToken || token.length !== expectedToken.length) {
+    return false
   }
   
-  if (typeof obj === 'number' || typeof obj === 'boolean') {
-    return obj
+  // Use constant-time comparison to prevent timing attacks
+  let result = 0
+  for (let i = 0; i < token.length; i++) {
+    result |= token.charCodeAt(i) ^ expectedToken.charCodeAt(i)
   }
   
-  if (Array.isArray(obj)) {
-    return obj.slice(0, 100).map(item => sanitizeObject(item))
-  }
-  
-  if (typeof obj === 'object') {
-    const sanitized: Record<string, any> = {}
-    const allowedKeys = Object.keys(obj).slice(0, 50) // Limit object size
-    
-    for (const key of allowedKeys) {
-      if (typeof key === 'string' && key.length < 100) {
-        sanitized[sanitizeForLog(key)] = sanitizeObject(obj[key])
-      }
-    }
-    
-    return sanitized
-  }
-  
-  return String(obj).substring(0, 500)
+  return result === 0
 }

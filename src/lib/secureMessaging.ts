@@ -1,5 +1,5 @@
 // Secure cross-origin messaging utilities
-import { validateOrigin, sanitizeForLog } from './security'
+import { isValidOrigin, sanitizeForLog } from './security'
 
 const ALLOWED_ORIGINS = [
   'https://mihas-katc.com',
@@ -17,7 +17,7 @@ const ALLOWED_ORIGINS = [
 export const setupSecureMessageListener = (callback: (data: any) => void) => {
   const messageHandler = (event: MessageEvent) => {
     // Verify origin
-    if (!validateOrigin(event.origin, ALLOWED_ORIGINS)) {
+    if (!isValidOrigin(event.origin, ALLOWED_ORIGINS)) {
       console.warn('Message from unauthorized origin:', sanitizeForLog(event.origin))
       return
     }
@@ -44,7 +44,7 @@ export const sendSecureMessage = (targetWindow: Window, data: any, targetOrigin:
     throw new Error('Target origin must be specified')
   }
   
-  if (!validateOrigin(targetOrigin, ALLOWED_ORIGINS)) {
+  if (!isValidOrigin(targetOrigin, ALLOWED_ORIGINS)) {
     throw new Error('Unauthorized target origin')
   }
   
