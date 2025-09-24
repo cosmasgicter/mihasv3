@@ -19,6 +19,60 @@
   external_node_modules = ["@supabase/supabase-js"]
 
 [[redirects]]
+  from = "/api/auth/login"
+  to = "/.netlify/functions/auth-login"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/auth/register"
+  to = "/.netlify/functions/auth-register"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/applications"
+  to = "/.netlify/functions/applications"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/catalog/subjects"
+  to = "/.netlify/functions/catalog-subjects"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/documents/upload"
+  to = "/.netlify/functions/documents-upload"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/notifications/send"
+  to = "/.netlify/functions/notifications-send"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/push-subscriptions"
+  to = "/.netlify/functions/push-subscriptions"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/user-consents"
+  to = "/.netlify/functions/user-consents"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/admin/dashboard"
   to = "/.netlify/functions/admin-dashboard"
   status = 200

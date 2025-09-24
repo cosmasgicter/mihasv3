@@ -1,58 +1,39 @@
 import { supabaseAdminClient, getUserFromRequest } from './_lib/supabaseClient.js'
-import { logAuditEvent } from './_lib/auditLogger.js'
-import { withNetlifyHandler } from '../../api/_lib/netlifyHandler.js'
 
-async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
+export default async (request, context) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
+    'Content-Type': 'application/json'
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers })
   }
 
-  const authContext = await getUserFromRequest(req, { requireAdmin: true })
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
+  }
+
+  const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) }, { requireAdmin: true })
   if (authContext.error) {
     const status = authContext.error === 'Access denied' ? 403 : 401
-    return res.status(status).json({ error: authContext.error })
+    return new Response(JSON.stringify({ error: authContext.error }), { status, headers })
   }
 
-  let body = req.body
-  if (typeof body === 'string') {
-    try {
-      body = JSON.parse(body)
-    } catch (e) {
-      return res.status(400).json({ error: 'Invalid JSON in request body' })
-    }
-  }
-  
-  const sql = (typeof body.sql === 'string' ? body.sql : body.query || '').trim()
+  const body = await request.json().catch(() => ({}))
+  const sql = (body.sql || body.query || '').trim()
 
   if (!sql) {
-    return res.status(400).json({ error: 'SQL query is required' })
+    return new Response(JSON.stringify({ error: 'SQL query is required' }), { status: 400, headers })
   }
 
   try {
-    const { data, error } = await supabaseAdminClient.rpc('execute_sql', {
-      query: sql
-    })
-
-    if (error) {
-      throw error
-    }
-
-    return res.status(200).json({ data })
+    const { data, error } = await supabaseAdminClient.rpc('execute_sql', { query: sql })
+    if (error) throw error
+    return new Response(JSON.stringify({ data }), { headers })
   } catch (error) {
-    console.error('MCP query handler error:', error)
-    return res.status(500).json({ error: 'Failed to execute query' })
+    return new Response(JSON.stringify({ error: 'Failed to execute query' }), { status: 500, headers })
   }
 }
-
-const netlifyHandler = withNetlifyHandler(handler)
-
-export { netlifyHandler as handler }
-export default netlifyHandler

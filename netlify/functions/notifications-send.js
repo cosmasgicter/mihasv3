@@ -1,38 +1,31 @@
 import { supabaseAdminClient, getUserFromRequest } from './_lib/supabaseClient.js'
-import { logAuditEvent } from './_lib/auditLogger.js'
-import { withNetlifyHandler } from '../../api/_lib/netlifyHandler.js'
 
-async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
+export default async (request, context) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
+    'Content-Type': 'application/json'
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers })
   }
 
-  const authContext = await getUserFromRequest(req, { requireAdmin: true })
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
+  }
+
+  const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) }, { requireAdmin: true })
   if (authContext.error) {
-    return res.status(403).json({ error: authContext.error })
+    return new Response(JSON.stringify({ error: authContext.error }), { status: 403, headers })
   }
 
-  let body = req.body
-  if (typeof body === 'string') {
-    try {
-      body = JSON.parse(body)
-    } catch (e) {
-      return res.status(400).json({ error: 'Invalid JSON in request body' })
-    }
-  }
-
-  const { to, subject, message } = body || {}
+  const body = await request.json().catch(() => ({}))
+  const { to, subject, message } = body
 
   if (!to || !subject || !message) {
-    return res.status(400).json({ error: 'to, subject and message are required' })
+    return new Response(JSON.stringify({ error: 'to, subject and message are required' }), { status: 400, headers })
   }
 
   try {
@@ -48,28 +41,11 @@ async function handler(req, res) {
       .single()
 
     if (error) {
-      return res.status(400).json({ error: error.message })
+      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers })
     }
 
-    await logAuditEvent({
-      req,
-      action: 'notifications.send',
-      actorId: authContext.user.id,
-      actorEmail: authContext.user.email || null,
-      actorRoles: authContext.roles,
-      targetTable: 'email_notifications',
-      targetId: notification?.id || null,
-      metadata: { to, subject }
-    })
-
-    return res.status(201).json(notification)
+    return new Response(JSON.stringify(notification), { status: 201, headers })
   } catch (error) {
-    console.error('Notifications send error:', error)
-    return res.status(500).json({ error: 'Failed to send notification' })
+    return new Response(JSON.stringify({ error: 'Failed to send notification' }), { status: 500, headers })
   }
 }
-
-const netlifyHandler = withNetlifyHandler(handler)
-
-export { netlifyHandler as handler }
-export default netlifyHandler

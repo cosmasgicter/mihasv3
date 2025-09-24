@@ -1,15 +1,10 @@
-import { withNetlifyHandler } from '../../api/_lib/netlifyHandler.js'
-
-function handler(req, res) {
-  res.json({
+export default async (request, context) => {
+  return new Response(JSON.stringify({
     message: 'API is working!',
-    method: req.method,
+    method: request.method,
     timestamp: new Date().toISOString(),
-    url: req.url
+    url: request.url
+  }), {
+    headers: { 'Content-Type': 'application/json' }
   })
 }
-
-const netlifyHandler = withNetlifyHandler(handler)
-
-export { netlifyHandler as handler }
-export default netlifyHandler
