@@ -2,16 +2,32 @@ import React from 'react'
 
 export function StudentDashboardSkeleton() {
   return (
-    <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 pb-20 space-y-6 sm:space-y-8">
-      <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-6 sm:p-8 text-white shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-          <div className="space-y-3">
-            <div className="h-6 sm:h-8 w-48 sm:w-64 rounded-full bg-white/40 animate-pulse" />
-            <div className="h-4 w-56 sm:w-72 rounded-full bg-white/30 animate-pulse" />
+    <div className="space-y-6 sm:space-y-8">
+      <div className="mb-6 sm:mb-8">
+        <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-6 sm:p-8 text-white shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div className="space-y-3">
+              <div className="h-6 sm:h-8 w-48 sm:w-64 rounded-full bg-white/40 animate-pulse" />
+              <div className="h-4 w-56 sm:w-72 rounded-full bg-white/30 animate-pulse" />
+            </div>
+            <div className="space-y-2 text-right">
+              <div className="h-10 w-16 sm:w-20 rounded-xl bg-white/40 animate-pulse ml-auto" />
+              <div className="h-3 w-24 sm:w-28 rounded-full bg-white/30 animate-pulse ml-auto" />
+            </div>
           </div>
-          <div className="space-y-2 text-right">
-            <div className="h-10 w-16 sm:w-20 rounded-xl bg-white/40 animate-pulse ml-auto" />
-            <div className="h-3 w-24 sm:w-28 rounded-full bg-white/30 animate-pulse ml-auto" />
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-3 flex-1">
+            <div className="h-5 w-48 rounded-full bg-gray-200 animate-pulse" />
+            <div className="h-4 w-64 rounded-full bg-gray-100 animate-pulse" />
+            <div className="h-3 w-40 rounded-full bg-gray-100 animate-pulse" />
+          </div>
+          <div className="flex gap-3">
+            <div className="h-10 w-32 rounded-lg bg-primary/20 animate-pulse" />
+            <div className="h-10 w-32 rounded-lg bg-gray-100 animate-pulse" />
           </div>
         </div>
       </div>
@@ -58,20 +74,37 @@ export function StudentDashboardSkeleton() {
         </div>
 
         <div className="space-y-6">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4"
-            >
-              <div className="h-5 w-40 rounded-full bg-gray-200 animate-pulse" />
-              <div className="space-y-3">
-                <div className="h-3 w-full rounded-full bg-gray-100 animate-pulse" />
-                <div className="h-3 w-5/6 rounded-full bg-gray-100 animate-pulse" />
-                <div className="h-3 w-2/3 rounded-full bg-gray-100 animate-pulse" />
-              </div>
-              <div className="h-9 w-full rounded-xl bg-gray-100 animate-pulse" />
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+            <div className="h-5 w-40 rounded-full bg-gray-200 animate-pulse" />
+            <div className="space-y-3">
+              <div className="h-3 w-full rounded-full bg-gray-100 animate-pulse" />
+              <div className="h-3 w-5/6 rounded-full bg-gray-100 animate-pulse" />
+              <div className="h-3 w-2/3 rounded-full bg-gray-100 animate-pulse" />
             </div>
-          ))}
+            <div className="h-10 w-full rounded-xl bg-gray-100 animate-pulse" />
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+            <div className="h-5 w-48 rounded-full bg-gray-200 animate-pulse" />
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="h-4 w-3/4 rounded-full bg-gray-100 animate-pulse" />
+                  <div className="h-3 w-1/2 rounded-full bg-gray-100 animate-pulse" />
+                </div>
+              ))}
+              <div className="h-3 w-2/3 rounded-full bg-gray-100 animate-pulse" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+            <div className="h-5 w-40 rounded-full bg-gray-200 animate-pulse" />
+            <div className="space-y-2">
+              <div className="h-9 w-full rounded-lg bg-gray-100 animate-pulse" />
+              <div className="h-9 w-full rounded-lg bg-gray-100 animate-pulse" />
+              <div className="h-9 w-full rounded-lg bg-gray-100 animate-pulse" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
