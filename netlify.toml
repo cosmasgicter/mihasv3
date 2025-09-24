@@ -6,6 +6,12 @@
 [dev]
   functionsPort = 8888
   command = "npm run dev"
+  targetPort = 5173
+  autoLaunch = false
+  
+[context.production.environment]
+  NODE_ENV = "production"
+  VITE_NODE_ENV = "production"
 
 [functions]
   directory = "api"
@@ -93,6 +99,7 @@
   to = "/index.html"
   status = 200
 
+# Production headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -100,7 +107,7 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://cloud.umami.is; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://application.mihas.edu.zm https://cloud.umami.is; worker-src 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://cloud.umami.is; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://apply.mihas.edu.zm https://cloud.umami.is ws://localhost:* wss://localhost:* http://localhost:* https://localhost:* wss://*.netlify.live; worker-src 'self'"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
 [[headers]]
