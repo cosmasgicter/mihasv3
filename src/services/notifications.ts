@@ -15,12 +15,25 @@ type UpdateConsentPayload = {
   reason?: string
 }
 
+type SendNotificationPayload = {
+  to: string
+  subject: string
+  message: string
+}
+
+type SendNotificationResponse = {
+  success?: boolean
+}
+
 export const notificationService = {
-  send: (data: { userId: string; type: string; title: string; message: string; data?: Record<string, unknown> }) =>
-    apiClient.request('/api/notifications/send', {
+  send: async (payload: SendNotificationPayload): Promise<boolean> => {
+    const response = await apiClient.request<SendNotificationResponse>('/api/notifications/send', {
       method: 'POST',
-      body: JSON.stringify(data)
-    }),
+      body: JSON.stringify(payload)
+    })
+
+    return Boolean(response?.success)
+  },
   applicationSubmitted: (data: { applicationId: string; userId: string }) =>
     apiClient.request('/api/notifications/application-submitted', {
       method: 'POST',
