@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 import { ApplicationFormData } from '@/forms/applicationSchema'
 import { sanitizeForLog, safeJsonParse } from './sanitize'
-import { getSecureId } from './security'
+import { generateSecureToken } from './security'
 
 export interface ApplicationDraft {
   id?: string
@@ -48,7 +48,7 @@ class ApplicationSessionManager {
   private onExpiry?: () => void
 
   constructor() {
-    this.sessionId = getSecureId()
+    this.sessionId = generateSecureToken(16)
   }
 
   // Initialize session management

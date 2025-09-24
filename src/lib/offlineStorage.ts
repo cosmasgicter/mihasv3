@@ -1,5 +1,5 @@
 import { NewOfflineQueueItem, OfflineQueueItem, OfflineRecordType } from '@/types/offline'
-import { getSecureId } from './security'
+import { generateSecureToken } from './security'
 
 class OfflineStorageManager {
   private dbName = 'mihas-offline-db'
@@ -42,7 +42,7 @@ class OfflineStorageManager {
   async store<TType extends OfflineRecordType>(data: NewOfflineQueueItem<TType>): Promise<string> {
     if (!this.db) throw new Error('Database not initialized')
 
-    const id = `${data.type}_${Date.now()}_${getSecureId()}`
+    const id = `${data.type}_${Date.now()}_${generateSecureToken(8)}`
     const offlineData: OfflineQueueItem<TType> = {
       ...data,
       id,
