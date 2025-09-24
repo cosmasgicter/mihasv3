@@ -58,6 +58,28 @@ This is the upgraded MIHAS/KATC Application System with all Phase 2 improvements
 4. Configure environment variables (see DEPLOYMENT_GUIDE.md)
 5. Deploy!
 
+#### For the CloudFront CDN Deployment
+1. Provision the infrastructure in `infra/cdn` (Terraform 1.6+, AWS credentials required)
+   ```bash
+   cd infra/cdn
+   terraform init
+   terraform apply \
+     -var="project=mihas" \
+     -var="bucket_name=<unique-s3-bucket-name>" \
+     -var="domain_name=application.mihas.edu.zm" \
+     -var="hosted_zone_id=<route53-zone-id>" \
+     -var="certificate_arn=<acm-certificate-arn>"
+   ```
+2. Point your DNS `CNAME`/`A` record to the CloudFront domain output by Terraform (or let Terraform manage Route53).
+3. Build the site: `npm run build:prod`.
+4. Export the CloudFront details as environment variables before running `./deploy.sh`:
+   ```bash
+   export CDN_BUCKET_NAME=<same-s3-bucket-name>
+   export CDN_DISTRIBUTION_ID=<terraform-output-cdn_distribution_id>
+   ./deploy.sh
+   ```
+5. Verify the distribution is serving the new build from all required regions (see DEPLOYMENT_GUIDE.md for testing tips).
+
 #### For Local Development
 ```bash
 # Install dependencies
@@ -72,6 +94,20 @@ npm run build:prod
 
 > The Vite development server reads its port from the `VITE_DEV_SERVER_PORT` environment variable (default `5173`).
 > Add it to your `.env.local` or `.env.development` file if you need to run on a different port.
+
+### 🌐 CDN Automation Environment Variables
+
+The `deploy.sh` script can automatically push the `dist/` build to CloudFront and invalidate cached objects when the following
+environment variables are defined:
+
+| Variable | Description |
+| --- | --- |
+| `CDN_BUCKET_NAME` | Name of the S3 bucket created by Terraform to store the static assets |
+| `CDN_DISTRIBUTION_ID` | CloudFront distribution identifier returned by Terraform |
+| `CDN_INVALIDATION_PATHS` | Optional space-delimited list of paths to invalidate (default: `/*`) |
+| `CDN_DEFAULT_CACHE_CONTROL` | Optional Cache-Control header applied during the S3 sync for hashed assets |
+| `CDN_HTML_CACHE_CONTROL` | Optional Cache-Control header override for HTML shell files |
+| `PUBLISH_TO_CDN` | Set to `false` to skip CDN publishing during a deploy run |
 
 ### 📁 Project Structure
 
