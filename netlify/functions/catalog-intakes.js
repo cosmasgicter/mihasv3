@@ -1,17 +1,19 @@
-import { supabaseAdminClient, getUserFromRequest } from './_lib/supabaseClient.js'
-import { withNetlifyHandler } from '../../api/_lib/netlifyHandler.js'
+import { supabaseAdminClient } from './_lib/supabaseClient.js'
 
-async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
+export default async (request, context) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
   }
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' })
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers })
+  }
+
+  if (request.method !== 'GET') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
   }
 
   const { data, error } = await supabaseAdminClient
@@ -21,9 +23,8 @@ async function handler(req, res) {
     .order('application_deadline')
 
   if (error) {
-    return res.status(400).json({ error: error.message })
+    return new Response(JSON.stringify({ error: error.message }), { status: 400, headers })
   }
-  return res.status(200).json({ intakes: data || [] })
-}
 
-export const handler = withNetlifyHandler(handler)
+  return new Response(JSON.stringify({ intakes: data || [] }), { headers })
+}

@@ -16,17 +16,15 @@ export default async (request, context) => {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
   }
 
-  try {
-    const { data, error } = await supabaseAdminClient
-      .from('programs')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
+  const { data, error } = await supabaseAdminClient
+    .from('grade12_subjects')
+    .select('*')
+    .eq('is_active', true)
+    .order('name')
 
-    if (error) throw error
-
-    return new Response(JSON.stringify({ programs: data || [] }), { headers })
-  } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to load programs' }), { status: 500, headers })
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 400, headers })
   }
+
+  return new Response(JSON.stringify({ subjects: data || [] }), { headers })
 }
