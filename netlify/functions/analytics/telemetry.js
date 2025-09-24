@@ -3,9 +3,18 @@ import {
   handleTelemetryFetch,
   handleTelemetryIngest
 } from '../../../api/_lib/analytics/telemetry.js'
+import { validateCsrfToken } from '../../../api/_lib/security.js'
 
 async function handler(req, res) {
   if (req.method === 'POST') {
+    // Validate CSRF token for state-changing requests
+    const csrfToken = req.headers['x-csrf-token'] || req.body?.csrfToken
+    const sessionToken = req.headers['x-session-token']
+    
+    if (!validateCsrfToken(csrfToken, sessionToken)) {
+      return res.status(403).json({ error: 'Invalid CSRF token' })
+    }
+    
     return handleTelemetryIngest(req, res)
   }
 

@@ -25,7 +25,9 @@
               message.includes('Private Access Token challenge') ||
               message.includes('cdn-cgi/challenge-platform') ||
               message.includes('Failed to load resource') ||
-              message.includes('Registration failed')
+              message.includes('Registration failed') ||
+              message.includes('Refused to connect') ||
+              message.includes('Content Security Policy directive')
             ) {
               return; // Suppress these errors
             }

@@ -1,6 +1,7 @@
 // Smart features for auto-filling forms and processing documents
 
 import { compressImage } from './file-helpers'
+import { sanitizeForLog } from '../lib/security'
 
 // OCR Service for extracting text from documents
 export class OCRService {
@@ -27,7 +28,7 @@ export class OCRService {
       
       this.isInitialized = true
     } catch (error) {
-      console.error('Failed to initialize OCR:', error)
+      console.error('Failed to initialize OCR:', sanitizeForLog(error))
       throw new Error('OCR service unavailable')
     }
   }
@@ -44,7 +45,7 @@ export class OCRService {
       const { data: { text } } = await this.worker.recognize(compressedFile)
       return text.trim()
     } catch (error) {
-      console.error('OCR extraction failed:', error)
+      console.error('OCR extraction failed:', sanitizeForLog(error))
       throw new Error('Failed to extract text from image')
     }
   }
@@ -240,6 +241,7 @@ export class DocumentParser {
 
     for (const pattern of patterns) {
       let match
+      let match
       while ((match = pattern.exec(text)) !== null) {
         const subjectRaw = match[1].trim().toLowerCase()
         const gradeStr = match[2]
@@ -326,7 +328,7 @@ export class AutoFillService {
         _rawText: extractedText
       }
     } catch (error) {
-      console.error('Auto-fill extraction failed:', error)
+      console.error('Auto-fill extraction failed:', sanitizeForLog(error))
       throw new Error('Failed to extract data from document. Please enter information manually.')
     }
   }

@@ -23,7 +23,7 @@ In Netlify Dashboard → Site Settings → Environment Variables, add:
 
 ```
 VITE_SUPABASE_URL=https://mylgegkqoddcrxtwcclb.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MTIwODMsImV4cCI6MjA3MzA4ODA4M30.7f-TwYz7E6Pp07oH5Lkkfw9c8d8JkeE81EXJqpCWiLw
+VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
 VITE_API_BASE_URL=https://application.mihas.edu.zm
 VITE_APP_BASE_URL=https://application.mihas.edu.zm
 VITE_TURNSTILE_SITE_KEY=0x4AAAAAABzNXd6hf1VUxD3X

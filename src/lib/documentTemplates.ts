@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts } from 'pdf-lib'
+import { sanitizeHtml } from './security'
 
 export type DocumentTemplateId =
   | 'offerLetter'
@@ -119,13 +120,7 @@ const BODY_FONT_SIZE = 11
 const HEADING_FONT_SIZE = 14
 const LINE_HEIGHT = 16
 
-const escapeHtml = (value: string) =>
-  value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+const escapeHtml = (value: string) => sanitizeHtml(value)
 
 const isIsoLikeDateString = (value: string): boolean => {
   if (!value) return false

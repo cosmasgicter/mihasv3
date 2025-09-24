@@ -150,15 +150,15 @@ export const addCSPMeta = () => {
   const cspMeta = document.createElement('meta')
   cspMeta.setAttribute('http-equiv', 'Content-Security-Policy')
   cspMeta.setAttribute('content', 
-    "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; " +
-    "style-src 'self' 'unsafe-inline' https:; " +
-    "img-src 'self' data: blob: https:; " +
-    "connect-src 'self' https: wss:; " +
-    "font-src 'self' data: https:; " +
+    "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: *; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: *; " +
+    "style-src 'self' 'unsafe-inline' https: *; " +
+    "img-src 'self' data: blob: https: *; " +
+    "connect-src 'self' https: wss: ws: * data:; " +
+    "font-src 'self' data: https: *; " +
     "object-src 'none'; " +
     "base-uri 'self'; " +
-    "form-action 'self';"
+    "form-action 'self' *;"
   )
   
   document.head.appendChild(cspMeta)

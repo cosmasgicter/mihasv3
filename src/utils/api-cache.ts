@@ -381,7 +381,7 @@ export function getNetworkAwareCacheTTL(): number {
 
 // Enhanced cache with persistence
 export class PersistentCache extends ApiCache {
-  private storageKey = 'mihas-api-cache'
+  private storageKey = process.env.VITE_API_CACHE_STORAGE_KEY || 'mihas-api-cache'
   private maxStorageSize = 5 * 1024 * 1024 // 5MB
 
   constructor() {

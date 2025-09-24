@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { applicationService } from '@/services/applications'
-import { sanitizeForLog } from '@/lib/security'
+import { sanitizeForLog, sanitizeFilePath } from '@/lib/security'
 
 // Types
 export interface ApplicationFilters {

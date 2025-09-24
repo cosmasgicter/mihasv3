@@ -1,6 +1,7 @@
 import fetch from 'node-fetch'
 
 import { supabaseAdminClient } from '../_lib/supabaseClient.js'
+import { validateCsrfToken } from '../../../api/_lib/security.js'
 
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN
