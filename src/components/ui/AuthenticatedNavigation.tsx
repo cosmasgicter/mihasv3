@@ -49,16 +49,16 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
       opacity: 0,
       x: '100%',
       transition: {
-        duration: 0.3,
-        ease: [0.25, 0.25, 0, 1]
+        duration: 0.25,
+        ease: [0.4, 0, 0.2, 1]
       }
     },
     open: {
       opacity: 1,
       x: 0,
       transition: {
-        duration: 0.3,
-        ease: [0.25, 0.25, 0, 1]
+        duration: 0.25,
+        ease: [0.4, 0, 0.2, 1]
       }
     }
   }), [])
@@ -69,8 +69,9 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
       opacity: 1,
       x: 0,
       transition: {
-        delay: i * 0.1,
-        duration: 0.3
+        delay: i * 0.05,
+        duration: 0.2,
+        ease: [0.4, 0, 0.2, 1]
       }
     })
   }), [])
@@ -91,17 +92,28 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
             <motion.div 
               className="flex items-center space-x-2 sm:space-x-3"
               whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
               <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
                 <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
-              <div>
-                <h1 className="text-sm sm:text-lg font-bold text-gray-900">
-                  {isMobile ? (profile?.full_name?.split(' ')[0] || 'Student') : `Welcome, ${profile?.full_name || 'Student'}`}
+              <div className="min-w-0 flex-1">
+                <h1 className="text-sm sm:text-lg font-bold text-gray-900 truncate">
+                  {profile?.full_name ? (
+                    isMobile ? profile.full_name.split(' ')[0] : `Welcome, ${profile.full_name}`
+                  ) : (
+                    <span className="inline-flex items-center space-x-2">
+                      <span className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+                    </span>
+                  )}
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">{profile?.email}</p>
-                <p className="text-xs text-gray-600 sm:hidden truncate max-w-[120px]">{profile?.email}</p>
+                <p className="text-xs sm:text-sm text-gray-600 truncate max-w-[200px]">
+                  {profile?.email || (
+                    <span className="inline-flex items-center">
+                      <span className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+                    </span>
+                  )}
+                </p>
               </div>
             </motion.div>
           </div>
@@ -120,7 +132,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex items-center space-x-2 hover:bg-primary/10 hover:text-primary transition-all duration-200"
+                      className="flex items-center space-x-2 hover:bg-primary/10 hover:text-primary smooth-transition"
                     >
                       <item.icon className="h-4 w-4" />
                       <span className="font-medium">{item.label}</span>
@@ -148,7 +160,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu Button */}
             <motion.button
-              className="lg:hidden p-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[48px] min-w-[48px] touch-target border-2 border-gray-600 hover:border-gray-500 shadow-lg z-[102]"
+              className="lg:hidden p-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[48px] min-w-[48px] touch-target border-2 border-gray-600 hover:border-gray-500 shadow-lg z-[102]"
               onClick={toggleMenu}
               whileTap={{ scale: 0.95 }}
               aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -211,13 +223,25 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
                       <User className="h-5 w-5 text-white" />
                     </div>
-                    <div>
-                      <p className="font-bold text-gray-900 text-lg">{profile?.full_name || 'Student'}</p>
-                      <p className="text-sm text-gray-600 truncate max-w-[180px]">{profile?.email}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-gray-900 text-lg truncate">
+                        {profile?.full_name || (
+                          <span className="inline-flex items-center">
+                            <span className="h-5 w-24 bg-gray-200 rounded animate-pulse" />
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-sm text-gray-600 truncate max-w-[180px]">
+                        {profile?.email || (
+                          <span className="inline-flex items-center">
+                            <span className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                          </span>
+                        )}
+                      </p>
                     </div>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target"
+                    className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -240,7 +264,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                           <Link 
                             to={item.href}
                             onClick={closeMenu}
-                            className="mobile-nav-item mobile-nav-focus text-gray-700 hover:bg-primary/10 hover:text-primary border border-gray-200 hover:border-primary/30 transition-all duration-300"
+                            className="mobile-nav-item mobile-nav-focus text-gray-700 hover:bg-primary/10 hover:text-primary border border-gray-200 hover:border-primary/30 smooth-transition-slow"
                           >
                             <div className="flex items-center justify-between w-full">
                               <div className="flex items-center space-x-3">
@@ -265,7 +289,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                       custom={navigationItems.length}
                       initial="closed"
                       animate="open"
-                      className="w-full flex items-center justify-center space-x-3 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
+                      className="w-full flex items-center justify-center space-x-3 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium"
                     >
                       <LogOut className="h-5 w-5" />
                       <span>Sign Out</span>

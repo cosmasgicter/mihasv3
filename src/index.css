@@ -2,6 +2,7 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 @import './styles/mobile-enhancements.css';
+@import './styles/smooth-animations.css';
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -30,8 +31,7 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  padding: 0;
   min-width: 320px;
   min-height: 100vh;
   font-family: Inter, system-ui, sans-serif;
@@ -39,6 +39,8 @@ body {
   color: #1f2937;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 h1 {
@@ -55,10 +57,13 @@ button {
   font-family: inherit;
   background-color: #1a1a1a;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: border-color, background-color;
+  transform: translateZ(0);
 }
 button:hover {
   border-color: #646cff;
+  transform: translateY(-1px) translateZ(0);
 }
 button:focus,
 button:focus-visible {
@@ -117,10 +122,36 @@ button:focus-visible {
 /* Performance optimizations */
 .will-change-transform {
   will-change: transform;
+  transform: translateZ(0);
 }
 
 .will-change-opacity {
   will-change: opacity;
+  transform: translateZ(0);
+}
+
+/* Global animation performance */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optimize all transitions */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* Accessibility improvements */
@@ -171,46 +202,66 @@ button:focus-visible {
   color: #991b1b;
 }
 
-/* Animation utilities */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
+/* Layout utilities */
+.page-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .content-wrapper {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
+@media (min-width: 1024px) {
+  .content-wrapper {
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 }
 
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+/* Loading state consistency */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  width: 100%;
 }
 
+.loading-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  max-width: 28rem;
+  width: 100%;
+  text-align: center;
+}
+
+/* Legacy animation utilities - replaced by smooth-animations.css */
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
+  animation: smoothFadeIn 0.3s ease-out;
 }
 
 .animate-slideUp {
-  animation: slideUp 0.3s ease-out;
+  animation: smoothSlideUp 0.3s ease-out;
 }
 
 .animate-slideDown {
-  animation: slideDown 0.3s ease-out;
+  animation: smoothSlideDown 0.3s ease-out;
 }

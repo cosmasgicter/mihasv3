@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { TextArea } from '../../components/ui/TextArea'
 import { Plus, Edit, Trash2, Save, X, Settings, BarChart3, Users, AlertTriangle } from 'lucide-react'
+import { RegulatoryGuidelinesTable } from '../../components/admin/RegulatoryGuidelinesTable'
 
 interface Program {
   id: string
@@ -26,7 +27,7 @@ interface EligibilityRule {
 
 export default function EligibilityManagement() {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'rules' | 'guidelines' | 'appeals'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'rules' | 'guidelines'>('dashboard')
   const [programs, setPrograms] = useState<Program[]>([])
   const [rules, setRules] = useState<EligibilityRule[]>([])
   const [loading, setLoading] = useState(true)
@@ -183,7 +184,8 @@ export default function EligibilityManagement() {
             <nav className="-mb-px flex space-x-8 px-6">
               {[
                 { id: 'dashboard', name: 'Analytics Dashboard', icon: BarChart3 },
-                { id: 'rules', name: 'Eligibility Rules', icon: Settings }
+                { id: 'rules', name: 'Eligibility Rules', icon: Settings },
+                { id: 'guidelines', name: 'Regulatory Guidelines', icon: AlertTriangle }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -290,6 +292,20 @@ export default function EligibilityManagement() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'guidelines' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Regulatory Guidelines</h2>
+                <p className="text-gray-600 mt-1">
+                  HPCZ, NMCZ, and ECZ compliance requirements for health and education programs
+                </p>
+              </div>
+            </div>
+            <RegulatoryGuidelinesTable />
           </div>
         )}
 

@@ -113,8 +113,9 @@ const ApplicationWizard = () => {
   const handleGetUsedSubjects = () => getUsedSubjects()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="w-full">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <Link to="/student/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -287,6 +288,7 @@ const ApplicationWizard = () => {
             </div>
           </motion.div>
         </form>
+        </div>
       </div>
 
       <AIAssistant

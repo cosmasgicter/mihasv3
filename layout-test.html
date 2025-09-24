@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Inter, system-ui, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #faf5ff 100%);
+            min-height: 100vh;
+            width: 100%;
+        }
+        
+        .page-container {
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        .content-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .skeleton-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .skeleton-line {
+            height: 1rem;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .skeleton-line.short { width: 60%; }
+        .skeleton-line.medium { width: 80%; }
+        .skeleton-line.long { width: 100%; }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media (min-width: 1024px) {
+            .grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+        
+        .test-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-sidebar {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="content-wrapper">
+            <h1 style="text-align: center; margin-bottom: 2rem; color: #1f2937; font-size: 2rem; font-weight: bold;">
+                Layout Test - Centered Content
+            </h1>
+            
+            <!-- Skeleton Loading Test -->
+            <div class="skeleton-card">
+                <h2 style="margin-bottom: 1rem; color: #374151;">Skeleton Loading Test</h2>
+                <div class="skeleton-line long"></div>
+                <div class="skeleton-line medium"></div>
+                <div class="skeleton-line short"></div>
+            </div>
+            
+            <!-- Grid Layout Test -->
+            <div class="grid">
+                <div class="test-content">
+                    <h3 style="margin-bottom: 1rem; color: #374151;">Main Content Area</h3>
+                    <p style="color: #6b7280; line-height: 1.6;">
+                        This content should be properly centered and take up 2/3 of the width on desktop.
+                        On mobile, it should take the full width. The layout should not shift during loading.
+                    </p>
+                </div>
+                
+                <div class="test-sidebar">
+                    <h3 style="margin-bottom: 1rem; color: #374151;">Sidebar</h3>
+                    <p style="color: #6b7280; line-height: 1.6;">
+                        This sidebar should take up 1/3 of the width on desktop and full width on mobile.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

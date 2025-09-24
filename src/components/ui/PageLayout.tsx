@@ -1,0 +1,58 @@
+import React from 'react'
+import { cn } from '@/lib/utils'
+
+interface PageLayoutProps {
+  children: React.ReactNode
+  className?: string
+  background?: 'default' | 'gradient' | 'white' | 'gray'
+}
+
+interface PageContentProps {
+  children: React.ReactNode
+  className?: string
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '7xl' | 'full'
+}
+
+const backgroundClasses = {
+  default: 'bg-gray-50',
+  gradient: 'bg-gradient-to-br from-blue-50 via-white to-purple-50',
+  white: 'bg-white',
+  gray: 'bg-gray-100'
+}
+
+const maxWidthClasses = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
+  '4xl': 'max-w-4xl',
+  '7xl': 'max-w-7xl',
+  full: 'max-w-full'
+}
+
+export function PageLayout({ children, className, background = 'gradient' }: PageLayoutProps) {
+  return (
+    <div className={cn('page-container', backgroundClasses[background], className)}>
+      {children}
+    </div>
+  )
+}
+
+export function PageContent({ children, className, maxWidth = '7xl' }: PageContentProps) {
+  return (
+    <main className="w-full">
+      <div className={cn('content-wrapper', maxWidthClasses[maxWidth], 'mx-auto', className)}>
+        {children}
+      </div>
+    </main>
+  )
+}
+
+export function PageSection({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <section className={cn('py-4 sm:py-6 lg:py-8', className)}>
+      {children}
+    </section>
+  )
+}

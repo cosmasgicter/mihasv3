@@ -198,7 +198,8 @@ export default function StudentDashboard() {
       {/* Header */}
       <AuthenticatedNavigation />
 
-      <main className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 pb-20">
+      <main className="w-full">
+        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 pb-20">
         {isInitialLoading ? (
           <StudentDashboardSkeleton />
         ) : (
@@ -642,6 +643,7 @@ export default function StudentDashboard() {
         </div>
           </>
         )}
+        </div>
       </main>
     </div>
   )

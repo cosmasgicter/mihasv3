@@ -89,7 +89,7 @@ function applyFilters(queryBuilder, filters = {}, { includeStatus = true } = {})
 
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, authorization')
 
   if (req.method === 'OPTIONS' || req.method === 'HEAD') {
@@ -278,7 +278,7 @@ async function handler(req, res) {
     }
   }
 
-  if (req.method === 'PUT') {
+  if (req.method === 'PUT' || req.method === 'PATCH') {
     try {
       const authContext = await dependencies.getUserFromRequest(req)
       if (authContext.error) {
@@ -349,7 +349,7 @@ async function handler(req, res) {
     }
   }
 
-  res.setHeader('Allow', 'GET,POST,PUT,HEAD,OPTIONS')
+  res.setHeader('Allow', 'GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS')
   return res.status(405).json({ error: 'Method not allowed' })
 }
 

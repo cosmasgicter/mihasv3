@@ -64,6 +64,22 @@
   }
 }
 
+/* Prevent layout shift during loading */
+.loading-placeholder {
+  min-height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Skeleton loading improvements */
+.skeleton-text {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: smoothShimmer 1.5s infinite;
+  will-change: background-position;
+  transform: translateZ(0);
+}
+
 /* Enhanced scrolling for mobile */
 .mobile-scroll {
   -webkit-overflow-scrolling: touch;
@@ -99,17 +115,10 @@
 }
 
 /* Loading animations optimized for mobile */
-@keyframes mobile-pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
 .mobile-pulse {
-  animation: mobile-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: smoothPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: opacity, transform;
+  transform: translateZ(0);
 }
 
 /* Mobile-specific button styles */
@@ -119,15 +128,17 @@
   font-size: 16px;
   font-weight: 500;
   border-radius: 8px;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .mobile-button:active {
-  transform: scale(0.98);
+  transform: scale(0.98) translateZ(0);
 }
 
 /* Enhanced focus states for accessibility */
@@ -143,15 +154,17 @@
   padding: 16px 24px;
   min-height: 56px;
   border-radius: 12px;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-weight: 500;
   text-decoration: none;
   position: relative;
   overflow: hidden;
+  will-change: transform, background-color;
+  transform: translateZ(0);
 }
 
 .mobile-nav-item:active {
-  transform: scale(0.98);
+  transform: scale(0.98) translateZ(0);
 }
 
 .mobile-nav-item::before {
@@ -163,7 +176,8 @@
   bottom: 0;
   background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
 }
 
 .mobile-nav-item:hover::before {
