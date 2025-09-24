@@ -41,6 +41,12 @@
   force = true
 
 [[redirects]]
+  from = "/api/admin/users/:id"
+  to = "/.netlify/functions/admin-users-id?id=:id"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/analytics/telemetry"
   to = "/.netlify/functions/analytics-telemetry"
   status = 200
