@@ -1,2 +1,4 @@
-export { handler, expressHandler } from './admin/users/[id]/role.js'
-export { default } from './admin/users/[id]/role.js'
+// Admin Users Role Function - Netlify Function Entry Point
+const { handler } = require('./admin/users/[id].js');
+
+exports.handler = handler;

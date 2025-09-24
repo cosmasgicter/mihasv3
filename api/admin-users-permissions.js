@@ -1,2 +1,4 @@
-export { handler, expressHandler } from './admin/users/[id]/permissions.js'
-export { default } from './admin/users/[id]/permissions.js'
+// Admin Users Permissions Function - Netlify Function Entry Point  
+const { handler } = require('./admin/users/[id].js');
+
+exports.handler = handler;
