@@ -8,6 +8,21 @@ import { ExpirationPlugin } from 'workbox-expiration'
 
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<unknown> }
 
+// Suppress extension-related errors in service worker
+self.addEventListener('error', (event) => {
+  const message = event.message || ''
+  if (
+    message.includes('Could not establish connection') ||
+    message.includes('Receiving end does not exist') ||
+    message.includes('Extension context invalidated') ||
+    message.includes('chrome-extension://') ||
+    message.includes('Private Access Token challenge')
+  ) {
+    event.preventDefault()
+    return
+  }
+})
+
 clientsClaim()
 self.skipWaiting()
 

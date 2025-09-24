@@ -4,7 +4,36 @@
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
+    <meta name="robots" content="index, follow" />
     <title>MIHAS Application System</title>
+    
+    <!-- Prevent extension conflicts -->
+    <script>
+      // Early extension conflict prevention
+      (function() {
+        if (typeof window !== 'undefined') {
+          // Suppress extension errors immediately
+          const originalError = console.error;
+          console.error = function(...args) {
+            const message = args.join(' ');
+            if (
+              message.includes('Could not establish connection') ||
+              message.includes('Receiving end does not exist') ||
+              message.includes('Extension context invalidated') ||
+              message.includes('chrome-extension://') ||
+              message.includes('Private Access Token challenge') ||
+              message.includes('cdn-cgi/challenge-platform') ||
+              message.includes('Failed to load resource') ||
+              message.includes('Registration failed')
+            ) {
+              return; // Suppress these errors
+            }
+            originalError.apply(console, args);
+          };
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

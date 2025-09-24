@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { AnalyticsService } from './lib/analytics.ts'
+import './utils/extension-conflict-prevention'
 
 type WebVitalsMetric = {
   id: string

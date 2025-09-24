@@ -73,8 +73,8 @@ export default function SignUpPage() {
   }, [])
 
   const onSubmit = async (data: SignUpForm) => {
-    // Require Turnstile token if site key is configured
-    if (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken) {
+    // Require Turnstile token if site key is configured and not in development
+    if (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken && import.meta.env.PROD) {
       setError('Please complete the security verification.')
       return
     }
@@ -87,7 +87,10 @@ export default function SignUpPage() {
       // Proceed with sign up
       const { confirmPassword, ...userData } = data
       void confirmPassword
-      const result = await signUp(data.email, data.password, userData)
+      const result = await signUp(data.email, data.password, {
+        ...userData,
+        turnstileToken
+      })
 
       if (result?.error) {
         throw new Error(result.error)
@@ -307,7 +310,7 @@ export default function SignUpPage() {
           type="submit"
           className="w-full"
           loading={loading}
-          disabled={import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken}
+          disabled={import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken && import.meta.env.PROD}
           variant="gradient"
           size="lg"
         >

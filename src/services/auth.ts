@@ -4,6 +4,7 @@ interface RegisterData {
   email: string
   password: string
   fullName: string
+  turnstileToken?: string
 }
 
 interface LoginData {

@@ -1,6 +1,7 @@
 import { supabaseAdminClient } from '../_lib/supabaseClient.js'
 import { logAuditEvent } from '../_lib/auditLogger.js'
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
+import { validateTurnstileToken } from '../_lib/turnstileValidator.js'
 
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -14,7 +15,7 @@ async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
-  const { email, password, fullName } = req.body || {}
+  const { email, password, fullName, turnstileToken } = req.body || {}
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' })
@@ -22,6 +23,22 @@ async function handler(req, res) {
 
   if (!fullName) {
     return res.status(400).json({ error: 'Full name is required for registration' })
+  }
+
+  // Validate Turnstile token if provided
+  if (turnstileToken) {
+    const clientIP = req.headers['x-forwarded-for'] || req.connection?.remoteAddress
+    const turnstileResult = await validateTurnstileToken(turnstileToken, clientIP)
+    
+    if (!turnstileResult.success && !turnstileResult.bypass) {
+      await logAuditEvent({
+        req,
+        action: 'auth.register.turnstile_failure',
+        actorEmail: email,
+        metadata: { reason: 'Turnstile verification failed' }
+      })
+      return res.status(400).json({ error: 'Security verification failed. Please try again.' })
+    }
   }
 
   try {
