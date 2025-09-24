@@ -249,6 +249,15 @@ export function withNetlifyHandler(expressHandler) {
   const netlifyHandler = async function netlifyWrapper(event, context) {
     const req = createRequest(event, context)
     const res = createResponse()
+    
+    // Add CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end()
+    }
 
     const result = await expressHandler(req, res)
 
