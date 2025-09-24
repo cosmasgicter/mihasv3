@@ -1,6 +1,7 @@
 import { generateApplicationSlip, persistSlip, type ApplicationSlipData } from './applicationSlip'
 import { sanitizeForLog } from './security'
 import { supabase } from './supabase'
+import { renderApplicationSlipEmail } from './emailTemplates'
 
 export interface SlipServiceOptions {
   sendEmail?: boolean
@@ -68,28 +69,32 @@ export async function createApplicationSlip(
         toast?.showWarning?.('Email not sent', 'We could not send the slip because the download link was unavailable.')
       } else {
         try {
-          const payload = {
-            to: data.email,
-            subject: options.subject || 'Your MIHAS application slip',
-            template: 'application-slip',
-            data: {
-              applicantName: data.full_name || data.email,
-              applicationNumber: data.application_number,
-              trackingCode: data.public_tracking_code,
-              status: data.status,
-              slipUrl: publicUrl,
-              programName: data.program_name || '',
-              paymentStatus: data.payment_status || 'pending_review'
-            }
-          }
+          const html = renderApplicationSlipEmail({
+            applicantName: data.full_name || data.email,
+            applicationNumber: data.application_number,
+            trackingCode: data.public_tracking_code,
+            status: data.status,
+            slipUrl: publicUrl,
+            programName: data.program_name || '',
+            paymentStatus: data.payment_status || 'pending_review'
+          })
 
-          const { error } = await supabase.functions.invoke('send-email', {
-            body: payload
+          const { data: result, error } = await supabase.functions.invoke('send-email', {
+            body: {
+              to: data.email,
+              subject: options.subject || 'Your MIHAS application slip',
+              html
+            }
           })
 
           if (error) {
             emailError = error.message || 'Failed to send slip email'
             console.error('Application slip email invocation failed:', sanitizeForLog(emailError))
+            toast?.showError?.('Email not sent', 'We could not email your slip. Please download it manually.')
+          } else if (!result?.success) {
+            const providerMessage = result?.error?.message || result?.error?.code || 'Email provider rejected the slip message'
+            emailError = providerMessage
+            console.error('Application slip provider error:', sanitizeForLog(providerMessage))
             toast?.showError?.('Email not sent', 'We could not email your slip. Please download it manually.')
           } else {
             toast?.showSuccess?.('Email sent', 'We emailed a copy of your application slip.')
