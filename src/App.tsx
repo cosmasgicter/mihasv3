@@ -9,6 +9,7 @@ import { LoadingFallback } from '@/components/ui/LoadingFallback'
 import { FancyPreloader } from '@/components/ui/FancyPreloader'
 import { routes, type RouteConfig } from '@/routes/config'
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 
 
@@ -65,27 +66,29 @@ function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ToastProvider>
-          <Router>
-            <AnalyticsTracker>
-              <div className="min-h-screen bg-gray-50">
-                <Routes>
-                  {routes.map((route) => (
-                    <Route
-                      key={route.path}
-                      path={route.path}
-                      element={renderRoute(route)}
-                    />
-                  ))}
-                </Routes>
-              </div>
-            </AnalyticsTracker>
-          </Router>
-        </ToastProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ToastProvider>
+            <Router>
+              <AnalyticsTracker>
+                <div className="min-h-screen bg-gray-50">
+                  <Routes>
+                    {routes.map((route) => (
+                      <Route
+                        key={route.path}
+                        path={route.path}
+                        element={renderRoute(route)}
+                      />
+                    ))}
+                  </Routes>
+                </div>
+              </AnalyticsTracker>
+            </Router>
+          </ToastProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }
 

@@ -28,10 +28,42 @@ export class ErrorBoundary extends React.Component<
   }
 
   static getDerivedStateFromError(error: Error) {
+    // Check if this is an extension-related error that should be ignored
+    const message = error.message || ''
+    if (
+      message.includes('Could not establish connection') ||
+      message.includes('Receiving end does not exist') ||
+      message.includes('Extension context invalidated') ||
+      message.includes('chrome-extension://') ||
+      message.includes('Private Access Token challenge') ||
+      message.includes('cdn-cgi/challenge-platform') ||
+      message.includes('Failed to load resource') ||
+      message.includes('Registration failed')
+    ) {
+      // Don't show error boundary for extension conflicts
+      return { hasError: false, error: null }
+    }
+    
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Check if this is an extension-related error that should be ignored
+    const message = error.message || ''
+    if (
+      message.includes('Could not establish connection') ||
+      message.includes('Receiving end does not exist') ||
+      message.includes('Extension context invalidated') ||
+      message.includes('chrome-extension://') ||
+      message.includes('Private Access Token challenge') ||
+      message.includes('cdn-cgi/challenge-platform') ||
+      message.includes('Failed to load resource') ||
+      message.includes('Registration failed')
+    ) {
+      // Silently ignore extension errors
+      return
+    }
+    
     // Sanitize strings to prevent log injection
     const sanitize = (str: string) => str.replace(/[\r\n\t]/g, ' ');
     

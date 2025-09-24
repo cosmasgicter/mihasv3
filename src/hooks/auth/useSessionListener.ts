@@ -155,7 +155,8 @@ export function useSessionListener() {
         body: JSON.stringify({
           email,
           password,
-          fullName: userData.full_name
+          fullName: userData.full_name,
+          turnstileToken: userData.turnstileToken
         })
       })
 

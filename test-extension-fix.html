@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Conflict Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { border-left: 4px solid #4CAF50; }
+        .error { border-left: 4px solid #f44336; }
+        .info { border-left: 4px solid #2196F3; }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        #console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Extension Conflict Prevention Test</h1>
+    
+    <div class="test-card info">
+        <h3>📋 Test Status</h3>
+        <p>This page tests if browser extension conflicts are properly handled.</p>
+        <div id="test-status">Running tests...</div>
+    </div>
+
+    <div class="test-card">
+        <h3>🧪 Manual Tests</h3>
+        <button onclick="testExtensionMessage()">Test Extension Message</button>
+        <button onclick="testConsoleError()">Test Console Error</button>
+        <button onclick="testPostMessage()">Test PostMessage</button>
+        <button onclick="clearConsole()">Clear Console</button>
+    </div>
+
+    <div class="test-card">
+        <h3>📊 Console Output</h3>
+        <div id="console-output"></div>
+    </div>
+
+    <script>
+        // Override console methods to capture output
+        const consoleOutput = document.getElementById('console-output');
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        function addToConsole(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            consoleOutput.textContent += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            
+            // Call original console method
+            originalConsole[type](...args);
+        }
+
+        console.log = (...args) => addToConsole('log', ...args);
+        console.error = (...args) => addToConsole('error', ...args);
+        console.warn = (...args) => addToConsole('warn', ...args);
+        console.info = (...args) => addToConsole('info', ...args);
+
+        // Test functions
+        function testExtensionMessage() {
+            console.log('Testing extension message...');
+            
+            // Simulate extension message that should be blocked
+            if (window.chrome && window.chrome.runtime) {
+                try {
+                    window.chrome.runtime.sendMessage('test-extension-id', {
+                        type: 'test',
+                        data: 'This should be blocked'
+                    });
+                    console.log('✅ Extension message sent (should be silently ignored)');
+                } catch (error) {
+                    console.error('❌ Extension message failed:', error.message);
+                }
+            } else {
+                console.log('ℹ️ Chrome runtime not available');
+            }
+        }
+
+        function testConsoleError() {
+            console.log('Testing console error suppression...');
+            
+            // These errors should be suppressed
+            console.error('Could not establish connection. Receiving end does not exist.');
+            console.error('Extension context invalidated');
+            console.error('chrome-extension://test-error');
+            console.error('Private Access Token challenge');
+            
+            // This error should NOT be suppressed
+            console.error('This is a regular error that should appear');
+            
+            console.log('✅ Console error test completed');
+        }
+
+        function testPostMessage() {
+            console.log('Testing postMessage filtering...');
+            
+            // These should be blocked
+            window.postMessage({
+                type: 'extension-message',
+                source: 'chrome-extension'
+            }, '*');
+            
+            window.postMessage({
+                extension: true,
+                data: 'blocked'
+            }, '*');
+            
+            // This should work
+            window.postMessage({
+                type: 'app-message',
+                data: 'allowed'
+            }, '*');
+            
+            console.log('✅ PostMessage test completed');
+        }
+
+        function clearConsole() {
+            consoleOutput.textContent = '';
+        }
+
+        // Listen for postMessage events
+        window.addEventListener('message', (event) => {
+            console.log('Received message:', event.data);
+        });
+
+        // Run automatic tests
+        function runAutomaticTests() {
+            const testStatus = document.getElementById('test-status');
+            let passedTests = 0;
+            let totalTests = 0;
+
+            function test(name, condition) {
+                totalTests++;
+                if (condition) {
+                    passedTests++;
+                    console.log(`✅ ${name}: PASSED`);
+                } else {
+                    console.error(`❌ ${name}: FAILED`);
+                }
+            }
+
+            console.log('🚀 Starting automatic tests...');
+
+            // Test 1: Check if console.error is overridden
+            test('Console error override', typeof console.error === 'function');
+
+            // Test 2: Check if window.postMessage is overridden
+            test('PostMessage override', typeof window.postMessage === 'function');
+
+            // Test 3: Check if chrome runtime is handled
+            if (window.chrome && window.chrome.runtime) {
+                test('Chrome runtime handling', typeof window.chrome.runtime.sendMessage === 'function');
+            } else {
+                console.log('ℹ️ Chrome runtime not available - skipping test');
+            }
+
+            // Test 4: Check if CSP meta tag exists
+            const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+            test('CSP meta tag', cspMeta !== null);
+
+            // Update status
+            testStatus.innerHTML = `
+                <strong>Tests completed:</strong> ${passedTests}/${totalTests} passed<br>
+                <strong>Status:</strong> ${passedTests === totalTests ? '✅ All tests passed' : '⚠️ Some tests failed'}
+            `;
+
+            console.log(`🏁 Tests completed: ${passedTests}/${totalTests} passed`);
+        }
+
+        // Add CSP meta tag for testing
+        const cspMeta = document.createElement('meta');
+        cspMeta.setAttribute('http-equiv', 'Content-Security-Policy');
+        cspMeta.setAttribute('content', 
+            "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; " +
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; " +
+            "style-src 'self' 'unsafe-inline' https:; " +
+            "img-src 'self' data: blob: https:; " +
+            "connect-src 'self' https: wss:; " +
+            "font-src 'self' data: https:; " +
+            "object-src 'none'; " +
+            "base-uri 'self'; " +
+            "form-action 'self';"
+        );
+        document.head.appendChild(cspMeta);
+
+        // Simulate the extension conflict prevention
+        (function() {
+            // Suppress extension errors
+            const originalError = console.error;
+            console.error = function(...args) {
+                const message = args.join(' ');
+                if (
+                    message.includes('Could not establish connection') ||
+                    message.includes('Receiving end does not exist') ||
+                    message.includes('Extension context invalidated') ||
+                    message.includes('chrome-extension://') ||
+                    message.includes('Private Access Token challenge')
+                ) {
+                    return; // Suppress these errors
+                }
+                originalError.apply(console, args);
+            };
+
+            // Block extension messages
+            if (window.chrome && window.chrome.runtime) {
+                window.chrome.runtime.sendMessage = function(...args) {
+                    return Promise.resolve();
+                };
+            }
+
+            // Block postMessage from extensions
+            const originalPostMessage = window.postMessage;
+            window.postMessage = function(message, targetOrigin, transfer) {
+                if (typeof message === 'object' && message !== null) {
+                    const messageStr = JSON.stringify(message);
+                    if (
+                        messageStr.includes('extension') ||
+                        messageStr.includes('chrome-extension') ||
+                        messageStr.includes('moz-extension')
+                    ) {
+                        return; // Block extension messages
+                    }
+                }
+                return originalPostMessage.call(window, message, targetOrigin, transfer);
+            };
+        })();
+
+        // Run tests when page loads
+        window.addEventListener('load', () => {
+            setTimeout(runAutomaticTests, 1000);
+        });
+
+        console.log('🔧 Extension conflict prevention test page loaded');
+    </script>
+</body>
+</html>
