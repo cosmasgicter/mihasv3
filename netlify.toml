@@ -59,6 +59,18 @@
   force = true
 
 [[redirects]]
+  from = "/api/catalog/programs"
+  to = "/.netlify/functions/catalog-programs"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/catalog/intakes"
+  to = "/.netlify/functions/catalog-intakes"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/applications/:id"
   to = "/.netlify/functions/applications-id?id=:id"
   status = 200
