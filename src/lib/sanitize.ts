@@ -29,7 +29,7 @@ export function safeJsonParse<T>(json: string, fallback: T): T {
   }
 }
 
-export { getSecureId, getSecureId as generateSecureId } from './security';
+export { generateSecureToken, generateSecureToken as getSecureId } from './security';
 
 export function sanitizeEmail(email: string | null | undefined): string {
   if (!email) return '';

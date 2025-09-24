@@ -25,7 +25,9 @@
               message.includes('Private Access Token challenge') ||
               message.includes('cdn-cgi/challenge-platform') ||
               message.includes('Failed to load resource') ||
-              message.includes('Registration failed')
+              message.includes('Registration failed') ||
+              message.includes('Refused to connect') ||
+              message.includes('Content Security Policy directive')
             ) {
               return; // Suppress these errors
             }
@@ -34,7 +36,7 @@
         }
       })();
     </script>
-    <script type="module" crossorigin src="/assets/index-CD2sQf5N.js"></script>
+    <script type="module" crossorigin src="/assets/index-CLTvd9Si.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/react-vendor-Cfs_Iq82.js">
     <link rel="modulepreload" crossorigin href="/assets/supabase-CLi3u50D.js">
     <link rel="modulepreload" crossorigin href="/assets/router-JMO8zU2U.js">

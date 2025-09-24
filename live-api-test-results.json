@@ -1,0 +1,353 @@
+{
+  "timestamp": "2025-09-24T20:15:09.269Z",
+  "baseUrl": "***REMOVED***/.netlify/functions",
+  "credentials": {
+    "student": "cosmaskanchepa8@gmail.com",
+    "admin": "cosmas@beanola.com"
+  },
+  "summary": {
+    "total": 17,
+    "passed": 1,
+    "failed": 16,
+    "skipped": 0
+  },
+  "tests": [
+    {
+      "name": "healthCheck",
+      "success": false,
+      "message": "Health check failed: Service Unavailable",
+      "details": {
+        "status": "unhealthy",
+        "supabase": {
+          "success": false,
+          "status": 401,
+          "error": "HTTP 401",
+          "message": "Unexpected response from Supabase: 401 Unauthorized"
+        },
+        "timestamp": "2025-09-24T20:15:11.133Z"
+      },
+      "timestamp": "2025-09-24T20:15:11.463Z"
+    },
+    {
+      "name": "testEndpoint",
+      "success": true,
+      "message": "Test endpoint working",
+      "details": {
+        "message": "API is working!",
+        "method": "GET",
+        "timestamp": "2025-09-24T20:15:13.744Z",
+        "url": "***REMOVED***/.netlify/functions/test"
+      },
+      "timestamp": "2025-09-24T20:15:14.043Z"
+    },
+    {
+      "name": "studentLogin",
+      "success": false,
+      "message": "student authentication failed: OK",
+      "details": {
+        "user": {
+          "id": "6e147ead-e34d-41e2-bc05-358a653ff633",
+          "aud": "authenticated",
+          "role": "authenticated",
+          "email": "cosmaskanchepa8@gmail.com",
+          "email_confirmed_at": "2025-09-13T05:10:07.200827Z",
+          "phone": "",
+          "confirmation_sent_at": "2025-09-13T05:08:21.874352Z",
+          "confirmed_at": "2025-09-13T05:10:07.200827Z",
+          "last_sign_in_at": "2025-09-24T20:15:16.414139713Z",
+          "app_metadata": {
+            "provider": "email",
+            "providers": [
+              "email"
+            ]
+          },
+          "user_metadata": {
+            "email": "cosmaskanchepa8@gmail.com",
+            "email_verified": true,
+            "full_name": "Solomon Ngoma",
+            "phone_verified": false,
+            "signup_data": "{\"email\":\"cosmaskanchepa8@gmail.com\",\"password\":\"Beanola2025\",\"full_name\":\"Solomon Ngoma\",\"phone\":\"+260966222999\",\"date_of_birth\":\"2006-01-02\",\"gender\":\"Male\",\"nationality\":\"Zambian\",\"address\":\"182/49\\nOFF MAIN ROAD\\nVALLEY VIEW\",\"city\":\"LUSAKA\",\"country\":\"Zambia\",\"emergency_contact_name\":\"WILLIAM ZULU\",\"emergency_contact_phone\":\"0977562047\"}",
+            "sub": "6e147ead-e34d-41e2-bc05-358a653ff633"
+          },
+          "identities": [
+            {
+              "identity_id": "792945ff-9a6b-40e2-afa2-fedad61390b6",
+              "id": "6e147ead-e34d-41e2-bc05-358a653ff633",
+              "user_id": "6e147ead-e34d-41e2-bc05-358a653ff633",
+              "identity_data": {
+                "email": "cosmaskanchepa8@gmail.com",
+                "email_verified": true,
+                "full_name": "Solomon Ngoma",
+                "phone_verified": false,
+                "signup_data": "{\"email\":\"cosmaskanchepa8@gmail.com\",\"password\":\"Beanola2025\",\"full_name\":\"Solomon Ngoma\",\"phone\":\"+260966222999\",\"date_of_birth\":\"2006-01-02\",\"gender\":\"Male\",\"nationality\":\"Zambian\",\"address\":\"182/49\\nOFF MAIN ROAD\\nVALLEY VIEW\",\"city\":\"LUSAKA\",\"country\":\"Zambia\",\"emergency_contact_name\":\"WILLIAM ZULU\",\"emergency_contact_phone\":\"0977562047\"}",
+                "sub": "6e147ead-e34d-41e2-bc05-358a653ff633"
+              },
+              "provider": "email",
+              "last_sign_in_at": "2025-09-13T05:08:21.867375Z",
+              "created_at": "2025-09-13T05:08:21.867433Z",
+              "updated_at": "2025-09-13T05:08:21.867433Z",
+              "email": "cosmaskanchepa8@gmail.com"
+            }
+          ],
+          "created_at": "2025-09-13T05:08:21.863195Z",
+          "updated_at": "2025-09-24T20:15:16.453899Z",
+          "is_anonymous": false
+        },
+        "session": {
+          "access_token": "eyJhbGciOiJIUzI1NiIsImtpZCI6IjE1ZTkxenVweDltUlBkU00iLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL215bGdlZ2txb2RkY3J4dHdjY2xiLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI2ZTE0N2VhZC1lMzRkLTQxZTItYmMwNS0zNThhNjUzZmY2MzMiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU4NzQ4NTE2LCJpYXQiOjE3NTg3NDQ5MTYsImVtYWlsIjoiY29zbWFza2FuY2hlcGE4QGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJjb3NtYXNrYW5jaGVwYThAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6IlNvbG9tb24gTmdvbWEiLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInNpZ251cF9kYXRhIjoie1wiZW1haWxcIjpcImNvc21hc2thbmNoZXBhOEBnbWFpbC5jb21cIixcInBhc3N3b3JkXCI6XCJCZWFub2xhMjAyNVwiLFwiZnVsbF9uYW1lXCI6XCJTb2xvbW9uIE5nb21hXCIsXCJwaG9uZVwiOlwiKzI2MDk2NjIyMjk5OVwiLFwiZGF0ZV9vZl9iaXJ0aFwiOlwiMjAwNi0wMS0wMlwiLFwiZ2VuZGVyXCI6XCJNYWxlXCIsXCJuYXRpb25hbGl0eVwiOlwiWmFtYmlhblwiLFwiYWRkcmVzc1wiOlwiMTgyLzQ5XFxuT0ZGIE1BSU4gUk9BRFxcblZBTExFWSBWSUVXXCIsXCJjaXR5XCI6XCJMVVNBS0FcIixcImNvdW50cnlcIjpcIlphbWJpYVwiLFwiZW1lcmdlbmN5X2NvbnRhY3RfbmFtZVwiOlwiV0lMTElBTSBaVUxVXCIsXCJlbWVyZ2VuY3lfY29udGFjdF9waG9uZVwiOlwiMDk3NzU2MjA0N1wifSIsInN1YiI6IjZlMTQ3ZWFkLWUzNGQtNDFlMi1iYzA1LTM1OGE2NTNmZjYzMyJ9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzU4NzQ0OTE2fV0sInNlc3Npb25faWQiOiJiOGM4NzFiMC0wZGZiLTQxZTMtOTMyNy1kOTRhZTg4NjA1OWEiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.P4x5xFHOPXN06E_G7OAmOu06831YVWCiiy1eWTwi7Zk",
+          "token_type": "bearer",
+          "expires_in": 3600,
+          "expires_at": 1758748516,
+          "refresh_token": "6wbewfpjellc",
+          "user": {
+            "id": "6e147ead-e34d-41e2-bc05-358a653ff633",
+            "aud": "authenticated",
+            "role": "authenticated",
+            "email": "cosmaskanchepa8@gmail.com",
+            "email_confirmed_at": "2025-09-13T05:10:07.200827Z",
+            "phone": "",
+            "confirmation_sent_at": "2025-09-13T05:08:21.874352Z",
+            "confirmed_at": "2025-09-13T05:10:07.200827Z",
+            "last_sign_in_at": "2025-09-24T20:15:16.414139713Z",
+            "app_metadata": {
+              "provider": "email",
+              "providers": [
+                "email"
+              ]
+            },
+            "user_metadata": {
+              "email": "cosmaskanchepa8@gmail.com",
+              "email_verified": true,
+              "full_name": "Solomon Ngoma",
+              "phone_verified": false,
+              "signup_data": "{\"email\":\"cosmaskanchepa8@gmail.com\",\"password\":\"Beanola2025\",\"full_name\":\"Solomon Ngoma\",\"phone\":\"+260966222999\",\"date_of_birth\":\"2006-01-02\",\"gender\":\"Male\",\"nationality\":\"Zambian\",\"address\":\"182/49\\nOFF MAIN ROAD\\nVALLEY VIEW\",\"city\":\"LUSAKA\",\"country\":\"Zambia\",\"emergency_contact_name\":\"WILLIAM ZULU\",\"emergency_contact_phone\":\"0977562047\"}",
+              "sub": "6e147ead-e34d-41e2-bc05-358a653ff633"
+            },
+            "identities": [
+              {
+                "identity_id": "792945ff-9a6b-40e2-afa2-fedad61390b6",
+                "id": "6e147ead-e34d-41e2-bc05-358a653ff633",
+                "user_id": "6e147ead-e34d-41e2-bc05-358a653ff633",
+                "identity_data": {
+                  "email": "cosmaskanchepa8@gmail.com",
+                  "email_verified": true,
+                  "full_name": "Solomon Ngoma",
+                  "phone_verified": false,
+                  "signup_data": "{\"email\":\"cosmaskanchepa8@gmail.com\",\"password\":\"Beanola2025\",\"full_name\":\"Solomon Ngoma\",\"phone\":\"+260966222999\",\"date_of_birth\":\"2006-01-02\",\"gender\":\"Male\",\"nationality\":\"Zambian\",\"address\":\"182/49\\nOFF MAIN ROAD\\nVALLEY VIEW\",\"city\":\"LUSAKA\",\"country\":\"Zambia\",\"emergency_contact_name\":\"WILLIAM ZULU\",\"emergency_contact_phone\":\"0977562047\"}",
+                  "sub": "6e147ead-e34d-41e2-bc05-358a653ff633"
+                },
+                "provider": "email",
+                "last_sign_in_at": "2025-09-13T05:08:21.867375Z",
+                "created_at": "2025-09-13T05:08:21.867433Z",
+                "updated_at": "2025-09-13T05:08:21.867433Z",
+                "email": "cosmaskanchepa8@gmail.com"
+              }
+            ],
+            "created_at": "2025-09-13T05:08:21.863195Z",
+            "updated_at": "2025-09-24T20:15:16.453899Z",
+            "is_anonymous": false
+          },
+          "weak_password": null
+        }
+      },
+      "timestamp": "2025-09-24T20:15:16.794Z"
+    },
+    {
+      "name": "adminLogin",
+      "success": false,
+      "message": "admin authentication failed: OK",
+      "details": {
+        "user": {
+          "id": "fc6a1536-2e5c-4099-9b9e-a38653408f95",
+          "aud": "authenticated",
+          "role": "authenticated",
+          "email": "cosmas@beanola.com",
+          "email_confirmed_at": "2025-09-12T12:43:11.196052Z",
+          "phone": "",
+          "confirmation_sent_at": "2025-09-12T12:40:59.493197Z",
+          "confirmed_at": "2025-09-12T12:43:11.196052Z",
+          "last_sign_in_at": "2025-09-24T20:15:18.174422532Z",
+          "app_metadata": {
+            "provider": "email",
+            "providers": [
+              "email"
+            ]
+          },
+          "user_metadata": {
+            "email": "cosmas@beanola.com",
+            "email_verified": true,
+            "phone_verified": false,
+            "sub": "fc6a1536-2e5c-4099-9b9e-a38653408f95"
+          },
+          "identities": [
+            {
+              "identity_id": "0c57ebfd-16e9-4edb-9f5b-3a5a06e1ebc1",
+              "id": "fc6a1536-2e5c-4099-9b9e-a38653408f95",
+              "user_id": "fc6a1536-2e5c-4099-9b9e-a38653408f95",
+              "identity_data": {
+                "email": "cosmas@beanola.com",
+                "email_verified": true,
+                "phone_verified": false,
+                "sub": "fc6a1536-2e5c-4099-9b9e-a38653408f95"
+              },
+              "provider": "email",
+              "last_sign_in_at": "2025-09-12T12:40:59.472706Z",
+              "created_at": "2025-09-12T12:40:59.472808Z",
+              "updated_at": "2025-09-12T12:40:59.472808Z",
+              "email": "cosmas@beanola.com"
+            }
+          ],
+          "created_at": "2025-09-12T12:40:59.4344Z",
+          "updated_at": "2025-09-24T20:15:18.177159Z",
+          "is_anonymous": false
+        },
+        "session": {
+          "access_token": "eyJhbGciOiJIUzI1NiIsImtpZCI6IjE1ZTkxenVweDltUlBkU00iLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL215bGdlZ2txb2RkY3J4dHdjY2xiLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJmYzZhMTUzNi0yZTVjLTQwOTktOWI5ZS1hMzg2NTM0MDhmOTUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU4NzQ4NTE4LCJpYXQiOjE3NTg3NDQ5MTgsImVtYWlsIjoiY29zbWFzQGJlYW5vbGEuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6ImNvc21hc0BiZWFub2xhLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInN1YiI6ImZjNmExNTM2LTJlNWMtNDA5OS05YjllLWEzODY1MzQwOGY5NSJ9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzU4NzQ0OTE4fV0sInNlc3Npb25faWQiOiJjNTMxZTYwNy03ZTdkLTQwOWMtYTUxZS1iNzkzMWNhYmZmZDMiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.K9hFSAjRJM1fPXcswKtq9ag9Vgb1LwlNg9hAOyjXtHk",
+          "token_type": "bearer",
+          "expires_in": 3600,
+          "expires_at": 1758748518,
+          "refresh_token": "wvpzeantowki",
+          "user": {
+            "id": "fc6a1536-2e5c-4099-9b9e-a38653408f95",
+            "aud": "authenticated",
+            "role": "authenticated",
+            "email": "cosmas@beanola.com",
+            "email_confirmed_at": "2025-09-12T12:43:11.196052Z",
+            "phone": "",
+            "confirmation_sent_at": "2025-09-12T12:40:59.493197Z",
+            "confirmed_at": "2025-09-12T12:43:11.196052Z",
+            "last_sign_in_at": "2025-09-24T20:15:18.174422532Z",
+            "app_metadata": {
+              "provider": "email",
+              "providers": [
+                "email"
+              ]
+            },
+            "user_metadata": {
+              "email": "cosmas@beanola.com",
+              "email_verified": true,
+              "phone_verified": false,
+              "sub": "fc6a1536-2e5c-4099-9b9e-a38653408f95"
+            },
+            "identities": [
+              {
+                "identity_id": "0c57ebfd-16e9-4edb-9f5b-3a5a06e1ebc1",
+                "id": "fc6a1536-2e5c-4099-9b9e-a38653408f95",
+                "user_id": "fc6a1536-2e5c-4099-9b9e-a38653408f95",
+                "identity_data": {
+                  "email": "cosmas@beanola.com",
+                  "email_verified": true,
+                  "phone_verified": false,
+                  "sub": "fc6a1536-2e5c-4099-9b9e-a38653408f95"
+                },
+                "provider": "email",
+                "last_sign_in_at": "2025-09-12T12:40:59.472706Z",
+                "created_at": "2025-09-12T12:40:59.472808Z",
+                "updated_at": "2025-09-12T12:40:59.472808Z",
+                "email": "cosmas@beanola.com"
+              }
+            ],
+            "created_at": "2025-09-12T12:40:59.4344Z",
+            "updated_at": "2025-09-24T20:15:18.177159Z",
+            "is_anonymous": false
+          },
+          "weak_password": null
+        }
+      },
+      "timestamp": "2025-09-24T20:15:18.530Z"
+    },
+    {
+      "name": "getPrograms",
+      "success": false,
+      "message": "response.data?.slice is not a function",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:21.002Z"
+    },
+    {
+      "name": "getSubjects",
+      "success": false,
+      "message": "response.data?.slice is not a function",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:23.482Z"
+    },
+    {
+      "name": "getIntakes",
+      "success": false,
+      "message": "response.data?.slice is not a function",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:25.911Z"
+    },
+    {
+      "name": "getStudentApplications",
+      "success": false,
+      "message": "Student not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:26.912Z"
+    },
+    {
+      "name": "getUserConsents",
+      "success": false,
+      "message": "Student not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:27.914Z"
+    },
+    {
+      "name": "getPushSubscriptions",
+      "success": false,
+      "message": "Student not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:28.915Z"
+    },
+    {
+      "name": "getAdminApplications",
+      "success": false,
+      "message": "Admin not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:29.917Z"
+    },
+    {
+      "name": "getAdminDashboard",
+      "success": false,
+      "message": "Admin not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:30.920Z"
+    },
+    {
+      "name": "getAnalyticsTelemetry",
+      "success": false,
+      "message": "Admin not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:31.922Z"
+    },
+    {
+      "name": "getAuditLogStats",
+      "success": false,
+      "message": "Admin not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:32.923Z"
+    },
+    {
+      "name": "getPredictiveDashboard",
+      "success": false,
+      "message": "Admin not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:33.924Z"
+    },
+    {
+      "name": "testNotifications",
+      "success": false,
+      "message": "Student not authenticated",
+      "details": null,
+      "timestamp": "2025-09-24T20:15:34.926Z"
+    },
+    {
+      "name": "testMcpQuery",
+      "success": false,
+      "message": "MCP query failed: Unauthorized",
+      "details": {
+        "error": "No authorization header provided"
+      },
+      "timestamp": "2025-09-24T20:15:37.998Z"
+    }
+  ]
+}
