@@ -6,7 +6,7 @@ import {
   useAdminRealtimeMetrics,
   doesApplicationMatchFilters
 } from './useAdminRealtimeMetrics'
-import type { AdminApplicationChange } from './useAdminRealtimeMetrics'
+import type { AdminApplicationChange, AdminApplicationFilters } from './useAdminRealtimeMetrics'
 
 interface ApplicationSummary {
   id: string
@@ -60,6 +60,23 @@ const sanitizeSearchTerm = (value: string) => {
     .trim()
     .replace(/[%_]/g, match => `\\${match}`)
     .replace(/,/g, '\\,')
+}
+
+const mapApplicationFiltersToAdminFilters = (
+  filters: ApplicationFilters
+): AdminApplicationFilters => {
+  const normalize = (value: string) => {
+    const trimmed = value.trim()
+    return trimmed ? trimmed : undefined
+  }
+
+  return {
+    status: normalize(filters.statusFilter),
+    search: normalize(filters.searchTerm),
+    paymentStatus: normalize(filters.paymentFilter),
+    program: normalize(filters.programFilter),
+    institution: normalize(filters.institutionFilter)
+  }
 }
 
 export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLICATION_FILTERS) {
@@ -225,8 +242,9 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
 
   const applyRealtimeChange = useCallback(async (change: AdminApplicationChange) => {
     const activeFilters = filtersRef.current || DEFAULT_APPLICATION_FILTERS
-    const matchesNew = change.newRow ? doesApplicationMatchFilters(change.newRow, activeFilters) : false
-    const matchesOld = change.oldRow ? doesApplicationMatchFilters(change.oldRow, activeFilters) : false
+    const adminFilters = mapApplicationFiltersToAdminFilters(activeFilters)
+    const matchesNew = change.newRow ? doesApplicationMatchFilters(change.newRow, adminFilters) : false
+    const matchesOld = change.oldRow ? doesApplicationMatchFilters(change.oldRow, adminFilters) : false
 
     if (change.type === 'insert') {
       if (!matchesNew) {
