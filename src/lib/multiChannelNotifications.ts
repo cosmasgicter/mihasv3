@@ -383,13 +383,20 @@ export class MultiChannelNotificationService {
         return false
       }
 
-      // In production, integrate with email service (SendGrid, AWS SES, etc.)
-      console.log('Email sent:', {
-        to: sanitizeForLog(recipientEmail),
-        subject: sanitizeForLog(subject),
-        content: sanitizeForLog(content)
+      const success = await notificationService.send({
+        to: recipientEmail,
+        subject,
+        message: content
       })
-      return true
+
+      if (!success) {
+        console.error('Email queue request failed:', {
+          to: sanitizeForLog(recipientEmail),
+          subject: sanitizeForLog(subject)
+        })
+      }
+
+      return success
     } catch (error) {
       const sanitizedError = error instanceof Error ? error.message : 'Unknown error'
       console.error('Email sending failed:', sanitizedError)
