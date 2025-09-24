@@ -114,7 +114,7 @@ export function useSessionListener() {
     }
 
     try {
-      const response = await fetch(`${apiBaseUrl}/.netlify/functions/auth-login`, {
+      const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -147,7 +147,7 @@ export function useSessionListener() {
     }
 
     try {
-      const response = await fetch(`${apiBaseUrl}/.netlify/functions/auth-register`, {
+      const response = await fetch(`${apiBaseUrl}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

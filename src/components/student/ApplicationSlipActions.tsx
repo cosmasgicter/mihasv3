@@ -38,7 +38,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       const { data: { session } } = await supabase.auth.getSession()
       const accessToken = session?.access_token
 
-      const response = await fetch(`${apiBaseUrl}/.netlify/functions/applications-generate-slip`, {
+      const response = await fetch(`${apiBaseUrl}/api/applications/generate-slip`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       const { data: { session } } = await supabase.auth.getSession()
       const accessToken = session?.access_token
 
-      const response = await fetch(`${apiBaseUrl}/.netlify/functions/applications-email-slip`, {
+      const response = await fetch(`${apiBaseUrl}/api/applications/email-slip`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
