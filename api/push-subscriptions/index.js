@@ -1,12 +1,5 @@
 import { z } from 'zod'
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
-import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
-
-const dependencies = {
-  supabaseClient: supabaseAdminClient,
-  getUserFromRequest
-}
-
 const subscriptionSchema = z.object({
   endpoint: z.string().url(),
   expirationTime: z.number().nullable().optional(),
@@ -21,52 +14,39 @@ const requestSchema = z.object({
   userAgent: z.string().max(512).optional().nullable()
 })
 
-function parseBody(body) {
-  if (!body) {
-    return null
+export default async (request, context) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Content-Type': 'application/json'
   }
 
-  if (typeof body !== 'string') {
-    return body
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers })
   }
 
-  try {
-    return JSON.parse(body)
-  } catch (error) {
-    return null
-  }
-}
-
-async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
-
-  const authContext = await dependencies.getUserFromRequest(req)
+  const authContext = await getUserFromRequest(request)
   if (authContext.error) {
     const status = authContext.error === 'Access denied' ? 403 : 401
-    return res.status(status).json({ error: authContext.error })
+    return new Response(JSON.stringify({ error: authContext.error }), { status, headers })
   }
 
-  const body = parseBody(req.body)
+  const body = await request.json().catch(() => null)
   const parseResult = requestSchema.safeParse(body)
 
   if (!parseResult.success) {
-    return res.status(400).json({ error: 'Invalid subscription payload' })
+    return new Response(JSON.stringify({ error: 'Invalid subscription payload' }), { status: 400, headers })
   }
 
   const { subscription, userAgent } = parseResult.data
 
   try {
-    const { data: existing, error: selectError } = await dependencies.supabaseClient
+    const { data: existing, error: selectError } = await supabaseAdminClient
       .from('push_subscriptions')
       .select('id, user_id')
       .eq('endpoint', subscription.endpoint)
@@ -91,7 +71,7 @@ async function handler(req, res) {
       record.id = existing.id
     }
 
-    const { data: upserted, error: upsertError } = await dependencies.supabaseClient
+    const { data: upserted, error: upsertError } = await supabaseAdminClient
       .from('push_subscriptions')
       .upsert(record, { onConflict: 'endpoint' })
       .select('id, user_id, endpoint')
@@ -101,28 +81,16 @@ async function handler(req, res) {
       throw new Error(upsertError.message)
     }
 
-    return res.status(existing ? 200 : 201).json({
+    return new Response(JSON.stringify({
       success: true,
       subscription: {
         id: upserted.id,
         userId: upserted.user_id,
         endpoint: upserted.endpoint
       }
-    })
+    }), { status: existing ? 200 : 201, headers })
   } catch (error) {
     console.error('Push subscription storage error:', error)
-    return res.status(500).json({ error: 'Failed to store subscription' })
+    return new Response(JSON.stringify({ error: 'Failed to store subscription' }), { status: 500, headers })
   }
 }
-
-handler.__testables__ = {
-  setDependencies(overrides = {}) {
-    Object.assign(dependencies, overrides)
-  }
-}
-
-const netlifyHandler = withNetlifyHandler(handler)
-
-export { handler as expressHandler }
-export { netlifyHandler as handler }
-export default netlifyHandler
