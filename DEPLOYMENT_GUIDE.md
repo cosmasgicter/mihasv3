@@ -43,6 +43,86 @@ VITE_ENABLE_DRAFT_MANAGEMENT=true
 2. Wait for build to complete
 3. Visit your deployed application
 
+## 🌐 CloudFront CDN Deployment
+
+The `infra/cdn` Terraform stack provisions an Amazon S3 bucket to host the built frontend assets and an Amazon CloudFront
+distribution that sits in front of it. The setup improves global performance, offers cache controls, and integrates with the
+updated `deploy.sh` script for automated uploads and invalidations.
+
+### What the stack creates
+- Private S3 bucket for the `dist/` build output with versioning and encryption enabled
+- CloudFront origin access identity locked to the bucket
+- CloudFront distribution with SPA-friendly routing, compression, and optional logging
+- Optional Route53 `A`/`AAAA` alias records when DNS is hosted in AWS
+
+### Prerequisites
+- Terraform `>= 1.6`
+- AWS CLI configured with credentials that may create S3, CloudFront, and Route53 resources
+- A public ACM certificate in `us-east-1` that covers your production domain
+- (Optional) Route53 hosted zone for the domain if you want Terraform to manage DNS aliases
+
+### Step 1: Deploy the CDN stack
+```bash
+cd infra/cdn
+terraform init
+terraform apply \
+  -var="project=mihas" \
+  -var="bucket_name=<unique-s3-bucket-name>" \
+  -var="domain_name=application.mihas.edu.zm" \
+  -var="hosted_zone_id=<route53-zone-id-or-empty>" \
+  -var="certificate_arn=<acm-certificate-arn>"
+```
+
+**Important:** S3 bucket names must be globally unique. If Route53 is not managing your DNS, leave `hosted_zone_id` blank and
+manually create a `CNAME`/`A` record pointing to the `cdn_domain_name` Terraform output.
+
+### Step 2: Update DNS
+- If Terraform managed DNS: confirm the `A`/`AAAA` alias records were created in Route53 and propagated.
+- Otherwise: create a `CNAME` (or `A` ALIAS if supported) that points your desired hostname to the
+  `cdn_domain_name` output (e.g. `d123example.cloudfront.net`).
+- Allow up to one hour for TTLs to expire before testing from production clients.
+
+### Step 3: Build and publish the site
+```bash
+export CDN_BUCKET_NAME=<same-s3-bucket-name>
+export CDN_DISTRIBUTION_ID=<terraform-output-cdn_distribution_id>
+# optional tuning
+export CDN_INVALIDATION_PATHS="/*"
+export CDN_DEFAULT_CACHE_CONTROL="public,max-age=31536000,immutable"
+export CDN_HTML_CACHE_CONTROL="public,max-age=300,must-revalidate"
+
+./deploy.sh
+```
+
+The script will:
+1. Build the production bundle
+2. Sync hashed assets to S3 with long-lived cache headers
+3. Upload `index.html`/`404.html` with shorter TTLs
+4. Trigger a CloudFront invalidation for the specified paths
+
+### Step 4: Verify the deployment
+- Visit `https://<your-domain>` and confirm the new build is visible
+- Use `aws cloudfront get-distribution --id $CDN_DISTRIBUTION_ID` to ensure the status is `Deployed`
+- Test from multiple regions with `curl` by resolving through different DNS resolvers, for example:
+  ```bash
+  dig +short @1.1.1.1 <your-domain>
+  curl -I https://<your-domain>
+  ```
+- Review the CloudFront cache headers (`Cache-Control`, `Age`) to confirm caching behaviour
+
+### Cache purge operations
+- **Automated**: rerun `./deploy.sh` after a build to publish artifacts and invalidate the default path set.
+- **Manual**: execute `aws cloudfront create-invalidation --distribution-id $CDN_DISTRIBUTION_ID --paths '/*'` when a hotfix
+  needs to purge the cache without a full deploy.
+- **Selective**: adjust `CDN_INVALIDATION_PATHS` (space-delimited) to target specific assets, e.g. `"/index.html /assets/app.js"`.
+
+### Regional testing tips
+- Use the [CloudFront Check tool](https://cloudfront.github.io/healthcheck/cloudfront/) or `dig` from geographically diverse
+  endpoints to verify edge propagation.
+- From Linux/macOS, you can route a request through a specific CloudFront edge by resolving the domain to the POP IP returned by
+  `nslookup <your-domain>`. Use `curl --resolve <your-domain>:443:<edge-ip> https://<your-domain>` to validate the cache hit.
+- Monitor CloudFront logs (enable via `log_bucket_name` variable) for cache hit ratios across regions.
+
 ## ⚙️ Autoscaling Infrastructure (Serverless + Container Workers)
 
 The `infra/` directory contains a Terraform stack that provisions the autoscaling backbone for Netlify functions and the complementary containerized notifications worker.
