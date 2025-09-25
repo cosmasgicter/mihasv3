@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
 
+import { getEnvVariable } from '@/utils/env'
+
 export interface ApplicationFilters {
   searchTerm: string
   statusFilter: string
@@ -26,7 +28,7 @@ export const APPLICATION_FILTER_KEYS = [
 
 type ApplicationFilterKey = typeof APPLICATION_FILTER_KEYS[number]
 
-const STORAGE_KEY = process.env.VITE_ADMIN_FILTERS_STORAGE_KEY || 'admin_applications_filters'
+const STORAGE_KEY = getEnvVariable('VITE_ADMIN_FILTERS_STORAGE_KEY', 'admin_applications_filters')
 
 const isBrowserEnvironment = () => typeof window !== 'undefined'
 
