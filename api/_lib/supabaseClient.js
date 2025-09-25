@@ -1,41 +1,58 @@
 import { createClient } from '@supabase/supabase-js'
 import { retryFetch } from './retryFetch.js'
 import './dnsConfig.js'
+import {
+  mockSupabaseAdminClient,
+  mockSupabaseAnonClient,
+  MockSessionStore
+} from './mockSupabaseClient.js'
+import { mockUsers } from './mockData.js'
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-if (!supabaseUrl) {
-  throw new Error('VITE_SUPABASE_URL is not configured')
-}
-
-if (!supabaseServiceKey) {
-  throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for server-side Supabase access')
-}
-
-const clientOptions = {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false
-  },
-  global: {
-    fetch: (url, options = {}) => {
-      return retryFetch(url, {
-        ...options,
-        timeout: 30000
-      }, 3)
-    }
-  }
-}
-
-const supabaseAdminClient = createClient(supabaseUrl, supabaseServiceKey, clientOptions)
-const supabaseAnonClient = supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey, clientOptions)
-  : null
+const rawMockFlag = process.env.MIHAS_USE_MOCK_DATA ?? (process.env.NODE_ENV === 'production' ? 'false' : 'true')
+const useMockSupabase = String(rawMockFlag).toLowerCase() !== 'false'
 
 const ADMIN_ROLES = new Set(['admin', 'super_admin', 'admissions_officer'])
 const REQUEST_ROLE_CACHE_SYMBOL = Symbol.for('mihas.roleCache')
+
+let supabaseAdminClient
+let supabaseAnonClient
+
+if (useMockSupabase) {
+  supabaseAdminClient = mockSupabaseAdminClient
+  supabaseAnonClient = mockSupabaseAnonClient
+} else {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL
+  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl) {
+    throw new Error('VITE_SUPABASE_URL is not configured')
+  }
+
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for server-side Supabase access')
+  }
+
+  const clientOptions = {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false
+    },
+    global: {
+      fetch: (url, options = {}) => {
+        return retryFetch(url, {
+          ...options,
+          timeout: 30000
+        }, 3)
+      }
+    }
+  }
+
+  supabaseAdminClient = createClient(supabaseUrl, supabaseServiceKey, clientOptions)
+  supabaseAnonClient = supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey, clientOptions)
+    : null
+}
 
 function getRequestRoleCache(req) {
   if (!req || typeof req !== 'object') {
@@ -94,6 +111,11 @@ function extractRolesFromUserToken(user) {
 }
 
 async function fetchRolesFromDatabase(userId) {
+  if (useMockSupabase) {
+    const user = mockUsers.find(candidate => candidate.id === userId)
+    return user ? [...user.roles] : []
+  }
+
   const { data: rolesData, error: rolesError } = await supabaseAdminClient
     .from('user_roles')
     .select('role')
@@ -134,7 +156,8 @@ async function resolveRoles(req, user) {
 }
 
 async function getUserFromRequest(req, { requireAdmin = false } = {}) {
-  const authHeader = req.headers.authorization
+  const headers = req.headers || {}
+  const authHeader = headers.authorization || headers.Authorization
   if (!authHeader) {
     return { error: 'No authorization header provided' }
   }
@@ -151,13 +174,13 @@ async function getUserFromRequest(req, { requireAdmin = false } = {}) {
     }
 
     const user = data.user
-
     let roles
     try {
       roles = await resolveRoles(req, user)
     } catch (rolesError) {
       return { error: rolesError.message }
     }
+
     const isAdmin = roles.some(role => ADMIN_ROLES.has(role))
 
     if (requireAdmin && !isAdmin) {
@@ -166,6 +189,9 @@ async function getUserFromRequest(req, { requireAdmin = false } = {}) {
 
     return { user, roles, isAdmin }
   } catch (networkError) {
+    if (useMockSupabase) {
+      return { error: 'Invalid or expired token' }
+    }
     console.error('Network error in getUserFromRequest:', networkError)
     return { error: 'Service temporarily unavailable' }
   }
@@ -191,5 +217,7 @@ export {
   supabaseAnonClient,
   getUserFromRequest,
   requireUser,
-  clearRequestRoleCache
+  clearRequestRoleCache,
+  useMockSupabase,
+  MockSessionStore
 }

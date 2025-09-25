@@ -30,5 +30,11 @@ export default async (request, context) => {
     return new Response(JSON.stringify({ error: error.message }), { status: 401, headers })
   }
 
-  return new Response(JSON.stringify({ user: data.user, session: data.session }), { status: 200, headers })
+  const token = data.session?.access_token ?? null
+
+  return new Response(JSON.stringify({
+    user: data.user,
+    session: data.session,
+    token
+  }), { status: 200, headers })
 }

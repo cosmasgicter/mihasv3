@@ -1,4 +1,5 @@
 import { testSupabaseConnection } from './_lib/networkTest.js'
+import { useMockSupabase } from './_lib/supabaseClient.js'
 
 export default async (request, context) => {
   const headers = {
@@ -18,6 +19,14 @@ export default async (request, context) => {
     })
   }
 
+  if (useMockSupabase) {
+    return new Response(JSON.stringify({
+      status: 'healthy',
+      mode: 'mock',
+      timestamp: new Date().toISOString()
+    }), { status: 200, headers })
+  }
+
   const supabaseUrl = process.env.VITE_SUPABASE_URL
 
   if (!supabaseUrl) {
@@ -32,9 +41,10 @@ export default async (request, context) => {
   return new Response(JSON.stringify({
     status: connectionTest.success ? 'healthy' : 'unhealthy',
     supabase: connectionTest,
+    mode: useMockSupabase ? 'mock' : 'live',
     timestamp: new Date().toISOString()
-  }), { 
-    status: connectionTest.success ? 200 : 503, 
-    headers 
+  }), {
+    status: connectionTest.success ? 200 : 503,
+    headers
   })
 }
