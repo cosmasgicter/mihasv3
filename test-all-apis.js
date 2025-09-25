@@ -45,6 +45,8 @@ const log = (message, type = 'info') => {
   console.log(`${colors[type]}[${timestamp}] ${message}${colors.reset}`);
 };
 
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
 const makeRequest = async (endpoint, options = {}) => {
   const url = `${BASE_URL}${endpoint}`;
   const defaultOptions = {
@@ -123,6 +125,22 @@ const runTest = async (testName, testFunction) => {
     });
   }
 };
+
+const warmupServer = async () => {
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    const response = await makeRequest('/test')
+    if (response.status === 200) {
+      log(`Server warmup succeeded on attempt ${attempt}`, 'success')
+      return true
+    }
+
+    log(`Server warmup attempt ${attempt} failed (${response.statusText || response.error || 'Unknown error'})`, 'warning')
+    await wait(500 * attempt)
+  }
+
+  log('Proceeding with tests after warmup retries', 'warning')
+  return false
+}
 
 // Authentication helper
 let studentToken = null;
@@ -356,7 +374,9 @@ const runAllTests = async () => {
   log(`Base URL: ${BASE_URL}`, 'info');
   log(`Student: ${STUDENT_CREDENTIALS.email}`, 'info');
   log(`Admin: ${ADMIN_CREDENTIALS.email}`, 'info');
-  log('=' * 50, 'info');
+  log('='.repeat(50), 'info');
+
+  await warmupServer();
 
   // Run tests in order
   const testOrder = [
@@ -386,7 +406,7 @@ const runAllTests = async () => {
   }
 
   // Generate report
-  log('=' * 50, 'info');
+  log('='.repeat(50), 'info');
   log('TEST SUMMARY:', 'info');
   log(`Total Tests: ${testResults.summary.total}`, 'info');
   log(`Passed: ${testResults.summary.passed}`, 'success');
