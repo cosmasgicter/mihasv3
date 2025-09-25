@@ -13,7 +13,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<SignInResult>
   signUp: (email: string, password: string, userData: any) => Promise<SignUpResult>
   signOut: () => Promise<void>
-  requestPasswordReset: (email: string) => Promise<PasswordResetResult>
+  requestPasswordReset: (email: string, turnstileToken?: string) => Promise<PasswordResetResult>
   updatePassword: (password: string) => Promise<PasswordResetResult>
 }
 
