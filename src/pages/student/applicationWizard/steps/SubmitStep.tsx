@@ -16,6 +16,8 @@ interface SubmitStepProps {
   proofOfPaymentFile: File | null
   confirmSubmission: boolean
   onConfirmChange: (value: boolean) => void
+  selectedProgramName?: string
+  selectedInstitutionLabel?: string
 }
 
 const gradeLabelMap: Record<number, string> = {
@@ -40,9 +42,13 @@ const SubmitStep = ({
   extraKycFile,
   proofOfPaymentFile,
   confirmSubmission,
-  onConfirmChange
+  onConfirmChange,
+  selectedProgramName,
+  selectedInstitutionLabel
 }: SubmitStepProps) => {
-  const watch = form.watch
+  const formValues = form.watch()
+  const programLabel = selectedProgramName?.trim() || formValues.program
+  const institutionLabel = selectedInstitutionLabel?.trim() || ''
 
   return (
     <motion.div
@@ -65,13 +71,18 @@ const SubmitStep = ({
           <h3 className="font-medium text-gray-900 mb-2">Application Summary</h3>
           <div className="text-sm text-gray-600 space-y-1">
             <p>
-              <strong>Name:</strong> {watch('full_name')}
+              <strong>Name:</strong> {formValues.full_name}
             </p>
             <p>
-              <strong>Program:</strong> {watch('program')}
+              <strong>Program:</strong> {programLabel}
             </p>
+            {institutionLabel && (
+              <p>
+                <strong>Institution:</strong> {institutionLabel}
+              </p>
+            )}
             <p>
-              <strong>Intake:</strong> {watch('intake')}
+              <strong>Intake:</strong> {formValues.intake}
             </p>
             <div>
               <p>
