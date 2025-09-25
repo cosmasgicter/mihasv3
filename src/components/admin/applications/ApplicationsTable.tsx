@@ -209,16 +209,21 @@ interface ApplicationCardProps {
   updatingPayment: boolean
 }
 
-const ApplicationCard: React.FC<ApplicationCardProps> = ({ 
-  application: app, 
-  getStatusBadge, 
-  getPaymentBadge, 
-  onStatusUpdate, 
+const ApplicationCard: React.FC<ApplicationCardProps> = ({
+  application: app,
+  getStatusBadge,
+  getPaymentBadge,
+  onStatusUpdate,
   onPaymentStatusUpdate,
   onViewDetails,
   updatingStatus,
   updatingPayment
 }) => {
+  const sanitizedGradesSummary = useMemo(
+    () => sanitizeHtml(app.grades_summary ?? ''),
+    [app.grades_summary]
+  )
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -236,7 +241,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const documentsCount = [app.result_slip_url, app.extra_kyc_url, app.pop_url].filter(Boolean).length
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-200 group">
+    <div className="relative bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-200 group">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
@@ -306,6 +311,18 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
           </div>
         )}
       </div>
+
+      {app.grades_summary && (
+        <div className="mb-4 rounded-lg border border-gray-100 bg-gray-50 p-3">
+          <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">
+            Grades Summary
+          </div>
+          <div
+            className="prose prose-sm max-w-none text-gray-700 [&_p]:mb-2"
+            dangerouslySetInnerHTML={{ __html: sanitizedGradesSummary }}
+          />
+        </div>
+      )}
 
       {/* Documents */}
       {documentsCount > 0 && (
@@ -388,7 +405,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
       {/* Loading Overlays */}
       {(updatingStatus || updatingPayment) && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 rounded-xl flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <LoadingSpinner size="sm" />
             <span>Updating...</span>
