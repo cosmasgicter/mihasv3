@@ -27,6 +27,7 @@ export interface AuditLogResponse {
 export interface AuditLogFilters {
   action?: string
   actorId?: string
+  actorEmail?: string
   targetTable?: string
   targetId?: string
   from?: string
@@ -48,6 +49,7 @@ function buildQuery(params: AuditLogFilters = {}): string {
 
   if (params.action) searchParams.set('logAction', params.action)
   if (params.actorId) searchParams.set('actorId', params.actorId)
+  if (params.actorEmail) searchParams.set('actorEmail', params.actorEmail)
   if (params.targetTable) searchParams.set('targetTable', params.targetTable)
   if (params.targetId) searchParams.set('targetId', params.targetId)
   if (params.from) searchParams.set('from', params.from)
