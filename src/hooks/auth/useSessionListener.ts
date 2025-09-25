@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import {
+  getPasswordResetRedirectUrl,
   getSupabaseClient,
   isSupabaseConfigured,
   SUPABASE_STATUS_EVENT,
@@ -194,21 +195,7 @@ export function useSessionListener() {
     }
 
     try {
-      const redirectTo = typeof window !== 'undefined'
-        ? `${window.location.origin}/auth/reset-password`
-        : undefined
 
-      const response = await fetch(`${apiBaseUrl}/api/auth/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          redirectTo,
-          turnstileToken
-        })
-      })
 
       const result = await response.json().catch(() => ({}))
 

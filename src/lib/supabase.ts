@@ -4,6 +4,9 @@ import { sanitizeForLog, sanitizeUrl } from './security'
 // Supabase project configuration from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const passwordResetRedirectOverride = import.meta.env
+  .VITE_SUPABASE_PASSWORD_RESET_REDIRECT as string | undefined
+const appBaseUrl = import.meta.env.VITE_APP_BASE_URL as string | undefined
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
@@ -16,6 +19,63 @@ export interface SupabaseStatusDetail {
 
 export const SUPABASE_MISSING_CONFIG_MESSAGE =
   'Supabase environment variables are missing. Authentication features are disabled in this build.'
+
+const PASSWORD_RESET_PATH = '/auth/reset-password'
+
+function appendPasswordResetPath(baseUrl: string | undefined): string | undefined {
+  if (!baseUrl) {
+    return undefined
+  }
+
+  const trimmed = baseUrl.trim()
+  if (!trimmed) {
+    return undefined
+  }
+
+  const sanitizedBase = sanitizeUrl(trimmed)
+  if (!sanitizedBase) {
+    return undefined
+  }
+
+  try {
+    const url = new URL(sanitizedBase)
+    if (url.pathname === PASSWORD_RESET_PATH) {
+      return sanitizeUrl(url.toString()) ?? undefined
+    }
+
+    url.pathname = PASSWORD_RESET_PATH
+    url.search = ''
+    url.hash = ''
+
+    return sanitizeUrl(url.toString()) ?? undefined
+  } catch {
+    return undefined
+  }
+}
+
+export function getPasswordResetRedirectUrl(): string | undefined {
+  if (passwordResetRedirectOverride) {
+    const override = sanitizeUrl(passwordResetRedirectOverride.trim())
+    if (override) {
+      return override
+    }
+  }
+
+  const candidates: Array<string | undefined> = [appBaseUrl]
+
+  if (typeof window !== 'undefined') {
+    candidates.push(window.location.origin)
+  }
+
+  for (const candidate of candidates) {
+    const redirectUrl = appendPasswordResetPath(candidate)
+    if (redirectUrl) {
+      return redirectUrl
+    }
+  }
+
+  return undefined
+}
 
 function resolveSupabaseConfig() {
   if (!isSupabaseConfigured) {
