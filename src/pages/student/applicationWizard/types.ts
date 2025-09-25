@@ -12,13 +12,13 @@ export type WizardIntake = Intake & {
   displayName: string
 }
 
-const createProgramValidator = (validProgramNames: string[]) =>
+const createProgramValidator = (validProgramIds: string[]) =>
   z
     .string({ required_error: 'Please select a program' })
     .min(1, 'Please select a program')
     .refine(
       value =>
-        value.trim().length > 0 && (validProgramNames.length === 0 || validProgramNames.includes(value)),
+        value.trim().length > 0 && (validProgramIds.length === 0 || validProgramIds.includes(value)),
       {
         message: 'Please select a valid program',
       }
@@ -36,7 +36,7 @@ const createIntakeValidator = (validIntakeOptions: string[]) =>
       }
     )
 
-const createSchema = (validProgramNames: string[], validIntakeOptions: string[]) =>
+const createSchema = (validProgramIds: string[], validIntakeOptions: string[]) =>
   z
     .object({
       full_name: z.string().min(2, 'Full name is required'),
@@ -49,7 +49,7 @@ const createSchema = (validProgramNames: string[], validIntakeOptions: string[])
       residence_town: z.string().min(2, 'Residence town is required'),
       next_of_kin_name: z.string().optional(),
       next_of_kin_phone: z.string().optional(),
-      program: createProgramValidator(validProgramNames),
+      program: createProgramValidator(validProgramIds),
       intake: createIntakeValidator(validIntakeOptions),
       payment_method: z
         .enum(['MTN Money', 'Airtel Money', 'Zamtel Money', 'Ewallet', 'Bank To Cell'])

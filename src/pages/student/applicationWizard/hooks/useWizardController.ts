@@ -45,6 +45,7 @@ interface UseWizardControllerResult {
   currentStepConfig: typeof wizardSteps[number]
   isLastStep: boolean
   selectedProgram: WizardFormData['program'] | undefined
+  selectedProgramDetails: WizardProgram | undefined
   selectedGrades: SubjectGrade[]
   eligibilityCheck: ReturnType<typeof checkEligibility> | null
   recommendedSubjects: string[]
@@ -139,6 +140,67 @@ const useWizardController = (): UseWizardControllerResult => {
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
 
+  const findProgramId = useCallback(
+    (
+      value?: string | null,
+      institutionHint?: string | null,
+      programList?: WizardProgram[]
+    ) => {
+      const list = programList ?? programs
+      if (!value) return ''
+
+      const trimmed = value.trim()
+      if (!trimmed) return ''
+
+      const byId = list.find(program => program.id === trimmed)
+      if (byId) return byId.id
+
+      const normalized = trimmed.toLowerCase()
+      const matchesByName = list.filter(program => program.name?.trim().toLowerCase() === normalized)
+
+      if (matchesByName.length === 1) {
+        return matchesByName[0].id
+      }
+
+      if (matchesByName.length > 1 && institutionHint) {
+        const hint = institutionHint.trim().toLowerCase()
+        const byInstitution = matchesByName.find(program => {
+          const institutionName =
+            program.institutions?.full_name || program.institutions?.name || ''
+          const normalizedInstitution = institutionName.trim().toLowerCase()
+          return (
+            normalizedInstitution === hint ||
+            normalizedInstitution.includes(hint) ||
+            hint.includes(normalizedInstitution)
+          )
+        })
+        if (byInstitution) {
+          return byInstitution.id
+        }
+      }
+
+      if (matchesByName.length > 0) {
+        return matchesByName[0].id
+      }
+
+      return ''
+    },
+    [programs]
+  )
+
+  const deriveInstitutionLabel = useCallback((institution?: WizardProgram['institutions']) => {
+    if (!institution) return ''
+    return institution.full_name?.trim() || institution.name?.trim() || ''
+  }, [])
+
+  const resolveInstitutionCode = useCallback((institutionLabel: string) => {
+    const normalized = institutionLabel.trim().toLowerCase()
+    if (normalized.includes('kalulushi') || normalized.includes('katc')) {
+      return 'KATC'
+    }
+    return 'MIHAS'
+  }, [])
+
   const totalSteps = wizardSteps.length
   const currentStepConfig = wizardSteps[currentStepIndex] ?? wizardSteps[0]
   const isLastStep = currentStepConfig.key === 'submit'
@@ -151,12 +213,6 @@ const useWizardController = (): UseWizardControllerResult => {
   const updateApplication = applicationsData.useUpdate()
   const syncGrades = applicationsData.useSyncGrades()
   const { data: draftApplications } = applicationsData.useList({ status: 'draft', mine: true, pageSize: 1 })
-
-  useEffect(() => {
-    if (programsData?.programs) {
-      setPrograms(programsData.programs as WizardProgram[])
-    }
-  }, [programsData])
 
   useEffect(() => {
     if (intakesData?.intakes) {
@@ -180,24 +236,42 @@ const useWizardController = (): UseWizardControllerResult => {
     setIntakes([])
   }, [intakesData])
 
-  const programNames = useMemo(() => programs.map(program => program.name).filter(Boolean), [programs])
+  const programIds = useMemo(() => programs.map(program => program.id).filter(Boolean), [programs])
   const intakeOptions = useMemo(
     () => intakes.map(intake => intake.displayName).filter(Boolean),
     [intakes]
   )
-  const schema = useMemo(() => createWizardSchema(programNames, intakeOptions), [programNames, intakeOptions])
+  const schema = useMemo(() => createWizardSchema(programIds, intakeOptions), [programIds, intakeOptions])
   const resolver = useMemo(() => zodResolver(schema), [schema])
 
   const form = useForm<WizardFormData>({
     resolver,
     defaultValues: { amount: 153, payment_method: 'MTN Money' }
   })
-  const { watch, setValue } = form
+  const { watch, setValue, getValues } = form
   const selectedProgram = watch('program')
   const selectedProgramDetails = useMemo(
-    () => programs.find(program => program.name === selectedProgram),
+    () => programs.find(program => program.id === selectedProgram),
     [programs, selectedProgram]
   )
+
+  useEffect(() => {
+    if (programsData?.programs) {
+      const fetchedPrograms = programsData.programs as WizardProgram[]
+      setPrograms(fetchedPrograms)
+
+      const currentValue = getValues('program')
+      if (currentValue) {
+        const resolvedId = findProgramId(currentValue, undefined, fetchedPrograms)
+        if (resolvedId && resolvedId !== currentValue) {
+          setValue('program', resolvedId, { shouldValidate: true })
+        }
+      }
+      return
+    }
+
+    setPrograms([])
+  }, [programsData, getValues, setValue, findProgramId])
   const clearValidationError = useCallback(() => setError(''), [])
 
   const {
@@ -339,6 +413,16 @@ const useWizardController = (): UseWizardControllerResult => {
                 setValue(key as keyof WizardFormData, value)
               }
             })
+            if (draft.formData.program) {
+              const resolvedProgramId = findProgramId(
+                draft.formData.program,
+                undefined,
+                programsData?.programs as WizardProgram[] | undefined
+              )
+              if (resolvedProgramId) {
+                setValue('program', resolvedProgramId, { shouldValidate: true })
+              }
+            }
             if (draft.selectedGrades) {
               setSelectedGrades(draft.selectedGrades)
             }
@@ -402,7 +486,16 @@ const useWizardController = (): UseWizardControllerResult => {
           setValue('residence_town', app.residence_town || '')
           setValue('next_of_kin_name', app.next_of_kin_name || '')
           setValue('next_of_kin_phone', app.next_of_kin_phone || '')
-          setValue('program', app.program || '')
+          if (app.program) {
+            const resolvedProgramId = findProgramId(
+              app.program,
+              app.institution,
+              programsData?.programs as WizardProgram[] | undefined
+            )
+            setValue('program', resolvedProgramId || app.program)
+          } else {
+            setValue('program', '')
+          }
           setValue('intake', app.intake || '')
           setApplicationId(app.id)
 
@@ -439,7 +532,17 @@ const useWizardController = (): UseWizardControllerResult => {
     if (user && !authLoading && !draftLoaded) {
       loadDraft()
     }
-  }, [user, authLoading, draftLoaded, setValue, draftApplications, location.state, totalSteps])
+  }, [
+    user,
+    authLoading,
+    draftLoaded,
+    setValue,
+    draftApplications,
+    location.state,
+    totalSteps,
+    findProgramId,
+    programsData
+  ])
 
   const saveDraft = useCallback(async () => {
     if (!user || isDraftSaving || restoringDraft) return
@@ -508,29 +611,38 @@ const useWizardController = (): UseWizardControllerResult => {
   const getUsedSubjects = useCallback(() => selectedGrades.map(grade => grade.subject_id).filter(Boolean), [selectedGrades])
 
   const eligibilityCheck = useMemo(() => {
-    if (!selectedProgram) return null
+    const programName = selectedProgramDetails?.name
+    if (!programName) return null
     return checkEligibility(
-      selectedProgram,
+      programName,
       selectedGrades.map(grade => {
         const subject = subjects.find(s => s.id === grade.subject_id)
         return { subject_id: grade.subject_id, subject_name: subject?.name || '', grade: grade.grade }
       })
     )
-  }, [selectedProgram, selectedGrades, subjects])
+  }, [selectedProgramDetails, selectedGrades, subjects])
 
   const recommendedSubjects = useMemo(
-    () => (selectedProgram ? getRecommendedSubjects(selectedProgram) : []),
-    [selectedProgram]
+    () => (selectedProgramDetails?.name ? getRecommendedSubjects(selectedProgramDetails.name) : []),
+    [selectedProgramDetails]
   )
 
   const getPaymentTarget = useCallback(() => {
-    if (!selectedProgram) return ''
-    const institutionName = selectedProgramDetails?.institutions?.name
-    if (institutionName === 'KATC') {
+    const institutionLabel = deriveInstitutionLabel(selectedProgramDetails?.institutions)
+    if (!institutionLabel) return ''
+
+    const institutionCode = resolveInstitutionCode(institutionLabel)
+
+    if (institutionCode === 'KATC') {
       return 'KATC MTN 0966 992 299'
     }
-    return 'MIHAS MTN 0961 515 151'
-  }, [selectedProgram, selectedProgramDetails])
+
+    if (institutionCode === 'MIHAS') {
+      return 'MIHAS MTN 0961 515 151'
+    }
+
+    return `Admissions Office (${institutionLabel})`
+  }, [deriveInstitutionLabel, resolveInstitutionCode, selectedProgramDetails])
 
   const goToStep = useCallback((index: number) => {
     setCurrentStepIndex(Math.min(Math.max(index, 0), totalSteps - 1))
@@ -555,7 +667,7 @@ const useWizardController = (): UseWizardControllerResult => {
         showError(errorMessage)
         return
       }
-      if (formData.program && !programNames.includes(formData.program)) {
+      if (formData.program && !programIds.includes(formData.program)) {
         const errorMessage = 'Please select a valid program from the list provided'
         setError('')
         showError(errorMessage)
@@ -571,9 +683,10 @@ const useWizardController = (): UseWizardControllerResult => {
       try {
         setLoading(true)
         setError('')
-        const institutionName =
-          selectedProgramDetails?.institutions?.name || selectedProgramDetails?.institutions?.full_name || 'MIHAS'
-        const normalizedInstitution = institutionName === 'KATC' ? 'KATC' : 'MIHAS'
+        const programName = selectedProgramDetails?.name || ''
+        const institutionLabel =
+          deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
+        const normalizedInstitution = resolveInstitutionCode(institutionLabel)
 
         if (applicationId) {
           // Update existing application
@@ -590,7 +703,7 @@ const useWizardController = (): UseWizardControllerResult => {
               residence_town: formData.residence_town,
               next_of_kin_name: formData.next_of_kin_name || null,
               next_of_kin_phone: formData.next_of_kin_phone || null,
-              program: formData.program,
+              program: programName || formData.program,
               intake: formData.intake,
               institution: normalizedInstitution
             }
@@ -599,8 +712,8 @@ const useWizardController = (): UseWizardControllerResult => {
           setSubmittedApplication(prev => ({
             applicationNumber: updatedApp.application_number,
             trackingCode: updatedApp.public_tracking_code,
-            program: formData.program,
-            institution: normalizedInstitution,
+            program: programName || updatedApp.program,
+            institution: institutionLabel,
             intake: formData.intake,
             fullName: formData.full_name,
             email: formData.email,
@@ -627,7 +740,7 @@ const useWizardController = (): UseWizardControllerResult => {
             residence_town: formData.residence_town,
             next_of_kin_name: formData.next_of_kin_name || null,
             next_of_kin_phone: formData.next_of_kin_phone || null,
-            program: formData.program,
+            program: programName || formData.program,
             intake: formData.intake,
             institution: normalizedInstitution,
             status: 'draft'
@@ -637,8 +750,8 @@ const useWizardController = (): UseWizardControllerResult => {
           setSubmittedApplication({
             applicationNumber,
             trackingCode,
-            program: formData.program,
-            institution: normalizedInstitution,
+            program: programName || formData.program,
+            institution: institutionLabel,
             intake: formData.intake,
             fullName: formData.full_name,
             email: formData.email,
@@ -731,6 +844,7 @@ const useWizardController = (): UseWizardControllerResult => {
     currentStepIndex,
     selectedGrades,
     selectedProgram,
+    selectedProgramDetails,
     eligibilityCheck,
     resultSlipFile,
     extraKycFile,
@@ -740,8 +854,7 @@ const useWizardController = (): UseWizardControllerResult => {
     syncGrades,
     applicationId,
     updateApplication,
-    programNames,
-    selectedProgramDetails,
+    programIds,
     intakeOptions,
     popFile,
     showError
@@ -883,6 +996,7 @@ const useWizardController = (): UseWizardControllerResult => {
     currentStepConfig,
     isLastStep,
     selectedProgram,
+    selectedProgramDetails,
     selectedGrades,
     eligibilityCheck,
     recommendedSubjects,

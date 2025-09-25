@@ -47,7 +47,7 @@ async function handler(req, res) {
     case 'GET':
       const { data, error } = await supabaseAdminClient
         .from('programs')
-        .select(`*, institutions (id, name, slug)`)
+        .select(`*, institutions (id, name, full_name, slug)`)
         .eq('is_active', true)
         .order('name')
 
