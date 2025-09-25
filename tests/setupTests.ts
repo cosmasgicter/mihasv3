@@ -1,1 +1,6 @@
-// Test setup placeholder for Vitest API suite
+import { afterEach } from 'vitest'
+import { cleanup } from '@testing-library/react'
+
+afterEach(() => {
+  cleanup()
+})
