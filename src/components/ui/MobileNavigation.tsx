@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from './Button'
 import { GraduationCap, Menu, X, LayoutDashboard, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 
 interface MobileNavigationProps {
   className?: string
@@ -14,6 +15,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
   const [isOpen, setIsOpen] = useState(false)
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const { isAdmin } = useRoleQuery({ user })
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
@@ -67,6 +69,39 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
     }
   }
 
+  const dashboardPath = isAdmin ? '/admin' : '/student/dashboard'
+  const dashboardLabel = isAdmin ? 'Admin Dashboard' : 'Dashboard'
+
+  type DrawerItem = {
+    to: string
+    label: string
+    variant?: 'default' | 'accent'
+    icon?: React.ReactNode
+  }
+
+  const drawerItems = useMemo<DrawerItem[]>(() => {
+    const items: DrawerItem[] = [
+      { to: '/', label: 'Home' },
+      { to: '/track-application', label: 'Track Application' }
+    ]
+
+    if (!user) {
+      items.push(
+        { to: '/auth/signin', label: 'Sign In' },
+        { to: '/auth/signup', label: 'Sign Up', variant: 'accent' }
+      )
+    } else {
+      items.push({
+        to: dashboardPath,
+        label: dashboardLabel,
+        variant: 'accent',
+        icon: <LayoutDashboard className="w-5 h-5 mr-3 text-white" />
+      })
+    }
+
+    return items
+  }, [dashboardLabel, dashboardPath, user])
+
   return (
     <div className={cn("relative", className)}>
       <div className="flex justify-between items-center py-4">
@@ -94,43 +129,57 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
         {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-4">
           <Link to="/track-application">
-            <Button 
-              variant="gradient" 
-              size="md" 
+            <Button
+              variant="gradient"
+              size="md"
               magnetic
               className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
             >
               Track Application
             </Button>
           </Link>
-          <Link to="/auth/signin">
-            <Button 
-              variant="gradient" 
-              size="md" 
-              magnetic 
-              className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
-            >
-              Sign In
-            </Button>
-          </Link>
-          <Link to="/auth/signup">
-            <Button variant="gradient" size="md" magnetic glow className="font-semibold">
-              Sign Up
-            </Button>
-          </Link>
-          {user && (
-            <Link to="/student/dashboard">
-              <Button 
-                variant="gradient" 
-                size="md" 
-                magnetic 
-                glow 
-                className="font-semibold"
+          {!user ? (
+            <>
+              <Link to="/auth/signin">
+                <Button
+                  variant="gradient"
+                  size="md"
+                  magnetic
+                  className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/auth/signup">
+                <Button variant="gradient" size="md" magnetic glow className="font-semibold">
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to={dashboardPath}>
+                <Button
+                  variant="gradient"
+                  size="md"
+                  magnetic
+                  glow
+                  className="font-semibold"
+                >
+                  <LayoutDashboard className="w-4 h-4 mr-2" />
+                  {dashboardLabel}
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                size="md"
+                onClick={handleSignOut}
+                className="border-white/70 text-white hover:bg-white/10"
               >
-                <LayoutDashboard className="w-4 h-4 mr-2" />
-                Dashboard
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
               </Button>
-            </Link>
+            </>
           )}
         </div>
 
@@ -209,95 +258,41 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 {/* Navigation Items */}
                 <div className="flex flex-col flex-1 overflow-hidden">
                   <div className="flex flex-col space-y-3 p-6 flex-1 overflow-y-auto">
-                    <motion.div
-                      variants={itemVariants}
-                      custom={0}
-                      initial="closed"
-                      animate="open"
-                    >
-                      <Link 
-                        to="/"
-                        onClick={closeMenu}
-                        className="flex items-center px-4 py-4 rounded-xl text-white hover:bg-white/10 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
-                      >
-                        <span className="text-white">Home</span>
-                      </Link>
-                    </motion.div>
-                    
-                    <motion.div
-                      variants={itemVariants}
-                      custom={1}
-                      initial="closed"
-                      animate="open"
-                    >
-                      <Link 
-                        to="/track-application"
-                        onClick={closeMenu}
-                        className="flex items-center px-4 py-4 rounded-xl text-white hover:bg-white/10 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
-                      >
-                        <span className="text-white">Track Application</span>
-                      </Link>
-                    </motion.div>
-
-                    <motion.div
-                      variants={itemVariants}
-                      custom={2}
-                      initial="closed"
-                      animate="open"
-                    >
-                      <Link 
-                        to="/auth/signin"
-                        onClick={closeMenu}
-                        className="flex items-center px-4 py-4 rounded-xl text-white hover:bg-white/10 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
-                      >
-                        <span className="text-white">Sign In</span>
-                      </Link>
-                    </motion.div>
-
-                    <motion.div
-                      variants={itemVariants}
-                      custom={3}
-                      initial="closed"
-                      animate="open"
-                    >
-                      <Link 
-                        to="/auth/signup"
-                        onClick={closeMenu}
-                        className="flex items-center px-4 py-4 rounded-xl bg-primary/30 text-white hover:bg-primary/40 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
-                      >
-                        <span className="text-white">Sign Up</span>
-                      </Link>
-                    </motion.div>
-
-                    {user && (
+                    {drawerItems.map((item, index) => (
                       <motion.div
+                        key={item.to}
                         variants={itemVariants}
-                        custom={4}
+                        custom={index}
                         initial="closed"
                         animate="open"
                       >
-                        <Link 
-                          to="/student/dashboard"
+                        <Link
+                          to={item.to}
                           onClick={closeMenu}
-                          className="flex items-center px-4 py-4 rounded-xl bg-primary/30 text-white hover:bg-primary/40 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target"
+                          className={cn(
+                            'flex items-center px-4 py-4 rounded-xl text-white transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
+                            item.variant === 'accent'
+                              ? 'bg-primary/30 hover:bg-primary/40'
+                              : 'hover:bg-white/10'
+                          )}
                         >
-                          <LayoutDashboard className="w-5 h-5 mr-3 text-white" />
-                          <span className="text-white">Dashboard</span>
+                          {item.icon}
+                          <span className="text-white">{item.label}</span>
                         </Link>
                       </motion.div>
-                    )}
+                    ))}
                   </div>
 
                   {/* Fixed Sign Out Button for authenticated users */}
                   {user && (
                     <div className="p-6 border-t border-white/20 bg-black/10 backdrop-blur-sm">
-                      <motion.button 
+                      <motion.button
                         onClick={() => {
                           closeMenu()
                           handleSignOut()
                         }}
                         variants={itemVariants}
-                        custom={5}
+                        custom={drawerItems.length}
                         initial="closed"
                         animate="open"
                         className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target"
