@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
+import { supabaseAdminClient, getUserFromRequest, useMockSupabase } from '../_lib/supabaseClient.js'
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
 
 const subscriptionSchema = z.object({
@@ -46,14 +46,31 @@ async function handler(req, res) {
     return res.status(200).end()
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
-
   const authContext = await dependencies.getUserFromRequest(req)
   if (authContext.error) {
     const status = authContext.error === 'Access denied' ? 403 : 401
     return res.status(status).json({ error: authContext.error })
+  }
+
+  if (req.method === 'GET') {
+    const { data, error } = await dependencies.supabaseClient
+      .from('push_subscriptions')
+      .select('*')
+      .eq('user_id', authContext.user.id)
+
+    if (error) {
+      return res.status(500).json({ error: error.message })
+    }
+
+    return res.status(200).json({
+      success: true,
+      mode: useMockSupabase ? 'mock' : 'live',
+      subscriptions: data ?? []
+    })
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   const body = parseBody(req.body)

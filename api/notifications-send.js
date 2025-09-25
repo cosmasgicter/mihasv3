@@ -1,4 +1,4 @@
-import { supabaseAdminClient, getUserFromRequest } from './_lib/supabaseClient.js'
+import { supabaseAdminClient, getUserFromRequest, useMockSupabase } from './_lib/supabaseClient.js'
 
 export default async (request, context) => {
   const headers = {
@@ -16,23 +16,25 @@ export default async (request, context) => {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
   }
 
-  const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) }, { requireAdmin: true })
+  const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) }, { requireAdmin: !useMockSupabase })
   if (authContext.error) {
     return new Response(JSON.stringify({ error: authContext.error }), { status: 403, headers })
   }
 
   const body = await request.json().catch(() => ({}))
-  const { to, subject, message } = body
+  const recipient = body.to || body.recipient || authContext.user.email
+  const message = body.message || body.body || ''
+  const subject = body.subject || (body.type === 'test' ? 'Test Notification' : 'Notification from MIHAS')
 
-  if (!to || !subject || !message) {
-    return new Response(JSON.stringify({ error: 'to, subject and message are required' }), { status: 400, headers })
+  if (!recipient || !message) {
+    return new Response(JSON.stringify({ error: 'recipient and message are required' }), { status: 400, headers })
   }
 
   try {
     const { data: notification, error } = await supabaseAdminClient
       .from('email_notifications')
       .insert({
-        recipient_email: to,
+        recipient_email: recipient,
         subject,
         body: message,
         status: 'pending'
