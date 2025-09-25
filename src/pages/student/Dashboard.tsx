@@ -2,15 +2,12 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import type { Application, Program, Intake } from '@/lib/supabase'
+import type { Application, Intake } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { AuthenticatedNavigation } from '@/components/ui/AuthenticatedNavigation'
 import { ContinueApplication } from '@/components/application/ContinueApplication'
 import { formatDate, getStatusColor } from '@/lib/utils'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { applicationSessionManager } from '@/lib/applicationSession'
 import { draftManager } from '@/lib/draftManager'
-import { useDraftManager } from '@/hooks/useDraftManager'
 import { sanitizeForLog, safeJsonParse, sanitizeForDisplay } from '@/lib/sanitize'
 import { getUserMetadata, getBestValue, calculateProfileCompletion } from '@/hooks/useProfileAutoPopulation'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
@@ -18,24 +15,16 @@ import { clearAllDraftData } from '@/lib/draftCleanup'
 import { applicationService } from '@/services/applications'
 import { catalogService } from '@/services/catalog'
 import { StudentDashboardSkeleton } from '@/components/student/StudentDashboardSkeleton'
-import { 
-  User, 
-  FileText, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Plus,
-  X
-} from 'lucide-react'
+import { User, FileText, Clock, CheckCircle, XCircle, Plus, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { PageLayout, PageContent } from '@/components/ui/PageLayout'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { SectionCard } from '@/components/ui/SectionCard'
 
 export default function StudentDashboard() {
-  const isMobile = useIsMobile()
   const { user } = useAuth()
   const { profile } = useProfileQuery()
-  const { deleteDraft, clearAllDrafts } = useDraftManager()
   const [applications, setApplications] = useState<Application[]>([])
-  const [programs, setPrograms] = useState<Program[]>([])
   const [intakes, setIntakes] = useState<Intake[]>([])
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -69,10 +58,7 @@ export default function StudentDashboard() {
       }
     }
 
-    // Listen for storage events from other tabs/windows
     window.addEventListener('storage', handleStorageChange)
-    
-    // Also check when the window gains focus (user returns from another page)
     window.addEventListener('focus', handleStorageChange)
 
     return () => {
@@ -91,7 +77,6 @@ export default function StudentDashboard() {
         setIsRefreshing(true)
       }
 
-      // Check for saved draft in localStorage
       const savedDraft = localStorage.getItem('applicationWizardDraft')
       if (savedDraft) {
         const draft = safeJsonParse(savedDraft, null)
@@ -106,8 +91,7 @@ export default function StudentDashboard() {
       } else {
         setHasDraft(false)
       }
-      
-      // Load latest draft from API
+
       const draftResponse = await applicationService.list({
         page: 0,
         pageSize: 1,
@@ -122,7 +106,6 @@ export default function StudentDashboard() {
         setDraftData(draftResponse.applications[0])
       }
 
-      // Load user's applications
       const applicationsResponse = await applicationService.list({
         page: 0,
         pageSize: 50,
@@ -133,13 +116,8 @@ export default function StudentDashboard() {
 
       setApplications((applicationsResponse?.applications || []) as Application[])
 
-      // Load programs and intakes
-      const [programsResponse, intakesResponse] = await Promise.all([
-        catalogService.getPrograms(),
-        catalogService.getIntakes()
-      ])
+      const intakesResponse = await catalogService.getIntakes()
 
-      setPrograms((programsResponse.programs || []) as Program[])
       setIntakes((intakesResponse.intakes || []) as Intake[])
     } catch (error) {
       console.error('Error loading dashboard data:', sanitizeForLog(error))
@@ -187,23 +165,32 @@ export default function StudentDashboard() {
 
   const getDraftProgress = () => {
     if (!draftData) return 'No progress'
-    
+
     const step = draftData.currentStep || draftData.step_completed || 1
     const steps = ['KYC Info', 'Education', 'Payment', 'Review']
     return `Step ${step}/4: ${steps[step - 1] || 'Unknown'}`
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <AuthenticatedNavigation />
+  const metadata = getUserMetadata(user)
+  const profileCompletion = calculateProfileCompletion(profile, metadata)
+  const displayName = sanitizeForDisplay(
+    getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0] || 'Student')
+  )
+  const firstName = displayName?.split(' ')[0] || 'Student'
 
-      <main className="w-full">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 pb-20">
+  const draftApplications = applications.filter(app => app.status === 'draft')
+  const submittedApplications = applications.filter(app => app.status !== 'draft')
+  const hasLocalDraftOnly = hasDraft && draftApplications.length === 0
+  const totalDraftCount = draftApplications.length + (hasLocalDraftOnly ? 1 : 0)
+
+  return (
+    <PageLayout background="gradient">
+      <AuthenticatedNavigation />
+      <PageContent className="safe-area-bottom py-4 sm:py-6 lg:py-8">
         {isInitialLoading ? (
           <StudentDashboardSkeleton />
         ) : (
-          <>
+          <div className="space-y-6 sm:space-y-8">
             <AnimatePresence>
               {isRefreshing && (
                 <motion.div
@@ -211,7 +198,7 @@ export default function StudentDashboard() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="mb-6"
+                  className="rounded-full bg-white/80 px-6 py-3 shadow-lg"
                 >
                   <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10">
                     <motion.div
@@ -225,426 +212,357 @@ export default function StudentDashboard() {
               )}
             </AnimatePresence>
 
-            {/* Welcome Section - Mobile First */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 sm:mb-8"
-        >
-          <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-6 sm:p-8 text-white shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-              <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
-                  🎓 Welcome back, {(() => {
-                    const metadata = getUserMetadata(user)
-                    const fullName = getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0] || 'Student')
-                    return sanitizeForDisplay(fullName)?.split(' ')[0] || 'Student'
-                  })()}!
-                </h1>
-                <p className="text-lg sm:text-xl text-white/90">
-                  Track your applications and manage your profile
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="text-3xl sm:text-4xl font-bold">{applications.length}</div>
-                <div className="text-sm sm:text-base text-white/80">Applications</div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+            <PageHeader
+              variant="gradient"
+              icon={<User className="h-6 w-6" />}
+              title={`🎓 Welcome back, ${firstName}!`}
+              description="Track your applications, manage drafts, and keep your profile information up to date."
+              stats={[
+                {
+                  label: 'Submitted applications',
+                  value: submittedApplications.length,
+                  accent: 'primary',
+                  icon: <CheckCircle className="h-5 w-5" />
+                },
+                {
+                  label: 'Drafts in progress',
+                  value: totalDraftCount,
+                  accent: totalDraftCount > 0 ? 'warning' : 'neutral',
+                  icon: <Clock className="h-5 w-5" />
+                }
+              ]}
+              actions={<ProfileCompletionBadge completionPercentage={profileCompletion} />}
+            />
 
-        {/* Error Display */}
-        <AnimatePresence>
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="rounded-xl bg-red-50 border border-red-200 p-4 sm:p-6 mb-6 shadow-lg"
-            >
-              <div className="flex items-center space-x-3">
-                <XCircle className="h-6 w-6 text-red-500 flex-shrink-0" />
-                <div className="text-sm sm:text-base text-red-700 font-medium">{error}</div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-2xl border border-red-200/70 bg-red-50/90 px-6 py-5 text-red-700 shadow-lg"
+              >
+                <div className="flex items-start gap-3">
+                  <XCircle className="h-6 w-6 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">We couldn't refresh your dashboard</p>
+                    <p className="text-sm text-red-600/80">{error}</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
-        {/* Continue Application */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-6 sm:mb-8"
-        >
-          <ContinueApplication />
-        </motion.div>
+            <ContinueApplication />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Applications List - Mobile First */}
-          <div className="lg:col-span-2">
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100"
-            >
-              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
-                  📋 My Applications
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">Track your application progress</p>
-              </div>
-              
-              <div className="divide-y divide-gray-200">
-                {applications.length === 0 && !hasDraft ? (
-                  <div className="px-6 py-16 text-center">
-                    <div className="text-8xl mb-6">📋</div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      No Applications Yet
-                    </h3>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                      You haven't submitted any applications. Start your journey by applying to our programs.
-                    </p>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+              <SectionCard
+                className="lg:col-span-2"
+                title="My applications"
+                description="Monitor each submission and jump back into drafts when you're ready."
+                icon={<FileText className="h-5 w-5" />}
+                headerVariant="tinted"
+                contentClassName="p-0"
+              >
+                {submittedApplications.length === 0 && draftApplications.length === 0 && !hasLocalDraftOnly ? (
+                  <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+                    <div className="text-6xl">📋</div>
+                    <div className="space-y-2">
+                      <h3 className="text-2xl font-semibold text-gray-900">No applications yet</h3>
+                      <p className="text-gray-600">
+                        Start your journey by submitting your first application. We'll guide you every step of the way.
+                      </p>
+                    </div>
                     <Link to="/student/application-wizard">
-                      <Button className="bg-gradient-to-r from-primary to-secondary text-white font-semibold shadow-lg hover:shadow-xl">
-                        <Plus className="h-5 w-5 mr-2" />
-                        Create First Application
+                      <Button className="bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:from-primary/90 hover:to-secondary/90">
+                        <Plus className="mr-2 h-5 w-5" />
+                        Create first application
                       </Button>
                     </Link>
                   </div>
                 ) : (
-                  <>
-                    {/* Show draft applications from database */}
-                    {applications.filter(app => app.status === 'draft').map((application) => (
-                      <motion.div 
-                        key={`draft-${application.id}`} 
+                  <div className="divide-y divide-gray-100">
+                    {draftApplications.map((application, index) => (
+                      <motion.div
+                        key={`draft-${application.id}`}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="px-6 py-4 hover:bg-yellow-50 bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 transition-all duration-300"
+                        transition={{ delay: index * 0.05 }}
+                        className="px-6 py-5 transition-colors hover:bg-amber-50/60"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <Clock className="h-5 w-5 text-yellow-600" />
-                              <h4 className="text-base font-semibold text-gray-900">
-                                📝 Draft Application
-                              </h4>
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-yellow-200 text-yellow-800">
-                                DRAFT
-                              </span>
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <Clock className="h-5 w-5 text-amber-600" />
+                              <h4 className="text-base font-semibold text-gray-900">Draft application #{application.application_number}</h4>
+                              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Draft</span>
                             </div>
-                            
-                            <div className="text-sm text-gray-700 space-y-1">
-                              <p><strong>Application:</strong> #{application.application_number}</p>
-                              <p><strong>Program:</strong> {application.program}</p>
-                              <p><strong>Intake:</strong> {application.intake}</p>
-                              <p><strong>Created:</strong> {formatDate(application.created_at)}</p>
-                            </div>
+                            <dl className="grid gap-2 text-sm text-gray-700 sm:grid-cols-2">
+                              <div className="flex gap-2">
+                                <dt className="font-medium text-gray-500">Program:</dt>
+                                <dd className="text-gray-900">{application.program}</dd>
+                              </div>
+                              <div className="flex gap-2">
+                                <dt className="font-medium text-gray-500">Intake:</dt>
+                                <dd className="text-gray-900">{application.intake}</dd>
+                              </div>
+                              <div className="flex gap-2">
+                                <dt className="font-medium text-gray-500">Created:</dt>
+                                <dd className="text-gray-900">{formatDate(application.created_at)}</dd>
+                              </div>
+                            </dl>
                           </div>
-                          
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <Link to="/student/application-wizard">
-                              <Button 
-                                variant="outline" 
+                          <div className="flex flex-col gap-2 sm:flex-row">
+                            <Link to="/student/application-wizard" className="w-full sm:w-auto">
+                              <Button
+                                variant="outline"
                                 size="sm"
-                                className="w-full sm:w-auto text-yellow-700 border-yellow-300 hover:bg-yellow-100 font-semibold"
+                                className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-100"
                               >
-                                Continue Draft
+                                Continue draft
                               </Button>
                             </Link>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto text-red-600 border-red-300 hover:bg-red-50 font-semibold"
+                              className="w-full sm:w-auto border-red-200 text-red-600 hover:bg-red-50"
                               onClick={async () => {
                                 try {
                                   await applicationService.delete(application.id)
-
-                                  // Refresh data immediately
                                   await loadDashboardData()
                                 } catch (error) {
                                   setError('Failed to delete draft')
                                 }
                               }}
                             >
-                              <X className="h-4 w-4 mr-1" />
+                              <X className="mr-2 h-4 w-4" />
                               Delete
                             </Button>
                           </div>
                         </div>
                       </motion.div>
                     ))}
-                    
-                    {/* Show localStorage draft if exists */}
-                    {hasDraft && !applications.some(app => app.status === 'draft') && (
-                      <div className="px-6 py-4 hover:bg-gray-50 bg-yellow-50 border-l-4 border-yellow-400">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <Clock className="h-5 w-5 text-yellow-500" />
-                              <h4 className="text-sm font-medium text-secondary">
-                                📝 Draft Application
-                              </h4>
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                DRAFT
-                              </span>
+
+                    {hasLocalDraftOnly && (
+                      <div className="px-6 py-5">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-3">
+                              <Clock className="h-5 w-5 text-amber-600" />
+                              <h4 className="text-base font-semibold text-gray-900">Local draft in progress</h4>
+                              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Draft</span>
                             </div>
-                            
-                            <div className="text-sm text-secondary space-y-1">
-                              <p>Progress: {getDraftProgress()}</p>
-                              <p>Last saved: {getDraftTimestamp()}</p>
-                              {draftData?.formData?.program && (
-                                <p>Program: {draftData.formData.program}</p>
-                              )}
-                            </div>
+                            <p className="text-sm text-gray-600">Progress: {getDraftProgress()}</p>
+                            <p className="text-sm text-gray-600">Last saved: {getDraftTimestamp()}</p>
+                            {draftData?.formData?.program && (
+                              <p className="text-sm text-gray-600">Program: {draftData.formData.program}</p>
+                            )}
                           </div>
-                          
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <Link to="/student/application-wizard">
-                              <Button 
-                                variant="outline" 
+                          <div className="flex flex-col gap-2 sm:flex-row">
+                            <Link to="/student/application-wizard" className="w-full sm:w-auto">
+                              <Button
+                                variant="outline"
                                 size="sm"
-                                className="w-full sm:w-auto text-yellow-700 border-yellow-300 hover:bg-yellow-100 font-semibold"
+                                className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-100"
                               >
-                                Continue Draft
+                                Continue draft
                               </Button>
                             </Link>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto text-red-600 border-red-300 hover:bg-red-50 font-semibold"
+                              className="w-full sm:w-auto border-red-200 text-red-600 hover:bg-red-50"
                               onClick={() => {
-                                // Clear all draft data
                                 clearAllDraftData()
-                                
-                                // Update local state
                                 setHasDraft(false)
                                 setDraftData(null)
                               }}
                             >
-                              <X className="h-4 w-4 mr-1" />
+                              <X className="mr-2 h-4 w-4" />
                               Delete
                             </Button>
                           </div>
                         </div>
                       </div>
                     )}
-                    {/* Show submitted applications */}
-                    {applications.filter(app => app.status !== 'draft').map((application, index) => (
-                      <motion.div 
-                        key={application.id} 
+
+                    {submittedApplications.map((application, index) => (
+                      <motion.div
+                        key={application.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="px-6 py-4 hover:bg-blue-50 transition-all duration-300 border-l-4 border-transparent hover:border-primary"
+                        transition={{ delay: 0.1 + index * 0.05 }}
+                        className="px-6 py-5 transition-colors hover:bg-blue-50/60"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3">
                               {getStatusIcon(application.status)}
-                              <h4 className="text-base font-semibold text-gray-900">
-                                {getProgramName(application.program)}
-                              </h4>
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                                getStatusColor(application.status)
-                              }`}>
+                              <h4 className="text-base font-semibold text-gray-900">{getProgramName(application.program)}</h4>
+                              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(application.status)}`}>
                                 {application.status.replace('_', ' ').toUpperCase()}
                               </span>
                             </div>
-                            
-                            <div className="text-sm text-gray-700 space-y-1">
-                              <p><strong>Application:</strong> #{application.application_number}</p>
-                              <p><strong>Intake:</strong> {getIntakeName(application.intake)}</p>
-                              <p><strong>Submitted:</strong> {formatDate(application.submitted_at)}</p>
-                            </div>
+                            <dl className="grid gap-2 text-sm text-gray-700 sm:grid-cols-2">
+                              <div className="flex gap-2">
+                                <dt className="font-medium text-gray-500">Application:</dt>
+                                <dd className="text-gray-900">#{application.application_number}</dd>
+                              </div>
+                              <div className="flex gap-2">
+                                <dt className="font-medium text-gray-500">Intake:</dt>
+                                <dd className="text-gray-900">{getIntakeName(application.intake)}</dd>
+                              </div>
+                              <div className="flex gap-2">
+                                <dt className="font-medium text-gray-500">Submitted:</dt>
+                                <dd className="text-gray-900">{formatDate(application.submitted_at)}</dd>
+                              </div>
+                            </dl>
                           </div>
-                          
-                          <Link to={`/student/application/${application.id}`}>
-                            <Button 
-                              variant="outline" 
+                          <Link to={`/student/application/${application.id}`} className="w-full sm:w-auto">
+                            <Button
+                              variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto text-primary border-primary hover:bg-primary hover:text-white font-semibold"
+                              className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white"
                             >
-                              View Details
+                              View details
                             </Button>
                           </Link>
                         </div>
                       </motion.div>
                     ))}
-                  </>
-                )}
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Sidebar - Mobile First */}
-          <div className="space-y-6">
-            {/* Profile Summary */}
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                  👤 Profile Summary
-                </h3>
-                <ProfileCompletionBadge 
-                  completionPercentage={calculateProfileCompletion(profile, getUserMetadata(user))} 
-                />
-              </div>
-              <div className="space-y-4 text-sm">
-                {(() => {
-                  const metadata = getUserMetadata(user)
-                  return (
-                    <>
-                      <div className="p-3 bg-gray-50 rounded-xl">
-                        <span className="text-gray-600 text-xs uppercase tracking-wide">Full Name</span>
-                        <p className="font-semibold text-gray-900">
-                          {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-xl">
-                        <span className="text-gray-600 text-xs uppercase tracking-wide">Email</span>
-                        <p className="font-semibold text-gray-900 truncate">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-xl">
-                        <span className="text-gray-600 text-xs uppercase tracking-wide">Phone</span>
-                        <p className="font-semibold text-gray-900">
-                          {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-xl">
-                        <span className="text-gray-600 text-xs uppercase tracking-wide">City</span>
-                        <p className="font-semibold text-gray-900">
-                          {sanitizeForDisplay(getBestValue(profile?.city || profile?.address, metadata.city, 'Not provided'))}
-                        </p>
-                      </div>
-                    </>
-                  )
-                })()}
-              </div>
-              <Link to="/settings">
-                <Button variant="outline" size="sm" className="w-full mt-4 border-2 hover:border-primary hover:bg-primary hover:text-white font-semibold">
-                  <User className="h-4 w-4 mr-2" />
-                  Update Profile
-                </Button>
-              </Link>
-            </motion.div>
-
-            {/* Upcoming Deadlines */}
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-            >
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                ⏰ Upcoming Deadlines
-              </h3>
-              <div className="space-y-3">
-                {intakes.slice(0, 3).map((intake, index) => (
-                  <motion.div 
-                    key={intake.id} 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + index * 0.1 }}
-                    className="border-l-4 border-red-400 pl-4 p-3 bg-red-50 rounded-r-xl"
-                  >
-                    <p className="text-sm font-semibold text-gray-900">{intake.name}</p>
-                    <p className="text-xs text-red-600 font-medium">
-                      Deadline: {formatDate(intake.application_deadline)}
-                    </p>
-                  </motion.div>
-                ))}
-                {intakes.length === 0 && (
-                  <div className="text-center py-4">
-                    <p className="text-gray-500 text-sm">No upcoming deadlines</p>
                   </div>
                 )}
-              </div>
-            </motion.div>
+              </SectionCard>
 
-            {/* Quick Links */}
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-            >
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                ⚡ Quick Actions
-              </h3>
-              <div className="space-y-3">
-                {hasDraft ? (
-                  <>
-                    <Link to="/student/application-wizard" className="block">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full justify-start bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100 font-semibold"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Continue Draft
-                      </Button>
-                    </Link>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full justify-start text-red-600 border-red-300 hover:bg-red-50 font-semibold"
-                      onClick={() => {
-                        // Clear all draft data
-                        clearAllDraftData()
-                        
-                        // Update local state
-                        setHasDraft(false)
-                        setDraftData(null)
-                      }}
+              <div className="space-y-6">
+                <SectionCard
+                  title="Profile summary"
+                  description="Keep your personal details up to date so we can assist you faster."
+                  icon={<User className="h-5 w-5" />}
+                >
+                  <div className="grid gap-3">
+                    <div className="rounded-xl bg-gray-50 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Full name</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-gray-50 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</p>
+                      <p className="text-sm font-semibold text-gray-900 truncate">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
+                    </div>
+                    <div className="rounded-xl bg-gray-50 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Phone</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-gray-50 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Residence</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}
+                      </p>
+                    </div>
+                  </div>
+                  <Link to="/settings" className="block">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 w-full border-primary text-primary hover:bg-primary hover:text-white"
                     >
-                      <X className="h-4 w-4 mr-2" />
-                      Clear Draft
-                    </Button>
-                  </>
-                ) : (
-                  <Link to="/student/application-wizard" className="block">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full justify-start bg-gradient-to-r from-primary to-secondary text-white border-primary hover:from-primary/90 hover:to-secondary/90 font-semibold shadow-lg"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Application
+                      Update profile
                     </Button>
                   </Link>
-                )}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start border-gray-300 hover:bg-gray-50 font-semibold"
+                </SectionCard>
+
+                <SectionCard
+                  title="Upcoming deadlines"
+                  description="Never miss an important date for upcoming intakes."
+                  icon={<Clock className="h-5 w-5" />}
                 >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Document Templates
-                </Button>
-                <Link to="/settings" className="block">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full justify-start border-purple-300 text-purple-700 hover:bg-purple-50 font-semibold"
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    Profile Settings
-                  </Button>
-                </Link>
+                  <div className="space-y-3">
+                    {intakes.slice(0, 3).map((intake, index) => (
+                      <motion.div
+                        key={intake.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * index }}
+                        className="rounded-xl border border-red-200 bg-red-50 px-4 py-3"
+                      >
+                        <p className="text-sm font-semibold text-gray-900">{intake.name}</p>
+                        <p className="text-xs font-semibold text-red-600">Deadline: {formatDate(intake.application_deadline)}</p>
+                      </motion.div>
+                    ))}
+                    {intakes.length === 0 && (
+                      <p className="rounded-xl bg-gray-50 px-4 py-4 text-center text-sm text-gray-500">
+                        No upcoming deadlines yet. Check back soon.
+                      </p>
+                    )}
+                  </div>
+                </SectionCard>
+
+                <SectionCard
+                  title="Quick actions"
+                  description="Access the most common tasks in a single tap."
+                  icon={<Plus className="h-5 w-5" />}
+                >
+                  <div className="grid gap-3">
+                    {totalDraftCount > 0 ? (
+                      <Link to="/student/application-wizard" className="block">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          Continue draft
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link to="/student/application-wizard" className="block">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start border-primary bg-gradient-to-r from-primary to-secondary text-white hover:from-primary/90 hover:to-secondary/90"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Start new application
+                        </Button>
+                      </Link>
+                    )}
+                    {totalDraftCount > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start border-red-200 text-red-600 hover:bg-red-50"
+                        onClick={async () => {
+                          if (user) {
+                            await draftManager.clearAllDrafts(user.id)
+                          }
+                          clearAllDraftData()
+                          setHasDraft(false)
+                          setDraftData(null)
+                          loadDashboardData()
+                        }}
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Clear local drafts
+                      </Button>
+                    )}
+                    <Link to="/settings" className="block">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start border-gray-200 text-gray-700 hover:bg-gray-50"
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        Profile settings
+                      </Button>
+                    </Link>
+                  </div>
+                </SectionCard>
               </div>
-            </motion.div>
+            </div>
           </div>
-        </div>
-          </>
         )}
-        </div>
-      </main>
-    </div>
+      </PageContent>
+    </PageLayout>
   )
 }
