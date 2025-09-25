@@ -6,6 +6,7 @@ import type {
   SupabaseClient
 } from '@supabase/supabase-js'
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
+import { calculatePointsFromSummary } from '@/utils/grades'
 
 export type ApplicationStatus =
   | 'draft'
@@ -52,7 +53,7 @@ export interface AdminApplicationRow {
   pop_url?: string | null
   grades_summary?: string | null
   total_subjects?: number | null
-  average_grade?: number | null
+  points?: number | null
   days_since_submission?: number | null
   user_id?: string | null
   nrc_number?: string | null
@@ -277,7 +278,7 @@ const mapRowToSummary = (row: AdminApplicationRow) => ({
   pop_url: row.pop_url ?? '',
   grades_summary: row.grades_summary ?? '',
   total_subjects: row.total_subjects ?? 0,
-  average_grade: row.average_grade ?? null,
+  points: Number(row.points ?? calculatePointsFromSummary(row.grades_summary)),
   days_since_submission: row.days_since_submission ?? null
 })
 
