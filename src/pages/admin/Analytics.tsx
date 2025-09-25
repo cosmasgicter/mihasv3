@@ -669,6 +669,77 @@ export default function Analytics() {
           </div>
         )}
 
+        {activeTab === 'programs' && (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900">🎓 Program Analytics</h3>
+              <Button
+                onClick={() => {
+                  setCreateType('program')
+                  setFormData({})
+                  setShowCreateDialog(true)
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Record
+              </Button>
+            </div>
+            <div className="p-6">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applications</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approval Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Processing (days)</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {programAnalytics.map((program, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {sanitizeForDisplay(program.programName)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{program.applicationsCount}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{program.approvalRate}%</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{program.completionRate}%</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{program.averageProcessingDays}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <Button
+                              onClick={() => {
+                                setSelectedItem({ ...program, type: 'program' })
+                                setFormData(program)
+                                setShowEditDialog(true)
+                              }}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setSelectedItem({ ...program, type: 'program' })
+                                setShowDeleteDialog(true)
+                              }}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'reports' && (
           !canManageReports ? (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 text-center text-sm text-amber-700">
@@ -794,6 +865,67 @@ export default function Analytics() {
                 </>
               )}
 
+              {createType === 'program' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Program Name</label>
+                    <input
+                      type="text"
+                      value={formData.programName || ''}
+                      onChange={(e) => setFormData({ ...formData, programName: e.target.value })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Program ID (optional)</label>
+                    <input
+                      type="text"
+                      value={formData.programId || ''}
+                      onChange={(e) => setFormData({ ...formData, programId: e.target.value })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Applications Count</label>
+                    <input
+                      type="number"
+                      value={formData.applicationsCount || ''}
+                      onChange={(e) => setFormData({ ...formData, applicationsCount: parseInt(e.target.value) })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Approval Rate (%)</label>
+                      <input
+                        type="number"
+                        value={formData.approvalRate || ''}
+                        onChange={(e) => setFormData({ ...formData, approvalRate: parseFloat(e.target.value) })}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Completion Rate (%)</label>
+                      <input
+                        type="number"
+                        value={formData.completionRate || ''}
+                        onChange={(e) => setFormData({ ...formData, completionRate: parseFloat(e.target.value) })}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Average Processing Days</label>
+                    <input
+                      type="number"
+                      value={formData.averageProcessingDays || ''}
+                      onChange={(e) => setFormData({ ...formData, averageProcessingDays: parseFloat(e.target.value) })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                </>
+              )}
+
               {createType === 'eligibility' && (
                 <>
                   <div>
@@ -878,6 +1010,108 @@ export default function Analytics() {
                       type="number"
                       value={formData.approvedApplications || ''}
                       onChange={(e) => setFormData({ ...formData, approvedApplications: parseInt(e.target.value) })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Rejected Applications</label>
+                    <input
+                      type="number"
+                      value={formData.rejectedApplications || ''}
+                      onChange={(e) => setFormData({ ...formData, rejectedApplications: parseInt(e.target.value) })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                </>
+              )}
+
+              {selectedItem?.type === 'program' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Program Name</label>
+                    <input
+                      type="text"
+                      value={formData.programName || ''}
+                      onChange={(e) => setFormData({ ...formData, programName: e.target.value })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Program ID</label>
+                    <input
+                      type="text"
+                      value={formData.programId || ''}
+                      onChange={(e) => setFormData({ ...formData, programId: e.target.value })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Applications Count</label>
+                    <input
+                      type="number"
+                      value={formData.applicationsCount || ''}
+                      onChange={(e) => setFormData({ ...formData, applicationsCount: parseInt(e.target.value) })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Approval Rate (%)</label>
+                      <input
+                        type="number"
+                        value={formData.approvalRate || ''}
+                        onChange={(e) => setFormData({ ...formData, approvalRate: parseFloat(e.target.value) })}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Completion Rate (%)</label>
+                      <input
+                        type="number"
+                        value={formData.completionRate || ''}
+                        onChange={(e) => setFormData({ ...formData, completionRate: parseFloat(e.target.value) })}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Average Processing Days</label>
+                    <input
+                      type="number"
+                      value={formData.averageProcessingDays || ''}
+                      onChange={(e) => setFormData({ ...formData, averageProcessingDays: parseFloat(e.target.value) })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                </>
+              )}
+
+              {selectedItem?.type === 'eligibility' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Checks</label>
+                    <input
+                      type="number"
+                      value={formData.totalChecks || ''}
+                      onChange={(e) => setFormData({ ...formData, totalChecks: parseInt(e.target.value) })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Passed Checks</label>
+                    <input
+                      type="number"
+                      value={formData.passedChecks || ''}
+                      onChange={(e) => setFormData({ ...formData, passedChecks: parseInt(e.target.value) })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Success Rate (%)</label>
+                    <input
+                      type="number"
+                      value={formData.successRate || ''}
+                      onChange={(e) => setFormData({ ...formData, successRate: parseFloat(e.target.value) })}
                       className="w-full border border-gray-300 rounded-md px-3 py-2"
                     />
                   </div>
