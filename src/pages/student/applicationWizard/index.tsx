@@ -256,6 +256,12 @@ const ApplicationWizard = () => {
                 proofOfPaymentFile={popFile}
                 confirmSubmission={confirmSubmission}
                 onConfirmChange={setConfirmSubmission}
+                selectedProgramName={selectedProgramDetails?.name}
+                selectedInstitutionLabel={
+                  selectedProgramDetails?.institutions?.full_name ||
+                  selectedProgramDetails?.institutions?.name ||
+                  undefined
+                }
               />
             )}
           </AnimatePresence>
