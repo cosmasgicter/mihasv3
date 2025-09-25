@@ -72,7 +72,11 @@ const STATUS_COLOR_MAP: Record<string, string> = {
   expired: 'bg-slate-200 text-slate-700 border border-slate-300'
 }
 
-export function getStatusColor(status: string): string {
+export function getStatusColor(status?: string | null): string {
+  if (!status) {
+    return 'bg-gray-100 text-gray-800 border border-gray-200'
+  }
+
   return STATUS_COLOR_MAP[status.toLowerCase()] ?? 'bg-gray-100 text-gray-800 border border-gray-200'
 }
 
