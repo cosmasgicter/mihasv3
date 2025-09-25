@@ -31,6 +31,7 @@ const ApplicationWizard = () => {
     currentStepConfig,
     isLastStep,
     selectedProgram,
+    selectedProgramDetails,
     selectedGrades,
     eligibilityCheck,
     recommendedSubjects,
@@ -214,7 +215,7 @@ const ApplicationWizard = () => {
               <EducationStep
                 title={currentStepConfig.title}
                 subjects={subjects}
-                selectedProgram={selectedProgram}
+                selectedProgram={selectedProgramDetails?.name}
                 selectedGrades={selectedGrades}
                 eligibilityCheck={eligibilityCheck}
                 recommendedSubjects={recommendedSubjects}

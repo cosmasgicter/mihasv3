@@ -34,7 +34,7 @@ const BasicKycStep = ({
   } = form
 
   const selectedProgramDetails = useMemo(
-    () => programs.find(program => program.name === selectedProgram),
+    () => programs.find(program => program.id === selectedProgram),
     [programs, selectedProgram]
   )
 
@@ -206,7 +206,7 @@ const BasicKycStep = ({
               const institutionName = program.institutions?.full_name || program.institutions?.name
               const label = institutionName ? `${program.name} (${institutionName})` : program.name
               return (
-                <option key={program.id} value={program.name}>
+                <option key={program.id} value={program.id}>
                   {label}
                 </option>
               )
@@ -251,7 +251,7 @@ const BasicKycStep = ({
         </div>
       </div>
 
-      {selectedProgram && (
+      {selectedProgramDetails && (
         <motion.div
           className="mt-4 p-4 bg-blue-50 rounded-lg"
           initial={{ opacity: 0, scale: 0.95 }}
