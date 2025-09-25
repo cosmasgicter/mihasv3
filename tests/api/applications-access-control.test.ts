@@ -374,3 +374,167 @@ describe('applications/generate-slip handler access control', () => {
     expect(logAuditEvent).not.toHaveBeenCalled()
   })
 })
+
+describe('applications/email-slip handler access control', () => {
+  it('returns 401 when authentication is missing', async () => {
+    getUserFromRequest.mockResolvedValue({ error: 'No authorization header provided' })
+
+    const { expressHandler } = await import('../../api/applications/email-slip.js')
+
+    const req = {
+      method: 'POST',
+      body: { applicationId: 'app-123' },
+      headers: {},
+    }
+
+    const res = createResponse()
+
+    await expressHandler(req as any, res as any)
+
+    expect(res.statusCode).toBe(401)
+    expect(res.body).toEqual({ error: 'No authorization header provided' })
+    expect(mockSupabase.from).not.toHaveBeenCalled()
+    expect(logAuditEvent).not.toHaveBeenCalled()
+  })
+
+  it('returns 403 when requester is not the owner', async () => {
+    getUserFromRequest.mockResolvedValue({ user: { id: 'user-1', email: 'user@example.com' }, isAdmin: false, roles: ['student'] })
+
+    const ensureMaybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+    const ensureEqUser = vi.fn().mockReturnValue({ maybeSingle: ensureMaybeSingle })
+    const ensureEqId = vi.fn().mockReturnValue({ eq: ensureEqUser, maybeSingle: ensureMaybeSingle })
+    const ensureSelect = vi.fn().mockReturnValue({ eq: ensureEqId })
+    mockSupabase.from.mockImplementationOnce(() => ({ select: ensureSelect } as any))
+
+    const { expressHandler } = await import('../../api/applications/email-slip.js')
+
+    const req = {
+      method: 'POST',
+      body: { applicationId: 'app-123' },
+      headers: {},
+    }
+
+    const res = createResponse()
+
+    await expressHandler(req as any, res as any)
+
+    expect(res.statusCode).toBe(403)
+    expect(res.body).toEqual({ error: 'Access denied' })
+    expect(ensureEqId).toHaveBeenCalledWith('id', 'app-123')
+    expect(ensureEqUser).toHaveBeenCalledWith('user_id', 'user-1')
+    expect(ensureMaybeSingle).toHaveBeenCalled()
+    expect(logAuditEvent).toHaveBeenCalledTimes(1)
+  })
+
+  it('queues the application slip email for the applicant when access is granted', async () => {
+    getUserFromRequest.mockResolvedValue({
+      user: { id: 'user-1', email: 'user@example.com' },
+      isAdmin: false,
+      roles: ['student'],
+    })
+
+    const ensureMaybeSingle = vi.fn().mockResolvedValue({ data: { id: 'app-123' }, error: null })
+    const ensureEqUser = vi.fn().mockReturnValue({ maybeSingle: ensureMaybeSingle })
+    const ensureEqId = vi.fn().mockReturnValue({ eq: ensureEqUser, maybeSingle: ensureMaybeSingle })
+    const ensureSelect = vi.fn().mockReturnValue({ eq: ensureEqId })
+    mockSupabase.from.mockImplementationOnce(() => ({ select: ensureSelect } as any))
+
+    const fetchSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: 'app-123',
+        user_id: 'user-1',
+        application_number: 'A-1',
+        full_name: 'Test User',
+        email: 'student@example.com',
+        program: 'CS',
+        institution: 'Test University',
+        intake: '2024',
+        status: 'submitted',
+        public_tracking_code: 'TRACK',
+      },
+      error: null,
+    })
+    const fetchEqUser = vi.fn().mockReturnValue({ single: fetchSingle })
+    const fetchEqId = vi.fn().mockReturnValue({ eq: fetchEqUser, single: fetchSingle })
+    const fetchSelect = vi.fn().mockReturnValue({ eq: fetchEqId })
+    mockSupabase.from.mockImplementationOnce(() => ({ select: fetchSelect } as any))
+
+    const insert = vi.fn().mockResolvedValue({ error: null })
+    mockSupabase.from.mockImplementationOnce((table) => {
+      expect(table).toBe('email_queue')
+      return { insert } as any
+    })
+
+    const { expressHandler } = await import('../../api/applications/email-slip.js')
+
+    const req = {
+      method: 'POST',
+      body: { applicationId: 'app-123' },
+      headers: {},
+    }
+
+    const res = createResponse()
+
+    await expressHandler(req as any, res as any)
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toEqual({
+      success: true,
+      message: 'Application slip has been sent to your email',
+    })
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({
+      recipient_email: 'student@example.com',
+    }))
+    expect(logAuditEvent).not.toHaveBeenCalled()
+  })
+
+  it('returns 400 when no email address is available for delivery', async () => {
+    getUserFromRequest.mockResolvedValue({
+      user: { id: 'user-1', email: undefined },
+      isAdmin: false,
+      roles: ['student'],
+    })
+
+    const ensureMaybeSingle = vi.fn().mockResolvedValue({ data: { id: 'app-123' }, error: null })
+    const ensureEqUser = vi.fn().mockReturnValue({ maybeSingle: ensureMaybeSingle })
+    const ensureEqId = vi.fn().mockReturnValue({ eq: ensureEqUser, maybeSingle: ensureMaybeSingle })
+    const ensureSelect = vi.fn().mockReturnValue({ eq: ensureEqId })
+    mockSupabase.from.mockImplementationOnce(() => ({ select: ensureSelect } as any))
+
+    const fetchSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: 'app-123',
+        user_id: 'user-1',
+        application_number: 'A-1',
+        full_name: 'Test User',
+        email: null,
+        program: 'CS',
+        institution: 'Test University',
+        intake: '2024',
+        status: 'submitted',
+        public_tracking_code: 'TRACK',
+      },
+      error: null,
+    })
+    const fetchEqUser = vi.fn().mockReturnValue({ single: fetchSingle })
+    const fetchEqId = vi.fn().mockReturnValue({ eq: fetchEqUser, single: fetchSingle })
+    const fetchSelect = vi.fn().mockReturnValue({ eq: fetchEqId })
+    mockSupabase.from.mockImplementationOnce(() => ({ select: fetchSelect } as any))
+
+    const { expressHandler } = await import('../../api/applications/email-slip.js')
+
+    const req = {
+      method: 'POST',
+      body: { applicationId: 'app-123' },
+      headers: {},
+    }
+
+    const res = createResponse()
+
+    await expressHandler(req as any, res as any)
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body).toEqual({ error: 'No recipient email available' })
+    expect(logAuditEvent).not.toHaveBeenCalled()
+  })
+})
