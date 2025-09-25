@@ -19,7 +19,7 @@ export default async (request, context) => {
   try {
     const { data, error } = await supabaseAdminClient
       .from('programs')
-      .select('*')
+      .select('*, institutions (id, name, full_name, slug)')
       .eq('is_active', true)
       .order('name')
 
