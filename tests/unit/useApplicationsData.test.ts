@@ -161,7 +161,7 @@ const createRealtimeRow = (
   pop_url: null,
   grades_summary: null,
   total_subjects: null,
-  average_grade: null,
+  points: null,
   days_since_submission: null,
   user_id: null,
   nrc_number: null,
@@ -199,7 +199,7 @@ const createSummary = (overrides: Record<string, unknown> = {}) => ({
   pop_url: '',
   grades_summary: '',
   total_subjects: 0,
-  average_grade: 0,
+  points: 0,
   age: 0,
   days_since_submission: 0,
   ...overrides

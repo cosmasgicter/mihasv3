@@ -33,7 +33,7 @@ interface ApplicationSummary {
   pop_url: string
   grades_summary: string
   total_subjects: number
-  average_grade: number
+  points: number
   days_since_submission: number
 }
 
@@ -232,9 +232,9 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
     })
   }
 
-  const getGradeColor = (grade: number) => {
-    if (grade <= 3) return 'text-green-600'
-    if (grade <= 6) return 'text-yellow-600'
+  const getPointsColor = (points: number) => {
+    if (points >= 40) return 'text-green-600'
+    if (points >= 30) return 'text-yellow-600'
     return 'text-red-600'
   }
 
@@ -302,9 +302,9 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
             <div className="text-xs text-gray-500 mb-1">Academic</div>
             <div className="text-sm">
               <span className="text-gray-700">{app.total_subjects} subjects</span>
-              {app.average_grade && (
-                <div className={`font-medium ${getGradeColor(app.average_grade)}`}>
-                  Avg: {app.average_grade.toFixed(1)}
+              {app.points > 0 && (
+                <div className={`font-medium ${getPointsColor(app.points)}`}>
+                  Points: {app.points}
                 </div>
               )}
             </div>

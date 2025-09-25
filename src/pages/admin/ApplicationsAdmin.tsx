@@ -39,7 +39,7 @@ interface ApplicationSummary {
   pop_url: string
   grades_summary: string
   total_subjects: number
-  average_grade: number
+  points: number
   age: number
   days_since_submission: number
 }
@@ -136,7 +136,7 @@ export default function ApplicationsAdmin() {
       ...app,
       submitted_at: app.submitted_at || app.created_at,
       paid_amount: app.paid_amount || 0,
-      average_grade: app.average_grade || 0,
+      points: app.points || 0,
       age: app.age || 0,
       days_since_submission: app.days_since_submission || 0
     }))
