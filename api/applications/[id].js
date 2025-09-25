@@ -684,17 +684,62 @@ async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      const { error, status } = await ensureAdmin(req)
+      const { authContext, error, status } = await ensureApplicationAccess(req, id)
       if (error) {
         return res.status(status).json({ error })
       }
 
-      try {
-        await softDeleteApplications([id])
-        return res.status(204).end()
-      } catch (deleteError) {
+      const { data: application, error: fetchError } = await supabase
+        .from('applications_new')
+        .select('id, status, user_id')
+        .eq('id', id)
+        .maybeSingle()
+
+      if (fetchError) {
+        return res.status(400).json({ error: fetchError.message })
+      }
+
+      if (!application) {
+        return res.status(404).json({ error: 'Application not found' })
+      }
+
+      if (authContext.isAdmin) {
+        try {
+          await softDeleteApplications([id])
+          return res.status(204).end()
+        } catch (deleteError) {
+          return res.status(400).json({ error: deleteError.message })
+        }
+      }
+
+      if (application.user_id !== authContext.user.id) {
+        return res.status(403).json({ error: 'Access denied' })
+      }
+
+      if (application.status !== 'draft') {
+        return res.status(400).json({ error: 'Only draft applications can be deleted' })
+      }
+
+      const { error: draftDeleteError } = await supabase
+        .from('application_drafts')
+        .delete()
+        .eq('user_id', authContext.user.id)
+
+      if (draftDeleteError) {
+        console.warn('Failed to delete draft metadata:', draftDeleteError.message ?? draftDeleteError)
+      }
+
+      const { error: deleteError } = await supabase
+        .from('applications_new')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', authContext.user.id)
+
+      if (deleteError) {
         return res.status(400).json({ error: deleteError.message })
       }
+
+      return res.status(204).end()
     }
 
     return res.status(405).json({ error: 'Method not allowed' })
