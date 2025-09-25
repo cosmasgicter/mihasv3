@@ -92,13 +92,13 @@
 
 [[redirects]]
   from = "/api/admin/users/:id/role"
-  to = "/.netlify/functions/admin-users-id-role?id=:id"
+  to = "/.netlify/functions/admin-users-role?id=:id"
   status = 200
   force = true
 
 [[redirects]]
   from = "/api/admin/users/:id/permissions"
-  to = "/.netlify/functions/admin-users-id-permissions?id=:id"
+  to = "/.netlify/functions/admin-users-permissions?id=:id"
   status = 200
   force = true
 
@@ -110,7 +110,7 @@
 
 [[redirects]]
   from = "/api/admin/users"
-  to = "/.netlify/functions/admin-users"
+  to = "/.netlify/functions/admin/users"
   status = 200
   force = true
 
