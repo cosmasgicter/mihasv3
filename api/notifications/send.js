@@ -70,7 +70,11 @@ async function handler(req, res) {
     // Skip audit logging for now
     console.log('Notification sent:', notification?.id)
 
-    return res.status(201).json(notification)
+    return res.status(201).json({
+      success: true,
+      notificationId: notification?.id ?? null,
+      notification
+    })
   } catch (error) {
     console.error('Notifications send error:', error)
     return res.status(500).json({ error: 'Failed to send notification' })
