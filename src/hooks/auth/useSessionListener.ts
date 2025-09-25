@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import {
+  getPasswordResetRedirectUrl,
   getSupabaseClient,
   isSupabaseConfigured,
   SUPABASE_STATUS_EVENT,
@@ -192,13 +193,26 @@ export function useSessionListener() {
 
     try {
       const supabase = getSupabaseClient()
-      const redirectTo = typeof window !== 'undefined'
-        ? `${window.location.origin}/auth/reset-password`
-        : undefined
+      const redirectTo = getPasswordResetRedirectUrl()
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo,
-      })
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo ? { redirectTo } : undefined
+      )
+
+      if (error && redirectTo) {
+        console.warn(
+          'Password reset request failed with redirect override. Retrying without override.',
+          sanitizeForLog(error instanceof Error ? error.message : error)
+        )
+
+        const retry = await supabase.auth.resetPasswordForEmail(email)
+        if (retry.error) {
+          return { error: retry.error.message }
+        }
+
+        return {}
+      }
 
       if (error) {
         return { error: error.message }
