@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { applicationSessionManager } from '@/lib/applicationSession'
-import { formatDate } from '@/lib/utils'
+import { cn, formatDate } from '@/lib/utils'
 import { FileText, Clock, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
 
 interface DraftInfo {
@@ -35,14 +35,14 @@ export function ContinueApplication() {
 
     const interval = setInterval(() => {
       setCurrentTime(Date.now())
-    }, 60000) // Update every minute
+    }, 60000)
 
     return () => clearInterval(interval)
   }, [draftInfo.exists, draftInfo.expiresAt])
 
   const loadDraftInfo = async () => {
     if (!user) return
-    
+
     try {
       setLoading(true)
       const info = await applicationSessionManager.getDraftInfo(profile?.user_id || user.id)
@@ -74,31 +74,33 @@ export function ContinueApplication() {
     if (!draftInfo.expiresAt) return false
     const expiryTime = new Date(draftInfo.expiresAt).getTime()
     const hoursUntilExpiry = (expiryTime - currentTime) / (1000 * 60 * 60)
-    return hoursUntilExpiry < 2 // Less than 2 hours
+    return hoursUntilExpiry < 2
   }
 
   const getTimeUntilExpiry = () => {
     if (!draftInfo.expiresAt) return ''
     const expiryTime = new Date(draftInfo.expiresAt).getTime()
     const msUntilExpiry = expiryTime - currentTime
-    
+
     if (msUntilExpiry <= 0) return 'Expired'
-    
+
     const hours = Math.floor(msUntilExpiry / (1000 * 60 * 60))
     const minutes = Math.floor((msUntilExpiry % (1000 * 60 * 60)) / (1000 * 60))
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m`
     }
     return `${minutes}m`
   }
 
+  const baseCardClasses = 'rounded-2xl border px-6 py-6 transition-colors shadow-md backdrop-blur-sm'
+
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <div className="flex items-center space-x-3">
-          <RefreshCw className="h-5 w-5 text-gray-400 animate-spin" />
-          <span className="text-gray-600">Checking for saved applications...</span>
+      <div className={cn(baseCardClasses, 'bg-white/90 border-gray-200/80 text-gray-600')}>
+        <div className="flex items-center gap-3">
+          <RefreshCw className="h-5 w-5 animate-spin text-primary" />
+          <span>Checking for saved applications...</span>
         </div>
       </div>
     )
@@ -106,106 +108,110 @@ export function ContinueApplication() {
 
   if (!draftInfo.exists) {
     return (
-      <div className="bg-primary border border-primary/20 rounded-lg p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-primary mb-2">
-              Ready to Apply?
-            </h2>
-            <p className="text-primary">
-              Start your application to join programs at Kalulushi Training Centre or Mukuba Institute of Health and Applied Sciences
-            </p>
-          </div>
-          <Link to="/student/application-wizard">
-            <Button className="bg-primary hover:bg-primary">
-              <FileText className="h-4 w-4 mr-2" />
-              Start New Application
-            </Button>
-          </Link>
+      <div
+        className={cn(
+          baseCardClasses,
+          'flex flex-col gap-4 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20 text-primary-900 sm:flex-row sm:items-center sm:justify-between'
+        )}
+      >
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold">Ready to apply?</h2>
+          <p className="text-sm sm:text-base text-primary-800">
+            Start your application to join programs at Kalulushi Training Centre or Mukuba Institute of Health and Applied Sciences.
+          </p>
         </div>
+        <Link to="/student/application-wizard" className="flex-shrink-0">
+          <Button className="bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:from-primary/90 hover:to-secondary/90">
+            <FileText className="mr-2 h-4 w-4" />
+            Start application
+          </Button>
+        </Link>
       </div>
     )
   }
 
-  return (
-    <div className={`border rounded-lg p-6 ${
-      isExpiringSoon() ? 'bg-yellow-50 border-yellow-200' : 'bg-white border-gray-200'
-    }`}>
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center space-x-3 mb-3">
-            <FileText className="h-6 w-6 text-primary" />
-            <h2 className="text-lg font-semibold text-gray-900">
-              Continue Your Application
-            </h2>
-            {isExpiringSoon() && (
-              <div className="flex items-center space-x-1 text-yellow-600">
-                <AlertTriangle className="h-4 w-4" />
-                <span className="text-sm font-medium">Expiring Soon</span>
-              </div>
-            )}
-          </div>
+  const cardTone = isExpiringSoon()
+    ? 'bg-amber-50/90 border-amber-200 text-amber-900'
+    : 'bg-white/90 border-gray-200/80 text-gray-900'
 
-          <div className="space-y-2 text-sm text-gray-600 mb-4">
-            <div className="flex items-center justify-between">
-              <span>Progress:</span>
-              <span className="font-medium">{draftInfo.progress}</span>
+  return (
+    <div className={cn(baseCardClasses, 'flex flex-col gap-5', cardTone)}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <FileText className="h-5 w-5" />
             </div>
-            
-            <div className="flex items-center justify-between">
-              <span>Last saved:</span>
-              <span className="font-medium">
-                {draftInfo.lastSaved ? formatDate(draftInfo.lastSaved) : 'Unknown'}
-              </span>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Continue your application</h2>
+              <p className="text-sm text-gray-600">Jump back in where you left off—your progress is saved securely.</p>
             </div>
-            
-            {draftInfo.expiresAt && (
-              <div className="flex items-center justify-between">
-                <span>Expires in:</span>
-                <span className={`font-medium ${
-                  isExpiringSoon() ? 'text-yellow-600' : 'text-gray-900'
-                }`}>
-                  {getTimeUntilExpiry()}
-                </span>
-              </div>
-            )}
           </div>
 
           {isExpiringSoon() && (
-            <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 mb-4">
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-yellow-600" />
-                <span className="text-sm text-yellow-800">
-                  Your draft will expire soon. Continue your application to save your progress.
-                </span>
-              </div>
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+              <AlertTriangle className="h-4 w-4" />
+              Expiring soon
             </div>
           )}
+
+          <dl className="mt-4 grid gap-3 text-sm text-gray-700 sm:max-w-md">
+            <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-2 font-medium text-gray-900 shadow-sm">
+              <dt className="text-gray-500">Progress</dt>
+              <dd>{draftInfo.progress}</dd>
+            </div>
+            <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-2 font-medium text-gray-900 shadow-sm">
+              <dt className="text-gray-500">Last saved</dt>
+              <dd>{draftInfo.lastSaved ? formatDate(draftInfo.lastSaved) : 'Unknown'}</dd>
+            </div>
+            {draftInfo.expiresAt && (
+              <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-2 font-medium text-gray-900 shadow-sm">
+                <dt className="text-gray-500">Expires in</dt>
+                <dd className={cn(isExpiringSoon() ? 'text-amber-700' : 'text-gray-900')}>{getTimeUntilExpiry()}</dd>
+              </div>
+            )}
+          </dl>
         </div>
 
-        <div className="flex space-x-3 ml-6">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDeleteDraft}
-            disabled={deleting}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-          >
-            {deleting ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="h-4 w-4" />
-            )}
-          </Button>
-          
-          <Link to="/student/application-wizard" state={{ continueApplication: true }}>
-            <Button className="bg-primary hover:bg-primary">
-              <FileText className="h-4 w-4 mr-2" />
-              Continue Application
+        <div className="flex flex-col gap-3 sm:w-60">
+          <Link to="/student/application-wizard" className="w-full">
+            <Button className="w-full bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:from-primary/90 hover:to-secondary/90">
+              <FileText className="mr-2 h-4 w-4" />
+              Continue application
             </Button>
           </Link>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDeleteDraft}
+              disabled={deleting}
+              className="flex-1 text-red-600 hover:bg-red-50"
+            >
+              {deleting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              <span className="ml-2">Delete</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadDraftInfo}
+              className="flex-1 text-primary hover:bg-primary/10"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </div>
       </div>
+
+      {isExpiringSoon() && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-100/60 px-4 py-3 text-sm text-amber-900">
+          <div className="flex items-start gap-2">
+            <Clock className="mt-0.5 h-4 w-4" />
+            <span>Finish your application soon to keep your saved progress active.</span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
