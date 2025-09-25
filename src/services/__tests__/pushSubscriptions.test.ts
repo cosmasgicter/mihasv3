@@ -115,9 +115,7 @@ describe('registerPushSubscription', () => {
         value: originalWindowNotification
       })
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete (global as typeof globalThis & { Notification?: typeof Notification }).Notification
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete (window as typeof window & { Notification?: typeof Notification }).Notification
     }
 
@@ -127,7 +125,6 @@ describe('registerPushSubscription', () => {
         value: originalPushManager
       })
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete (window as typeof window & { PushManager?: typeof window.PushManager }).PushManager
     }
   })
