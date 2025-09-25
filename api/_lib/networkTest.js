@@ -20,16 +20,23 @@ async function testSupabaseConnection(supabaseUrl) {
       const statusCode = res.statusCode ?? 0
       const statusMessage = res.statusMessage?.trim()
       const isSuccessful = statusCode >= 200 && statusCode < 400
+      const isAuthOrRoutingError = statusCode >= 400 && statusCode < 500
 
       if (typeof res.resume === 'function') {
         res.resume()
       }
 
-      if (isSuccessful) {
+      if (isSuccessful || isAuthOrRoutingError) {
+        const description = statusMessage ? `${statusCode} ${statusMessage}` : `${statusCode}`
+        const successMessage = isSuccessful
+          ? `Connected successfully (${description})`
+          : `Supabase responded with ${description}`
+
         resolve({
           success: true,
           status: statusCode,
-          message: `Connected successfully (${statusCode})`
+          degraded: isSuccessful ? false : true,
+          message: successMessage
         })
         return
       }

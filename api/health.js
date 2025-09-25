@@ -38,13 +38,20 @@ export default async (request, context) => {
 
   const connectionTest = await testSupabaseConnection(supabaseUrl)
 
-  return new Response(JSON.stringify({
-    status: connectionTest.success ? 'healthy' : 'unhealthy',
-    supabase: connectionTest,
-    mode: useMockSupabase ? 'mock' : 'live',
-    timestamp: new Date().toISOString()
-  }), {
-    status: connectionTest.success ? 200 : 503,
-    headers
-  })
+  const healthStatus = connectionTest.success
+    ? connectionTest.degraded ? 'degraded' : 'healthy'
+    : 'unhealthy'
+
+  return new Response(
+    JSON.stringify({
+      status: healthStatus,
+      supabase: connectionTest,
+      mode: useMockSupabase ? 'mock' : 'live',
+      timestamp: new Date().toISOString()
+    }),
+    {
+      status: connectionTest.success ? 200 : 503,
+      headers
+    }
+  )
 }
