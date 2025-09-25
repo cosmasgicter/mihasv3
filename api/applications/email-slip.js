@@ -1,5 +1,6 @@
 import { supabaseAdminClient } from '../_lib/supabaseClient.js';
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js';
+import { ensureApplicationAccess } from './_ensureAccess.js';
 
 const supabase = supabaseAdminClient;
 
@@ -9,28 +10,50 @@ async function handler(req, res) {
   }
 
   try {
-    const { applicationId, email } = req.body;
+    const { applicationId, email: requestedEmail } = req.body || {};
 
-    if (!applicationId || !email) {
-      return res.status(400).json({ error: 'Application ID and email are required' });
+    if (!applicationId) {
+      return res.status(400).json({ error: 'Application ID is required' });
+    }
+
+    const { authContext, error: authError, status: authStatus } = await ensureApplicationAccess(req, applicationId);
+    if (authError) {
+      return res.status(authStatus).json({ error: authError });
     }
 
     // Get application data
-    const { data: application, error } = await supabase
+    let applicationQuery = supabase
       .from('applications_new')
       .select('*')
-      .eq('id', applicationId)
-      .single();
+      .eq('id', applicationId);
+
+    if (!authContext.isAdmin) {
+      applicationQuery = applicationQuery.eq('user_id', authContext.user.id);
+    }
+
+    const { data: application, error } = await applicationQuery.single();
 
     if (error || !application) {
       return res.status(404).json({ error: 'Application not found' });
+    }
+
+    const preferredEmails = [
+      authContext.isAdmin ? requestedEmail : undefined,
+      application.email,
+      authContext.user.email
+    ].filter((candidate) => typeof candidate === 'string' && candidate.trim().length > 0);
+
+    const recipientEmail = preferredEmails.length > 0 ? preferredEmails[0].trim() : null;
+
+    if (!recipientEmail) {
+      return res.status(400).json({ error: 'No recipient email available' });
     }
 
     // Add to email queue (simplified - in production you'd send actual email)
     const { error: emailError } = await supabase
       .from('email_queue')
       .insert({
-        recipient_email: email,
+        recipient_email: recipientEmail,
         subject: `Application Slip - ${application.application_number}`,
         template_name: 'application_slip',
         template_data: {
