@@ -78,7 +78,6 @@ export interface SubjectGrade {
 }
 
 // Export the enhanced eligibility checker for use in components
-export { eligibilityEngine } from './eligibilityEngine'
 export { regulatoryEngine } from './regulatoryGuidelines'
 
 export function checkEligibility(

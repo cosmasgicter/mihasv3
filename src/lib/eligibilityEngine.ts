@@ -1,4 +1,6 @@
-import { supabase } from './supabase'
+import { supabase, isSupabaseConfigured } from './supabase'
+import type { EnhancedEligibilityResult, SubjectGrade as LegacySubjectGrade } from './eligibility'
+import { checkEnhancedEligibility } from './eligibility'
 
 export interface EligibilityRule {
   id: string
@@ -60,7 +62,11 @@ export class EligibilityEngine {
     programId: string,
     grades: SubjectGrade[]
   ): Promise<EligibilityAssessment> {
-    
+
+    if (!isSupabaseConfigured) {
+      return this.assessWithLocalRules(applicationId, programId, grades)
+    }
+
     // Get eligibility rules for the program
     const rules = await this.getEligibilityRules(programId)
     const guidelines = await this.getRegulatoryGuidelines(programId)
@@ -87,11 +93,122 @@ export class EligibilityEngine {
       missing_requirements: missingRequirements,
       recommendations
     }
-    
+
     // Save assessment to database
     await this.saveAssessment(assessment)
-    
+
     return assessment
+  }
+
+  private async assessWithLocalRules(
+    applicationId: string,
+    programId: string,
+    grades: SubjectGrade[]
+  ): Promise<EligibilityAssessment> {
+    const resolvedProgramName = this.resolveProgramName(programId)
+
+    if (!resolvedProgramName) {
+      return {
+        application_id: applicationId,
+        program_id: programId,
+        overall_score: 0,
+        eligibility_status: 'under_review',
+        detailed_breakdown: {
+          subject_count_score: 0,
+          grade_average_score: 0,
+          core_subjects_score: 0,
+          total_weighted_score: 0,
+          requirements_met: 0,
+          total_requirements: 0
+        },
+        missing_requirements: [{
+          type: 'prerequisite',
+          description: 'Program not recognised in offline eligibility rules',
+          severity: 'minor',
+          suggestion: 'Please sync with the admissions portal to load the latest requirements'
+        }],
+        recommendations: ['Unable to determine eligibility without program configuration']
+      }
+    }
+
+    const enhancedResult = checkEnhancedEligibility(
+      resolvedProgramName,
+      grades as LegacySubjectGrade[]
+    )
+
+    return this.transformEnhancedResult(
+      applicationId,
+      programId,
+      enhancedResult
+    )
+  }
+
+  private transformEnhancedResult(
+    applicationId: string,
+    programId: string,
+    result: EnhancedEligibilityResult
+  ): EligibilityAssessment {
+    const totalRequirements = 4
+    const requirementChecks = [
+      result.breakdown.subjectCount >= 60,
+      result.breakdown.gradeAverage >= 60,
+      result.breakdown.coreSubjects >= 60,
+      result.missingRequirements.filter(req => req.severity === 'critical').length === 0
+    ]
+
+    const detailed_breakdown: EligibilityBreakdown = {
+      subject_count_score: result.breakdown.subjectCount,
+      grade_average_score: result.breakdown.gradeAverage,
+      core_subjects_score: result.breakdown.coreSubjects,
+      total_weighted_score: result.breakdown.totalWeighted,
+      requirements_met: requirementChecks.filter(Boolean).length,
+      total_requirements: totalRequirements
+    }
+
+    const recommendations = [...(result.recommendations || [])]
+
+    if (result.alternativePathways && result.alternativePathways.length > 0) {
+      const pathwaySummary = result.alternativePathways
+        .map(pathway => pathway.name)
+        .join(', ')
+      recommendations.push(`Consider alternative pathways: ${pathwaySummary}`)
+    }
+
+    return {
+      application_id: applicationId,
+      program_id: programId,
+      overall_score: result.overallScore,
+      eligibility_status: result.status,
+      detailed_breakdown,
+      missing_requirements: result.missingRequirements as MissingRequirement[],
+      recommendations
+    }
+  }
+
+  private resolveProgramName(programId: string): string | null {
+    if (!programId) return null
+
+    const normalized = programId.toLowerCase().trim()
+
+    const programAliasMap: Record<string, string> = {
+      'clinical medicine': 'Clinical Medicine',
+      'diploma in clinical medicine': 'Clinical Medicine',
+      'clinical-medicine': 'Clinical Medicine',
+      'clinical_medicine': 'Clinical Medicine',
+      'cmed': 'Clinical Medicine',
+      'environmental health': 'Environmental Health',
+      'diploma in environmental health': 'Environmental Health',
+      'environmental-health': 'Environmental Health',
+      'environmental_health': 'Environmental Health',
+      'envh': 'Environmental Health',
+      'registered nursing': 'Registered Nursing',
+      'diploma in registered nursing': 'Registered Nursing',
+      'registered-nursing': 'Registered Nursing',
+      'registered_nursing': 'Registered Nursing',
+      'rn': 'Registered Nursing'
+    }
+
+    return programAliasMap[normalized] || null
   }
 
   private async getEligibilityRules(programId: string): Promise<EligibilityRule[]> {
@@ -343,6 +460,10 @@ export class EligibilityEngine {
   }
 
   private async saveAssessment(assessment: EligibilityAssessment): Promise<void> {
+    if (!isSupabaseConfigured) {
+      return
+    }
+
     const { error } = await supabase
       .from('eligibility_assessments')
       .upsert({
@@ -356,6 +477,10 @@ export class EligibilityEngine {
   }
 
   async getAssessmentHistory(applicationId: string): Promise<EligibilityAssessment[]> {
+    if (!isSupabaseConfigured) {
+      return []
+    }
+
     const { data, error } = await supabase
       .from('eligibility_assessments')
       .select('*')
@@ -378,6 +503,10 @@ export class EligibilityEngine {
     appealReason: string,
     supportingDocuments: any[]
   ): Promise<void> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Appeals require a live connection to the admissions database')
+    }
+
     const { error } = await supabase
       .from('eligibility_appeals')
       .insert({
