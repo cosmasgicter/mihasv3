@@ -4,21 +4,25 @@ import { useAuth } from '@/contexts/AuthContext'
 import type { ApplicationWithDetails } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { formatDate, getStatusColor } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { applicationService } from '@/services/applications'
-import { 
-  ArrowLeft, 
-  FileText, 
-  Calendar, 
-  User, 
-  CheckCircle, 
-  Clock, 
-  XCircle, 
+import {
+  ArrowLeft,
+  FileText,
+  Calendar,
+  User,
+  CheckCircle,
+  Clock,
+  XCircle,
   AlertCircle,
   Download,
   Eye
 } from 'lucide-react'
+import { AuthenticatedNavigation } from '@/components/ui/AuthenticatedNavigation'
+import { PageLayout, PageContent } from '@/components/ui/PageLayout'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { SectionCard } from '@/components/ui/SectionCard'
 
 interface ApplicationTimeline {
   status: string
@@ -27,19 +31,31 @@ interface ApplicationTimeline {
   completed: boolean
 }
 
+const statusAccent = (status: string) => {
+  switch (status) {
+    case 'approved':
+      return 'success' as const
+    case 'rejected':
+      return 'warning' as const
+    case 'under_review':
+      return 'primary' as const
+    default:
+      return 'neutral' as const
+  }
+}
+
 export default function ApplicationStatus() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
   const [application, setApplication] = useState<ApplicationWithDetails | null>(null)
-
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   const loadApplicationDetails = useCallback(async () => {
     try {
       setLoading(true)
-      
+
       const response = await applicationService.getById(id as string)
 
       if (!response.application) {
@@ -47,8 +63,6 @@ export default function ApplicationStatus() {
       }
 
       setApplication(response.application as ApplicationWithDetails)
-
-
     } catch (error: any) {
       console.error('Error loading application details:', error)
       setError(error.message)
@@ -118,239 +132,189 @@ export default function ApplicationStatus() {
       timeline.push({
         status: 'under_review',
         date: application.review_started_at || application.updated_at,
-        description: 'Application under review by admissions team',
-        completed: true
+        description: 'Application currently under review by admissions',
+        completed: application.status !== 'under_review'
       })
     }
 
-    if (application.status === 'approved') {
+    if (application.status === 'approved' || application.status === 'rejected') {
       timeline.push({
-        status: 'approved',
+        status: application.status,
         date: application.decision_date || application.updated_at,
-        description: 'Application approved - Congratulations!',
+        description: application.status === 'approved' ? 'Application approved' : 'Application not successful',
         completed: true
-      })
-    } else if (application.status === 'rejected') {
-      timeline.push({
-        status: 'rejected',
-        date: application.decision_date || application.updated_at,
-        description: 'Application not successful this time',
-        completed: true
-      })
-    } else {
-      // Add pending steps
-      timeline.push({
-        status: 'decision',
-        date: '',
-        description: 'Final decision pending',
-        completed: false
       })
     }
 
     return timeline
   }
 
-
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
+      <PageLayout background="gradient">
+        <AuthenticatedNavigation />
+        <PageContent className="safe-area-bottom py-12">
+          <div className="flex min-h-[40vh] items-center justify-center">
+            <LoadingSpinner size="lg" />
+          </div>
+        </PageContent>
+      </PageLayout>
     )
   }
 
   if (error || !application) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-        <div className="max-w-md w-full">
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-secondary mb-2">
-              Application Not Found
-            </h2>
-            <p className="text-secondary mb-6">
+      <PageLayout background="gradient">
+        <AuthenticatedNavigation />
+        <PageContent className="safe-area-bottom py-12">
+          <SectionCard className="mx-auto max-w-xl text-center" title="Application not found" icon={<AlertCircle className="h-5 w-5" />}>
+            <p className="text-gray-600">
               {error || 'The application you are looking for does not exist or you do not have permission to view it.'}
             </p>
-            <Link to="/student/dashboard">
-              <Button>Back to Dashboard</Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Link to="/student/dashboard">
+                <Button className="bg-gradient-to-r from-primary to-secondary text-white hover:from-primary/90 hover:to-secondary/90">
+                  Back to dashboard
+                </Button>
+              </Link>
+              <Button variant="outline" onClick={() => navigate(-1)}>
+                Go back
+              </Button>
+            </div>
+          </SectionCard>
+        </PageContent>
+      </PageLayout>
     )
   }
 
   const timeline = getTimeline()
   const interview = application.interview
   const hasActiveInterview = Boolean(interview && interview.status !== 'cancelled')
+  const statusLabel = application.status.replace('_', ' ').toUpperCase()
 
   return (
-    <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <main className="w-full">
-        <div className="content-wrapper py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        {/* Header - Mobile First */}
-        <div className="mb-6 sm:mb-8">
-          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4 font-medium transition-colors">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+    <PageLayout background="gradient">
+      <AuthenticatedNavigation />
+      <PageContent className="safe-area-bottom py-4 sm:py-6 lg:py-8">
+        <div className="space-y-6 sm:space-y-8">
+          <Link
+            to="/student/dashboard"
+            className="inline-flex items-center text-primary transition-colors hover:text-primary/80"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to dashboard
           </Link>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-4 sm:space-y-0">
-              <div className="flex-1">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                  📋 Application #{application.application_number}
-                </h1>
-                <p className="text-lg sm:text-xl text-gray-800 mb-1 font-semibold">
-                  {application.program}
-                </p>
-                <p className="text-sm sm:text-base text-gray-600">
-                  {application.intake} • Submitted on {formatDate(application.submitted_at)}
-                </p>
-              </div>
-              <div className="flex items-center space-x-3 sm:flex-col sm:items-end sm:space-x-0 sm:space-y-2">
-                <div className="flex items-center space-x-2">
-                  {getStatusIcon(application.status)}
-                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                    getStatusColor(application.status)
-                  }`}>
-                    {application.status.replace('_', ' ').toUpperCase()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
 
-        {interview && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-6"
+          <PageHeader
+            icon={<FileText className="h-6 w-6" />}
+            title={`Application #${application.application_number}`}
+            description={`${application.program} • Submitted on ${formatDate(application.submitted_at)}`}
+            stats={[
+              {
+                label: 'Current status',
+                value: statusLabel,
+                accent: statusAccent(application.status),
+                icon: getStatusIcon(application.status)
+              }
+            ]}
           >
-            <div className={`rounded-2xl border ${
-              hasActiveInterview ? 'border-blue-200 bg-blue-50/80' : 'border-gray-200 bg-white'
-            } p-6 shadow-sm`}
+            <p className="text-sm text-gray-600">Intake: {application.intake}</p>
+          </PageHeader>
+
+          {hasActiveInterview && interview && (
+            <SectionCard
+              title="Admissions interview"
+              description="Your interview is scheduled—review the key details below."
+              icon={<Calendar className="h-5 w-5" />}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <Calendar className={`h-10 w-10 ${hasActiveInterview ? 'text-blue-500' : 'text-gray-400'}`} />
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700">Admissions interview</p>
-                    <p className="text-base font-medium text-gray-900">
-                      {hasActiveInterview
-                        ? formatInterviewDateTime(interview.scheduled_at)
-                        : 'The previously scheduled interview has been cancelled.'}
-                    </p>
-                  </div>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-gray-900">{formatInterviewDateTime(interview.scheduled_at)}</p>
+                  <p className="text-sm text-gray-600">{interview.mode?.replace('_', ' ') || 'Interview'}</p>
                 </div>
-                {hasActiveInterview && (
-                  <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                    {interview.mode?.replace('_', ' ') || 'Interview'}
-                  </span>
-                )}
-              </div>
-
-              {hasActiveInterview && (
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-blue-700">Location / Link</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Location / Link</p>
                     <p className="text-sm text-gray-900">
                       {interview.location || 'You will receive the meeting details shortly.'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-blue-700">Important notes</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Important notes</p>
                     <p className="text-sm text-gray-900">
                       {interview.notes || 'Please arrive 10 minutes early and bring your identification.'}
                     </p>
                   </div>
                 </div>
-              )}
-
-              {!hasActiveInterview && (
-                <p className="mt-4 text-sm text-gray-600">
-                  Our admissions team will contact you if a new interview is required. If you have questions, please reach out to admissions support.
-                </p>
-              )}
-            </div>
-          </motion.div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Main Content - Mobile First */}
-          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-            {/* Timeline */}
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-            >
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center">
-                📈 Application Progress
-              </h2>
-              <div className="space-y-6">
-                {timeline.map((step, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
-                    className="flex items-start space-x-4"
-                  >
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${
-                      step.completed
-                        ? 'bg-gradient-to-br from-green-400 to-green-600 text-white'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {step.completed ? <CheckCircle className="h-5 w-5" /> : getStatusIcon(step.status)}
-                    </div>
-                    <div className="flex-grow">
-                      <div className={`font-semibold ${
-                        step.completed ? 'text-gray-900' : 'text-gray-600'
-                      }`}>
-                        {step.description}
-                      </div>
-                      {step.date && (
-                        <div className="text-sm text-gray-500 mt-1">
-                          {formatDate(step.date)}
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
               </div>
-            </motion.div>
+            </SectionCard>
+          )}
 
-            {/* Application Details */}
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+          {!hasActiveInterview && (
+            <SectionCard
+              title="Interview status"
+              description="Our admissions team will contact you if a new interview is required."
+              icon={<Calendar className="h-5 w-5" />}
             >
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center">
-                📝 Application Details
-              </h2>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
-                      👤 Personal Information
-                    </h3>
-                    <div className="text-gray-700 text-sm space-y-2">
+              <p className="text-sm text-gray-600">
+                If you have questions, please reach out to admissions support.
+              </p>
+            </SectionCard>
+          )}
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+            <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+              <SectionCard
+                title="Application progress"
+                description="Track how far along your application is in the review process."
+                icon={<CheckCircle className="h-5 w-5" />}
+              >
+                <div className="space-y-6">
+                  {timeline.map((step, index) => (
+                    <motion.div
+                      key={`${step.status}-${index}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + index * 0.05 }}
+                      className="flex items-start gap-4"
+                    >
+                      <div
+                        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full shadow-lg ${
+                          step.completed
+                            ? 'bg-gradient-to-br from-green-400 to-green-600 text-white'
+                            : 'bg-gray-100 text-gray-500'
+                        }`}
+                      >
+                        {step.completed ? <CheckCircle className="h-5 w-5" /> : getStatusIcon(step.status)}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`font-semibold ${step.completed ? 'text-gray-900' : 'text-gray-600'}`}>
+                          {step.description}
+                        </p>
+                        {step.date && (
+                          <p className="text-sm text-gray-500">{formatDate(step.date)}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </SectionCard>
+
+              <SectionCard
+                title="Application details"
+                description="Review the information you submitted with this application."
+                icon={<FileText className="h-5 w-5" />}
+              >
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <div className="rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
+                    <h3 className="text-sm font-bold text-gray-900 mb-3">👤 Personal information</h3>
+                    <div className="space-y-2 text-sm text-gray-700">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Full Name:</span>
+                        <span className="text-gray-600">Full name:</span>
                         <span className="font-semibold">{application.full_name}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Date of Birth:</span>
+                        <span className="text-gray-600">Date of birth:</span>
                         <span className="font-semibold">{application.date_of_birth}</span>
                       </div>
                       <div className="flex justify-between">
@@ -367,11 +331,9 @@ export default function ApplicationStatus() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
-                      📞 Contact Information
-                    </h3>
-                    <div className="text-gray-700 text-sm space-y-2">
+                  <div className="rounded-xl border border-green-200 bg-green-50 px-5 py-4">
+                    <h3 className="text-sm font-bold text-gray-900 mb-3">📞 Contact information</h3>
+                    <div className="space-y-2 text-sm text-gray-700">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Residence:</span>
                         <span className="font-semibold">{application.residence_town}</span>
@@ -381,233 +343,209 @@ export default function ApplicationStatus() {
                         <span className="font-semibold">{application.nrc_number || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Passport:</span>
-                        <span className="font-semibold">{application.passport_number || 'Not provided'}</span>
+                        <span className="text-gray-600">Guardian:</span>
+                        <span className="font-semibold">{application.guardian_name || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Next of Kin:</span>
-                        <span className="font-semibold">{application.next_of_kin_name || 'Not provided'}</span>
+                        <span className="text-gray-600">Guardian phone:</span>
+                        <span className="font-semibold">{application.guardian_phone || 'Not provided'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-purple-200 bg-purple-50 px-5 py-4 lg:col-span-2">
+                    <h3 className="text-sm font-bold text-gray-900 mb-3">💳 Payment information</h3>
+                    <div className="grid gap-2 text-sm text-gray-700 sm:grid-cols-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Payment reference:</span>
+                        <span className="font-semibold">{application.payment_reference || 'Not provided'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Payment method:</span>
+                        <span className="font-semibold">{application.payment_method || 'Not provided'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Amount paid:</span>
+                        <span className="font-semibold">K{application.amount || application.application_fee || 'Not provided'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Payment status:</span>
+                        <span className="font-semibold">{application.payment_status}</span>
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
-                  <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
-                    💳 Payment Information
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Payment Method:</span>
-                      <span className="font-semibold">{application.payment_method || 'Not provided'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Amount Paid:</span>
-                      <span className="font-semibold">K{application.amount || application.application_fee || 'Not provided'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Payment Status:</span>
-                      <span className="font-semibold">{application.payment_status}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Payer:</span>
-                      <span className="font-semibold">{application.payer_name || 'Not provided'}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+              </SectionCard>
 
-            {/* Documents */}
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-            >
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center">
-                📄 Supporting Documents
-              </h2>
-              <div className="space-y-4">
-                {application.result_slip_url && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">Result Slip</p>
-                        <p className="text-xs text-blue-600 font-medium">✓ Uploaded</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(application.result_slip_url, '_blank')}
-                      className="text-blue-600 border-blue-300 hover:bg-blue-100"
+              <SectionCard
+                title="Supporting documents"
+                description="Access the files you uploaded with this application."
+                icon={<Download className="h-5 w-5" />}
+              >
+                <div className="space-y-4">
+                  {application.result_slip_url && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-4 py-3"
                     >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                  </motion.div>
-                )}
-                
-                {application.extra_kyc_url && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <FileText className="h-5 w-5 text-green-600" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-lg bg-blue-100 p-2">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">Result slip</p>
+                          <p className="text-xs font-medium text-blue-600">✓ Uploaded</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">Extra KYC Documents</p>
-                        <p className="text-xs text-green-600 font-medium">✓ Uploaded</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(application.extra_kyc_url, '_blank')}
-                      className="text-green-600 border-green-300 hover:bg-green-100"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                  </motion.div>
-                )}
-                
-                {application.pop_url && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-purple-100 rounded-lg">
-                        <FileText className="h-5 w-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">Proof of Payment</p>
-                        <p className="text-xs text-purple-600 font-medium">✓ Uploaded</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(application.pop_url, '_blank')}
-                      className="text-purple-600 border-purple-300 hover:bg-purple-100"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                  </motion.div>
-                )}
-                
-                {!application.result_slip_url && !application.extra_kyc_url && !application.pop_url && (
-                  <div className="text-center py-8">
-                    <div className="text-6xl mb-4">📄</div>
-                    <p className="text-gray-500 font-medium">No documents uploaded</p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(application.result_slip_url as string, '_blank')}
+                        className="border-blue-300 text-blue-600 hover:bg-blue-100"
+                      >
+                        <Eye className="mr-1 h-4 w-4" />
+                        View
+                      </Button>
+                    </motion.div>
+                  )}
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Info */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-secondary mb-4">Quick Info</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-secondary">Application ID:</span>
-                  <span className="font-medium">#{application.application_number}</span>
+                  {application.extra_kyc_url && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="flex items-center justify-between rounded-xl border border-green-200 bg-green-50 px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-lg bg-green-100 p-2">
+                          <FileText className="h-5 w-5 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">Extra KYC documents</p>
+                          <p className="text-xs font-medium text-green-600">✓ Uploaded</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(application.extra_kyc_url as string, '_blank')}
+                        className="border-green-300 text-green-600 hover:bg-green-100"
+                      >
+                        <Eye className="mr-1 h-4 w-4" />
+                        View
+                      </Button>
+                    </motion.div>
+                  )}
+
+                  {application.pop_url && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="flex items-center justify-between rounded-xl border border-purple-200 bg-purple-50 px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-lg bg-purple-100 p-2">
+                          <FileText className="h-5 w-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">Proof of payment</p>
+                          <p className="text-xs font-medium text-purple-600">✓ Uploaded</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(application.pop_url as string, '_blank')}
+                        className="border-purple-300 text-purple-600 hover:bg-purple-100"
+                      >
+                        <Eye className="mr-1 h-4 w-4" />
+                        View
+                      </Button>
+                    </motion.div>
+                  )}
+
+                  {!application.result_slip_url && !application.extra_kyc_url && !application.pop_url && (
+                    <p className="rounded-xl bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+                      No supporting documents uploaded.
+                    </p>
+                  )}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-secondary">Program:</span>
-                  <span className="font-medium text-right">{application.program}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-secondary">Intake:</span>
-                  <span className="font-medium">{application.intake}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-secondary">Submitted:</span>
-                  <span className="font-medium">{formatDate(application.submitted_at)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-secondary">Last Updated:</span>
-                  <span className="font-medium">{formatDate(application.updated_at)}</span>
-                </div>
-              </div>
+              </SectionCard>
             </div>
 
-            {/* Actions */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-secondary mb-4">Actions</h3>
-              <div className="space-y-3">
-                <Link to="/apply">
-                  <Button variant="outline" className="w-full">
-                    Submit New Application
-                  </Button>
-                </Link>
-                <Link to="/student/dashboard">
-                  <Button variant="ghost" className="w-full">
-                    Back to Dashboard
-                  </Button>
-                </Link>
-              </div>
+            <div className="space-y-6">
+              <SectionCard
+                title="Quick information"
+                description="Essential application details at a glance."
+                icon={<User className="h-5 w-5" />}
+              >
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Application ID</span>
+                    <span className="font-semibold">#{application.application_number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Program</span>
+                    <span className="font-semibold text-right">{application.program}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Intake</span>
+                    <span className="font-semibold">{application.intake}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Submitted</span>
+                    <span className="font-semibold">{formatDate(application.submitted_at)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Last updated</span>
+                    <span className="font-semibold">{formatDate(application.updated_at)}</span>
+                  </div>
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Next actions" description="Stay in control of your application." icon={<FileText className="h-5 w-5" />}>
+                <div className="flex flex-col gap-3">
+                  <Link to="/apply">
+                    <Button variant="outline" className="w-full">
+                      Submit new application
+                    </Button>
+                  </Link>
+                  <Link to="/student/dashboard">
+                    <Button variant="ghost" className="w-full">
+                      Back to dashboard
+                    </Button>
+                  </Link>
+                </div>
+              </SectionCard>
+
+              {application.status === 'under_review' && (
+                <SectionCard
+                  title="Application under review"
+                  description="Our admissions team is reviewing your information. We'll notify you by email when a decision is ready."
+                  icon={<Clock className="h-5 w-5" />}
+                />
+              )}
+
+              {application.status === 'approved' && (
+                <SectionCard
+                  title="Congratulations!"
+                  description="Your application has been approved. Look out for enrollment instructions via email."
+                  icon={<CheckCircle className="h-5 w-5 text-green-500" />}
+                />
+              )}
+
+              {application.status === 'rejected' && (
+                <SectionCard
+                  title="Application update"
+                  description="Unfortunately this application was not successful. You're welcome to apply again for future intakes."
+                  icon={<XCircle className="h-5 w-5 text-red-500" />}
+                />
+              )}
             </div>
-
-            {/* Contact Info */}
-            {application.status === 'under_review' && (
-              <div className="bg-primary border border-primary/20 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-primary mb-2">
-                  Application Under Review
-                </h4>
-                <p className="text-xs text-primary">
-                  Your application is being reviewed by our admissions team. 
-                  You will be notified via email once a decision is made.
-                </p>
-              </div>
-            )}
-
-            {application.status === 'approved' && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-green-900 mb-2">
-                  Congratulations!
-                </h4>
-                <p className="text-xs text-green-700">
-                  Your application has been approved. You will receive further 
-                  instructions via email regarding enrollment and next steps.
-                </p>
-              </div>
-            )}
-
-            {application.status === 'rejected' && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-red-900 mb-2">
-                  Application Update
-                </h4>
-                <p className="text-xs text-red-700">
-                  Unfortunately, your application was not successful this time. 
-                  You may submit a new application for future intakes.
-                </p>
-              </div>
-            )}
           </div>
         </div>
-        </div>
-      </main>
-    </div>
+      </PageContent>
+    </PageLayout>
   )
 }
