@@ -50,14 +50,14 @@ describe('testSupabaseConnection', () => {
   it.each([
     { status: 401, message: 'Unauthorized' },
     { status: 404, message: 'Not Found' }
-  ])('returns success false when Supabase responds with $status', async ({ status, message }) => {
+  ])('marks the connection as degraded when Supabase responds with $status', async ({ status, message }) => {
     mockHttpResponse(status, message)
 
     const result = await testSupabaseConnection('https://example.supabase.co')
 
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
+    expect(result.degraded).toBe(true)
     expect(result.status).toBe(status)
-    expect(result.error).toBe(`HTTP ${status}`)
     expect(result.message).toContain(`${status}`)
   })
 })
