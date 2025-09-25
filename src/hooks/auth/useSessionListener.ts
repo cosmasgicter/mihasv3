@@ -186,43 +186,30 @@ export function useSessionListener() {
     setUser(null)
   }, [])
 
-  const requestPasswordReset = useCallback(async (email: string): Promise<PasswordResetResult> => {
+  const requestPasswordReset = useCallback(async (
+    email: string,
+    turnstileToken?: string
+  ): Promise<PasswordResetResult> => {
     if (!isSupabaseConfigured) {
       return { error: SUPABASE_MISSING_CONFIG_MESSAGE }
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const redirectTo = getPasswordResetRedirectUrl()
 
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        email,
-        redirectTo ? { redirectTo } : undefined
-      )
 
-      if (error && redirectTo) {
-        console.warn(
-          'Password reset request failed with redirect override. Retrying without override.',
-          sanitizeForLog(error instanceof Error ? error.message : error)
-        )
+      const result = await response.json().catch(() => ({}))
 
-        const retry = await supabase.auth.resetPasswordForEmail(email)
-        if (retry.error) {
-          return { error: retry.error.message }
-        }
-
-        return {}
-      }
-
-      if (error) {
-        return { error: error.message }
+      if (!response.ok || result?.error) {
+        return { error: result?.error || 'Unable to send reset instructions' }
       }
 
       return {}
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Unable to send reset instructions' }
+      return {
+        error: error instanceof Error ? error.message : 'Unable to send reset instructions'
+      }
     }
-  }, [])
+  }, [apiBaseUrl])
 
   const updatePassword = useCallback(async (password: string): Promise<PasswordResetResult> => {
     if (!isSupabaseConfigured) {

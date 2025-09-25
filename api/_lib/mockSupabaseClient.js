@@ -266,6 +266,92 @@ class MockSupabaseClient {
         }
 
         return { data: { user: clone(session.user) }, error: null }
+      },
+      admin: {
+        generateLink: async ({ email, type, options } = {}) => {
+          if (!email) {
+            return {
+              data: { properties: null, user: null },
+              error: new Error('Email is required')
+            }
+          }
+
+          if (type && type !== 'recovery') {
+            return {
+              data: { properties: null, user: null },
+              error: new Error(`Unsupported link type: ${type}`)
+            }
+          }
+
+          const redirectTo = options?.redirectTo || 'https://example.com/auth/reset-password'
+          const token = randomUUID().replace(/-/g, '')
+          const verificationType = type || 'recovery'
+
+          let actionLink = redirectTo
+          try {
+            const url = new URL(redirectTo)
+            url.searchParams.set('token', token)
+            url.searchParams.set('type', verificationType)
+            actionLink = url.toString()
+          } catch (_error) {
+            const separator = redirectTo.includes('?') ? '&' : '?'
+            actionLink = `${redirectTo}${separator}token=${token}&type=${verificationType}`
+          }
+
+          return {
+            data: {
+              properties: {
+                action_link: actionLink,
+                email_otp: token.slice(0, 6),
+                hashed_token: token,
+                redirect_to: redirectTo,
+                verification_type: verificationType
+              },
+              user: {
+                id: `mock-user-${randomUUID()}`,
+                email
+              }
+            },
+            error: null
+          }
+        }
+      }
+    }
+
+    this.functions = {
+      invoke: async (name, payload = {}) => {
+        if (name !== 'send-email') {
+          return {
+            data: {
+              success: false,
+              error: { message: `Unknown function: ${name}` }
+            },
+            error: null
+          }
+        }
+
+        const body = payload?.body || {}
+        if (!body.to) {
+          return {
+            data: {
+              success: false,
+              error: { message: 'Recipient email is required' }
+            },
+            error: null
+          }
+        }
+
+        return {
+          data: {
+            success: true,
+            data: {
+              provider: 'mock',
+              status: 202,
+              messageId: randomUUID()
+            }
+          },
+          error: null
+        }
       }
     }
   }
