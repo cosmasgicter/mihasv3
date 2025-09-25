@@ -25,14 +25,29 @@ type SendNotificationResponse = {
   success?: boolean
 }
 
+type SendNotificationApiResponse = SendNotificationResponse & {
+  notificationId?: string | null
+  notification?: Record<string, unknown>
+  id?: string
+}
+
 export const notificationService = {
   send: async (payload: SendNotificationPayload): Promise<boolean> => {
-    const response = await apiClient.request<SendNotificationResponse>('/api/notifications/send', {
+    const response = await apiClient.request<SendNotificationApiResponse>('/api/notifications/send', {
       method: 'POST',
       body: JSON.stringify(payload)
     })
 
-    return Boolean(response?.success)
+    if (!response) {
+      return false
+    }
+
+    if ('success' in response) {
+      return Boolean(response.success)
+    }
+
+    // Fallback for legacy responses that returned the notification row
+    return Boolean(response.id || (response.notification as { id?: string | number } | undefined)?.id)
   },
   applicationSubmitted: (data: { applicationId: string; userId: string }) =>
     apiClient.request('/api/notifications/application-submitted', {
