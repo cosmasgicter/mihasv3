@@ -103,9 +103,21 @@ describe('applications/[id] handler', () => {
   })
 
   it('soft deletes an application', async () => {
-    mockSupabase.from.mockImplementation(() => ({
-      select: vi.fn()
+    const selectEq = vi.fn(() => ({
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { id: 'to-delete', status: 'draft', user_id: 'admin-user' },
+        error: null
+      })
     }))
+
+    mockSupabase.from.mockImplementation(table => {
+      if (table === 'applications_new') {
+        return {
+          select: vi.fn(() => ({ eq: selectEq }))
+        }
+      }
+      throw new Error(`Unexpected table ${table}`)
+    })
 
     getUserFromRequest.mockResolvedValue({
       user: { id: 'admin-user' },
