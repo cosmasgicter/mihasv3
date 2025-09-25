@@ -1,5 +1,6 @@
 import { testSupabaseConnection } from '../_lib/networkTest.js'
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
+import { useMockSupabase } from '../_lib/supabaseClient.js'
 
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -14,11 +15,20 @@ async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  if (useMockSupabase) {
+    return res.status(200).json({
+      status: 'healthy',
+      mode: 'mock',
+      timestamp: new Date().toISOString()
+    })
+  }
+
   const supabaseUrl = process.env.VITE_SUPABASE_URL
 
   if (!supabaseUrl) {
     return res.status(500).json({
       status: 'error',
+      mode: 'live',
       message: 'Supabase URL not configured'
     })
   }
@@ -28,6 +38,7 @@ async function handler(req, res) {
   return res.status(connectionTest.success ? 200 : 503).json({
     status: connectionTest.success ? 'healthy' : 'unhealthy',
     supabase: connectionTest,
+    mode: 'live',
     timestamp: new Date().toISOString()
   })
 }
