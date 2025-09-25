@@ -1,5 +1,7 @@
 // API response caching utilities for improved performance
 
+import { getEnvVariable } from './env'
+
 interface CacheEntry<T> {
   data: T
   timestamp: number
@@ -381,7 +383,7 @@ export function getNetworkAwareCacheTTL(): number {
 
 // Enhanced cache with persistence
 export class PersistentCache extends ApiCache {
-  private storageKey = process.env.VITE_API_CACHE_STORAGE_KEY || 'mihas-api-cache'
+  private storageKey = getEnvVariable('VITE_API_CACHE_STORAGE_KEY', 'mihas-api-cache')
   private maxStorageSize = 5 * 1024 * 1024 // 5MB
 
   constructor() {
