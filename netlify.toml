@@ -116,7 +116,7 @@
 
 [[redirects]]
   from = "/api/admin/users"
-  to = "/.netlify/functions/admin-users"
+  to = "/.netlify/functions/admin/users"
   status = 200
   force = true
 
