@@ -14,7 +14,7 @@ export interface ApplicationData {
   created_at: string
   grades_summary: string
   total_subjects: number
-  average_grade: number
+  points: number
   age: number
   days_since_submission: number
 }
@@ -40,7 +40,7 @@ const HEADERS = [
   'Created At',
   'Grades Summary',
   'Total Subjects',
-  'Average Grade',
+  'Points (Best 5)',
   'Age',
   'Days Since Submission'
 ] as const
@@ -116,7 +116,7 @@ const mapToRowValues = (application: ApplicationData) => ({
   created_at: formatDate(application.created_at),
   grades_summary: safeText(application.grades_summary),
   total_subjects: safeNumber(application.total_subjects),
-  average_grade: safeNumber(application.average_grade),
+  points: safeNumber(application.points),
   age: safeNumber(application.age),
   days_since_submission: safeNumber(application.days_since_submission)
 })
@@ -149,7 +149,7 @@ export async function exportToCSV(
       toCsvValue(row.created_at),
       toCsvValue(row.grades_summary),
       toCsvValue(row.total_subjects),
-      toCsvValue(row.average_grade),
+      toCsvValue(row.points),
       toCsvValue(row.age),
       toCsvValue(row.days_since_submission)
     ].join(','))
@@ -221,7 +221,7 @@ export async function exportToExcel(
       row.created_at,
       row.grades_summary,
       row.total_subjects,
-      row.average_grade,
+      row.points,
       row.age,
       row.days_since_submission
     ])
@@ -279,7 +279,7 @@ export async function exportToPDF(
       row.created_at,
       row.grades_summary,
       row.total_subjects.toString(),
-      row.average_grade.toString(),
+      row.points.toString(),
       row.age.toString(),
       row.days_since_submission.toString()
     ])

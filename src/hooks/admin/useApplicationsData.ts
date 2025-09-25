@@ -7,6 +7,7 @@ import {
   doesApplicationMatchFilters
 } from './useAdminRealtimeMetrics'
 import type { AdminApplicationChange, AdminApplicationFilters } from './useAdminRealtimeMetrics'
+import { calculatePointsFromSummary } from '@/utils/grades'
 
 interface ApplicationSummary {
   id: string
@@ -38,7 +39,7 @@ interface ApplicationSummary {
   pop_url: string
   grades_summary: string
   total_subjects: number
-  average_grade: number
+  points: number
   age: number
   days_since_submission: number
 }
@@ -61,6 +62,41 @@ const sanitizeSearchTerm = (value: string) => {
     .replace(/[%_]/g, match => `\\${match}`)
     .replace(/,/g, '\\,')
 }
+
+const mapSupabaseApplication = (row: any): ApplicationSummary => ({
+  id: row.id,
+  application_number: row.application_number ?? '',
+  full_name: row.full_name ?? '',
+  email: row.email ?? '',
+  phone: row.phone ?? '',
+  program: row.program ?? '',
+  intake: row.intake ?? '',
+  institution: row.institution ?? '',
+  status: row.status ?? 'draft',
+  payment_status: row.payment_status ?? 'pending_review',
+  payment_verified_at: row.payment_verified_at ?? null,
+  payment_verified_by: row.payment_verified_by ?? null,
+  payment_verified_by_name: row.payment_verified_by_name ?? null,
+  payment_verified_by_email: row.payment_verified_by_email ?? null,
+  last_payment_audit_id: row.last_payment_audit_id ?? null,
+  last_payment_audit_at: row.last_payment_audit_at ?? null,
+  last_payment_audit_by_name: row.last_payment_audit_by_name ?? null,
+  last_payment_audit_by_email: row.last_payment_audit_by_email ?? null,
+  last_payment_audit_notes: row.last_payment_audit_notes ?? null,
+  last_payment_reference: row.last_payment_reference ?? null,
+  application_fee: Number(row.application_fee ?? 0),
+  paid_amount: Number(row.paid_amount ?? row.amount ?? 0),
+  submitted_at: row.submitted_at ?? row.created_at ?? '',
+  created_at: row.created_at ?? row.submitted_at ?? '',
+  result_slip_url: row.result_slip_url ?? '',
+  extra_kyc_url: row.extra_kyc_url ?? '',
+  pop_url: row.pop_url ?? '',
+  grades_summary: row.grades_summary ?? '',
+  total_subjects: Number(row.total_subjects ?? 0),
+  points: Number(row.points ?? calculatePointsFromSummary(row.grades_summary)),
+  age: Number(row.age ?? 0),
+  days_since_submission: Number(row.days_since_submission ?? 0)
+})
 
 const mapApplicationFiltersToAdminFilters = (
   filters: ApplicationFilters
@@ -113,7 +149,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
         if (error) {
           throw error
         }
-        return data
+        return data ? mapSupabaseApplication(data) : null
       })
       .catch(error => {
         hydrationPromisesRef.current.delete(id)
@@ -181,19 +217,20 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
 
       if (queryError) throw queryError
 
+      const mapped = (data || []).map(mapSupabaseApplication)
       setTotalCount(count ?? 0)
 
       if (isLoadMore) {
         setApplications(prev => {
           const existingIds = new Set(prev.map(item => item.id))
-          const newRecords = (data || []).filter(item => !existingIds.has(item.id))
+          const newRecords = mapped.filter(item => !existingIds.has(item.id))
           return [...prev, ...newRecords]
         })
         setCurrentPage(safePage)
       } else if (isRefresh) {
-        setApplications(data || [])
+        setApplications(mapped)
       } else {
-        setApplications(data || [])
+        setApplications(mapped)
         setCurrentPage(safePage)
       }
     } catch (err: any) {
