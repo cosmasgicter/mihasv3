@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { AdminNavigation } from '@/components/ui/AdminNavigation'
+import { PageLayout, PageContent } from '@/components/ui/PageLayout'
 import { ArrowLeft, Plus, Edit2, Trash2, Save, X, Settings, Globe, Lock, Database } from 'lucide-react'
 
 interface SystemSetting {
@@ -342,10 +343,10 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <PageLayout background="gradient">
       <AdminNavigation />
-      <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      <PageContent className="py-4 sm:py-6 lg:py-8 safe-area-bottom" maxWidth="7xl">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -720,7 +721,7 @@ export default function AdminSettings() {
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </PageContent>
+    </PageLayout>
   )
 }

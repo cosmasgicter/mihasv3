@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { AuthenticatedNavigation } from '@/components/ui/AuthenticatedNavigation'
+import { PageLayout, PageContent } from '@/components/ui/PageLayout'
 import { ActiveSessions } from '@/components/ui/ActiveSessions'
 import { motion } from 'framer-motion'
 import { ArrowLeft, User, Mail, Phone, MapPin, Save, Shield } from 'lucide-react'
@@ -79,10 +80,9 @@ export default function StudentSettings() {
   }
 
   return (
-    <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <PageLayout background="gradient">
       <AuthenticatedNavigation />
-      <main className="w-full">
-        <div className="content-wrapper py-4 sm:py-6 lg:py-8 safe-area-bottom">
+      <PageContent className="py-4 sm:py-6 lg:py-8 safe-area-bottom" maxWidth="7xl">
         {/* Header - Mobile First */}
         <div className="mb-6 sm:mb-8">
           <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4 font-medium transition-colors">
@@ -348,8 +348,7 @@ export default function StudentSettings() {
             </Button>
           </motion.div>
         </form>
-        </div>
-      </main>
-    </div>
+      </PageContent>
+    </PageLayout>
   )
 }
