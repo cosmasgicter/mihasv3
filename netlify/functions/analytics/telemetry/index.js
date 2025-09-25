@@ -1,24 +1,2 @@
-import { withNetlifyHandler } from '../../../../api/_lib/netlifyHandler.js'
-
-async function handler(req, res) {
-  // Add CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, authorization')
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
-  }
-
-  if (req.method === 'POST') {
-    // For local development, just return success
-    return res.json({ success: true, message: 'Telemetry received (local dev)' })
-  }
-  
-  return res.status(405).json({ error: 'Method not allowed' })
-}
-
-const netlifyHandler = withNetlifyHandler(handler)
-
-export { netlifyHandler as handler }
-export default netlifyHandler
+export { handler } from '../../../../api/analytics/telemetry.js'
+export { default } from '../../../../api/analytics/telemetry.js'
