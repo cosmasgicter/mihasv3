@@ -63,6 +63,7 @@ function buildAuditLogFilters(query = {}) {
   const filters = {
     action: actionFilter || null,
     actorId: getQueryValue(query.actorId),
+    actorEmail: getQueryValue(query.actorEmail),
     targetTable: getQueryValue(query.targetTable),
     targetId: getQueryValue(query.targetId),
     from: parseDateValue(getQueryValue(query.from)),
@@ -84,6 +85,9 @@ function applyAuditLogFilters(query, filters = {}) {
   }
   if (filters.actorId) {
     nextQuery = nextQuery.eq('actor_id', filters.actorId)
+  }
+  if (filters.actorEmail) {
+    nextQuery = nextQuery.ilike('actor_email', `%${filters.actorEmail}%`)
   }
   if (filters.targetTable) {
     nextQuery = nextQuery.eq('target_table', filters.targetTable)
