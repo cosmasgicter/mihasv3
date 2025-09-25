@@ -9,8 +9,6 @@ import {
 } from '@/lib/supabase'
 import { sanitizeForLog } from '@/lib/security'
 import { authPersistence } from '@/lib/authPersistence'
-import { secureDisplay } from '@/lib/secureDisplay'
-import { sanitizeForDisplay } from '@/lib/sanitize'
 import { getApiBaseUrl } from '@/lib/apiConfig'
 
 export type SignInResult = {
@@ -22,6 +20,10 @@ export type SignInResult = {
 export type SignUpResult = {
   user?: User | null
   session?: any
+  error?: string
+}
+
+export type PasswordResetResult = {
   error?: string
 }
 
@@ -183,11 +185,61 @@ export function useSessionListener() {
     setUser(null)
   }, [])
 
+  const requestPasswordReset = useCallback(async (email: string): Promise<PasswordResetResult> => {
+    if (!isSupabaseConfigured) {
+      return { error: SUPABASE_MISSING_CONFIG_MESSAGE }
+    }
+
+    try {
+      const supabase = getSupabaseClient()
+      const redirectTo = typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/reset-password`
+        : undefined
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      })
+
+      if (error) {
+        return { error: error.message }
+      }
+
+      return {}
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : 'Unable to send reset instructions' }
+    }
+  }, [])
+
+  const updatePassword = useCallback(async (password: string): Promise<PasswordResetResult> => {
+    if (!isSupabaseConfigured) {
+      return { error: SUPABASE_MISSING_CONFIG_MESSAGE }
+    }
+
+    try {
+      const supabase = getSupabaseClient()
+      const { data, error } = await supabase.auth.updateUser({ password })
+
+      if (error) {
+        return { error: error.message }
+      }
+
+      if (data.user) {
+        setUser(data.user)
+      }
+
+      return {}
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : 'Unable to reset password' }
+    }
+  }, [])
+
   return {
     user,
     loading,
     signIn,
     signUp,
-    signOut
+    signOut,
+    requestPasswordReset,
+    updatePassword
   }
 }

@@ -4,6 +4,8 @@ import React from 'react'
 import LandingPage from '@/pages/LandingPage'
 import SignInPage from '@/pages/auth/SignInPage'
 import SignUpPage from '@/pages/auth/SignUpPage'
+import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from '@/pages/auth/ResetPasswordPage'
 
 // Lazy load non-critical pages
 const StudentDashboard = React.lazy(() => import('@/pages/student/Dashboard'))
@@ -49,6 +51,8 @@ export const routes: RouteConfig[] = [
   { path: '/signin', element: SignInPage, guard: 'public' },
   { path: '/login', element: SignInPage, guard: 'public' },
   { path: '/auth/signup', element: SignUpPage, guard: 'public' },
+  { path: '/auth/forgot-password', element: ForgotPasswordPage, guard: 'public' },
+  { path: '/auth/reset-password', element: ResetPasswordPage, guard: 'public' },
   { path: '/auth/callback', element: AuthCallbackPage, guard: 'public', lazy: true },
   
   // Dashboard redirect (no lazy loading needed)
