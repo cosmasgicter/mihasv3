@@ -5,6 +5,7 @@ import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, C
 import { applicationService } from '@/services/applications'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import type { ApplicationInterview } from '@/lib/supabase'
+import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 
 interface ApplicationWithDetails {
   id: string
@@ -47,7 +48,7 @@ interface ApplicationWithDetails {
   review_started_at?: string
   decision_date?: string
   total_subjects?: number
-  average_grade?: number
+  points?: number
   grades_summary?: string
   interview?: ApplicationInterview | null
 }
@@ -114,7 +115,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
       </div>
     )
   }
-  
+
   if (grades.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -123,12 +124,21 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
       </div>
     )
   }
-  
-  // Calculate points from best 5 subjects (lowest grades are best)
-  const sortedGrades = [...grades].sort((a, b) => a.grade - b.grade)
-  const bestFiveGrades = sortedGrades.slice(0, 5)
-  const totalPoints = bestFiveGrades.reduce((sum, g) => sum + g.grade, 0)
-  
+
+  const normalizedGrades = grades
+    .map(grade => ({
+      ...grade,
+      normalized: sanitizeGradeValue(grade.grade)
+    }))
+    .filter((grade): grade is Grade & { normalized: number } => grade.normalized !== null)
+
+  const bestFiveGrades = normalizedGrades
+    .sort((a, b) => a.normalized - b.normalized)
+    .slice(0, 5)
+
+  const bestFiveSubjectIds = new Set(bestFiveGrades.map(grade => grade.subject_id))
+  const totalPoints = calculateBestFivePoints(normalizedGrades.map(grade => grade.normalized))
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
@@ -141,10 +151,11 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
           <p className="text-xs text-blue-700">Points (Best 5)</p>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {grades.map((grade, index) => {
-          const isBestFive = bestFiveGrades.some(bg => bg.subject_id === grade.subject_id)
+          const normalized = sanitizeGradeValue(grade.grade)
+          const isBestFive = normalized !== null && bestFiveSubjectIds.has(grade.subject_id)
           return (
             <div key={index} className={`flex justify-between items-center p-3 border rounded-lg ${
               isBestFive ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
@@ -154,8 +165,8 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
                 {isBestFive && <span className="ml-2 text-xs text-green-600 font-medium">BEST 5</span>}
               </div>
               <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                grade.grade <= 3 ? 'bg-green-100 text-green-800' :
-                grade.grade <= 6 ? 'bg-yellow-100 text-yellow-800' :
+                normalized !== null && normalized <= 3 ? 'bg-green-100 text-green-800' :
+                normalized !== null && normalized <= 6 ? 'bg-yellow-100 text-yellow-800' :
                 'bg-red-100 text-red-800'
               }`}>
                 {grade.grade}

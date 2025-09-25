@@ -20,6 +20,7 @@ import {
   exportToPDF,
   type ApplicationData
 } from '@/lib/exportUtils'
+import { calculatePointsFromSummary } from '@/utils/grades'
 import { 
   FileDown, 
   FileSpreadsheet, 
@@ -63,7 +64,7 @@ const mapRecordToApplication = (record: any): ApplicationData => ({
   created_at: record.created_at || record.submitted_at || '',
   grades_summary: record.grades_summary ?? '',
   total_subjects: Number(record.total_subjects ?? 0),
-  average_grade: Number(record.average_grade ?? 0),
+  points: Number(record.points ?? calculatePointsFromSummary(record.grades_summary)),
   age: Number(record.age ?? 0),
   days_since_submission: Number(record.days_since_submission ?? 0)
 })
