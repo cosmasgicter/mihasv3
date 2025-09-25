@@ -5,7 +5,7 @@ export default async (request, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization, x-requested-with',
     'Content-Type': 'application/json'
   }
 
