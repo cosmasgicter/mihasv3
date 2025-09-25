@@ -61,6 +61,12 @@
   force = true
 
 [[redirects]]
+  from = "/api/notifications/application-submitted"
+  to = "/.netlify/functions/notifications-application-submitted"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/push-subscriptions"
   to = "/.netlify/functions/push-subscriptions"
   status = 200
