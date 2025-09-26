@@ -145,6 +145,18 @@
   force = true
 
 [[redirects]]
+  from = "/api/applications/generate-slip"
+  to = "/.netlify/functions/applications-generate-slip"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/applications/email-slip"
+  to = "/.netlify/functions/applications-email-slip"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/applications/:id"
   to = "/.netlify/functions/applications-id?id=:id"
   status = 200
