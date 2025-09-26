@@ -201,7 +201,13 @@ async function fetchApplicationDetails(id, includeParam) {
   if (includes.includes('statusHistory')) {
     const { data: statusHistory } = await supabase
       .from('application_status_history')
-      .select('*')
+      .select(`
+        *,
+        changed_by_profile:profiles!changed_by(
+          email,
+          full_name
+        )
+      `)
       .eq('application_id', id)
       .order('created_at', { ascending: false })
 
