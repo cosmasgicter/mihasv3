@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { sanitizeHtml } from '@/lib/sanitizer'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Eye, FileText, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building } from 'lucide-react'
+import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 
 interface ApplicationSummary {
   id: string
@@ -109,6 +110,8 @@ export function ApplicationsTable({
       await onStatusUpdate(id, status)
     } catch (error) {
       console.error('Failed to update status:', error)
+      // Show user-friendly error message
+      alert(`Failed to update application status: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setUpdatingStatus(null)
     }
@@ -120,6 +123,8 @@ export function ApplicationsTable({
       await onPaymentStatusUpdate(id, status)
     } catch (error) {
       console.error('Failed to update payment status:', error)
+      // Show user-friendly error message
+      alert(`Failed to update payment status: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setUpdatingPayment(null)
     }
@@ -333,37 +338,14 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       )}
 
       {/* Status Controls */}
-      <div className="space-y-3">
-        <div>
-          <label className="text-xs font-medium text-gray-700 mb-1 block">Application Status</label>
-          <select
-            value={app.status}
-            onChange={(e) => onStatusUpdate(app.id, e.target.value)}
-            disabled={updatingStatus}
-            className="block w-full text-sm rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50"
-          >
-            <option value="draft">Draft</option>
-            <option value="submitted">Submitted</option>
-            <option value="under_review">Under Review</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-gray-700 mb-1 block">Payment Status</label>
-          <select
-            value={app.payment_status}
-            onChange={(e) => onPaymentStatusUpdate(app.id, e.target.value)}
-            disabled={updatingPayment}
-            className="block w-full text-sm rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50"
-          >
-            <option value="pending_review">Pending Review</option>
-            <option value="verified">Verified</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-      </div>
+      <ApplicationApprovalActions
+        applicationId={app.id}
+        currentStatus={app.status}
+        currentPaymentStatus={app.payment_status}
+        onStatusUpdate={onStatusUpdate}
+        onPaymentStatusUpdate={onPaymentStatusUpdate}
+        disabled={updatingStatus || updatingPayment}
+      />
 
       {/* Actions */}
       <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">

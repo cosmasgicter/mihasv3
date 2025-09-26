@@ -12,6 +12,7 @@ import { sanitizeForLog, safeJsonParse, sanitizeForDisplay } from '@/lib/sanitiz
 import { getUserMetadata, getBestValue, calculateProfileCompletion } from '@/hooks/useProfileAutoPopulation'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
 import { clearAllDraftData } from '@/lib/draftCleanup'
+import { useDraftManager } from '@/hooks/useDraftManager'
 import { applicationService } from '@/services/applications'
 import { catalogService } from '@/services/catalog'
 import { StudentDashboardSkeleton } from '@/components/student/StudentDashboardSkeleton'
@@ -39,7 +40,7 @@ export default function StudentDashboard() {
     }
   }, [user, profile])
 
-  // Listen for storage changes to update draft status
+  // Listen for storage changes and draft cleared events to update draft status
   useEffect(() => {
     const handleStorageChange = () => {
       const savedDraft = localStorage.getItem('applicationWizardDraft')
@@ -58,12 +59,21 @@ export default function StudentDashboard() {
       }
     }
 
+    const handleDraftCleared = () => {
+      setHasDraft(false)
+      setDraftData(null)
+      // Reload dashboard data to reflect changes
+      loadDashboardData()
+    }
+
     window.addEventListener('storage', handleStorageChange)
     window.addEventListener('focus', handleStorageChange)
+    window.addEventListener('draftCleared', handleDraftCleared)
 
     return () => {
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('focus', handleStorageChange)
+      window.removeEventListener('draftCleared', handleDraftCleared)
     }
   }, [])
 
@@ -324,6 +334,9 @@ export default function StudentDashboard() {
                               size="sm"
                               className="w-full sm:w-auto border-red-200 text-red-600 hover:bg-red-50"
                               onClick={async () => {
+                                if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
+                                  return
+                                }
                                 try {
                                   await applicationService.delete(application.id)
                                   await loadDashboardData()
@@ -370,6 +383,9 @@ export default function StudentDashboard() {
                               size="sm"
                               className="w-full sm:w-auto border-red-200 text-red-600 hover:bg-red-50"
                               onClick={() => {
+                                if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
+                                  return
+                                }
                                 clearAllDraftData()
                                 setHasDraft(false)
                                 setDraftData(null)
@@ -533,17 +549,24 @@ export default function StudentDashboard() {
                         size="sm"
                         className="w-full justify-start border-red-200 text-red-600 hover:bg-red-50"
                         onClick={async () => {
-                          if (user) {
-                            await draftManager.clearAllDrafts(user.id)
+                          if (!confirm('Are you sure you want to clear all drafts? This action cannot be undone.')) {
+                            return
                           }
-                          clearAllDraftData()
-                          setHasDraft(false)
-                          setDraftData(null)
-                          loadDashboardData()
+                          try {
+                            if (user) {
+                              await draftManager.clearAllDrafts(user.id)
+                            }
+                            clearAllDraftData()
+                            setHasDraft(false)
+                            setDraftData(null)
+                            await loadDashboardData()
+                          } catch (error) {
+                            setError('Failed to clear drafts')
+                          }
                         }}
                       >
                         <X className="mr-2 h-4 w-4" />
-                        Clear local drafts
+                        Clear all drafts
                       </Button>
                     )}
                     <Link to="/settings" className="block">

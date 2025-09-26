@@ -222,68 +222,55 @@ class ApplicationSessionManager {
   // Delete draft with comprehensive cleanup
   async deleteDraft(userId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const errors: string[] = []
+      // Step 1: Clear all local storage immediately (most important for UI)
+      this.clearAllLocalStorage()
 
-      // Clear all storage first (most important for immediate effect)
+      // Step 2: Clear intervals to stop auto-save
+      this.cleanup()
+
+      // Step 3: Database cleanup (don't fail if this doesn't work)
       try {
-        // Clear all possible draft keys
-        [...DRAFT_STORAGE_KEYS, ...SESSION_STORAGE_KEYS].forEach(key => {
-          localStorage.removeItem(key)
-          sessionStorage.removeItem(key)
-        })
-        
-        // Also clear any wizard-specific keys
-        localStorage.removeItem('applicationWizardDraft')
-        sessionStorage.removeItem('applicationWizardDraft')
-        
-        // Clear any other potential draft keys
-        Object.keys(localStorage).forEach(key => {
-          if (key.includes('draft') || key.includes('wizard') || key.includes('application')) {
-            localStorage.removeItem(key)
-          }
-        })
-        
-        Object.keys(sessionStorage).forEach(key => {
-          if (key.includes('draft') || key.includes('wizard') || key.includes('application')) {
-            sessionStorage.removeItem(key)
-          }
-        })
-      } catch {
-        errors.push('Storage cleanup failed')
+        await Promise.allSettled([
+          supabase.from('application_drafts').delete().eq('user_id', userId),
+          supabase.from('applications_new').delete().eq('user_id', userId).eq('status', 'draft')
+        ])
+      } catch (dbError) {
+        console.warn('Database cleanup failed (non-critical):', sanitizeForLog(dbError))
       }
 
-      // Parallel database operations
-      const [draftResult, appResult] = await Promise.allSettled([
-        supabase.from('application_drafts').delete().eq('user_id', userId),
-        supabase.from('applications_new').delete().eq('user_id', userId).eq('status', 'draft')
-      ])
-
-      // Check results (but don't fail if database operations fail)
-      if (draftResult.status === 'rejected' || draftResult.value.error) {
-        console.warn('Database draft cleanup failed:', draftResult)
-      }
-      if (appResult.status === 'rejected' || appResult.value.error) {
-        console.warn('Draft applications cleanup failed:', appResult)
-      }
-
-      // Clear intervals
-      if (this.saveInterval) {
-        clearInterval(this.saveInterval)
-        this.saveInterval = null
-      }
-
-      // Force a page reload flag to ensure clean state
+      // Step 4: Set deletion flag for other components
       sessionStorage.setItem('draftDeleted', 'true')
 
-      return {
-        success: true, // Always return success if storage was cleared
-        error: errors.length > 0 ? errors.join(', ') : undefined
-      }
+      return { success: true }
     } catch (error) {
+      console.error('Draft deletion failed:', sanitizeForLog(error))
       return {
         success: false,
-        error: error instanceof Error ? sanitizeForLog(error.message) : 'Unknown error occurred'
+        error: error instanceof Error ? sanitizeForLog(error.message) : 'Failed to delete draft'
       }
+    }
+  }
+
+  // Helper method to clear all local storage
+  private clearAllLocalStorage(): void {
+    try {
+      // Clear known draft keys
+      [...DRAFT_STORAGE_KEYS, ...SESSION_STORAGE_KEYS].forEach(key => {
+        localStorage.removeItem(key)
+        sessionStorage.removeItem(key)
+      })
+      
+      // Clear any keys containing draft-related terms
+      const storages = [localStorage, sessionStorage]
+      storages.forEach(storage => {
+        Object.keys(storage).forEach(key => {
+          if (key.includes('draft') || key.includes('wizard') || key.includes('application')) {
+            storage.removeItem(key)
+          }
+        })
+      })
+    } catch (error) {
+      console.warn('Local storage cleanup failed:', sanitizeForLog(error))
     }
   }
 
@@ -428,7 +415,7 @@ class ApplicationSessionManager {
     }
   }
 
-  // Cleanup on component unmount
+  // Cleanup on component unmount or draft deletion
   cleanup() {
     if (this.saveInterval) {
       clearInterval(this.saveInterval)

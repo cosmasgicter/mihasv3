@@ -82,7 +82,8 @@ export const applicationService = {
   updateStatus: (id: string, status: Application['status'], notes?: string) =>
     apiClient.request<Application>(`/api/applications/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ action: 'update_status', status, notes })
+      body: JSON.stringify({ action: 'update_status', status, notes }),
+      invalidateCache: [`/api/applications/${id}`, '/api/applications']
     }),
 
   updatePaymentStatus: (
@@ -96,7 +97,8 @@ export const applicationService = {
         action: 'update_payment_status',
         paymentStatus,
         verificationNotes: verificationNotes || undefined
-      })
+      }),
+      invalidateCache: [`/api/applications/${id}`, '/api/applications']
     }),
 
   verifyDocument: (

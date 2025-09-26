@@ -160,15 +160,33 @@ async function fetchApplicationDetails(id, includeParam) {
     : String(includeParam).split(',').map(value => value.trim()).filter(Boolean)
 
   if (includes.includes('grades')) {
-    const { data: grades } = await supabase
+    const { data: grades, error: gradesError } = await supabase
       .from('application_grades')
-      .select('id, grade, subject_id, subjects(name)')
+      .select('id, grade, subject_id')
       .eq('application_id', id)
       .order('grade', { ascending: true })
 
-    result.grades = grades || []
-    const best5 = grades?.slice(0, 5) || []
-    result.best5Points = best5.reduce((sum, grade) => sum + grade.grade, 0)
+    // Get subject names separately
+    let subjectNames = {}
+    if (grades && grades.length > 0) {
+      const subjectIds = [...new Set(grades.map(g => g.subject_id))]
+      const { data: subjects } = await supabase
+        .from('subjects')
+        .select('id, name')
+        .in('id', subjectIds)
+      
+      subjectNames = subjects?.reduce((acc, s) => ({ ...acc, [s.id]: s.name }), {}) || {}
+    }
+
+    if (gradesError) {
+      console.error('Grades fetch error:', gradesError)
+      result.grades = []
+    } else {
+      result.grades = (grades || []).map(grade => ({
+        ...grade,
+        subject_name: subjectNames[grade.subject_id] || 'Unknown Subject'
+      }))
+    }
   }
 
   if (includes.includes('documents')) {
@@ -210,6 +228,7 @@ async function handleStatusUpdate(req, res, id, body) {
     const updated = await fetchApplication(id)
     return res.status(200).json({ success: true, data: updated })
   } catch (updateError) {
+    console.error('Status update error:', updateError)
     return res.status(400).json({ error: updateError.message })
   }
 }
@@ -230,6 +249,7 @@ async function handlePaymentStatusUpdate(req, res, id, body) {
     const updated = await fetchApplication(id)
     return res.status(200).json({ success: true, data: updated })
   } catch (updateError) {
+    console.error('Payment status update error:', updateError)
     return res.status(400).json({ error: updateError.message })
   }
 }
@@ -652,8 +672,10 @@ async function handler(req, res) {
       try {
         body = parseJsonBody(req.body)
       } catch (parseError) {
+        console.error('JSON parse error:', parseError)
         return res.status(400).json({ error: parseError.message })
       }
+      
       const action = body.action
 
       if (!action) {
