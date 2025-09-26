@@ -1,1 +1,1 @@
-export { default, default as handler } from '../../api/health.js'
+export { handler, handler as default } from '../../api/health.js'

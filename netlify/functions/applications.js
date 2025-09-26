@@ -1,6 +1,6 @@
 import { supabaseAdminClient, getUserFromRequest } from './_lib/supabaseClient.js'
 
-export default async (request, context) => {
+export const handler = async (request, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
@@ -39,3 +39,5 @@ export default async (request, context) => {
 
   return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
 }
+
+export { handler as default }

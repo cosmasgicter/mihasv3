@@ -1,18 +1,14 @@
 import { supabaseAdminClient, getUserFromRequest } from './_lib/supabaseClient.js'
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 
-export default async (request, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
-    'Content-Type': 'application/json'
+async function baseHandler(req, res) {
+  
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
-  }
-
-  if (request.method === 'GET') {
+  if (req.method === 'GET') {
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '0')
     const pageSize = parseInt(url.searchParams.get('pageSize') || '10')
@@ -26,7 +22,7 @@ export default async (request, context) => {
       .range(from, to)
 
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers })
+      return res.status(400).json({ error: error.message })
     }
 
     return new Response(JSON.stringify({
@@ -37,5 +33,11 @@ export default async (request, context) => {
     }), { headers })
   }
 
-  return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
+  return res.status(405).json({ error: 'Method not allowed' })
 }
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

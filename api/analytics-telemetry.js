@@ -1,12 +1,8 @@
 import { mockApplications, mockPrograms } from './_lib/mockData.js'
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 import { supabaseAdminClient, getUserFromRequest, useMockSupabase } from './_lib/supabaseClient.js'
 
-const headers = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
-  'Content-Type': 'application/json'
-}
+
 
 function buildMockMetrics() {
   const totalApplications = mockApplications.length
@@ -74,17 +70,17 @@ async function buildLiveMetrics() {
   return { metrics, warnings }
 }
 
-export default async (request, context) => {
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
+async function baseHandler(req, res) {
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
-  if (request.method === 'POST') {
+  if (req.method === 'POST') {
     return new Response(JSON.stringify({ success: true }), { headers })
   }
 
-  if (request.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   if (useMockSupabase) {
@@ -113,3 +109,10 @@ export default async (request, context) => {
     { status: 200, headers }
   )
 }
+
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

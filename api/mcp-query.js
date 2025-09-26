@@ -1,19 +1,15 @@
 import { supabaseAdminClient, getUserFromRequest } from './_lib/supabaseClient.js'
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 
-export default async (request, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
-    'Content-Type': 'application/json'
+async function baseHandler(req, res) {
+  
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
-  }
-
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) }, { requireAdmin: true })
@@ -22,11 +18,11 @@ export default async (request, context) => {
     return new Response(JSON.stringify({ error: authContext.error }), { status, headers })
   }
 
-  const body = await request.json().catch(() => ({}))
+  const body = req.body
   const sql = (body.sql || body.query || '').trim()
 
   if (!sql) {
-    return new Response(JSON.stringify({ error: 'SQL query is required' }), { status: 400, headers })
+    return res.status(400).json({ error: 'SQL query is required' })
   }
 
   try {
@@ -34,6 +30,13 @@ export default async (request, context) => {
     if (error) throw error
     return new Response(JSON.stringify({ data }), { headers })
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to execute query' }), { status: 500, headers })
+    return res.status(500).json({ error: 'Failed to execute query' })
   }
 }
+
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

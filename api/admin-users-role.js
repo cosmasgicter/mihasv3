@@ -1,14 +1,15 @@
-export default async (request, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
-    'Content-Type': 'application/json'
-  }
+async function baseHandler(req, res) {
+  
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
   return new Response(JSON.stringify({ role: 'user' }), { headers })
 }
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

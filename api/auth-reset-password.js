@@ -1,4 +1,5 @@
 import { initiatePasswordReset } from './_lib/passwordReset.js'
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
@@ -15,7 +16,7 @@ function cloneHeaders(request) {
   return result
 }
 
-export default async (request, _context) => {
+async function baseHandler(request, _context) {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 200, headers })
   }
@@ -50,3 +51,10 @@ export default async (request, _context) => {
 
   return new Response(JSON.stringify({ success: true }), { status: 200, headers })
 }
+
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

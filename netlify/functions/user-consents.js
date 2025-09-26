@@ -1,7 +1,7 @@
 import { getUserFromRequest } from './_lib/supabaseClient.js'
 import { listConsents, grantConsent, revokeConsent, hasActiveConsent } from './_lib/userConsent.js'
 
-export default async (request, context) => {
+export const handler = async (request, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, HEAD, OPTIONS',
@@ -57,3 +57,5 @@ export default async (request, context) => {
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers })
   }
 }
+
+export { handler as default }
