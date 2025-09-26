@@ -360,8 +360,17 @@ export function ApplicationDetailModal({
       setLoading(true)
       const response = await applicationService.getById(application.id, { 
         include: ['grades', 'statusHistory', 'documents'] 
-      }) as ApplicationDetailResponse
-      setApplicationData(response)
+      })
+      
+      // Handle the API response structure
+      const data = response?.data || response
+      setApplicationData({
+        application: data,
+        grades: data?.grades || [],
+        statusHistory: data?.statusHistory || [],
+        documents: data?.documents || [],
+        interview: data?.interview || null
+      })
     } catch (error) {
       console.error('Failed to load application details:', error)
       // Set empty data on error to prevent infinite loading

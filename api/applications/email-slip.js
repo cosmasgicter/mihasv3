@@ -49,26 +49,65 @@ async function handler(req, res) {
       return res.status(400).json({ error: 'No recipient email available' });
     }
 
-    // Add to email queue (simplified - in production you'd send actual email)
-    const { error: emailError } = await supabase
-      .from('email_queue')
-      .insert({
-        recipient_email: recipientEmail,
+    // Generate application slip PDF
+    const { generateApplicationSlip } = await import('../_lib/applicationSlip.js');
+    
+    const slipData = {
+      application_number: application.application_number,
+      public_tracking_code: application.public_tracking_code,
+      full_name: application.full_name,
+      email: application.email,
+      phone: application.phone,
+      program_name: application.program,
+      intake_name: application.intake,
+      institution: application.institution,
+      status: application.status,
+      payment_status: application.payment_status,
+      submitted_at: application.submitted_at,
+      updated_at: application.updated_at
+    };
+
+    const pdfBuffer = await generateApplicationSlip(slipData);
+    const pdfBase64 = pdfBuffer.toString('base64');
+
+    // Send email with PDF attachment
+    const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-email', {
+      body: {
+        to: recipientEmail,
         subject: `Application Slip - ${application.application_number}`,
-        template_name: 'application_slip',
-        template_data: {
-          applicationNumber: application.application_number,
-          fullName: application.full_name,
-          program: application.program,
-          institution: application.institution,
-          trackingCode: application.public_tracking_code
-        },
-        status: 'pending'
-      });
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #472bb5;">Your MIHAS Application Slip</h2>
+            <p>Dear ${application.full_name || 'Applicant'},</p>
+            <p>Please find your official application slip attached to this email.</p>
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin: 0 0 10px 0; color: #374151;">Application Details:</h3>
+              <p><strong>Application Number:</strong> ${application.application_number}</p>
+              <p><strong>Tracking Code:</strong> ${application.public_tracking_code}</p>
+              <p><strong>Program:</strong> ${application.program}</p>
+              <p><strong>Status:</strong> ${application.status}</p>
+            </div>
+            <p>You can also track your application online at: <a href="***REMOVED***/track-application?code=${application.public_tracking_code}">Track Application</a></p>
+            <p>Best regards,<br>MIHAS Admissions Team</p>
+          </div>
+        `,
+        attachments: [{
+          filename: `application-slip-${application.application_number}.pdf`,
+          content: pdfBase64,
+          type: 'application/pdf',
+          disposition: 'attachment'
+        }]
+      }
+    });
 
     if (emailError) {
-      console.error('Email queue error:', emailError);
-      return res.status(500).json({ error: 'Failed to queue email' });
+      console.error('Email send error:', emailError);
+      return res.status(500).json({ error: 'Failed to send email' });
+    }
+
+    if (!emailResult?.success) {
+      console.error('Email provider error:', emailResult?.error);
+      return res.status(500).json({ error: 'Email delivery failed' });
     }
 
     return res.status(200).json({

@@ -1,6 +1,7 @@
 import { supabaseAdminClient } from '../_lib/supabaseClient.js';
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js';
 import { ensureApplicationAccess } from './_ensureAccess.js';
+import { generateApplicationSlip } from '../_lib/applicationSlip.js';
 
 const supabase = supabaseAdminClient;
 
@@ -37,23 +38,32 @@ async function handler(req, res) {
       return res.status(404).json({ error: 'Application not found' });
     }
 
-    // Generate simple slip data
+    // Prepare slip data
     const slipData = {
-      applicationNumber: application.application_number,
-      fullName: application.full_name,
-      program: application.program,
+      application_number: application.application_number,
+      public_tracking_code: application.public_tracking_code,
+      full_name: application.full_name,
+      email: application.email,
+      phone: application.phone,
+      program_name: application.program,
+      intake_name: application.intake,
       institution: application.institution,
-      intake: application.intake,
       status: application.status,
-      trackingCode: application.public_tracking_code,
-      createdAt: application.created_at,
-      applicationFee: application.application_fee || 153.00
+      payment_status: application.payment_status,
+      submitted_at: application.submitted_at,
+      updated_at: application.updated_at,
+      userId: authContext.user.id
     };
 
-    return res.status(200).json({
-      success: true,
-      data: slipData
-    });
+    // Generate PDF blob
+    const pdfBuffer = await generateApplicationSlip(slipData);
+    
+    // Set headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="application-slip-${application.application_number}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    return res.status(200).send(pdfBuffer);
 
   } catch (error) {
     console.error('Generate slip error:', error);
