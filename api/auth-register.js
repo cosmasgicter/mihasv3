@@ -1,31 +1,27 @@
 import { supabaseAdminClient } from './_lib/supabaseClient.js'
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 import { logAuditEvent } from './_lib/auditLogger.js'
 
-export default async (request, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization, x-requested-with',
-    'Content-Type': 'application/json'
+async function baseHandler(req, res) {
+  
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
-  }
-
-  const body = await request.json().catch(() => ({}))
+  const body = req.body
   const { email, password, fullName } = body
 
   if (!email || !password) {
-    return new Response(JSON.stringify({ error: 'Email and password are required' }), { status: 400, headers })
+    return res.status(400).json({ error: 'Email and password are required' })
   }
 
   if (!fullName) {
-    return new Response(JSON.stringify({ error: 'Full name is required for registration' }), { status: 400, headers })
+    return res.status(400).json({ error: 'Full name is required for registration' })
   }
 
   try {
@@ -42,11 +38,17 @@ export default async (request, context) => {
       else if (error.message?.includes('invalid email')) errorMessage = 'Invalid email format'
       else if (error.message?.includes('password')) errorMessage = 'Password does not meet requirements'
       
-      return new Response(JSON.stringify({ error: errorMessage }), { status: 400, headers })
+      return res.status(400).json({ error: errorMessage })
     }
 
-    return new Response(JSON.stringify({ user: data.user, session: data.session }), { status: 201, headers })
+    return res.status(201).json({ user: data.user, session: data.session })
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'Database error creating new user' }), { status: 500, headers })
+    return res.status(500).json({ error: 'Database error creating new user' })
   }
 }
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

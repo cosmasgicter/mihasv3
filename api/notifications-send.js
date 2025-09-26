@@ -1,19 +1,15 @@
 import { supabaseAdminClient, getUserFromRequest, useMockSupabase } from './_lib/supabaseClient.js'
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 
-export default async (request, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
-    'Content-Type': 'application/json'
+async function baseHandler(req, res) {
+  
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
-  }
-
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   const authContext = await getUserFromRequest(
@@ -25,14 +21,14 @@ export default async (request, context) => {
     return new Response(JSON.stringify({ error: authContext.error }), { status, headers })
   }
 
-  const body = await request.json().catch(() => ({}))
+  const body = req.body
   const recipient = body.to || body.recipient || authContext.user.email
   const message = (body.message || body.body || '').trim()
   const subjectInput = (body.subject || (body.type === 'test' ? 'Test Notification' : 'Notification from MIHAS')).trim()
   const subject = subjectInput.length ? subjectInput : 'Notification from MIHAS'
 
   if (!recipient || !message) {
-    return new Response(JSON.stringify({ error: 'recipient and message are required' }), { status: 400, headers })
+    return res.status(400).json({ error: 'recipient and message are required' })
   }
 
   const enforceAdmin = !useMockSupabase
@@ -41,7 +37,7 @@ export default async (request, context) => {
     const isTestMessage = (body.type ?? 'notification') === 'test'
 
     if (!isSelfNotification || !isTestMessage) {
-      return new Response(JSON.stringify({ error: 'Access denied' }), { status: 403, headers })
+      return res.status(403).json({ error: 'Access denied' })
     }
   }
 
@@ -58,7 +54,7 @@ export default async (request, context) => {
       .single()
 
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers })
+      return res.status(400).json({ error: error.message })
     }
 
     return new Response(
@@ -70,6 +66,13 @@ export default async (request, context) => {
       { status: 201, headers }
     )
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to send notification' }), { status: 500, headers })
+    return res.status(500).json({ error: 'Failed to send notification' })
   }
 }
+
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

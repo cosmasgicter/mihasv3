@@ -159,5 +159,6 @@ async function expressHandler(req, res) {
   }
 }
 
+export const handler = expressHandler
 export { expressHandler, processEmailQueue }
 export default expressHandler

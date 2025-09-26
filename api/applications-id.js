@@ -1,13 +1,8 @@
-export default async (request, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
-    'Content-Type': 'application/json'
-  }
+async function baseHandler(req, res) {
+  
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
   const url = new URL(request.url)
@@ -15,3 +10,10 @@ export default async (request, context) => {
   
   return new Response(JSON.stringify({ application: { id, status: 'draft' } }), { headers })
 }
+
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

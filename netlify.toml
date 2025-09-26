@@ -115,8 +115,32 @@
   force = true
 
 [[redirects]]
-  from = "/api/admin/users"
-  to = "/.netlify/functions/admin/users"
+  from = "/api/auth/reset-password"
+  to = "/.netlify/functions/auth-reset-password"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/queue-status"
+  to = "/.netlify/functions/admin-queue-status"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/notifications/process-email-queue"
+  to = "/.netlify/functions/notifications-process-email-queue"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/mcp/query"
+  to = "/.netlify/functions/mcp-query"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/test"
+  to = "/.netlify/functions/test"
   status = 200
   force = true
 
@@ -200,6 +224,9 @@
   for = "/api/*"
   [headers.values]
     Cache-Control = "no-store"
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, authorization, x-requested-with"
 
 
 

@@ -1,2 +1,1 @@
-export { handler } from '../../api/push-subscriptions/index.js'
-export { default } from '../../api/push-subscriptions/index.js'
+export { handler, handler as default } from '../../api/push-subscriptions/index.js'

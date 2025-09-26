@@ -1,40 +1,39 @@
 import { supabaseAnonClient } from './_lib/supabaseClient.js'
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 import { logAuditEvent } from './_lib/auditLogger.js'
 
-export default async (request, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
-    'Content-Type': 'application/json'
+async function baseHandler(req, res) {
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
-  }
-
-  const body = await request.json().catch(() => ({}))
-  const { email, password } = body
+  const { email, password } = req.body
 
   if (!email || !password) {
-    return new Response(JSON.stringify({ error: 'Email and password are required' }), { status: 400, headers })
+    return res.status(400).json({ error: 'Email and password are required' })
   }
 
   const { data, error } = await supabaseAnonClient.auth.signInWithPassword({ email, password })
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 401, headers })
+    return res.status(401).json({ error: error.message })
   }
 
   const token = data.session?.access_token ?? null
 
-  return new Response(JSON.stringify({
+  return res.status(200).json({
     user: data.user,
     session: data.session,
     token
-  }), { status: 200, headers })
+  })
 }
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

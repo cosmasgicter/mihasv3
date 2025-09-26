@@ -1,4 +1,3 @@
 import { handler } from './applications/generate-slip.js'
-import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 export { handler }
 export default handler

@@ -1,19 +1,15 @@
 import { testSupabaseConnection } from './_lib/networkTest.js'
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 import { useMockSupabase } from './_lib/supabaseClient.js'
 
-export default async (request, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
-    'Content-Type': 'application/json'
+async function baseHandler(req, res) {
+  
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
-  }
-
-  if (request.method !== 'GET') {
+  if (req.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { 
       status: 405, headers 
     })
@@ -30,10 +26,10 @@ export default async (request, context) => {
   const supabaseUrl = process.env.VITE_SUPABASE_URL
 
   if (!supabaseUrl) {
-    return new Response(JSON.stringify({
+    return res.status(500).json({
       status: 'error',
       message: 'Supabase URL not configured'
-    }), { status: 500, headers })
+    })
   }
 
   const connectionTest = await testSupabaseConnection(supabaseUrl)
@@ -55,3 +51,9 @@ export default async (request, context) => {
     }
   )
 }
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

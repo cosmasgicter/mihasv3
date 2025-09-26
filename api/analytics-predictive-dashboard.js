@@ -1,25 +1,21 @@
 import { handlePredictiveDashboardRequest } from './_lib/analytics/predictiveDashboard.js'
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 
-export default async (request, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization',
-    'Content-Type': 'application/json'
+async function baseHandler(req, res) {
+  
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
-  }
-
-  if (request.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
     // Convert request to Express-like format for compatibility
     const req = {
-      method: request.method,
+      method: req.method,
       headers: Object.fromEntries(request.headers),
       query: Object.fromEntries(new URL(request.url).searchParams)
     }
@@ -35,6 +31,12 @@ export default async (request, context) => {
       headers 
     })
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers })
+    return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
+const netlifyHandler = withNetlifyHandler(baseHandler)
+
+export { baseHandler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler
