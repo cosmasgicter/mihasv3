@@ -6,6 +6,7 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { cn, formatDate } from '@/lib/utils'
 import { FileText, Clock, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
+import { clearAllDraftData } from '@/lib/draftCleanup'
 
 interface DraftInfo {
   exists: boolean
@@ -61,10 +62,19 @@ export function ContinueApplication() {
 
     try {
       setDeleting(true)
-      await applicationSessionManager.deleteDraft(profile?.user_id || user.id)
-      setDraftInfo({ exists: false })
+      const result = await applicationSessionManager.deleteDraft(profile?.user_id || user.id)
+      
+      if (result.success) {
+        setDraftInfo({ exists: false })
+        // Dispatch event to notify other components
+        window.dispatchEvent(new CustomEvent('draftCleared'))
+      } else {
+        console.error('Failed to delete draft:', result.error)
+        alert('Failed to delete draft: ' + (result.error || 'Unknown error'))
+      }
     } catch (error) {
       console.error('Error deleting draft:', error)
+      alert('Failed to delete draft. Please try again.')
     } finally {
       setDeleting(false)
     }

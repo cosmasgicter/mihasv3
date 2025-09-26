@@ -77,8 +77,7 @@ export interface SubjectGrade {
   grade: number
 }
 
-// Export the enhanced eligibility checker for use in components
-export { regulatoryEngine } from './regulatoryGuidelines'
+// Note: regulatoryEngine is imported separately to avoid circular dependencies
 
 export function checkEligibility(
   program: string, 
@@ -175,10 +174,10 @@ export function getRecommendedSubjects(program: string): string[] {
 }
 
 // Enhanced eligibility checking with comprehensive assessment
-export function checkEnhancedEligibility(
+export async function checkEnhancedEligibility(
   program: string,
   grades: SubjectGrade[]
-): EnhancedEligibilityResult {
+): Promise<EnhancedEligibilityResult> {
   const rules = ELIGIBILITY_RULES[program]
   if (!rules) {
     return {
@@ -197,23 +196,28 @@ export function checkEnhancedEligibility(
   }
 
   // Check regulatory compliance first
-  const programCode = getProgramCode(program)
-  const regulatoryCompliance = regulatoryEngine.checkCompliance(programCode, { grades })
-  
-  if (!regulatoryCompliance.compliant) {
-    return {
-      eligible: false,
-      status: 'not_eligible',
-      overallScore: 0,
-      breakdown: { subjectCount: 0, gradeAverage: 0, coreSubjects: 0, totalWeighted: 0 },
-      missingRequirements: regulatoryCompliance.violations.map(violation => ({
-        type: 'subject' as const,
-        description: violation,
-        severity: 'critical' as const,
-        suggestion: `Ensure compliance with regulatory requirement: ${violation}`
-      })),
-      recommendations: regulatoryCompliance.recommendations
+  try {
+    const { regulatoryEngine } = await import('./regulatoryGuidelines')
+    const programCode = getProgramCode(program)
+    const regulatoryCompliance = regulatoryEngine.checkCompliance(programCode, { grades })
+    
+    if (!regulatoryCompliance.compliant) {
+      return {
+        eligible: false,
+        status: 'not_eligible',
+        overallScore: 0,
+        breakdown: { subjectCount: 0, gradeAverage: 0, coreSubjects: 0, totalWeighted: 0 },
+        missingRequirements: regulatoryCompliance.violations.map(violation => ({
+          type: 'subject' as const,
+          description: violation,
+          severity: 'critical' as const,
+          suggestion: `Ensure compliance with regulatory requirement: ${violation}`
+        })),
+        recommendations: regulatoryCompliance.recommendations
+      }
     }
+  } catch (error) {
+    console.warn('Could not check regulatory compliance:', error)
   }
 
   const breakdown = {

@@ -6,12 +6,31 @@ const MIN_GRADE = 1
 const MAX_GRADE = 12
 const BEST_FIVE_COUNT = 5
 
+/**
+ * Zambian Grading System:
+ * Grade 1 = 1 point
+ * Grade 2 = 2 points
+ * Grade 3 = 3 points
+ * Grade 4 = 4 points
+ * Grade 5 = 5 points
+ * Grade 6 = 6 points
+ * Grade 7 = 7 points
+ * Grade 8 = 8 points
+ * Grade 9 = 9 points
+ * Grade 10-12 = 0 points (Fail)
+ */
+
 export const convertGradeToPoints = (grade: number): number => {
   if (!Number.isFinite(grade)) {
     return 0
   }
 
-  return Math.max(0, 10 - grade)
+  // Zambian grading system: Grade 1 = 1 point, Grade 2 = 2 points, etc.
+  if (grade >= 1 && grade <= 9) {
+    return grade
+  }
+  
+  return 0
 }
 
 export const sanitizeGradeValue = (value: unknown): number | null => {
@@ -51,6 +70,7 @@ export const calculateBestFivePoints = (grades: Array<GradeRecord | number | nul
     return 0
   }
 
+  // Sort by grade value (ascending) to get best grades first (1 is better than 9)
   const bestGrades = [...normalizedGrades]
     .sort((a, b) => a - b)
     .slice(0, BEST_FIVE_COUNT)

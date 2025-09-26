@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from './supabase'
 import type { EnhancedEligibilityResult, SubjectGrade as LegacySubjectGrade } from './eligibility'
 import { checkEnhancedEligibility } from './eligibility'
+import { regulatoryEngine } from './regulatoryGuidelines'
 
 export interface EligibilityRule {
   id: string
@@ -131,7 +132,7 @@ export class EligibilityEngine {
       }
     }
 
-    const enhancedResult = checkEnhancedEligibility(
+    const enhancedResult = await checkEnhancedEligibility(
       resolvedProgramName,
       grades as LegacySubjectGrade[]
     )
@@ -322,17 +323,20 @@ export class EligibilityEngine {
       .single()
 
     if (program) {
-      const { regulatoryEngine } = await import('./regulatoryGuidelines')
-      const compliance = regulatoryEngine.checkCompliance(program.code, { grades })
-      
-      compliance.violations.forEach(violation => {
-        missing.push({
-          type: 'prerequisite',
-          description: violation,
-          severity: 'critical',
-          suggestion: `Ensure compliance with regulatory requirement: ${violation}`
+      try {
+        const compliance = regulatoryEngine.checkCompliance(program.code, { grades })
+        
+        compliance.violations.forEach(violation => {
+          missing.push({
+            type: 'prerequisite',
+            description: violation,
+            severity: 'critical',
+            suggestion: `Ensure compliance with regulatory requirement: ${violation}`
+          })
         })
-      })
+      } catch (error) {
+        console.warn('Could not check regulatory compliance:', error)
+      }
     }
 
     // Get course requirements

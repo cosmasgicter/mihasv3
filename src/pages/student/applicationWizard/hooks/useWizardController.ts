@@ -9,6 +9,8 @@ import { applicationsData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useProfileAutoPopulation, getBestValue, getUserMetadata } from '@/hooks/useProfileAutoPopulation'
+import { useApplicationSubmitFixed } from '@/hooks/useApplicationSubmitFixed'
+import { useEligibilityCheckerFixed } from '@/hooks/useEligibilityCheckerFixed'
 import { draftManager } from '@/lib/draftManager'
 import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibility'
 import { createApplicationSlip } from '@/lib/slipService'
@@ -610,17 +612,23 @@ const useWizardController = (): UseWizardControllerResult => {
 
   const getUsedSubjects = useCallback(() => selectedGrades.map(grade => grade.subject_id).filter(Boolean), [selectedGrades])
 
-  const eligibilityCheck = useMemo(() => {
-    const programName = selectedProgramDetails?.name
-    if (!programName) return null
-    return checkEligibility(
-      programName,
-      selectedGrades.map(grade => {
-        const subject = subjects.find(s => s.id === grade.subject_id)
-        return { subject_id: grade.subject_id, subject_name: subject?.name || '', grade: grade.grade }
-      })
-    )
-  }, [selectedProgramDetails, selectedGrades, subjects])
+  // Use the fixed eligibility checker
+  const { assessment: eligibilityAssessment } = useEligibilityCheckerFixed({
+    applicationId: applicationId || '',
+    programId: selectedProgram || '',
+    programName: selectedProgramDetails?.name,
+    grades: selectedGrades.map(grade => {
+      const subject = subjects.find(s => s.id === grade.subject_id)
+      return { 
+        subject_id: grade.subject_id, 
+        subject_name: subject?.name || grade.subject_id || '', 
+        grade: grade.grade 
+      }
+    }).filter(g => g.subject_name),
+    enabled: Boolean(selectedProgramDetails?.name && selectedGrades.length > 0)
+  })
+
+  const eligibilityCheck = eligibilityAssessment
 
   const recommendedSubjects = useMemo(
     () => (selectedProgramDetails?.name ? getRecommendedSubjects(selectedProgramDetails.name) : []),
@@ -890,17 +898,22 @@ const useWizardController = (): UseWizardControllerResult => {
     try {
       setLoading(true)
       setError('')
+      
+      // Verify authentication first
       const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
       if (authError || !currentUser) {
         throw new Error('Please sign in again to submit your application')
       }
 
-      const popUrl = await startUpload(popFile, 'proof_of_payment')
-      
-      if (!applicationId) {
-        throw new Error('Application ID is required for submission')
+      // Upload proof of payment first
+      let popUrl: string
+      try {
+        popUrl = await startUpload(popFile, 'proof_of_payment')
+      } catch (uploadError) {
+        throw new Error('Failed to upload proof of payment. Please try again.')
       }
       
+      // Update application with submission data
       const updatedApp = await updateApplication.mutateAsync({
         id: applicationId,
         data: {
