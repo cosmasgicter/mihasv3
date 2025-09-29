@@ -21,9 +21,9 @@ async function baseHandler(req, res) {
 
     if (error) throw error
 
-    return new Response(JSON.stringify({ programs: data || [] }), { headers })
+    return res.status(200).json({ programs: data || [] });
   } catch (error) {
-    return res.status(500).json({ error: 'Failed to load programs' })
+    return res.status(500).json({ error: error.message || 'Failed to load programs' })
   }
 }
 

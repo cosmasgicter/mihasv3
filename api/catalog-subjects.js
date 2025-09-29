@@ -22,7 +22,7 @@ async function baseHandler(req, res) {
     return res.status(400).json({ error: error.message })
   }
 
-  return new Response(JSON.stringify({ subjects: data || [] }), { headers })
+  return res.status(200).json({ subjects: data || [] });
 }
 
 const netlifyHandler = withNetlifyHandler(baseHandler)
