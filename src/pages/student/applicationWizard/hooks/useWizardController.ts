@@ -948,28 +948,28 @@ const useWizardController = (): UseWizardControllerResult => {
         updatedAt: updatedApp.updated_at
       }))
 
-      try {
-        const { getApiBaseUrl } = await import('@/lib/apiConfig')
-        const apiBase = getApiBaseUrl()
-        const { token, error: sessionError } = await getSessionToken()
+      // try {
+      //   const { getApiBaseUrl } = await import('@/lib/apiConfig')
+      //   const apiBase = getApiBaseUrl()
+      //   const { token, error: sessionError } = await getSessionToken()
         
-        if (!token) {
-          console.warn('No session token available:', sessionError)
-          showWarning('Application submitted but notifications may be delayed')
-        } else {
-          await fetch(`${apiBase}/api/notifications/application-submitted`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ applicationId: updatedApp.id, userId: user.id })
-          })
-        }
-      } catch (notificationError) {
-        console.warn('Failed to send notifications:', sanitizeForLog(notificationError instanceof Error ? notificationError.message : 'Unknown error'))
-        showWarning('Application submitted but notifications may be delayed')
-      }
+      //   if (!token) {
+      //     console.warn('No session token available:', sessionError)
+      //     showWarning('Application submitted but notifications may be delayed')
+      //   } else {
+      //     await fetch(`${apiBase}/api/notifications/application-submitted`, {
+      //       method: 'POST',
+      //       headers: {
+      //         'Content-Type': 'application/json',
+      //         Authorization: `Bearer ${token}`
+      //       },
+      //       body: JSON.stringify({ applicationId: updatedApp.id, userId: user.id })
+      //     })
+      //   }
+      // } catch (notificationError) {
+      //   console.warn('Failed to send notifications:', sanitizeForLog(notificationError instanceof Error ? notificationError.message : 'Unknown error'))
+      //   showWarning('Application submitted but notifications may be delayed')
+      // }
 
       try {
         localStorage.removeItem('applicationWizardDraft')
