@@ -23,7 +23,13 @@ async function baseHandler(req, res) {
 
     return res.status(200).json({ programs: data || [] });
   } catch (error) {
-    return res.status(500).json({ error: error.message || 'Failed to load programs' })
+    console.error('Failed to load programs:', error);
+    console.error('Failed to load programs:', { message: error.message, code: error.code, hint: error.hint, stack: error.stack });
+    return res.status(500).json({
+      error: 'Failed to load programs',
+      details: error.message,
+      code: error.code
+    });
   }
 }
 
