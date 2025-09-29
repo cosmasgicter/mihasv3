@@ -76,7 +76,7 @@ async function baseHandler(req, res) {
   }
 
   if (req.method === 'POST') {
-    return new Response(JSON.stringify({ success: true }), { headers })
+    return res.status(200).json({ success: true });
   }
 
   if (req.method !== 'GET') {
@@ -84,30 +84,27 @@ async function baseHandler(req, res) {
   }
 
   if (useMockSupabase) {
-    return new Response(JSON.stringify(buildMockMetrics()), { status: 200, headers })
+    return res.status(200).json(buildMockMetrics());
   }
 
   const authContext = await getUserFromRequest(
-    { headers: Object.fromEntries(request.headers) },
+    req,
     { requireAdmin: true }
   )
 
   if (authContext.error) {
     const status = authContext.error === 'Access denied' ? 403 : 401
-    return new Response(JSON.stringify({ error: authContext.error }), { status, headers })
+    return res.status(status).json({ error: authContext.error });
   }
 
   const { metrics, warnings } = await buildLiveMetrics()
 
-  return new Response(
-    JSON.stringify({
+  return res.status(200).json({
       success: true,
       mode: 'live',
       metrics,
       warnings: warnings.length ? warnings : undefined
-    }),
-    { status: 200, headers }
-  )
+  });
 }
 
 

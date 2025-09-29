@@ -1,12 +1,12 @@
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
+
 async function baseHandler(req, res) {
-  return new Response(JSON.stringify({
+  return res.status(200).json({
     message: 'API is working!',
     method: req.method,
     timestamp: new Date().toISOString(),
-    url: request.url
-  }), {
-    headers: { 'Content-Type': 'application/json' }
-  })
+    url: req.url
+  });
 }
 
 

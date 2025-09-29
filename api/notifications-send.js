@@ -13,12 +13,12 @@ async function baseHandler(req, res) {
   }
 
   const authContext = await getUserFromRequest(
-    { headers: Object.fromEntries(request.headers) },
+    req,
     { requireAdmin: false }
   )
   if (authContext.error) {
     const status = authContext.error === 'Access denied' ? 403 : 401
-    return new Response(JSON.stringify({ error: authContext.error }), { status, headers })
+    return res.status(status).json({ error: authContext.error });
   }
 
   const body = req.body
@@ -57,14 +57,11 @@ async function baseHandler(req, res) {
       return res.status(400).json({ error: error.message })
     }
 
-    return new Response(
-      JSON.stringify({
+    return res.status(201).json({
         success: true,
         notification,
         deliveredTo: recipient
-      }),
-      { status: 201, headers }
-    )
+    });
   } catch (error) {
     return res.status(500).json({ error: 'Failed to send notification' })
   }

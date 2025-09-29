@@ -1,11 +1,11 @@
-async function baseHandler(req, res) {
-  
+import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 
+async function baseHandler(req, res) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
 
-  return new Response(JSON.stringify({ stats: { total: 0, recent: 0 } }), { headers })
+  return res.status(200).json({ stats: { total: 0, recent: 0 } });
 }
 
 const netlifyHandler = withNetlifyHandler(baseHandler)

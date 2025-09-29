@@ -32,7 +32,7 @@ async function baseHandler(req, res) {
       statusBreakdown: statusCounts
     }
 
-    return new Response(JSON.stringify({ stats, recentActivity: [] }), { headers })
+    return res.status(200).json({ stats, recentActivity: [] });
   } catch (error) {
     return res.status(500).json({ error: 'Failed to load dashboard' })
   }
