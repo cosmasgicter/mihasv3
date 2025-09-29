@@ -1,6 +1,2 @@
-import dns from 'node:dns'
-
-// Configure DNS to use Google's public DNS as fallback
-dns.setServers(['127.0.0.53', '8.8.8.8', '1.1.1.1'])
-
-export { dns }
+// DNS configuration has been removed as it is not compatible with the serverless environment.
+// The platform's default DNS resolution will be used.
