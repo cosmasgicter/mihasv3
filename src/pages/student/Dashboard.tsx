@@ -189,7 +189,7 @@ export default function StudentDashboard() {
   const firstName = displayName?.split(' ')[0] || 'Student'
 
   const draftApplications = applications.filter(app => app.status === 'draft')
-  const submittedApplications = applications.filter(app => app.status !== 'draft')
+  const submittedApplications = applications.filter(app => app.status !== 'draft' && app.status !== 'deleted')
   const hasLocalDraftOnly = hasDraft && draftApplications.length === 0
   const totalDraftCount = draftApplications.length + (hasLocalDraftOnly ? 1 : 0)
 
