@@ -130,5 +130,12 @@
     "terser": "^5.37.0",
     "typescript-eslint": "^8.18.1",
     "vitest": "^3.2.4"
+  },
+  "netlify": {
+    "functions": {
+      "included_files": [
+        "api/_lib/validation.js"
+      ]
+    }
   }
 }
