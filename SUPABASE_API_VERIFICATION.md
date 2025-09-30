@@ -47,7 +47,7 @@ SUPABASE_URL=https://mylgegkqoddcrxtwcclb.supabase.co ✅
 [build]
   command = "npm run build:prod" ✅
   publish = "dist" ✅
-  environment = { NODE_VERSION = "22.19.0" } ✅
+  environment = { NODE_VERSION = "20.18.0" } ✅
 
 [functions]
   directory = "api" ✅
