@@ -3,7 +3,7 @@ import { withNetlifyHandler } from './_lib/netlifyHandler.js';
 import { validateUpdate, validateStatusUpdate } from './_lib/validation.js';
 import { sanitizeForLog } from './_lib/security.js';
 
-const handler = async (req, res) => {
+const baseHandler = async (req, res) => {
   const { id } = req.query;
 
   if (!id) {
