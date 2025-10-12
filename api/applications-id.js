@@ -10,10 +10,40 @@ async function baseHandler(req, res) {
     return res.status(200).end()
   }
 
-  const { id } = req.query
+  // Extract ID from query params (from Netlify redirect) or path params
+  let { id, include } = req.query
+  
+  // If not in query, try to extract from path params
+  if (!id && req.params) {
+    id = req.params.id
+  }
+  
+  // If still not found, try to extract from URL path
+  if (!id && req.path) {
+    const pathMatch = req.path.match(/\/applications\/([^/?]+)/)
+    if (pathMatch) {
+      id = pathMatch[1]
+    }
+  }
+  
+  // Debug logging
+  console.log('ID extraction debug:', {
+    queryId: req.query?.id,
+    paramsId: req.params?.id,
+    path: req.path,
+    url: req.url,
+    extractedId: id
+  })
 
   if (!id) {
-    return res.status(400).json({ error: 'Application ID is required' })
+    return res.status(400).json({ 
+      error: 'Application ID is required',
+      debug: {
+        query: req.query,
+        params: req.params,
+        path: req.path
+      }
+    })
   }
 
   try {
@@ -23,14 +53,27 @@ async function baseHandler(req, res) {
         return res.status(401).json({ error: authContext.error })
       }
 
-      return res.status(200).json({ 
-        success: true, 
-        data: { 
-          id, 
-          status: 'submitted',
-          created_at: new Date().toISOString()
-        } 
-      })
+      // Fetch application with access control
+      const { data, error } = await supabaseAdminClient
+        .from('applications_new')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle()
+
+      if (error) {
+        return res.status(400).json({ error: error.message })
+      }
+
+      if (!data) {
+        return res.status(404).json({ error: 'Application not found' })
+      }
+
+      // Check access - user can only see their own applications unless admin
+      if (!authContext.isAdmin && data.user_id !== authContext.user.id) {
+        return res.status(403).json({ error: 'Access denied' })
+      }
+
+      return res.status(200).json({ success: true, data })
     }
 
     if (req.method === 'PATCH') {
@@ -39,18 +82,33 @@ async function baseHandler(req, res) {
         return res.status(401).json({ error: authContext.error })
       }
 
-      return res.status(200).json({ 
-        success: true, 
-        data: { 
-          id, 
-          payment_status: 'verified',
-          updated_at: new Date().toISOString()
-        } 
-      })
+      const body = req.body || {}
+      const { action, paymentStatus } = body
+
+      if (action === 'update_payment_status' && paymentStatus) {
+        const { data, error } = await supabaseAdminClient
+          .from('applications_new')
+          .update({ 
+            payment_status: paymentStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select()
+          .single()
+
+        if (error) {
+          return res.status(400).json({ error: error.message })
+        }
+
+        return res.status(200).json({ success: true, data })
+      }
+
+      return res.status(400).json({ error: 'Invalid action or missing parameters' })
     }
 
     return res.status(405).json({ error: 'Method not allowed' })
   } catch (error) {
+    console.error('Application handler error:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }

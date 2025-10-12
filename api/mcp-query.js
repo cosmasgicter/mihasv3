@@ -1,4 +1,7 @@
 import { withNetlifyHandler } from './_lib/netlifyHandler.js'
+import { supabaseAdminClient, getUserFromRequest } from './_lib/supabaseClient.js'
+
+const supabase = supabaseAdminClient
 
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -13,11 +16,47 @@ async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  return res.status(200).json({ 
-    success: true,
-    result: 'Query processed successfully',
-    data: []
-  })
+  try {
+    const authContext = await getUserFromRequest(req)
+    if (authContext.error) {
+      return res.status(401).json({ error: authContext.error })
+    }
+
+    const { query, context } = req.body || {}
+
+    if (!query) {
+      return res.status(400).json({ error: 'Query is required' })
+    }
+
+    // Simple query processing for applications
+    if (query.toLowerCase().includes('application')) {
+      const { data: applications, error } = await supabase
+        .from('applications_new')
+        .select('id, application_number, full_name, status, program')
+        .limit(10)
+
+      if (error) {
+        return res.status(500).json({ error: 'Query failed' })
+      }
+
+      return res.status(200).json({
+        success: true,
+        result: `Found ${applications.length} applications`,
+        data: applications,
+        query: query
+      })
+    }
+
+    return res.status(200).json({ 
+      success: true,
+      result: 'Query processed successfully',
+      data: [],
+      query: query
+    })
+  } catch (error) {
+    console.error('MCP query error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
 }
 
 const netlifyHandler = withNetlifyHandler(handler)

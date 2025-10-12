@@ -645,6 +645,11 @@ async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
+      const { error: accessError, status: accessStatus } = await ensureApplicationAccess(req, id)
+      if (accessError) {
+        return res.status(accessStatus).json({ error: accessError })
+      }
+
       const data = await fetchApplicationDetails(id, include)
       if (!data) {
         return res.status(404).json({ error: 'Application not found' })
