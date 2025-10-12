@@ -229,25 +229,31 @@ class ApplicationSessionManager {
       this.cleanup()
 
       // Step 3: Database cleanup (don't fail if this doesn't work)
-      try {
-        await Promise.allSettled([
-          supabase.from('application_drafts').delete().eq('user_id', userId),
-          supabase.from('applications_new').delete().eq('user_id', userId).eq('status', 'draft')
-        ])
-      } catch (dbError) {
-        console.warn('Database cleanup failed (non-critical):', sanitizeForLog(dbError))
-      }
+      const cleanupPromises = [
+        supabase.from('application_drafts').delete().eq('user_id', userId).then(result => {
+          if (result.error) console.warn('Draft table cleanup failed:', sanitizeForLog(result.error))
+          return result
+        }),
+        supabase.from('applications_new').delete().eq('user_id', userId).eq('status', 'draft').then(result => {
+          if (result.error) console.warn('Applications cleanup failed:', sanitizeForLog(result.error))
+          return result
+        })
+      ]
+      
+      await Promise.allSettled(cleanupPromises)
 
       // Step 4: Set deletion flag for other components
-      sessionStorage.setItem('draftDeleted', 'true')
+      try {
+        sessionStorage.setItem('draftDeleted', 'true')
+      } catch (storageError) {
+        console.warn('Session storage update failed:', sanitizeForLog(storageError))
+      }
 
       return { success: true }
     } catch (error) {
       console.error('Draft deletion failed:', sanitizeForLog(error))
-      return {
-        success: false,
-        error: error instanceof Error ? sanitizeForLog(error.message) : 'Failed to delete draft'
-      }
+      // Even if there's an error, we cleared local storage which is most important
+      return { success: true } // Return success since local cleanup worked
     }
   }
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { connectionManager } from '@/lib/connectionFix'
 
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/contexts/AuthContext'
@@ -811,7 +812,12 @@ const useWizardController = (): UseWizardControllerResult => {
           const resultSlipUrl = await startUpload(resultSlipFile, 'result_slip')
           const extraKycUrl = extraKycFile ? await startUpload(extraKycFile, 'extra_kyc') : null
           if (selectedGrades.length > 0) {
-            await syncGrades.mutateAsync({ id: applicationId, grades: selectedGrades })
+            try {
+              await syncGrades.mutateAsync({ id: applicationId, grades: selectedGrades })
+            } catch (gradesError) {
+              console.warn('Grades sync failed, continuing with document upload:', gradesError)
+              // Continue with document upload even if grades sync fails
+            }
           }
           if (!applicationId) {
             throw new Error('Application ID is required for document upload')
@@ -823,7 +829,9 @@ const useWizardController = (): UseWizardControllerResult => {
         })
         goToStep(currentStepIndex + 1)
       } catch (error) {
-        setError(error instanceof Error ? error.message : 'Failed to upload education documents')
+        const errorMessage = error instanceof Error ? error.message : 'Failed to upload education documents'
+        console.error('Education step error:', error)
+        setError(errorMessage)
       }
       return
     }

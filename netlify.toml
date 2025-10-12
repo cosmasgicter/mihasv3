@@ -12,6 +12,7 @@
 [context.production.environment]
   NODE_ENV = "production"
   VITE_NODE_ENV = "production"
+  MIHAS_USE_MOCK_DATA = "false"
 
 [functions]
   directory = "api"

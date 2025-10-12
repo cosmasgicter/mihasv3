@@ -8,8 +8,8 @@ import {
 } from './mockSupabaseClient.js'
 import { mockUsers } from './mockData.js'
 
-const rawMockFlag = process.env.MIHAS_USE_MOCK_DATA ?? (process.env.NODE_ENV === 'production' ? 'false' : 'true')
-const useMockSupabase = String(rawMockFlag).toLowerCase() !== 'false'
+const rawMockFlag = process.env.MIHAS_USE_MOCK_DATA ?? 'false'
+const useMockSupabase = String(rawMockFlag).toLowerCase() === 'true'
 
 const ADMIN_ROLES = new Set(['admin', 'super_admin', 'admissions_officer'])
 const REQUEST_ROLE_CACHE_SYMBOL = Symbol.for('mihas.roleCache')
