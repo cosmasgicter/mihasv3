@@ -121,7 +121,7 @@ export default function PublicApplicationTracker() {
         .select(
           'public_tracking_code, application_number, status, payment_status, submitted_at, updated_at, program_name, intake_name, institution, full_name, email, phone, admin_feedback, admin_feedback_date'
         )
-        .or(`application_number.eq.${trimmedTerm},public_tracking_code.eq.${trimmedTerm}`)
+        .or(`application_number.eq."${trimmedTerm}",public_tracking_code.eq."${trimmedTerm}"`)
         .maybeSingle()
 
       if (searchError) {
