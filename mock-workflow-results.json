@@ -1,0 +1,158 @@
+{
+  "timestamp": "2025-10-12T05:23:44.198Z",
+  "workflow": "mock-application-submission",
+  "summary": {
+    "workflow": "Complete Application Submission",
+    "status": "SUCCESS",
+    "applicant": {
+      "name": "Alexis Star Test User",
+      "email": "alexisstar8@gmail.com",
+      "phone": "+260977123456"
+    },
+    "application": {
+      "id": "app-1760246624143",
+      "number": "MIHAS20256495",
+      "program": "Diploma in Clinical Medicine",
+      "institution": "Kalulushi Training Centre",
+      "intake": "January 2026 Intake",
+      "status": "submitted",
+      "eligibilityScore": 74
+    },
+    "timeline": {
+      "created": "2025-10-12T05:23:44.182Z",
+      "submitted": "2025-10-12T05:23:44.193Z",
+      "nextReview": "2025-11-15"
+    },
+    "nextSteps": [
+      "Upload required documents",
+      "Pay application fee",
+      "Await review by admissions committee",
+      "Check application status regularly"
+    ]
+  },
+  "applicationData": {
+    "id": "app-1760246624143",
+    "application_number": "MIHAS20256495",
+    "user_id": "user-123",
+    "full_name": "Alexis Star Test User",
+    "email": "alexisstar8@gmail.com",
+    "phone": "+260977123456",
+    "date_of_birth": "1995-06-15",
+    "gender": "male",
+    "nationality": "Zambian",
+    "nrc_number": "NRC123456789",
+    "address_line_1": "123 Test Street",
+    "address_line_2": "Test Area",
+    "city": "Lusaka",
+    "province": "Lusaka",
+    "postal_code": "10101",
+    "country": "Zambia",
+    "program": "Diploma in Clinical Medicine",
+    "program_id": "7fe6b676-d909-4160-a37b-3774c1f3c1bc",
+    "institution": "Kalulushi Training Centre",
+    "intake_id": "4b877b03-2260-4c26-b56c-0b9c840b8ccb",
+    "intake_year": 2026,
+    "highest_qualification": "Grade 12 Certificate",
+    "school_name": "Test High School",
+    "graduation_year": 2013,
+    "english_grade": 2,
+    "mathematics_grade": 3,
+    "science_grade": 2,
+    "additional_subjects": [
+      {
+        "subject": "Biology",
+        "grade": 2
+      },
+      {
+        "subject": "Chemistry",
+        "grade": 3
+      },
+      {
+        "subject": "Physics",
+        "grade": 2
+      },
+      {
+        "subject": "Geography",
+        "grade": 3
+      }
+    ],
+    "status": "submitted",
+    "application_type": "new",
+    "payment_status": "pending",
+    "created_at": "2025-10-12T05:23:44.182Z",
+    "updated_at": "2025-10-12T05:23:44.193Z",
+    "submitted_at": "2025-10-12T05:23:44.193Z"
+  },
+  "trackingInfo": {
+    "applicationId": "app-1760246624143",
+    "currentStatus": "submitted",
+    "progress": 60,
+    "nextAction": "Upload documents",
+    "estimatedReviewDate": "2025-11-15",
+    "timeline": [
+      {
+        "step": "Application Created",
+        "date": "2025-10-12T05:23:44.182Z",
+        "status": "completed"
+      },
+      {
+        "step": "Application Submitted",
+        "date": "2025-10-12T05:23:44.193Z",
+        "status": "completed"
+      },
+      {
+        "step": "Documents Upload",
+        "date": null,
+        "status": "pending"
+      },
+      {
+        "step": "Payment Processing",
+        "date": null,
+        "status": "pending"
+      },
+      {
+        "step": "Admissions Review",
+        "date": null,
+        "status": "pending"
+      },
+      {
+        "step": "Decision Notification",
+        "date": null,
+        "status": "pending"
+      }
+    ]
+  },
+  "notifications": [
+    {
+      "type": "application_submitted",
+      "message": "Your application has been submitted successfully",
+      "timestamp": "2025-10-12T05:23:44.193Z"
+    },
+    {
+      "type": "documents_required",
+      "message": "Please upload your required documents",
+      "timestamp": "2025-10-12T05:23:44.193Z"
+    },
+    {
+      "type": "payment_pending",
+      "message": "Application fee payment is required",
+      "timestamp": "2025-10-12T05:23:44.193Z"
+    }
+  ],
+  "applicationSlip": {
+    "applicationNumber": "MIHAS20256495",
+    "applicantName": "Alexis Star Test User",
+    "program": "Diploma in Clinical Medicine",
+    "institution": "Kalulushi Training Centre",
+    "intake": "January 2026 Intake",
+    "submissionDate": "2025-10-12T05:23:44.193Z",
+    "eligibilityScore": 74,
+    "status": "submitted",
+    "nextSteps": [
+      "Upload required documents",
+      "Pay application fee",
+      "Await review by admissions committee",
+      "Check application status regularly"
+    ]
+  }
+}
