@@ -1,117 +1,46 @@
-import {
-  supabaseAdminClient,
-  getUserFromRequest
-} from '../../_lib/supabaseClient.js'
-import { logAuditEvent } from '../../_lib/auditLogger.js'
+import { supabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js'
 import { withNetlifyHandler } from '../../_lib/netlifyHandler.js'
 
-async function handler(req, res) {
-  // Add CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, authorization')
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
+const supabase = supabaseAdminClient
+
+async function baseHandler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
-
   try {
-    const authContext = await getUserFromRequest(req, { requireAdmin: true })
-    if (authContext?.error) {
+    const authContext = await getUserFromRequest(req)
+    if (authContext.error) {
       const status = authContext.error === 'Access denied' ? 403 : 401
       return res.status(status).json({ error: authContext.error })
     }
-    if (!authContext || !authContext.user) {
-      return res.status(401).json({ error: 'Authentication required' })
+
+    if (!authContext.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' })
     }
 
-    const { user, roles = [] } = authContext
+    // Get users from profiles table
+    const { data: users, error } = await supabase
+      .from('profiles')
+      .select('id, email, first_name, last_name, role, is_active, created_at')
+      .order('created_at', { ascending: false })
 
-    if (req.method === 'GET') {
-      const { data, error } = await supabaseAdminClient
-        .from('user_profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-
-      await logAuditEvent({
-        req,
-        action: 'admin.users.list',
-        actorId: user.id,
-        actorEmail: user.email || null,
-        actorRoles: roles,
-        targetTable: 'user_profiles',
-        metadata: { total: Array.isArray(data) ? data.length : 0 }
-      })
-
-      return res.status(200).json({ data })
+    if (error) {
+      throw error
     }
 
-    if (req.method === 'POST') {
-      let body = req.body
+    return res.status(200).json({
+      users: users || []
+    })
 
-      if (typeof body === 'string') {
-        try {
-          body = JSON.parse(body)
-        } catch (parseError) {
-          console.error('Invalid JSON body for admin users POST:', parseError)
-          return res.status(400).json({ error: 'Invalid JSON body' })
-        }
-      }
-
-      const payload = body && typeof body === 'object' ? body : {}
-      const { email, password, full_name, phone, role } = payload
-
-      const { data: authData, error: authError } = await supabaseAdminClient.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true
-      })
-
-      if (authError) throw authError
-      if (!authData?.user) throw new Error('Failed to create user')
-
-      const { data: profileData, error: profileError } = await supabaseAdminClient
-        .from('user_profiles')
-        .insert({
-          user_id: authData.user.id,
-          email,
-          full_name,
-          phone,
-          role
-        })
-        .select()
-        .single()
-
-      if (profileError) throw profileError
-
-      await logAuditEvent({
-        req,
-        action: 'admin.users.create',
-        actorId: user.id,
-        actorEmail: user.email || null,
-        actorRoles: roles,
-        targetTable: 'user_profiles',
-        targetId: profileData?.user_id || null,
-        metadata: { email, role }
-      })
-
-      return res.status(201).json({ data: profileData })
-    }
-
-    res.setHeader('Allow', 'GET,POST')
-    return res.status(405).json({ error: 'Method not allowed' })
   } catch (error) {
-    console.error('Admin users index handler error:', error)
-    const statusCode = error.message === 'Access denied' ? 403 : 500
-    return res.status(statusCode).json({ error: error.message || 'Internal server error' })
+    console.error('Users list error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
   }
 }
 
-const netlifyHandler = withNetlifyHandler(handler)
+const netlifyHandler = withNetlifyHandler(baseHandler)
 
-export { handler as expressHandler }
+export { baseHandler as expressHandler }
 export { netlifyHandler as handler }
 export default netlifyHandler
