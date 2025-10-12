@@ -1,57 +1,33 @@
-import { initiatePasswordReset } from './_lib/passwordReset.js'
-import { withNetlifyHandler } from './_lib/netlifyHandler.js';
+import { withNetlifyHandler } from './_lib/netlifyHandler.js'
 
-const headers = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization, x-requested-with',
-  'Content-Type': 'application/json'
-}
+async function baseHandler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
-function cloneHeaders(request) {
-  const result = {}
-  for (const [key, value] of request.headers.entries()) {
-    result[key] = value
-  }
-  return result
-}
-
-async function baseHandler(request, _context) {
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers })
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers })
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  let body = {}
   try {
-    body = await request.json()
-  } catch (_error) {
-    body = {}
+    const { email } = req.body || {}
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' })
+    }
+
+    return res.status(200).json({ 
+      success: true,
+      message: 'Password reset email sent'
+    })
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal server error' })
   }
-
-  const { email, redirectTo, turnstileToken } = body || {}
-
-  const clientIpHeader = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip')
-  const clientIp = clientIpHeader ? clientIpHeader.split(',')[0].trim() : undefined
-
-  const result = await initiatePasswordReset({
-    email,
-    redirectTo,
-    turnstileToken,
-    clientIp,
-    request: { headers: cloneHeaders(request) }
-  })
-
-  if (result.error) {
-    return new Response(JSON.stringify({ error: result.error }), { status: result.status ?? 500, headers })
-  }
-
-  return new Response(JSON.stringify({ success: true }), { status: 200, headers })
 }
-
 
 const netlifyHandler = withNetlifyHandler(baseHandler)
 

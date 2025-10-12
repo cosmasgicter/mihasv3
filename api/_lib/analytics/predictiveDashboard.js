@@ -1,5 +1,4 @@
 import { supabaseAdminClient, getUserFromRequest } from '../supabaseClient.js'
-import { withErrorRecovery } from '../errorRecovery.js'
 
 const DEFAULT_PREDICTIVE_SUMMARY = {
   avgAdmissionProbability: 0,
@@ -53,27 +52,32 @@ async function fallbackPredictiveSummary() {
   }
 }
 
-const handlePredictiveDashboardRequest = withErrorRecovery(async (req, res) => {
-  const authContext = await getUserFromRequest(req, { requireAdmin: true })
-  if (authContext.error) {
-    const status = authContext.error === 'Access denied' ? 403 : 401
-    return res.status(status).json({ error: authContext.error })
-  }
-
-  const predictive = await fallbackPredictiveSummary()
-  const workflow = DEFAULT_WORKFLOW_SUMMARY
-
-  const responseBody = {
-    predictive,
-    workflow,
-    generatedAt: new Date().toISOString(),
-    source: {
-      predictive: 'fallback',
-      workflow: 'default'
+async function handlePredictiveDashboardRequest(req, res) {
+  try {
+    const authContext = await getUserFromRequest(req, { requireAdmin: true })
+    if (authContext.error) {
+      const status = authContext.error === 'Access denied' ? 403 : 401
+      return res.status(status).json({ error: authContext.error })
     }
-  }
 
-  return res.status(200).json(responseBody)
-})
+    const predictive = await fallbackPredictiveSummary()
+    const workflow = DEFAULT_WORKFLOW_SUMMARY
+
+    const responseBody = {
+      predictive,
+      workflow,
+      generatedAt: new Date().toISOString(),
+      source: {
+        predictive: 'fallback',
+        workflow: 'default'
+      }
+    }
+
+    return res.status(200).json(responseBody)
+  } catch (error) {
+    console.error('Predictive dashboard error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
 
 export { handlePredictiveDashboardRequest }
