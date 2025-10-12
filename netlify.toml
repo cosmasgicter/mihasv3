@@ -140,6 +140,18 @@
   force = true
 
 [[redirects]]
+  from = "/api/admin/users"
+  to = "/.netlify/functions/admin-users"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/users/:id"
+  to = "/.netlify/functions/admin-users-id?id=:id"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/test"
   to = "/.netlify/functions/test"
   status = 200
