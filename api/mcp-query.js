@@ -17,15 +17,31 @@ async function handler(req, res) {
   }
 
   try {
-    const authContext = await getUserFromRequest(req)
-    if (authContext.error) {
-      return res.status(401).json({ error: authContext.error })
-    }
-
     const { query, context } = req.body || {}
 
     if (!query) {
       return res.status(400).json({ error: 'Query is required' })
+    }
+
+    // For basic queries, don't require authentication
+    if (query.toLowerCase().includes('help') || query.toLowerCase().includes('status')) {
+      return res.status(200).json({ 
+        success: true,
+        result: 'MCP service is operational. Available commands: help, status, applications (requires auth)',
+        data: [],
+        query: query
+      })
+    }
+
+    // For data queries, require authentication
+    const authContext = await getUserFromRequest(req)
+    if (authContext.error) {
+      return res.status(200).json({ 
+        success: true,
+        result: 'Authentication required for data queries. Please login first.',
+        data: [],
+        query: query
+      })
     }
 
     // Simple query processing for applications
