@@ -185,8 +185,10 @@ async function testFullApplicationProcess() {
   // Step 8: Generate Application Slip
   console.log('\n🧾 Step 8: Generate Application Slip');
   
-  const slipRes = await makeRequest(`applications-generate-slip?id=${appId}`, {
-    headers: authHeaders
+  const slipRes = await makeRequest('applications-generate-slip', {
+    method: 'POST',
+    headers: authHeaders,
+    body: JSON.stringify({ applicationId: appId })
   });
 
   console.log(`   ${slipRes.ok ? '✅' : '❌'} Application slip: ${slipRes.ok ? 'Generated' : slipRes.data?.error}`);

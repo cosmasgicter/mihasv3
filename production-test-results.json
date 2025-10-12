@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-10-12T06:47:23.923Z",
+  "timestamp": "2025-10-12T08:21:31.184Z",
   "user": {
     "email": "alexisstar8@gmail.com",
     "id": "f9b1eede-a856-4112-ab9e-58a93ba838a8"
   },
   "application": {
-    "id": "82a8ecec-0849-4e93-b373-347b22df9d81",
-    "number": "MIHAS1760251637355",
+    "id": "0cd034e8-5314-4387-9899-3a6082105a01",
+    "number": "MIHAS1760257282153",
     "program": "Diploma in Clinical Medicine",
     "institution": "Kalulushi Training Centre",
     "status": "submitted"
@@ -18,7 +18,7 @@
     "documentUpload": "✅ Success",
     "applicationSubmission": "✅ Success",
     "notifications": "✅ Success",
-    "applicationSlip": "❌ Failed",
+    "applicationSlip": "✅ Success",
     "applicationTracking": "✅ Success"
   }
 }
