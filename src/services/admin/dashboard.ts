@@ -313,40 +313,46 @@ export const adminDashboardService = {
   },
   
   async getOverview(): Promise<AdminDashboardResponse> {
-    const response = await apiClient.request('/api/admin/dashboard')
+    try {
+      const response = await apiClient.request('/api/admin/dashboard')
 
-    if (!response || typeof response !== 'object') {
+      if (!response || typeof response !== 'object') {
+        return createEmptyDashboardResponse()
+      }
+
+      const raw = response as RawDashboardResponse
+
+      const rawStats = normalizeStats(raw.stats)
+      const statusBreakdown = normalizeNumberRecord(
+        raw.statusBreakdown ?? (raw.stats?.statusBreakdown as Record<string, unknown> | undefined)
+      )
+      const periodTotals = normalizeNumberRecord(
+        raw.periodTotals ?? raw.applicationTrends ?? (raw.stats?.applicationTrends as Record<string, unknown> | undefined)
+      )
+      const totalsSnapshot = normalizeNumberRecord(
+        raw.totalsSnapshot ?? (raw.stats?.totalsSnapshot as Record<string, unknown> | undefined)
+      )
+      const processingMetrics = normalizeProcessingMetrics(raw.processingMetrics, rawStats)
+      const recentActivity = normalizeRecentActivity(raw.recentActivity)
+      const generatedAt =
+        toIsoString(raw.generatedAt) ??
+        toIsoString(raw.generated_at) ??
+        toIsoString((raw.stats as Record<string, unknown> | undefined)?.generatedAt) ??
+        toIsoString((raw.stats as Record<string, unknown> | undefined)?.generated_at)
+
+      return {
+        ...createEmptyDashboardResponse(),
+        stats: rawStats,
+        statusBreakdown,
+        periodTotals,
+        totalsSnapshot,
+        processingMetrics,
+        recentActivity,
+        generatedAt
+      }
+    } catch (error) {
+      console.error('Dashboard service error:', error)
       return createEmptyDashboardResponse()
-    }
-
-    const raw = response as RawDashboardResponse
-    const rawStats = normalizeStats(raw.stats)
-    const statusBreakdown = normalizeNumberRecord(
-      raw.statusBreakdown ?? (raw.stats?.statusBreakdown as Record<string, unknown> | undefined)
-    )
-    const periodTotals = normalizeNumberRecord(
-      raw.periodTotals ?? raw.applicationTrends ?? (raw.stats?.applicationTrends as Record<string, unknown> | undefined)
-    )
-    const totalsSnapshot = normalizeNumberRecord(
-      raw.totalsSnapshot ?? (raw.stats?.totalsSnapshot as Record<string, unknown> | undefined)
-    )
-    const processingMetrics = normalizeProcessingMetrics(raw.processingMetrics, rawStats)
-    const recentActivity = normalizeRecentActivity(raw.recentActivity)
-    const generatedAt =
-      toIsoString(raw.generatedAt) ??
-      toIsoString(raw.generated_at) ??
-      toIsoString((raw.stats as Record<string, unknown> | undefined)?.generatedAt) ??
-      toIsoString((raw.stats as Record<string, unknown> | undefined)?.generated_at)
-
-    return {
-      ...createEmptyDashboardResponse(),
-      stats: rawStats,
-      statusBreakdown,
-      periodTotals,
-      totalsSnapshot,
-      processingMetrics,
-      recentActivity,
-      generatedAt
     }
   }
 }

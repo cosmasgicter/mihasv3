@@ -2,6 +2,7 @@ import { monitoring } from '@/lib/monitoring'
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
 import { getApiBaseUrl } from '@/lib/apiConfig'
 import { fetchWithCache, invalidateCache } from '@/utils/api-cache'
+import { ApiErrorHandler } from '@/lib/apiErrorHandler'
 
 import type { FetchWithCacheOptions } from '@/utils/api-cache'
 
@@ -228,12 +229,31 @@ class ApiClient {
       monitoring.queueFlush(!response.ok)
 
       if (!response.ok) {
-        monitoring.logError(service, `${response.status}: ${response.statusText}`, {
+        let errorMessage = `API Error: ${response.statusText}`
+        try {
+          const errorData = await response.text()
+          if (errorData) {
+            const parsed = JSON.parse(errorData)
+            errorMessage = parsed.error || parsed.message || errorMessage
+          }
+        } catch {
+          // Use default error message
+        }
+        
+        monitoring.logError(service, `${response.status}: ${errorMessage}`, {
           endpoint,
           method,
           statusCode: response.status
         })
-        throw new Error(`API Error: ${response.statusText}`)
+        
+        // Enhance error message for better UX
+        const enhancedError = ApiErrorHandler.enhanceError({
+          endpoint,
+          method,
+          statusCode: response.status,
+          originalError: new Error(errorMessage)
+        })
+        throw enhancedError
       }
 
       const payload = await this.parseJsonSafely<TResponse>(response, service, endpoint)
@@ -256,6 +276,18 @@ class ApiClient {
         }
       )
       monitoring.queueFlush(true)
+      
+      // Enhance error if not already enhanced
+      if (!(error instanceof Error) || !error.message.includes('Please')) {
+        const enhancedError = ApiErrorHandler.enhanceError({
+          endpoint,
+          method,
+          statusCode,
+          originalError: error
+        })
+        throw enhancedError
+      }
+      
       throw error
     }
   }

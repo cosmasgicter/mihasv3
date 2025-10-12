@@ -1,5 +1,6 @@
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
+import { withErrorRecovery } from '../_lib/errorRecovery.js'
 import {
   updateStatusForApplications,
   insertStatusHistoryEntries,
@@ -251,9 +252,22 @@ async function handlePaymentStatusUpdate(req, res, id, body) {
   }
 
   try {
-    await updatePaymentStatusForApplications([id], paymentStatus, { userId: authContext.user.id })
-    const updated = await fetchApplication(id)
-    return res.status(200).json({ success: true, data: updated })
+    // Direct update instead of using helper function
+    const { data, error: updateError } = await supabase
+      .from('applications_new')
+      .update({ 
+        payment_status: paymentStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (updateError) {
+      throw new Error(updateError.message)
+    }
+
+    return res.status(200).json({ success: true, data })
   } catch (updateError) {
     console.error('Payment status update error:', updateError)
     return res.status(400).json({ error: updateError.message })
@@ -615,7 +629,7 @@ async function handleInterviewMutation(req, res, id, action, body) {
   }
 }
 
-async function handler(req, res) {
+const handler = withErrorRecovery(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, PATCH, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, authorization')
@@ -688,26 +702,31 @@ async function handler(req, res) {
         return res.status(400).json({ error: 'Action is required' })
       }
 
-      switch (action) {
-        case 'update_status':
-          return handleStatusUpdate(req, res, id, body)
-        case 'update_payment_status':
-          return handlePaymentStatusUpdate(req, res, id, body)
-        case 'verify_document':
-          return handleDocumentVerification(req, res, id, body)
-        case 'sync_grades':
-          return handleGradesSync(req, res, id, body)
-        case 'send_notification':
-          return handleSendNotification(req, res, id, body)
-        case 'generate_acceptance_letter':
-        case 'generate_finance_receipt':
-          return handleDocumentGeneration(req, res, id, action)
-        case 'schedule_interview':
-        case 'reschedule_interview':
-        case 'cancel_interview':
-          return handleInterviewMutation(req, res, id, action, body)
-        default:
-          return res.status(400).json({ error: 'Unsupported action' })
+      try {
+        switch (action) {
+          case 'update_status':
+            return handleStatusUpdate(req, res, id, body)
+          case 'update_payment_status':
+            return handlePaymentStatusUpdate(req, res, id, body)
+          case 'verify_document':
+            return handleDocumentVerification(req, res, id, body)
+          case 'sync_grades':
+            return handleGradesSync(req, res, id, body)
+          case 'send_notification':
+            return handleSendNotification(req, res, id, body)
+          case 'generate_acceptance_letter':
+          case 'generate_finance_receipt':
+            return handleDocumentGeneration(req, res, id, action)
+          case 'schedule_interview':
+          case 'reschedule_interview':
+          case 'cancel_interview':
+            return handleInterviewMutation(req, res, id, action, body)
+          default:
+            return res.status(400).json({ error: 'Unsupported action' })
+        }
+      } catch (actionError) {
+        console.error('Action error:', actionError)
+        return res.status(500).json({ error: 'Internal server error' })
       }
     }
 
@@ -771,11 +790,7 @@ async function handler(req, res) {
     }
 
     return res.status(405).json({ error: 'Method not allowed' })
-  } catch (error) {
-    console.error('API error:', error)
-    return res.status(500).json({ error: 'Internal server error' })
-  }
-}
+})
 
 const netlifyHandler = withNetlifyHandler(handler)
 

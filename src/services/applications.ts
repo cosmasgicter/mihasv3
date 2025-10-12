@@ -110,11 +110,10 @@ export const applicationService = {
       body: JSON.stringify({ action: 'verify_document', ...payload })
     }),
 
-  syncGrades: (id: string, grades: Array<{ subject_id: string; grade: number }>) =>
-    apiClient.request<Application>(`/api/applications/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ action: 'sync_grades', grades })
-    }),
+  syncGrades: async (id: string, grades: Array<{ subject_id: string; grade: number }>) => {
+    const { syncGradesWithRecovery } = await import('@/lib/connectionFix')
+    return syncGradesWithRecovery(id, grades)
+  },
 
   sendNotification: (id: string, notification: { title: string; message: string }) =>
     apiClient.request<Application>(`/api/applications/${id}`, {
