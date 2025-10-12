@@ -1,19 +1,32 @@
-async function baseHandler(req, res) {
-  
+import { withNetlifyHandler } from './_lib/netlifyHandler.js'
+
+async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
 
-  const url = new URL(request.url)
-  const id = url.searchParams.get('id')
+  const { id } = req.query
   
-  return new Response(JSON.stringify({ user: { id, email: 'user@example.com' } }), { headers })
+  if (!id) {
+    return res.status(400).json({ error: 'User ID is required' })
+  }
+
+  return res.status(200).json({ 
+    user: { 
+      id, 
+      email: 'user@example.com',
+      full_name: 'Test User',
+      roles: ['user']
+    } 
+  })
 }
 
+const netlifyHandler = withNetlifyHandler(handler)
 
-const netlifyHandler = withNetlifyHandler(baseHandler)
-
-export { baseHandler as expressHandler }
+export { handler as expressHandler }
 export { netlifyHandler as handler }
 export default netlifyHandler

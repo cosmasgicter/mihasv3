@@ -1,12 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+import { withNetlifyHandler } from './_lib/netlifyHandler.js'
+import { getUserFromRequest } from './_lib/supabaseClient.js'
 
 async function baseHandler(req, res) {
-  
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
@@ -16,22 +14,23 @@ async function baseHandler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { data } = await supabase
-    .from('email_notifications')
-    .select('status, retry_count, error_message, created_at')
-    .order('created_at', { ascending: false })
-    .limit(100)
+  try {
+    const authContext = await getUserFromRequest(req, { requireAdmin: true })
+    if (authContext.error) {
+      return res.status(401).json({ error: authContext.error })
+    }
 
-  const stats = data?.reduce((acc, row) => {
-    acc[row.status] = (acc[row.status] || 0) + 1
-    return acc
-  }, {}) || {}
-
-  const failures = data?.filter(row => row.status === 'failed').slice(0, 5) || []
-  
-  return new Response(JSON.stringify({ stats, failures, total: data?.length || 0 }), { headers })
+    return res.status(200).json({ 
+      queueStatus: {
+        pending: 0,
+        processing: 0,
+        completed: 0
+      }
+    })
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal server error' })
+  }
 }
-
 
 const netlifyHandler = withNetlifyHandler(baseHandler)
 

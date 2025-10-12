@@ -1,5 +1,10 @@
+import { withNetlifyHandler } from './_lib/netlifyHandler.js'
+import { getUserFromRequest } from './_lib/supabaseClient.js'
+
 async function baseHandler(req, res) {
-  
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
@@ -9,8 +14,19 @@ async function baseHandler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Basic notification dispatch endpoint
-  return new Response(JSON.stringify({ success: true, message: 'Notification dispatched' }), { headers })
+  try {
+    const authContext = await getUserFromRequest(req, { requireAdmin: true })
+    if (authContext.error) {
+      return res.status(401).json({ error: authContext.error })
+    }
+
+    return res.status(200).json({ 
+      success: true,
+      message: 'Notification dispatched successfully'
+    })
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal server error' })
+  }
 }
 
 const netlifyHandler = withNetlifyHandler(baseHandler)

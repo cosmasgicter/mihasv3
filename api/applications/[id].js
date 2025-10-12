@@ -1,6 +1,5 @@
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
-import { withErrorRecovery } from '../_lib/errorRecovery.js'
 import {
   updateStatusForApplications,
   insertStatusHistoryEntries,
@@ -629,7 +628,7 @@ async function handleInterviewMutation(req, res, id, action, body) {
   }
 }
 
-const handler = withErrorRecovery(async (req, res) => {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, PATCH, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, authorization')
@@ -790,7 +789,11 @@ const handler = withErrorRecovery(async (req, res) => {
     }
 
     return res.status(405).json({ error: 'Method not allowed' })
-})
+  } catch (error) {
+    console.error('Handler error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
 
 const netlifyHandler = withNetlifyHandler(handler)
 
