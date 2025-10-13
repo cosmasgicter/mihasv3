@@ -78,13 +78,13 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
   const navigationItems = [
     { href: '/student/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/apply', label: 'New Application', icon: Plus },
+    { href: '/student/application-wizard', label: 'New Application', icon: Plus },
     { href: '/settings', label: 'Settings', icon: Settings },
     { href: '/student/notifications', label: 'Notifications', icon: Bell }
   ]
 
   return (
-    <NavigationMenu.Root className={cn("bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200/50 sticky top-0 z-50", className)}>
+    <NavigationMenu.Root className={cn("nav-container bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200/50 sticky top-0 z-50", className)}>
       <div className="container-mobile">
         <div className="flex justify-between items-center py-3 sm:py-4">
           {/* User Info - Mobile First */}
@@ -160,7 +160,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu Button */}
             <motion.button
-              className="lg:hidden p-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[48px] min-w-[48px] touch-target border-2 border-gray-600 hover:border-gray-500 shadow-lg z-[102]"
+              className="lg:hidden mobile-menu-button mobile-menu-hw-accel smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target"
               onClick={toggleMenu}
               whileTap={{ scale: 0.95 }}
               aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -201,7 +201,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] lg:hidden"
+              className="mobile-menu-backdrop lg:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -210,7 +210,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white/95 backdrop-blur-xl shadow-2xl z-[101] lg:hidden safe-area-top safe-area-bottom border-l border-gray-200/50"
+              className="mobile-menu-container mobile-menu-hw-accel lg:hidden safe-area-top safe-area-bottom border-l border-gray-200/50"
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -252,34 +252,34 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
                 {/* Navigation Items */}
                 <div className="flex flex-col flex-1 overflow-hidden">
-                  <NavigationMenu.List className="flex flex-col space-y-3 p-6 flex-1 custom-scrollbar overflow-y-auto">
+                  <div className="flex flex-col space-y-3 p-6 flex-1 overflow-y-auto">
                     {navigationItems.map((item, index) => (
-                      <NavigationMenu.Item key={item.href}>
-                        <motion.div
-                          variants={itemVariants}
-                          custom={index}
-                          initial="closed"
-                          animate="open"
+                      <motion.div
+                        key={item.href}
+                        variants={itemVariants}
+                        custom={index}
+                        initial="closed"
+                        animate="open"
+                      >
+                        <Link 
+                          to={item.href}
+                          onClick={closeMenu}
+                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel text-gray-700 hover:bg-primary/10 hover:text-primary border border-gray-200 hover:border-primary/30 smooth-transition-slow block w-full"
                         >
-                          <Link 
-                            to={item.href}
-                            onClick={closeMenu}
-                            className="mobile-nav-item mobile-nav-focus text-gray-700 hover:bg-primary/10 hover:text-primary border border-gray-200 hover:border-primary/30 smooth-transition-slow"
-                          >
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center space-x-3">
-                                <item.icon className="h-5 w-5" />
-                                <span className="mobile-nav-text">{item.label}</span>
-                              </div>
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center space-x-3">
+                              <item.icon className="h-5 w-5 flex-shrink-0" />
+                              <span className="mobile-nav-text">{item.label}</span>
                             </div>
-                          </Link>
-                        </motion.div>
-                      </NavigationMenu.Item>
+                            <div className="w-2 h-2 rounded-full bg-primary/20"></div>
+                          </div>
+                        </Link>
+                      </motion.div>
                     ))}
-                  </NavigationMenu.List>
+                  </div>
 
                   {/* Fixed Sign Out Button */}
-                  <div className="p-6 border-t border-gray-200 bg-white/90 backdrop-blur-sm">
+                  <div className="p-6 border-t border-gray-200 bg-white backdrop-blur-sm">
                     <motion.button 
                       onClick={() => {
                         closeMenu()
@@ -289,7 +289,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                       custom={navigationItems.length}
                       initial="closed"
                       animate="open"
-                      className="w-full flex items-center justify-center space-x-3 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium"
+                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel"
                     >
                       <LogOut className="h-5 w-5" />
                       <span>Sign Out</span>
