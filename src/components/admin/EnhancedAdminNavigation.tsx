@@ -188,7 +188,8 @@ export function EnhancedAdminNavigation() {
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 flex items-center !visible !flex"
+                style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
@@ -409,7 +410,8 @@ export function EnhancedAdminNavigation() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="w-full flex items-center justify-center space-x-3 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
+                      className="w-full flex items-center justify-center space-x-3 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium !visible !flex"
+                      style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
                     >
                       <LogOut className="h-5 w-5" />
                       <span>Sign Out</span>

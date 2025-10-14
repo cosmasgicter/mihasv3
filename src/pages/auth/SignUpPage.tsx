@@ -16,7 +16,16 @@ const signUpSchema = z.object({
   confirmPassword: z.string(),
   full_name: z.string().min(2, 'Full name must be at least 2 characters'),
   phone: z.string().min(10, 'Please enter a valid phone number'),
-  date_of_birth: z.string().min(1, 'Date of birth is required'),
+  date_of_birth: z.string()
+    .min(1, 'Date of birth is required')
+    .refine((date) => {
+      const parsed = new Date(date)
+      const year = parsed.getFullYear()
+      const currentYear = new Date().getFullYear()
+      return !isNaN(parsed.getTime()) && year >= 1900 && year <= currentYear - 16
+    }, {
+      message: 'Please enter a valid date of birth (must be at least 16 years old)'
+    }),
   sex: z.enum(['Male', 'Female'], { required_error: 'Please select a sex' }),
   nationality: z.string().min(2, 'Nationality is required'),
   address: z.string().min(10, 'Please enter your full address'),

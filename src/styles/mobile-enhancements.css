@@ -208,73 +208,13 @@
   z-index: 9999 !important;
 }
 
-/* Force visibility for navigation elements */
-[data-testid="notification-bell"],
-[data-testid="user-menu-trigger"],
-[data-testid="mobile-nav-toggle"],
-[data-testid="auth-nav-mobile-toggle"] {
-  visibility: visible !important;
-  display: flex !important;
-  opacity: 1 !important;
-}
 
-[data-testid="notifications-panel"],
-[data-testid="user-menu-dropdown"],
-[data-testid="mobile-nav"],
-[data-testid="auth-nav-mobile-menu"] {
-  visibility: visible !important;
-  opacity: 1 !important;
-}
 
-/* Ensure mobile menu is always visible */
-.mobile-menu-container {
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  height: 100vh !important;
-  width: 320px !important;
-  max-width: 90vw !important;
-  background: rgba(255, 255, 255, 0.98) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  z-index: 9999 !important;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15) !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
 
-/* Mobile menu backdrop */
-.mobile-menu-backdrop {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background: rgba(0, 0, 0, 0.7) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-  z-index: 9998 !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
 
-/* Mobile menu button */
-.mobile-menu-button {
-  position: relative !important;
-  z-index: 10000 !important;
-  background: #1f2937 !important;
-  border: 2px solid #374151 !important;
-  color: white !important;
-  min-width: 48px !important;
-  min-height: 48px !important;
-  border-radius: 12px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
+
+
+
 
 /* Prevent scroll bounce on iOS */
 .nav-scroll-lock {
@@ -411,43 +351,11 @@
 
 /* Critical mobile menu fixes */
 @media (max-width: 1023px) {
-  /* Ensure mobile menu is always on top */
-  .mobile-menu-container {
-    position: fixed !important;
-    top: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 320px !important;
-    max-width: 90vw !important;
-    background: white !important;
-    z-index: 9999 !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: block !important;
-  }
+
   
-  .mobile-menu-backdrop {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    z-index: 9998 !important;
-    background: rgba(0, 0, 0, 0.7) !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: block !important;
-  }
+
   
-  .mobile-menu-button {
-    z-index: 10000 !important;
-    position: relative !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: flex !important;
-  }
+
   
   /* Ensure navigation items are clickable */
   .mobile-nav-item {
@@ -490,10 +398,61 @@
   background: yellow !important;
 }
 
+/* Force logout button visibility */
+button[class*="text-red-600"],
+button[class*="from-red-500"],
+.logout-button,
+[class*="SignOut"],
+[class*="sign-out"] {
+  visibility: visible !important;
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 10 !important;
+}
+
+/* Ensure logout buttons in navigation are visible */
+nav button[class*="text-red-"],
+.nav-container button[class*="text-red-"],
+[class*="Navigation"] button[class*="text-red-"] {
+  visibility: visible !important;
+  display: flex !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+/* Mobile logout button specific fixes */
+@media (max-width: 1023px) {
+  .mobile-nav-item button[class*="red-"],
+  motion-button[class*="red-"],
+  button[class*="from-red-"] {
+    visibility: visible !important;
+    display: flex !important;
+    opacity: 1 !important;
+    width: 100% !important;
+    min-height: 48px !important;
+    background: linear-gradient(to right, #ef4444, #dc2626) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+  }
+}
+
 /* Ensure proper stacking context */
 .nav-container {
   position: relative;
   z-index: 50;
+}
+
+/* Logout button container fixes */
+.nav-container button,
+.nav-container .logout-button {
+  position: relative;
+  z-index: 51;
 }
 
 /* Mobile menu animation improvements */
@@ -588,85 +547,3 @@
   animation: success-bounce 0.6s ease;
 }
 
-/* CRITICAL: Production visibility fixes */
-/* Force all navigation elements to be visible in production */
-[data-testid="notification-bell"] {
-  visibility: visible !important;
-  display: flex !important;
-  opacity: 1 !important;
-  position: relative !important;
-  z-index: 50 !important;
-}
-
-[data-testid="user-menu-trigger"] {
-  visibility: visible !important;
-  display: flex !important;
-  opacity: 1 !important;
-  position: relative !important;
-  z-index: 50 !important;
-}
-
-[data-testid="mobile-nav-toggle"],
-[data-testid="auth-nav-mobile-toggle"] {
-  visibility: visible !important;
-  display: flex !important;
-  opacity: 1 !important;
-  position: fixed !important;
-  z-index: 10000 !important;
-}
-
-[data-testid="mobile-nav"],
-[data-testid="auth-nav-mobile-menu"] {
-  visibility: visible !important;
-  opacity: 1 !important;
-  z-index: 9999 !important;
-}
-
-[data-testid="notifications-panel"] {
-  visibility: visible !important;
-  opacity: 1 !important;
-  z-index: 9999 !important;
-}
-
-[data-testid="user-menu-dropdown"] {
-  visibility: visible !important;
-  opacity: 1 !important;
-  z-index: 9999 !important;
-}
-
-/* Ensure no elements are accidentally hidden */
-.hidden[data-testid] {
-  visibility: visible !important;
-  display: block !important;
-  opacity: 1 !important;
-}
-
-/* Override any conflicting styles */
-* [data-testid*="nav"],
-* [data-testid*="menu"],
-* [data-testid*="notification"] {
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* Mobile-specific overrides */
-@media (max-width: 1023px) {
-  [data-testid="mobile-nav-toggle"],
-  [data-testid="auth-nav-mobile-toggle"] {
-    visibility: visible !important;
-    display: flex !important;
-    opacity: 1 !important;
-    position: fixed !important;
-    z-index: 10000 !important;
-    top: 1rem !important;
-    right: 1rem !important;
-  }
-  
-  [data-testid="mobile-nav"],
-  [data-testid="auth-nav-mobile-menu"] {
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: block !important;
-    z-index: 9999 !important;
-  }
-}

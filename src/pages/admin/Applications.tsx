@@ -9,6 +9,8 @@ import {
   ApplicationsSkeleton,
   ApplicationDetailModal
 } from '@/components/admin/applications'
+import { BulkActionsBar } from '@/components/admin/applications/BulkActionsBar'
+import { AdminMetrics } from '@/components/admin/applications/AdminMetrics'
 import { APPLICATION_FILTER_KEYS, useApplicationsData, useApplicationFilters } from '@/hooks/admin'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
@@ -157,6 +159,8 @@ export default function Applications() {
   const [exportingFormat, setExportingFormat] = useState<'csv' | 'excel' | 'pdf' | null>(null)
   const [selectedApplication, setSelectedApplication] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [bulkActionLoading, setBulkActionLoading] = useState(false)
   const [modalLoading, setModalLoading] = useState<{
     notification: boolean
     acceptance: boolean
@@ -315,6 +319,8 @@ export default function Applications() {
     documents.forEach(doc => {
       window.open(doc.url, '_blank', 'noopener,noreferrer')
     })
+    
+    showInfo('Documents opened', `Opened ${documents.length} document(s) in new tabs.`)
   }, [selectedApp, showInfo])
 
   const handleViewHistory = useCallback(async () => {
@@ -364,25 +370,32 @@ export default function Applications() {
     window.location.reload()
   }, [])
 
-  const handleBulkAction = useCallback(async (action: string, selectedIds: string[]) => {
-    if (selectedIds.length === 0) {
+  const handleBulkAction = useCallback(async (action: string, ids: string[]) => {
+    if (ids.length === 0) {
       showError('No selection', 'Please select applications to perform bulk action.')
       return
     }
     
+    setBulkActionLoading(true)
     try {
-      for (const id of selectedIds) {
+      const promises = ids.map(id => {
         if (action === 'approve') {
-          await updateStatus(id, 'approved')
+          return updateStatus(id, 'approved')
         } else if (action === 'reject') {
-          await updateStatus(id, 'rejected')
+          return updateStatus(id, 'rejected')
         } else if (action === 'review') {
-          await updateStatus(id, 'under_review')
+          return updateStatus(id, 'under_review')
         }
-      }
-      showSuccess('Bulk action completed', `${selectedIds.length} applications updated successfully.`)
+        return Promise.resolve()
+      })
+      
+      await Promise.all(promises)
+      showSuccess('Bulk action completed', `${ids.length} applications updated successfully.`)
+      setSelectedIds([])
     } catch (error) {
       showError('Bulk action failed', error instanceof Error ? error.message : 'Unable to complete bulk action.')
+    } finally {
+      setBulkActionLoading(false)
     }
   }, [updateStatus, showSuccess, showError])
 
@@ -439,8 +452,11 @@ export default function Applications() {
         </div>
       </div>
 
-      {/* Quick Stats Cards - Mobile First */}
+      {/* Enhanced Admin Metrics */}
       <div className="px-4 py-4 sm:px-6">
+        <AdminMetrics applications={applications} />
+        
+        {/* Quick Stats Cards - Mobile First */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center space-x-2">
@@ -598,8 +614,16 @@ export default function Applications() {
             onStatusUpdate={updateStatus}
             onPaymentStatusUpdate={updatePaymentStatus}
             onViewDetails={handleViewDetails}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
           />
         )}
+
+        <BulkActionsBar
+          selectedIds={selectedIds}
+          onBulkAction={handleBulkAction}
+          onClearSelection={() => setSelectedIds([])}
+        />
 
         <ApplicationDetailModal
           application={selectedApp}

@@ -71,12 +71,16 @@ export function useRoleQuery(options: UseRoleQueryOptions = {}): RoleQueryResult
 
       try {
         const response = await fetch(`/api/admin/users/${encodeURIComponent(user.id)}/role`, {
+          method: 'GET',
           headers: {
-            'Authorization': `Bearer ${accessToken}`
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
           }
         })
 
-        if (response.status === 404) {
+        if (response.status === 404 || response.status === 405) {
+          // API endpoint not found or method not allowed - fallback to profile role
+          console.warn('Role API not available, using profile role')
           return null
         }
 

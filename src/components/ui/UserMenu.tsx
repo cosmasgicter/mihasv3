@@ -33,7 +33,6 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 hover:bg-gray-50"
         data-testid="user-menu-trigger"
-        style={{ visibility: 'visible', display: 'flex' }}
       >
         {user?.user_metadata?.avatar_url ? (
           <img
@@ -59,7 +58,6 @@ export function UserMenu() {
         <div 
           className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-[9999]"
           data-testid="user-menu-dropdown"
-          style={{ visibility: 'visible', display: 'block' }}
         >
           <div className="px-4 py-2 border-b border-gray-100">
             <p className="text-sm font-medium text-gray-900">
@@ -88,7 +86,8 @@ export function UserMenu() {
           
           <button
             onClick={handleSignOut}
-            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 !visible !flex"
+            style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
           >
             <LogOut className="w-4 h-4 mr-3" />
             Sign Out

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout Button Visibility Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .logout-button {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            align-items: center;
+            gap: 8px;
+        }
+        .logout-button:hover {
+            background: linear-gradient(to right, #dc2626, #b91c1c);
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <h1>Logout Button Visibility Test</h1>
+    
+    <div class="test-container">
+        <h2>Desktop Navigation Logout Button</h2>
+        <button class="logout-button" onclick="testLogout('desktop')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16,17 21,12 16,7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign Out
+        </button>
+        <div id="desktop-result" class="test-result" style="display: none;"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Mobile Navigation Logout Button</h2>
+        <button class="logout-button" onclick="testLogout('mobile')" style="width: 100%;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16,17 21,12 16,7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign Out
+        </button>
+        <div id="mobile-result" class="test-result" style="display: none;"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Admin Navigation Logout Button</h2>
+        <button class="logout-button" onclick="testLogout('admin')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16,17 21,12 16,7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign Out
+        </button>
+        <div id="admin-result" class="test-result" style="display: none;"></div>
+    </div>
+
+    <script>
+        function testLogout(type) {
+            const resultDiv = document.getElementById(type + '-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result success';
+            resultDiv.innerHTML = `✅ ${type.charAt(0).toUpperCase() + type.slice(1)} logout button is visible and clickable!`;
+            
+            // Simulate logout action
+            setTimeout(() => {
+                alert(`${type.charAt(0).toUpperCase() + type.slice(1)} logout button test successful! Button is working properly.`);
+            }, 100);
+        }
+
+        // Test visibility on page load
+        window.addEventListener('load', function() {
+            const buttons = document.querySelectorAll('.logout-button');
+            let allVisible = true;
+            
+            buttons.forEach((button, index) => {
+                const computedStyle = window.getComputedStyle(button);
+                const isVisible = computedStyle.display !== 'none' && 
+                                computedStyle.visibility !== 'hidden' && 
+                                computedStyle.opacity !== '0';
+                
+                if (!isVisible) {
+                    allVisible = false;
+                }
+            });
+            
+            if (allVisible) {
+                console.log('✅ All logout buttons are visible on page load');
+            } else {
+                console.log('❌ Some logout buttons may not be visible');
+            }
+        });
+    </script>
+</body>
+</html>

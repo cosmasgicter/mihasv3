@@ -42,7 +42,16 @@ const createSchema = (validProgramIds: string[], validIntakeOptions: string[]) =
       full_name: z.string().min(2, 'Full name is required'),
       nrc_number: z.string().optional(),
       passport_number: z.string().optional(),
-      date_of_birth: z.string().min(1, 'Date of birth is required'),
+      date_of_birth: z.string()
+        .min(1, 'Date of birth is required')
+        .refine((date) => {
+          const parsed = new Date(date)
+          const year = parsed.getFullYear()
+          const currentYear = new Date().getFullYear()
+          return !isNaN(parsed.getTime()) && year >= 1900 && year <= currentYear - 16
+        }, {
+          message: 'Please enter a valid date of birth (must be at least 16 years old)'
+        }),
       sex: z.enum(['Male', 'Female'], { required_error: 'Please select sex' }),
       phone: z.string().min(10, 'Valid phone number is required'),
       email: z.string().email('Valid email is required'),

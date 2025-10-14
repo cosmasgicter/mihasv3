@@ -69,6 +69,25 @@ const SubmitStep = ({
 
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="font-medium text-gray-900 mb-2">Application Summary</h3>
+          
+          {/* Validation Status */}
+          <div className="mb-4 p-3 bg-white rounded border">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Completion Status</h4>
+            <div className="space-y-1 text-xs">
+              <div className={`flex items-center ${formValues.full_name ? 'text-green-600' : 'text-red-600'}`}>
+                {formValues.full_name ? '✓' : '✗'} Personal Information
+              </div>
+              <div className={`flex items-center ${selectedGrades.length >= 5 ? 'text-green-600' : 'text-red-600'}`}>
+                {selectedGrades.length >= 5 ? '✓' : '✗'} Minimum 5 Subjects ({selectedGrades.length}/5)
+              </div>
+              <div className={`flex items-center ${resultSlipFile ? 'text-green-600' : 'text-red-600'}`}>
+                {resultSlipFile ? '✓' : '✗'} Result Slip Uploaded
+              </div>
+              <div className={`flex items-center ${proofOfPaymentFile ? 'text-green-600' : 'text-red-600'}`}>
+                {proofOfPaymentFile ? '✓' : '✗'} Proof of Payment Uploaded
+              </div>
+            </div>
+          </div>
           <div className="text-sm text-gray-600 space-y-1">
             <p>
               <strong>Name:</strong> {formValues.full_name}

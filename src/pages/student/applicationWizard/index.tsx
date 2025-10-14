@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { AIAssistant } from '@/components/application/AIAssistant'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
 
 import SubmissionSuccess from './components/SubmissionSuccess'
 import BasicKycStep from './steps/BasicKycStep'
@@ -15,7 +16,7 @@ import useWizardController from './hooks/useWizardController'
 import { previousButtonLabel, saveNowLabel, wizardSteps } from './steps/config'
 import type { SubjectGrade } from './types'
 
-const ApplicationWizard = () => {
+const ApplicationWizardContent = () => {
   const {
     authLoading,
     restoringDraft,
@@ -75,7 +76,14 @@ const ApplicationWizard = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner />
-          <p className="mt-4 text-gray-600">{authLoading ? 'Loading...' : 'Restoring your application...'}</p>
+          <p className="mt-4 text-gray-600">
+            {authLoading ? 'Loading...' : 'Restoring your saved progress...'}
+          </p>
+          {restoringDraft && (
+            <p className="mt-2 text-sm text-blue-600">
+              We found a saved draft of your application
+            </p>
+          )}
         </div>
       </div>
     )
@@ -136,15 +144,15 @@ const ApplicationWizard = () => {
             </h2>
             <div className="flex items-center space-x-4">
               {isDraftSaving && (
-                <motion.div className="flex items-center space-x-2 text-sm text-gray-600" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <motion.div className="flex items-center space-x-2 text-sm text-blue-600" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
-                  <span>Saving...</span>
+                  <span>Auto-saving...</span>
                 </motion.div>
               )}
               {draftSaved && (
                 <motion.div className="flex items-center space-x-2 text-sm text-green-600" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
                   <CheckCircle className="h-4 w-4" />
-                  <span>Saved</span>
+                  <span>Draft saved</span>
                 </motion.div>
               )}
               <Button type="button" variant="ghost" size="sm" onClick={saveDraft} disabled={isDraftSaving} className="hover:bg-blue-50">
@@ -192,8 +200,27 @@ const ApplicationWizard = () => {
         </div>
 
         {error && (
-          <motion.div className="rounded-md bg-red-50 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="text-sm text-red-700">{error}</div>
+          <motion.div className="rounded-md bg-red-50 border border-red-200 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <div className="text-sm text-red-700 mt-1">{error}</div>
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setError('')}
+                    className="text-xs text-red-600 hover:text-red-500 underline"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -266,7 +293,7 @@ const ApplicationWizard = () => {
             )}
           </AnimatePresence>
 
-          <motion.div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <motion.div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-gray-100" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -281,13 +308,13 @@ const ApplicationWizard = () => {
             <div className="order-1 sm:order-2">
               {!isLastStep ? (
                 <motion.div whileHover={{ scale: loading || uploading ? 1 : 1.05 }} whileTap={{ scale: loading || uploading ? 1 : 0.95 }}>
-                  <Button type="button" onClick={handleNextStep} loading={loading || uploading} disabled={loading || uploading} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <Button type="button" onClick={handleNextStep} loading={loading || uploading} disabled={loading || uploading} className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
                     {loading || uploading ? 'Processing...' : (<><span>Next Step</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                   </Button>
                 </motion.div>
               ) : (
                 <motion.div whileHover={{ scale: loading ? 1 : 1.05 }} whileTap={{ scale: loading ? 1 : 0.95 }}>
-                  <Button type="submit" loading={loading} disabled={loading || !confirmSubmission} className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <Button type="submit" loading={loading} disabled={loading || !confirmSubmission} className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                     {loading ? 'Submitting...' : (<><Send className="h-4 w-4 mr-2" />Submit Application</>)}
                   </Button>
                 </motion.div>
@@ -308,5 +335,11 @@ const ApplicationWizard = () => {
     </div>
   )
 }
+
+const ApplicationWizard = () => (
+  <SimpleErrorBoundary>
+    <ApplicationWizardContent />
+  </SimpleErrorBoundary>
+)
 
 export default ApplicationWizard

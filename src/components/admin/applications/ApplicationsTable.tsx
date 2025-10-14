@@ -48,6 +48,8 @@ interface ApplicationsTableProps {
   onStatusUpdate: (id: string, status: string) => void
   onPaymentStatusUpdate: (id: string, status: string) => void
   onViewDetails: (id: string) => void
+  selectedIds?: string[]
+  onSelectionChange?: (ids: string[]) => void
 }
 
 
@@ -61,10 +63,29 @@ export function ApplicationsTable({
   onLoadMore,
   onStatusUpdate,
   onPaymentStatusUpdate,
-  onViewDetails
+  onViewDetails,
+  selectedIds = [],
+  onSelectionChange
 }: ApplicationsTableProps) {
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
   const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
+
+  const handleSelect = (id: string, selected: boolean) => {
+    if (!onSelectionChange) return
+    
+    const newSelection = selected
+      ? [...selectedIds, id]
+      : selectedIds.filter(selectedId => selectedId !== id)
+    
+    onSelectionChange(newSelection)
+  }
+
+  const handleSelectAll = () => {
+    if (!onSelectionChange) return
+    
+    const allSelected = selectedIds.length === applications.length
+    onSelectionChange(allSelected ? [] : applications.map(app => app.id))
+  }
 
   const getStatusBadge = useCallback((status: string) => {
     const statusConfig = {
@@ -134,6 +155,33 @@ export function ApplicationsTable({
     <div className="space-y-6">
       {applications.length > 0 ? (
         <>
+          {/* Select All Header */}
+          {onSelectionChange && (
+            <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.length === applications.length && applications.length > 0}
+                    onChange={handleSelectAll}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'Select all'}
+                  </span>
+                </div>
+                {selectedIds.length > 0 && (
+                  <button
+                    onClick={() => onSelectionChange([])}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Clear selection
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {applications.map((app) => (
               <ApplicationCard
@@ -146,6 +194,8 @@ export function ApplicationsTable({
                 onViewDetails={onViewDetails}
                 updatingStatus={updatingStatus === app.id}
                 updatingPayment={updatingPayment === app.id}
+                isSelected={selectedIds.includes(app.id)}
+                onSelect={onSelectionChange ? handleSelect : undefined}
               />
             ))}
           </div>
@@ -212,6 +262,8 @@ interface ApplicationCardProps {
   onViewDetails: (id: string) => void
   updatingStatus: boolean
   updatingPayment: boolean
+  isSelected?: boolean
+  onSelect?: (id: string, selected: boolean) => void
 }
 
 const ApplicationCard: React.FC<ApplicationCardProps> = ({
@@ -222,7 +274,9 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   onPaymentStatusUpdate,
   onViewDetails,
   updatingStatus,
-  updatingPayment
+  updatingPayment,
+  isSelected = false,
+  onSelect
 }) => {
   const sanitizedGradesSummary = useMemo(
     () => sanitizeHtml(app.grades_summary ?? ''),
@@ -246,7 +300,20 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const documentsCount = [app.result_slip_url, app.extra_kyc_url, app.pop_url].filter(Boolean).length
 
   return (
-    <div className="relative bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-200 group">
+    <div className={`relative bg-white rounded-xl border p-6 hover:shadow-lg transition-all duration-200 group ${
+      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+    }`}>
+      {/* Selection Checkbox */}
+      {onSelect && (
+        <div className="absolute top-4 right-4">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={(e) => onSelect(app.id, e.target.checked)}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
