@@ -25,6 +25,19 @@ export function ApplicationApprovalActions({
   const handleStatusUpdate = async (newStatus: string) => {
     if (updatingStatus || disabled) return
     
+    // Confirm critical actions
+    if (newStatus === 'rejected') {
+      if (!confirm('Are you sure you want to reject this application? This action cannot be undone.')) {
+        return
+      }
+    }
+    
+    if (newStatus === 'approved') {
+      if (!confirm('Are you sure you want to approve this application? The applicant will be notified.')) {
+        return
+      }
+    }
+    
     try {
       setUpdatingStatus(true)
       await onStatusUpdate(applicationId, newStatus)

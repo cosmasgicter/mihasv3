@@ -104,6 +104,7 @@ const BasicKycStep = ({
             {...register('nrc_number')}
             label="NRC Number"
             error={errors.nrc_number?.message}
+            placeholder="e.g., 123456/78/9"
             helperText="Provide either NRC or Passport (one is sufficient)"
           />
         </div>
@@ -113,6 +114,7 @@ const BasicKycStep = ({
             {...register('passport_number')}
             label="Passport Number"
             error={errors.passport_number?.message}
+            placeholder="e.g., ZM1234567"
             helperText="Provide either NRC or Passport (one is sufficient)"
           />
         </div>
@@ -148,6 +150,7 @@ const BasicKycStep = ({
             {...register('phone')}
             label="Phone Number"
             error={errors.phone?.message}
+            placeholder="e.g., +260 97 123 4567"
             required
           />
         </div>

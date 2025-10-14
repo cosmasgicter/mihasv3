@@ -150,7 +150,8 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                   variant="outline"
                   size="sm"
                   onClick={handleSignOut}
-                  className="ml-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                  className="ml-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 flex items-center !visible !flex"
+                  style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
@@ -160,13 +161,12 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu Button */}
             <motion.button
-              className="lg:hidden mobile-menu-button mobile-menu-hw-accel smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target"
+              className="lg:hidden p-3 rounded-xl bg-white shadow-lg border border-gray-200 hover:bg-gray-50 smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target"
               onClick={toggleMenu}
               whileTap={{ scale: 0.95 }}
               aria-label={isOpen ? "Close menu" : "Open menu"}
               aria-expanded={isOpen}
               data-testid="auth-nav-mobile-toggle"
-              style={{ visibility: 'visible', display: 'flex', zIndex: 10000 }}
             >
               <AnimatePresence mode="wait">
                 {isOpen ? (
@@ -203,23 +203,21 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
           <>
             {/* Backdrop */}
             <motion.div
-              className="mobile-menu-backdrop lg:hidden"
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden z-40"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeMenu}
-              style={{ visibility: 'visible', display: 'block', zIndex: 9998 }}
             />
 
             {/* Mobile Menu */}
             <motion.div
-              className="mobile-menu-container mobile-menu-hw-accel lg:hidden safe-area-top safe-area-bottom border-l border-gray-200/50"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-l border-gray-200 lg:hidden z-50 overflow-y-auto"
               variants={menuVariants}
               initial="closed"
               animate="open"
               exit="closed"
               data-testid="auth-nav-mobile-menu"
-              style={{ visibility: 'visible', display: 'block', zIndex: 9999 }}
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
@@ -294,7 +292,8 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                       custom={navigationItems.length}
                       initial="closed"
                       animate="open"
-                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel"
+                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel !visible !flex"
+                      style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
                     >
                       <LogOut className="h-5 w-5" />
                       <span>Sign Out</span>

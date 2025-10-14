@@ -239,7 +239,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
   )
 }
 
-function DocumentsDisplay({ documents, loading }: { documents: DocumentItem[], loading: boolean }) {
+function DocumentsDisplay({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: ApplicationWithDetails | null }) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -247,6 +247,42 @@ function DocumentsDisplay({ documents, loading }: { documents: DocumentItem[], l
         <span>Loading documents...</span>
       </div>
     )
+  }
+  
+  // If no detailed documents but application has document URLs, show those
+  if (documents.length === 0 && application) {
+    const appDocuments = []
+    if (application.result_slip_url) {
+      appDocuments.push({
+        id: 'result_slip',
+        document_name: 'Result Slip',
+        file_url: application.result_slip_url,
+        verification_status: 'pending',
+        system_generated: false
+      })
+    }
+    if (application.extra_kyc_url) {
+      appDocuments.push({
+        id: 'extra_kyc',
+        document_name: 'Extra KYC Documents',
+        file_url: application.extra_kyc_url,
+        verification_status: 'pending',
+        system_generated: false
+      })
+    }
+    if (application.pop_url) {
+      appDocuments.push({
+        id: 'proof_of_payment',
+        document_name: 'Proof of Payment',
+        file_url: application.pop_url,
+        verification_status: 'pending',
+        system_generated: false
+      })
+    }
+    
+    if (appDocuments.length > 0) {
+      documents = appDocuments as DocumentItem[]
+    }
   }
   
   if (documents.length === 0) {
@@ -339,13 +375,43 @@ export function ApplicationDetailModal({
     location: '',
     notes: ''
   })
+  const [adminFeedback, setAdminFeedback] = useState('')
+  const [savingFeedback, setSavingFeedback] = useState(false)
 
   useEffect(() => {
     setIsGeneratingAcceptance(false)
     setIsGeneratingFinanceReceipt(false)
     setActiveTab('overview')
     setApplicationData(null)
+    setAdminFeedback(application?.admin_feedback || '')
   }, [application?.id, show])
+
+  const handleSaveFeedback = async () => {
+    if (!application?.id || !adminFeedback.trim()) return
+    
+    try {
+      setSavingFeedback(true)
+      await applicationService.update(application.id, {
+        admin_feedback: adminFeedback.trim(),
+        admin_feedback_date: new Date().toISOString()
+      })
+      // Update local state
+      if (applicationData) {
+        setApplicationData({
+          ...applicationData,
+          application: {
+            ...applicationData.application,
+            admin_feedback: adminFeedback.trim(),
+            admin_feedback_date: new Date().toISOString()
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Failed to save feedback:', error)
+    } finally {
+      setSavingFeedback(false)
+    }
+  }
 
   useEffect(() => {
     if (show && application?.id) {
@@ -869,20 +935,40 @@ export function ApplicationDetailModal({
                     </div>
 
                     {/* Admin Feedback */}
-                    {application.admin_feedback && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                        <h3 className="text-lg font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                          <AlertCircle className="h-5 w-5" />
-                          Admin Feedback
-                        </h3>
-                        <p className="text-blue-800 mb-2">{application.admin_feedback}</p>
-                        {application.admin_feedback_date && (
-                          <p className="text-sm text-blue-600">
-                            Added on {formatDate(application.admin_feedback_date)}
-                          </p>
-                        )}
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
+                        <AlertCircle className="h-5 w-5" />
+                        Admin Feedback
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        <textarea
+                          value={adminFeedback}
+                          onChange={(e) => setAdminFeedback(e.target.value)}
+                          placeholder="Add feedback for the applicant..."
+                          rows={4}
+                          className="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                        />
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm text-blue-600">
+                            {application.admin_feedback_date && (
+                              <span>Last updated: {formatDate(application.admin_feedback_date)}</span>
+                            )}
+                          </div>
+                          
+                          <Button
+                            size="sm"
+                            onClick={handleSaveFeedback}
+                            loading={savingFeedback}
+                            disabled={!adminFeedback.trim() || savingFeedback}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            Save Feedback
+                          </Button>
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
 
@@ -1057,6 +1143,7 @@ export function ApplicationDetailModal({
                   <DocumentsDisplay 
                     documents={applicationData?.documents || []} 
                     loading={loading}
+                    application={application}
                   />
                 )}
 

@@ -93,8 +93,7 @@ export function Toast({ id, type, title, message, duration = 5000, onClose }: To
 export function ToastContainer({ toasts }: { toasts: ToastProps[] }) {
   return (
     <div 
-      className="fixed top-4 right-4 z-[10000] space-y-2 max-w-sm w-full pointer-events-none"
-      style={{ visibility: 'visible', display: 'block' }}
+      className="fixed top-4 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none"
     >
       <AnimatePresence>
         {toasts.map((toast) => (

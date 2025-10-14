@@ -97,21 +97,20 @@ export async function uploadApplicationFile(
     
     console.log('Generated filename:', fileName)
 
-    // Try uploading to available buckets
-    const buckets = ['app_docs', 'documents', 'application-documents']
+    // Use public buckets for reliable URL access
+    const publicBuckets = ['app_docs', 'documents', 'application-documents']
     let uploadError: any = null
     let usedBucket = ''
     let uploadData: any = null
 
-    for (const bucket of buckets) {
+    for (const bucket of publicBuckets) {
       console.log('Attempting upload to bucket:', { bucket: sanitizeForLog(bucket) })
       
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(fileName, file, {
           contentType: file.type,
-          upsert: true,
-          duplex: 'half'
+          upsert: true
         })
 
       if (!error && data) {
@@ -129,14 +128,22 @@ export async function uploadApplicationFile(
       console.error('All bucket uploads failed:', uploadError)
       return {
         success: false,
-        error: uploadError?.message || 'Upload failed - no available storage buckets'
+        error: uploadError?.message || 'Upload failed - storage not available'
       }
     }
 
-    // Get public URL
+    // Get public URL - ensure it's accessible
     const { data: urlData } = supabase.storage
       .from(usedBucket)
       .getPublicUrl(uploadData.path)
+
+    if (!urlData.publicUrl) {
+      console.error('Failed to generate public URL')
+      return {
+        success: false,
+        error: 'Failed to generate file URL'
+      }
+    }
 
     console.log('Upload completed successfully:', urlData.publicUrl)
     

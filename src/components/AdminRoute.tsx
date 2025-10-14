@@ -54,17 +54,13 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <>{children}</>
   }
 
-  // Development mode - allow any authenticated user to access admin
-  if (import.meta.env.DEV) {
-    console.log('🔧 Development mode: Allowing admin access for user:', user.email)
-    return <>{children}</>
-  }
-
-  // Production mode - check admin role
+  // Check admin role in all environments
   if (!isAdmin) {
     console.log('❌ Admin access denied for user:', user.email, 'Role:', profile?.role)
     return <Navigate to="/student/dashboard" replace />
   }
+  
+  console.log('✅ Admin access granted for user:', user.email, 'Role:', profile?.role)
 
   return <>{children}</>
 }

@@ -164,7 +164,8 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="ml-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 whitespace-nowrap"
+                className="ml-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 whitespace-nowrap flex items-center !visible !flex"
+                style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
@@ -316,7 +317,8 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                           closeMenu()
                           await handleSignOut()
                         }}
-                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-red-500"
+                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-red-500 !visible !flex"
+                        style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
                       >
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center space-x-3">

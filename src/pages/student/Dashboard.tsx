@@ -16,11 +16,12 @@ import { useDraftManager } from '@/hooks/useDraftManager'
 import { applicationService } from '@/services/applications'
 import { catalogService } from '@/services/catalog'
 import { StudentDashboardSkeleton } from '@/components/student/StudentDashboardSkeleton'
-import { User, FileText, Clock, CheckCircle, XCircle, Plus, X } from 'lucide-react'
+import { User, FileText, Clock, CheckCircle, XCircle, Plus, X, RefreshCw } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PageLayout, PageContent } from '@/components/ui/PageLayout'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { toast } from '@/lib/toast'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -32,6 +33,8 @@ export default function StudentDashboard() {
   const [error, setError] = useState('')
   const [hasDraft, setHasDraft] = useState(false)
   const [draftData, setDraftData] = useState<any>(null)
+  const [isDeletingDraft, setIsDeletingDraft] = useState(false)
+  const [isClearingAllDrafts, setIsClearingAllDrafts] = useState(false)
   const hasLoadedRef = useRef(false)
 
   useEffect(() => {
@@ -241,7 +244,21 @@ export default function StudentDashboard() {
                   icon: <Clock className="h-5 w-5" />
                 }
               ]}
-              actions={<ProfileCompletionBadge completionPercentage={profileCompletion} />}
+              actions={
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => loadDashboardData()}
+                    disabled={isRefreshing}
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                  </Button>
+                  <ProfileCompletionBadge completionPercentage={profileCompletion} />
+                </div>
+              }
             />
 
             {error && (
@@ -252,10 +269,17 @@ export default function StudentDashboard() {
               >
                 <div className="flex items-start gap-3">
                   <XCircle className="h-6 w-6 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold">We couldn't refresh your dashboard</p>
+                  <div className="flex-1">
+                    <p className="font-semibold">Dashboard Error</p>
                     <p className="text-sm text-red-600/80">{error}</p>
                   </div>
+                  <button
+                    onClick={() => setError('')}
+                    className="flex-shrink-0 p-1 rounded-md hover:bg-red-100 transition-colors"
+                    aria-label="Dismiss error"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -338,10 +362,31 @@ export default function StudentDashboard() {
                                   return
                                 }
                                 try {
-                                  await applicationService.delete(application.id)
-                                  await loadDashboardData()
+                                  const result = await applicationService.delete(application.id)
+                                  // DELETE returns 204 No Content on success, which is falsy but valid
+                                  setApplications(prev => prev.filter(app => app.id !== application.id))
+                                  setError('')
+                                  toast.success('Draft deleted successfully')
                                 } catch (error) {
-                                  setError('Failed to delete draft')
+                                  console.error('Delete error:', error)
+                                  let errorMsg = 'Failed to delete draft'
+                                  
+                                  if (error instanceof Error) {
+                                    if (error.message.includes('Only draft applications can be deleted')) {
+                                      errorMsg = 'Only draft applications can be deleted'
+                                    } else if (error.message.includes('Access denied')) {
+                                      errorMsg = 'You do not have permission to delete this application'
+                                    } else if (error.message.includes('Application not found')) {
+                                      errorMsg = 'Application not found or already deleted'
+                                      // Remove from local state anyway
+                                      setApplications(prev => prev.filter(app => app.id !== application.id))
+                                    } else {
+                                      errorMsg = error.message
+                                    }
+                                  }
+                                  
+                                  setError(errorMsg)
+                                  toast.error(errorMsg)
                                 }
                               }}
                             >
@@ -382,13 +427,26 @@ export default function StudentDashboard() {
                               variant="outline"
                               size="sm"
                               className="w-full sm:w-auto border-red-200 text-red-600 hover:bg-red-50"
-                              onClick={() => {
+                              onClick={async () => {
                                 if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
                                   return
                                 }
-                                clearAllDraftData()
-                                setHasDraft(false)
-                                setDraftData(null)
+                                try {
+                                  clearAllDraftData()
+                                  setHasDraft(false)
+                                  setDraftData(null)
+                                  setError('')
+                                  toast.success('Local draft deleted successfully')
+                                  
+                                  if (user) {
+                                    await draftManager.clearAllDrafts(user.id)
+                                  }
+                                } catch (error) {
+                                  console.error('Local draft delete error:', error)
+                                  const errorMsg = `Failed to delete local draft: ${error instanceof Error ? error.message : 'Unknown error'}`
+                                  setError(errorMsg)
+                                  toast.error(errorMsg)
+                                }
                               }}
                             >
                               <X className="mr-2 h-4 w-4" />
@@ -548,25 +606,56 @@ export default function StudentDashboard() {
                         variant="outline"
                         size="sm"
                         className="w-full justify-start border-red-200 text-red-600 hover:bg-red-50"
+                        disabled={isClearingAllDrafts}
                         onClick={async () => {
                           if (!confirm('Are you sure you want to clear all drafts? This action cannot be undone.')) {
                             return
                           }
+                          setIsClearingAllDrafts(true)
                           try {
-                            if (user) {
-                              await draftManager.clearAllDrafts(user.id)
-                            }
                             clearAllDraftData()
                             setHasDraft(false)
                             setDraftData(null)
-                            await loadDashboardData()
+                            
+                            if (user) {
+                              const result = await draftManager.clearAllDrafts(user.id)
+                              if (!result.success && result.error) {
+                                console.warn('Server draft clear warning:', result.error)
+                              }
+                            }
+                            
+                            const draftApps = applications.filter(app => app.status === 'draft')
+                            for (const app of draftApps) {
+                              try {
+                                await applicationService.delete(app.id)
+                              } catch (deleteError) {
+                                console.warn(`Failed to delete draft ${app.id}:`, deleteError)
+                              }
+                            }
+                            
+                            setApplications(prev => prev.filter(app => app.status !== 'draft'))
+                            setError('')
+                            toast.success('All drafts cleared successfully')
                           } catch (error) {
-                            setError('Failed to clear drafts')
+                            console.error('Clear drafts error:', error)
+                            const errorMsg = `Failed to clear drafts: ${error instanceof Error ? error.message : 'Unknown error'}`
+                            setError(errorMsg)
+                            toast.error(errorMsg)
+                          } finally {
+                            setIsClearingAllDrafts(false)
                           }
                         }}
                       >
-                        <X className="mr-2 h-4 w-4" />
-                        Clear all drafts
+                        {isClearingAllDrafts ? (
+                          <motion.div
+                            className="mr-2 h-4 w-4 rounded-full border-2 border-current border-t-transparent"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          />
+                        ) : (
+                          <X className="mr-2 h-4 w-4" />
+                        )}
+                        {isClearingAllDrafts ? 'Clearing...' : 'Clear all drafts'}
                       </Button>
                     )}
                     <Link to="/settings" className="block">

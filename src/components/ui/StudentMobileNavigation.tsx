@@ -282,8 +282,9 @@ export function StudentMobileNavigation({ className }: StudentMobileNavigationPr
                       "p-4 bg-gradient-to-r from-red-500 to-red-600 text-white",
                       "rounded-xl hover:from-red-600 hover:to-red-700",
                       "shadow-lg hover:shadow-xl transition-all duration-200",
-                      "font-medium touch-target"
+                      "font-medium touch-target !visible !flex"
                     )}
+                    style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
                   >
                     <LogOut className="h-5 w-5" />
                     <span>Sign Out</span>

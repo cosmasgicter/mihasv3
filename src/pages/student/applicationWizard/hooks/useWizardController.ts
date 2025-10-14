@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { connectionManager } from '@/lib/connectionFix'
 
-import { useToast } from '@/components/ui/Toast'
+import { toast } from '@/lib/toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { applicationsData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
@@ -126,7 +126,8 @@ const useWizardController = (): UseWizardControllerResult => {
   const location = useLocation()
   const { user, loading: authLoading } = useAuth()
   const { profile } = useProfileQuery()
-  const { showError, showWarning } = useToast()
+  const showError = (message: string) => toast.error(message)
+  const showWarning = (message: string) => toast.warning(message)
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -805,27 +806,55 @@ const useWizardController = (): UseWizardControllerResult => {
         showError(errorMessage)
         return
       }
+      
+      // Check if result slip was actually uploaded successfully
+      if (!uploadedFiles.result_slip) {
+        const errorMessage = 'Please wait for result slip upload to complete'
+        setError('')
+        showError(errorMessage)
+        return
+      }
 
       try {
         await trackUploadTask(async () => {
           clearValidationError()
-          const resultSlipUrl = await startUpload(resultSlipFile, 'result_slip')
-          const extraKycUrl = extraKycFile ? await startUpload(extraKycFile, 'extra_kyc') : null
-          if (selectedGrades.length > 0) {
-            try {
-              await syncGrades.mutateAsync({ id: applicationId, grades: selectedGrades })
-            } catch (gradesError) {
-              console.warn('Grades sync failed, continuing with document upload:', gradesError)
-              // Continue with document upload even if grades sync fails
-            }
-          }
+          
           if (!applicationId) {
             throw new Error('Application ID is required for document upload')
           }
+
+          // Upload result slip first (required)
+          const resultSlipUrl = await startUpload(resultSlipFile, 'result_slip')
+          console.log('Result slip uploaded:', resultSlipUrl)
+          
+          // Upload extra KYC if provided (optional)
+          const extraKycUrl = extraKycFile ? await startUpload(extraKycFile, 'extra_kyc') : null
+          if (extraKycUrl) {
+            console.log('Extra KYC uploaded:', extraKycUrl)
+          }
+
+          // Sync grades to database
+          if (selectedGrades.length > 0) {
+            try {
+              await syncGrades.mutateAsync({ id: applicationId, grades: selectedGrades })
+              console.log('Grades synced successfully')
+            } catch (gradesError) {
+              console.warn('Grades sync failed, continuing with document upload:', gradesError)
+            }
+          }
+
+          // Update application with document URLs
+          const updateData: any = { result_slip_url: resultSlipUrl }
+          if (extraKycUrl) {
+            updateData.extra_kyc_url = extraKycUrl
+          }
+          
           await updateApplication.mutateAsync({
             id: applicationId,
-            data: { result_slip_url: resultSlipUrl, extra_kyc_url: extraKycUrl }
+            data: updateData
           })
+          
+          console.log('Application updated with document URLs')
         })
         goToStep(currentStepIndex + 1)
       } catch (error) {
@@ -846,6 +875,14 @@ const useWizardController = (): UseWizardControllerResult => {
       })
 
       if (!isValid) {
+        return
+      }
+      
+      // Check if proof of payment was actually uploaded successfully
+      if (!uploadedFiles.proof_of_payment) {
+        const errorMessage = 'Please wait for proof of payment upload to complete'
+        setError('')
+        showError(errorMessage)
         return
       }
 
@@ -896,6 +933,14 @@ const useWizardController = (): UseWizardControllerResult => {
       showError(errorMessage)
       return
     }
+    
+    // Check if proof of payment was actually uploaded successfully
+    if (!uploadedFiles.proof_of_payment) {
+      const errorMessage = 'Please wait for proof of payment upload to complete'
+      setError('')
+      showError(errorMessage)
+      return
+    }
     if (!applicationId) {
       const errorMessage = 'Application ID not found. Please try refreshing the page.'
       setError('')
@@ -917,25 +962,33 @@ const useWizardController = (): UseWizardControllerResult => {
       let popUrl: string
       try {
         popUrl = await startUpload(popFile, 'proof_of_payment')
+        console.log('Proof of payment uploaded:', popUrl)
       } catch (uploadError) {
+        console.error('Proof of payment upload failed:', uploadError)
         throw new Error('Failed to upload proof of payment. Please try again.')
       }
       
       // Update application with submission data
+      const updateData = {
+        payment_method: data.payment_method || 'MTN Money',
+        payer_name: data.payer_name || null,
+        payer_phone: data.payer_phone || null,
+        amount: data.amount || 153,
+        paid_at: data.paid_at ? new Date(data.paid_at).toISOString() : null,
+        momo_ref: data.momo_ref || null,
+        pop_url: popUrl,
+        status: 'submitted',
+        submitted_at: new Date().toISOString()
+      }
+      
+      console.log('Updating application with submission data:', updateData)
+      
       const updatedApp = await updateApplication.mutateAsync({
         id: applicationId,
-        data: {
-          payment_method: data.payment_method || 'MTN Money',
-          payer_name: data.payer_name || null,
-          payer_phone: data.payer_phone || null,
-          amount: data.amount || 153,
-          paid_at: data.paid_at ? new Date(data.paid_at).toISOString() : null,
-          momo_ref: data.momo_ref || null,
-          pop_url: popUrl,
-          status: 'submitted',
-          submitted_at: new Date().toISOString()
-        }
+        data: updateData
       })
+      
+      console.log('Application submitted successfully:', updatedApp.id)
 
       if (!updatedApp) {
         throw new Error('Application not found or access denied')

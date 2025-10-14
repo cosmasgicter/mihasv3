@@ -87,14 +87,22 @@ export function useSessionListener() {
 
       console.log('Auth session event:', sanitizeForLog(event))
 
-      if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_EXPIRED') {
         setUser(null)
         setLoading(false)
+        // Clear any cached data on session expiry
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('supabase.auth.token')
+          sessionStorage.clear()
+        }
         return
       }
 
       if (session?.user) {
         setUser(session.user)
+      } else if (event === 'SIGNED_IN') {
+        // Handle case where sign in event doesn't have user
+        setUser(null)
       }
 
       if (!['INITIAL_SESSION', 'TOKEN_REFRESHED'].includes(event)) {

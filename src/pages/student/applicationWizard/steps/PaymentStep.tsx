@@ -189,11 +189,12 @@ const PaymentStep = ({
             )}
             {uploadedFiles.proof_of_payment && (
               <motion.div
-                className="mt-2 text-sm text-green-600"
+                className="mt-2 flex items-center text-sm text-green-600"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                ✓ Upload complete!
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Upload complete! Ready to submit.
               </motion.div>
             )}
           </div>
