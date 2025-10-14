@@ -165,6 +165,8 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
               whileTap={{ scale: 0.95 }}
               aria-label={isOpen ? "Close menu" : "Open menu"}
               aria-expanded={isOpen}
+              data-testid="auth-nav-mobile-toggle"
+              style={{ visibility: 'visible', display: 'flex', zIndex: 10000 }}
             >
               <AnimatePresence mode="wait">
                 {isOpen ? (
@@ -206,6 +208,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeMenu}
+              style={{ visibility: 'visible', display: 'block', zIndex: 9998 }}
             />
 
             {/* Mobile Menu */}
@@ -215,6 +218,8 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
               initial="closed"
               animate="open"
               exit="closed"
+              data-testid="auth-nav-mobile-menu"
+              style={{ visibility: 'visible', display: 'block', zIndex: 9999 }}
             >
               <div className="flex flex-col h-full">
                 {/* Header */}

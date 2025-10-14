@@ -5,6 +5,9 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AdminRoute } from '@/components/AdminRoute'
 import { ToastProvider } from '@/components/ui/Toast'
+import { UserMenu } from '@/components/ui/UserMenu'
+import { NotificationBell } from '@/components/student/NotificationBell'
+import { EnhancedMobileNavigation } from '@/components/ui/EnhancedMobileNavigation'
 import { LoadingFallback } from '@/components/ui/LoadingFallback'
 import { FancyPreloader } from '@/components/ui/FancyPreloader'
 import { routes, type RouteConfig } from '@/routes/config'
@@ -82,6 +85,7 @@ function App() {
                       />
                     ))}
                   </Routes>
+                  <EnhancedMobileNavigation />
                 </div>
               </AnalyticsTracker>
             </Router>

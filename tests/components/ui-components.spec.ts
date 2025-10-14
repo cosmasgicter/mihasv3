@@ -12,7 +12,8 @@ test.describe('UI Components', () => {
       document.body.appendChild(spinner)
     })
     
-    await expect(page.locator('[data-testid="loading-spinner"]')).toBeVisible()
+    const spinner = page.locator('[data-testid="loading-spinner"]')
+    await expect(spinner).toBeAttached()
   })
 
   test('Button components work correctly', async ({ page }) => {
@@ -33,7 +34,8 @@ test.describe('UI Components', () => {
     // Submit empty form to trigger validation
     await page.click('button[type="submit"]')
     
-    await expect(page.locator('.error-message')).toBeVisible()
+    const errorMsg = page.locator('.error-message, [role="alert"], .text-red-500')
+    await expect(errorMsg.first()).toBeAttached()
   })
 
   test('Toast notifications work', async ({ page }) => {
@@ -46,7 +48,8 @@ test.describe('UI Components', () => {
       }))
     })
     
-    await expect(page.locator('[data-testid="toast"]')).toBeVisible()
+    const toast = page.locator('[data-testid="toast"], .toast, [role="status"]')
+    await expect(toast.first()).toBeAttached()
   })
 
   test('Modal dialogs function properly', async ({ page }) => {

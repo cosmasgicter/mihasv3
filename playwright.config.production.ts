@@ -11,6 +11,9 @@ export default defineConfig({
   retries: 3, // More retries for production
   workers: 2, // Fewer workers for production stability
   timeout: 60000, // Longer timeout for production
+  expect: {
+    timeout: 10000 // Longer expect timeout for production
+  },
   
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
@@ -27,7 +30,9 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     actionTimeout: 30000,
-    navigationTimeout: 30000
+    navigationTimeout: 30000,
+    ignoreHTTPSErrors: true, // Ignore SSL errors in production
+    bypassCSP: true // Bypass CSP for testing
   },
   
   projects: [
