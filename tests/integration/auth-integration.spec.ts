@@ -9,14 +9,14 @@ test.describe('Authentication Integration', () => {
     await expect(page.locator('.error-message')).toBeVisible()
     
     // Test password mismatch
-    await page.fill('input[name="email"]', 'test@example.com')
-    await page.fill('input[name="password"]', 'password123')
+    await page.fill('input[name="email"]', 'alexisstar8@gmail.com')
+    await page.fill('input[name="password"]', 'Skyl3r@L0m1s')
     await page.fill('input[name="confirmPassword"]', 'different')
     await page.click('button[type="submit"]')
     await expect(page.locator('text=Passwords do not match')).toBeVisible()
     
     // Test successful signup
-    await page.fill('input[name="confirmPassword"]', 'password123')
+    await page.fill('input[name="confirmPassword"]', 'Skyl3r@L0m1s')
     
     // Mock successful registration
     await page.route('**/auth-register', async route => {
@@ -32,8 +32,8 @@ test.describe('Authentication Integration', () => {
   test('Sign in with remember me', async ({ page }) => {
     await page.goto('/signin')
     
-    await page.fill('input[name="email"]', 'test@example.com')
-    await page.fill('input[name="password"]', 'password123')
+    await page.fill('input[name="email"]', 'alexisstar8@gmail.com')
+    await page.fill('input[name="password"]', 'Skyl3r@L0m1s')
     await page.check('input[name="rememberMe"]')
     
     // Mock successful login
@@ -60,7 +60,7 @@ test.describe('Authentication Integration', () => {
   test('Password reset flow', async ({ page }) => {
     await page.goto('/auth/forgot-password')
     
-    await page.fill('input[name="email"]', 'test@example.com')
+    await page.fill('input[name="email"]', 'alexisstar8@gmail.com')
     
     // Mock password reset request
     await page.route('**/auth-reset-password', async route => {

@@ -4,9 +4,9 @@ test.describe('Complete Application Workflow', () => {
   test('Full application submission flow', async ({ page }) => {
     // Step 1: Registration
     await page.goto('/auth/signup')
-    await page.fill('input[name="email"]', 'test@example.com')
-    await page.fill('input[name="password"]', 'TestPassword123!')
-    await page.fill('input[name="confirmPassword"]', 'TestPassword123!')
+    await page.fill('input[name="email"]', 'alexisstar8@gmail.com')
+    await page.fill('input[name="password"]', 'Skyl3r@L0m1s')
+    await page.fill('input[name="confirmPassword"]', 'Skyl3r@L0m1s')
     await page.click('button[type="submit"]')
     
     // Mock successful registration
@@ -18,8 +18,8 @@ test.describe('Complete Application Workflow', () => {
     
     // Step 2: Login
     await page.goto('/signin')
-    await page.fill('input[name="email"]', 'test@example.com')
-    await page.fill('input[name="password"]', 'TestPassword123!')
+    await page.fill('input[name="email"]', 'alexisstar8@gmail.com')
+    await page.fill('input[name="password"]', 'Skyl3r@L0m1s')
     await page.click('button[type="submit"]')
     
     // Mock successful login

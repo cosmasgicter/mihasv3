@@ -171,7 +171,7 @@ test.describe('Security Tests', () => {
     
     // Attempt multiple rapid login attempts
     for (let i = 0; i < 10; i++) {
-      await page.fill('input[name="email"]', 'test@example.com')
+      await page.fill('input[name="email"]', 'alexisstar8@gmail.com')
       await page.fill('input[name="password"]', 'wrongpassword')
       await page.click('button[type="submit"]')
       await page.waitForTimeout(100)

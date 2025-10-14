@@ -1,54 +1,13 @@
-import { chromium, FullConfig } from '@playwright/test';
-import * as dotenv from 'dotenv';
-
-// Load test environment variables
-dotenv.config({ path: '.env.test' });
-
-async function globalSetup(config: FullConfig) {
-  console.log('🚀 MIHAS Production Test Suite - Global Setup');
-  console.log('==============================================');
-  console.log(`🌐 Production URL: https://apply.mihas.edu.zm`);
-  console.log(`📊 TestMonitor: https://beanola.testmonitor.com`);
-  console.log(`🔐 Using Production Credentials`);
-  console.log('');
-
-  // Verify production environment is accessible
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-  
-  try {
-    console.log('🔍 Verifying production environment...');
-    const response = await page.goto('https://apply.mihas.edu.zm');
-    
-    if (response?.status() === 200) {
-      console.log('✅ Production environment is accessible');
-    } else {
-      console.log(`⚠️  Production environment returned status: ${response?.status()}`);
-    }
-    
-    // Check if health endpoint is available
-    try {
-      const healthResponse = await page.request.get('https://apply.mihas.edu.zm/api/health');
-      if (healthResponse.status() === 200) {
-        console.log('✅ Production API health check passed');
-      } else {
-        console.log(`⚠️  Production API health check returned: ${healthResponse.status()}`);
-      }
-    } catch (error) {
-      console.log('⚠️  Production API health check failed');
-    }
-    
-  } catch (error) {
-    console.log('❌ Failed to access production environment');
-    console.log('Error:', error);
-  } finally {
-    await browser.close();
+// Global setup to prevent Jest/Vitest matcher conflicts
+async function globalSetup() {
+  // Clear any existing Jest/Vitest matchers to prevent conflicts
+  if (global.expect && global.expect.extend) {
+    delete global.expect;
   }
-
-  console.log('');
-  console.log('🎯 Starting test execution...');
-  console.log('📈 All results will be automatically sent to TestMonitor');
-  console.log('');
+  
+  // Ensure clean environment for Playwright
+  delete process.env.VITEST;
+  delete process.env.JEST_WORKER_ID;
 }
 
 export default globalSetup;

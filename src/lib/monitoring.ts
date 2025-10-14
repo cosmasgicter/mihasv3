@@ -614,6 +614,11 @@ export class MonitoringService {
       this.flushTimer = null
     }
     this.persistQueue()
+    
+    // Clear all data structures to prevent memory leaks
+    this.apiMetrics.clear()
+    this.customMetrics.clear()
+    this.queue.length = 0
   }
 
   private updateApiMetric(event: TelemetryEvent): void {

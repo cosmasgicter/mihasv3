@@ -2,7 +2,7 @@ import { supabase } from './supabase'
 import { multiChannelNotifications } from './multiChannelNotifications'
 import { predictiveAnalytics } from './predictiveAnalytics'
 import { sessionManager } from './session'
-import { sanitizeForLog } from './security'
+import { sanitizeForLog, secureErrorHandler } from './securityEnhancements'
 import { SecureCodeExecution } from './securityPatches'
 
 export interface WorkflowRule {

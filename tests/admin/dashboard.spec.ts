@@ -4,8 +4,8 @@ test.describe('Admin Dashboard Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Use production test credentials
     await page.goto('/auth/signin');
-    await page.fill('input[type="email"]', process.env.TEST_ADMIN_EMAIL || 'test.admin@mihas.edu.zm');
-    await page.fill('input[type="password"]', process.env.TEST_ADMIN_PASSWORD || 'TestAdmin123!');
+    await page.fill('input[type="email"]', process.env.TEST_ADMIN_EMAIL || 'cosmas@beanola.com');
+    await page.fill('input[type="password"]', process.env.TEST_ADMIN_PASSWORD || 'Beanola2025');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/admin/dashboard');
   });
