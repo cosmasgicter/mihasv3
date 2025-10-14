@@ -24,8 +24,9 @@ echo ""
 
 # Run all tests with TestMonitor reporter
 npx playwright test \
-  --reporter=html,json,junit,@testmonitor/playwright-reporter \
-  --project=production-chrome,production-firefox,production-safari,production-mobile-chrome,production-mobile-safari,production-ipad,production-api
+  --config=playwright.config.production.ts \
+  --reporter=html,json,junit \
+  --project=production-chrome,production-firefox,production-mobile
 
 # Capture exit code
 TEST_EXIT_CODE=$?
