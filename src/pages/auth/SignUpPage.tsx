@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
+import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { TextArea } from '@/components/ui/TextArea'
@@ -107,7 +108,7 @@ export default function SignUpPage() {
 
       setSuccess('Account created successfully! Redirecting to sign in...')
     } catch (error) {
-      console.error('Sign up error:', error)
+      logger.error('Sign up error:', error)
       setError(error instanceof Error ? error.message : 'Failed to create account. Please try again.')
       // Reset Turnstile on error
       setTurnstileToken('')

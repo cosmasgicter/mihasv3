@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ApplicationWithDetails } from '@/lib/supabase'
+import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { formatDate } from '@/lib/utils'
@@ -64,7 +65,7 @@ export default function ApplicationStatus() {
 
       setApplication(response.application as ApplicationWithDetails)
     } catch (error: any) {
-      console.error('Error loading application details:', error)
+      logger.error('Error loading application details:', error)
       setError(error.message)
     } finally {
       setLoading(false)

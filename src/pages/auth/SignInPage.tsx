@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
+import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { AuthLayout } from './AuthLayout'
@@ -31,7 +32,7 @@ export default function SignInPage() {
   })
 
   const onSubmit = async (data: SignInForm) => {
-    console.log('Login attempt:', data.email)
+    logger.info('Login attempt:', data.email)
     setLoading(true)
     setError('')
 
@@ -49,16 +50,16 @@ export default function SignInPage() {
       }
 
       const result = await signIn(data.email, data.password)
-      console.log('Sign in result:', result)
+      logger.info('Sign in result:', result)
       
       if (result?.error) {
         throw new Error(result.error)
       }
 
-      console.log('Login successful, navigating to dashboard')
+      logger.info('Login successful, navigating to dashboard')
       navigate('/dashboard')
     } catch (error: unknown) {
-      console.error('Sign in error:', error)
+      logger.error('Sign in error:', error)
       setError(error instanceof Error ? error.message : 'Failed to sign in. Please try again.')
     } finally {
       setLoading(false)

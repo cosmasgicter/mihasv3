@@ -134,7 +134,7 @@ export async function updateStatusForApplications(applicationIds, status) {
   const timestamp = new Date().toISOString()
 
   const { data: existingRecords, error: existingError } = await supabase
-    .from('applications_new')
+    .from('applications')
     .select('id, status, intake_id, intake')
     .in('id', applicationIds)
 
@@ -147,7 +147,7 @@ export async function updateStatusForApplications(applicationIds, status) {
   const updateData = buildStatusUpdateData(status, timestamp)
 
   const { error } = await supabase
-    .from('applications_new')
+    .from('applications')
     .update(updateData)
     .in('id', applicationIds)
 
@@ -205,7 +205,7 @@ export async function updatePaymentStatusForApplications(applicationIds, payment
   }
 
   const { error } = await supabase
-    .from('applications_new')
+    .from('applications')
     .update(updateData)
     .in('id', applicationIds)
 
@@ -219,7 +219,7 @@ export async function updatePaymentStatusForApplications(applicationIds, payment
 export async function softDeleteApplications(applicationIds) {
   const timestamp = new Date().toISOString()
   const { error } = await supabase
-    .from('applications_new')
+    .from('applications')
     .update({ status: 'deleted', updated_at: timestamp })
     .in('id', applicationIds)
 
