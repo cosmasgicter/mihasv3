@@ -8,7 +8,7 @@ import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { AuthLayout } from './AuthLayout'
-import { networkDiagnostics } from '@/lib/networkDiagnostics'
+
 
 const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -37,18 +37,6 @@ export default function SignInPage() {
     setError('')
 
     try {
-      // Quick network check
-      const connectionTest = await networkDiagnostics.testConnection()
-      
-      if (connectionTest.status === 'offline') {
-        setError('Network connection unavailable. Please check your internet connection.')
-        return
-      }
-      
-      if (connectionTest.status === 'slow') {
-        setError('Slow network detected. Login may take longer than usual...')
-      }
-
       const result = await signIn(data.email, data.password)
       logger.info('Sign in result:', result)
       

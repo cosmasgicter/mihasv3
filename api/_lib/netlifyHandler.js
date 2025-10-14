@@ -256,25 +256,32 @@ export function withNetlifyHandler(expressHandler) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, authorization, x-requested-with')
     
     if (req.method === 'OPTIONS') {
-      return res.status(200).end()
+      return new Response('', {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization, x-requested-with'
+        }
+      })
     }
 
-    const result = await expressHandler(req, res)
-
-    const normalized = normalizeHandlerResult(result)
-    if (normalized) {
-      return normalized
-    }
+    await expressHandler(req, res)
 
     if (res.headersSent) {
-      return res._finalize()
+      const response = res._finalize()
+      return new Response(response.body, {
+        status: response.statusCode,
+        headers: response.headers
+      })
     }
 
-    return {
-      statusCode: 200,
-      headers: {},
-      body: ''
-    }
+    return new Response('', {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
+    })
   }
 
   netlifyHandler.handler = netlifyHandler
