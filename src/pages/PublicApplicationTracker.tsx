@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { AnimatedCard } from '@/components/ui/AnimatedCard'
 import { formatDate, getStatusColor } from '@/lib/utils'
+import { logger } from '@/utils/logger'
 
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { sanitizeForDisplay } from '@/lib/sanitize'
@@ -140,7 +141,7 @@ export default function PublicApplicationTracker() {
       })
       setSearched(true)
     } catch (error: any) {
-      console.error('Error searching application:', error)
+      logger.error('Error searching application:', error)
       setError('An error occurred while searching. Please try again.')
     } finally {
       setLoading(false)
@@ -267,7 +268,7 @@ export default function PublicApplicationTracker() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error('Failed to copy:', err)
+      logger.error('Failed to copy:', err)
     }
   }
 
@@ -397,7 +398,7 @@ export default function PublicApplicationTracker() {
 
       triggerDownload(downloadUrl, filename)
     } catch (downloadError) {
-      console.error('Slip download failed:', downloadError)
+      logger.error('Slip download failed:', downloadError)
       toast.showError('Download failed', downloadError instanceof Error ? downloadError.message : 'Unable to download slip')
     } finally {
       setSlipLoading(false)
@@ -452,7 +453,7 @@ export default function PublicApplicationTracker() {
 
       setApplication(prev => (prev ? { ...prev, email: emailAddress } : prev))
     } catch (emailError) {
-      console.error('Slip email failed:', emailError)
+      logger.error('Slip email failed:', emailError)
       toast.showError('Email failed', emailError instanceof Error ? emailError.message : 'Unable to email slip')
     } finally {
       setEmailLoading(false)

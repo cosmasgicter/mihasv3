@@ -66,7 +66,7 @@ function parseJsonBody(body) {
 
 async function fetchApplication(id) {
   const { data, error } = await supabase
-    .from('applications_new')
+    .from('applications')
     .select('*')
     .eq('id', id)
     .maybeSingle()
@@ -104,7 +104,7 @@ async function ensureApplicationAccess(req, applicationId) {
   }
 
   const { data, error } = await supabase
-    .from('applications_new')
+    .from('applications')
     .select('id, user_id')
     .eq('id', applicationId)
     .maybeSingle()
@@ -136,7 +136,7 @@ function pickAllowedFields(payload) {
 
 async function fetchApplicationDetails(id, includeParam) {
   const { data: application, error } = await supabase
-    .from('applications_new')
+    .from('applications')
     .select('*')
     .eq('id', id)
     .maybeSingle()
@@ -253,7 +253,7 @@ async function handlePaymentStatusUpdate(req, res, id, body) {
   try {
     // Direct update instead of using helper function
     const { data, error: updateError } = await supabase
-      .from('applications_new')
+      .from('applications')
       .update({ 
         payment_status: paymentStatus,
         updated_at: new Date().toISOString()
@@ -678,7 +678,7 @@ async function handler(req, res) {
       updatePayload.updated_at = new Date().toISOString()
 
       const { data, error: updateError } = await supabase
-        .from('applications_new')
+        .from('applications')
         .update(updatePayload)
         .eq('id', id)
         .select()
@@ -741,7 +741,7 @@ async function handler(req, res) {
       }
 
       const { data: application, error: fetchError } = await supabase
-        .from('applications_new')
+        .from('applications')
         .select('id, status, user_id')
         .eq('id', id)
         .maybeSingle()
@@ -781,7 +781,7 @@ async function handler(req, res) {
       }
 
       const { error: deleteError } = await supabase
-        .from('applications_new')
+        .from('applications')
         .delete()
         .eq('id', id)
         .eq('user_id', authContext.user.id)

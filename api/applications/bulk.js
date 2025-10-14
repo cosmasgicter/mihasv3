@@ -141,7 +141,7 @@ async function bulkSendNotifications(res, applicationIds, notification) {
   }
 
   const { data: applications, error: fetchError } = await supabaseAdminClient
-    .from('applications_new')
+    .from('applications')
     .select('id, user_id, full_name, email, application_number')
     .in('id', applicationIds)
 

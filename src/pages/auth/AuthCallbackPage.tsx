@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/utils/logger'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 
 export default function AuthCallbackPage() {
@@ -20,7 +21,7 @@ export default function AuthCallbackPage() {
           const { data, error } = await supabase.auth.exchangeCodeForSession(hashFragment)
 
           if (error) {
-            console.error('Error exchanging code for session:', error.message)
+            logger.error('Error exchanging code for session:', error.message)
             setError(error.message)
             timeoutId = setTimeout(() => {
               navigate('/auth/signin?error=' + encodeURIComponent(error.message))
@@ -41,7 +42,7 @@ export default function AuthCallbackPage() {
           navigate('/auth/signin?error=No session found')
         }, 3000)
       } catch (error: unknown) {
-        console.error('Auth callback error:', error)
+        logger.error('Auth callback error:', error)
         const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
         setError(errorMessage)
         timeoutId = setTimeout(() => {

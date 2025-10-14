@@ -42,7 +42,7 @@ import { PredictiveDashboard } from '@/components/admin/PredictiveDashboard'
 import { workflowAutomation } from '@/lib/workflowAutomation'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import OfflineAdminDashboard from '@/components/admin/OfflineAdminDashboard'
-import { AdminDebug } from '@/components/AdminDebug'
+
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { DashboardSkeleton } from '@/components/admin/DashboardSkeleton'
 
@@ -553,7 +553,7 @@ export default function AdminDashboard() {
         </div>
       </main>
       
-      <AdminDebug />
+
     </div>
   )
 }

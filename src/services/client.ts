@@ -3,6 +3,7 @@ import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
 import { getApiBaseUrl } from '@/lib/apiConfig'
 import { fetchWithCache, invalidateCache } from '@/utils/api-cache'
 import { ApiErrorHandler } from '@/lib/apiErrorHandler'
+import { logger } from '@/utils/logger'
 
 import type { FetchWithCacheOptions } from '@/utils/api-cache'
 
@@ -91,7 +92,7 @@ class ApiClient {
         baseHeaders.Authorization = `Bearer ${token}`
       }
     } catch (error) {
-      console.error('Failed to resolve Supabase session for API request:', error)
+      logger.error('Failed to resolve Supabase session for API request:', error)
     }
 
     return baseHeaders

@@ -5,7 +5,7 @@ export { EnhancedLoadingSpinner, FullScreenLoader, SkeletonCard, SkeletonTable, 
 export { ProgressIndicator, ProgressBar } from './components/ui/ProgressIndicator'
 export { MobileOptimizedButton, FloatingActionButton, MobileButtonGroup, QuickActionButton } from './components/ui/MobileOptimizedButton'
 export { EnhancedFileUpload, ImagePreview } from './components/ui/EnhancedFileUpload'
-export { EnhancedMobileNavigation, Breadcrumb, MobilePageHeader } from './components/ui/EnhancedMobileNavigation'
+// EnhancedMobileNavigation removed - use AuthenticatedNavigation instead
 export { 
   EnhancedToast, 
   formatErrorMessage, 
