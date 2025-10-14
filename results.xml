@@ -1,0 +1,1081 @@
+<testsuites id="" name="" tests="53" failures="9" skipped="0" errors="0" time="94.15227300000001">
+<testsuite name="api/admin.spec.ts" timestamp="2025-10-14T12:06:43.566Z" hostname="chromium-production" tests="8" failures="2" skipped="0" time="19.299" errors="0">
+<testcase name="Admin API Tests › Admin dashboard should require admin authentication" classname="api/admin.spec.ts" time="7.301">
+<failure message="admin.spec.ts:4:3 Admin dashboard should require admin authentication" type="FAILURE">
+<![CDATA[  [chromium-production] › api/admin.spec.ts:4:3 › Admin API Tests › Admin dashboard should require admin authentication 
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      4 |   test('Admin dashboard should require admin authentication', async ({ request }) => {
+      5 |     const response = await request.get('/api/admin/dashboard');
+    > 6 |     expect([401, 403, 502]).toContain(response.status());
+        |                             ^
+      7 |   });
+      8 |
+      9 |   test('Admin users endpoint should require admin privileges', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/admin.spec.ts:6:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      4 |   test('Admin dashboard should require admin authentication', async ({ request }) => {
+      5 |     const response = await request.get('/api/admin/dashboard');
+    > 6 |     expect([401, 403, 502]).toContain(response.status());
+        |                             ^
+      7 |   });
+      8 |
+      9 |   test('Admin users endpoint should require admin privileges', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/admin.spec.ts:6:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      4 |   test('Admin dashboard should require admin authentication', async ({ request }) => {
+      5 |     const response = await request.get('/api/admin/dashboard');
+    > 6 |     expect([401, 403, 502]).toContain(response.status());
+        |                             ^
+      7 |   });
+      8 |
+      9 |   test('Admin users endpoint should require admin privileges', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/admin.spec.ts:6:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      4 |   test('Admin dashboard should require admin authentication', async ({ request }) => {
+      5 |     const response = await request.get('/api/admin/dashboard');
+    > 6 |     expect([401, 403, 502]).toContain(response.status());
+        |                             ^
+      7 |   });
+      8 |
+      9 |   test('Admin users endpoint should require admin privileges', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/admin.spec.ts:6:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production-retry3/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production-retry3/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production/trace.zip]]
+
+[[ATTACHMENT|test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production-retry1/trace.zip]]
+
+[[ATTACHMENT|test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production-retry2/trace.zip]]
+
+[[ATTACHMENT|test-results/api-admin-Admin-API-Tests--f140b-equire-admin-authentication-chromium-production-retry3/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin API Tests › Admin users endpoint should require admin privileges" classname="api/admin.spec.ts" time="2.136">
+</testcase>
+<testcase name="Admin API Tests › Admin audit log should require proper permissions" classname="api/admin.spec.ts" time="0.437">
+</testcase>
+<testcase name="Admin API Tests › Admin queue status should be accessible to admins" classname="api/admin.spec.ts" time="1.019">
+</testcase>
+<testcase name="Admin API Tests › Admin user permissions should validate user ID" classname="api/admin.spec.ts" time="1.047">
+</testcase>
+<testcase name="Admin API Tests › Admin user role update should validate role data" classname="api/admin.spec.ts" time="0.977">
+</testcase>
+<testcase name="Admin API Tests › Admin audit log export should handle date ranges" classname="api/admin.spec.ts" time="1.027">
+</testcase>
+<testcase name="Admin API Tests › Admin audit log stats should return metrics" classname="api/admin.spec.ts" time="5.355">
+<failure message="admin.spec.ts:44:3 Admin audit log stats should return metrics" type="FAILURE">
+<![CDATA[  [chromium-production] › api/admin.spec.ts:44:3 › Admin API Tests › Admin audit log stats should return metrics 
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      44 |   test('Admin audit log stats should return metrics', async ({ request }) => {
+      45 |     const response = await request.get('/api/admin/audit-log/stats');
+    > 46 |     expect([401, 403, 502]).toContain(response.status());
+         |                             ^
+      47 |   });
+      48 | });
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/admin.spec.ts:46:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      44 |   test('Admin audit log stats should return metrics', async ({ request }) => {
+      45 |     const response = await request.get('/api/admin/audit-log/stats');
+    > 46 |     expect([401, 403, 502]).toContain(response.status());
+         |                             ^
+      47 |   });
+      48 | });
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/admin.spec.ts:46:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      44 |   test('Admin audit log stats should return metrics', async ({ request }) => {
+      45 |     const response = await request.get('/api/admin/audit-log/stats');
+    > 46 |     expect([401, 403, 502]).toContain(response.status());
+         |                             ^
+      47 |   });
+      48 | });
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/admin.spec.ts:46:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      44 |   test('Admin audit log stats should return metrics', async ({ request }) => {
+      45 |     const response = await request.get('/api/admin/audit-log/stats');
+    > 46 |     expect([401, 403, 502]).toContain(response.status());
+         |                             ^
+      47 |   });
+      48 | });
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/admin.spec.ts:46:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production-retry3/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production-retry3/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production/trace.zip]]
+
+[[ATTACHMENT|test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production-retry1/trace.zip]]
+
+[[ATTACHMENT|test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production-retry2/trace.zip]]
+
+[[ATTACHMENT|test-results/api-admin-Admin-API-Tests--2a06b-stats-should-return-metrics-chromium-production-retry3/trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="api/all-apis.spec.ts" timestamp="2025-10-14T12:06:43.566Z" hostname="chromium-production" tests="17" failures="5" skipped="0" time="40.363" errors="0">
+<testcase name="API Endpoints › health API responds" classname="api/all-apis.spec.ts" time="2.174">
+</testcase>
+<testcase name="API Endpoints › auth-login API responds" classname="api/all-apis.spec.ts" time="5.538">
+<failure message="all-apis.spec.ts:6:5 auth-login API responds" type="FAILURE">
+<![CDATA[  [chromium-production] › api/all-apis.spec.ts:6:5 › API Endpoints › auth-login API responds ───────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production-retry3/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production-retry3/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production-retry1/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production-retry2/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-login-API-responds-chromium-production-retry3/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › auth-register API responds" classname="api/all-apis.spec.ts" time="5.225">
+<failure message="all-apis.spec.ts:6:5 auth-register API responds" type="FAILURE">
+<![CDATA[  [chromium-production] › api/all-apis.spec.ts:6:5 › API Endpoints › auth-register API responds ────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production-retry3/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production-retry3/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production-retry1/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production-retry2/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-register-API-responds-chromium-production-retry3/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › auth-reset-password API responds" classname="api/all-apis.spec.ts" time="5.496">
+<failure message="all-apis.spec.ts:6:5 auth-reset-password API responds" type="FAILURE">
+<![CDATA[  [chromium-production] › api/all-apis.spec.ts:6:5 › API Endpoints › auth-reset-password API responds 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production-retry3/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production-retry3/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production-retry1/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production-retry2/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-auth-reset-password-API-responds-chromium-production-retry3/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › applications API responds" classname="api/all-apis.spec.ts" time="1.65">
+</testcase>
+<testcase name="API Endpoints › catalog-programs API responds" classname="api/all-apis.spec.ts" time="1.394">
+</testcase>
+<testcase name="API Endpoints › catalog-intakes API responds" classname="api/all-apis.spec.ts" time="1.308">
+</testcase>
+<testcase name="API Endpoints › catalog-subjects API responds" classname="api/all-apis.spec.ts" time="1.268">
+</testcase>
+<testcase name="API Endpoints › documents-upload API responds" classname="api/all-apis.spec.ts" time="5.322">
+<failure message="all-apis.spec.ts:6:5 documents-upload API responds" type="FAILURE">
+<![CDATA[  [chromium-production] › api/all-apis.spec.ts:6:5 › API Endpoints › documents-upload API responds ─
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production-retry3/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production-retry3/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production-retry1/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production-retry2/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-documents-upload-API-responds-chromium-production-retry3/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › admin-dashboard API responds" classname="api/all-apis.spec.ts" time="1.25">
+</testcase>
+<testcase name="API Endpoints › admin-users API responds" classname="api/all-apis.spec.ts" time="0.555">
+</testcase>
+<testcase name="API Endpoints › admin-audit-log-stats API responds" classname="api/all-apis.spec.ts" time="0.457">
+</testcase>
+<testcase name="API Endpoints › analytics-telemetry API responds" classname="api/all-apis.spec.ts" time="1.084">
+</testcase>
+<testcase name="API Endpoints › notifications-send API responds" classname="api/all-apis.spec.ts" time="4.875">
+<failure message="all-apis.spec.ts:6:5 notifications-send API responds" type="FAILURE">
+<![CDATA[  [chromium-production] › api/all-apis.spec.ts:6:5 › API Endpoints › notifications-send API responds 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      24 |     test(`${endpoint} API responds`, async ({ request }) => {
+      25 |       const response = await request.get(`${API_BASE}/${endpoint}`)
+    > 26 |       expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+         |                                                                               ^
+      27 |     })
+      28 |   })
+      29 |
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/all-apis.spec.ts:26:79
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production-retry3/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production-retry3/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production-retry1/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production-retry2/trace.zip]]
+
+[[ATTACHMENT|test-results/api-all-apis-API-Endpoints-notifications-send-API-responds-chromium-production-retry3/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › Health check returns OK" classname="api/all-apis.spec.ts" time="1.231">
+</testcase>
+<testcase name="API Endpoints › Programs API returns data" classname="api/all-apis.spec.ts" time="0.741">
+</testcase>
+<testcase name="API Endpoints › Intakes API returns data" classname="api/all-apis.spec.ts" time="0.795">
+</testcase>
+</testsuite>
+<testsuite name="api/analytics.spec.ts" timestamp="2025-10-14T12:06:43.566Z" hostname="chromium-production" tests="5" failures="2" skipped="0" time="12.083" errors="0">
+<testcase name="Analytics API Tests › Analytics metrics should require authentication" classname="api/analytics.spec.ts" time="0.287">
+</testcase>
+<testcase name="Analytics API Tests › Analytics telemetry should accept valid data" classname="api/analytics.spec.ts" time="0.484">
+</testcase>
+<testcase name="Analytics API Tests › Predictive dashboard should require admin access" classname="api/analytics.spec.ts" time="4.917">
+<failure message="analytics.spec.ts:21:3 Predictive dashboard should require admin access" type="FAILURE">
+<![CDATA[  [chromium-production] › api/analytics.spec.ts:21:3 › Analytics API Tests › Predictive dashboard should require admin access 
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      21 |   test('Predictive dashboard should require admin access', async ({ request }) => {
+      22 |     const response = await request.get('/api/analytics/predictive-dashboard');
+    > 23 |     expect([401, 403, 502]).toContain(response.status());
+         |                             ^
+      24 |   });
+      25 |
+      26 |   test('Analytics telemetry should validate event data', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/analytics.spec.ts:23:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      21 |   test('Predictive dashboard should require admin access', async ({ request }) => {
+      22 |     const response = await request.get('/api/analytics/predictive-dashboard');
+    > 23 |     expect([401, 403, 502]).toContain(response.status());
+         |                             ^
+      24 |   });
+      25 |
+      26 |   test('Analytics telemetry should validate event data', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/analytics.spec.ts:23:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      21 |   test('Predictive dashboard should require admin access', async ({ request }) => {
+      22 |     const response = await request.get('/api/analytics/predictive-dashboard');
+    > 23 |     expect([401, 403, 502]).toContain(response.status());
+         |                             ^
+      24 |   });
+      25 |
+      26 |   test('Analytics telemetry should validate event data', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/analytics.spec.ts:23:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [401, 403, 502]
+
+      21 |   test('Predictive dashboard should require admin access', async ({ request }) => {
+      22 |     const response = await request.get('/api/analytics/predictive-dashboard');
+    > 23 |     expect([401, 403, 502]).toContain(response.status());
+         |                             ^
+      24 |   });
+      25 |
+      26 |   test('Analytics telemetry should validate event data', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/analytics.spec.ts:23:29
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production-retry3/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production-retry3/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production/trace.zip]]
+
+[[ATTACHMENT|test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production-retry1/trace.zip]]
+
+[[ATTACHMENT|test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production-retry2/trace.zip]]
+
+[[ATTACHMENT|test-results/api-analytics-Analytics-AP-8b0f0-should-require-admin-access-chromium-production-retry3/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Analytics API Tests › Analytics telemetry should validate event data" classname="api/analytics.spec.ts" time="5.325">
+<failure message="analytics.spec.ts:26:3 Analytics telemetry should validate event data" type="FAILURE">
+<![CDATA[  [chromium-production] › api/analytics.spec.ts:26:3 › Analytics API Tests › Analytics telemetry should validate event data 
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [400, 401, 403, 502]
+
+      31 |     });
+      32 |     
+    > 33 |     expect([400, 401, 403, 502]).toContain(response.status());
+         |                                  ^
+      34 |   });
+      35 |
+      36 |   test('Analytics metrics should handle date range queries', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/analytics.spec.ts:33:34
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [400, 401, 403, 502]
+
+      31 |     });
+      32 |     
+    > 33 |     expect([400, 401, 403, 502]).toContain(response.status());
+         |                                  ^
+      34 |   });
+      35 |
+      36 |   test('Analytics metrics should handle date range queries', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/analytics.spec.ts:33:34
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [400, 401, 403, 502]
+
+      31 |     });
+      32 |     
+    > 33 |     expect([400, 401, 403, 502]).toContain(response.status());
+         |                                  ^
+      34 |   });
+      35 |
+      36 |   test('Analytics metrics should handle date range queries', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/analytics.spec.ts:33:34
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [400, 401, 403, 502]
+
+      31 |     });
+      32 |     
+    > 33 |     expect([400, 401, 403, 502]).toContain(response.status());
+         |                                  ^
+      34 |   });
+      35 |
+      36 |   test('Analytics metrics should handle date range queries', async ({ request }) => {
+        at /home/cosmas/Documents/Visual Code/mihasv3/tests/api/analytics.spec.ts:33:34
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production-retry3/trace.zip
+    Usage:
+
+        npx playwright show-trace ../test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production-retry3/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production/trace.zip]]
+
+[[ATTACHMENT|test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production-retry1/trace.zip]]
+
+[[ATTACHMENT|test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production-retry2/trace.zip]]
+
+[[ATTACHMENT|test-results/api-analytics-Analytics-AP-e1a4b--should-validate-event-data-chromium-production-retry3/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Analytics API Tests › Analytics metrics should handle date range queries" classname="api/analytics.spec.ts" time="1.07">
+</testcase>
+</testsuite>
+<testsuite name="api/applications.spec.ts" timestamp="2025-10-14T12:06:43.566Z" hostname="chromium-production" tests="6" failures="0" skipped="0" time="4.534" errors="0">
+<testcase name="Applications API Tests › Applications endpoint should require authentication" classname="api/applications.spec.ts" time="0.849">
+</testcase>
+<testcase name="Applications API Tests › Applications endpoint should validate pagination parameters" classname="api/applications.spec.ts" time="0.466">
+</testcase>
+<testcase name="Applications API Tests › Application creation should validate required fields" classname="api/applications.spec.ts" time="0.464">
+</testcase>
+<testcase name="Applications API Tests › Application by ID should handle non-existent IDs" classname="api/applications.spec.ts" time="1.008">
+</testcase>
+<testcase name="Applications API Tests › Application documents upload should validate file types" classname="api/applications.spec.ts" time="1.251">
+</testcase>
+<testcase name="Applications API Tests › Application slip generation should validate application exists" classname="api/applications.spec.ts" time="0.496">
+</testcase>
+</testsuite>
+<testsuite name="api/auth.spec.ts" timestamp="2025-10-14T12:06:43.566Z" hostname="chromium-production" tests="4" failures="0" skipped="0" time="2.165" errors="0">
+<testcase name="Authentication API Tests › Login endpoint should handle invalid credentials" classname="api/auth.spec.ts" time="0.803">
+</testcase>
+<testcase name="Authentication API Tests › Register endpoint should validate required fields" classname="api/auth.spec.ts" time="0.467">
+</testcase>
+<testcase name="Authentication API Tests › Password reset should validate email format" classname="api/auth.spec.ts" time="0.47">
+</testcase>
+<testcase name="Authentication API Tests › Password reset with valid email should return success" classname="api/auth.spec.ts" time="0.425">
+</testcase>
+</testsuite>
+<testsuite name="api/catalog.spec.ts" timestamp="2025-10-14T12:06:43.566Z" hostname="chromium-production" tests="5" failures="0" skipped="0" time="3.225" errors="0">
+<testcase name="Catalog API Tests › Programs endpoint should return valid data structure" classname="api/catalog.spec.ts" time="0.595">
+</testcase>
+<testcase name="Catalog API Tests › Intakes endpoint should return current intakes" classname="api/catalog.spec.ts" time="0.61">
+</testcase>
+<testcase name="Catalog API Tests › Subjects endpoint should return subjects list" classname="api/catalog.spec.ts" time="0.876">
+</testcase>
+<testcase name="Catalog API Tests › Programs endpoint should handle query parameters" classname="api/catalog.spec.ts" time="0.586">
+</testcase>
+<testcase name="Catalog API Tests › Intakes endpoint should handle filtering" classname="api/catalog.spec.ts" time="0.558">
+</testcase>
+</testsuite>
+<testsuite name="api/health.spec.ts" timestamp="2025-10-14T12:06:43.566Z" hostname="chromium-production" tests="2" failures="0" skipped="0" time="1.108" errors="0">
+<testcase name="Health API Tests › Health endpoint should return 200" classname="api/health.spec.ts" time="0.61">
+</testcase>
+<testcase name="Health API Tests › Health endpoint should include timestamp" classname="api/health.spec.ts" time="0.498">
+</testcase>
+</testsuite>
+<testsuite name="api/notifications.spec.ts" timestamp="2025-10-14T12:06:43.566Z" hostname="chromium-production" tests="6" failures="0" skipped="0" time="4.424" errors="0">
+<testcase name="Notifications API Tests › Send notification should validate recipient" classname="api/notifications.spec.ts" time="0.462">
+</testcase>
+<testcase name="Notifications API Tests › Application submitted notification should validate application ID" classname="api/notifications.spec.ts" time="0.97">
+</testcase>
+<testcase name="Notifications API Tests › Dispatch channel should validate channel type" classname="api/notifications.spec.ts" time="1.061">
+</testcase>
+<testcase name="Notifications API Tests › Process email queue should require admin access" classname="api/notifications.spec.ts" time="0.999">
+</testcase>
+<testcase name="Notifications API Tests › Notification preferences should validate user ID" classname="api/notifications.spec.ts" time="0.429">
+</testcase>
+<testcase name="Notifications API Tests › Update consent should validate consent data" classname="api/notifications.spec.ts" time="0.503">
+</testcase>
+</testsuite>
+</testsuites>

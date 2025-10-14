@@ -126,9 +126,12 @@ export function EnhancedMobileNavigation() {
       <button
         ref={buttonRef}
         onClick={toggleMenu}
+        data-testid="mobile-nav-toggle"
         className={cn(
           // Fixed positioning with high z-index
-          'fixed top-4 right-4 z-[60]',
+          'fixed top-4 right-4 z-[9999]',
+          // Ensure visibility
+          'block md:hidden',
           // Touch-optimized size (44px minimum)
           'w-12 h-12',
           // Styling
@@ -147,6 +150,7 @@ export function EnhancedMobileNavigation() {
         )}
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isOpen}
+        style={{ visibility: 'visible', display: 'flex' }}
       >
         <div className="relative w-6 h-6">
           {/* Animated hamburger/close icon */}
@@ -178,21 +182,23 @@ export function EnhancedMobileNavigation() {
       {isOpen && (
         <div
           className={cn(
-            'fixed inset-0 z-[45]',
+            'fixed inset-0 z-[9997]',
             'bg-black/30 backdrop-blur-sm',
             'smooth-transition-slow',
             isOpen ? 'opacity-100' : 'opacity-0'
           )}
           onClick={() => setIsOpen(false)}
+          style={{ visibility: 'visible', display: 'block' }}
         />
       )}
 
       {/* Mobile Navigation Menu */}
       <div
         ref={menuRef}
+        data-testid="mobile-nav"
         className={cn(
           // Fixed positioning with proper z-index
-          'fixed top-0 right-0 z-[50]',
+          'fixed top-0 right-0 z-[9998]',
           // Sizing
           'h-full w-80 max-w-[85vw]',
           // Styling
@@ -205,6 +211,10 @@ export function EnhancedMobileNavigation() {
           // Ensure content doesn't overflow
           'overflow-y-auto'
         )}
+        style={{ 
+          visibility: isOpen ? 'visible' : 'hidden', 
+          display: isOpen ? 'block' : 'none' 
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">

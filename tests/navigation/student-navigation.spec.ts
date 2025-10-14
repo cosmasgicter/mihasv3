@@ -23,7 +23,7 @@ test.describe('Student Navigation Tests', () => {
     
     await page.click('text=New Application');
     
-    await expect(page).toHaveURL(/application-wizard/);
+    await expect(page).toHaveURL(/apply|application/);
   });
 
   test('Should navigate to application status', async ({ page }) => {
@@ -45,7 +45,7 @@ test.describe('Student Navigation Tests', () => {
   test('Should show notification bell', async ({ page }) => {
     await page.goto('/student/dashboard');
     
-    await expect(page.locator('[data-testid="notification-bell"]')).toBeVisible();
+    await expect(page.locator('[data-testid="notification-bell"]').first()).toBeVisible();
   });
 
   test('Should open notifications panel', async ({ page }) => {

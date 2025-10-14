@@ -1,16 +1,23 @@
 import { FullConfig } from '@playwright/test'
 import { execSync } from 'child_process'
+import * as fs from 'fs'
 
 async function globalTeardown(config: FullConfig) {
   console.log('🧹 Starting Production Test Suite Teardown')
   
   try {
-    // Submit test results to TestMonitor
-    console.log('📊 Submitting test results to TestMonitor...')
+    // Wait for XML file to be written
+    await new Promise(resolve => setTimeout(resolve, 1000))
     
-    // Submit Playwright results
-    execSync('npm run test:submit:playwright', { stdio: 'inherit' })
-    console.log('✅ Playwright results submitted to TestMonitor')
+    // Check if XML file exists before submitting
+    // fs already imported
+    if (fs.existsSync('./test-results/results.xml')) {
+      console.log('📊 Submitting test results to TestMonitor...')
+      execSync('npm run test:submit:playwright', { stdio: 'inherit' })
+      console.log('✅ Playwright results submitted to TestMonitor')
+    } else {
+      console.log('⚠️ No XML results file found, skipping TestMonitor submission')
+    }
     
     // Submit unit test results if they exist
     try {
@@ -34,7 +41,7 @@ async function globalTeardown(config: FullConfig) {
       githubIntegration: false
     }
     
-    require('fs').writeFileSync(reportPath, JSON.stringify(report, null, 2))
+    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2))
     console.log(`✅ Production test report saved: ${reportPath}`)
     
   } catch (error) {

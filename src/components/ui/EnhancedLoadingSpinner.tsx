@@ -81,7 +81,7 @@ export function EnhancedLoadingSpinner({
         )
       
       default:
-        return <Loader2 className={baseClasses} />
+        return <Loader2 className={baseClasses} data-testid="loading-spinner" />
     }
   }
 

@@ -60,14 +60,15 @@ export function NotificationBell() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative z-50">
       {/* Notification Bell */}
       <Button
         variant="ghost"
         size="sm"
         onClick={() => setShowPanel(!showPanel)}
-        className="relative hover:bg-blue-50"
+        className="relative hover:bg-blue-50 flex items-center justify-center"
         data-testid="notification-bell"
+        style={{ visibility: 'visible', display: 'flex' }}
       >
         <Bell className="h-5 w-5 text-gray-600" />
         {unreadCount > 0 && (
@@ -96,7 +97,9 @@ export function NotificationBell() {
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[80vh] flex flex-col"
+              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-[9999] max-h-[80vh] flex flex-col"
+              data-testid="notifications-panel"
+              style={{ visibility: 'visible', display: 'flex' }}
             >
               {/* Header */}
               <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">

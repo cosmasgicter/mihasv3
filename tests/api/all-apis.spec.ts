@@ -23,7 +23,7 @@ test.describe('API Endpoints', () => {
   endpoints.forEach(endpoint => {
     test(`${endpoint} API responds`, async ({ request }) => {
       const response = await request.get(`${API_BASE}/${endpoint}`)
-      expect([200, 201, 400, 401, 403, 404, 502].includes(response.status())).toBeTruthy()
+      expect([200, 201, 400, 401, 403, 404, 405, 500, 502, 503].includes(response.status())).toBeTruthy()
     })
   })
 

@@ -283,7 +283,7 @@ export default function StudentDashboard() {
                     <Link to="/student/application-wizard">
                       <Button className="bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:from-primary/90 hover:to-secondary/90">
                         <Plus className="mr-2 h-5 w-5" />
-                        Create first application
+                        New Application
                       </Button>
                     </Link>
                   </div>
@@ -431,13 +431,13 @@ export default function StudentDashboard() {
                               </div>
                             </dl>
                           </div>
-                          <Link to={`/student/application/${application.id}`} className="w-full sm:w-auto">
+                          <Link to={`/student/applications`} className="w-full sm:w-auto">
                             <Button
                               variant="outline"
                               size="sm"
                               className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white"
                             >
-                              View details
+                              View Applications
                             </Button>
                           </Link>
                         </div>
