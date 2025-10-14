@@ -125,32 +125,26 @@ export function useSessionListener() {
     }
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
+      const supabase = getSupabaseClient()
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        return { error: result.error || 'Login failed' }
+      if (error) {
+        return { error: error.message }
       }
 
-      if (result.session && result.user) {
-        const supabase = getSupabaseClient()
-        await supabase.auth.setSession(result.session)
-        setUser(result.user)
-        return { session: result.session, user: result.user }
+      if (data.session && data.user) {
+        setUser(data.user)
+        return { session: data.session, user: data.user }
       }
 
       return { error: 'Login failed' }
     } catch (error) {
       return { error: error instanceof Error ? error.message : 'Login failed' }
     }
-  }, [apiBaseUrl])
+  }, [])
 
   const signUp = useCallback(async (email: string, password: string, userData: any): Promise<SignUpResult> => {
     if (!isSupabaseConfigured) {
@@ -158,30 +152,34 @@ export function useSessionListener() {
     }
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          fullName: userData.full_name,
-          turnstileToken: userData.turnstileToken
-        })
+      const supabase = getSupabaseClient()
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: userData.full_name,
+            phone: userData.phone,
+            date_of_birth: userData.date_of_birth,
+            sex: userData.sex,
+            nationality: userData.nationality,
+            address: userData.address,
+            city: userData.city,
+            next_of_kin_name: userData.next_of_kin_name,
+            next_of_kin_phone: userData.next_of_kin_phone
+          }
+        }
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        return { error: result.error || 'Registration failed' }
+      if (error) {
+        return { error: error.message }
       }
 
-      return { user: result.user, session: result.session }
+      return { user: data.user, session: data.session }
     } catch (error) {
       return { error: error instanceof Error ? error.message : 'Registration failed' }
     }
-  }, [apiBaseUrl])
+  }, [])
 
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured) {
@@ -203,24 +201,15 @@ export function useSessionListener() {
     }
 
     try {
+      const supabase = getSupabaseClient()
       const redirectTo = getPasswordResetRedirectUrl()
       
-      const response = await fetch(`${apiBaseUrl}/api/auth/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          redirectTo,
-          turnstileToken
-        })
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo
       })
 
-      const result = await response.json().catch(() => ({}))
-
-      if (!response.ok || result?.error) {
-        return { error: result?.error || 'Unable to send reset instructions' }
+      if (error) {
+        return { error: error.message }
       }
 
       return {}
@@ -229,7 +218,7 @@ export function useSessionListener() {
         error: error instanceof Error ? error.message : 'Unable to send reset instructions'
       }
     }
-  }, [apiBaseUrl])
+  }, [])
 
   const updatePassword = useCallback(async (password: string): Promise<PasswordResetResult> => {
     if (!isSupabaseConfigured) {
