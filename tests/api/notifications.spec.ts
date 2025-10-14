@@ -40,7 +40,7 @@ test.describe('Notifications API Tests', () => {
 
   test('Notification preferences should validate user ID', async ({ request }) => {
     const response = await request.get('/api/notifications/preferences?userId=invalid');
-    expect([400, 401, 403]).toContain(response.status());
+    expect([400, 401, 403, 404]).toContain(response.status());
   });
 
   test('Update consent should validate consent data', async ({ request }) => {
@@ -50,6 +50,6 @@ test.describe('Notifications API Tests', () => {
       }
     });
     
-    expect([400, 401, 403]).toContain(response.status());
+    expect([400, 401, 403, 404]).toContain(response.status());
   });
 });

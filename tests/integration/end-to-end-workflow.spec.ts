@@ -85,8 +85,8 @@ test.describe('End-to-End Workflow Tests', () => {
   test('Complete admin review workflow', async ({ page }) => {
     // Use production admin credentials
     await page.goto('/auth/signin');
-    await page.fill('input[type="email"]', process.env.TEST_ADMIN_EMAIL || 'test.***REMOVED***');
-    await page.fill('input[type="password"]', process.env.TEST_ADMIN_PASSWORD || 'TestAdmin123!');
+    await page.fill('input[type="email"]', process.env.TEST_ADMIN_EMAIL || 'cosmas@beanola.com');
+    await page.fill('input[type="password"]', process.env.TEST_ADMIN_PASSWORD || 'Beanola2025');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/admin/**');
     
@@ -130,8 +130,8 @@ test.describe('End-to-End Workflow Tests', () => {
   test('Complete notification workflow', async ({ page }) => {
     // Use production student credentials
     await page.goto('/auth/signin');
-    await page.fill('input[type="email"]', process.env.TEST_STUDENT_EMAIL || 'test.student@mihas.edu.zm');
-    await page.fill('input[type="password"]', process.env.TEST_STUDENT_PASSWORD || 'TestStudent123!');
+    await page.fill('input[type="email"]', process.env.TEST_STUDENT_EMAIL || 'alexisstar8@gmail.com');
+    await page.fill('input[type="password"]', process.env.TEST_STUDENT_PASSWORD || '***REMOVED***');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/student/**');
     
@@ -166,8 +166,8 @@ test.describe('End-to-End Workflow Tests', () => {
   test('Complete document management workflow', async ({ page }) => {
     // Use production student credentials
     await page.goto('/auth/signin');
-    await page.fill('input[type="email"]', process.env.TEST_STUDENT_EMAIL || 'test.student@mihas.edu.zm');
-    await page.fill('input[type="password"]', process.env.TEST_STUDENT_PASSWORD || 'TestStudent123!');
+    await page.fill('input[type="email"]', process.env.TEST_STUDENT_EMAIL || 'alexisstar8@gmail.com');
+    await page.fill('input[type="password"]', process.env.TEST_STUDENT_PASSWORD || '***REMOVED***');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/student/**');
     
@@ -209,8 +209,8 @@ test.describe('End-to-End Workflow Tests', () => {
   test('Complete reporting workflow', async ({ page }) => {
     // Use production admin credentials
     await page.goto('/auth/signin');
-    await page.fill('input[type="email"]', process.env.TEST_ADMIN_EMAIL || 'test.***REMOVED***');
-    await page.fill('input[type="password"]', process.env.TEST_ADMIN_PASSWORD || 'TestAdmin123!');
+    await page.fill('input[type="email"]', process.env.TEST_ADMIN_EMAIL || 'cosmas@beanola.com');
+    await page.fill('input[type="password"]', process.env.TEST_ADMIN_PASSWORD || 'Beanola2025');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/admin/**');
     
@@ -243,7 +243,7 @@ test.describe('End-to-End Workflow Tests', () => {
     // 7. Schedule recurring report
     await page.click('[data-testid="schedule-report"]');
     await page.selectOption('[data-testid="frequency"]', 'weekly');
-    await page.fill('[data-testid="recipient-email"]', '***REMOVED***');
+    await page.fill('[data-testid="recipient-email"]', 'cosmas@beanola.com');
     await page.click('[data-testid="save-schedule"]');
     
     await expect(page.locator('text=Report scheduled successfully')).toBeVisible();

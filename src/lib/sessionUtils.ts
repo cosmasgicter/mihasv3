@@ -43,6 +43,13 @@ export async function makeAuthenticatedRequest(
     throw new Error(error || 'Authentication required')
   }
   
+  // Validate URL to prevent SSRF attacks
+  const urlObj = new URL(url)
+  const allowedHosts = ['apply.mihas.edu.zm', 'mylgegkqoddcrxtwcclb.supabase.co', 'localhost']
+  if (!allowedHosts.includes(urlObj.hostname)) {
+    throw new Error('Invalid URL - host not allowed')
+  }
+  
   return fetch(url, {
     ...options,
     headers: {

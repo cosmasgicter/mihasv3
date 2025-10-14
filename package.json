@@ -34,6 +34,7 @@
     "test:unit": "vitest",
     "test:unit:watch": "vitest --watch",
     "test:unit:coverage": "vitest --coverage",
+    "test:security": "vitest src/lib/__tests__/security.test.ts",
     "test:api-functions": "vitest tests/api",
     "test:submit": "testmonitor-cli junit submit -d beanola.testmonitor.com -t In78BvhEih3287tzTriGrALF1sv38hqb -f ./test-results/junit.xml",
     "test:submit:playwright": "testmonitor-cli junit submit -d beanola.testmonitor.com -t In78BvhEih3287tzTriGrALF1sv38hqb -f ./test-results/results.xml",

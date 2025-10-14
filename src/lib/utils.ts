@@ -199,7 +199,7 @@ export async function measureAsyncPerformance<T>(
 
 // Error handling utilities
 export function createUserFriendlyError(error: any): string {
-  if (typeof error === 'string') return error
+  if (typeof error === 'string') return sanitizeHtml(error)
   
   const errorMessages: Record<string, string> = {
     'Network Error': 'Please check your internet connection and try again.',
@@ -288,7 +288,7 @@ export function announceToScreenReader(message: string): void {
   announcement.setAttribute('aria-live', 'polite')
   announcement.setAttribute('aria-atomic', 'true')
   announcement.className = 'sr-only'
-  announcement.textContent = message
+  announcement.textContent = sanitizeHtml(message)
   
   document.body.appendChild(announcement)
   

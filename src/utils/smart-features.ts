@@ -241,7 +241,6 @@ export class DocumentParser {
 
     for (const pattern of patterns) {
       let match
-      let match
       while ((match = pattern.exec(text)) !== null) {
         const subjectRaw = match[1].trim().toLowerCase()
         const gradeStr = match[2]
@@ -324,8 +323,17 @@ export class AutoFillService {
       
       return {
         ...parsedData,
-        // Include raw text for debugging/manual review
-        _rawText: extractedText
+        // Include sanitized raw text for debugging/manual review
+        _rawText: extractedText.replace(/[<>"'&]/g, (match) => {
+          const entities: Record<string, string> = {
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#x27;',
+            '&': '&amp;'
+          }
+          return entities[match] || match
+        })
       }
     } catch (error) {
       console.error('Auto-fill extraction failed:', sanitizeForLog(error))

@@ -29,7 +29,7 @@ test.describe('Registration Flow Tests', () => {
     await page.fill('input[name="firstName"]', 'John');
     await page.fill('input[name="lastName"]', 'Doe');
     await page.fill('input[type="email"]', 'john@example.com');
-    await page.fill('input[type="password"]', 'password123');
+    await page.fill('input[type="password"]', '***REMOVED***');
     await page.fill('input[name="confirmPassword"]', 'different123');
     
     await page.click('button[type="submit"]');
@@ -69,8 +69,8 @@ test.describe('Registration Flow Tests', () => {
     await page.fill('input[name="firstName"]', 'John');
     await page.fill('input[name="lastName"]', 'Doe');
     await page.fill('input[type="email"]', 'john@example.com');
-    await page.fill('input[type="password"]', 'password123');
-    await page.fill('input[name="confirmPassword"]', 'password123');
+    await page.fill('input[type="password"]', '***REMOVED***');
+    await page.fill('input[name="confirmPassword"]', '***REMOVED***');
     
     const submitButton = page.locator('button[type="submit"]');
     await submitButton.click();

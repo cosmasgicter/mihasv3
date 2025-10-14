@@ -13,7 +13,7 @@ test.describe('Login Flow Tests', () => {
     await page.goto('/auth/signin');
     
     await page.fill('input[type="email"]', 'invalid-email');
-    await page.fill('input[type="password"]', 'password123');
+    await page.fill('input[type="password"]', '***REMOVED***');
     await page.click('button[type="submit"]');
     
     await expect(page.locator('text=Invalid email')).toBeVisible();
@@ -47,7 +47,7 @@ test.describe('Login Flow Tests', () => {
   test('Should handle login attempt with invalid credentials', async ({ page }) => {
     await page.goto('/auth/signin');
     
-    await page.fill('input[type="email"]', 'test@example.com');
+    await page.fill('input[type="email"]', 'alexisstar8@gmail.com');
     await page.fill('input[type="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
     
@@ -57,8 +57,8 @@ test.describe('Login Flow Tests', () => {
   test('Should show loading state during login', async ({ page }) => {
     await page.goto('/auth/signin');
     
-    await page.fill('input[type="email"]', 'test@example.com');
-    await page.fill('input[type="password"]', 'password123');
+    await page.fill('input[type="email"]', 'alexisstar8@gmail.com');
+    await page.fill('input[type="password"]', '***REMOVED***');
     
     const submitButton = page.locator('button[type="submit"]');
     await submitButton.click();

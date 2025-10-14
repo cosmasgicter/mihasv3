@@ -13,9 +13,8 @@ export default defineConfig({
   timeout: 60000, // Longer timeout for production
   
   reporter: [
-    ['html', { outputFolder: 'test-results/html-report' }],
-    ['junit', { outputFile: 'test-results/production-results.xml' }],
-    ['json', { outputFile: 'test-results/production-results.json' }],
+    ['html', { outputFolder: 'playwright-report' }],
+    ['junit', { outputFile: 'test-results/results.xml' }],
     ['@testmonitor/playwright-reporter', {
       domain: process.env.TESTMONITOR_DOMAIN,
       token: process.env.TESTMONITOR_TOKEN

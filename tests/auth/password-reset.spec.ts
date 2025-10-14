@@ -29,7 +29,7 @@ test.describe('Password Reset Flow Tests', () => {
   test('Should show success message for valid email', async ({ page }) => {
     await page.goto('/auth/forgot-password');
     
-    await page.fill('input[type="email"]', 'test@example.com');
+    await page.fill('input[type="email"]', 'alexisstar8@gmail.com');
     await page.click('button[type="submit"]');
     
     await expect(page.locator('text=Reset link sent')).toBeVisible();
@@ -46,7 +46,7 @@ test.describe('Password Reset Flow Tests', () => {
   test('Should show loading state during reset request', async ({ page }) => {
     await page.goto('/auth/forgot-password');
     
-    await page.fill('input[type="email"]', 'test@example.com');
+    await page.fill('input[type="email"]', 'alexisstar8@gmail.com');
     
     const submitButton = page.locator('button[type="submit"]');
     await submitButton.click();
