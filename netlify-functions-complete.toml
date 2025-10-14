@@ -15,7 +15,7 @@
   MIHAS_USE_MOCK_DATA = "false"
 
 [functions]
-  directory = "api-functions"
+  directory = "api"
   node_bundler = "esbuild"
   external_node_modules = ["@supabase/supabase-js"]
 
