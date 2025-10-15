@@ -1,6 +1,5 @@
 import { testSupabaseConnection } from '../_lib/networkTest.js'
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
-import { useMockSupabase } from '../_lib/supabaseClient.js'
 
 async function handler(req, res) {
   console.log('[health] Method:', req.method, 'Path:', req.path)
@@ -16,14 +15,6 @@ async function handler(req, res) {
   if (req.method !== 'GET') {
     console.log('[health] Rejecting method:', req.method)
     return res.status(405).json({ error: 'Method not allowed' })
-  }
-
-  if (useMockSupabase) {
-    return res.status(200).json({
-      status: 'healthy',
-      mode: 'mock',
-      timestamp: new Date().toISOString()
-    })
   }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL

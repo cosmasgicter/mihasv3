@@ -14,7 +14,6 @@ export class MCPService {
     try {
       return new URL(path, baseUrl).toString()
     } catch (error) {
-      console.warn('Failed to resolve MCP service URL, falling back to relative path', error)
       return path
     }
   }

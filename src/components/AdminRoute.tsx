@@ -34,11 +34,9 @@ export function AdminRoute({ children }: AdminRouteProps) {
 
   // Check admin role
   if (!isAdmin) {
-    console.log('❌ Admin access denied for user:', user.email, 'Role:', profile?.role)
     return <Navigate to="/student/dashboard" replace />
   }
   
-  console.log('✅ Admin access granted for user:', user.email, 'Role:', profile?.role)
 
   return <>{children}</>
 }

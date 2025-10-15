@@ -335,7 +335,6 @@ export class EligibilityEngine {
           })
         })
       } catch (error) {
-        console.warn('Could not check regulatory compliance:', error)
       }
     }
 

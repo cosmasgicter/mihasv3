@@ -4,6 +4,10 @@ import { withNetlifyHandler } from '../_lib/netlifyHandler.js';
 const supabase = supabaseAdminClient;
 
 async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*")
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  if (req.method === "OPTIONS") return res.status(200).end()
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -32,7 +36,7 @@ async function handler(req, res) {
 
     // Update application status
     const { data, error } = await supabase
-      .from('applications_new')
+      .from('applications')
       .update({
         status: status,
         admin_feedback: feedback,

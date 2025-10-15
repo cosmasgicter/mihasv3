@@ -51,7 +51,6 @@ export class DraftManager {
           sessionStorage.removeItem(key)
         })
       } catch (storageError) {
-        console.warn('Additional storage cleanup failed:', sanitizeForLog(storageError))
       }
 
       return deleteResult

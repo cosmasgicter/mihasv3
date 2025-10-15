@@ -108,7 +108,6 @@ class MultiDeviceSessionManager {
         .order('last_activity', { ascending: false })
 
       if (error) {
-        console.warn('Device sessions check failed, continuing:', error.message)
         return true
       }
 
@@ -151,7 +150,6 @@ class MultiDeviceSessionManager {
         .order('last_activity', { ascending: false })
 
       if (error) {
-        console.warn('Device sessions table not available:', error.message)
         return []
       }
 

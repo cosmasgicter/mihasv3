@@ -57,7 +57,6 @@ class AuthPersistence {
 
         // Refresh if expires in less than 10 minutes
         if (timeUntilExpiry < 600) {
-          console.log('Refreshing session proactively')
           await supabase.auth.refreshSession()
         }
       }

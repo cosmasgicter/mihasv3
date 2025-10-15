@@ -1,60 +1,41 @@
 import { createClient } from '@supabase/supabase-js'
 import { retryFetch } from './retryFetch.js'
 import './dnsConfig.js'
-import {
-  mockSupabaseAdminClient,
-  mockSupabaseAnonClient,
-  MockSessionStore
-} from './mockSupabaseClient.js'
-import { mockUsers } from './mockData.js'
-
-const rawMockFlag = process.env.MIHAS_USE_MOCK_DATA ?? 'false'
-const useMockSupabase = String(rawMockFlag).toLowerCase() === 'true'
 
 const ADMIN_ROLES = new Set(['admin', 'super_admin', 'admissions_officer'])
 const REQUEST_ROLE_CACHE_SYMBOL = Symbol.for('mihas.roleCache')
 
-let supabaseAdminClient
-let supabaseAnonClient
+const supabaseUrl = process.env.VITE_SUPABASE_URL
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (useMockSupabase) {
-  supabaseAdminClient = mockSupabaseAdminClient
-  supabaseAnonClient = mockSupabaseAnonClient
-} else {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL
-  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+if (!supabaseUrl) {
+  throw new Error('VITE_SUPABASE_URL is not configured')
+}
 
-  if (!supabaseUrl) {
-    throw new Error('VITE_SUPABASE_URL is not configured')
-  }
+if (!supabaseServiceKey) {
+  throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for server-side Supabase access')
+}
 
-  console.log('[supabaseClient] SUPABASE_SERVICE_ROLE_KEY present:', !!supabaseServiceKey)
-  console.log('[supabaseClient] Service key length:', supabaseServiceKey?.length)
-  if (!supabaseServiceKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for server-side Supabase access')
-  }
-
-  const clientOptions = {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    },
-    global: {
-      fetch: (url, options = {}) => {
-        return retryFetch(url, {
-          ...options,
-          timeout: 30000
-        }, 3)
-      }
+const clientOptions = {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false
+  },
+  global: {
+    fetch: (url, options = {}) => {
+      return retryFetch(url, {
+        ...options,
+        timeout: 30000
+      }, 3)
     }
   }
-
-  supabaseAdminClient = createClient(supabaseUrl, supabaseServiceKey, clientOptions)
-  supabaseAnonClient = supabaseAnonKey
-    ? createClient(supabaseUrl, supabaseAnonKey, clientOptions)
-    : null
 }
+
+const supabaseAdminClient = createClient(supabaseUrl, supabaseServiceKey, clientOptions)
+const supabaseAnonClient = supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey, clientOptions)
+  : null
 
 function getRequestRoleCache(req) {
   if (!req || typeof req !== 'object') {
@@ -113,11 +94,6 @@ function extractRolesFromUserToken(user) {
 }
 
 async function fetchRolesFromDatabase(userId) {
-  if (useMockSupabase) {
-    const user = mockUsers.find(candidate => candidate.id === userId)
-    return user ? [...user.roles] : []
-  }
-
   try {
     const { data: rolesData, error: rolesError } = await supabaseAdminClient
       .from('user_roles')
@@ -165,8 +141,7 @@ async function resolveRoles(req, user) {
     .then(roles => {
       cache?.set(user.id, roles)
       return roles
-    })
-    .catch(error => {
+    }, error => {
       cache?.delete(user.id)
       throw error
     })
@@ -317,7 +292,5 @@ export {
   supabaseAnonClient,
   getUserFromRequest,
   requireUser,
-  clearRequestRoleCache,
-  useMockSupabase,
-  MockSessionStore
+  clearRequestRoleCache
 }

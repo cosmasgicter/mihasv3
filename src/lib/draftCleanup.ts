@@ -22,7 +22,6 @@ export const clearAllDraftData = () => {
         localStorage.removeItem(key)
         sessionStorage.removeItem(key)
       } catch (e) {
-        console.warn(`Failed to remove ${key}:`, e)
       }
     })
     
@@ -46,11 +45,9 @@ export const clearAllDraftData = () => {
           try {
             storage.removeItem(key)
           } catch (e) {
-            console.warn(`Failed to remove ${key} from ${name}:`, e)
           }
         })
       } catch (e) {
-        console.warn(`Failed to access ${name}:`, e)
       }
     })
     
@@ -58,16 +55,13 @@ export const clearAllDraftData = () => {
     try {
       sessionStorage.setItem('draftDeleted', 'true')
     } catch (e) {
-      console.warn('Failed to set draftDeleted flag:', e)
     }
     
-    console.log('All draft data cleared successfully')
     
     // Dispatch a custom event to notify other components
     try {
       window.dispatchEvent(new CustomEvent('draftCleared'))
     } catch (e) {
-      console.warn('Failed to dispatch draftCleared event:', e)
     }
     
     return true
@@ -89,7 +83,6 @@ export const clearDraftDeletedFlag = () => {
   try {
     sessionStorage.removeItem('draftDeleted')
   } catch (e) {
-    console.warn('Failed to clear draftDeleted flag:', e)
   }
 }
 

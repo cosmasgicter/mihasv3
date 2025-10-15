@@ -63,7 +63,6 @@ const readFiltersFromSession = (): Partial<ApplicationFilters> => {
     const parsed = JSON.parse(storedValue) as unknown
     return pickFilters(parsed)
   } catch (error) {
-    console.warn('Failed to read application filters from sessionStorage', error)
     return {}
   }
 }
@@ -107,7 +106,6 @@ const persistFilters = (filters: ApplicationFilters) => {
       window.sessionStorage.removeItem(STORAGE_KEY)
     }
   } catch (error) {
-    console.warn('Failed to persist application filters to sessionStorage', error)
   }
 }
 

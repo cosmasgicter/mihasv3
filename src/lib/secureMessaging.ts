@@ -18,13 +18,11 @@ export const setupSecureMessageListener = (callback: (data: any) => void) => {
   const messageHandler = (event: MessageEvent) => {
     // Verify origin
     if (!isValidOrigin(event.origin, ALLOWED_ORIGINS)) {
-      console.warn('Message from unauthorized origin:', sanitizeForLog(event.origin))
       return
     }
     
     // Validate message structure
     if (!event.data || typeof event.data !== 'object') {
-      console.warn('Invalid message format')
       return
     }
     

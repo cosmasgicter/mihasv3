@@ -13,7 +13,7 @@ export class AdminNotificationService {
       // Parallel queries for better performance
       const [applicationResult, userResult] = await Promise.all([
         supabase
-          .from('applications_new')
+          .from('applications')
           .select('*')
           .eq('id', applicationId)
           .single(),
@@ -37,7 +37,7 @@ export class AdminNotificationService {
 
       // Update application status (this will trigger the database trigger)
       const { error: updateError } = await supabase
-        .from('applications_new')
+        .from('applications')
         .update({ 
           status: newStatus,
           updated_at: new Date().toISOString()

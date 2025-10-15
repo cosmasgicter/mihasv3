@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { supabaseAdminClient, getUserFromRequest, useMockSupabase } from '../_lib/supabaseClient.js'
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
 import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
 
 const subscriptionSchema = z.object({
@@ -64,7 +64,6 @@ async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      mode: useMockSupabase ? 'mock' : 'live',
       subscriptions: data ?? []
     })
   }

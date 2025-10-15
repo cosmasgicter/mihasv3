@@ -61,7 +61,6 @@ export async function uploadApplicationFile(
   fileType: string
 ): Promise<UploadResult> {
   try {
-    console.log(`Starting upload for ${fileType}:`, file.name, `(${file.size} bytes)`)
     
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
@@ -95,7 +94,6 @@ export async function uploadApplicationFile(
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
     const fileName = `${userId}/${applicationId}/${fileType}/${timestamp}-${sanitizedFileName}`
     
-    console.log('Generated filename:', fileName)
 
     // Use public buckets for reliable URL access
     const publicBuckets = ['app_docs', 'documents', 'application-documents']
@@ -104,7 +102,6 @@ export async function uploadApplicationFile(
     let uploadData: any = null
 
     for (const bucket of publicBuckets) {
-      console.log('Attempting upload to bucket:', { bucket: sanitizeForLog(bucket) })
       
       const { data, error } = await supabase.storage
         .from(bucket)
@@ -116,10 +113,8 @@ export async function uploadApplicationFile(
       if (!error && data) {
         usedBucket = bucket
         uploadData = data
-        console.log(`Upload successful to bucket: ${bucket}`, data.path)
         break
       } else {
-        console.warn(`Upload failed to bucket ${bucket}:`, error)
         uploadError = error
       }
     }
@@ -145,7 +140,6 @@ export async function uploadApplicationFile(
       }
     }
 
-    console.log('Upload completed successfully:', urlData.publicUrl)
     
     return {
       success: true,

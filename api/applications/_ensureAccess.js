@@ -19,7 +19,7 @@ export async function ensureApplicationAccess(req, applicationId) {
   }
 
   let ownershipQuery = supabase
-    .from('applications_new')
+    .from('applications')
     .select('id')
     .eq('id', applicationId);
 
@@ -39,7 +39,7 @@ export async function ensureApplicationAccess(req, applicationId) {
       actorId: authContext.user.id,
       actorEmail: authContext.user.email || null,
       actorRoles: authContext.roles || [],
-      targetTable: 'applications_new',
+      targetTable: 'applications',
       targetId: applicationId,
       metadata: { reason: 'ownership_mismatch' }
     });

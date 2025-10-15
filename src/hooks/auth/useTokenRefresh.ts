@@ -30,7 +30,6 @@ export function useTokenRefresh() {
         setLastRefresh(new Date())
         setTokenExpiry(new Date(session.expires_at * 1000))
         setRefreshCount(prev => prev + 1)
-        console.log('✅ Token refreshed successfully at', new Date().toISOString())
       }
     })
 

@@ -15,7 +15,7 @@ async function ensureApplicationAccess(req, applicationId) {
   }
 
   const { data, error } = await supabase
-    .from('applications_new')
+    .from('applications')
     .select('id, user_id')
     .eq('id', applicationId)
     .maybeSingle();
@@ -36,6 +36,10 @@ async function ensureApplicationAccess(req, applicationId) {
 }
 
 async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*")
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  if (req.method === "OPTIONS") return res.status(200).end()
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -54,7 +58,7 @@ async function handler(req, res) {
 
     // Get application details
     const { data: application, error } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select(`
         *,
         application_documents(id, document_type, file_url, verification_status),

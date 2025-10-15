@@ -44,7 +44,6 @@ export function usePerformanceMonitor(
     }))
     
     if (logToConsole) {
-      console.log(`[Performance] ${componentName} mounted at ${mountTime.toFixed(2)}ms`)
     }
   }, [enabled, logToConsole, componentName])
   
@@ -67,7 +66,6 @@ export function usePerformanceMonitor(
     }))
     
     if (logToConsole && updateCountRef.current > 1) {
-      console.log(`[Performance] ${componentName} update #${updateCountRef.current} took ${timeSinceLastRender.toFixed(2)}ms`)
     }
   }, dependencies)
   
@@ -86,7 +84,6 @@ export function usePerformanceMonitor(
     const end = performance.now()
     
     if (logToConsole) {
-      console.log(`[Performance] ${componentName}:${name} took ${(end - start).toFixed(2)}ms`)
     }
     
     return result

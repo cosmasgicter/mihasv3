@@ -236,7 +236,6 @@ function startSessionMonitoring(client: SupabaseClient) {
         await retryTokenRefresh(client)
       }
     } catch (error) {
-      console.warn('Session check failed:', error)
     }
   }, 60000)
 }
@@ -246,12 +245,9 @@ async function retryTokenRefresh(client: SupabaseClient) {
     try {
       const { error } = await client.auth.refreshSession()
       if (!error) {
-        console.log('Token refresh successful')
         return
       }
-      console.warn(`Token refresh attempt ${i + 1} failed:`, error.message)
     } catch (error) {
-      console.warn(`Token refresh attempt ${i + 1} error:`, error)
     }
 
     if (i < MAX_REFRESH_RETRIES - 1) {

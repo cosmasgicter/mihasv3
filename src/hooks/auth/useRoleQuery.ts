@@ -57,7 +57,6 @@ export function useRoleQuery(options: UseRoleQueryOptions = {}): RoleQueryResult
       }
 
       if (!isSupabaseConfigured) {
-        console.warn(SUPABASE_MISSING_CONFIG_MESSAGE)
         return null
       }
 

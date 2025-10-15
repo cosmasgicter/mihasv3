@@ -54,7 +54,7 @@ export function useApplicationSubmitFixed() {
 
       // Update the application
       const { data: updatedApp, error: updateError } = await supabase
-        .from('applications_new')
+        .from('applications')
         .update(updateData)
         .eq('id', applicationId)
         .eq('user_id', user.id)
@@ -70,7 +70,6 @@ export function useApplicationSubmitFixed() {
         throw new Error('Application not found or access denied')
       }
 
-      console.log('Application submitted successfully:', { applicationId })
       setSuccess(true)
       
     } catch (error) {

@@ -112,7 +112,6 @@ class ApplicationSessionManager {
       try {
         localStorage.setItem('applicationDraft', JSON.stringify(draft))
       } catch (error) {
-        console.warn('localStorage save failed:', sanitizeForLog(error))
         return { success: false, error: 'Storage quota exceeded' }
       }
 
@@ -128,9 +127,7 @@ class ApplicationSessionManager {
             onConflict: 'user_id'
           })
 
-        if (error) console.warn('Database save failed:', sanitizeForLog(error))
       } catch (dbError) {
-        console.warn('Database not available, using localStorage only')
       }
 
       return { success: true }
@@ -194,7 +191,6 @@ class ApplicationSessionManager {
           }
         }
       } catch (dbError) {
-        console.warn('Database not available, using localStorage only')
       }
 
       // Fallback to localStorage
@@ -229,24 +225,15 @@ class ApplicationSessionManager {
       this.cleanup()
 
       // Step 3: Database cleanup (don't fail if this doesn't work)
-      const cleanupPromises = [
-        supabase.from('application_drafts').delete().eq('user_id', userId).then(result => {
-          if (result.error) console.warn('Draft table cleanup failed:', sanitizeForLog(result.error))
-          return result
-        }),
-        supabase.from('applications_new').delete().eq('user_id', userId).eq('status', 'draft').then(result => {
-          if (result.error) console.warn('Applications cleanup failed:', sanitizeForLog(result.error))
-          return result
-        })
-      ]
-      
-      await Promise.allSettled(cleanupPromises)
+      await Promise.allSettled([
+        supabase.from('application_drafts').delete().eq('user_id', userId),
+        supabase.from('applications').delete().eq('user_id', userId).eq('status', 'draft')
+      ])
 
       // Step 4: Set deletion flag for other components
       try {
         sessionStorage.setItem('draftDeleted', 'true')
       } catch (storageError) {
-        console.warn('Session storage update failed:', sanitizeForLog(storageError))
       }
 
       return { success: true }
@@ -276,7 +263,6 @@ class ApplicationSessionManager {
         })
       })
     } catch (error) {
-      console.warn('Local storage cleanup failed:', sanitizeForLog(error))
     }
   }
 
@@ -332,7 +318,6 @@ class ApplicationSessionManager {
         try {
           localStorage.setItem('applicationDraft', JSON.stringify(draft))
         } catch (error) {
-          console.warn('Failed to mark draft as expired:', sanitizeForLog(error))
         }
       }
     }
@@ -386,7 +371,7 @@ class ApplicationSessionManager {
 
       // Check database for draft applications
       const { data: draftApps } = await supabase
-        .from('applications_new')
+        .from('applications')
         .select('*')
         .eq('user_id', userId)
         .eq('status', 'draft')

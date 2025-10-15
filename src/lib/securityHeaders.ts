@@ -11,5 +11,4 @@ export const SECURITY_HEADERS = {
 // Apply security headers for client-side enforcement - DISABLED FOR LOCAL DEVELOPMENT
 export const applyClientSecurityHeaders = () => {
   // Security headers disabled for local development
-  console.log('Security headers disabled for local development');
 };

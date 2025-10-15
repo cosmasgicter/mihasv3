@@ -78,7 +78,6 @@ export class AnalyticsService {
     }
 
     if (typeof fetch === 'undefined') {
-      console.warn('Fetch API unavailable while verifying analytics permissions.')
       return null
     }
 
@@ -138,7 +137,6 @@ export class AnalyticsService {
     } catch (error) {
       // Silently fail for anonymous users
       if (process.env.NODE_ENV === 'development') {
-        console.warn('Analytics tracking failed (expected for anonymous users):', error)
       }
     }
   }
@@ -472,7 +470,7 @@ export class AnalyticsService {
     const today = new Date().toISOString().split('T')[0]
     
     const { data: applications, error: appsError } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select('*')
       .gte('created_at', `${today}T00:00:00`)
       .lt('created_at', `${today}T23:59:59`)
@@ -528,7 +526,7 @@ export class AnalyticsService {
     
     // Get current applications data
     const { data: applications } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select('*')
       .gte('created_at', `${today}T00:00:00`)
       .lt('created_at', `${today}T23:59:59`)

@@ -43,7 +43,7 @@ export const analyticsData = {
       queryKey: ['analytics', 'system-health'],
       queryFn: async () => {
         // Check database connectivity
-        const { error: dbError } = await supabase.from('applications_new').select('id').limit(1)
+        const { error: dbError } = await supabase.from('applications').select('id').limit(1)
         
         return {
           database: dbError ? 'error' : 'healthy',
