@@ -22,7 +22,7 @@ const DEFAULT_WORKFLOW_SUMMARY = {
 async function fallbackPredictiveSummary() {
   try {
     const { data, error } = await supabaseAdminClient
-      .from('applications_new')
+      .from('applications')
       .select('created_at, status, program, updated_at')
       .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 

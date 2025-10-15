@@ -414,7 +414,6 @@ export async function exportUsersToPDF<TRecord extends Record<string, unknown>>(
         const formatted = field.formatter(rawValue, record)
         return sanitizeUserPdfText(String(formatted ?? ''))
       } catch (error) {
-        console.warn(`Formatter for field "${String(field.id)}" failed`, error)
       }
     }
 

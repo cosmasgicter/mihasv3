@@ -59,7 +59,6 @@ class OfflineSyncService {
         data,
         userId
       })
-      console.log('Data stored offline successfully')
     } catch (error) {
       console.error('Failed to store data offline:', error)
       // Fallback to localStorage
@@ -173,7 +172,7 @@ class OfflineSyncService {
 
       case 'form_submission': {
         const { error: submissionError } = await supabase
-          .from('applications_new')
+          .from('applications')
           .insert({
             ...item.data,
             user_id: item.userId,
@@ -186,7 +185,6 @@ class OfflineSyncService {
 
       case 'document_upload':
         // Handle document uploads - would need to re-upload files
-        console.log('Document upload sync not yet implemented')
         break
     }
   }
@@ -217,13 +215,11 @@ class OfflineSyncService {
 
     // Listen for online events
     window.addEventListener('online', () => {
-      console.log('Connection restored, syncing offline data...')
       this.processOfflineData()
     })
 
     // Listen for offline events
     window.addEventListener('offline', () => {
-      console.log('Connection lost, enabling offline mode')
     })
 
     // Process any existing offline data on startup

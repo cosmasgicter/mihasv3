@@ -413,7 +413,6 @@ export class PersistentCache extends ApiCache {
         })
       }
     } catch (error) {
-      console.warn('Failed to load cache from storage:', error)
     }
   }
 
@@ -440,7 +439,6 @@ export class PersistentCache extends ApiCache {
       
       localStorage.setItem(this.storageKey, JSON.stringify(Object.fromEntries(this['cache'])))
     } catch (error) {
-      console.warn('Failed to save cache to storage:', error)
     }
   }
 

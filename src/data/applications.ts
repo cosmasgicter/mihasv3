@@ -112,11 +112,11 @@ export const applicationsData = {
         const today = new Date().toISOString().split('T')[0]
         
         const [total, pending, approved, rejected, todayApps] = await Promise.all([
-          supabase.from('applications_new').select('*', { count: 'exact', head: true }),
-          supabase.from('applications_new').select('*', { count: 'exact', head: true }).eq('status', 'submitted'),
-          supabase.from('applications_new').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-          supabase.from('applications_new').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
-          supabase.from('applications_new').select('*', { count: 'exact', head: true }).gte('created_at', today)
+          supabase.from('applications').select('*', { count: 'exact', head: true }),
+          supabase.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'submitted'),
+          supabase.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+          supabase.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
+          supabase.from('applications').select('*', { count: 'exact', head: true }).gte('created_at', today)
         ])
 
         const totalCount = total.count || 0
@@ -145,7 +145,7 @@ export const applicationsData = {
       queryKey: ['applications', 'recent-activity'],
       queryFn: async () => {
         const { data } = await supabase
-          .from('applications_new')
+          .from('applications')
           .select('id, full_name, status, created_at, updated_at')
           .order('updated_at', { ascending: false })
           .limit(5)

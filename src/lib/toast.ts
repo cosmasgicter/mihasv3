@@ -1,7 +1,6 @@
 // Simple toast utility without React context
 export const toast = {
   success: (message: string) => {
-    console.log('✅ Success:', message)
     // You can replace this with a proper toast implementation
     if (typeof window !== 'undefined') {
       // Simple browser notification for now
@@ -23,7 +22,6 @@ export const toast = {
   },
   
   warning: (message: string) => {
-    console.warn('⚠️ Warning:', message)
     if (typeof window !== 'undefined') {
       const event = new CustomEvent('toast', {
         detail: { type: 'warning', message }

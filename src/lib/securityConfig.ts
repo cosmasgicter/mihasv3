@@ -76,7 +76,6 @@ export const SECURITY_HEADERS = {
  */
 export function disableDangerousFunctions(): void {
   // Security functions disabled for local development
-  console.log('Security functions disabled for local development')
 }
 
 /**
@@ -396,5 +395,4 @@ export async function clearPersistentRateLimit(key: string): Promise<void> {
  */
 export function initializeSecurity(): void {
   // Security measures disabled for local development
-  console.log('Security measures disabled for local development')
 }

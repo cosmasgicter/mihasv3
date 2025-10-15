@@ -388,7 +388,7 @@ export function ReportsGenerator() {
 
       // Fetch application data
       const { data: applications, error: appsError } = await supabase
-        .from('applications_new')
+        .from('applications')
         .select(`
           *,
           programs(name),

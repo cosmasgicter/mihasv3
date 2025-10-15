@@ -16,7 +16,6 @@ export function useFeedback() {
     setIsSubmitting(true)
     try {
       // Implementation for submitting feedback
-      console.log('Feedback submitted:', sanitizeForLog(JSON.stringify(feedback)))
       return { success: true }
     } catch (error) {
       console.error('Failed to submit feedback:', sanitizeForLog(error instanceof Error ? error.message : 'Unknown error'))

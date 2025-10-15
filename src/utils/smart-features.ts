@@ -18,7 +18,6 @@ export class OCRService {
       this.worker = await Tesseract.createWorker({
         logger: (m: any) => {
           if (m.status === 'recognizing text') {
-            console.log('OCR Progress:', Math.round(m.progress * 100), '%')
           }
         }
       })

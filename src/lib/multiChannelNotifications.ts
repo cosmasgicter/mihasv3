@@ -91,7 +91,7 @@ export class MultiChannelNotificationService {
 
   async sendProactiveReminder(userId: string, applicationId: string): Promise<void> {
     const { data: application } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select('*')
       .eq('id', applicationId)
       .single()
@@ -380,7 +380,6 @@ export class MultiChannelNotificationService {
       const recipientEmail = data?.email?.trim()
 
       if (!recipientEmail) {
-        console.warn('Email notification skipped: missing email address for user', sanitizeForLog(userId))
         return false
       }
 

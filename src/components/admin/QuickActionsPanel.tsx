@@ -189,7 +189,6 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
               className="w-full justify-start h-12 border-2 hover:border-accent hover:bg-accent/5 transition-all duration-300"
               onClick={() => {
                 // Export functionality
-                console.log('Export data')
               }}
             >
               <Download className="h-4 w-4 mr-3" />

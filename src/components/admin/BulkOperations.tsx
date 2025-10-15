@@ -218,7 +218,6 @@ export function BulkOperations({
                   <MobileOptimizedButton
                     onClick={() => {
                       // Export selected applications
-                      console.log('Export selected applications')
                     }}
                     variant="outline"
                     size="sm"
@@ -230,7 +229,6 @@ export function BulkOperations({
                   <MobileOptimizedButton
                     onClick={() => {
                       // Generate reports for selected
-                      console.log('Generate report for selected')
                     }}
                     variant="outline"
                     size="sm"

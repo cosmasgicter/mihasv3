@@ -40,7 +40,6 @@ export function DraftDeletionTest() {
   const handleDeleteDraft = async () => {
     await deleteDraft(
       () => {
-        console.log('Draft deleted successfully')
         checkForDrafts()
       },
       (error) => {
@@ -52,7 +51,6 @@ export function DraftDeletionTest() {
   const handleClearAll = async () => {
     await clearAllDrafts(
       () => {
-        console.log('All drafts cleared successfully')
         checkForDrafts()
       },
       (error) => {

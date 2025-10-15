@@ -31,7 +31,6 @@ function parseMissingRequirements(
     const parsed = JSON.parse(value ?? '[]') as MissingRequirement[]
     return Array.isArray(parsed) ? parsed : []
   } catch (error) {
-    console.warn('Failed to parse missing requirements:', error)
     return []
   }
 }

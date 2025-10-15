@@ -2,7 +2,6 @@
 import { uploadApplicationFile } from '@/lib/storage'
 
 export async function testUploadSystem() {
-  console.log('🧪 Testing upload system...')
   
   // Create a simple test file
   const testContent = 'This is a test file for upload verification'
@@ -17,7 +16,6 @@ export async function testUploadSystem() {
     )
     
     if (result.success && result.url) {
-      console.log('✅ Upload system working! URL:', result.url)
       return { success: true, url: result.url }
     } else {
       console.error('❌ Upload failed:', result.error)

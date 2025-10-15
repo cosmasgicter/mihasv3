@@ -326,7 +326,6 @@ export async function persistSlip(applicationNumber: string, blob: Blob, userId?
       // If upload failed and we don't have a userId, it might be due to RLS policy
       // In this case, we'll still return success but without storage persistence
       if (!userId && uploadError?.message?.includes('policy')) {
-        console.warn('Storage policy prevented upload for public slip, continuing without persistence')
         return {
           success: true,
           path: undefined,
@@ -351,13 +350,12 @@ export async function persistSlip(applicationNumber: string, blob: Blob, userId?
 
     try {
       const { data: application, error: applicationLookupError } = await supabase
-        .from('applications_new')
+        .from('applications')
         .select('id')
         .eq('application_number', trimmedNumber)
         .maybeSingle()
 
       if (applicationLookupError) {
-        console.warn('Unable to find application for slip persistence:', sanitizeForLog(applicationLookupError.message))
       } else if (application?.id) {
         const documentPayload = {
           application_id: application.id,
@@ -375,7 +373,6 @@ export async function persistSlip(applicationNumber: string, blob: Blob, userId?
           .maybeSingle()
 
         if (existingError) {
-          console.warn('Unable to check existing application slip document:', sanitizeForLog(existingError.message))
         }
 
         if (existingDocument?.id) {
@@ -385,7 +382,6 @@ export async function persistSlip(applicationNumber: string, blob: Blob, userId?
             .eq('id', existingDocument.id)
 
           if (updateError) {
-            console.warn('Failed to update application slip document record:', sanitizeForLog(updateError.message))
           } else {
             documentId = existingDocument.id
           }
@@ -397,7 +393,6 @@ export async function persistSlip(applicationNumber: string, blob: Blob, userId?
             .maybeSingle()
 
           if (insertError) {
-            console.warn('Failed to insert application slip document record:', sanitizeForLog(insertError.message))
           } else {
             documentId = insertData?.id
           }

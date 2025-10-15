@@ -329,7 +329,6 @@ const ApplicationWizardContent = () => {
         applicationData={watchValues()}
         currentStep={currentStepIndex + 1}
         onSuggestionApply={suggestion => {
-          console.log('AI Suggestion:', suggestion)
         }}
       />
     </div>

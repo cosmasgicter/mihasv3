@@ -56,7 +56,7 @@ export function TestNotifications() {
     try {
       // Get a test application
       const { data: applications } = await supabase
-        .from('applications_new')
+        .from('applications')
         .select('id, user_id, application_number, program')
         .limit(1)
 

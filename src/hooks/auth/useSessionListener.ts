@@ -40,7 +40,6 @@ export function useSessionListener() {
     }
 
     if (!isSupabaseConfigured) {
-      console.warn('Supabase configuration missing. Authentication features are disabled.')
 
       if (typeof window !== 'undefined') {
         const detail: SupabaseStatusDetail = {
@@ -60,7 +59,6 @@ export function useSessionListener() {
 
     async function initializeSession() {
       try {
-        console.log('[Auth] Initializing session...')
         const { data: { session }, error } = await supabase.auth.getSession()
         if (!mounted) return
 
@@ -68,11 +66,8 @@ export function useSessionListener() {
           console.error('[Auth] Session error:', error.message)
           setUser(null)
         } else if (session?.user) {
-          console.log('[Auth] Session found for user:', session.user.id)
-          console.log('[Auth] Token expires at:', new Date((session.expires_at || 0) * 1000).toISOString())
           setUser(session.user)
         } else {
-          console.warn('[Auth] No session found')
           setUser(null)
         }
       } catch (error) {
@@ -92,17 +87,14 @@ export function useSessionListener() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return
 
-      console.log('Auth session event:', sanitizeForLog(event))
 
       if (event === 'SIGNED_OUT') {
-        console.log('[Auth] User signed out')
         setUser(null)
         setLoading(false)
         return
       }
 
       if (event === 'TOKEN_REFRESHED' && session?.user) {
-        console.log('[Auth] Token refreshed successfully')
         setUser(session.user)
         return
       }
@@ -145,10 +137,6 @@ export function useSessionListener() {
 
       if (data.session && data.user) {
         setUser(data.user)
-        console.log('[Auth] Sign in successful')
-        console.log('[Auth] User ID:', data.user.id)
-        console.log('[Auth] Token expires at:', new Date((data.session.expires_at || 0) * 1000).toISOString())
-        console.log('[Auth] Access token present:', !!data.session.access_token)
         return { session: data.session, user: data.user }
       }
 

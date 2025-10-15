@@ -123,7 +123,7 @@ class MaintenanceService {
 
   private async updateMetrics() {
     const { data: applications } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select('status, created_at')
 
     if (applications) {

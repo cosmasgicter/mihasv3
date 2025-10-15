@@ -88,7 +88,6 @@ export class ConnectionManager {
         // Calculate delay with exponential backoff
         const delay = this.baseDelay * Math.pow(2, attemptCount)
         
-        console.log(`Retrying request to ${endpoint} (attempt ${attemptCount + 1}/${this.maxRetries}) after ${delay}ms`)
         
         await this.delay(delay)
         return this.makeRequest<T>(endpoint, { ...options, retryKey })

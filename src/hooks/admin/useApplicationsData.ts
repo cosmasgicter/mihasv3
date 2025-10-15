@@ -146,12 +146,9 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       .single()
       .then(({ data, error }) => {
         hydrationPromisesRef.current.delete(id)
-        if (error) {
-          throw error
-        }
+        if (error) throw error
         return data ? mapSupabaseApplication(data) : null
-      })
-      .catch(error => {
+      }, error => {
         hydrationPromisesRef.current.delete(id)
         throw error
       })
@@ -303,7 +300,6 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
           setTotalCount(prev => prev + 1)
         }
       } catch (err) {
-        console.warn('Failed to hydrate inserted application', err)
       }
       return
     }
@@ -329,7 +325,6 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
             })
           }
         } catch (err) {
-          console.warn('Failed to refresh updated application', err)
         }
       }
 

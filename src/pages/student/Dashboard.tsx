@@ -624,7 +624,6 @@ export default function StudentDashboard() {
                             if (user) {
                               const result = await draftManager.clearAllDrafts(user.id)
                               if (!result.success && result.error) {
-                                console.warn('Server draft clear warning:', result.error)
                               }
                             }
                             
@@ -633,7 +632,6 @@ export default function StudentDashboard() {
                               try {
                                 await applicationService.delete(app.id)
                               } catch (deleteError) {
-                                console.warn(`Failed to delete draft ${app.id}:`, deleteError)
                               }
                             }
                             

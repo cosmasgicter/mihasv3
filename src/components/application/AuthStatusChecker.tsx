@@ -49,7 +49,6 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
           
           canSubmitApplication = !testError
         } catch (error) {
-          console.warn('Auth test query failed:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
         }
       }
       

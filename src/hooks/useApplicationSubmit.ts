@@ -42,7 +42,7 @@ export function useWizardSubmit() {
 
       // Update the existing application with final submission data
       const { error: updateError } = await supabase
-        .from('applications_new')
+        .from('applications')
         .update({
           payment_method: data.payment_method || 'MTN Money',
           payer_name: data.payer_name || null,
@@ -61,7 +61,6 @@ export function useWizardSubmit() {
         throw new Error(updateError.message)
       }
 
-      console.log('Application submitted successfully:', { applicationId })
       setSuccess(true)
       
     } catch (error) {

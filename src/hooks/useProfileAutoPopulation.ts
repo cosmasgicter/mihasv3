@@ -28,7 +28,6 @@ export const getUserMetadata = (user: any) => {
       nationality: metadata.nationality || signupData.nationality
     }
   } catch (error) {
-    console.warn('Error parsing user metadata:', error)
     return {}
   }
 }
@@ -100,11 +99,6 @@ export const useProfileAutoPopulation = (setValue?: any) => {
         
         if (nationality) setValue('nationality', nationality)
         if (address) setValue('address', address)
-        
-        console.log('Profile auto-population completed:', {
-          hasProfile: !!profile,
-          hasMetadata: Object.keys(metadata).length > 0
-        })
       } catch (error) {
         console.error('Error in profile auto-population:', error)
       }

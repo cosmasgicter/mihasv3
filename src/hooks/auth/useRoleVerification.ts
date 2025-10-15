@@ -25,7 +25,6 @@ export function useRoleVerification() {
     }
 
     if (authRole && profileRole && authRole !== profileRole) {
-      console.warn('⚠️ Role mismatch detected:', { profileRole, authRole })
       setRoleStatus('mismatch')
     } else {
       setRoleStatus('verified')

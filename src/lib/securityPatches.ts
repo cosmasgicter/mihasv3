@@ -29,7 +29,6 @@ export class SecureCodeExecution {
       
       return result
     } catch (error) {
-      console.warn('Math expression evaluation failed:', sanitizeForLog(expression))
       return 0
     }
   }
@@ -45,7 +44,6 @@ export class SecureCodeExecution {
     try {
       return JSON.parse(jsonString)
     } catch (error) {
-      console.warn('JSON parsing failed:', sanitizeForLog(error))
       return null
     }
   }

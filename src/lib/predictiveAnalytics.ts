@@ -83,7 +83,7 @@ export class PredictiveAnalytics {
       }
 
       const { data: applications } = await supabase
-        .from('applications_new')
+        .from('applications')
         .select('created_at, status, program, updated_at')
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 
@@ -113,7 +113,7 @@ export class PredictiveAnalytics {
 
   private async getHistoricalData(program: string) {
     const { data } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select('status, program, created_at, updated_at')
       .eq('program', program)
       .in('status', ['approved', 'rejected'])

@@ -3,15 +3,11 @@ import { sanitizeForLog } from '@/lib/security'
 
 export async function debugAuthState() {
   try {
-    console.log('=== AUTH DEBUG START ===')
     
     // Check current user
     const { data: { user }, error: userError } = await supabase.auth.getUser()
-    console.log('Current user:', sanitizeForLog(user?.email || ''), sanitizeForLog(user?.id || ''))
-    console.log('User error:', sanitizeForLog(userError?.message || 'No error'))
     
     if (!user) {
-      console.log('No authenticated user')
       return
     }
     
@@ -22,8 +18,6 @@ export async function debugAuthState() {
       .eq('user_id', user.id)
       .maybeSingle()
     
-    console.log('User profile:', sanitizeForLog(JSON.stringify(profile)))
-    console.log('Profile error:', sanitizeForLog(profileError?.message || 'No error'))
     
     // Check user role
     const { data: role, error: roleError } = await supabase
@@ -33,10 +27,7 @@ export async function debugAuthState() {
       .eq('is_active', true)
       .maybeSingle()
     
-    console.log('User role:', sanitizeForLog(JSON.stringify(role)))
-    console.log('Role error:', sanitizeForLog(roleError?.message || 'No error'))
     
-    console.log('=== AUTH DEBUG END ===')
     
     return {
       user,

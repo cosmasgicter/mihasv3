@@ -254,7 +254,7 @@ export class WorkflowAutomationEngine {
 
     try {
       const { data: applications } = await supabase
-        .from('applications_new')
+        .from('applications')
         .select('*')
         .in('status', ['submitted', 'under_review', 'draft'])
         .order('created_at', { ascending: true })
@@ -304,7 +304,7 @@ export class WorkflowAutomationEngine {
   private async getApplicationData(applicationId: string): Promise<any> {
     try {
       const { data, error } = await supabase
-        .from('applications_new')
+        .from('applications')
         .select(`
           *,
           application_grades(*)
@@ -416,7 +416,6 @@ export class WorkflowAutomationEngine {
       try {
         const allowedOperators = ['>=', '<=', '>', '<', '==', '!=', 'in'];
         if (!allowedOperators.includes(condition.operator)) {
-          console.warn('Invalid operator rejected:', { operator: sanitizeForLog(condition.operator) })
           return false
         }
         
@@ -439,7 +438,6 @@ export class WorkflowAutomationEngine {
             return false
         }
       } catch (error) {
-        console.warn('Invalid condition evaluation:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
         return false
       }
     }
@@ -589,7 +587,7 @@ export class WorkflowAutomationEngine {
 
   private async autoApproveApplication(applicationId: string, parameters: any): Promise<void> {
     const { error } = await supabase
-      .from('applications_new')
+      .from('applications')
       .update({
         status: 'approved',
         approved_at: new Date().toISOString(),

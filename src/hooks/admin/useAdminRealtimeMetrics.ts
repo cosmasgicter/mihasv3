@@ -522,7 +522,7 @@ export function useAdminRealtimeMetrics(options: AdminRealtimeMetricsOptions = {
     channel
       .on('postgres_changes', {
         schema: 'public',
-        table: 'applications_new',
+        table: 'applications',
         event: '*'
       }, (payload: RealtimePostgresChangesPayload<AdminApplicationRow>) => {
         const change: AdminApplicationChange = {

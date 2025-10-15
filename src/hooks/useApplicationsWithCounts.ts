@@ -7,7 +7,7 @@ export function useApplicationsWithCounts() {
     queryFn: async () => {
       // Single optimized query with document counts
       const { data, error } = await supabase
-        .from('applications_new')
+        .from('applications')
         .select(`
           *
         `)

@@ -168,7 +168,6 @@ async function defaultGetAccessToken(): Promise<string | null> {
     const { data } = await client.auth.getSession()
     return data?.session?.access_token ?? null
   } catch (error) {
-    console.warn('Telemetry access token unavailable:', error instanceof Error ? error.message : error)
     return null
   }
 }
@@ -195,7 +194,6 @@ class HttpTelemetrySink implements TelemetrySink {
           headers.Authorization = `Bearer ${token}`
         }
       } catch (error) {
-        console.warn('Unable to resolve telemetry auth token:', error)
       }
     }
 
@@ -227,7 +225,6 @@ class HttpTelemetrySink implements TelemetrySink {
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
-        console.warn('Telemetry persist failed in development:', error)
         return
       }
       throw error
@@ -603,7 +600,6 @@ export class MonitoringService {
         }
       })
     } catch (error) {
-      console.warn('Failed to evaluate persisted telemetry during health check:', error)
     }
 
     return Array.from(results.values())
@@ -730,7 +726,6 @@ export class MonitoringService {
         if (force) {
           throw error
         } else {
-          console.warn('Telemetry flush failed:', error)
         }
       } finally {
         this.persistQueue()
@@ -761,7 +756,6 @@ export class MonitoringService {
 
       this.storage.setItem(this.storageKey, JSON.stringify(this.queue))
     } catch (error) {
-      console.warn('Failed to persist telemetry buffer:', error)
     }
   }
 
@@ -781,7 +775,6 @@ export class MonitoringService {
       }
       this.storage.removeItem(this.storageKey)
     } catch (error) {
-      console.warn('Failed to restore telemetry buffer:', error)
       this.storage.removeItem(this.storageKey)
     }
   }

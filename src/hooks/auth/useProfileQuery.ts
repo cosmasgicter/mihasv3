@@ -55,7 +55,6 @@ function parseSignupData(user: User) {
       return rawSignupData as Record<string, any>
     }
   } catch (error) {
-    console.warn('Error parsing signup data:', error)
   }
 
   return {}
@@ -64,7 +63,6 @@ function parseSignupData(user: User) {
 async function createUserProfile(user: User): Promise<UserProfile | null> {
   try {
     if (!isSupabaseConfigured) {
-      console.warn(SUPABASE_MISSING_CONFIG_MESSAGE)
       return null
     }
 
@@ -124,7 +122,6 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       if (!user) return null
 
       if (!isSupabaseConfigured) {
-        console.warn(SUPABASE_MISSING_CONFIG_MESSAGE)
         return null
       }
 
