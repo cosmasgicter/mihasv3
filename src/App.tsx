@@ -7,8 +7,9 @@ import { AdminRoute } from '@/components/AdminRoute'
 import { ToastProvider } from '@/components/ui/Toast'
 import { UserMenu } from '@/components/ui/UserMenu'
 import { NotificationBell } from '@/components/student/NotificationBell'
-
+import { SessionMonitor } from '@/components/auth/SessionMonitor'
 import { LoadingFallback } from '@/components/ui/LoadingFallback'
+import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
 import { FancyPreloader } from '@/components/ui/FancyPreloader'
 import { routes, type RouteConfig } from '@/routes/config'
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
@@ -75,7 +76,9 @@ function App() {
           <ToastProvider>
             <Router>
               <AnalyticsTracker>
-                <div className="min-h-screen bg-gray-50">
+                <SessionMonitor />
+                <SimpleErrorBoundary>
+                  <div className="min-h-screen bg-gray-50">
                   <Routes>
                     {routes.map((route) => (
                       <Route
@@ -86,7 +89,8 @@ function App() {
                     ))}
                   </Routes>
 
-                </div>
+                  </div>
+                </SimpleErrorBoundary>
               </AnalyticsTracker>
             </Router>
           </ToastProvider>

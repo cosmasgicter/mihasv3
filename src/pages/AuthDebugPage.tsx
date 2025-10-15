@@ -2,9 +2,13 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { getSupabaseClient } from '@/lib/supabase'
 import { refreshAuthSession } from '@/lib/authRefresh'
+import { useTokenRefresh } from '@/hooks/auth/useTokenRefresh'
+import { useRoleVerification } from '@/hooks/auth/useRoleVerification'
 
 export function AuthDebugPage() {
   const { user, loading } = useAuth()
+  const { tokenExpiry, lastRefresh, refreshCount } = useTokenRefresh()
+  const { roleStatus, profileRole, authRole, isAdmin } = useRoleVerification()
   const [sessionInfo, setSessionInfo] = useState<any>(null)
   const [refreshResult, setRefreshResult] = useState<any>(null)
   const [storageInfo, setStorageInfo] = useState<any>({})
@@ -68,6 +72,28 @@ export function AuthDebugPage() {
             <p><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</p>
             <p><strong>User:</strong> {user ? user.email : 'None'}</p>
             <p><strong>User ID:</strong> {user?.id || 'N/A'}</p>
+          </div>
+        </div>
+
+        {/* Token Info */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Token Status</h2>
+          <div className="space-y-2">
+            <p><strong>Token Expiry:</strong> {tokenExpiry?.toLocaleString() || 'N/A'}</p>
+            <p><strong>Last Refresh:</strong> {lastRefresh?.toLocaleString() || 'Never'}</p>
+            <p><strong>Refresh Count:</strong> {refreshCount}</p>
+            <p><strong>Time Until Expiry:</strong> {tokenExpiry ? Math.round((tokenExpiry.getTime() - Date.now()) / (1000 * 60 * 60)) + ' hours' : 'N/A'}</p>
+          </div>
+        </div>
+
+        {/* Role Info */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Role Verification</h2>
+          <div className="space-y-2">
+            <p><strong>Status:</strong> <span className={roleStatus === 'verified' ? 'text-green-600' : roleStatus === 'mismatch' ? 'text-red-600' : 'text-yellow-600'}>{roleStatus}</span></p>
+            <p><strong>Profile Role:</strong> {profileRole || 'N/A'}</p>
+            <p><strong>Auth Role:</strong> {authRole || 'N/A'}</p>
+            <p><strong>Is Admin:</strong> {isAdmin ? 'Yes' : 'No'}</p>
           </div>
         </div>
 

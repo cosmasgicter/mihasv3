@@ -70,51 +70,33 @@ export function useRoleQuery(options: UseRoleQueryOptions = {}): RoleQueryResult
       }
 
       try {
-        const response = await fetch(`/api/admin/users/${encodeURIComponent(user.id)}/role`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        })
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .maybeSingle()
 
-        if (response.status === 404 || response.status === 405) {
-          // API endpoint not found or method not allowed - fallback to profile role
-          console.warn('Role API not available, using profile role')
+        if (roleError) {
+          console.error('Role query error:', sanitizeForLog(roleError.message))
           return null
         }
 
-        if (!response.ok) {
-          // In development, API might not be available
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('API not available in development mode')
-            return null
-          }
-          throw new Error(response.statusText || 'Failed to load user role')
+        if (!roleData) {
+          return null
         }
 
-        const contentType = response.headers.get('content-type')
-        if (!contentType?.includes('application/json')) {
-          // API returned HTML instead of JSON (likely 404 page)
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('API not available in development mode')
-            return null
-          }
-          throw new Error('Invalid response format')
-        }
-
-        const data = await response.json()
         return {
-          ...data,
-          permissions: Array.isArray(data?.permissions) ? data.permissions : null
+          id: roleData.id,
+          user_id: roleData.user_id,
+          role: roleData.role,
+          permissions: Array.isArray(roleData.permissions) ? roleData.permissions : null,
+          department: roleData.department,
+          is_active: roleData.is_active
         } as AuthUserRole
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Role query failed in development:', error)
-          return null
-        }
         console.error('Error loading user role:', sanitizeForLog(error instanceof Error ? error.message : error))
-        throw error
+        return null
       }
     }
   })

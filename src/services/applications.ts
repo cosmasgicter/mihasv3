@@ -68,11 +68,13 @@ export const applicationService = {
       body: JSON.stringify(data)
     }),
 
-  update: (id: string, data: ApplicationPayload) =>
-    apiClient.request<Application>(`/api/applications/${id}`, {
+  update: (id: string, data: ApplicationPayload) => {
+    const cleanId = id.replace(/^applications-/, '')
+    return apiClient.request<Application>(`/api/applications/${cleanId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
-    }),
+    })
+  },
 
   delete: (id: string) =>
     apiClient.request<void>(`/api/applications/${id}`, {
