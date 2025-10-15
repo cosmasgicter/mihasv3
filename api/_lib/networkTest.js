@@ -10,7 +10,7 @@ async function testSupabaseConnection(supabaseUrl) {
       port: 443,
       path: '/rest/v1/',
       method: 'GET',
-      timeout: 10000,
+      timeout: 5000, // Reduced from 10000 to prevent Netlify function timeout
       headers: {
         'User-Agent': 'MIHAS-Health-Check/1.0'
       }
@@ -55,8 +55,8 @@ async function testSupabaseConnection(supabaseUrl) {
       req.destroy()
       resolve({
         success: false,
-        error: 'Connection timeout (10s)',
-        message: 'Unable to connect to Supabase within 10 seconds'
+        error: 'Connection timeout (5s)',
+        message: 'Unable to connect to Supabase within 5 seconds'
       })
     })
 

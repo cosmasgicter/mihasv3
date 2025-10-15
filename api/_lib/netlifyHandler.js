@@ -89,12 +89,40 @@ function parseRequestBody(event, headers) {
   return decoded
 }
 
-function createRequest(event, context) {
-  // Handle both Request objects (Netlify dev) and legacy events (production)
+async function createRequest(event, context) {
+  // Netlify Dev v2 uses native Request objects
+  if (event instanceof Request) {
+    const url = new URL(event.url)
+    const headers = {}
+    event.headers.forEach((value, key) => {
+      headers[key] = value
+    })
+    
+    const rawBody = await event.text()
+    
+    console.log('[createRequest] Request object - headers:', JSON.stringify(headers, null, 2))
+    
+    return {
+      method: event.method,
+      headers,
+      query: Object.fromEntries(url.searchParams),
+      params: {},
+      body: rawBody ? (headers['content-type']?.includes('application/json') ? JSON.parse(rawBody) : rawBody) : undefined,
+      rawBody,
+      path: url.pathname,
+      url: event.url,
+      event,
+      context
+    }
+  }
+  
+  // Legacy event format
   const method = event.method || event.httpMethod
   const headers = event.headers || {}
   const rawBody = decodeBody(event.body, event.isBase64Encoded)
   const path = event.url ? new URL(event.url).pathname : event.path
+
+  console.log('[createRequest] Legacy event - headers:', JSON.stringify(headers, null, 2))
 
   return {
     method,
@@ -258,9 +286,7 @@ export function withNetlifyHandler(expressHandler) {
 
   const netlifyHandler = async function netlifyWrapper(event, context) {
     try {
-      console.log('[netlifyWrapper] event keys:', Object.keys(event))
-      console.log('[netlifyWrapper] event.method:', event.method, 'event.httpMethod:', event.httpMethod)
-      const req = createRequest(event, context)
+      const req = await createRequest(event, context)
       const res = createResponse()
       
       // Handle preflight

@@ -29,6 +29,8 @@ if (useMockSupabase) {
     throw new Error('VITE_SUPABASE_URL is not configured')
   }
 
+  console.log('[supabaseClient] SUPABASE_SERVICE_ROLE_KEY present:', !!supabaseServiceKey)
+  console.log('[supabaseClient] Service key length:', supabaseServiceKey?.length)
   if (!supabaseServiceKey) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for server-side Supabase access')
   }
@@ -116,17 +118,35 @@ async function fetchRolesFromDatabase(userId) {
     return user ? [...user.roles] : []
   }
 
-  const { data: rolesData, error: rolesError } = await supabaseAdminClient
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', userId)
-    .eq('is_active', true)
+  try {
+    const { data: rolesData, error: rolesError } = await supabaseAdminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('is_active', true)
 
-  if (rolesError) {
-    throw new Error(rolesError.message)
+    if (rolesError) {
+      console.log('[fetchRolesFromDatabase] Database error:', rolesError.message)
+      // If user_roles table doesn't exist or has issues, check profiles table
+      const { data: profileData, error: profileError } = await supabaseAdminClient
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single()
+      
+      if (profileError) {
+        console.log('[fetchRolesFromDatabase] Profile error:', profileError.message)
+        return []
+      }
+      
+      return profileData?.role ? [profileData.role] : []
+    }
+
+    return rolesData?.map(role => role.role) ?? []
+  } catch (error) {
+    console.log('[fetchRolesFromDatabase] Unexpected error:', error.message)
+    return []
   }
-
-  return rolesData?.map(role => role.role) ?? []
 }
 
 async function resolveRoles(req, user) {
@@ -168,31 +188,75 @@ async function getUserFromRequest(req, { requireAdmin = false } = {}) {
   }
 
   try {
-    const { data, error } = await supabaseAdminClient.auth.getUser(token)
-    if (error || !data?.user) {
-      return { error: 'Invalid or expired token' }
+    const parts = token.split('.')
+    if (parts.length !== 3) {
+      return { error: 'Invalid token format' }
     }
+    
+    let payload
+    try {
+      payload = JSON.parse(Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString())
+    } catch (e) {
+      console.log('[getUserFromRequest] JWT decode error:', e.message)
+      return { error: 'Invalid token format' }
+    }
+    
+    const userId = payload.sub
+    if (!userId) {
+      return { error: 'Invalid token payload' }
+    }
+    
+    if (payload.exp && payload.exp < Date.now() / 1000) {
+      return { error: 'Token expired' }
+    }
+    
+    const { data: profile, error: userError } = await supabaseAdminClient
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+    
+    if (userError) {
+      console.log('[getUserFromRequest] Profile fetch error:', userError.message)
+      return { error: 'User not found' }
+    }
+    
+    if (!profile) {
+      console.log('[getUserFromRequest] No profile found for user:', userId)
+      return { error: 'User not found' }
+    }
+    
+    const user = {
+      id: profile.id,
+      email: profile.email,
+      app_metadata: {},
+      user_metadata: {},
+      role: profile.role
+    }
+    
+    console.log('[getUserFromRequest] User loaded:', user.id, user.email)
 
-    const user = data.user
     let roles
     try {
       roles = await resolveRoles(req, user)
     } catch (rolesError) {
-      return { error: rolesError.message }
+      const metadataRoles = extractRolesFromUserToken(user)
+      if (metadataRoles && metadataRoles.length > 0) {
+        roles = metadataRoles
+      } else {
+        return { error: 'Access denied. You do not have permission for this action.' }
+      }
     }
 
     const isAdmin = roles.some(role => ADMIN_ROLES.has(role))
 
     if (requireAdmin && !isAdmin) {
-      return { error: 'Access denied' }
+      return { error: 'Access denied. You do not have permission for this action.' }
     }
 
     return { user, roles, isAdmin }
   } catch (networkError) {
-    if (useMockSupabase) {
-      return { error: 'Invalid or expired token' }
-    }
-    console.error('Network error in getUserFromRequest:', networkError)
+    console.error('[getUserFromRequest] Exception:', networkError.message)
     return { error: 'Service temporarily unavailable' }
   }
 }

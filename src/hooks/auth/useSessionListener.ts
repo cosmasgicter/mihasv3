@@ -72,8 +72,7 @@ export function useSessionListener() {
           console.log('[Auth] Token expires at:', new Date((session.expires_at || 0) * 1000).toISOString())
           setUser(session.user)
         } else {
-          // No session found - clear any stale user state
-          console.warn('[Auth] No session found, clearing user state')
+          console.warn('[Auth] No session found')
           setUser(null)
         }
       } catch (error) {
@@ -95,31 +94,22 @@ export function useSessionListener() {
 
       console.log('Auth session event:', sanitizeForLog(event))
 
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_EXPIRED') {
+      if (event === 'SIGNED_OUT') {
+        console.log('[Auth] User signed out')
         setUser(null)
         setLoading(false)
-        // Clear any cached data on session expiry
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('mihas-auth-token')
-          // Clear all Supabase auth keys
-          Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('sb-') || key.includes('supabase')) {
-              localStorage.removeItem(key)
-            }
-          })
-          sessionStorage.clear()
-        }
+        return
+      }
+
+      if (event === 'TOKEN_REFRESHED' && session?.user) {
+        console.log('[Auth] Token refreshed successfully')
+        setUser(session.user)
         return
       }
 
       if (session?.user) {
         setUser(session.user)
-        // Start session monitoring on sign in
-        if (event === 'SIGNED_IN') {
-          console.log('[Auth] Starting session monitoring')
-        }
-      } else if (event === 'SIGNED_IN') {
-        // Handle case where sign in event doesn't have user
+      } else if (event !== 'INITIAL_SESSION') {
         setUser(null)
       }
 
