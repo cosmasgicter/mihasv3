@@ -60,12 +60,17 @@ export function useSessionListener() {
 
     async function initializeSession() {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { session }, error } = await supabase.auth.getSession()
         if (!mounted) return
 
-        if (session?.user) {
+        if (error) {
+          console.error('Session error:', error)
+          setUser(null)
+        } else if (session?.user) {
           setUser(session.user)
         } else {
+          // No session found - clear any stale user state
+          console.warn('No session found, clearing user state')
           setUser(null)
         }
       } catch (error) {
@@ -137,6 +142,7 @@ export function useSessionListener() {
 
       if (data.session && data.user) {
         setUser(data.user)
+        console.log('Sign in successful, session stored')
         return { session: data.session, user: data.user }
       }
 
