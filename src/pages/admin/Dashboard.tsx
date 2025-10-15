@@ -175,13 +175,24 @@ export default function AdminDashboard() {
       return
     }
 
-    void loadDashboardStats()
+    let mounted = true
+
+    const load = async () => {
+      if (mounted) {
+        await loadDashboardStats()
+      }
+    }
+
+    void load()
 
     const intervalId = window.setInterval(() => {
-      void loadDashboardStats({ refresh: true })
+      if (mounted) {
+        void loadDashboardStats({ refresh: true })
+      }
     }, 180000)
 
     return () => {
+      mounted = false
       window.clearInterval(intervalId)
     }
   }, [loadDashboardStats, profile, user])
