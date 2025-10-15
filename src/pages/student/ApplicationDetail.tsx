@@ -38,6 +38,7 @@ export default function ApplicationDetail() {
   }, [id])
 
   const loadApplication = async () => {
+    if (!id) return
     try {
       setLoading(true)
       setError('')

@@ -54,10 +54,13 @@ export default function ApplicationStatus() {
   const [error, setError] = useState('')
 
   const loadApplicationDetails = useCallback(async () => {
+    if (!id || !user) return
+    
     try {
       setLoading(true)
+      setError('')
 
-      const response = await applicationService.getById(id as string)
+      const response = await applicationService.getById(id)
 
       if (!response.application) {
         throw new Error('Application not found or access denied')
@@ -66,17 +69,15 @@ export default function ApplicationStatus() {
       setApplication(response.application as ApplicationWithDetails)
     } catch (error: any) {
       logger.error('Error loading application details:', error)
-      setError(error.message)
+      setError(error.message || 'Failed to load application')
     } finally {
       setLoading(false)
     }
   }, [id, user])
 
   useEffect(() => {
-    if (id && user) {
-      loadApplicationDetails()
-    }
-  }, [id, user, loadApplicationDetails])
+    loadApplicationDetails()
+  }, [loadApplicationDetails])
 
   const getStatusIcon = (status: string) => {
     switch (status) {

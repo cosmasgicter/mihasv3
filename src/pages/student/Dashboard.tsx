@@ -493,13 +493,13 @@ export default function StudentDashboard() {
                               </div>
                             </dl>
                           </div>
-                          <Link to={`/student/applications`} className="w-full sm:w-auto">
+                          <Link to={`/student/application/${application.id}`} className="w-full sm:w-auto">
                             <Button
                               variant="outline"
                               size="sm"
                               className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white"
                             >
-                              View Applications
+                              View Details
                             </Button>
                           </Link>
                         </div>

@@ -351,6 +351,56 @@ async function handler(req, res) {
     }
   }
 
+  if (req.method === 'DELETE') {
+    try {
+      const authContext = await dependencies.getUserFromRequest(req)
+      if (authContext.error) {
+        return res.status(401).json({ error: authContext.error })
+      }
+
+      const applicationId = req.url.split('/').pop().split('?')[0]
+      if (!applicationId) {
+        return res.status(400).json({ error: 'Application ID is required' })
+      }
+
+      const {
+        data: existingApplication,
+        error: fetchError
+      } = await dependencies.supabaseClient
+        .from('applications')
+        .select('id, user_id')
+        .eq('id', applicationId)
+        .maybeSingle()
+
+      if (fetchError) {
+        return res.status(400).json({ error: fetchError.message })
+      }
+
+      if (!existingApplication) {
+        return res.status(404).json({ error: 'Application not found' })
+      }
+
+      const isOwner = existingApplication.user_id === authContext.user?.id
+      if (!authContext.isAdmin && !isOwner) {
+        return res.status(403).json({ error: 'Access denied' })
+      }
+
+      const { error } = await dependencies.supabaseClient
+        .from('applications')
+        .delete()
+        .eq('id', applicationId)
+
+      if (error) {
+        return res.status(400).json({ error: error.message })
+      }
+
+      return res.status(204).end()
+    } catch (error) {
+      console.error('Application delete error:', error)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
   res.setHeader('Allow', 'GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS')
   return res.status(405).json({ error: 'Method not allowed' })
 }

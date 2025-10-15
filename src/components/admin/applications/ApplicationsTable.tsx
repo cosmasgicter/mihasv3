@@ -45,8 +45,8 @@ interface ApplicationsTableProps {
   hasMore: boolean
   isLoadingMore: boolean
   onLoadMore: () => void | Promise<void>
-  onStatusUpdate: (id: string, status: string) => void
-  onPaymentStatusUpdate: (id: string, status: string) => void
+  onStatusUpdate: (id: string, status: string) => void | Promise<void>
+  onPaymentStatusUpdate: (id: string, status: string) => void | Promise<void>
   onViewDetails: (id: string) => void
   selectedIds?: string[]
   onSelectionChange?: (ids: string[]) => void
@@ -257,8 +257,8 @@ interface ApplicationCardProps {
   application: ApplicationSummary
   getStatusBadge: (status: string) => JSX.Element
   getPaymentBadge: (status: string) => JSX.Element
-  onStatusUpdate: (id: string, status: string) => void
-  onPaymentStatusUpdate: (id: string, status: string) => void
+  onStatusUpdate: (id: string, status: string) => void | Promise<void>
+  onPaymentStatusUpdate: (id: string, status: string) => void | Promise<void>
   onViewDetails: (id: string) => void
   updatingStatus: boolean
   updatingPayment: boolean

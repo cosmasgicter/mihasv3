@@ -754,37 +754,18 @@ async function handler(req, res) {
         return res.status(404).json({ error: 'Application not found' })
       }
 
-      if (authContext.isAdmin) {
-        try {
-          await softDeleteApplications([id])
-          return res.status(204).end()
-        } catch (deleteError) {
-          return res.status(400).json({ error: deleteError.message })
-        }
-      }
-
-      if (application.user_id !== authContext.user.id) {
+      if (application.user_id !== authContext.user.id && !authContext.isAdmin) {
         return res.status(403).json({ error: 'Access denied' })
       }
 
-      if (application.status !== 'draft') {
+      if (!authContext.isAdmin && application.status !== 'draft') {
         return res.status(400).json({ error: 'Only draft applications can be deleted' })
-      }
-
-      const { error: draftDeleteError } = await supabase
-        .from('application_drafts')
-        .delete()
-        .eq('user_id', authContext.user.id)
-
-      if (draftDeleteError) {
-        console.warn('Failed to delete draft metadata:', draftDeleteError.message ?? draftDeleteError)
       }
 
       const { error: deleteError } = await supabase
         .from('applications')
         .delete()
         .eq('id', id)
-        .eq('user_id', authContext.user.id)
 
       if (deleteError) {
         return res.status(400).json({ error: deleteError.message })
