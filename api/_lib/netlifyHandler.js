@@ -90,18 +90,21 @@ function parseRequestBody(event, headers) {
 }
 
 function createRequest(event, context) {
+  // Handle both Request objects (Netlify dev) and legacy events (production)
+  const method = event.method || event.httpMethod
   const headers = event.headers || {}
   const rawBody = decodeBody(event.body, event.isBase64Encoded)
+  const path = event.url ? new URL(event.url).pathname : event.path
 
   return {
-    method: event.httpMethod,
+    method,
     headers,
     query: mergeQueryParameters(event),
     params: event.pathParameters || {},
     body: parseRequestBody(event, headers),
     rawBody,
-    path: event.path,
-    url: event.rawUrl || event.path,
+    path,
+    url: event.url || event.rawUrl || event.path,
     event,
     context
   }
@@ -241,47 +244,52 @@ function normalizeHandlerResult(result) {
   }
 }
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization, x-requested-with',
+  'Access-Control-Max-Age': '86400'
+}
+
 export function withNetlifyHandler(expressHandler) {
   if (typeof expressHandler !== 'function') {
     throw new TypeError('Expected a handler function')
   }
 
   const netlifyHandler = async function netlifyWrapper(event, context) {
-    const req = createRequest(event, context)
-    const res = createResponse()
-    
-    // Add CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, authorization, x-requested-with')
-    
-    if (req.method === 'OPTIONS') {
-      return new Response('', {
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization, authorization, x-requested-with'
-        }
-      })
-    }
-
-    await expressHandler(req, res)
-
-    if (res.headersSent) {
+    try {
+      console.log('[netlifyWrapper] event keys:', Object.keys(event))
+      console.log('[netlifyWrapper] event.method:', event.method, 'event.httpMethod:', event.httpMethod)
+      const req = createRequest(event, context)
+      const res = createResponse()
+      
+      // Handle preflight
+      if (req.method === 'OPTIONS') {
+        return new Response(null, {
+          status: 204,
+          headers: CORS_HEADERS
+        })
+      }
+      
+      // Call the express handler
+      await expressHandler(req, res)
+      
+      // Always finalize from res object
       const response = res._finalize()
       return new Response(response.body, {
         status: response.statusCode,
-        headers: response.headers
+        headers: { ...CORS_HEADERS, ...response.headers }
+      })
+    } catch (error) {
+      console.error('Netlify handler error:', error)
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...CORS_HEADERS
+        }
       })
     }
-
-    return new Response('', {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      }
-    })
   }
 
   netlifyHandler.handler = netlifyHandler

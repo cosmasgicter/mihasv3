@@ -96,6 +96,8 @@ async function handler(req, res) {
     return res.status(200).end()
   }
 
+  console.log('[applications] Method:', req.method, 'URL:', req.url, 'Query:', req.query)
+
   if (req.method === 'GET') {
     try {
       const authContext = await dependencies.getUserFromRequest(req)
