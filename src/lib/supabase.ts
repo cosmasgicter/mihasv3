@@ -209,25 +209,9 @@ function initializeBrowserAuthHandlers(client: SupabaseClient, storage: Supporte
     return
   }
 
-  client.auth.onAuthStateChange(async (event, session) => {
-    console.log('Auth event:', sanitizeForLog(event))
-
-    if (event === 'TOKEN_REFRESHED') {
-      console.log('Token refreshed successfully')
-      refreshRetryCount = 0
-    }
-
-    if (event === 'SIGNED_OUT') {
-      console.log('User signed out')
-      await Promise.resolve(storage.removeItem(AUTH_STORAGE_KEY))
-    }
-
-    if (event === 'SIGNED_IN' && session) {
-      console.log('User signed in:', sanitizeForLog(session.user?.id || ''))
-      startSessionMonitoring(client)
-    }
-  })
-
+  // Auth state changes are handled by useSessionListener hook
+  // Removed duplicate listener to prevent race conditions
+  
   authHandlersInitialized = true
 }
 

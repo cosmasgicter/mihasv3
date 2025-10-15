@@ -14,11 +14,15 @@ export default defineConfig({
   define: {
     global: 'globalThis',
   },
+  assetsInclude: ['**/*.html'],
   server: {
     port: devServerPort,
-    host: '0.0.0.0', // Bind to all interfaces for network access
+    host: '0.0.0.0',
     strictPort: false,
-    cors: true
+    cors: true,
+    hmr: {
+      overlay: true
+    }
   },
   preview: {
     port: 4173,

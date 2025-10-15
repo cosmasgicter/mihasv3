@@ -60,21 +60,24 @@ export function useSessionListener() {
 
     async function initializeSession() {
       try {
+        console.log('[Auth] Initializing session...')
         const { data: { session }, error } = await supabase.auth.getSession()
         if (!mounted) return
 
         if (error) {
-          console.error('Session error:', error)
+          console.error('[Auth] Session error:', error.message)
           setUser(null)
         } else if (session?.user) {
+          console.log('[Auth] Session found for user:', session.user.id)
+          console.log('[Auth] Token expires at:', new Date((session.expires_at || 0) * 1000).toISOString())
           setUser(session.user)
         } else {
           // No session found - clear any stale user state
-          console.warn('No session found, clearing user state')
+          console.warn('[Auth] No session found, clearing user state')
           setUser(null)
         }
       } catch (error) {
-        console.error('Session initialization failed:', error)
+        console.error('[Auth] Session initialization failed:', error)
         if (mounted) {
           setUser(null)
         }
@@ -97,7 +100,13 @@ export function useSessionListener() {
         setLoading(false)
         // Clear any cached data on session expiry
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('supabase.auth.token')
+          localStorage.removeItem('mihas-auth-token')
+          // Clear all Supabase auth keys
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('sb-') || key.includes('supabase')) {
+              localStorage.removeItem(key)
+            }
+          })
           sessionStorage.clear()
         }
         return
@@ -105,6 +114,10 @@ export function useSessionListener() {
 
       if (session?.user) {
         setUser(session.user)
+        // Start session monitoring on sign in
+        if (event === 'SIGNED_IN') {
+          console.log('[Auth] Starting session monitoring')
+        }
       } else if (event === 'SIGNED_IN') {
         // Handle case where sign in event doesn't have user
         setUser(null)
@@ -142,7 +155,10 @@ export function useSessionListener() {
 
       if (data.session && data.user) {
         setUser(data.user)
-        console.log('Sign in successful, session stored')
+        console.log('[Auth] Sign in successful')
+        console.log('[Auth] User ID:', data.user.id)
+        console.log('[Auth] Token expires at:', new Date((data.session.expires_at || 0) * 1000).toISOString())
+        console.log('[Auth] Access token present:', !!data.session.access_token)
         return { session: data.session, user: data.user }
       }
 

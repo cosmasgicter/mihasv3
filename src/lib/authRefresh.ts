@@ -1,6 +1,24 @@
 import { getSupabaseClient } from './supabase'
 import { logger } from '@/utils/logger'
 
+function clearStaleSession() {
+  if (typeof window === 'undefined') return
+  
+  try {
+    localStorage.removeItem('mihas-auth-token')
+    // Clear all Supabase auth keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-') || key.includes('supabase')) {
+        localStorage.removeItem(key)
+      }
+    })
+    sessionStorage.clear()
+    logger.info('Cleared stale session data')
+  } catch (error) {
+    logger.error('Failed to clear session:', error)
+  }
+}
+
 export async function refreshAuthSession() {
   try {
     const supabase = getSupabaseClient()
@@ -8,14 +26,28 @@ export async function refreshAuthSession() {
     // First, try to get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
+    logger.info('[AuthRefresh] Session check:', { 
+      hasSession: !!session, 
+      hasError: !!sessionError,
+      hasToken: !!session?.access_token 
+    })
+    
     if (sessionError) {
-      logger.error('Session error:', sessionError)
+      logger.error('[AuthRefresh] Session error:', sessionError)
+      clearStaleSession()
       return { success: false, error: sessionError.message }
     }
     
     if (!session) {
-      logger.warn('No active session found')
+      logger.warn('[AuthRefresh] No active session found - NOT clearing (might be loading)')
       return { success: false, error: 'No active session' }
+    }
+    
+    // Validate session has required fields
+    if (!session.access_token || !session.user) {
+      logger.error('Invalid session structure')
+      clearStaleSession()
+      return { success: false, error: 'Invalid session' }
     }
     
     // Check if token is expired or about to expire (within 5 minutes)
@@ -30,6 +62,7 @@ export async function refreshAuthSession() {
       
       if (refreshError) {
         logger.error('Token refresh failed:', refreshError)
+        clearStaleSession()
         return { success: false, error: refreshError.message }
       }
       
@@ -37,11 +70,15 @@ export async function refreshAuthSession() {
         logger.info('Token refreshed successfully')
         return { success: true, session: refreshData.session }
       }
+      
+      clearStaleSession()
+      return { success: false, error: 'Refresh returned no session' }
     }
     
     return { success: true, session }
   } catch (error) {
     logger.error('Auth refresh error:', error)
+    clearStaleSession()
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -53,12 +90,7 @@ export async function ensureValidSession() {
   const result = await refreshAuthSession()
   
   if (!result.success) {
-    // Clear any stale session data
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('mihas-auth-token')
-      sessionStorage.clear()
-    }
-    
+    clearStaleSession()
     throw new Error(result.error || 'Authentication required')
   }
   

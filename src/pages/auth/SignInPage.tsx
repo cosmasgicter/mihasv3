@@ -44,7 +44,10 @@ export default function SignInPage() {
         throw new Error(result.error)
       }
 
-      logger.info('Login successful, navigating to dashboard')
+      logger.info('Login successful, waiting for auth state...')
+      // Wait for auth state to propagate
+      await new Promise(resolve => setTimeout(resolve, 200))
+      logger.info('Navigating to dashboard')
       navigate('/dashboard')
     } catch (error: unknown) {
       logger.error('Sign in error:', error)

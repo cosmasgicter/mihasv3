@@ -32,8 +32,8 @@ class AuthPersistence {
       })
     }
 
-    // Initial session check
-    setTimeout(() => this.checkAndRefreshSession(), 1000)
+    // Initial session check (delayed to avoid interfering with login)
+    setTimeout(() => this.checkAndRefreshSession(), 5000)
   }
 
   // Check and refresh session if needed
