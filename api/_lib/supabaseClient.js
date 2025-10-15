@@ -175,6 +175,33 @@ async function resolveRoles(req, user) {
   return fetchPromise
 }
 
+async function processProfile(req, profile, payload) {
+  const user = {
+    id: profile.id,
+    email: profile.email,
+    app_metadata: {},
+    user_metadata: {},
+    role: profile.role
+  }
+  
+  console.log('[getUserFromRequest] User loaded:', user.id, user.email, 'role:', profile.role)
+
+  let roles = profile.role ? [profile.role] : []
+  
+  try {
+    const dbRoles = await resolveRoles(req, user)
+    if (dbRoles && dbRoles.length > 0) {
+      roles = dbRoles
+    }
+  } catch (rolesError) {
+    console.log('[getUserFromRequest] Role resolution error, using profile role:', rolesError.message)
+  }
+
+  const isAdmin = roles.some(role => ADMIN_ROLES.has(role))
+
+  return { user, roles, isAdmin }
+}
+
 async function getUserFromRequest(req, { requireAdmin = false } = {}) {
   const headers = req.headers || {}
   const authHeader = headers.authorization || headers.Authorization
@@ -214,47 +241,56 @@ async function getUserFromRequest(req, { requireAdmin = false } = {}) {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
     
     if (userError) {
-      console.log('[getUserFromRequest] Profile fetch error:', userError.message)
+      console.log('[getUserFromRequest] Profile fetch error:', userError.message, userError)
       return { error: 'User not found' }
     }
     
     if (!profile) {
       console.log('[getUserFromRequest] No profile found for user:', userId)
-      return { error: 'User not found' }
-    }
-    
-    const user = {
-      id: profile.id,
-      email: profile.email,
-      app_metadata: {},
-      user_metadata: {},
-      role: profile.role
-    }
-    
-    console.log('[getUserFromRequest] User loaded:', user.id, user.email)
-
-    let roles
-    try {
-      roles = await resolveRoles(req, user)
-    } catch (rolesError) {
-      const metadataRoles = extractRolesFromUserToken(user)
-      if (metadataRoles && metadataRoles.length > 0) {
-        roles = metadataRoles
-      } else {
-        return { error: 'Access denied. You do not have permission for this action.' }
+      // Try to create profile from JWT metadata
+      const userEmail = payload.email
+      const userName = payload.user_metadata?.full_name || payload.user_metadata?.name || 'User'
+      const nameParts = userName.split(' ')
+      
+      const { error: createError } = await supabaseAdminClient
+        .from('profiles')
+        .insert({
+          id: userId,
+          email: userEmail,
+          first_name: nameParts[0] || '',
+          last_name: nameParts.slice(1).join(' ') || '',
+          role: 'student'
+        })
+      
+      if (createError) {
+        console.log('[getUserFromRequest] Failed to create profile:', createError.message)
+        return { error: 'User profile not found' }
       }
+      
+      // Fetch the newly created profile
+      const { data: newProfile } = await supabaseAdminClient
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      
+      if (!newProfile) {
+        return { error: 'User profile not found' }
+      }
+      
+      return await processProfile(req, newProfile, payload)
     }
-
-    const isAdmin = roles.some(role => ADMIN_ROLES.has(role))
-
-    if (requireAdmin && !isAdmin) {
+    
+    const authContext = await processProfile(req, profile, payload)
+    
+    if (requireAdmin && !authContext.isAdmin) {
       return { error: 'Access denied. You do not have permission for this action.' }
     }
 
-    return { user, roles, isAdmin }
+    return authContext
   } catch (networkError) {
     console.error('[getUserFromRequest] Exception:', networkError.message)
     return { error: 'Service temporarily unavailable' }

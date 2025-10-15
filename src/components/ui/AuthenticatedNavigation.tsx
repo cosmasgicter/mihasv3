@@ -84,7 +84,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
   ]
 
   return (
-    <NavigationMenu.Root className={cn("nav-container bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200/50 sticky top-0 z-50", className)}>
+    <NavigationMenu.Root className={cn("nav-container bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200/50 sticky top-0 z-50 w-full", className)}>
       <div className="container-mobile">
         <div className="flex justify-between items-center py-3 sm:py-4">
           {/* User Info - Mobile First */}
@@ -161,7 +161,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu Button */}
             <motion.button
-              className="lg:hidden p-3 rounded-xl bg-white shadow-lg border border-gray-200 hover:bg-gray-50 smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target"
+              className="lg:hidden p-3 rounded-xl bg-white shadow-lg border border-gray-200 hover:bg-gray-50 smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target relative z-50"
               onClick={toggleMenu}
               whileTap={{ scale: 0.95 }}
               aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -203,7 +203,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden z-40"
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden z-[9998]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -212,7 +212,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-l border-gray-200 lg:hidden z-50 overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-l border-gray-200 lg:hidden z-[9999] overflow-y-auto"
               variants={menuVariants}
               initial="closed"
               animate="open"

@@ -75,6 +75,25 @@ async function handler(req, res) {
       return res.status(400).json({ error: errorMessage })
     }
 
+    // Create profile for the new user
+    const nameParts = fullName.split(' ')
+    const firstName = nameParts[0] || ''
+    const lastName = nameParts.slice(1).join(' ') || ''
+    
+    const { error: profileError } = await supabaseAdminClient
+      .from('profiles')
+      .insert({
+        id: data.user.id,
+        email: data.user.email,
+        first_name: firstName,
+        last_name: lastName,
+        role: 'student'
+      })
+
+    if (profileError) {
+      console.error('Profile creation error:', profileError)
+    }
+
     await logAuditEvent({
       req,
       action: 'auth.register.success',
