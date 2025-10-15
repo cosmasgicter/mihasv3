@@ -208,10 +208,11 @@ class HttpTelemetrySink implements TelemetrySink {
     }
 
     try {
+      const payload = { events }
       const response = await fetch(`${this.baseUrl}/api/analytics/telemetry`, {
         method: 'POST',
         headers: await this.buildHeaders(),
-        body: JSON.stringify({ events }),
+        body: JSON.stringify(payload),
         keepalive: typeof navigator !== 'undefined' && 'sendBeacon' in navigator ? true : undefined
       })
 

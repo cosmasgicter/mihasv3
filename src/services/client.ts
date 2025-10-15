@@ -89,19 +89,26 @@ class ApiClient {
       // Use the refresh utility to ensure we have a valid session
       const refreshResult = await refreshAuthSession()
       
+      logger.info('[API Client] Auth refresh result:', { 
+        success: refreshResult.success, 
+        hasSession: !!refreshResult.session,
+        hasToken: !!refreshResult.session?.access_token
+      })
+      
       if (!refreshResult.success) {
-        logger.warn('Auth refresh failed:', refreshResult.error)
+        logger.warn('[API Client] Auth refresh failed:', refreshResult.error)
         return baseHeaders
       }
       
       const token = refreshResult.session?.access_token
       if (token) {
         baseHeaders.Authorization = `Bearer ${token}`
+        logger.info('[API Client] Authorization header added')
       } else {
-        logger.warn('No access token found in refreshed session')
+        logger.warn('[API Client] No access token found in refreshed session')
       }
     } catch (error) {
-      logger.error('Failed to get auth headers:', error)
+      logger.error('[API Client] Failed to get auth headers:', error)
     }
 
     return baseHeaders
@@ -252,11 +259,20 @@ class ApiClient {
         
         // Handle 401 Unauthorized specifically
         if (response.status === 401) {
-          errorMessage = 'Authentication required. Please sign in again.'
+          errorMessage = 'Your session has expired. Please sign in again.'
           // Clear any stale session data
           if (typeof window !== 'undefined') {
             localStorage.removeItem('mihas-auth-token')
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith('sb-') || key.includes('supabase')) {
+                localStorage.removeItem(key)
+              }
+            })
             sessionStorage.clear()
+            // Redirect to sign in page
+            setTimeout(() => {
+              window.location.href = '/auth/signin'
+            }, 1000)
           }
         }
         
@@ -302,9 +318,18 @@ class ApiClient {
         // Clear any stale session data
         if (typeof window !== 'undefined') {
           localStorage.removeItem('mihas-auth-token')
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('sb-') || key.includes('supabase')) {
+              localStorage.removeItem(key)
+            }
+          })
           sessionStorage.clear()
+          // Redirect to sign in page
+          setTimeout(() => {
+            window.location.href = '/auth/signin'
+          }, 1000)
         }
-        throw new Error('Authentication required. Please sign in again.')
+        throw new Error('Your session has expired. Please sign in again.')
       }
       
       // Enhance error if not already enhanced

@@ -7,7 +7,11 @@
   functionsPort = 8888
   command = "npm run dev"
   targetPort = 5173
+  port = 8888
   autoLaunch = false
+  
+[dev.timeout]
+  functions = 180
   
 [context.production.environment]
   NODE_ENV = "production"

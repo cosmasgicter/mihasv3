@@ -8,23 +8,20 @@
 
 ⬥ Starting framework dev server
 ⠋ Waiting for framework dev server to be ready on port 5173
-✔ framework dev server ready on port 5173
-
+[1G
 > mihas-application-system-v2@1.0.0 dev
 > vite --config vite.config.local.ts
 
-Port 5173 is in use, trying another one...
-Port 5174 is in use, trying another one...
-Port 5175 is in use, trying another one...
-Port 5176 is in use, trying another one...
-Port 5177 is in use, trying another one...
-Port 5178 is in use, trying another one...
-Port 5179 is in use, trying another one...
+⠙ Waiting for framework dev server to be ready on port 5173
+[1G
+  VITE v6.3.6  ready in 708 ms
 
-  VITE v6.3.6  ready in 792 ms
-
-  ➜  Local:   http://localhost:5180/
-  ➜  Network: http://192.168.143.173:5180/
+⠹ Waiting for framework dev server to be ready on port 5173
+[1G  ➜  Local:   http://localhost:5173/
+⠸ Waiting for framework dev server to be ready on port 5173
+[1G  ➜  Network: http://192.168.143.173:5173/
+⠼ Waiting for framework dev server to be ready on port 5173
+✔ framework dev server ready on port 5173
 
    ╭─────────────────────── ⬥  ────────────────────────╮
    │                                                   │
@@ -33,110 +30,151 @@ Port 5179 is in use, trying another one...
    ╰───────────────────────────────────────────────────╯
 
 ⬥ Loaded function test
-⬥ Loaded function auth-register
-⬥ Loaded function applications
-⬥ Loaded function notifications-send
-⬥ Loaded function catalog-intakes
-⬥ Loaded function catalog-subjects
-⬥ Loaded function applications-documents
-⬥ Loaded function applications-bulk
+(node:5663) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Request from ::1: GET /.netlify/functions/test
+[netlifyWrapper] event keys: []
+[netlifyWrapper] event.method: GET event.httpMethod: undefined
+Response with status 200 in 2525 ms.
+⬥ Loaded function applications-summary
+⬥ Loaded function applications-grades
+⬥ Loaded function applications-review
+⬥ Loaded function applications-id
+⬥ Loaded function mcp-schema
+⬥ Loaded function applications-academic-summary
+⬥ Loaded function notifications-application-submitted
+⬥ Loaded function analytics-predictive-dashboard
 ⬥ Loaded function admin-users
 ⬥ Loaded function analytics-metrics
-⬥ Loaded function admin-users-id
+⬥ Loaded function mcp-query
+⬥ Loaded function notifications-process-email-queue
+⬥ Loaded function admin-applications-update-status
+⬥ Loaded function catalog-programs
+⬥ Loaded function admin-audit-log-stats
+⬥ Loaded function auth-signin
+⬥ Loaded function admin-audit-log-export
+⬥ Loaded function admin-dashboard
 ⬥ Loaded function admin-queue-status
 ⬥ Loaded function admin-email-queue-status
-⬥ Loaded function admin-users-id-role
-⬥ Loaded function admin-dashboard
-⬥ Loaded function admin-users-id-permissions
-⬥ Loaded function admin-applications-verify-payment
-⬥ Loaded function applications-grades
-⬥ Loaded function admin-audit-log
-⬥ Loaded function admin-audit-log-stats
-⬥ Loaded function admin-audit-log-export
-⬥ Loaded function notifications-dispatch-channel
-⬥ Loaded function auth-signin
 ⬥ Loaded function health
 ⬥ Loaded function applications-details
-⬥ Loaded function mcp-schema
-⬥ Loaded function documents-upload
-⬥ Loaded function applications-summary
-⬥ Loaded function auth-reset-password
-⬥ Loaded function notifications-process-email-queue
-⬥ Loaded function catalog-programs
-⬥ Loaded function applications-review
-⬥ Loaded function analytics-predictive-dashboard
-⬥ Loaded function notifications-application-submitted
-⬥ Loaded function auth-login
-⬥ Loaded function applications-id
-⬥ Loaded function mcp-query
-⬥ Loaded function applications-academic-summary
-⬥ Loaded function admin-applications-update-status
-⬥ Loaded function notifications-preferences
+⬥ Loaded function auth-register
 ⬥ Loaded function notifications-update-consent
+⬥ Loaded function catalog-intakes
+⬥ Loaded function admin-users-id
+⬥ Loaded function admin-users-id-role
+⬥ Loaded function admin-users-id-permissions
+⬥ Loaded function documents-upload
+⬥ Loaded function applications-documents
+⬥ Loaded function catalog-subjects
 ⬥ Loaded function push-subscriptions
+⬥ Loaded function applications-bulk
+⬥ Loaded function admin-applications-verify-payment
+⬥ Loaded function notifications-send
+⬥ Loaded function applications
+⬥ Loaded function auth-login
+⬥ Loaded function admin-audit-log
+⬥ Loaded function auth-reset-password
+⬥ Loaded function notifications-preferences
+⬥ Loaded function notifications-dispatch-channel
 ⬥ Loaded function analytics-telemetry
 ⬥ Loaded function push-subscriptions-dispatch
-⬥ Loaded function applications-email-slip
 ⬥ Loaded function applications-generate-slip
+⬥ Loaded function applications-email-slip
 ⬥ Loaded function debug-test
-⬥ Rewrote URL to /.netlify/functions/health
-(node:192538) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-Request from ::1: GET /.netlify/functions/health
-[netlifyWrapper] event keys: []
-[netlifyWrapper] event.method: GET event.httpMethod: undefined
-[health] Method: GET Path: /api/health
-Response with status 200 in 744 ms.
-⬥ Rewrote URL to /.netlify/functions/applications?page=0&pageSize=1
-Request from ::1: GET /.netlify/functions/applications?page=0&pageSize=1
-[netlifyWrapper] event keys: []
-[netlifyWrapper] event.method: GET event.httpMethod: undefined
-[applications] Method: GET URL: http://localhost:8888/api/applications?page=0&pageSize=1 Query: {}
-Response with status 401 in 798 ms.
-⬥ Rewrote URL to /.netlify/functions/analytics-telemetry
-Request from ::1: POST /.netlify/functions/analytics-telemetry
-[netlifyWrapper] event keys: []
-Invalid telemetry payload ZodError: [
-  {
-    "code": "invalid_type",
-    "expected": "array",
-    "received": "undefined",
-    "path": [
-      "events"
-    ],
-    "message": "Required"
-  }
-]
-    at Object.get error [as error] (file:///home/cosmas/Documents/Visual%20Code/mihasv3/.netlify/functions-serve/analytics-telemetry/node_modules/zod/v3/types.js:39:31)
-    at ZodObject.parse (file:///home/cosmas/Documents/Visual%20Code/mihasv3/.netlify/functions-serve/analytics-telemetry/node_modules/zod/v3/types.js:114:22)
-    at handleTelemetryIngest (file:///home/cosmas/Documents/Visual%20Code/mihasv3/.netlify/functions-serve/analytics-telemetry/api-functions/analytics-telemetry.mjs:1163:35)
-    at handler (file:///home/cosmas/Documents/Visual%20Code/mihasv3/.netlify/functions-serve/analytics-telemetry/api-functions/analytics-telemetry.mjs:1349:12)
-    at Module.netlifyWrapper (file:///home/cosmas/Documents/Visual%20Code/mihasv3/.netlify/functions-serve/analytics-telemetry/api-functions/analytics-telemetry.mjs:215:13)
-    at file:///home/cosmas/Documents/Visual%20Code/mihasv3/.netlify/functions-serve/analytics-telemetry/___netlify-bootstrap.mjs:7:85659
-    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
-    at WC (file:///home/cosmas/Documents/Visual%20Code/mihasv3/.netlify/functions-serve/analytics-telemetry/___netlify-bootstrap.mjs:7:85640)
-    at X (file:///home/cosmas/Documents/Visual%20Code/mihasv3/.netlify/functions-serve/analytics-telemetry/___netlify-bootstrap.mjs:7:84560)
-    at file:///home/cosmas/Documents/Visual%20Code/mihasv3/.netlify/functions-serve/analytics-telemetry/___netlify-bootstrap.mjs:7:84984 {
-  issues: [
-    {
-      code: 'invalid_type',
-      expected: 'array',
-      received: 'undefined',
-      path: [Array],
-      message: 'Required'
-    }
-  ],
-  addIssue: [Function (anonymous)],
-  addIssues: [Function (anonymous)],
-  errors: [
-    {
-      code: 'invalid_type',
-      expected: 'array',
-      received: 'undefined',
-      path: [Array],
-      message: 'Required'
-    }
-  ]
-}
-[netlifyWrapper] event.method: POST event.httpMethod: undefined
-Response with status 400 in 745 ms.
+⬥ Rewrote URL to /index.html
+⬥ Rewrote URL to /index.html
+⬥ Rewrote URL to /index.html
+⬥ Rewrote URL to /index.html
+10:59:23 AM [vite] Internal server error: Failed to parse source for import analysis because the content contains invalid JS syntax. You may need to install appropriate plugins to handle the .html file format, or if it's an asset, add "**/*.html" to `assetsInclude` in your configuration.
+  Plugin: vite:import-analysis
+  File: /home/cosmas/Documents/Visual Code/mihasv3/index.html:9:44
+  7  |      <meta name="referrer" content="no-referrer-when-downgrade" />
+  8  |      <meta name="robots" content="index, follow" />
+  9  |      <title>MIHAS Application System</title>
+     |                                             ^
+  10 |      
+  11 |      <!-- Prevent extension conflicts -->
+      at TransformPluginContext._formatLog (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+      at TransformPluginContext.error (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+      at TransformPluginContext.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40444:14)
+      at async EnvironmentPluginContainer.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+      at async loadAndTransform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+10:59:23 AM [vite] Internal server error: Failed to parse source for import analysis because the content contains invalid JS syntax. You may need to install appropriate plugins to handle the .html file format, or if it's an asset, add "**/*.html" to `assetsInclude` in your configuration.
+  Plugin: vite:import-analysis
+  File: /home/cosmas/Documents/Visual Code/mihasv3/index.html:9:44
+  7  |      <meta name="referrer" content="no-referrer-when-downgrade" />
+  8  |      <meta name="robots" content="index, follow" />
+  9  |      <title>MIHAS Application System</title>
+     |                                             ^
+  10 |      
+  11 |      <!-- Prevent extension conflicts -->
+      at TransformPluginContext._formatLog (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+      at TransformPluginContext.error (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+      at TransformPluginContext.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40444:14)
+      at async EnvironmentPluginContainer.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+      at async loadAndTransform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+10:59:23 AM [vite] Internal server error: Failed to parse source for import analysis because the content contains invalid JS syntax. You may need to install appropriate plugins to handle the .html file format, or if it's an asset, add "**/*.html" to `assetsInclude` in your configuration.
+  Plugin: vite:import-analysis
+  File: /home/cosmas/Documents/Visual Code/mihasv3/index.html:9:44
+  7  |      <meta name="referrer" content="no-referrer-when-downgrade" />
+  8  |      <meta name="robots" content="index, follow" />
+  9  |      <title>MIHAS Application System</title>
+     |                                             ^
+  10 |      
+  11 |      <!-- Prevent extension conflicts -->
+      at TransformPluginContext._formatLog (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+      at TransformPluginContext.error (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+      at TransformPluginContext.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40444:14)
+      at async EnvironmentPluginContainer.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+      at async loadAndTransform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+      at async viteTransformMiddleware (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:37253:24)
+⬥ Rewrote URL to /index.html
+⬥ Rewrote URL to /index.html
+⬥ Rewrote URL to /index.html
+⬥ Rewrote URL to /index.html
+10:59:43 AM [vite] Internal server error: Failed to parse source for import analysis because the content contains invalid JS syntax. You may need to install appropriate plugins to handle the .html file format, or if it's an asset, add "**/*.html" to `assetsInclude` in your configuration.
+  Plugin: vite:import-analysis
+  File: /home/cosmas/Documents/Visual Code/mihasv3/index.html:9:44
+  7  |      <meta name="referrer" content="no-referrer-when-downgrade" />
+  8  |      <meta name="robots" content="index, follow" />
+  9  |      <title>MIHAS Application System</title>
+     |                                             ^
+  10 |      
+  11 |      <!-- Prevent extension conflicts -->
+      at TransformPluginContext._formatLog (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+      at TransformPluginContext.error (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+      at TransformPluginContext.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40444:14)
+      at async EnvironmentPluginContainer.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+      at async loadAndTransform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+10:59:43 AM [vite] Internal server error: Failed to parse source for import analysis because the content contains invalid JS syntax. You may need to install appropriate plugins to handle the .html file format, or if it's an asset, add "**/*.html" to `assetsInclude` in your configuration.
+  Plugin: vite:import-analysis
+  File: /home/cosmas/Documents/Visual Code/mihasv3/index.html:9:44
+  7  |      <meta name="referrer" content="no-referrer-when-downgrade" />
+  8  |      <meta name="robots" content="index, follow" />
+  9  |      <title>MIHAS Application System</title>
+     |                                             ^
+  10 |      
+  11 |      <!-- Prevent extension conflicts -->
+      at TransformPluginContext._formatLog (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+      at TransformPluginContext.error (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+      at TransformPluginContext.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40444:14)
+      at async EnvironmentPluginContainer.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+      at async loadAndTransform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+10:59:43 AM [vite] Internal server error: Failed to parse source for import analysis because the content contains invalid JS syntax. You may need to install appropriate plugins to handle the .html file format, or if it's an asset, add "**/*.html" to `assetsInclude` in your configuration.
+  Plugin: vite:import-analysis
+  File: /home/cosmas/Documents/Visual Code/mihasv3/index.html:9:44
+  7  |      <meta name="referrer" content="no-referrer-when-downgrade" />
+  8  |      <meta name="robots" content="index, follow" />
+  9  |      <title>MIHAS Application System</title>
+     |                                             ^
+  10 |      
+  11 |      <!-- Prevent extension conflicts -->
+      at TransformPluginContext._formatLog (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+      at TransformPluginContext.error (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+      at TransformPluginContext.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40444:14)
+      at async EnvironmentPluginContainer.transform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+      at async loadAndTransform (file:///home/cosmas/Documents/Visual%20Code/mihasv3/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+⬥ Rewrote URL to /index.html
+11:01:01 AM [vite] vite.config.local.ts changed, restarting server...
+11:01:01 AM [vite] server restarted.
