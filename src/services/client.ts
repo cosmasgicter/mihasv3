@@ -4,6 +4,7 @@ import { getApiBaseUrl } from '@/lib/apiConfig'
 import { fetchWithCache, invalidateCache } from '@/utils/api-cache'
 import { ApiErrorHandler } from '@/lib/apiErrorHandler'
 import { logger } from '@/utils/logger'
+import { refreshAuthSession } from '@/lib/authRefresh'
 
 import type { FetchWithCacheOptions } from '@/utils/api-cache'
 
@@ -85,14 +86,22 @@ class ApiClient {
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
+      // Use the refresh utility to ensure we have a valid session
+      const refreshResult = await refreshAuthSession()
+      
+      if (!refreshResult.success) {
+        logger.warn('Auth refresh failed:', refreshResult.error)
+        return baseHeaders
+      }
+      
+      const token = refreshResult.session?.access_token
       if (token) {
         baseHeaders.Authorization = `Bearer ${token}`
+      } else {
+        logger.warn('No access token found in refreshed session')
       }
     } catch (error) {
-      logger.error('Failed to resolve Supabase session for API request:', error)
+      logger.error('Failed to get auth headers:', error)
     }
 
     return baseHeaders
@@ -241,6 +250,16 @@ class ApiClient {
           // Use default error message
         }
         
+        // Handle 401 Unauthorized specifically
+        if (response.status === 401) {
+          errorMessage = 'Authentication required. Please sign in again.'
+          // Clear any stale session data
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('mihas-auth-token')
+            sessionStorage.clear()
+          }
+        }
+        
         monitoring.logError(service, `${response.status}: ${errorMessage}`, {
           endpoint,
           method,
@@ -277,6 +296,16 @@ class ApiClient {
         }
       )
       monitoring.queueFlush(true)
+      
+      // Handle authentication errors specifically
+      if (error instanceof Error && error.message.includes('401')) {
+        // Clear any stale session data
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('mihas-auth-token')
+          sessionStorage.clear()
+        }
+        throw new Error('Authentication required. Please sign in again.')
+      }
       
       // Enhance error if not already enhanced
       if (!(error instanceof Error) || !error.message.includes('Please')) {
