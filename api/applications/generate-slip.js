@@ -7,9 +7,13 @@ const supabase = supabaseAdminClient;
 
 async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*")
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
-  if (req.method === "OPTIONS") return res.status(200).end()
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, authorization")
+  
+  if (req.method === "OPTIONS") {
+    return res.status(200).end()
+  }
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -71,7 +75,9 @@ async function handler(req, res) {
 
   } catch (error) {
     console.error('Generate slip error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Error stack:', error.stack);
+    console.error('Error message:', error.message);
+    return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 }
 

@@ -48,7 +48,8 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       })
 
       if (!response.ok) {
-        throw new Error('Failed to generate slip')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to generate slip')
       }
 
       const blob = await response.blob()
@@ -62,7 +63,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       document.body.removeChild(a)
     } catch (error) {
       console.error('Download failed:', error)
-      alert('Failed to download application slip')
+      alert(`Failed to download application slip: ${error.message}`)
     } finally {
       setIsDownloading(false)
     }
@@ -89,14 +90,15 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       })
 
       if (!response.ok) {
-        throw new Error('Failed to send email')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to send email')
       }
 
       setEmailSent(true)
       setTimeout(() => setEmailSent(false), 5000)
     } catch (error) {
       console.error('Email failed:', error)
-      alert('Failed to send email')
+      alert(`Failed to send email: ${error.message}`)
     } finally {
       setIsEmailing(false)
     }

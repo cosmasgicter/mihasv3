@@ -304,7 +304,7 @@ const useWizardController = (): UseWizardControllerResult => {
   }, [user, authLoading, navigate])
 
   const slipPayload: ApplicationSlipData | null = useMemo(() => {
-    if (!submittedApplication) return null
+    if (!submittedApplication || !submittedApplication.trackingCode || !submittedApplication.applicationNumber) return null
     const now = new Date().toISOString()
     return {
       public_tracking_code: submittedApplication.trackingCode,
@@ -581,7 +581,7 @@ const useWizardController = (): UseWizardControllerResult => {
       subscription.unsubscribe()
       if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [watch, saveDraft, draftLoaded, restoringDraft])
+  }, [saveDraft, draftLoaded, restoringDraft])
 
   const addGrade = useCallback(() => {
     setSelectedGrades(prev => (prev.length < 10 ? [...prev, { subject_id: '', grade: 1 }] : prev))
