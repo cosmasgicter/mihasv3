@@ -15,6 +15,15 @@ function shouldEnforceCsrf(req) {
 }
 
 async function handler(req, res) {
+  // Add CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, authorization, x-csrf-token, x-session-token')
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
   if (req.method === 'POST') {
     if (shouldEnforceCsrf(req)) {
       const csrfToken = req.headers['x-csrf-token'] || req.body?.csrfToken

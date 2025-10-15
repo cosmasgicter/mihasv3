@@ -3,6 +3,8 @@ import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
 import { useMockSupabase } from '../_lib/supabaseClient.js'
 
 async function handler(req, res) {
+  console.log('[health] Method:', req.method, 'Path:', req.path)
+  
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -12,6 +14,7 @@ async function handler(req, res) {
   }
 
   if (req.method !== 'GET') {
+    console.log('[health] Rejecting method:', req.method)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
