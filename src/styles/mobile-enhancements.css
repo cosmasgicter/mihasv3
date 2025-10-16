@@ -195,17 +195,22 @@
   min-height: 64px;
 }
 
-/* Navigation z-index management */
+/* Navigation z-index management - Consistent stacking */
+.nav-container {
+  z-index: 50 !important;
+}
+
 .nav-backdrop {
-  z-index: 9997 !important;
+  z-index: 100 !important;
 }
 
 .nav-panel {
-  z-index: 9998 !important;
+  z-index: 101 !important;
 }
 
-.nav-header {
-  z-index: 9999 !important;
+.nav-toggle-button {
+  z-index: 102 !important;
+  position: relative !important;
 }
 
 
@@ -359,19 +364,23 @@
   
   /* Ensure navigation items are clickable */
   .mobile-nav-item {
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
     width: 100% !important;
     padding: 16px 24px !important;
     margin: 0 !important;
     background: white !important;
     border: 1px solid #e5e7eb !important;
-    border-radius: 8px !important;
+    border-radius: 12px !important;
     text-decoration: none !important;
     color: #374151 !important;
     font-weight: 500 !important;
     transition: all 0.2s ease !important;
     cursor: pointer !important;
     touch-action: manipulation !important;
+    position: relative !important;
+    z-index: 1 !important;
+    min-height: 56px !important;
   }
   
   .mobile-nav-item:hover,
@@ -446,6 +455,16 @@ nav button[class*="text-red-"],
 .nav-container {
   position: relative;
   z-index: 50;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* Logout button container fixes */

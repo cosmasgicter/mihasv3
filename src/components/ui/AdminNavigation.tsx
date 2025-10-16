@@ -37,8 +37,35 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
   const location = useLocation()
   const [isOpen, setIsOpen] = useState(false)
 
-  const toggleMenu = () => setIsOpen(!isOpen)
-  const closeMenu = () => setIsOpen(false)
+  const toggleMenu = () => {
+    setIsOpen(!isOpen)
+    if (!isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+  }
+  
+  const closeMenu = () => {
+    setIsOpen(false)
+    document.body.style.overflow = ''
+  }
+  
+  // Cleanup on unmount and handle escape key
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        closeMenu()
+      }
+    }
+    
+    document.addEventListener('keydown', handleEscape)
+    
+    return () => {
+      document.body.style.overflow = ''
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isOpen])
 
   const handleSignOut = async () => {
     try {
@@ -53,31 +80,29 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
   const menuVariants = {
     closed: {
-      opacity: 0,
       x: '100%',
       transition: {
-        duration: 0.3,
-        ease: [0.25, 0.25, 0, 1]
+        duration: 0.25,
+        ease: [0.4, 0, 0.2, 1]
       }
     },
     open: {
-      opacity: 1,
       x: 0,
       transition: {
-        duration: 0.3,
-        ease: [0.25, 0.25, 0, 1]
+        duration: 0.25,
+        ease: [0.4, 0, 0.2, 1]
       }
     }
   }
 
   const itemVariants = {
-    closed: { opacity: 0, x: 20 },
+    closed: { opacity: 0, x: 10 },
     open: (i: number) => ({
       opacity: 1,
       x: 0,
       transition: {
-        delay: i * 0.1,
-        duration: 0.3
+        delay: i * 0.05,
+        duration: 0.2
       }
     })
   }
@@ -129,7 +154,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
           </div>
 
           {/* Desktop Navigation */}
-          <NavigationMenu.List className="hidden lg:flex items-center space-x-1 overflow-x-auto flex-nowrap">
+          <NavigationMenu.List className="hidden lg:flex items-center space-x-1 overflow-x-auto flex-nowrap scrollbar-hide">
             {navigationItems.map((item) => {
               const isActive = isActiveRoute(item.href)
               return (
@@ -164,8 +189,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="ml-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 whitespace-nowrap flex items-center !visible !flex"
-                style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
+                className="ml-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 whitespace-nowrap flex items-center logout-button"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
@@ -175,7 +199,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
           {/* Mobile Menu Button */}
           <motion.button
-            className="lg:hidden p-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[48px] min-w-[48px] touch-target border-2 border-gray-600 hover:border-gray-500 shadow-lg z-[102]"
+            className="lg:hidden p-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[48px] min-w-[48px] touch-target border-2 border-gray-600 hover:border-gray-500 shadow-lg nav-toggle-button"
             onClick={toggleMenu}
             whileTap={{ scale: 0.95 }}
             aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -214,7 +238,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] lg:hidden"
+              className="fixed inset-0 bg-black/70 backdrop-blur-md nav-backdrop lg:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -223,7 +247,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white shadow-2xl z-[101] lg:hidden safe-area-top safe-area-bottom border-l border-gray-200/50"
+              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l border-gray-200/50 overflow-y-auto"
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -317,8 +341,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                           closeMenu()
                           await handleSignOut()
                         }}
-                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-red-500 !visible !flex"
-                        style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
+                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-red-500 logout-button"
                       >
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center space-x-3">

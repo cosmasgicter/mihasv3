@@ -40,13 +40,8 @@ function buildIntakeAdjustmentMap(applications, nextStatus) {
       continue
     }
 
-    let identifierValue = typeof application?.intake_id === 'string' ? application.intake_id.trim() : ''
-    let identifierColumn = 'id'
-
-    if (!identifierValue) {
-      identifierValue = typeof application?.intake === 'string' ? application.intake.trim() : ''
-      identifierColumn = 'name'
-    }
+    let identifierValue = typeof application?.intake === 'string' ? application.intake.trim() : ''
+    let identifierColumn = 'name'
 
     if (!identifierValue) {
       continue
@@ -135,7 +130,7 @@ export async function updateStatusForApplications(applicationIds, status) {
 
   const { data: existingRecords, error: existingError } = await supabase
     .from('applications')
-    .select('id, status, intake_id, intake')
+    .select('id, status, intake')
     .in('id', applicationIds)
 
   if (existingError) {

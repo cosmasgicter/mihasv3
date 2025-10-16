@@ -292,8 +292,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   }
 
   const getPointsColor = (points: number) => {
-    if (points >= 40) return 'text-green-600'
-    if (points >= 30) return 'text-yellow-600'
+    if (points <= 15) return 'text-green-600'  // Lower is better
+    if (points <= 25) return 'text-yellow-600'
     return 'text-red-600'
   }
 

@@ -17,8 +17,8 @@ export function SessionMonitor() {
       const timeUntilExpiry = tokenExpiry.getTime() - now.getTime()
       const minutesUntilExpiry = timeUntilExpiry / (1000 * 60)
 
-      // Only show if expires in less than 30 minutes and more than 0
-      if (minutesUntilExpiry < 30 && minutesUntilExpiry > 0) {
+      // Only show if expires in less than 5 minutes and more than 0
+      if (minutesUntilExpiry < 5 && minutesUntilExpiry > 0) {
         setShowWarning(true)
       } else {
         setShowWarning(false)

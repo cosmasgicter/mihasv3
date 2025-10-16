@@ -50,8 +50,9 @@ export async function generateApplicationSlip(data) {
     throw new Error('Missing application data for slip generation');
   }
 
+  let pdfDoc, qrImage;
   try {
-    const pdfDoc = await PDFDocument.create();
+    pdfDoc = await PDFDocument.create();
     pdfDoc.setTitle(`Application Slip - ${safeText(data.application_number, 'Unknown')}`);
     pdfDoc.setAuthor('MIHAS Admissions');
     pdfDoc.setSubject('Official application confirmation slip');
@@ -67,6 +68,42 @@ export async function generateApplicationSlip(data) {
     const brandColor = rgb(71 / 255, 43 / 255, 181 / 255);
     const accentColor = rgb(236 / 255, 233 / 255, 252 / 255);
 
+    // Embed logos from local files or fallback to CDN
+    let katcLogo, mihasLogo;
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const katcPath = path.join(process.cwd(), 'public/images/logos/katc-logo.png');
+      const mihasPath = path.join(process.cwd(), 'public/images/logos/mihas-logo.png');
+      
+      if (fs.existsSync(katcPath) && fs.existsSync(mihasPath)) {
+        const katcLogoBytes = fs.readFileSync(katcPath);
+        const mihasLogoBytes = fs.readFileSync(mihasPath);
+        katcLogo = await pdfDoc.embedPng(katcLogoBytes);
+        mihasLogo = await pdfDoc.embedPng(mihasLogoBytes);
+      } else {
+        throw new Error('Local logos not found');
+      }
+    } catch (localError) {
+      // Fallback to CDN with timeout
+      const fetchWithTimeout = (url, timeout = 5000) => {
+        return Promise.race([
+          fetch(url),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Logo fetch timeout')), timeout))
+        ]);
+      };
+      
+      const [katcLogoRes, mihasLogoRes] = await Promise.all([
+        fetchWithTimeout('https://tuaringp.sirv.com/Images/katclogo-removebg-preview.png'),
+        fetchWithTimeout('https://tuaringp.sirv.com/Images/download-removebg-preview.png')
+      ]);
+      
+      const katcLogoBytes = await katcLogoRes.arrayBuffer();
+      const mihasLogoBytes = await mihasLogoRes.arrayBuffer();
+      katcLogo = await pdfDoc.embedPng(katcLogoBytes);
+      mihasLogo = await pdfDoc.embedPng(mihasLogoBytes);
+    }
+
     // Header banner
     page.drawRectangle({
       x: 0,
@@ -76,8 +113,27 @@ export async function generateApplicationSlip(data) {
       color: brandColor
     });
 
-    page.drawText('MIHAS Admissions', {
+    // Draw logos
+    const logoHeight = 80;
+    const katcLogoWidth = (katcLogo.width / katcLogo.height) * logoHeight;
+    const mihasLogoWidth = (mihasLogo.width / mihasLogo.height) * logoHeight;
+
+    page.drawImage(katcLogo, {
       x: margin,
+      y: height - 130,
+      width: katcLogoWidth,
+      height: logoHeight
+    });
+
+    page.drawImage(mihasLogo, {
+      x: width - margin - mihasLogoWidth,
+      y: height - 130,
+      width: mihasLogoWidth,
+      height: logoHeight
+    });
+
+    page.drawText('MIHAS Admissions', {
+      x: width / 2 - 120,
       y: height - 80,
       size: 28,
       font: boldFont,
@@ -85,7 +141,7 @@ export async function generateApplicationSlip(data) {
     });
 
     page.drawText('Official Application Slip', {
-      x: margin,
+      x: width / 2 - 90,
       y: height - 110,
       size: 16,
       font: regularFont,
@@ -196,7 +252,7 @@ export async function generateApplicationSlip(data) {
       }
     });
 
-    const qrImage = await pdfDoc.embedPng(Buffer.from(qrDataUrl.split(',')[1], 'base64'));
+    qrImage = await pdfDoc.embedPng(Buffer.from(qrDataUrl.split(',')[1], 'base64'));
     const qrSize = 140;
     page.drawImage(qrImage, {
       x: width - margin - qrSize,
@@ -214,9 +270,17 @@ export async function generateApplicationSlip(data) {
     });
 
     const pdfBytes = await pdfDoc.save();
-    return Buffer.from(pdfBytes);
+    const buffer = Buffer.from(pdfBytes);
+    
+    // Cleanup
+    pdfDoc = null;
+    qrImage = null;
+    
+    return buffer;
   } catch (error) {
     console.error('Failed to generate application slip:', error.message);
+    pdfDoc = null;
+    qrImage = null;
     throw error;
   }
 }

@@ -94,6 +94,13 @@ export interface PaymentValidationContext {
   showError: (title: string, message?: string) => void
 }
 
+function sanitizeInput(value: any): any {
+  if (typeof value === 'string') {
+    return value.trim().replace(/<script[^>]*>.*?<\/script>/gi, '').replace(/<[^>]+>/g, '')
+  }
+  return value
+}
+
 export function validatePaymentStep({
   formData,
   proofOfPaymentFile,
@@ -156,37 +163,47 @@ const useWizardController = (): UseWizardControllerResult => {
       const trimmed = value.trim()
       if (!trimmed) return ''
 
+      // Exact ID match
       const byId = list.find(program => program.id === trimmed)
       if (byId) return byId.id
 
       const normalized = trimmed.toLowerCase()
-      const matchesByName = list.filter(program => program.name?.trim().toLowerCase() === normalized)
+      
+      // Exact name match
+      const exactMatches = list.filter(program => program.name?.trim().toLowerCase() === normalized)
+      if (exactMatches.length === 1) return exactMatches[0].id
 
-      if (matchesByName.length === 1) {
-        return matchesByName[0].id
-      }
-
-      if (matchesByName.length > 1 && institutionHint) {
+      // Multiple exact matches - use institution hint
+      if (exactMatches.length > 1 && institutionHint) {
         const hint = institutionHint.trim().toLowerCase()
-        const byInstitution = matchesByName.find(program => {
-          const institutionName =
-            program.institutions?.full_name || program.institutions?.name || ''
+        const byInstitution = exactMatches.find(program => {
+          const institutionName = program.institutions?.full_name || program.institutions?.name || ''
           const normalizedInstitution = institutionName.trim().toLowerCase()
-          return (
-            normalizedInstitution === hint ||
-            normalizedInstitution.includes(hint) ||
-            hint.includes(normalizedInstitution)
-          )
+          return normalizedInstitution === hint || normalizedInstitution.includes(hint) || hint.includes(normalizedInstitution)
         })
-        if (byInstitution) {
-          return byInstitution.id
-        }
+        if (byInstitution) return byInstitution.id
+        // Return first match if institution hint doesn't help
+        return exactMatches[0].id
       }
 
-      if (matchesByName.length > 0) {
-        return matchesByName[0].id
+      // Partial name match (fallback)
+      const partialMatches = list.filter(program => {
+        const programName = program.name?.trim().toLowerCase() || ''
+        return programName.includes(normalized) || normalized.includes(programName)
+      })
+      
+      if (partialMatches.length === 1) return partialMatches[0].id
+      if (partialMatches.length > 1 && institutionHint) {
+        const hint = institutionHint.trim().toLowerCase()
+        const byInstitution = partialMatches.find(program => {
+          const institutionName = program.institutions?.full_name || program.institutions?.name || ''
+          const normalizedInstitution = institutionName.trim().toLowerCase()
+          return normalizedInstitution === hint || normalizedInstitution.includes(hint)
+        })
+        if (byInstitution) return byInstitution.id
       }
 
+      // No match found - return empty to trigger validation error
       return ''
     },
     [programs]
@@ -250,7 +267,13 @@ const useWizardController = (): UseWizardControllerResult => {
 
   const form = useForm<WizardFormData>({
     resolver,
-    defaultValues: { amount: 153, payment_method: 'MTN Money' }
+    defaultValues: async () => {
+      const { PAYMENT_CONFIG } = await import('@/config/payments')
+      return {
+        amount: PAYMENT_CONFIG.DEFAULT_AMOUNT,
+        payment_method: PAYMENT_CONFIG.PAYMENT_METHODS[0]
+      }
+    }
   })
   const { watch, setValue, getValues } = form
   const selectedProgram = watch('program')
@@ -396,11 +419,11 @@ const useWizardController = (): UseWizardControllerResult => {
           return
         }
         
-        // Check localStorage first
+        // Single source: localStorage only (v2)
         const savedDraft = localStorage.getItem('applicationWizardDraft')
         if (savedDraft) {
           const draft = safeJsonParse(savedDraft, null)
-          if (draft && draft.formData) {
+          if (draft && draft.formData && draft.version === 2) {
             Object.keys(draft.formData).forEach(key => {
               const value = draft.formData[key]
               if (value !== undefined && value !== null && value !== '') {
@@ -437,33 +460,9 @@ const useWizardController = (): UseWizardControllerResult => {
           }
           localStorage.removeItem('applicationWizardDraft')
         }
-
-        // Check sessionStorage as fallback (only if not deleted)
-        const sessionDraft = sessionStorage.getItem('applicationWizardDraft')
-        if (sessionDraft) {
-          const draft = safeJsonParse(sessionDraft, null)
-          if (draft && draft.formData) {
-            Object.keys(draft.formData).forEach(key => {
-              const value = draft.formData[key]
-              if (value !== undefined && value !== null && value !== '') {
-                setValue(key as keyof WizardFormData, value)
-              }
-            })
-            if (draft.selectedGrades) {
-              setSelectedGrades(draft.selectedGrades)
-            }
-            // Only restore step if we're starting fresh (currentStepIndex is 0)
-            if (currentStepIndex === 0 && draft.currentStepKey) {
-              const index = wizardSteps.findIndex(step => step.key === draft.currentStepKey)
-              if (index >= 0) setCurrentStepIndex(index)
-            }
-            if (draft.applicationId) {
-              setApplicationId(draft.applicationId)
-            }
-            return
-          }
-          sessionStorage.removeItem('applicationWizardDraft')
-        }
+        
+        // Clean up old sessionStorage drafts
+        sessionStorage.removeItem('applicationWizardDraft')
 
         // Check database drafts as final fallback
         if (draftApplications?.applications && draftApplications.applications.length > 0) {
@@ -547,14 +546,14 @@ const useWizardController = (): UseWizardControllerResult => {
         currentStep: currentStepConfig.id,
         currentStepKey: currentStepConfig.key,
         applicationId,
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
+        version: 2 // Version for migration tracking
       }
 
-      try {
-        localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
-      } catch (storageError) {
-        sessionStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
-      }
+      // Single source: localStorage only
+      localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
+      // Clear old sessionStorage if exists
+      sessionStorage.removeItem('applicationWizardDraft')
 
       setDraftSaved(true)
       setTimeout(() => setDraftSaved(false), 2000)
@@ -624,18 +623,16 @@ const useWizardController = (): UseWizardControllerResult => {
     [selectedProgramDetails]
   )
 
-  const getPaymentTarget = useCallback(() => {
+  const getPaymentTarget = useCallback(async () => {
     const institutionLabel = deriveInstitutionLabel(selectedProgramDetails?.institutions)
     if (!institutionLabel) return ''
 
     const institutionCode = resolveInstitutionCode(institutionLabel)
-
-    if (institutionCode === 'KATC') {
-      return 'KATC MTN 0966 992 299'
-    }
-
-    if (institutionCode === 'MIHAS') {
-      return 'MIHAS MTN 0961 515 151'
+    const { PAYMENT_CONFIG } = await import('@/config/payments')
+    
+    const target = PAYMENT_CONFIG.PAYMENT_TARGETS[institutionCode as keyof typeof PAYMENT_CONFIG.PAYMENT_TARGETS]
+    if (target) {
+      return `${target.name} MTN ${target.mtn}`
     }
 
     return `Admissions Office (${institutionLabel})`
@@ -684,6 +681,23 @@ const useWizardController = (): UseWizardControllerResult => {
         const institutionLabel =
           deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
         const normalizedInstitution = resolveInstitutionCode(institutionLabel)
+        
+        // Check for duplicate applications (only for new applications)
+        if (!applicationId) {
+          const { checkDuplicateApplication } = await import('@/lib/duplicateApplicationCheck')
+          const duplicateCheck = await checkDuplicateApplication(
+            user.id,
+            formData.program,
+            formData.intake
+          )
+          
+          if (duplicateCheck.hasDuplicate) {
+            setError(duplicateCheck.message || 'Duplicate application found')
+            showError(duplicateCheck.message || 'You already have an application for this program and intake')
+            setLoading(false)
+            return
+          }
+        }
 
         if (applicationId) {
           // Update existing application
@@ -727,16 +741,16 @@ const useWizardController = (): UseWizardControllerResult => {
           const app = await createApplication.mutateAsync({
             application_number: applicationNumber,
             public_tracking_code: trackingCode,
-            full_name: formData.full_name,
-            nrc_number: formData.nrc_number || null,
-            passport_number: formData.passport_number || null,
+            full_name: sanitizeInput(formData.full_name),
+            nrc_number: sanitizeInput(formData.nrc_number) || null,
+            passport_number: sanitizeInput(formData.passport_number) || null,
             date_of_birth: formData.date_of_birth,
             sex: formData.sex,
-            phone: formData.phone,
-            email: formData.email,
-            residence_town: formData.residence_town,
-            next_of_kin_name: formData.next_of_kin_name || null,
-            next_of_kin_phone: formData.next_of_kin_phone || null,
+            phone: sanitizeInput(formData.phone),
+            email: sanitizeInput(formData.email),
+            residence_town: sanitizeInput(formData.residence_town),
+            next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
+            next_of_kin_phone: sanitizeInput(formData.next_of_kin_phone) || null,
             program: programName || formData.program,
             intake: formData.intake,
             institution: normalizedInstitution,
@@ -783,8 +797,8 @@ const useWizardController = (): UseWizardControllerResult => {
 
     if (currentStepConfig.key === 'education') {
       if (!applicationId) {
-        const errorMessage = 'Please complete the Basic Information step first'
-        setError('')
+        const errorMessage = 'Application not created. Returning to Basic Information step.'
+        setError(errorMessage)
         showError(errorMessage)
         goToStep(0)
         return
@@ -971,26 +985,24 @@ const useWizardController = (): UseWizardControllerResult => {
         updatedAt: updatedApp.updated_at
       }))
 
-      // try {
-      //   const { getApiBaseUrl } = await import('@/lib/apiConfig')
-      //   const apiBase = getApiBaseUrl()
-      //   const { token, error: sessionError } = await getSessionToken()
+      try {
+        const { getApiBaseUrl } = await import('@/lib/apiConfig')
+        const apiBase = getApiBaseUrl()
+        const { token, error: sessionError } = await getSessionToken()
         
-      //   if (!token) {
-      //     showWarning('Application submitted but notifications may be delayed')
-      //   } else {
-      //     await fetch(`${apiBase}/api/notifications/application-submitted`, {
-      //       method: 'POST',
-      //       headers: {
-      //         'Content-Type': 'application/json',
-      //         Authorization: `Bearer ${token}`
-      //       },
-      //       body: JSON.stringify({ applicationId: updatedApp.id, userId: user.id })
-      //     })
-      //   }
-      // } catch (notificationError) {
-      //   showWarning('Application submitted but notifications may be delayed')
-      // }
+        if (token) {
+          await fetch(`${apiBase}/api/notifications/application-submitted`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ applicationId: updatedApp.id, userId: user.id })
+          }).catch(() => {})
+        }
+      } catch (notificationError) {
+        // Silent fail - don't block submission
+      }
 
       try {
         localStorage.removeItem('applicationWizardDraft')

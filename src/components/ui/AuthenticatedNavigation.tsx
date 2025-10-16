@@ -30,8 +30,35 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
 
-  const toggleMenu = () => setIsOpen(!isOpen)
-  const closeMenu = () => setIsOpen(false)
+  const toggleMenu = () => {
+    setIsOpen(!isOpen)
+    if (!isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+  }
+  
+  const closeMenu = () => {
+    setIsOpen(false)
+    document.body.style.overflow = ''
+  }
+  
+  // Cleanup on unmount and handle escape key
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        closeMenu()
+      }
+    }
+    
+    document.addEventListener('keydown', handleEscape)
+    
+    return () => {
+      document.body.style.overflow = ''
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isOpen])
 
   const handleSignOut = async () => {
     try {
@@ -161,7 +188,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu Button */}
             <motion.button
-              className="lg:hidden p-3 rounded-xl bg-white shadow-lg border border-gray-200 hover:bg-gray-50 smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target relative z-50"
+              className="lg:hidden p-3 rounded-xl bg-white shadow-lg border border-gray-200 hover:bg-gray-50 smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target nav-toggle-button"
               onClick={toggleMenu}
               whileTap={{ scale: 0.95 }}
               aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -203,7 +230,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden z-[9998]"
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden nav-backdrop"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -212,7 +239,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-l border-gray-200 lg:hidden z-[9999] overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-l border-gray-200 lg:hidden nav-panel overflow-y-auto"
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -292,8 +319,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                       custom={navigationItems.length}
                       initial="closed"
                       animate="open"
-                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel !visible !flex"
-                      style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
+                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel logout-button"
                     >
                       <LogOut className="h-5 w-5" />
                       <span>Sign Out</span>

@@ -22,7 +22,6 @@ import { PageLayout, PageContent } from '@/components/ui/PageLayout'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { toast } from '@/lib/toast'
-import { AuthDebug } from '@/components/AuthDebug'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -285,9 +284,6 @@ export default function StudentDashboard() {
               </motion.div>
             )}
 
-            {/* Temporary debug component */}
-            <AuthDebug />
-            
             <ContinueApplication />
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
