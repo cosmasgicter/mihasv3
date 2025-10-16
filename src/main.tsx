@@ -9,6 +9,13 @@ import { connectionManager } from '@/lib/connectionFix'
 // Suppress browser extension errors that interfere with the application
 if (typeof window !== 'undefined') {
   connectionManager.suppressExtensionErrors()
+  
+  // Register service worker for offline support
+  if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
+    })
+  }
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

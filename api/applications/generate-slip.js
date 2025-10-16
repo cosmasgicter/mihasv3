@@ -18,6 +18,7 @@ async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  let pdfBuffer;
   try {
     const { applicationId } = req.body;
 
@@ -63,8 +64,13 @@ async function handler(req, res) {
       userId: authContext.user.id
     };
 
-    // Generate PDF blob
-    const pdfBuffer = await generateApplicationSlip(slipData);
+    // Generate PDF blob with timeout protection
+    pdfBuffer = await Promise.race([
+      generateApplicationSlip(slipData),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('PDF generation timeout')), 25000)
+      )
+    ]);
     
     // Set headers for PDF download
     res.setHeader('Content-Type', 'application/pdf');
@@ -76,8 +82,12 @@ async function handler(req, res) {
   } catch (error) {
     console.error('Generate slip error:', error);
     console.error('Error stack:', error.stack);
-    console.error('Error message:', error.message);
-    return res.status(500).json({ error: error.message || 'Internal server error' });
+    return res.status(500).json({ 
+      error: 'Failed to generate PDF slip',
+      details: error.message 
+    });
+  } finally {
+    pdfBuffer = null;
   }
 }
 
