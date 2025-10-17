@@ -26,7 +26,7 @@ export default defineConfig({
     target: 'es2020',
     minify: 'terser',
     sourcemap: false,
-    chunkSizeWarningLimit: 250,
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -37,9 +37,7 @@ export default defineConfig({
           'query': ['@tanstack/react-query'],
           'motion': ['framer-motion'],
           'icons': ['lucide-react'],
-          'forms': ['react-hook-form', 'zod'],
-          'charts': ['recharts'],
-          'date': ['date-fns']
+          'forms': ['react-hook-form', 'zod']
         }
       }
     },

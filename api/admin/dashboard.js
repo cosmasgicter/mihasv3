@@ -133,7 +133,6 @@ async function handler(req, res) {
       actorEmail: authContext.user.email || null,
       actorRoles: authContext.roles,
       targetTable: 'admin_dashboard_metrics_cache',
-      targetId: 'overview',
       metadata: {
         generatedAt,
         statusBreakdownKeys: Object.keys(statusCounts || {}),
