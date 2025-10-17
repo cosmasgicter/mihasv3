@@ -363,7 +363,7 @@ export default function StudentDashboard() {
                                 }
                                 try {
                                   const result = await applicationService.delete(application.id)
-                                  // DELETE returns 204 No Content on success, which is falsy but valid
+                                  // Remove from UI immediately
                                   setApplications(prev => prev.filter(app => app.id !== application.id))
                                   setError('')
                                   toast.success('Draft deleted successfully')
@@ -372,12 +372,15 @@ export default function StudentDashboard() {
                                   let errorMsg = 'Failed to delete draft'
                                   
                                   if (error instanceof Error) {
-                                    if (error.message.includes('Only draft applications can be deleted')) {
+                                    if (error.message.includes('404') || error.message.includes('not found')) {
+                                      // Already deleted - remove from UI
+                                      setApplications(prev => prev.filter(app => app.id !== application.id))
+                                      toast.success('Draft removed')
+                                      return
+                                    } else if (error.message.includes('Only draft applications can be deleted')) {
                                       errorMsg = 'Only draft applications can be deleted'
                                     } else if (error.message.includes('Access denied')) {
                                       errorMsg = 'You do not have permission to delete this application'
-                                    } else if (error.message.includes('Application not found')) {
-                                      errorMsg = 'Application not found or already deleted'
                                       // Remove from local state anyway
                                       setApplications(prev => prev.filter(app => app.id !== application.id))
                                     } else {

@@ -1,4 +1,5 @@
 import type { ChangeEvent } from 'react'
+import { useEffect, useState } from 'react'
 
 import { motion } from 'framer-motion'
 import { CheckCircle, CreditCard } from 'lucide-react'
@@ -11,7 +12,7 @@ import type { WizardFormData } from '../types'
 interface PaymentStepProps {
   title: string
   form: UseFormReturn<WizardFormData>
-  getPaymentTarget: () => string
+  getPaymentTarget: () => Promise<string>
   handleProofOfPaymentUpload: (event: ChangeEvent<HTMLInputElement>) => void
   proofOfPaymentFile: File | null
   uploadProgress: Record<string, number>
@@ -28,6 +29,11 @@ const PaymentStep = ({
   uploadedFiles
 }: PaymentStepProps) => {
   const { register } = form
+  const [paymentTarget, setPaymentTarget] = useState('Loading...')
+
+  useEffect(() => {
+    getPaymentTarget().then(setPaymentTarget)
+  }, [getPaymentTarget])
 
   return (
     <motion.div
@@ -59,7 +65,7 @@ const PaymentStep = ({
               <strong>Application Fee:</strong> K153.00
             </p>
             <p className="text-blue-700">
-              <strong>Payment Target:</strong> {getPaymentTarget()}
+              <strong>Payment Target:</strong> {paymentTarget}
             </p>
             <div className="bg-white rounded-md p-3 mt-3">
               <p className="text-gray-700 font-medium mb-2">Available Payment Methods:</p>

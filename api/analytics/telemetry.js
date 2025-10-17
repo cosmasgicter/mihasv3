@@ -25,16 +25,21 @@ async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    if (shouldEnforceCsrf(req)) {
-      const csrfToken = req.headers['x-csrf-token'] || req.body?.csrfToken
-      const sessionToken = req.headers['x-session-token'] || req.body?.sessionToken
+    try {
+      if (shouldEnforceCsrf(req)) {
+        const csrfToken = req.headers['x-csrf-token'] || req.body?.csrfToken
+        const sessionToken = req.headers['x-session-token'] || req.body?.sessionToken
 
-      if (!validateCsrfToken(csrfToken, sessionToken)) {
-        return res.status(403).json({ error: 'Invalid CSRF token' })
+        if (!validateCsrfToken(csrfToken, sessionToken)) {
+          return res.status(403).json({ error: 'Invalid CSRF token' })
+        }
       }
-    }
 
-    return handleTelemetryIngest(req, res)
+      return handleTelemetryIngest(req, res)
+    } catch (error) {
+      console.error('Telemetry error:', error)
+      return res.status(200).json({ success: true })
+    }
   }
 
   if (req.method === 'GET') {

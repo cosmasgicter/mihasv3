@@ -68,12 +68,13 @@ export const applicationService = {
       body: JSON.stringify(data)
     }),
 
-  update: (id: string, data: ApplicationPayload) => {
+  update: async (id: string, data: ApplicationPayload) => {
     const cleanId = id.replace(/^applications-/, '')
-    return apiClient.request<Application>(`/api/applications/${cleanId}`, {
+    const response = await apiClient.request<{ success: boolean; data: Application }>(`/api/applications/${cleanId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     })
+    return response?.data ?? null
   },
 
   delete: (id: string) =>
