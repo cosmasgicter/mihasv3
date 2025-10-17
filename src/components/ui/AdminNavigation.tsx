@@ -247,7 +247,13 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l border-gray-200/50 overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l-4 border-primary overflow-y-auto"
+              style={{
+                backgroundColor: '#ffffff',
+                zIndex: 9999,
+                opacity: 1,
+                visibility: 'visible'
+              }}
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -296,12 +302,23 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                                 ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg" 
                                 : "text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-gray-300"
                             )}
+                            style={{
+                              backgroundColor: isActive ? undefined : '#ffffff',
+                              color: isActive ? '#ffffff' : '#1f2937',
+                              border: isActive ? undefined : '2px solid #e5e7eb',
+                              opacity: 1,
+                              visibility: 'visible'
+                            }}
                           >
                             <div className="flex items-center justify-between w-full">
                               <div className="flex items-center space-x-3">
-                                <span className="text-xl">{item.emoji}</span>
+                                <span className="text-xl" style={{ opacity: 1 }}>{item.emoji}</span>
                                 <div>
-                                  <span className="mobile-nav-text">{item.label}</span>
+                                  <span className="mobile-nav-text" style={{ 
+                                    color: isActive ? '#ffffff' : '#1f2937',
+                                    fontWeight: 600,
+                                    opacity: 1
+                                  }}>{item.label}</span>
                                   {isActive && (
                                     <div className="text-xs text-white/80 mt-1">Current Page</div>
                                   )}
@@ -310,7 +327,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                               <ChevronRight className={cn(
                                 "h-5 w-5 transition-colors",
                                 isActive ? "text-white/80" : "text-gray-400"
-                              )} />
+                              )} style={{ opacity: 1 }} />
                             </div>
                           </Link>
                         </motion.div>

@@ -239,7 +239,13 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-l border-gray-200 lg:hidden nav-panel overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-l-4 border-primary lg:hidden nav-panel overflow-y-auto"
+              style={{ 
+                backgroundColor: '#ffffff',
+                zIndex: 9999,
+                opacity: 1,
+                visibility: 'visible'
+              }}
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -294,14 +300,21 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                         <Link 
                           to={item.href}
                           onClick={closeMenu}
-                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel text-gray-700 hover:bg-primary/10 hover:text-primary border border-gray-200 hover:border-primary/30 smooth-transition-slow block w-full"
+                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full"
+                          style={{
+                            backgroundColor: '#ffffff',
+                            color: '#1f2937',
+                            border: '2px solid #e5e7eb',
+                            opacity: 1,
+                            visibility: 'visible'
+                          }}
                         >
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center space-x-3">
-                              <item.icon className="h-5 w-5 flex-shrink-0" />
-                              <span className="mobile-nav-text">{item.label}</span>
+                              <item.icon className="h-5 w-5 flex-shrink-0" style={{ color: '#1f2937', opacity: 1 }} />
+                              <span className="mobile-nav-text" style={{ color: '#1f2937', fontWeight: 600, opacity: 1 }}>{item.label}</span>
                             </div>
-                            <div className="w-2 h-2 rounded-full bg-primary/20"></div>
+                            <div className="w-2 h-2 rounded-full bg-primary"></div>
                           </div>
                         </Link>
                       </motion.div>
