@@ -580,7 +580,7 @@ const useWizardController = (): UseWizardControllerResult => {
       subscription.unsubscribe()
       if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [saveDraft, draftLoaded, restoringDraft])
+  }, [draftLoaded, restoringDraft])
 
   const addGrade = useCallback(() => {
     setSelectedGrades(prev => (prev.length < 10 ? [...prev, { subject_id: '', grade: 1 }] : prev))
@@ -908,6 +908,7 @@ const useWizardController = (): UseWizardControllerResult => {
   }, [currentStepIndex, goToStep, saveDraft])
 
   const handleSubmitApplication = useCallback(async (data: WizardFormData) => {
+    console.log('[handleSubmitApplication] Starting submission...')
     if (!confirmSubmission) {
       const errorMessage = 'Please confirm that all information is accurate before submitting'
       setError('')
@@ -931,16 +932,19 @@ const useWizardController = (): UseWizardControllerResult => {
       setLoading(true)
       setError('')
       
+      console.log('[handleSubmitApplication] Verifying authentication...')
       // Verify authentication first
       const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
       if (authError || !currentUser) {
         throw new Error('Please sign in again to submit your application')
       }
 
+      console.log('[handleSubmitApplication] Uploading proof of payment...')
       // Upload proof of payment first
       let popUrl: string
       try {
         popUrl = await startUpload(popFile, 'proof_of_payment')
+        console.log('[handleSubmitApplication] Upload successful:', popUrl)
       } catch (uploadError) {
         console.error('Proof of payment upload failed:', uploadError)
         throw new Error('Failed to upload proof of payment. Please try again.')
@@ -952,7 +956,7 @@ const useWizardController = (): UseWizardControllerResult => {
         payer_name: data.payer_name || null,
         payer_phone: data.payer_phone || null,
         amount: data.amount || 153,
-        paid_at: data.paid_at ? new Date(data.paid_at).toISOString() : null,
+        paid_at: data.paid_at && data.paid_at.trim() ? new Date(data.paid_at).toISOString() : new Date().toISOString(),
         momo_ref: data.momo_ref || null,
         pop_url: popUrl,
         status: 'submitted',

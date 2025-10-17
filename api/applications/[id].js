@@ -644,6 +644,8 @@ async function handler(req, res) {
   }
 
   try {
+    console.log(`[handler] ${req.method} /api/applications/${id}`)
+    
     if (req.method === 'GET') {
       const { error: accessError, status: accessStatus } = await ensureApplicationAccess(req, id)
       if (accessError) {
@@ -737,6 +739,7 @@ async function handler(req, res) {
     if (req.method === 'DELETE') {
       const { authContext, error, status } = await ensureApplicationAccess(req, id)
       if (error) {
+        console.error('[DELETE] Auth error:', error)
         return res.status(status).json({ error })
       }
 
@@ -747,18 +750,22 @@ async function handler(req, res) {
         .maybeSingle()
 
       if (fetchError) {
+        console.error('[DELETE] Fetch error:', fetchError)
         return res.status(400).json({ error: fetchError.message })
       }
 
       if (!application) {
+        console.error('[DELETE] Application not found:', id)
         return res.status(404).json({ error: 'Application not found' })
       }
 
       if (application.user_id !== authContext.user.id && !authContext.isAdmin) {
+        console.error('[DELETE] Access denied for user:', authContext.user.id)
         return res.status(403).json({ error: 'Access denied' })
       }
 
       if (!authContext.isAdmin && application.status !== 'draft') {
+        console.error('[DELETE] Cannot delete non-draft application:', application.status)
         return res.status(400).json({ error: 'Only draft applications can be deleted' })
       }
 
@@ -768,10 +775,11 @@ async function handler(req, res) {
         .eq('id', id)
 
       if (deleteError) {
+        console.error('[DELETE] Delete error:', deleteError)
         return res.status(400).json({ error: deleteError.message })
       }
 
-      return res.status(204).end()
+      return res.status(200).json({ success: true })
     }
 
     return res.status(405).json({ error: 'Method not allowed' })

@@ -39,6 +39,19 @@ export interface ApplicationCreateData {
 }
 
 export interface ApplicationUpdateData {
+  full_name?: string
+  nrc_number?: string | null
+  passport_number?: string | null
+  date_of_birth?: string
+  sex?: string
+  phone?: string
+  email?: string
+  residence_town?: string
+  next_of_kin_name?: string | null
+  next_of_kin_phone?: string | null
+  program?: string
+  intake?: string
+  institution?: string
   payment_method?: string
   payer_name?: string | null
   payer_phone?: string | null
@@ -66,7 +79,7 @@ export const applicationsData = {
   useList: (filters: ApplicationFilters = {}) => {
     return useQuery({
       queryKey: QUERY_KEYS.applicationsList(filters),
-      queryFn: async () => {
+      queryFn: async ({ signal }) => {
         try {
           return await applicationService.list({
             page: filters.page || 0,
@@ -84,13 +97,17 @@ export const applicationsData = {
             includeStats: true
           })
         } catch (error: any) {
+          if (signal?.aborted) {
+            return { applications: [], totalCount: 0, page: 0, pageSize: 15 }
+          }
           console.error('Applications fetch error:', sanitizeForLog(error?.message || error))
           throw error
         }
       },
       staleTime: 30000,
       retry: 2,
-      retryDelay: 1000
+      retryDelay: 1000,
+      refetchOnWindowFocus: false
     })
   },
 
