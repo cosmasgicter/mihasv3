@@ -232,7 +232,13 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl shadow-2xl z-[101] md:hidden border-l border-white/20 safe-area-top safe-area-bottom"
+              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl shadow-2xl md:hidden border-l-4 border-white/30 safe-area-top safe-area-bottom"
+              style={{
+                backgroundColor: '#1f2937',
+                opacity: 1,
+                visibility: 'visible',
+                zIndex: 9999
+              }}
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -275,9 +281,16 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                               ? 'bg-primary/30 hover:bg-primary/40'
                               : 'hover:bg-white/10'
                           )}
+                          style={{
+                            backgroundColor: item.variant === 'accent' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(255, 255, 255, 0.05)',
+                            color: '#ffffff',
+                            opacity: 1,
+                            visibility: 'visible',
+                            border: '1px solid rgba(255, 255, 255, 0.1)'
+                          }}
                         >
                           {item.icon}
-                          <span className="text-white">{item.label}</span>
+                          <span className="text-white" style={{ color: '#ffffff', fontWeight: 700, opacity: 1 }}>{item.label}</span>
                         </Link>
                       </motion.div>
                     ))}
