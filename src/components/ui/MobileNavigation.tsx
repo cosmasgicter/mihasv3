@@ -24,11 +24,9 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
     try {
       await signOut()
       navigate('/')
-      closeMenu()
     } catch (error) {
       console.error('Sign out failed:', error)
       navigate('/')
-      closeMenu()
     }
   }
 
