@@ -55,8 +55,8 @@ export function useApplicationsData(params: ApplicationsDataParams | { currentPa
   })
 
   return {
-    applications: applicationsQuery.data?.applications || [],
-    totalCount: applicationsQuery.data?.totalCount || 0,
+    applications: applicationsQuery.data?.applications ?? [],
+    totalCount: applicationsQuery.data?.totalCount ?? 0,
     stats: applicationsQuery.data?.stats,
     isLoading: applicationsQuery.isLoading,
     isStatsLoading: applicationsQuery.isLoading,
