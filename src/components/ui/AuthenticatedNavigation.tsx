@@ -239,13 +239,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-l-4 border-primary lg:hidden nav-panel overflow-y-auto"
-              style={{ 
-                backgroundColor: '#ffffff',
-                zIndex: 9999,
-                opacity: 1,
-                visibility: 'visible'
-              }}
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-l-4 border-primary lg:hidden nav-panel overflow-y-auto z-[9999] opacity-100 visible"
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -300,19 +294,12 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                         <Link 
                           to={item.href}
                           onClick={closeMenu}
-                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full"
-                          style={{
-                            backgroundColor: '#ffffff',
-                            color: '#1f2937',
-                            border: '2px solid #e5e7eb',
-                            opacity: 1,
-                            visibility: 'visible'
-                          }}
+                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-white text-gray-800 border-2 border-gray-200 opacity-100 visible"
                         >
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center space-x-3">
-                              <item.icon className="h-5 w-5 flex-shrink-0" style={{ color: '#1f2937', opacity: 1 }} />
-                              <span className="mobile-nav-text" style={{ color: '#1f2937', fontWeight: 600, opacity: 1 }}>{item.label}</span>
+                              <item.icon className="h-5 w-5 flex-shrink-0 text-gray-800" />
+                              <span className="mobile-nav-text text-gray-800 font-semibold">{item.label}</span>
                             </div>
                             <div className="w-2 h-2 rounded-full bg-primary"></div>
                           </div>
