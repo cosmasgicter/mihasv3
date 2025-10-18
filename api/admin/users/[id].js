@@ -78,11 +78,21 @@ async function handler(req, res) {
 
       await updateAuthUserMetadata(userId, updates)
 
+      const profileUpdates = {}
+      if (updates.full_name) {
+        const nameParts = updates.full_name.trim().split(' ')
+        profileUpdates.first_name = nameParts[0] || ''
+        profileUpdates.last_name = nameParts.slice(1).join(' ') || ''
+      }
+      if (updates.email) profileUpdates.email = updates.email
+      if (updates.phone) profileUpdates.phone = updates.phone
+      if (updates.role) profileUpdates.role = updates.role
+
       const { data: updatedProfile, error: updateError } = await supabaseAdminClient
-        .from('user_profiles')
-        .update(updates)
-        .eq('user_id', userId)
-        .select()
+        .from('profiles')
+        .update(profileUpdates)
+        .eq('id', userId)
+        .select('id, email, first_name, last_name, phone, role, created_at')
         .single()
 
       if (updateError) {
@@ -93,7 +103,18 @@ async function handler(req, res) {
       }
 
       if (updates.role) {
-        await syncUserRole(userId, updates.role)
+        const { error: roleError } = await supabaseAdminClient
+          .from('user_roles')
+          .upsert(
+            { user_id: userId, role: updates.role, is_active: true },
+            { onConflict: 'user_id' }
+          )
+        
+        if (roleError) {
+          console.error('Role sync error:', roleError)
+          throw roleError
+        }
+        
         clearRequestRoleCache(req)
       }
 
@@ -103,12 +124,21 @@ async function handler(req, res) {
         actorId: user.id,
         actorEmail: user.email || null,
         actorRoles: roles,
-        targetTable: 'user_profiles',
+        targetTable: 'profiles',
         targetId: userId,
         metadata: { updatedFields: Object.keys(updates) }
       })
 
-      return res.status(200).json({ data: updatedProfile })
+      const mappedProfile = {
+        user_id: updatedProfile.id,
+        email: updatedProfile.email,
+        full_name: [updatedProfile.first_name, updatedProfile.last_name].filter(Boolean).join(' '),
+        phone: updatedProfile.phone || '',
+        role: updatedProfile.role,
+        created_at: updatedProfile.created_at
+      }
+
+      return res.status(200).json({ data: mappedProfile })
     }
 
     if (req.method === 'DELETE') {
@@ -132,9 +162,9 @@ async function handler(req, res) {
       }
 
       const { error: deleteProfileError } = await supabaseAdminClient
-        .from('user_profiles')
+        .from('profiles')
         .delete()
-        .eq('user_id', userId)
+        .eq('id', userId)
 
       if (deleteProfileError) {
         throw deleteProfileError
@@ -147,7 +177,7 @@ async function handler(req, res) {
         actorId: user.id,
         actorEmail: user.email || null,
         actorRoles: roles,
-        targetTable: 'user_profiles',
+        targetTable: 'profiles',
         targetId: userId,
         metadata: { profileEmail: profile.email }
       })
@@ -159,6 +189,8 @@ async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   } catch (error) {
     console.error('Admin user detail handler error:', error)
+    console.error('Error stack:', error.stack)
+    console.error('Error details:', JSON.stringify(error, null, 2))
     const statusCode = error.message === 'Access denied' ? 403 : 500
     return res.status(statusCode).json({ error: error.message || 'Internal server error' })
   }

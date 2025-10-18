@@ -720,7 +720,7 @@ export function ApplicationDetailModal({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="hover:bg-white dark:bg-gray-800/50"
+              className="hover:bg-white/90 dark:hover:bg-gray-800/30"
             >
               <XCircle className="h-5 w-5" />
             </Button>

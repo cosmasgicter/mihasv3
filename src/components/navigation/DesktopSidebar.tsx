@@ -1,11 +1,11 @@
-import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight } from 'lucide-react'
+import React, { useState } from 'react'
+import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 
-export function DesktopSidebar() {
+export const DesktopSidebar = React.memo(function DesktopSidebar() {
   const location = useLocation()
   const { user, isAdmin } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
@@ -23,7 +23,14 @@ export function DesktopSidebar() {
     { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/applications', icon: FileText, label: 'Applications' },
     { to: '/admin/users', icon: Users, label: 'Users' },
-    { to: '/admin/profile', icon: User, label: 'Profile' },
+    { to: '/admin/programs', icon: GraduationCap, label: 'Programs' },
+    { to: '/admin/intakes', icon: Calendar, label: 'Intakes' },
+    { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
+    { to: '/admin/ai-insights', icon: Brain, label: 'AI Insights' },
+    { to: '/admin/workflow', icon: Workflow, label: 'Workflow' },
+    { to: '/admin/roles', icon: Shield, label: 'Roles' },
+    { to: '/admin/audit', icon: FileSearch, label: 'Audit Trail' },
+    { to: '/admin/settings', icon: Settings, label: 'Settings' },
   ]
 
   const links = isAdmin ? adminLinks : studentLinks
@@ -49,6 +56,7 @@ export function DesktopSidebar() {
         </AnimatePresence>
         <button
           onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="p-2 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-800 dark:bg-gray-200 transition-colors"
         >
           {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
@@ -62,6 +70,7 @@ export function DesktopSidebar() {
             <Link
               key={to}
               to={to}
+              aria-current={isActive ? 'page' : undefined}
               className="relative flex items-center gap-3 px-3 py-3 rounded-lg group overflow-hidden"
             >
               {isActive && (
@@ -106,4 +115,4 @@ export function DesktopSidebar() {
       </div>
     </motion.aside>
   )
-}
+})

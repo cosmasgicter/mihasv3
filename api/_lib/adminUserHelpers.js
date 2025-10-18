@@ -2,16 +2,26 @@ import { supabaseAdminClient } from './supabaseClient.js'
 
 async function fetchUserProfile(userId) {
   const { data, error } = await supabaseAdminClient
-    .from('user_profiles')
-    .select('*')
-    .eq('user_id', userId)
+    .from('profiles')
+    .select('id, email, first_name, last_name, phone, role, is_active, created_at')
+    .eq('id', userId)
     .maybeSingle()
 
   if (error && error.code !== 'PGRST116') {
     throw error
   }
 
-  return data ?? null
+  if (!data) return null
+
+  return {
+    user_id: data.id,
+    email: data.email,
+    full_name: [data.first_name, data.last_name].filter(Boolean).join(' '),
+    phone: data.phone || '',
+    role: data.role,
+    is_active: data.is_active,
+    created_at: data.created_at
+  }
 }
 
 async function fetchActiveRole(userId) {
@@ -34,45 +44,15 @@ async function syncUserRole(userId, role) {
     return
   }
 
-  const { error: deactivateError } = await supabaseAdminClient
+  const { error: upsertError } = await supabaseAdminClient
     .from('user_roles')
-    .update({ is_active: false })
-    .eq('user_id', userId)
-    .neq('role', role)
+    .upsert(
+      { user_id: userId, role, is_active: true },
+      { onConflict: 'user_id' }
+    )
 
-  if (deactivateError && deactivateError.code !== 'PGRST116') {
-    throw deactivateError
-  }
-
-  const { data: existingRole, error: fetchError } = await supabaseAdminClient
-    .from('user_roles')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('role', role)
-    .maybeSingle()
-
-  if (fetchError && fetchError.code !== 'PGRST116') {
-    throw fetchError
-  }
-
-  if (existingRole) {
-    const { error: activateError } = await supabaseAdminClient
-      .from('user_roles')
-      .update({ is_active: true })
-      .eq('id', existingRole.id)
-
-    if (activateError) {
-      throw activateError
-    }
-    return
-  }
-
-  const { error: insertError } = await supabaseAdminClient
-    .from('user_roles')
-    .insert({ user_id: userId, role, is_active: true })
-
-  if (insertError) {
-    throw insertError
+  if (upsertError) {
+    throw upsertError
   }
 }
 

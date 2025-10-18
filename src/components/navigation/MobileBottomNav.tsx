@@ -1,11 +1,13 @@
-import { Home, FileText, Bell, User, LayoutDashboard, Users } from 'lucide-react'
+import React, { useState } from 'react'
+import { Home, FileText, Bell, User, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
-export function MobileBottomNav() {
+export const MobileBottomNav = React.memo(function MobileBottomNav() {
   const location = useLocation()
   const { user, isAdmin } = useAuth()
+  const [showMoreMenu, setShowMoreMenu] = useState(false)
 
   if (!user) return null
 
@@ -16,53 +18,144 @@ export function MobileBottomNav() {
     { to: '/student/profile', icon: User, label: 'Profile' },
   ]
 
-  const adminLinks = [
+  const adminMainLinks = [
     { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/admin/applications', icon: FileText, label: 'Applications' },
+    { to: '/admin/applications', icon: FileText, label: 'Apps' },
     { to: '/admin/users', icon: Users, label: 'Users' },
-    { to: '/admin/profile', icon: User, label: 'Profile' },
   ]
 
-  const links = isAdmin ? adminLinks : studentLinks
+  const adminMoreSections = [
+    {
+      title: 'Management',
+      links: [
+        { to: '/admin/programs', icon: GraduationCap, label: 'Programs' },
+        { to: '/admin/intakes', icon: Calendar, label: 'Intakes' },
+        { to: '/admin/roles', icon: Shield, label: 'Roles' },
+      ]
+    },
+    {
+      title: 'Insights',
+      links: [
+        { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
+        { to: '/admin/ai-insights', icon: Brain, label: 'AI Insights' },
+        { to: '/admin/audit', icon: FileSearch, label: 'Audit' },
+      ]
+    },
+    {
+      title: 'System',
+      links: [
+        { to: '/admin/workflow', icon: Workflow, label: 'Workflow' },
+        { to: '/admin/settings', icon: Settings, label: 'Settings' },
+      ]
+    },
+  ]
+
+  const links = isAdmin ? adminMainLinks : studentLinks
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800/80 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700 shadow-lg safe-area-bottom">
-      <div className="flex justify-around items-center h-16 px-2">
-        {links.map(({ to, icon: Icon, label }) => {
-          const isActive = location.pathname === to
-          return (
-            <Link
-              key={to}
-              to={to}
+    <>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800/80 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700 shadow-lg safe-area-bottom">
+        <div className="flex justify-around items-center h-16 px-2">
+          {links.map(({ to, icon: Icon, label }) => {
+            const isActive = location.pathname === to
+            return (
+              <Link
+                key={to}
+                to={to}
+                aria-current={isActive ? 'page' : undefined}
+                aria-label={label}
+                className="relative flex flex-col items-center justify-center flex-1 h-full group min-w-[60px]"
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-400/10 dark:to-purple-400/10 rounded-lg"
+                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <Icon
+                  className={`h-5 w-5 transition-all duration-300 ${
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-400 scale-110'
+                      : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300 group-hover:scale-105'
+                  }`}
+                />
+                <span
+                  className={`text-xs mt-1 transition-all duration-300 ${
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-400 font-medium'
+                      : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                  }`}
+                >
+                  {label}
+                </span>
+              </Link>
+            )
+          })}
+          {isAdmin && (
+            <button
+              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              aria-label="More options"
               className="relative flex flex-col items-center justify-center flex-1 h-full group min-w-[60px]"
             >
-              {isActive && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-400/10 dark:to-purple-400/10 rounded-lg"
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              <Icon
-                className={`h-5 w-5 transition-all duration-300 ${
-                  isActive
-                    ? 'text-blue-600 dark:text-blue-400 scale-110'
-                    : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300 group-hover:scale-105'
-                }`}
-              />
-              <span
-                className={`text-xs mt-1 transition-all duration-300 ${
-                  isActive
-                    ? 'text-blue-600 dark:text-blue-400 font-medium'
-                    : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300'
-                }`}
-              >
-                {label}
+              <MoreHorizontal className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-all duration-300" />
+              <span className="text-xs mt-1 text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-all duration-300">
+                More
               </span>
-            </Link>
-          )
-        })}
-      </div>
-    </nav>
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {/* More Menu Popup */}
+      <AnimatePresence>
+        {isAdmin && showMoreMenu && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMoreMenu(false)}
+              className="md:hidden fixed inset-0 bg-black/50 z-40"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="md:hidden fixed bottom-20 right-4 w-48 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
+            >
+              <div className="py-2">
+                {adminMoreSections.map((section) => (
+                  <div key={section.title}>
+                    <div className="px-3 py-1.5 text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+                      {section.title}
+                    </div>
+                    {section.links.map(({ to, icon: Icon, label }) => {
+                      const isActive = location.pathname === to
+                      return (
+                        <Link
+                          key={to}
+                          to={to}
+                          onClick={() => setShowMoreMenu(false)}
+                          className={`flex items-center gap-2.5 px-3 py-2 transition-colors ${
+                            isActive
+                              ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
+                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                          <span className="text-sm">{label}</span>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   )
-}
+})

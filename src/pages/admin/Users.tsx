@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { UserProfile } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
@@ -19,7 +19,7 @@ import {
   useUserPermissions,
   useUpdateUserPermissions
 } from '@/hooks/useApiServices'
-import { ArrowLeft, Users, Shield, User, Plus, Edit, Trash2, Search, Filter, UserPlus, Settings, Eye, EyeOff, BarChart3, CheckSquare, Square, Lock, Clock, Download, Upload } from 'lucide-react'
+import { ArrowLeft, Users, Shield, User, Plus, Edit, Trash2, Search, Filter, UserPlus, Settings, Eye, EyeOff, BarChart3, CheckSquare, Square, Lock, Clock, Download, Upload, Phone, Calendar, Trophy } from 'lucide-react'
 import { sanitizeForLog } from '@/lib/security'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 
@@ -55,7 +55,6 @@ export default function AdminUsers() {
   const updateUserPermissionsMutation = useUpdateUserPermissions()
   
   const users = usersData?.data || []
-  const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([])
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
@@ -100,13 +99,7 @@ export default function AdminUsers() {
     }
   }, [queryError])
 
-  useEffect(() => {
-    filterUsers()
-  }, [users, searchTerm, roleFilter])
-
-
-
-  const filterUsers = () => {
+  const filteredUsers = useMemo(() => {
     let filtered = users
     
     if (searchTerm) {
@@ -121,8 +114,8 @@ export default function AdminUsers() {
       filtered = filtered.filter(user => user.role === roleFilter)
     }
     
-    setFilteredUsers(filtered)
-  }
+    return filtered
+  }, [users, searchTerm, roleFilter])
 
   const createUser = async () => {
     try {
@@ -272,7 +265,7 @@ export default function AdminUsers() {
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                 <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white dark:bg-gray-800/20 border-white/30">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
@@ -288,7 +281,7 @@ export default function AdminUsers() {
                     onClick={() => setShowStats(!showStats)}
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white dark:bg-gray-800/20 border-white/30"
+                    className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30"
                   >
                     <BarChart3 className="h-4 w-4 mr-2" />
                     {showStats ? 'Hide Stats' : 'Show Stats'}
@@ -297,7 +290,7 @@ export default function AdminUsers() {
                     onClick={() => setShowImportDialog(true)}
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white dark:bg-gray-800/20 border-white/30"
+                    className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30"
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     Import
@@ -306,7 +299,7 @@ export default function AdminUsers() {
                     onClick={() => setShowExportDialog(true)}
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white dark:bg-gray-800/20 border-white/30"
+                    className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30"
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Export

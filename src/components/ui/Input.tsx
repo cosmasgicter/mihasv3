@@ -5,11 +5,12 @@ import { cn } from '@/lib/utils'
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
+  helperText?: string
   icon?: React.ReactNode
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, icon, type = 'text', ...props }, ref) => {
+  ({ className, label, error, helperText, icon, type = 'text', ...props }, ref) => {
     const [isFocused, setIsFocused] = React.useState(false)
 
     return (
@@ -63,6 +64,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           >
             {error}
           </motion.p>
+        )}
+        {helperText && !error && (
+          <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
+            {helperText}
+          </p>
         )}
       </div>
     )

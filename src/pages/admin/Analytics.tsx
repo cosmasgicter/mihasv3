@@ -227,7 +227,7 @@ export default function Analytics() {
               <Button
                 onClick={refreshData}
                 disabled={refreshing}
-                className="bg-white dark:bg-gray-800/20 hover:bg-white dark:bg-gray-800/30 text-white border-white/30"
+                className="bg-white/10 dark:bg-gray-800/20 hover:bg-white/10 dark:bg-gray-800/20 text-gray-900 dark:text-gray-900 dark:text-white border-white/30"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
                 Refresh

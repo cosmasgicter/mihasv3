@@ -67,7 +67,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
     }
   }
 
-  const dashboardPath = isAdmin ? '/admin' : '/student/dashboard'
+  const dashboardPath = isAdmin ? '/admin/dashboard' : '/student/dashboard'
   const dashboardLabel = isAdmin ? 'Admin Dashboard' : 'Dashboard'
 
   type DrawerItem = {
@@ -172,7 +172,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 variant="outline"
                 size="md"
                 onClick={handleSignOut}
-                className="border-white/70 text-white hover:bg-white dark:bg-gray-800/10"
+                className="border-white/70 text-white hover:bg-white/90 dark:hover:bg-gray-800/30"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
@@ -244,7 +244,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                     <span className="text-xl font-bold text-high-contrast">MIHAS-KATC</span>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-white hover:bg-white dark:bg-gray-800/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 min-h-[44px] min-w-[44px] touch-target"
+                    className="p-2 rounded-lg text-white hover:bg-white/90 dark:hover:bg-gray-800/30 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 min-h-[44px] min-w-[44px] touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -271,7 +271,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                             'flex items-center px-4 py-4 rounded-xl text-white transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
                             item.variant === 'accent'
                               ? 'bg-blue-500/30 hover:bg-blue-500/40'
-                              : 'hover:bg-white dark:bg-gray-800/10',
+                              : 'hover:bg-white/90 dark:hover:bg-gray-800/30',
                             'bg-opacity-100 visible border border-white/10'
                           )}
                         >

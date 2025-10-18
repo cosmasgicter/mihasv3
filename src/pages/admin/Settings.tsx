@@ -349,7 +349,7 @@ export default function AdminSettings() {
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                 <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white dark:bg-gray-800/20 border-white/30">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
@@ -365,7 +365,7 @@ export default function AdminSettings() {
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button 
                   onClick={() => setShowAddForm(true)}
-                  className="bg-white dark:bg-gray-800/20 hover:bg-white dark:bg-gray-800/30 text-white border-white/30"
+                  className="bg-white/10 dark:bg-gray-800/20 hover:bg-white/10 dark:bg-gray-800/20 text-gray-900 dark:text-gray-900 dark:text-white border-white/30"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Setting
@@ -374,13 +374,13 @@ export default function AdminSettings() {
                   <Button 
                     onClick={exportSettings}
                     variant="outline"
-                    className="bg-white dark:bg-gray-800/10 hover:bg-white dark:bg-gray-800/20 text-white border-white/30"
+                    className="bg-white/10 dark:bg-gray-800/10 hover:bg-white/10 dark:bg-gray-800/20 text-gray-900 dark:text-gray-900 dark:text-white border-white/30"
                     size="sm"
                   >
                     Export
                   </Button>
                   <label className="cursor-pointer">
-                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm border-2 border-secondary bg-transparent text-white hover:bg-secondary hover:text-white bg-white dark:bg-gray-800/10 hover:bg-white dark:bg-gray-800/20 border-white/30">
+                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm border-2 border-secondary bg-transparent text-white hover:bg-secondary hover:text-white bg-white dark:bg-gray-800/10 hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30">
                       Import
                     </span>
                     <input

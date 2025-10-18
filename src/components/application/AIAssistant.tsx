@@ -655,7 +655,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-white hover:bg-white dark:bg-gray-800/20 p-1 rounded transition-colors"
+                className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 p-1 rounded transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -694,7 +694,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                                 <button
                                   key={idx}
                                   onClick={() => handleSuggestionClick(suggestion)}
-                                  className="block w-full text-left text-xs bg-white dark:bg-gray-800/20 hover:bg-white dark:bg-gray-800/30 rounded-lg p-2 transition-colors border border-white/10"
+                                  className="block w-full text-left text-xs bg-white dark:bg-gray-800/20 hover:bg-white/90 dark:hover:bg-gray-800/30 rounded-lg p-2 transition-colors border border-white/10"
                                 >
                                   {suggestion}
                                 </button>

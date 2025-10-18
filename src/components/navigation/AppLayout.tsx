@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 import { MobileBottomNav } from './MobileBottomNav'
 import { DesktopSidebar } from './DesktopSidebar'
 import { Header } from './Header'
@@ -8,7 +8,7 @@ interface AppLayoutProps {
   children: ReactNode
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+export const AppLayout = React.memo(function AppLayout({ children }: AppLayoutProps) {
   const { user } = useAuth()
 
   if (!user) {
@@ -25,4 +25,4 @@ export function AppLayout({ children }: AppLayoutProps) {
       <MobileBottomNav />
     </>
   )
-}
+})
