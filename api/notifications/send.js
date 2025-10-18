@@ -1,0 +1,88 @@
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js'
+import { logAuditEvent } from '../_lib/auditLogger.js'
+import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
+
+async function handler(req, res) {
+  // Add CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, authorization')
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+
+
+  const authContext = await getUserFromRequest(req, { requireAdmin: true })
+  if (authContext.error) {
+    return res.status(403).json({ error: authContext.error })
+  }
+
+  // Parse body if it's a string (Netlify functions)
+  let body = req.body
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body)
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid JSON in request body' })
+    }
+  }
+
+  const { to, subject, message, application_id, type, user_id } = body || {}
+
+  if (!to || !subject || !message) {
+    return res.status(400).json({ error: 'to, subject and message are required' })
+  }
+
+  // Find user by email if user_id not provided
+  let targetUserId = user_id
+  if (!targetUserId && to) {
+    const { data: userData } = await supabaseAdminClient
+      .from('auth.users')
+      .select('id')
+      .eq('email', to)
+      .maybeSingle()
+    targetUserId = userData?.id
+  }
+
+  try {
+    const { data: notification, error } = await supabaseAdminClient
+      .from('notifications')
+      .insert({
+        user_id: targetUserId,
+        title: subject,
+        message,
+        type: type || 'general'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      return res.status(400).json({ error: error.message })
+    }
+
+    // Skip audit logging for now
+    console.log('Notification sent:', notification?.id)
+
+    return res.status(201).json({
+      success: true,
+      notificationId: notification?.id ?? null,
+      notification
+    })
+  } catch (error) {
+    console.error('Notifications send error:', error)
+    return res.status(500).json({ error: 'Failed to send notification' })
+  }
+}
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler
