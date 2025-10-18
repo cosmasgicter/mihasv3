@@ -205,7 +205,7 @@ export default function ApplicationDetail() {
                 <label className="text-sm font-medium text-gray-500">Nationality</label>
                 <p className="text-gray-900 font-medium flex items-center">
                   <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                  {application.nationality}
+                  {application.nationality || 'Zambian'}
                 </p>
               </div>
             </div>
@@ -229,7 +229,11 @@ export default function ApplicationDetail() {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Institution</label>
-                <p className="text-gray-900 font-medium">{application.institution}</p>
+                <p className="text-gray-900 font-medium">
+                  {application.institution === 'KATC' ? 'Kalulushi Training Centre' : 
+                   application.institution === 'MIHAS' ? 'Mukuba Institute of Health and Allied Sciences' : 
+                   application.institution}
+                </p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Intake</label>

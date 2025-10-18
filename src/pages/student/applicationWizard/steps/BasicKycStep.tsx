@@ -176,6 +176,15 @@ const BasicKycStep = ({
 
         <div>
           <Input
+            {...register('nationality')}
+            label="Nationality"
+            error={errors.nationality?.message}
+            placeholder="e.g., Zambian"
+          />
+        </div>
+
+        <div>
+          <Input
             {...register('next_of_kin_name')}
             label="Next of Kin Name (Optional)"
             error={errors.next_of_kin_name?.message}

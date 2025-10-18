@@ -77,10 +77,12 @@ export const applicationService = {
     return response?.data ?? null
   },
 
-  delete: (id: string) =>
-    apiClient.request<void>(`/api/applications/${id}`, {
+  delete: async (id: string) => {
+    await apiClient.request<void>(`/api/applications/${id}`, {
       method: 'DELETE'
-    }),
+    })
+    return { success: true }
+  },
 
   updateStatus: (id: string, status: Application['status'], notes?: string) =>
     apiClient.request<Application>(`/api/applications/${id}`, {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -150,6 +150,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const [confirmSubmission, setConfirmSubmission] = useState(false)
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
+  const isSavingRef = useRef(false)
 
   const findProgramId = useCallback(
     (
@@ -339,9 +340,11 @@ const useWizardController = (): UseWizardControllerResult => {
       program_name: submittedApplication.program || null,
       intake_name: submittedApplication.intake || null,
       institution: submittedApplication.institution || null,
+      institution_name: submittedApplication.institution || null,
       full_name: submittedApplication.fullName || null,
       email: submittedApplication.email || user?.email || 'no-email@mihas.local',
       phone: submittedApplication.phone || null,
+      nationality: submittedApplication.nationality || 'Zambian',
       admin_feedback: null,
       admin_feedback_date: null,
       userId: user?.id
@@ -467,6 +470,11 @@ const useWizardController = (): UseWizardControllerResult => {
         // Check database drafts as final fallback
         if (draftApplications?.applications && draftApplications.applications.length > 0) {
           const app = draftApplications.applications[0]
+          console.log('[Draft] Restoring from database:', app.id)
+          
+          // CRITICAL: Set application ID FIRST
+          setApplicationId(app.id)
+          
           setValue('full_name', app.full_name || '')
           setValue('nrc_number', app.nrc_number || '')
           setValue('passport_number', app.passport_number || '')
@@ -477,6 +485,13 @@ const useWizardController = (): UseWizardControllerResult => {
           setValue('residence_town', app.residence_town || '')
           setValue('next_of_kin_name', app.next_of_kin_name || '')
           setValue('next_of_kin_phone', app.next_of_kin_phone || '')
+          setValue('payment_method', app.payment_method || '')
+          setValue('payer_name', app.payer_name || '')
+          setValue('payer_phone', app.payer_phone || '')
+          setValue('amount', app.amount || 153)
+          setValue('paid_at', app.paid_at || '')
+          setValue('momo_ref', app.momo_ref || '')
+          
           if (app.program) {
             const resolvedProgramId = findProgramId(
               app.program,
@@ -488,7 +503,6 @@ const useWizardController = (): UseWizardControllerResult => {
             setValue('program', '')
           }
           setValue('intake', app.intake || '')
-          setApplicationId(app.id)
 
           // Only restore step if we're starting fresh (currentStepIndex is 0)
           if (currentStepIndex === 0) {
@@ -536,8 +550,9 @@ const useWizardController = (): UseWizardControllerResult => {
   ])
 
   const saveDraft = useCallback(async () => {
-    if (!user || isDraftSaving || restoringDraft) return
+    if (!user || isDraftSaving || restoringDraft || isSavingRef.current) return
     try {
+      isSavingRef.current = true
       setIsDraftSaving(true)
       const formData = watch()
       const draft = {
@@ -547,12 +562,10 @@ const useWizardController = (): UseWizardControllerResult => {
         currentStepKey: currentStepConfig.key,
         applicationId,
         savedAt: new Date().toISOString(),
-        version: 2 // Version for migration tracking
+        version: 2
       }
 
-      // Single source: localStorage only
       localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
-      // Clear old sessionStorage if exists
       sessionStorage.removeItem('applicationWizardDraft')
 
       setDraftSaved(true)
@@ -561,8 +574,9 @@ const useWizardController = (): UseWizardControllerResult => {
       console.error('Error saving draft:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
     } finally {
       setIsDraftSaving(false)
+      isSavingRef.current = false
     }
-  }, [user, isDraftSaving, restoringDraft, watch, selectedGrades, currentStepConfig, applicationId])
+  }, [user, isDraftSaving, restoringDraft, selectedGrades, currentStepConfig, applicationId])
 
   useEffect(() => {
     // Don't start auto-save until draft is loaded and not restoring
@@ -580,7 +594,7 @@ const useWizardController = (): UseWizardControllerResult => {
       subscription.unsubscribe()
       if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [draftLoaded, restoringDraft])
+  }, [draftLoaded, restoringDraft, watch, saveDraft])
 
   const addGrade = useCallback(() => {
     setSelectedGrades(prev => (prev.length < 10 ? [...prev, { subject_id: '', grade: 1 }] : prev))
@@ -701,6 +715,9 @@ const useWizardController = (): UseWizardControllerResult => {
 
         if (applicationId) {
           // Update existing application
+          const metadata = getUserMetadata(user)
+          const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
+
           const updatedApp = await updateApplication.mutateAsync({
             id: applicationId,
             data: {
@@ -716,7 +733,8 @@ const useWizardController = (): UseWizardControllerResult => {
               next_of_kin_phone: formData.next_of_kin_phone || null,
               program: programName || formData.program,
               intake: formData.intake,
-              institution: normalizedInstitution
+              institution: normalizedInstitution,
+              nationality: nationality
             }
           })
 
@@ -738,6 +756,9 @@ const useWizardController = (): UseWizardControllerResult => {
           const applicationNumber = generateApplicationNumber({ institution: normalizedInstitution })
           const trackingCode = `TRK${Math.random().toString(36).substring(2, 8).toUpperCase()}`
 
+          const metadata = getUserMetadata(user)
+          const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
+
           const app = await createApplication.mutateAsync({
             application_number: applicationNumber,
             public_tracking_code: trackingCode,
@@ -754,6 +775,7 @@ const useWizardController = (): UseWizardControllerResult => {
             program: programName || formData.program,
             intake: formData.intake,
             institution: normalizedInstitution,
+            nationality: nationality,
             status: 'draft'
           })
 
@@ -861,6 +883,11 @@ const useWizardController = (): UseWizardControllerResult => {
     }
 
     if (currentStepConfig.key === 'payment') {
+      if (!applicationId) {
+        showError('Application not found. Please go back to step 1.')
+        return
+      }
+      
       const formData = watch()
       const isValid = validatePaymentStep({
         formData,
@@ -873,7 +900,29 @@ const useWizardController = (): UseWizardControllerResult => {
         return
       }
 
-      goToStep(currentStepIndex + 1)
+      // Upload POP and save payment data
+      try {
+        await trackUploadTask(async () => {
+          const popUrl = await startUpload(popFile!, 'proof_of_payment')
+          
+          await updateApplication.mutateAsync({
+            id: applicationId,
+            data: {
+              payment_method: formData.payment_method,
+              payer_name: formData.payer_name || null,
+              payer_phone: formData.payer_phone || null,
+              amount: formData.amount || 153,
+              paid_at: formData.paid_at ? new Date(formData.paid_at).toISOString() : null,
+              momo_ref: formData.momo_ref || null,
+              pop_url: popUrl
+            }
+          })
+        })
+        goToStep(currentStepIndex + 1)
+      } catch (error) {
+        showError('Failed to upload payment proof. Please try again.')
+        console.error('Payment upload error:', error)
+      }
     }
   }, [
     saveDraft,
@@ -945,8 +994,12 @@ const useWizardController = (): UseWizardControllerResult => {
       try {
         popUrl = await startUpload(popFile, 'proof_of_payment')
         console.log('[handleSubmitApplication] Upload successful:', popUrl)
+        if (!popUrl) {
+          throw new Error('Upload returned empty URL')
+        }
       } catch (uploadError) {
         console.error('Proof of payment upload failed:', uploadError)
+        showError('Failed to upload proof of payment. Please try again.')
         throw new Error('Failed to upload proof of payment. Please try again.')
       }
       
@@ -974,11 +1027,26 @@ const useWizardController = (): UseWizardControllerResult => {
         throw new Error('Application not found or access denied')
       }
 
+      // Fetch institution name
+      let institutionName = updatedApp.institution
+      try {
+        const { data: instData } = await supabase
+          .from('institutions')
+          .select('name')
+          .or(`slug.eq.${updatedApp.institution},name.eq.${updatedApp.institution}`)
+          .maybeSingle()
+        if (instData?.name) {
+          institutionName = instData.name
+        }
+      } catch (e) {
+        console.error('Failed to fetch institution name:', e)
+      }
+
       setSubmittedApplication(prev => ({
         applicationNumber: updatedApp.application_number,
         trackingCode: updatedApp.public_tracking_code,
         program: updatedApp.program,
-        institution: updatedApp.institution,
+        institution: institutionName,
         intake: updatedApp.intake,
         fullName: updatedApp.full_name,
         email: updatedApp.email,
@@ -986,27 +1054,11 @@ const useWizardController = (): UseWizardControllerResult => {
         status: updatedApp.status,
         paymentStatus: updatedApp.payment_status ?? prev?.paymentStatus ?? 'pending_review',
         submittedAt: updatedApp.submitted_at,
-        updatedAt: updatedApp.updated_at
+        updatedAt: updatedApp.updated_at,
+        nationality: updatedApp.nationality
       }))
 
-      try {
-        const { getApiBaseUrl } = await import('@/lib/apiConfig')
-        const apiBase = getApiBaseUrl()
-        const { token, error: sessionError } = await getSessionToken()
-        
-        if (token) {
-          await fetch(`${apiBase}/api/notifications/application-submitted`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ applicationId: updatedApp.id, userId: user.id })
-          }).catch(() => {})
-        }
-      } catch (notificationError) {
-        // Silent fail - don't block submission
-      }
+      // Notification is automatically created by database trigger
 
       try {
         localStorage.removeItem('applicationWizardDraft')
@@ -1016,6 +1068,8 @@ const useWizardController = (): UseWizardControllerResult => {
       } catch (cleanupError) {
       }
 
+      console.log('[handleSubmitApplication] Submission successful!')
+      toast.success('Application submitted successfully!')
       setSuccess(true)
     } catch (error) {
       console.error('Submission error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
@@ -1024,6 +1078,7 @@ const useWizardController = (): UseWizardControllerResult => {
         message = 'Connection issue - please try again'
       }
       setError(message)
+      showError(message)
     } finally {
       setLoading(false)
     }

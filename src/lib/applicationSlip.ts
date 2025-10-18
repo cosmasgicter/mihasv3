@@ -16,9 +16,11 @@ export interface PublicApplicationStatus {
   program_name: string | null
   intake_name: string | null
   institution: string | null
+  institution_name?: string | null
   full_name: string | null
   email: string | null
   phone: string | null
+  nationality?: string | null
   admin_feedback?: string | null
   admin_feedback_date?: string | null
 }
@@ -183,13 +185,14 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     drawField('Applicant Name', safeText(data.full_name, 'Not provided'))
     drawField('Email', safeText(data.email, 'Not provided'))
     drawField('Phone', safeText(data.phone, 'Not provided'))
+    drawField('Nationality', safeText(data.nationality, 'Not provided'))
 
     sectionHeading('Application Summary')
     drawField('Application Number', safeText(data.application_number))
     drawField('Tracking Code', safeText(data.public_tracking_code))
     drawField('Program', safeText(data.program_name, 'Not specified'))
     drawField('Intake', safeText(data.intake_name, 'Not specified'))
-    drawField('Institution', safeText(data.institution, 'Not specified'))
+    drawField('Institution', safeText(data.institution_name || data.institution, 'Not specified'))
 
     sectionHeading('Status & Timeline')
     drawField('Current Status', formatStatusLabel(data.status, 'Unknown'))

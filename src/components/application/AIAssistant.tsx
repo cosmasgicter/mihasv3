@@ -191,11 +191,29 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
       setIsLoading(true)
       
       // Load existing conversation or create new one
+      if (!applicationData?.id) {
+        // No application ID yet, just show welcome message
+        const welcomeMessage: Message = {
+          id: '1',
+          type: 'assistant',
+          content: `👋 Hi ${profile?.full_name || 'there'}! I'm your AI application assistant. I can help you with:\n\n• Filling out your application\n• Understanding requirements\n• Checking eligibility\n• Uploading documents\n• Program-specific guidance\n\nHow can I help you today?`,
+          timestamp: new Date(),
+          suggestions: [
+            'Check my eligibility for my program',
+            'Help me with document requirements',
+            'What subjects should I choose?',
+            'Guide me through the application process'
+          ]
+        }
+        setMessages([welcomeMessage])
+        return
+      }
+      
       const { data: existingConversation } = await supabase
         .from('ai_conversations')
         .select('*')
         .eq('user_id', user?.id)
-        .eq('application_id', applicationData?.id)
+        .eq('application_id', applicationData.id)
         .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle()

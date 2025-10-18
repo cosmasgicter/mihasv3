@@ -56,6 +56,7 @@ const createSchema = (validProgramIds: string[], validIntakeOptions: string[]) =
       phone: z.string().min(10, 'Valid phone number is required'),
       email: z.string().email('Valid email is required'),
       residence_town: z.string().min(2, 'Residence town is required'),
+      nationality: z.string().optional(),
       next_of_kin_name: z.string().optional(),
       next_of_kin_phone: z.string().optional(),
       program: createProgramValidator(validProgramIds),

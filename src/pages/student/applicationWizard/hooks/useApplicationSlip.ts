@@ -12,6 +12,7 @@ export interface SubmittedApplicationSummary {
   fullName?: string | null
   email?: string | null
   phone?: string | null
+  nationality?: string | null
   status?: string | null
   paymentStatus?: string | null
   submittedAt?: string | null
@@ -102,11 +103,13 @@ export function useApplicationSlip({
         const result = await createApplicationSlip(slipPayload, { toast })
 
         if (cancelled) {
+          setPersistingSlip(false)
           return
         }
 
         if (result.error) {
           toast.showError?.('Slip unavailable', result.error)
+          setPersistingSlip(false)
           return
         }
 
@@ -126,12 +129,10 @@ export function useApplicationSlip({
         })
 
         hasPersistedSlipRef.current = true
+        setPersistingSlip(false)
       } catch (error) {
         if (!cancelled) {
           console.error('Automatic slip persistence failed:', error)
-        }
-      } finally {
-        if (!cancelled) {
           setPersistingSlip(false)
         }
       }
@@ -141,6 +142,7 @@ export function useApplicationSlip({
 
     return () => {
       cancelled = true
+      setPersistingSlip(false)
     }
   }, [success, slipPayload, toast, createApplicationSlip])
 

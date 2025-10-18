@@ -362,34 +362,20 @@ export default function StudentDashboard() {
                                   return
                                 }
                                 try {
-                                  const result = await applicationService.delete(application.id)
-                                  // Remove from UI immediately
+                                  await applicationService.delete(application.id)
                                   setApplications(prev => prev.filter(app => app.id !== application.id))
                                   setError('')
                                   toast.success('Draft deleted successfully')
                                 } catch (error) {
                                   console.error('Delete error:', error)
-                                  let errorMsg = 'Failed to delete draft'
-                                  
-                                  if (error instanceof Error) {
-                                    if (error.message.includes('404') || error.message.includes('not found')) {
-                                      // Already deleted - remove from UI
-                                      setApplications(prev => prev.filter(app => app.id !== application.id))
-                                      toast.success('Draft removed')
-                                      return
-                                    } else if (error.message.includes('Only draft applications can be deleted')) {
-                                      errorMsg = 'Only draft applications can be deleted'
-                                    } else if (error.message.includes('Access denied')) {
-                                      errorMsg = 'You do not have permission to delete this application'
-                                      // Remove from local state anyway
-                                      setApplications(prev => prev.filter(app => app.id !== application.id))
-                                    } else {
-                                      errorMsg = error.message
-                                    }
+                                  if (error instanceof Error && (error.message.includes('404') || error.message.includes('not found'))) {
+                                    setApplications(prev => prev.filter(app => app.id !== application.id))
+                                    toast.success('Draft removed')
+                                  } else {
+                                    const errorMsg = error instanceof Error ? error.message : 'Failed to delete draft'
+                                    setError(errorMsg)
+                                    toast.error(errorMsg)
                                   }
-                                  
-                                  setError(errorMsg)
-                                  toast.error(errorMsg)
                                 }
                               }}
                             >
@@ -436,17 +422,16 @@ export default function StudentDashboard() {
                                 }
                                 try {
                                   clearAllDraftData()
-                                  setHasDraft(false)
-                                  setDraftData(null)
-                                  setError('')
-                                  toast.success('Local draft deleted successfully')
-                                  
                                   if (user) {
                                     await draftManager.clearAllDrafts(user.id)
                                   }
+                                  setHasDraft(false)
+                                  setDraftData(null)
+                                  setError('')
+                                  toast.success('Draft deleted successfully')
                                 } catch (error) {
-                                  console.error('Local draft delete error:', error)
-                                  const errorMsg = `Failed to delete local draft: ${error instanceof Error ? error.message : 'Unknown error'}`
+                                  console.error('Delete error:', error)
+                                  const errorMsg = error instanceof Error ? error.message : 'Failed to delete draft'
                                   setError(errorMsg)
                                   toast.error(errorMsg)
                                 }
@@ -617,29 +602,23 @@ export default function StudentDashboard() {
                           setIsClearingAllDrafts(true)
                           try {
                             clearAllDraftData()
-                            setHasDraft(false)
-                            setDraftData(null)
-                            
                             if (user) {
-                              const result = await draftManager.clearAllDrafts(user.id)
-                              if (!result.success && result.error) {
-                              }
+                              await draftManager.clearAllDrafts(user.id)
                             }
                             
                             const draftApps = applications.filter(app => app.status === 'draft')
-                            for (const app of draftApps) {
-                              try {
-                                await applicationService.delete(app.id)
-                              } catch (deleteError) {
-                              }
-                            }
+                            await Promise.allSettled(
+                              draftApps.map(app => applicationService.delete(app.id))
+                            )
                             
                             setApplications(prev => prev.filter(app => app.status !== 'draft'))
+                            setHasDraft(false)
+                            setDraftData(null)
                             setError('')
                             toast.success('All drafts cleared successfully')
                           } catch (error) {
                             console.error('Clear drafts error:', error)
-                            const errorMsg = `Failed to clear drafts: ${error instanceof Error ? error.message : 'Unknown error'}`
+                            const errorMsg = error instanceof Error ? error.message : 'Failed to clear drafts'
                             setError(errorMsg)
                             toast.error(errorMsg)
                           } finally {
