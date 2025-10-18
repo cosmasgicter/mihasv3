@@ -100,19 +100,19 @@ export function FileUploadTest() {
           />
           <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
             uploading 
-              ? 'border-gray-200 bg-gray-50 cursor-not-allowed' 
-              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
+              ? 'border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gray-50 dark:bg-gray-900 cursor-not-allowed' 
+              : 'border-gray-300 dark:border-gray-600 dark:border-gray-400 hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
           }`}>
             <Upload className={`h-8 w-8 mx-auto mb-2 ${
-              uploading ? 'text-gray-400' : 'text-gray-600'
+              uploading ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
             }`} />
             <p className={`text-sm ${
-              uploading ? 'text-gray-400' : 'text-gray-600'
+              uploading ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
             }`}>
               {uploading ? 'Uploading...' : 'Click to upload file'}
             </p>
             <p className={`text-xs ${
-              uploading ? 'text-gray-400' : 'text-gray-500'
+              uploading ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-500'
             }`}>
               PDF, JPG, JPEG, PNG up to 10MB
             </p>
@@ -146,7 +146,7 @@ export function FileUploadTest() {
 
       {files.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">
             Uploaded Files ({files.length})
           </h3>
           {files.map((file) => (
@@ -158,7 +158,7 @@ export function FileUploadTest() {
                 <div className="flex items-center space-x-3">
                   <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                   <div>
-                    <p className="text-sm font-medium text-green-800">{file.name}</p>
+                    <p className="text-sm font-medium text-green-800 dark:text-green-200">{file.name}</p>
                     <p className="text-xs text-green-600 dark:text-green-400">{formatFileSize(file.size)}</p>
                   </div>
                 </div>

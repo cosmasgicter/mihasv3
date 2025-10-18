@@ -189,7 +189,7 @@ export function EnhancedFileUpload({
       case 'error':
         return <AlertCircle className="w-4 h-4 text-red-500" />
       case 'compressing':
-        return <Minimize2 className="w-4 h-4 text-blue-500 animate-pulse" />
+        return <Minimize2 className="w-4 h-4 text-blue-500 dark:text-blue-400 animate-pulse" />
       default:
         return <EnhancedLoadingSpinner size="sm" color="primary" />
     }
@@ -202,16 +202,16 @@ export function EnhancedFileUpload({
         {...getRootProps()}
         className={cn(
           'relative border-2 border-dashed rounded-lg p-6 transition-all duration-200',
-          'cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500',
+          'cursor-pointer hover:bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500',
           // Touch-optimized minimum height
           'min-h-[120px] flex flex-col items-center justify-center',
           // State-based styling
           isDragActive || dzIsDragActive
             ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300',
+            : 'border-gray-300 dark:border-gray-600 dark:border-gray-400',
           disabled || !isOnline
-            ? 'opacity-50 cursor-not-allowed bg-gray-50'
-            : 'hover:border-gray-400',
+            ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900'
+            : 'hover:border-gray-400 dark:border-gray-500 dark:border-gray-500',
           // Mobile optimizations
           'touch-manipulation'
         )}
@@ -221,11 +221,11 @@ export function EnhancedFileUpload({
         <div className="text-center space-y-2">
           <Upload className={cn(
             'w-8 h-8 mx-auto',
-            isDragActive || dzIsDragActive ? 'text-blue-500' : 'text-gray-400'
+            isDragActive || dzIsDragActive ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
           )} />
           
           <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
               {isDragActive || dzIsDragActive
                 ? 'Drop files here'
                 : 'Drop files here or click to browse'
@@ -252,7 +252,7 @@ export function EnhancedFileUpload({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
             Files ({files.length}/{maxFiles})
           </h4>
           
@@ -270,7 +270,7 @@ export function EnhancedFileUpload({
                 {/* File Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 truncate">
                       {fileWithProgress.file.name}
                     </p>
                     <div className="flex items-center space-x-2">
@@ -357,7 +357,7 @@ export function ImagePreview({ file, className }: { file: File, className?: stri
   if (!preview) return null
 
   return (
-    <div className={cn('aspect-square bg-gray-100 rounded-lg overflow-hidden', className)}>
+    <div className={cn('aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden', className)}>
       <img
         src={preview}
         alt={file.name}

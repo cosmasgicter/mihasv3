@@ -57,10 +57,10 @@ const SubmitStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-100"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
       data-testid="submit-step"
     >
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">{title}</h2>
 
       <div className="space-y-4">
         <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
@@ -68,11 +68,11 @@ const SubmitStep = ({
         </p>
 
         <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-          <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Application Summary</h3>
+          <h3 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Application Summary</h3>
           
           {/* Validation Status */}
           <div className="mb-4 p-3 bg-white dark:bg-gray-800 rounded border">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Completion Status</h4>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">Completion Status</h4>
             <div className="space-y-1 text-xs">
               <div className={`flex items-center ${formValues.full_name ? 'text-green-600' : 'text-red-600'}`}>
                 {formValues.full_name ? '✓' : '✗'} Personal Information
@@ -158,14 +158,14 @@ const SubmitStep = ({
             onChange={event => onConfirmChange(event.target.checked)}
             required
           />
-          <label htmlFor="confirm" className="text-sm text-gray-700 dark:text-gray-300">
+          <label htmlFor="confirm" className="text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">
             I confirm that all information provided is accurate and complete.
           </label>
         </div>
 
         {!confirmSubmission && (
           <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 rounded-lg p-3">
-            <p className="text-sm text-yellow-800">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
               ⚠️ Please confirm that all information is accurate before you can submit your application.
             </p>
           </div>

@@ -131,7 +131,7 @@ export function ApplicationsFilters({
               placeholder="Search applications..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="form-input-mobile w-full pl-10 sm:pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="form-input-mobile w-full pl-10 sm:pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
             />
           </div>
         </div>
@@ -141,7 +141,7 @@ export function ApplicationsFilters({
           <select
             value={statusFilter}
             onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
           >
             <option value="all">All Status</option>
             <option value="draft"><FileEdit className="w-5 h-5" /> Draft</option>
@@ -160,7 +160,7 @@ export function ApplicationsFilters({
               const [field, order] = e.target.value.split('-')
               onSortChange(field, order)
             }}
-            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
           >
             <option value="date-desc"><Calendar className="w-5 h-5" /> Newest</option>
             <option value="date-asc"><Calendar className="w-5 h-5" /> Oldest</option>
@@ -201,14 +201,14 @@ export function ApplicationsFilters({
                     type="date"
                     value={dateRange.start}
                     onChange={(e) => onDateRangeChange({...dateRange, start: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg text-sm"
                     placeholder="Start date"
                   />
                   <input
                     type="date"
                     value={dateRange.end}
                     onChange={(e) => onDateRangeChange({...dateRange, end: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg text-sm"
                     placeholder="End date"
                   />
                 </div>
@@ -220,7 +220,7 @@ export function ApplicationsFilters({
                 <select
                   value={programFilter}
                   onChange={(e) => onProgramFilterChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg text-sm"
                 >
                   <option value="all">All Programs</option>
                   <option value="Clinical Medicine">Clinical Medicine</option>
@@ -235,7 +235,7 @@ export function ApplicationsFilters({
                 <select
                   value={institutionFilter}
                   onChange={(e) => onInstitutionFilterChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg text-sm"
                 >
                   <option value="all">All Institutions</option>
                   <option value="Kalulushi Training Centre">Kalulushi Training Centre</option>
@@ -249,7 +249,7 @@ export function ApplicationsFilters({
                 <select
                   value={paymentStatusFilter}
                   onChange={(e) => onPaymentStatusFilterChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg text-sm"
                 >
                   <option value="all">All Payment Status</option>
                   <option value="pending_review">Pending Review</option>

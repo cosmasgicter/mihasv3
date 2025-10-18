@@ -121,13 +121,13 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
       {/* Header with counter and add button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
             Subject Selection
           </h3>
           <div className={`px-3 py-1 rounded-full text-sm font-medium ${
             selectedSubjects.length >= 5 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
+              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
+              : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
           }`}>
             {selectedSubjects.length}/10 subjects
           </div>
@@ -148,7 +148,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
         <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-red-800">
+            <p className="text-sm font-medium text-red-800 dark:text-red-200">
               Minimum 5 subjects required
             </p>
             <p className="text-sm text-red-700 dark:text-red-300">
@@ -169,7 +169,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
                 placeholder="Search subjects..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <Button
@@ -187,10 +187,10 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
                 key={subject.id}
                 type="button"
                 onClick={() => addSubject(subject)}
-                className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-white dark:bg-gray-800 hover:border-blue-300 dark:border-blue-700 transition-colors text-left"
+                className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg hover:bg-white dark:bg-gray-800 hover:border-blue-300 dark:border-blue-700 transition-colors text-left"
               >
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">{subject.name}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{subject.name}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-500">{subject.code} • {subject.category}</p>
                 </div>
                 <Plus className="h-4 w-4 text-gray-400 dark:text-gray-500" />
@@ -212,7 +212,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           {/* Core subjects */}
           {coreSubjects.length > 0 && (
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Core Subjects ({coreSubjects.length})</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3">Core Subjects ({coreSubjects.length})</h4>
               <div className="space-y-2">
                 {coreSubjects.map((subject, index) => (
                   <SubjectCard
@@ -239,7 +239,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           {/* Elective subjects */}
           {electiveSubjects.length > 0 && (
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Elective Subjects ({electiveSubjects.length})</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3">Elective Subjects ({electiveSubjects.length})</h4>
               <div className="space-y-2">
                 {electiveSubjects.map((subject, index) => (
                   <SubjectCard
@@ -312,10 +312,10 @@ function AddSubjectButton({ onClick, isOpen, disabled, variant = 'secondary' }: 
       disabled={disabled}
       className={`w-full p-4 border-2 border-dashed rounded-lg transition-all duration-200 ${
         disabled 
-          ? 'border-gray-200 text-gray-400 cursor-not-allowed'
+          ? 'border-gray-200 dark:border-gray-700 dark:border-gray-300 text-gray-400 dark:text-gray-500 cursor-not-allowed'
           : isPrimary
-          ? 'border-blue-300 text-blue-600 hover:border-blue-400 hover:bg-blue-50'
-          : 'border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50'
+          ? 'border-blue-300 dark:border-blue-700 text-blue-600 hover:border-blue-400 hover:bg-blue-50'
+          : 'border-gray-300 dark:border-gray-600 dark:border-gray-400 text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:border-gray-400 dark:border-gray-500 dark:border-gray-500 hover:bg-gray-50 dark:bg-gray-900'
       } ${isOpen ? 'bg-blue-50 border-blue-400' : ''}`}
     >
       <div className="flex items-center justify-center space-x-2">
@@ -348,7 +348,7 @@ function SubjectCard({
       onDragStart={() => onDragStart(index)}
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, index)}
-      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:border-gray-600 transition-colors cursor-move"
+      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg p-4 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400 transition-colors cursor-move"
     >
       <div className="flex items-center space-x-4">
         <GripVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />
@@ -356,7 +356,7 @@ function SubjectCard({
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="font-medium text-gray-900 dark:text-gray-100">{subject.name}</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{subject.name}</p>
               <p className="text-sm text-gray-500 dark:text-gray-500">{subject.code}</p>
             </div>
             <button
@@ -370,13 +370,13 @@ function SubjectCard({
           
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
                 Grade
               </label>
               <select
                 value={subject.grade || ''}
                 onChange={(e) => onUpdate(subject.id, 'grade', e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
                 <option value="">Select grade</option>
                 <option value="1">1 (A+ - Distinction)</option>
@@ -392,7 +392,7 @@ function SubjectCard({
             </div>
             
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
                 Score (%)
               </label>
               <input
@@ -401,7 +401,7 @@ function SubjectCard({
                 max="100"
                 value={subject.score || ''}
                 onChange={(e) => onUpdate(subject.id, 'score', parseInt(e.target.value) || 0)}
-                className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="0-100"
               />
             </div>

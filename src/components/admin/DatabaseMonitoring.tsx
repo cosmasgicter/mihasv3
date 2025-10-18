@@ -164,7 +164,7 @@ export default function DatabaseMonitoring() {
       case 'critical':
         return 'bg-red-50 border-red-200'
       default:
-        return 'bg-gray-50 border-gray-200'
+        return 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 dark:border-gray-300'
     }
   }
 
@@ -179,7 +179,7 @@ export default function DatabaseMonitoring() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Database Monitoring</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">Database Monitoring</h1>
         <div className="flex space-x-3">
           <Button
             onClick={loadDashboardData}
@@ -230,12 +230,12 @@ export default function DatabaseMonitoring() {
             className={`p-4 rounded-lg border ${getStatusColor(metric.status)}`}
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-gray-900 dark:text-gray-100">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                 {metric.metric.replace(/_/g, ' ').toUpperCase()}
               </h3>
               {getStatusIcon(metric.status)}
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">
               {metric.current_value.toLocaleString()}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">
@@ -246,8 +246,8 @@ export default function DatabaseMonitoring() {
       </div>
 
       {/* Error Statistics */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center">
           <Shield className="w-5 h-5 mr-2" />
           Error Statistics (Last 24 Hours)
         </h2>
@@ -276,7 +276,7 @@ export default function DatabaseMonitoring() {
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                 {errorStats.map((stat, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                       {stat.error_code}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
@@ -297,8 +297,8 @@ export default function DatabaseMonitoring() {
       </div>
 
       {/* Data Integrity */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">
           Data Integrity Status
         </h2>
         
@@ -311,7 +311,7 @@ export default function DatabaseMonitoring() {
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                <h3 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                   {issue.issue_type.replace(/_/g, ' ').toUpperCase()}
                 </h3>
                 {issue.issue_count > 0 ? (

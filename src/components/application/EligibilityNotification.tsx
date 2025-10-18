@@ -34,13 +34,13 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <h4 className={`font-semibold ${
-              eligible ? 'text-green-800' : 'text-yellow-800'
+              eligible ? 'text-green-800 dark:text-green-200' : 'text-yellow-800 dark:text-yellow-200'
             }`}>
               {eligible ? '✓ Eligible' : '⚠ Advisory'} {programName ? `for ${programName}` : ''}
             </h4>
             
             {score !== undefined && (
-              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full">
+              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 text-xs font-medium rounded-full">
                 Score: {score}%
               </span>
             )}
@@ -53,17 +53,17 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           </div>
           
           <p className={`text-sm mb-2 ${
-            eligible ? 'text-green-700' : 'text-yellow-700'
+            eligible ? 'text-green-700 dark:text-green-300' : 'text-yellow-700'
           }`}>
             {message}
           </p>
           
           {eligibility.competitivenessLevel && (
             <div className={`inline-block px-2 py-1 rounded text-xs font-medium mb-3 ${
-              eligibility.competitivenessLevel === 'Highly Competitive' ? 'bg-green-100 text-green-800' :
-              eligibility.competitivenessLevel === 'Competitive' ? 'bg-blue-100 text-blue-800' :
-              eligibility.competitivenessLevel === 'Minimum' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-gray-100 text-gray-800'
+              eligibility.competitivenessLevel === 'Highly Competitive' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
+              eligibility.competitivenessLevel === 'Competitive' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800' :
+              eligibility.competitivenessLevel === 'Minimum' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200' :
+              'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
             }`}>
               {eligibility.competitivenessLevel}
             </div>
@@ -73,7 +73,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
             <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md">
               <div className="flex items-start gap-2">
                 <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                <div className="text-xs text-blue-800 dark:text-blue-200">
+                <div className="text-xs text-blue-800 dark:text-blue-200 dark:text-blue-800">
                   <p className="font-medium mb-1">✓ You can still proceed with your application</p>
                   <p>
                     The admissions committee reviews all applications. Consider alternative entry routes or improving grades for better competitiveness.
@@ -85,7 +85,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
 
           {recommendations && recommendations.length > 0 && (
             <div className="space-y-1 mb-2">
-              <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Recommendations:</p>
+              <p className="text-xs font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">Recommendations:</p>
               <ul className="space-y-1">
                 {recommendations.map((rec, index) => (
                   <li key={index} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">

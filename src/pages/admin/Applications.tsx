@@ -419,14 +419,14 @@ export default function Applications() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       
       {/* Mobile-First Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3 sm:px-6">
+      <div className="sticky top-0 z-40 bg-white dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 px-4 py-3 sm:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
               <Users className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">Applications</h1>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">Applications</h1>
               <p className="text-xs text-gray-500 dark:text-gray-500">{stats.total} total applications</p>
             </div>
           </div>
@@ -456,56 +456,56 @@ export default function Applications() {
         
         {/* Quick Stats Cards - Mobile First */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                 <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-500">Today</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{stats.todaySubmissions}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.todaySubmissions}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-yellow-100 rounded-lg">
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
                 <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
               </div>
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-500">Pending</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{stats.pendingReview}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.pendingReview}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                 <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-500">Approved</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{stats.approved}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.approved}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                 <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
               </div>
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-500">Rejected</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{stats.rejected}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.rejected}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Mobile Export Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Export Data</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Export Data</h3>
             <Download className="h-4 w-4 text-gray-400 dark:text-gray-500" />
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -547,7 +547,7 @@ export default function Applications() {
 
         {/* Mobile Filters Panel */}
         {showFilters && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 mb-6 sm:hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-6 sm:hidden">
             <FiltersPanel
               searchTerm={filters.searchTerm}
               statusFilter={filters.statusFilter}
@@ -560,7 +560,7 @@ export default function Applications() {
         )}
 
         {/* Desktop Filters */}
-        <div className="hidden sm:block bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+        <div className="hidden sm:block bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
           <FiltersPanel
             searchTerm={filters.searchTerm}
             statusFilter={filters.statusFilter}
@@ -576,7 +576,7 @@ export default function Applications() {
             <div className="flex items-center gap-3">
               <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
               <div>
-                <h3 className="text-sm font-medium text-red-800">Error Loading Applications</h3>
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error Loading Applications</h3>
                 <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
               </div>
               <Button

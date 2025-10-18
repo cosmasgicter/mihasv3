@@ -102,7 +102,7 @@ export function ActiveSessions() {
               <div
                 key={session.id}
                 className={`flex items-center justify-between p-3 rounded-lg border ${
-                  isCurrentDevice ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+                  isCurrentDevice ? 'bg-green-50 border-green-200' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 dark:border-gray-300'
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -112,7 +112,7 @@ export function ActiveSessions() {
                       <p className="font-medium text-sm">
                         {browserInfo}
                         {isCurrentDevice && (
-                          <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 text-xs rounded-full">
+                          <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-xs rounded-full">
                             Current Device
                           </span>
                         )}

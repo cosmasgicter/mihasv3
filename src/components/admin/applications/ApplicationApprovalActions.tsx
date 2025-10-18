@@ -67,7 +67,7 @@ export function ApplicationApprovalActions({
     <div className="space-y-3">
       {/* Application Status Controls */}
       <div>
-        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1 block">
           Application Status
         </label>
         <div className="flex gap-1">
@@ -125,8 +125,8 @@ export function ApplicationApprovalActions({
             <div className="flex-1 text-center py-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 currentStatus === 'approved' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
+                  : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
               }`}>
                 {currentStatus === 'approved' ? (
                   <>
@@ -147,7 +147,7 @@ export function ApplicationApprovalActions({
 
       {/* Payment Status Controls */}
       <div>
-        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1 block">
           Payment Status
         </label>
         <div className="flex gap-1">
@@ -188,8 +188,8 @@ export function ApplicationApprovalActions({
             <div className="flex-1 text-center py-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 currentPaymentStatus === 'verified' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
+                  : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
               }`}>
                 {currentPaymentStatus === 'verified' ? (
                   <>

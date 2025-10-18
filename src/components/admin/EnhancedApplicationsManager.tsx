@@ -105,15 +105,15 @@ export function EnhancedApplicationsManager({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
       case 'rejected':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
       case 'under_review':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800'
       case 'submitted':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
     }
   }
 
@@ -124,7 +124,7 @@ export function EnhancedApplicationsManager({
       case 'rejected':
         return <XCircle className="h-4 w-4 text-red-500" />
       case 'under_review':
-        return <Clock className="h-4 w-4 text-blue-500" />
+        return <Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" />
       case 'submitted':
         return <Zap className="h-4 w-4 text-yellow-500" />
       default:
@@ -190,18 +190,18 @@ export function EnhancedApplicationsManager({
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
       >
         <div className="space-y-4">
           {/* Top Controls */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100"><Search className="w-5 h-5" /> Search & Filter</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900"><Search className="w-5 h-5" /> Search & Filter</h3>
             <div className="flex items-center space-x-2">
               <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('cards')}
                   className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'cards' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'
+                    viewMode === 'cards' ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
                   }`}
                 >
                   Cards
@@ -209,7 +209,7 @@ export function EnhancedApplicationsManager({
                 <button
                   onClick={() => setViewMode('table')}
                   className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'table' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'
+                    viewMode === 'table' ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
                   }`}
                 >
                   Table
@@ -227,14 +227,14 @@ export function EnhancedApplicationsManager({
                 placeholder="Search applications..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
               />
             </div>
             
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
             >
               <option value="all">All Status</option>
               <option value="submitted"><FileText className="w-5 h-5" /> Submitted</option>
@@ -250,7 +250,7 @@ export function EnhancedApplicationsManager({
                 setSortBy(field as any)
                 setSortOrder(order as any)
               }}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
             >
               <option value="date-desc"><Calendar className="w-5 h-5" /> Newest First</option>
               <option value="date-asc"><Calendar className="w-5 h-5" /> Oldest First</option>
@@ -280,7 +280,7 @@ export function EnhancedApplicationsManager({
               className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4"
             >
               <div className="flex items-center justify-between mb-4">
-                <h4 className="font-bold text-gray-900 dark:text-gray-100"><Zap className="w-5 h-5" /> Bulk Actions</h4>
+                <h4 className="font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900"><Zap className="w-5 h-5" /> Bulk Actions</h4>
                 <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{selectedApplications.length} selected</span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -334,7 +334,7 @@ export function EnhancedApplicationsManager({
           className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg"
         >
           <div className="text-6xl mb-4"><FileText className="w-5 h-5" /></div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Applications Found</h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No Applications Found</h3>
           <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Try adjusting your search filters</p>
         </motion.div>
       ) : viewMode === 'cards' ? (
@@ -345,10 +345,10 @@ export function EnhancedApplicationsManager({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className={`bg-white rounded-xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
+              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
                 selectedApplications.includes(application.id) 
                   ? 'border-blue-600 bg-blue-50' 
-                  : 'border-gray-100 hover:border-gray-200'
+                  : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:border-gray-700 dark:border-gray-300'
               }`}
             >
               <div className="p-6">
@@ -358,10 +358,10 @@ export function EnhancedApplicationsManager({
                       type="checkbox"
                       checked={selectedApplications.includes(application.id)}
                       onChange={() => toggleSelection(application.id)}
-                      className="h-5 w-5 mt-1 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+                      className="h-5 w-5 mt-1 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded"
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 truncate">{application.full_name}</h3>
+                      <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 dark:text-gray-900 truncate">{application.full_name}</h3>
                       <p className="text-sm text-gray-500 dark:text-gray-500 font-mono">#{application.application_number}</p>
                     </div>
                   </div>
@@ -435,7 +435,7 @@ export function EnhancedApplicationsManager({
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden"
         >
           <div className="overflow-x-auto">
             <table className="min-w-full">
@@ -446,22 +446,22 @@ export function EnhancedApplicationsManager({
                       type="checkbox"
                       checked={selectedApplications.length === filteredApplications.length && filteredApplications.length > 0}
                       onChange={selectAll}
-                      className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+                      className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded"
                     />
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase">
                     <User className="w-5 h-5" /> Applicant
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase">
                     <GraduationCap className="w-5 h-5" /> Program
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase">
                     <BarChart3 className="w-5 h-5" /> Status
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase">
                     <Calendar className="w-5 h-5" /> Date
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase">
                     <Zap className="w-5 h-5" /> Actions
                   </th>
                 </tr>
@@ -474,7 +474,7 @@ export function EnhancedApplicationsManager({
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.02 }}
                     className={`hover:bg-blue-50 transition-colors ${
-                      selectedApplications.includes(application.id) ? 'bg-blue-50' : 'bg-white'
+                      selectedApplications.includes(application.id) ? 'bg-blue-50' : 'bg-white dark:bg-gray-800'
                     }`}
                   >
                     <td className="px-6 py-4">
@@ -482,18 +482,18 @@ export function EnhancedApplicationsManager({
                         type="checkbox"
                         checked={selectedApplications.includes(application.id)}
                         onChange={() => toggleSelection(application.id)}
-                        className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+                        className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded"
                       />
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-bold text-gray-900 dark:text-gray-100">{application.full_name}</div>
+                        <div className="font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.full_name}</div>
                         <div className="text-sm text-gray-500 dark:text-gray-500">{application.email}</div>
                         <div className="text-xs text-gray-400 dark:text-gray-500 font-mono">#{application.application_number}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900 dark:text-gray-100">{application.program}</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.program}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">

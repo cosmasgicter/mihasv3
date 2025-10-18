@@ -12,7 +12,7 @@ export function ApplicationsTable() {
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300">
         <thead className="bg-gray-50 dark:bg-gray-900">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">
@@ -35,7 +35,7 @@ export function ApplicationsTable() {
         <tbody className="divide-y divide-gray-200">
           {applications.map((app: Application) => (
             <tr key={app.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                 {app.application_number}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
@@ -46,9 +46,9 @@ export function ApplicationsTable() {
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`px-2 py-1 text-xs rounded-full ${
-                  app.status === 'approved' ? 'bg-green-100 text-green-800' :
-                  app.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                  'bg-yellow-100 text-yellow-800'
+                  app.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
+                  app.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200' :
+                  'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
                 }`}>
                   {app.status}
                 </span>

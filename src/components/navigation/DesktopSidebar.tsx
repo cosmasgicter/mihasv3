@@ -14,7 +14,7 @@ export function DesktopSidebar() {
 
   const studentLinks = [
     { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
-    { to: '/student/application', icon: FileText, label: 'Application' },
+    { to: '/apply', icon: FileText, label: 'Application' },
     { to: '/student/status', icon: Bell, label: 'Status' },
     { to: '/student/profile', icon: User, label: 'Profile' },
   ]
@@ -75,7 +75,7 @@ export function DesktopSidebar() {
                 className={`h-5 w-5 transition-all duration-300 relative z-10 ${
                   isActive
                     ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                    : 'text-gray-600 dark:text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-300'
                 }`}
               />
               <AnimatePresence mode="wait">
@@ -87,7 +87,7 @@ export function DesktopSidebar() {
                     className={`text-sm font-medium transition-colors relative z-10 ${
                       isActive
                         ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-gray-700 dark:text-gray-300 group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                        : 'text-gray-700 dark:text-gray-300 dark:text-gray-600 group-hover:text-blue-500 dark:group-hover:text-blue-300'
                     }`}
                   >
                     {label}

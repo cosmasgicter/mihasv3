@@ -106,13 +106,13 @@ export function SystemMonitoring() {
     switch (status) {
       case 'healthy':
       case 'secure':
-        return 'text-green-600 bg-green-100'
+        return 'text-green-600 bg-green-100 dark:bg-green-900/30'
       case 'warning':
-        return 'text-yellow-600 bg-yellow-100'
+        return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30'
       case 'critical':
-        return 'text-red-600 bg-red-100'
+        return 'text-red-600 bg-red-100 dark:bg-red-900/30'
       default:
-        return 'text-gray-600 bg-gray-100'
+        return 'text-gray-600 dark:text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800'
     }
   }
 
@@ -129,7 +129,7 @@ export function SystemMonitoring() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
@@ -139,7 +139,7 @@ export function SystemMonitoring() {
               {metrics.database.status.toUpperCase()}
             </span>
           </div>
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Database</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Database</h3>
           <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
             <div>Connections: {metrics.database.connections}</div>
             <div>Response: {metrics.database.responseTime}ms</div>
@@ -151,17 +151,17 @@ export function SystemMonitoring() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
               <Activity className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800">
               OPTIMAL
             </span>
           </div>
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Performance</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Performance</h3>
           <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
             <div>CPU: {metrics.performance.cpu}%</div>
             <div>Memory: {metrics.performance.memory}%</div>
@@ -173,7 +173,7 @@ export function SystemMonitoring() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
@@ -183,7 +183,7 @@ export function SystemMonitoring() {
               {metrics.security.status.toUpperCase()}
             </span>
           </div>
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Security</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Security</h3>
           <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
             <div>Last Scan: {metrics.security.lastScan}</div>
             <div>Threats: {metrics.security.threats}</div>
@@ -195,17 +195,17 @@ export function SystemMonitoring() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-indigo-100 rounded-xl">
+            <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
               <Users className="h-6 w-6 text-indigo-600" />
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800">
               ACTIVE
             </span>
           </div>
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Users</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Users</h3>
           <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
             <div>Active: {metrics.users.active}</div>
             <div>Sessions: {metrics.users.sessions}</div>
@@ -219,17 +219,17 @@ export function SystemMonitoring() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
       >
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 flex items-center">
             <Zap className="h-5 w-5 mr-2" />
             Performance Metrics
           </h3>
           <button
             onClick={refreshMetrics}
             disabled={refreshing}
-            className="p-2 text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 transition-colors"
+            className="p-2 text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:text-gray-600 transition-colors"
           >
             <Activity className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
@@ -240,10 +240,10 @@ export function SystemMonitoring() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Cpu className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">CPU Usage</span>
+                  <Cpu className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">CPU Usage</span>
                 </div>
-                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{metrics.performance.cpu}%</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{metrics.performance.cpu}%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <motion.div 
@@ -259,9 +259,9 @@ export function SystemMonitoring() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <MemoryStick className="h-4 w-4 text-purple-500" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Memory</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">Memory</span>
                 </div>
-                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{metrics.performance.memory}%</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{metrics.performance.memory}%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <motion.div 
@@ -277,9 +277,9 @@ export function SystemMonitoring() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <HardDrive className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Storage</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">Storage</span>
                 </div>
-                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{metrics.performance.storage}%</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{metrics.performance.storage}%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <motion.div 
@@ -295,9 +295,9 @@ export function SystemMonitoring() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Wifi className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Network</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">Network</span>
                 </div>
-                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{metrics.performance.network}%</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{metrics.performance.network}%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <motion.div 
@@ -317,10 +317,10 @@ export function SystemMonitoring() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
       >
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 flex items-center">
             <AlertTriangle className="h-5 w-5 mr-2" />
             System Health
           </h3>
@@ -331,7 +331,7 @@ export function SystemMonitoring() {
             <div className="flex items-center space-x-3 p-4 bg-green-50 dark:bg-green-950/30 rounded-xl border border-green-200 dark:border-green-800">
               <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
               <div className="flex-1">
-                <p className="font-medium text-green-800">All Systems Operational</p>
+                <p className="font-medium text-green-800 dark:text-green-200">All Systems Operational</p>
                 <p className="text-sm text-green-600 dark:text-green-400">No critical issues detected</p>
               </div>
               <span className="text-xs text-green-600 dark:text-green-400">Just now</span>
@@ -340,7 +340,7 @@ export function SystemMonitoring() {
             <div className="flex items-center space-x-3 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-800">
               <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div className="flex-1">
-                <p className="font-medium text-blue-800 dark:text-blue-200">Scheduled Maintenance</p>
+                <p className="font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">Scheduled Maintenance</p>
                 <p className="text-sm text-blue-600 dark:text-blue-400">Database optimization planned for tonight</p>
               </div>
               <span className="text-xs text-blue-600 dark:text-blue-400">2 hours</span>
@@ -349,7 +349,7 @@ export function SystemMonitoring() {
             <div className="flex items-center space-x-3 p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-xl border border-yellow-200">
               <TrendingUp className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
               <div className="flex-1">
-                <p className="font-medium text-yellow-800">High Memory Usage</p>
+                <p className="font-medium text-yellow-800 dark:text-yellow-200">High Memory Usage</p>
                 <p className="text-sm text-yellow-600 dark:text-yellow-400">Memory usage is above 65% threshold</p>
               </div>
               <span className="text-xs text-yellow-600 dark:text-yellow-400">5 min ago</span>
@@ -363,10 +363,10 @@ export function SystemMonitoring() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
       >
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 flex items-center">
             <Activity className="h-5 w-5 mr-2" />
             Real-time Activity
           </h3>

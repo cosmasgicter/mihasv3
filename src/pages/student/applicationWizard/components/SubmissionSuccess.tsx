@@ -44,7 +44,7 @@ const getPaymentStatusStyles = (status?: string | null) => {
       return 'bg-rose-100 text-rose-800 border-rose-200'
     case 'pending_review':
     default:
-      return 'bg-amber-100 text-amber-800 border-amber-200'
+      return 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 border-amber-200'
   }
 }
 
@@ -79,7 +79,7 @@ const SubmissionSuccess = ({
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}>
           <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-6" />
         </motion.div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Application Submitted Successfully!</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Application Submitted Successfully!</h2>
 
         {persistingSlip && (
           <p className="text-sm text-blue-600 dark:text-blue-400 mb-4">Saving a copy of your application slip for admissions records...</p>
@@ -91,23 +91,23 @@ const SubmissionSuccess = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <h3 className="font-semibold text-green-800 mb-3">Application Details</h3>
+          <h3 className="font-semibold text-green-800 dark:text-green-200 mb-3">Application Details</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-green-700 dark:text-green-300">Application Number:</span>
-              <span className="font-mono font-bold text-green-900">{submittedApplication.applicationNumber}</span>
+              <span className="font-mono font-bold text-green-900 dark:text-green-100">{submittedApplication.applicationNumber}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-green-700 dark:text-green-300">Tracking Code:</span>
-              <span className="font-mono font-bold text-green-900">{submittedApplication.trackingCode}</span>
+              <span className="font-mono font-bold text-green-900 dark:text-green-100">{submittedApplication.trackingCode}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-green-700 dark:text-green-300">Program:</span>
-              <span className="font-semibold text-green-900">{submittedApplication.program}</span>
+              <span className="font-semibold text-green-900 dark:text-green-100">{submittedApplication.program}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-green-700 dark:text-green-300">Institution:</span>
-              <span className="font-semibold text-green-900">{getInstitutionName(submittedApplication.institution)}</span>
+              <span className="font-semibold text-green-900 dark:text-green-100">{getInstitutionName(submittedApplication.institution)}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <span className="text-green-700 dark:text-green-300 flex items-center justify-between sm:justify-start">

@@ -170,7 +170,7 @@ export default function EligibilityManagement() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">
             Eligibility Management System
           </h1>
           <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
@@ -180,7 +180,7 @@ export default function EligibilityManagement() {
 
         {/* Tab Navigation */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
-          <div className="border-b border-gray-200 dark:border-gray-700">
+          <div className="border-b border-gray-200 dark:border-gray-700 dark:border-gray-300">
             <nav className="-mb-px flex space-x-8 px-6">
               {[
                 { id: 'dashboard', name: 'Analytics Dashboard', icon: BarChart3 },
@@ -193,7 +193,7 @@ export default function EligibilityManagement() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      : 'border-transparent text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:text-gray-600 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
                   }`}
                 >
                   <tab.icon className="h-5 w-5" />
@@ -212,7 +212,7 @@ export default function EligibilityManagement() {
         {activeTab === 'rules' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Eligibility Rules</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Eligibility Rules</h2>
               <Button
                 onClick={() => {
                   resetRuleForm()
@@ -252,7 +252,7 @@ export default function EligibilityManagement() {
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                   {rules.map((rule) => (
                     <tr key={rule.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                         {rule.rule_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
@@ -267,8 +267,8 @@ export default function EligibilityManagement() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                           rule.is_active 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
+                            : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
                         }`}>
                           {rule.is_active ? 'Active' : 'Inactive'}
                         </span>
@@ -276,13 +276,13 @@ export default function EligibilityManagement() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                         <button
                           onClick={() => handleEditRule(rule)}
-                          className="text-blue-600 dark:text-blue-400 hover:text-blue-900"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:text-blue-100 dark:text-blue-900"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteRule(rule.id)}
-                          className="text-red-600 dark:text-red-400 hover:text-red-900"
+                          className="text-red-600 dark:text-red-400 hover:text-red-900 dark:text-red-100"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -299,7 +299,7 @@ export default function EligibilityManagement() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Regulatory Guidelines</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Regulatory Guidelines</h2>
                 <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">
                   HPCZ, NMCZ, and ECZ compliance requirements for health and education programs
                 </p>
@@ -322,7 +322,7 @@ export default function EligibilityManagement() {
                     setShowRuleForm(false)
                     setEditingRule(null)
                   }}
-                  className="text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
                 >
                   <X className="h-6 w-6" />
                 </button>
@@ -330,14 +330,14 @@ export default function EligibilityManagement() {
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="program" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label htmlFor="program" className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
                     Program
                   </label>
                   <select
                     id="program"
                     value={ruleForm.program_id}
                     onChange={(e) => setRuleForm({ ...ruleForm, program_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select Program</option>
                     {programs.map((program) => (
@@ -355,14 +355,14 @@ export default function EligibilityManagement() {
                 />
 
                 <div>
-                  <label htmlFor="rule_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label htmlFor="rule_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
                     Rule Type
                   </label>
                   <select
                     id="rule_type"
                     value={ruleForm.rule_type}
                     onChange={(e) => setRuleForm({ ...ruleForm, rule_type: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="subject_count">Subject Count</option>
                     <option value="grade_average">Grade Average</option>
@@ -395,7 +395,7 @@ export default function EligibilityManagement() {
                     onChange={(e) => setRuleForm({ ...ruleForm, is_active: e.target.checked })}
                     className="mr-2"
                   />
-                  <label htmlFor="is_active" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label htmlFor="is_active" className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">
                     Active
                   </label>
                 </div>

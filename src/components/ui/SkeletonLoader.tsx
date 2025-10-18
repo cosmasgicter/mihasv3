@@ -20,7 +20,7 @@ export function SkeletonLoader({
   animation = 'pulse'
 }: SkeletonLoaderProps) {
   const skeletonClass = cn(
-    'bg-gray-200',
+    'bg-gray-200 dark:bg-gray-700',
     rounded ? 'rounded-full' : 'rounded',
     animation === 'pulse' && 'animate-pulse',
     className
@@ -68,7 +68,7 @@ export function SkeletonLoader({
 // Preset skeleton components for common use cases
 export function SkeletonCard() {
   return (
-    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
+    <div className="p-4 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg space-y-3">
       <SkeletonLoader height={20} width="60%" />
       <SkeletonLoader height={16} count={3} />
       <SkeletonLoader height={14} width="40%" />

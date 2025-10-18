@@ -29,20 +29,20 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
       <AnimatedCard className="bg-gradient-to-br from-blue-500 to-blue-600 text-white col-span-2 sm:col-span-1" hover3d>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-blue-100 text-xs sm:text-sm font-medium">Total</p>
+            <p className="text-blue-100 dark:text-blue-900 text-xs sm:text-sm font-medium">Total</p>
             <p className="text-xl sm:text-3xl font-bold">{stats.total}</p>
           </div>
-          <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-200" />
+          <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-200 dark:text-blue-800" />
         </div>
       </AnimatedCard>
       
       <AnimatedCard className="bg-gradient-to-br from-gray-500 to-gray-600 text-white" hover3d delay={0.1}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-gray-100 text-xs sm:text-sm font-medium">Draft</p>
+            <p className="text-gray-100 dark:text-gray-900 text-xs sm:text-sm font-medium">Draft</p>
             <p className="text-xl sm:text-3xl font-bold">{stats.draft}</p>
           </div>
-          <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-gray-200" />
+          <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-gray-200 dark:text-gray-700" />
         </div>
       </AnimatedCard>
       

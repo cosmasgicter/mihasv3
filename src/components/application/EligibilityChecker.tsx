@@ -60,13 +60,13 @@ export function EligibilityChecker({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'eligible':
-        return 'bg-green-50 border-green-200 text-green-800'
+        return 'bg-green-50 border-green-200 text-green-800 dark:text-green-200'
       case 'conditional':
-        return 'bg-yellow-50 border-yellow-200 text-yellow-800'
+        return 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:text-yellow-200'
       case 'not_eligible':
-        return 'bg-red-50 border-red-200 text-red-800'
+        return 'bg-red-50 border-red-200 text-red-800 dark:text-red-200'
       default:
-        return 'bg-gray-50 border-gray-200 text-gray-800'
+        return 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 dark:border-gray-300 text-gray-800 dark:text-gray-200 dark:text-gray-700'
     }
   }
 
@@ -79,7 +79,7 @@ export function EligibilityChecker({
       case 'minor':
         return 'text-yellow-600 bg-yellow-50'
       default:
-        return 'text-gray-600 bg-gray-50'
+        return 'text-gray-600 dark:text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900'
     }
   }
 
@@ -120,7 +120,7 @@ export function EligibilityChecker({
   if (!assessment) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Eligibility Assessment</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Eligibility Assessment</h3>
         <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Add subjects and grades to see eligibility status</p>
       </div>
     )
@@ -182,7 +182,7 @@ export function EligibilityChecker({
       {/* Missing Requirements */}
       {assessment.missing_requirements.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center">
             <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
             Missing Requirements
           </h4>
@@ -207,15 +207,15 @@ export function EligibilityChecker({
       {/* Recommendations */}
       {assessment.recommendations.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-            <TrendingUp className="h-5 w-5 text-blue-500 mr-2" />
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center">
+            <TrendingUp className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-2" />
             Recommendations
           </h4>
           <ul className="space-y-2">
             {assessment.recommendations.map((rec: string, index: number) => (
               <li key={index} className="flex items-start space-x-2">
                 <div className="w-2 h-2 bg-blue-50 dark:bg-blue-950/300 rounded-full mt-2 flex-shrink-0"></div>
-                <span className="text-gray-700 dark:text-gray-300">{rec}</span>
+                <span className="text-gray-700 dark:text-gray-300 dark:text-gray-600">{rec}</span>
               </li>
             ))}
           </ul>
@@ -224,7 +224,7 @@ export function EligibilityChecker({
 
       {/* Actions */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Actions</h4>
+        <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Actions</h4>
         <div className="flex flex-wrap gap-3">
           <Button
             onClick={performEligibilityCheck}
@@ -263,14 +263,14 @@ export function EligibilityChecker({
             <h3 className="text-lg font-semibold mb-4">Submit Eligibility Appeal</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">
                   Reason for Appeal
                 </label>
                 <textarea
                   value={appealReason}
                   onChange={(e) => setAppealReason(e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Explain why you believe the assessment should be reconsidered..."
                 />
               </div>

@@ -115,7 +115,7 @@ export function BulkOperations({
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
                   Bulk Actions
                 </h3>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
@@ -137,7 +137,7 @@ export function BulkOperations({
               {/* Status Update */}
               {onStatusUpdate && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  <label className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
                     Update Status
                   </label>
                   <div className="flex space-x-2">
@@ -165,7 +165,7 @@ export function BulkOperations({
               {/* Payment Update */}
               {onPaymentUpdate && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  <label className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
                     Update Payment
                   </label>
                   <div className="flex space-x-2">
@@ -193,7 +193,7 @@ export function BulkOperations({
               {/* Send Email */}
               {onSendEmail && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  <label className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
                     Send Notifications
                   </label>
                   <MobileOptimizedButton
@@ -211,7 +211,7 @@ export function BulkOperations({
               
               {/* Additional Actions Slot */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                <label className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
                   Quick Actions
                 </label>
                 <div className="space-y-2">
@@ -249,7 +249,7 @@ export function BulkOperations({
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center space-x-3 mb-4">
               <AlertCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                 Confirm Bulk Action
               </h3>
             </div>

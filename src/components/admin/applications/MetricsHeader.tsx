@@ -16,7 +16,7 @@ export function MetricsHeader({ applications, totalCount }: MetricsHeaderProps) 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">
           {totalCount}
         </div>
         <div className="text-sm text-gray-500 dark:text-gray-500">Total Applications</div>

@@ -21,7 +21,7 @@ export function StudentDashboardSkeleton() {
 
       {/* Continue Application Skeleton */}
       <div className="mb-6 sm:mb-8">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-lg transition-colors duration-200">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-2xl p-6 shadow-lg transition-colors duration-200">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-3 flex-1">
               <div className="h-6 w-48 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
@@ -40,9 +40,9 @@ export function StudentDashboardSkeleton() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Applications List - Left Side (2/3 width) */}
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 dark:border-gray-300 transition-colors duration-200">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-blue-900">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-blue-900">
               <div className="h-6 w-48 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
               <div className="mt-2 h-4 w-64 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
             </div>
@@ -75,7 +75,7 @@ export function StudentDashboardSkeleton() {
         {/* Sidebar - Right Side (1/3 width) */}
         <div className="space-y-6">
           {/* Profile Summary */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 transition-colors duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 dark:border-gray-300 p-6 transition-colors duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="h-6 w-40 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
               <div className="h-6 w-16 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
@@ -92,7 +92,7 @@ export function StudentDashboardSkeleton() {
           </div>
 
           {/* Upcoming Deadlines */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 transition-colors duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 dark:border-gray-300 p-6 transition-colors duration-200">
             <div className="h-6 w-48 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse mb-4" />
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, index) => (
@@ -105,7 +105,7 @@ export function StudentDashboardSkeleton() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 transition-colors duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 dark:border-gray-300 p-6 transition-colors duration-200">
             <div className="h-6 w-40 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse mb-4" />
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, index) => (

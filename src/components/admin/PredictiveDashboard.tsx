@@ -231,7 +231,7 @@ export function PredictiveDashboard() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">AI Predictive Dashboard</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">AI Predictive Dashboard</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
                   Predictive insights will load once the dashboard is ready.
                 </p>
@@ -263,7 +263,7 @@ export function PredictiveDashboard() {
       {/* Header with refresh */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">AI Predictive Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">AI Predictive Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
             Real-time insights and automation analytics
             {lastUpdated && (
@@ -344,7 +344,7 @@ export function PredictiveDashboard() {
                   )}
                   <span className={`text-sm font-medium ${
                     metrics.trendDirection === 'up' ? 'text-green-600' : 
-                    metrics.trendDirection === 'down' ? 'text-red-600' : 'text-gray-600'
+                    metrics.trendDirection === 'down' ? 'text-red-600' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
                   }`}>
                     {metrics.trendDirection === 'up' ? 'Increasing' : 
                      metrics.trendDirection === 'down' ? 'Decreasing' : 'Stable'}
@@ -356,7 +356,7 @@ export function PredictiveDashboard() {
                 <div className="flex flex-wrap gap-2">
                   {metrics.peakApplicationTimes.length > 0 ? (
                     metrics.peakApplicationTimes.slice(0, 4).map((time, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded">
+                      <span key={idx} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 text-xs rounded">
                         {time}
                       </span>
                     ))
@@ -384,13 +384,13 @@ export function PredictiveDashboard() {
                 metrics.processingBottlenecks.map((bottleneck, idx) => (
                   <div key={idx} className="flex items-start p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
                     <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mr-2 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-yellow-800">{bottleneck}</span>
+                    <span className="text-sm text-yellow-800 dark:text-yellow-200">{bottleneck}</span>
                   </div>
                 ))
               ) : (
                 <div className="flex items-center p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
                   <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mr-2" />
-                  <span className="text-sm text-green-800">No bottlenecks detected - system running smoothly</span>
+                  <span className="text-sm text-green-800 dark:text-green-200">No bottlenecks detected - system running smoothly</span>
                 </div>
               )}
             </div>
@@ -421,7 +421,7 @@ export function PredictiveDashboard() {
                       metrics.workflowStats.totalExecutions > 0 
                         ? (metrics.workflowStats.successfulExecutions / metrics.workflowStats.totalExecutions) > 0.9 
                           ? 'text-green-600' : 'text-yellow-600'
-                        : 'text-gray-600'
+                        : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
                     }`}>
                       {metrics.workflowStats.totalExecutions > 0 
                         ? Math.round((metrics.workflowStats.successfulExecutions / metrics.workflowStats.totalExecutions) * 100)
@@ -437,7 +437,7 @@ export function PredictiveDashboard() {
                         .map(([ruleId, count]) => (
                           <div key={ruleId} className="flex justify-between text-xs">
                             <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500 truncate">{ruleId.replace(/_/g, ' ')}</span>
-                            <span className="text-gray-800 dark:text-gray-200 font-medium">{count as number}</span>
+                            <span className="text-gray-800 dark:text-gray-200 dark:text-gray-700 font-medium">{count as number}</span>
                           </div>
                         ))
                       }
@@ -468,7 +468,7 @@ export function PredictiveDashboard() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center">
+              <h4 className="font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800 mb-2 flex items-center">
                 <FileText className="h-4 w-4 mr-1" />
                 Workflow Optimization
               </h4>
@@ -479,7 +479,7 @@ export function PredictiveDashboard() {
               </p>
             </div>
             <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-              <h4 className="font-medium text-green-800 mb-2 flex items-center">
+              <h4 className="font-medium text-green-800 dark:text-green-200 mb-2 flex items-center">
                 <Users className="h-4 w-4 mr-1" />
                 Resource Allocation
               </h4>
@@ -501,7 +501,7 @@ export function PredictiveDashboard() {
               </p>
             </div>
             <div className="p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-200">
-              <h4 className="font-medium text-yellow-800 mb-2 flex items-center">
+              <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2 flex items-center">
                 <Target className="h-4 w-4 mr-1" />
                 Process Improvement
               </h4>

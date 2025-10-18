@@ -40,7 +40,7 @@ export function EnhancedInput({
       {label && (
         <label 
           htmlFor={props.id}
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600"
         >
           {label}
           {required ? (
@@ -62,8 +62,8 @@ export function EnhancedInput({
           {...props}
           className={cn(
             // Base styling
-            'block w-full rounded-lg border border-gray-300 bg-white',
-            'text-sm text-gray-900 placeholder-gray-500',
+            'block w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800',
+            'text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900 placeholder-gray-500',
             'transition-colors duration-200',
             // Focus states
             'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
@@ -75,11 +75,11 @@ export function EnhancedInput({
             leftIcon && 'pl-10',
             rightIcon && 'pr-10',
             // Error state
-            errorMessage && 'border-red-300 focus:border-red-500 focus:ring-red-500/20',
+            errorMessage && 'border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500/20',
             // Success state
             success && 'border-green-300 focus:border-green-500 focus:ring-green-500/20',
             // Disabled state
-            'disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed',
+            'disabled:bg-gray-50 dark:bg-gray-900 disabled:text-gray-500 dark:text-gray-500 disabled:cursor-not-allowed',
             className
           )}
         />
@@ -90,7 +90,7 @@ export function EnhancedInput({
             onClick={onRightIconClick}
             className={cn(
               'absolute right-3 top-1/2 transform -translate-y-1/2',
-              'text-gray-400 hover:text-gray-600',
+              'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500',
               'min-w-[24px] min-h-[24px] flex items-center justify-center',
               'focus:outline-none focus:ring-2 focus:ring-blue-500 rounded',
               onRightIconClick ? 'cursor-pointer' : 'cursor-default'
@@ -146,7 +146,7 @@ export function EnhancedTextarea({
         <div className="flex items-center justify-between">
           <label 
             htmlFor={props.id}
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600"
           >
             {label}
             {required ? (
@@ -159,7 +159,7 @@ export function EnhancedTextarea({
           {showCharCount && maxLength && (
             <span className={cn(
               'text-xs',
-              charCount > maxLength ? 'text-red-600' : 'text-gray-500'
+              charCount > maxLength ? 'text-red-600' : 'text-gray-500 dark:text-gray-500'
             )}>
               {charCount}/{maxLength}
             </span>
@@ -173,8 +173,8 @@ export function EnhancedTextarea({
         maxLength={maxLength}
         className={cn(
           // Base styling
-          'block w-full rounded-lg border border-gray-300 bg-white',
-          'text-sm text-gray-900 placeholder-gray-500',
+          'block w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800',
+          'text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900 placeholder-gray-500',
           'transition-colors duration-200',
           // Focus states
           'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
@@ -184,11 +184,11 @@ export function EnhancedTextarea({
           'text-base sm:text-sm', // Prevent zoom on iOS
           'resize-y', // Allow vertical resize only
           // Error state
-          errorMessage && 'border-red-300 focus:border-red-500 focus:ring-red-500/20',
+          errorMessage && 'border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500/20',
           // Success state
           success && 'border-green-300 focus:border-green-500 focus:ring-green-500/20',
           // Disabled state
-          'disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed',
+          'disabled:bg-gray-50 dark:bg-gray-900 disabled:text-gray-500 dark:text-gray-500 disabled:cursor-not-allowed',
           className
         )}
       />
@@ -252,7 +252,7 @@ export function EnhancedSelect({
       {label && (
         <label 
           htmlFor={props.id}
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600"
         >
           {label}
           {required ? (
@@ -267,8 +267,8 @@ export function EnhancedSelect({
         {...props}
         className={cn(
           // Base styling
-          'block w-full rounded-lg border border-gray-300 bg-white',
-          'text-sm text-gray-900',
+          'block w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800',
+          'text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900',
           'transition-colors duration-200',
           // Focus states
           'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
@@ -281,11 +281,11 @@ export function EnhancedSelect({
           'bg-no-repeat bg-right bg-[length:16px_16px]',
           'pr-10', // Space for arrow
           // Error state
-          errorMessage && 'border-red-300 focus:border-red-500 focus:ring-red-500/20',
+          errorMessage && 'border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500/20',
           // Success state
           success && 'border-green-300 focus:border-green-500 focus:ring-green-500/20',
           // Disabled state
-          'disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed',
+          'disabled:bg-gray-50 dark:bg-gray-900 disabled:text-gray-500 dark:text-gray-500 disabled:cursor-not-allowed',
           className
         )}
         style={{
@@ -347,7 +347,7 @@ export function FormSection({
   return (
     <div className={cn('space-y-4', className)}>
       <div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{title}</h3>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{title}</h3>
         {description && (
           <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">{description}</p>
         )}

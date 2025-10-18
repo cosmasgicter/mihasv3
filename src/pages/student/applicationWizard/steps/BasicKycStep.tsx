@@ -63,11 +63,11 @@ const BasicKycStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-100"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
       data-testid="basic-kyc-step"
     >
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{title}</h2>
         {hasAutoPopulatedData && (
           <ProfileCompletionBadge completionPercentage={completionPercentage} />
         )}
@@ -79,7 +79,7 @@ const BasicKycStep = ({
           animate={{ opacity: 1, y: 0 }}
           className="mb-4 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg"
         >
-          <div className="flex items-center space-x-2 text-sm text-green-800">
+          <div className="flex items-center space-x-2 text-sm text-green-800 dark:text-green-200">
             <CheckCircle className="h-4 w-4" />
             <span className="font-medium">Profile data automatically populated</span>
           </div>
@@ -130,13 +130,13 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="sex" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="sex" className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
             Sex <span className="text-red-500">*</span>
           </label>
           <select
             {...register('sex')}
             id="sex"
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select sex</option>
             <option value="Male">Male</option>
@@ -200,13 +200,13 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="program" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="program" className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
             Program <span className="text-red-500">*</span>
           </label>
           <select
             {...register('program')}
             id="program"
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select program</option>
             {programs.length === 0 && (
@@ -228,7 +228,7 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="intake" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="intake" className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
             Intake <span className="text-red-500">*</span>
           </label>
           <select
@@ -236,7 +236,7 @@ const BasicKycStep = ({
             id="intake"
             disabled={intakes.length === 0}
             className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              intakes.length === 0 ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white border-gray-300'
+              intakes.length === 0 ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500 cursor-not-allowed border-gray-200 dark:border-gray-700 dark:border-gray-300' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 dark:border-gray-400'
             }`}
           >
             <option value="">Select intake</option>
@@ -269,7 +269,7 @@ const BasicKycStep = ({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+          <p className="text-sm text-blue-800 dark:text-blue-200 dark:text-blue-800">
             <strong>Institution:</strong>{' '}
             {selectedInstitutionLabel || 'MIHAS'}
           </p>

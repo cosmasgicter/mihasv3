@@ -34,11 +34,11 @@ export function AuthDebug() {
   }, [user])
 
   if (loading) {
-    return <div className="p-4 bg-yellow-100 border border-yellow-400 rounded">Loading auth state...</div>
+    return <div className="p-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 rounded">Loading auth state...</div>
   }
 
   return (
-    <div className="p-4 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded mb-4">
+    <div className="p-4 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded mb-4">
       <h3 className="font-bold mb-2">Authentication Debug Info</h3>
       
       <div className="space-y-2 text-sm">

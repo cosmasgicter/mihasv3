@@ -66,18 +66,18 @@ export function MobileOptimizedButton({
       'focus-visible:ring-blue-500'
     ),
     secondary: cn(
-      'bg-gray-100 text-gray-900 shadow-sm',
-      'hover:bg-gray-200 active:bg-gray-300',
+      'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 dark:text-gray-900 shadow-sm',
+      'hover:bg-gray-200 dark:bg-gray-700 active:bg-gray-300 dark:bg-gray-600 dark:bg-gray-400',
       'focus-visible:ring-gray-500'
     ),
     outline: cn(
-      'border-2 border-gray-300 bg-white text-gray-700',
-      'hover:bg-gray-50 hover:border-gray-400',
-      'active:bg-gray-100 active:border-gray-500',
+      'border-2 border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 dark:text-gray-600',
+      'hover:bg-gray-50 dark:bg-gray-900 hover:border-gray-400 dark:border-gray-500 dark:border-gray-500',
+      'active:bg-gray-100 dark:bg-gray-800 active:border-gray-500 dark:border-gray-500',
       'focus-visible:ring-gray-500'
     ),
     ghost: cn(
-      'text-gray-700 hover:bg-gray-100 active:bg-gray-200',
+      'text-gray-700 dark:text-gray-300 dark:text-gray-600 hover:bg-gray-100 dark:bg-gray-800 active:bg-gray-200 dark:bg-gray-700',
       'focus-visible:ring-gray-500'
     ),
     danger: cn(
@@ -237,8 +237,8 @@ export function QuickActionButton({
       className={cn(
         'flex flex-col items-center justify-center',
         'min-h-[64px] min-w-[64px] p-2',
-        'rounded-lg bg-white shadow-sm border border-gray-200',
-        'hover:bg-gray-50 active:bg-gray-100',
+        'rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 dark:border-gray-300',
+        'hover:bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:bg-gray-800',
         'transition-colors duration-200',
         'touch-manipulation select-none',
         className

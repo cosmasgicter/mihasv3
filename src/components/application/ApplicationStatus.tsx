@@ -59,18 +59,18 @@ export function ApplicationStatus({
       case 'draft':
         return {
           icon: FileText,
-          color: 'text-gray-600',
-          bg: 'bg-gray-50',
-          border: 'border-gray-200',
+          color: 'text-gray-600 dark:text-gray-400 dark:text-gray-500',
+          bg: 'bg-gray-50 dark:bg-gray-900',
+          border: 'border-gray-200 dark:border-gray-700 dark:border-gray-300',
           label: 'Draft',
           description: 'Application not yet submitted'
         }
       default:
         return {
           icon: Clock,
-          color: 'text-gray-600',
-          bg: 'bg-gray-50',
-          border: 'border-gray-200',
+          color: 'text-gray-600 dark:text-gray-400 dark:text-gray-500',
+          bg: 'bg-gray-50 dark:bg-gray-900',
+          border: 'border-gray-200 dark:border-gray-700 dark:border-gray-300',
           label: 'Unknown',
           description: 'Status unknown'
         }
@@ -136,7 +136,7 @@ export function ApplicationStatus({
           {statusConfig.label}
         </span>
         {eligibilityScore && (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800">
             <Star className="h-3 w-3 mr-1" />
             {eligibilityScore}%
           </span>
@@ -176,7 +176,7 @@ export function ApplicationStatus({
                     {eligibilityConfig.label}
                   </span>
                   {eligibilityScore && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800">
                       <Star className="h-3 w-3 mr-1" />
                       Score: {eligibilityScore}%
                     </span>
@@ -201,17 +201,17 @@ export function ApplicationStatusBadge({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
       case 'rejected':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
       case 'under_review':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800'
       case 'submitted':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
       case 'draft':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
     }
   }
 

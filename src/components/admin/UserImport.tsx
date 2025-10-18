@@ -290,7 +290,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
             <>
               {/* Instructions */}
               <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <h3 className="font-medium text-blue-900 mb-2">Import Instructions</h3>
+                <h3 className="font-medium text-blue-900 dark:text-blue-100 dark:text-blue-900 mb-2">Import Instructions</h3>
                 <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
                   <li>• Upload a CSV file with user data</li>
                   <li>• Required fields: full_name, email, role</li>
@@ -313,7 +313,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               </div>
 
               {/* File Upload */}
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg p-8 text-center hover:border-gray-400 dark:border-gray-500 dark:border-gray-500 transition-colors">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -322,7 +322,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                   className="hidden"
                 />
                 <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">
                   {file ? file.name : 'Select CSV File'}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-4">
@@ -345,8 +345,8 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
 
               {/* Preview */}
               {showPreview && previewData.length > 0 && (
-                <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Preview (First 5 rows)</h3>
+                <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg p-4">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3">Preview (First 5 rows)</h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-100 dark:bg-gray-800">
@@ -360,11 +360,11 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                         {previewData.map((user, index) => (
                           <tr key={index}>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{sanitizeText(user.full_name)}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{sanitizeText(user.email)}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{sanitizeText(user.phone) || '-'}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">
-                              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded text-xs">
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">{sanitizeText(user.full_name)}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">{sanitizeText(user.email)}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">{sanitizeText(user.phone) || '-'}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 rounded text-xs">
                                 {sanitizeText(user.role)}
                               </span>
                             </td>
@@ -397,7 +397,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                   </div>
                   {importResult.duplicates > 0 && (
                     <div className="text-center">
-                      <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-full mb-2">
+                      <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full mb-2">
                         <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
                       </div>
                       <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{importResult.duplicates}</p>
@@ -409,7 +409,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
 
               {importResult.errors.length > 0 && (
                 <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4 max-h-60 overflow-y-auto">
-                  <h3 className="font-medium text-red-900 mb-3">Import Errors</h3>
+                  <h3 className="font-medium text-red-900 dark:text-red-100 mb-3">Import Errors</h3>
                   <div className="space-y-2">
                     {importResult.errors.map((error, index) => (
                       <div key={index} className="text-sm text-red-700 dark:text-red-300 bg-white dark:bg-gray-800 p-2 rounded border">

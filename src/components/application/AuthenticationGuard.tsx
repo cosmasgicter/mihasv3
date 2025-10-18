@@ -80,7 +80,7 @@ export function AuthenticationGuard({ children, onAuthenticationRequired }: Auth
       <div className="max-w-md mx-auto mt-8 p-6 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
         <div className="flex items-center space-x-2 mb-4">
           <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-          <h3 className="text-lg font-semibold text-red-800">Authentication Required</h3>
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">Authentication Required</h3>
         </div>
         
         <p className="text-red-700 dark:text-red-300 mb-4">
@@ -97,7 +97,7 @@ export function AuthenticationGuard({ children, onAuthenticationRequired }: Auth
           
           <button
             onClick={() => window.location.href = '/auth/signin'}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 bg-gray-600 dark:bg-gray-400 text-white rounded hover:bg-gray-700 transition-colors"
           >
             Sign In
           </button>

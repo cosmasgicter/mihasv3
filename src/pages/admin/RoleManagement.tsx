@@ -75,18 +75,18 @@ export default function RoleManagement() {
               
               return (
                 <tr key={user.user_id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                     {user.full_name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                     {user.email}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">{user.role}</span>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 rounded">{user.role}</span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
                     {authRole ? (
-                      <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 rounded">{authRole}</span>
+                      <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded">{authRole}</span>
                     ) : (
                       <span className="text-gray-400 dark:text-gray-500">None</span>
                     )}
@@ -120,7 +120,7 @@ export default function RoleManagement() {
                         </button>
                         <button
                           onClick={() => setSelectedUser(null)}
-                          className="px-3 py-1 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-400"
+                          className="px-3 py-1 bg-gray-300 dark:bg-gray-600 dark:bg-gray-400 text-gray-700 dark:text-gray-300 dark:text-gray-600 rounded hover:bg-gray-400"
                         >
                           Cancel
                         </button>
@@ -131,7 +131,7 @@ export default function RoleManagement() {
                           setSelectedUser(user.user_id)
                           setNewRole(user.role)
                         }}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200 dark:text-blue-800"
                       >
                         Edit Role
                       </button>

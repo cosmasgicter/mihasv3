@@ -18,8 +18,8 @@ export function TouchButton({
 
   const variantClasses = {
     primary: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white',
-    secondary: 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700',
-    ghost: 'text-gray-700 dark:text-gray-300'
+    secondary: 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 dark:text-gray-900 border border-gray-200 dark:border-gray-700 dark:border-gray-300',
+    ghost: 'text-gray-700 dark:text-gray-300 dark:text-gray-600'
   }
 
   return (

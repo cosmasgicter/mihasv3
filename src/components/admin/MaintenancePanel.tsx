@@ -72,10 +72,10 @@ export function MaintenancePanel() {
 
   const getStatusColor = (status: MaintenanceTask['status']) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800'
-      case 'failed': return 'bg-red-100 text-red-800'
-      case 'running': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'completed': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+      case 'failed': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+      case 'running': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800'
+      default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
     }
   }
 
@@ -187,7 +187,7 @@ export function MaintenancePanel() {
                       <div className="text-sm text-red-600 dark:text-red-400 mt-1">{log.error_message}</div>
                     )}
                   </div>
-                  <Badge className={log.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                  <Badge className={log.success ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'}>
                     {log.success ? 'Success' : 'Failed'}
                   </Badge>
                 </div>

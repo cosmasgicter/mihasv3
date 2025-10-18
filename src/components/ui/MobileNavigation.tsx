@@ -271,7 +271,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                             'flex items-center px-4 py-4 rounded-xl text-white transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
                             item.variant === 'accent'
                               ? 'bg-blue-500/30 hover:bg-blue-500/40'
-                              : 'hover:bg-white/10',
+                              : 'hover:bg-white dark:bg-gray-800/10',
                             'bg-opacity-100 visible border border-white/10'
                           )}
                         >
