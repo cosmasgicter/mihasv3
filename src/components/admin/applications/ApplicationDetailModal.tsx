@@ -262,43 +262,46 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
     )
   }
   
-  // If no detailed documents but application has document URLs, show those
-  if (documents.length === 0 && application) {
-    const appDocuments = []
-    if (application.result_slip_url) {
-      appDocuments.push({
+  // Merge application documents with detailed documents
+  const allDocuments = [...documents]
+  
+  // Add original uploaded documents if they exist and aren't already in the list
+  if (application) {
+    const existingUrls = new Set(documents.map(d => d.file_url))
+    
+    if (application.result_slip_url && !existingUrls.has(application.result_slip_url)) {
+      allDocuments.push({
         id: 'result_slip',
+        document_type: 'result_slip',
         document_name: 'Result Slip',
         file_url: application.result_slip_url,
         verification_status: 'pending',
         system_generated: false
-      })
+      } as DocumentItem)
     }
-    if (application.extra_kyc_url) {
-      appDocuments.push({
+    if (application.extra_kyc_url && !existingUrls.has(application.extra_kyc_url)) {
+      allDocuments.push({
         id: 'extra_kyc',
+        document_type: 'extra_kyc',
         document_name: 'Extra KYC Documents',
         file_url: application.extra_kyc_url,
         verification_status: 'pending',
         system_generated: false
-      })
+      } as DocumentItem)
     }
-    if (application.pop_url) {
-      appDocuments.push({
+    if (application.pop_url && !existingUrls.has(application.pop_url)) {
+      allDocuments.push({
         id: 'proof_of_payment',
+        document_type: 'proof_of_payment',
         document_name: 'Proof of Payment',
         file_url: application.pop_url,
         verification_status: 'pending',
         system_generated: false
-      })
-    }
-    
-    if (appDocuments.length > 0) {
-      documents = appDocuments as DocumentItem[]
+      } as DocumentItem)
     }
   }
   
-  if (documents.length === 0) {
+  if (allDocuments.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
         <FileText className="h-8 w-8 mx-auto mb-2 text-gray-300" />
@@ -309,7 +312,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
   
   return (
     <div className="space-y-3">
-      {documents.map((doc) => (
+      {allDocuments.map((doc) => (
         <div key={doc.id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${

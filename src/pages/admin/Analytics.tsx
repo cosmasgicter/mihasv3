@@ -42,7 +42,7 @@ export default function Analytics() {
   } = useRoleQuery()
   const canManageReports = isReportManagerRole(userRole?.role)
   const roleStatusLoading = roleLoading || roleFetching
-  const { showSuccess, showError, showInfo } = useToast()
+  const { success: showSuccess, error: showError, info: showInfo } = useToast()
 
   useEffect(() => {
     loadAnalytics()

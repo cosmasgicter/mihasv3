@@ -9,7 +9,7 @@ import { clearAllDraftData } from '@/lib/draftCleanup'
 export const useDraftManager = () => {
   const { user } = useAuth()
   const { profile } = useProfileQuery()
-  const { showSuccess, showError } = useToast()
+  const { success: showSuccess, error: showError } = useToast()
   const [isDeleting, setIsDeleting] = useState(false)
 
   const deleteDraft = async (onSuccess?: () => void, onError?: (error: string) => void) => {

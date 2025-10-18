@@ -75,7 +75,7 @@ interface PublicApplicationStatus {
 export default function PublicApplicationTracker() {
   const shouldReduceMotion = useReducedMotion()
   const maybeMotion = <T,>(value: T) => (shouldReduceMotion ? undefined : value)
-  const toast = useToast()
+  const { error: showError } = useToast()
   const [searchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState('')
   const [application, setApplication] = useState<PublicApplicationStatus | null>(null)
@@ -378,14 +378,14 @@ export default function PublicApplicationTracker() {
       // This will fall back to service-role upload in persistSlip
       const payload = buildSlipPayload(slipEmail)
       if (!payload) {
-        toast.showError('Slip unavailable', 'Missing application details for slip generation.')
+        showError('Slip unavailable', 'Missing application details for slip generation.')
         return
       }
 
       const result = await createApplicationSlip(payload, { toast })
 
       if (result.error) {
-        toast.showError('Download failed', result.error)
+        showError('Download failed', result.error)
         return
       }
 
@@ -393,7 +393,7 @@ export default function PublicApplicationTracker() {
       const downloadUrl = objectUrl || result.publicUrl
 
       if (!downloadUrl) {
-        toast.showError('Download failed', 'We could not prepare the application slip for download.')
+        showError('Download failed', 'We could not prepare the application slip for download.')
         return
       }
 
