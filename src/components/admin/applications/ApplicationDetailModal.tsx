@@ -693,7 +693,7 @@ export function ApplicationDetailModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-[60]">
       <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50">

@@ -7,6 +7,8 @@ import { Input } from '../../components/ui/Input'
 import { TextArea } from '../../components/ui/TextArea'
 import { Plus, Edit, Trash2, Save, X, Settings, BarChart3, Users, AlertTriangle } from 'lucide-react'
 import { RegulatoryGuidelinesTable } from '../../components/admin/RegulatoryGuidelinesTable'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { useConfirmDialog } from '../../hooks/useConfirmDialog'
 
 interface Program {
   id: string
@@ -33,6 +35,7 @@ export default function EligibilityManagement() {
   const [loading, setLoading] = useState(true)
   const [showRuleForm, setShowRuleForm] = useState(false)
   const [editingRule, setEditingRule] = useState<EligibilityRule | null>(null)
+  const confirmDialog = useConfirmDialog()
 
   const [ruleForm, setRuleForm] = useState({
     program_id: '',
@@ -118,7 +121,13 @@ export default function EligibilityManagement() {
   }
 
   const handleDeleteRule = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this rule?')) return
+    const confirmed = await confirmDialog.confirm({
+      title: 'Delete Rule',
+      message: 'This eligibility rule will be permanently deleted.',
+      confirmText: 'Delete',
+      variant: 'danger'
+    })
+    if (!confirmed) return
 
     try {
       const { error } = await supabase
@@ -420,6 +429,16 @@ export default function EligibilityManagement() {
           </div>
         )}
       </div>
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={confirmDialog.handleCancel}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </div>
   )
 }

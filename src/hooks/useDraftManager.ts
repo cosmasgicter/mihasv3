@@ -5,20 +5,25 @@ import { applicationSessionManager } from '@/lib/applicationSession'
 import { draftManager } from '@/lib/draftManager'
 import { useToast } from '@/components/ui/Toast'
 import { clearAllDraftData } from '@/lib/draftCleanup'
+import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 export const useDraftManager = () => {
   const { user } = useAuth()
   const { profile } = useProfileQuery()
   const { success: showSuccess, error: showError } = useToast()
   const [isDeleting, setIsDeleting] = useState(false)
+  const confirmDialog = useConfirmDialog()
 
   const deleteDraft = async (onSuccess?: () => void, onError?: (error: string) => void) => {
     if (!user || isDeleting) return
 
-    // Simple confirmation using browser confirm
-    if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
-      return
-    }
+    const confirmed = await confirmDialog.confirm({
+      title: 'Delete Draft',
+      message: 'This draft will be permanently deleted.',
+      confirmText: 'Delete',
+      variant: 'danger'
+    })
+    if (!confirmed) return
 
     setIsDeleting(true)
     try {
@@ -48,10 +53,13 @@ export const useDraftManager = () => {
   const clearAllDrafts = async (onSuccess?: () => void, onError?: (error: string) => void) => {
     if (!user || isDeleting) return
 
-    // Simple confirmation using browser confirm
-    if (!confirm('Are you sure you want to clear all drafts? This action cannot be undone.')) {
-      return
-    }
+    const confirmed = await confirmDialog.confirm({
+      title: 'Clear All Drafts',
+      message: 'All draft applications will be permanently deleted.',
+      confirmText: 'Clear All',
+      variant: 'danger'
+    })
+    if (!confirmed) return
 
     setIsDeleting(true)
     try {
@@ -81,6 +89,7 @@ export const useDraftManager = () => {
   return {
     deleteDraft,
     clearAllDrafts,
-    isDeleting
+    isDeleting,
+    confirmDialog
   }
 }

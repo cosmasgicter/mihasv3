@@ -268,10 +268,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="page-container bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 transition-colors duration-500">
-      {/* Header */}
-
-      <main className="w-full">
-        <div className="content-wrapper py-4 sm:py-6 lg:py-8 safe-area-bottom">
+      <main className="w-full max-w-full overflow-x-hidden">
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 safe-area-bottom">
         {/* Enhanced Welcome Section */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -283,13 +281,13 @@ export default function AdminDashboard() {
             <div className="relative z-10">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 break-words">
                     Welcome back, {sanitizeForDisplay(profile?.full_name?.split(' ')[0]) || 'Admin'}
                   </h1>
-                  <p className="text-lg sm:text-xl text-white/90 mb-4">
+                  <p className="text-base sm:text-lg text-white/90 mb-4 break-words">
                     Here's your system overview for today
                   </p>
-                  <div className="flex items-center space-x-4 text-sm">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
                     <div className="flex items-center space-x-2">
                       <div className={`w-3 h-3 rounded-full ${
                         stats.systemHealth === 'excellent' ? 'bg-green-400' :
@@ -304,7 +302,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right space-y-2">
+                <div className="text-right space-y-2 flex-shrink-0">
                   <div className="text-3xl sm:text-4xl font-bold">{stats.totalApplications}</div>
                   <div className="text-sm sm:text-base text-white/80">Total Applications</div>
                   <Button
@@ -365,7 +363,7 @@ export default function AdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8"
         >
           {/* Today's Applications */}
           <motion.div 

@@ -52,6 +52,7 @@ async function handler(req, res) {
   }
 
   try {
+    // Create in-app notification
     const { data: notification, error } = await supabaseAdminClient
       .from('notifications')
       .insert({
@@ -67,7 +68,25 @@ async function handler(req, res) {
       return res.status(400).json({ error: error.message })
     }
 
-    // Skip audit logging for now
+    // Send email notification if requested
+    if (to && body.sendEmail !== false) {
+      try {
+        const { generateGenericNotificationEmail } = await import('../_lib/emailTemplates.js');
+        const html = generateGenericNotificationEmail({
+          title: subject,
+          message,
+          actionUrl: body.actionUrl,
+          actionText: body.actionText
+        });
+        
+        await supabaseAdminClient.functions.invoke('send-email', {
+          body: { to, subject, html }
+        });
+      } catch (emailError) {
+        console.error('Failed to send email notification:', emailError);
+      }
+    }
+
     console.log('Notification sent:', notification?.id)
 
     return res.status(201).json({

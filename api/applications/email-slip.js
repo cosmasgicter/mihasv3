@@ -74,27 +74,25 @@ async function handler(req, res) {
     const pdfBuffer = await generateApplicationSlip(slipData);
     const pdfBase64 = pdfBuffer.toString('base64');
 
+    // Generate email HTML using unified template
+    const { generateApplicationSlipEmail } = await import('../_lib/emailTemplates.js');
+    
+    const emailHtml = generateApplicationSlipEmail({
+      full_name: application.full_name,
+      application_number: application.application_number,
+      public_tracking_code: application.public_tracking_code,
+      program_name: application.program,
+      status: application.status,
+      submitted_at: application.submitted_at,
+      slipUrl: `https://apply.mihas.edu.zm/track-application?code=${application.public_tracking_code}`
+    });
+
     // Send email with PDF attachment
     const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-email', {
       body: {
         to: recipientEmail,
         subject: `Application Slip - ${application.application_number}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #472bb5;">Your MIHAS Application Slip</h2>
-            <p>Dear ${application.full_name || 'Applicant'},</p>
-            <p>Please find your official application slip attached to this email.</p>
-            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin: 0 0 10px 0; color: #374151;">Application Details:</h3>
-              <p><strong>Application Number:</strong> ${application.application_number}</p>
-              <p><strong>Tracking Code:</strong> ${application.public_tracking_code}</p>
-              <p><strong>Program:</strong> ${application.program}</p>
-              <p><strong>Status:</strong> ${application.status}</p>
-            </div>
-            <p>You can also track your application online at: <a href="https://apply.mihas.edu.zm/track-application?code=${application.public_tracking_code}">Track Application</a></p>
-            <p>Best regards,<br>MIHAS Admissions Team</p>
-          </div>
-        `,
+        html: emailHtml,
         attachments: [{
           filename: `application-slip-${application.application_number}.pdf`,
           content: pdfBase64,

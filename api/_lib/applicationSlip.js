@@ -1,5 +1,8 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import QRCode from 'qrcode';
+// Re-export from unified template system
+export { generateApplicationSlip, generateAcceptanceLetter, generatePaymentReceipt } from './pdfTemplates.js';
+
+// Legacy export for backwards compatibility
+import { generateApplicationSlip as _generateApplicationSlip } from './pdfTemplates.js';
 
 function safeText(value, fallback = 'Not provided') {
   if (!value) return fallback;
@@ -45,7 +48,8 @@ function buildTrackingUrl(code) {
   return `${baseUrl}/track-application?code=${encodeURIComponent(code)}`;
 }
 
-export async function generateApplicationSlip(data) {
+// Legacy function - redirects to unified system
+export async function generateApplicationSlipLegacy(data) {
   if (!data || !data.application_number || !data.public_tracking_code) {
     throw new Error('Missing application data for slip generation');
   }
@@ -60,13 +64,18 @@ export async function generateApplicationSlip(data) {
 
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 size in points
     const { width, height } = page.getSize();
-    const margin = 48;
+    const margin = 50;
 
     const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    const brandColor = rgb(71 / 255, 43 / 255, 181 / 255);
-    const accentColor = rgb(236 / 255, 233 / 255, 252 / 255);
+    // Modern color palette matching email template
+    const primaryBlue = rgb(14 / 255, 165 / 255, 233 / 255); // #0ea5e9 - sky-500
+    const darkGray = rgb(17 / 255, 24 / 255, 39 / 255); // #111827 - gray-900
+    const mediumGray = rgb(75 / 255, 85 / 255, 99 / 255); // #4b5563 - gray-600
+    const lightGray = rgb(249 / 255, 250 / 255, 251 / 255); // #f9fafb - gray-50
+    const borderGray = rgb(229 / 255, 231 / 255, 235 / 255); // #e5e7eb - gray-200
+    const white = rgb(1, 1, 1);
 
     // Embed logos from local files or fallback to CDN
     let katcLogo, mihasLogo;
@@ -104,48 +113,49 @@ export async function generateApplicationSlip(data) {
       mihasLogo = await pdfDoc.embedPng(mihasLogoBytes);
     }
 
-    // Header banner
+    // Clean header banner matching email style
     page.drawRectangle({
       x: 0,
       y: height - 140,
       width,
       height: 140,
-      color: brandColor
+      color: primaryBlue
     });
 
-    // Draw logos
-    const logoHeight = 80;
+    // Clean logo presentation
+    const logoHeight = 70;
     const katcLogoWidth = (katcLogo.width / katcLogo.height) * logoHeight;
     const mihasLogoWidth = (mihasLogo.width / mihasLogo.height) * logoHeight;
 
     page.drawImage(katcLogo, {
       x: margin,
-      y: height - 130,
+      y: height - 120,
       width: katcLogoWidth,
       height: logoHeight
     });
 
     page.drawImage(mihasLogo, {
       x: width - margin - mihasLogoWidth,
-      y: height - 130,
+      y: height - 120,
       width: mihasLogoWidth,
       height: logoHeight
     });
 
-    page.drawText('MIHAS Admissions', {
-      x: width / 2 - 120,
-      y: height - 80,
+    // Clean centered title
+    page.drawText('Application received', {
+      x: width / 2 - 100,
+      y: height - 75,
       size: 28,
       font: boldFont,
-      color: rgb(1, 1, 1)
+      color: white
     });
 
     page.drawText('Official Application Slip', {
-      x: width / 2 - 90,
-      y: height - 110,
-      size: 16,
+      x: width / 2 - 75,
+      y: height - 100,
+      size: 14,
       font: regularFont,
-      color: rgb(1, 1, 1)
+      color: white
     });
 
     let cursorY = height - 170;
@@ -156,90 +166,149 @@ export async function generateApplicationSlip(data) {
         y: cursorY,
         size: 14,
         font: boldFont,
-        color: brandColor
+        color: darkGray
       });
-      cursorY -= 20;
+      cursorY -= 8;
       page.drawLine({
         start: { x: margin, y: cursorY },
         end: { x: width - margin, y: cursorY },
         thickness: 1,
-        color: brandColor
+        color: borderGray
       });
-      cursorY -= 16;
+      cursorY -= 20;
     };
 
-    const drawField = (label, value) => {
-      page.drawText(label, {
+    // Table-style field rendering matching email template
+    const drawTableRow = (label, value, isEven = false) => {
+      const rowHeight = 32;
+      const labelWidth = 200;
+      
+      // Label cell (gray background)
+      page.drawRectangle({
         x: margin,
-        y: cursorY,
+        y: cursorY - rowHeight,
+        width: labelWidth,
+        height: rowHeight,
+        color: lightGray,
+        borderColor: borderGray,
+        borderWidth: 0.5
+      });
+      
+      page.drawText(label, {
+        x: margin + 12,
+        y: cursorY - 20,
         size: 11,
         font: boldFont,
-        color: rgb(55 / 255, 65 / 255, 81 / 255)
-      });
-      cursorY -= 14;
-      page.drawText(value, {
-        x: margin,
-        y: cursorY,
-        size: 11,
-        font: regularFont,
         color: rgb(31 / 255, 41 / 255, 55 / 255)
       });
-      cursorY -= 18;
+      
+      // Value cell (white background)
+      page.drawRectangle({
+        x: margin + labelWidth,
+        y: cursorY - rowHeight,
+        width: width - margin * 2 - labelWidth,
+        height: rowHeight,
+        color: white,
+        borderColor: borderGray,
+        borderWidth: 0.5
+      });
+      
+      page.drawText(value, {
+        x: margin + labelWidth + 12,
+        y: cursorY - 20,
+        size: 11,
+        font: regularFont,
+        color: darkGray
+      });
+      
+      cursorY -= rowHeight;
     };
 
-    sectionHeading('Applicant Details');
-    drawField('Applicant Name', safeText(data.full_name, 'Not provided'));
-    drawField('Email', safeText(data.email, 'Not provided'));
-    drawField('Phone', safeText(data.phone, 'Not provided'));
-
-    sectionHeading('Application Summary');
-    drawField('Application Number', safeText(data.application_number));
-    drawField('Tracking Code', safeText(data.public_tracking_code));
-    drawField('Program', safeText(data.program_name, 'Not specified'));
-    drawField('Intake', safeText(data.intake_name, 'Not specified'));
-    drawField('Institution', safeText(data.institution, 'Not specified'));
-
-    sectionHeading('Status & Timeline');
-    drawField('Current Status', formatStatusLabel(data.status, 'Unknown'));
-    drawField('Payment Status', formatStatusLabel(data.payment_status, 'Pending Review'));
-    drawField('Submitted At', formatDateTime(data.submitted_at));
-    drawField('Last Updated', formatDateTime(data.updated_at));
-
-    const statusBoxHeight = 70;
-    const statusBoxY = cursorY - statusBoxHeight;
-    page.drawRectangle({
+    // Main content in table format
+    page.drawText('Thank you for submitting your application to MIHAS. We have received the', {
       x: margin,
-      y: statusBoxY,
-      width: width - margin * 2 - 140,
-      height: statusBoxHeight,
-      color: accentColor,
-      borderColor: brandColor,
-      borderWidth: 1
+      y: cursorY,
+      size: 11,
+      font: regularFont,
+      color: mediumGray
     });
-
-    page.drawText('Next Steps', {
-      x: margin + 16,
-      y: statusBoxY + statusBoxHeight - 24,
-      size: 12,
-      font: boldFont,
-      color: brandColor
+    cursorY -= 14;
+    page.drawText('details below and will notify you once they have been reviewed.', {
+      x: margin,
+      y: cursorY,
+      size: 11,
+      font: regularFont,
+      color: mediumGray
     });
+    cursorY -= 30;
 
-    const nextSteps = 'Our admissions team will contact you with further updates.';
-    page.drawText(nextSteps, {
-      x: margin + 16,
-      y: statusBoxY + statusBoxHeight - 40,
+    // Application details table
+    drawTableRow('Application number', safeText(data.application_number));
+    drawTableRow('Tracking code', safeText(data.public_tracking_code));
+    drawTableRow('Programme', safeText(data.program_name, 'Not specified'));
+    drawTableRow('Submission date', formatDateTime(data.submitted_at));
+    drawTableRow('Payment status', formatStatusLabel(data.payment_status, 'Pending Review'));
+    
+    cursorY -= 20;
+    
+    // Additional information
+    sectionHeading('Applicant Information');
+    drawTableRow('Full name', safeText(data.full_name, 'Not provided'));
+    drawTableRow('Email', safeText(data.email, 'Not provided'));
+    drawTableRow('Phone', safeText(data.phone, 'Not provided'));
+    
+    cursorY -= 20;
+    
+    sectionHeading('Status & Timeline');
+    drawTableRow('Current status', formatStatusLabel(data.status, 'Under Review'));
+    drawTableRow('Intake', safeText(data.intake_name, 'Not specified'));
+    drawTableRow('Institution', safeText(data.institution, 'Not specified'));
+    drawTableRow('Last updated', formatDateTime(data.updated_at));
+
+    cursorY -= 20;
+    
+    // Info box matching email style
+    page.drawText('Keep this information for your records. You can use your tracking code to', {
+      x: margin,
+      y: cursorY,
       size: 10,
       font: regularFont,
-      maxWidth: width - margin * 2 - 172,
-      lineHeight: 12,
-      color: rgb(55 / 255, 65 / 255, 81 / 255)
+      color: mediumGray
+    });
+    cursorY -= 14;
+    page.drawText('check the status of your application at any time.', {
+      x: margin,
+      y: cursorY,
+      size: 10,
+      font: regularFont,
+      color: mediumGray
     });
 
-    cursorY = statusBoxY - 30;
-
+    // Footer matching email style
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width,
+      height: 50,
+      color: lightGray
+    });
+    
     const generatedAt = new Date();
-    drawField('Slip Generated On', formatDateTime(generatedAt.toISOString()));
+    page.drawText(`© ${generatedAt.getFullYear()} MIHAS. All rights reserved.`, {
+      x: width / 2 - 90,
+      y: 25,
+      size: 9,
+      font: regularFont,
+      color: mediumGray
+    });
+    
+    page.drawText(`Generated: ${formatDateTime(generatedAt.toISOString())}`, {
+      x: width / 2 - 80,
+      y: 12,
+      size: 8,
+      font: regularFont,
+      color: mediumGray
+    });
 
     const trackingUrl = buildTrackingUrl(data.public_tracking_code);
 
@@ -247,26 +316,38 @@ export async function generateApplicationSlip(data) {
       margin: 1,
       width: 240,
       color: {
-        dark: '#231F54',
+        dark: '#111827',
         light: '#FFFFFF'
       }
     });
 
     qrImage = await pdfDoc.embedPng(Buffer.from(qrDataUrl.split(',')[1], 'base64'));
-    const qrSize = 140;
+    const qrSize = 120;
+    
+    // QR code with clean border
+    page.drawRectangle({
+      x: width - margin - qrSize - 8,
+      y: margin + 8,
+      width: qrSize + 16,
+      height: qrSize + 40,
+      color: white,
+      borderColor: borderGray,
+      borderWidth: 1
+    });
+    
     page.drawImage(qrImage, {
       x: width - margin - qrSize,
-      y: margin + 20,
+      y: margin + 40,
       width: qrSize,
       height: qrSize
     });
 
-    page.drawText('Scan to track your application', {
-      x: width - margin - qrSize,
-      y: margin + 10,
-      size: 10,
+    page.drawText('Scan to track application', {
+      x: width - margin - qrSize + 5,
+      y: margin + 20,
+      size: 9,
       font: regularFont,
-      color: rgb(55 / 255, 65 / 255, 81 / 255)
+      color: mediumGray
     });
 
     const pdfBytes = await pdfDoc.save();
@@ -284,3 +365,6 @@ export async function generateApplicationSlip(data) {
     throw error;
   }
 }
+
+// Default export uses unified system
+export default { generateApplicationSlip: _generateApplicationSlip };

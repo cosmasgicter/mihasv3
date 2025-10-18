@@ -60,6 +60,53 @@ async function handler(req, res) {
         notes: notes || null
       })
 
+    // Send status update email
+    if (data.email && ['approved', 'rejected', 'pending_documents'].includes(status)) {
+      try {
+        const { 
+          generateApplicationApprovedEmail, 
+          generateApplicationRejectedEmail, 
+          generatePendingDocumentsEmail 
+        } = await import('../../_lib/emailTemplates.js');
+        
+        let emailHtml, subject;
+        
+        if (status === 'approved') {
+          emailHtml = generateApplicationApprovedEmail({
+            full_name: data.full_name,
+            application_number: data.application_number,
+            program_name: data.program,
+            institution: data.institution
+          });
+          subject = `🎉 Application Approved - ${data.program}`;
+        } else if (status === 'rejected') {
+          emailHtml = generateApplicationRejectedEmail({
+            full_name: data.full_name,
+            application_number: data.application_number,
+            program_name: data.program
+          });
+          subject = `Application Status Update - ${data.program}`;
+        } else if (status === 'pending_documents') {
+          emailHtml = generatePendingDocumentsEmail({
+            full_name: data.full_name,
+            application_number: data.application_number,
+            program_name: data.program
+          });
+          subject = `📄 Missing Documents Required - ${data.program}`;
+        }
+        
+        await supabaseAdminClient.functions.invoke('send-email', {
+          body: {
+            to: data.email,
+            subject,
+            html: emailHtml
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send status update email:', emailError);
+      }
+    }
+
     await logAuditEvent({
       req,
       action: 'applications.status.update',

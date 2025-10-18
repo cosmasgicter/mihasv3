@@ -49,6 +49,8 @@ npm run test:unit
 ## 📖 Documentation
 
 - **API Structure Guide**: `API_STRUCTURE_GUIDE.md` ⭐ **READ THIS FIRST**
+- **Unified Templates System**: `docs/UNIFIED_TEMPLATES_SYSTEM.md` ⭐ **NEW**
+- **Template Migration Guide**: `docs/TEMPLATE_MIGRATION_GUIDE.md`
 - **Complete Source Code**: `COMPLETE_SOURCE_CODE_FINAL.md` (2.6MB, 457 files)
 - **User Guides**: `docs/guides/`
 - **Technical Reports**: `docs/reports/`

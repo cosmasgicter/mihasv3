@@ -20,6 +20,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { toast } from '@/lib/toast'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -35,6 +37,7 @@ export default function StudentDashboard() {
   const [isClearingAllDrafts, setIsClearingAllDrafts] = useState(false)
   const hasLoadedRef = useRef(false)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const confirmDialog = useConfirmDialog()
 
   useEffect(() => {
     if (user) {
@@ -225,7 +228,8 @@ export default function StudentDashboard() {
   const totalDraftCount = draftApplications.length + (hasLocalDraftOnly ? 1 : 0)
 
   return (
-    <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-3 sm:px-6 lg:px-8 w-full max-w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto w-full">
         {isInitialLoading ? (
           <StudentDashboardSkeleton />
         ) : (
@@ -347,7 +351,7 @@ export default function StudentDashboard() {
                         transition={{ delay: index * 0.05 }}
                         className="px-6 py-5 transition-colors hover:bg-amber-50 dark:bg-amber-950/30/60"
                       >
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between min-w-0">
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
@@ -384,9 +388,13 @@ export default function StudentDashboard() {
                               size="sm"
                               className="w-full sm:w-auto border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30"
                               onClick={async () => {
-                                if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
-                                  return
-                                }
+                                const confirmed = await confirmDialog.confirm({
+                                  title: 'Delete Draft',
+                                  message: 'This draft will be permanently deleted.',
+                                  confirmText: 'Delete',
+                                  variant: 'danger'
+                                })
+                                if (!confirmed) return
                                 try {
                                   await applicationService.delete(application.id)
                                   setApplications(prev => prev.filter(app => app.id !== application.id))
@@ -415,7 +423,7 @@ export default function StudentDashboard() {
 
                     {hasLocalDraftOnly && (
                       <div className="px-6 py-5">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
                           <div className="space-y-1">
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
@@ -443,9 +451,13 @@ export default function StudentDashboard() {
                               size="sm"
                               className="w-full sm:w-auto border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30"
                               onClick={async () => {
-                                if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
-                                  return
-                                }
+                                const confirmed = await confirmDialog.confirm({
+                                  title: 'Delete Draft',
+                                  message: 'This local draft will be permanently deleted.',
+                                  confirmText: 'Delete',
+                                  variant: 'danger'
+                                })
+                                if (!confirmed) return
                                 try {
                                   clearAllDraftData()
                                   if (user) {
@@ -479,27 +491,27 @@ export default function StudentDashboard() {
                         transition={{ delay: 0.1 + index * 0.05 }}
                         className="px-6 py-5 transition-colors hover:bg-blue-50 dark:bg-blue-950/30/60"
                       >
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                              {getStatusIcon(application.status)}
-                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">{getProgramName(application.program)}</h4>
-                              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(application.status)}`}>
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between min-w-0">
+                          <div className="space-y-2 min-w-0 flex-1">
+                            <div className="flex items-start gap-2 flex-wrap">
+                              <div className="flex-shrink-0">{getStatusIcon(application.status)}</div>
+                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 break-words min-w-0 flex-1">{getProgramName(application.program)}</h4>
+                              <span className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap ${getStatusColor(application.status)}`}>
                                 {application.status.replace('_', ' ').toUpperCase()}
                               </span>
                             </div>
-                            <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
-                              <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500 dark:text-gray-500">Application:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">#{application.application_number}</dd>
+                            <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 grid-cols-1 sm:grid-cols-2">
+                              <div className="flex gap-2 min-w-0">
+                                <dt className="font-medium text-gray-500 dark:text-gray-500 flex-shrink-0">Application:</dt>
+                                <dd className="text-gray-900 dark:text-gray-100 break-all min-w-0">#{application.application_number}</dd>
                               </div>
-                              <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500 dark:text-gray-500">Intake:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">{getIntakeName(application.intake)}</dd>
+                              <div className="flex gap-2 min-w-0">
+                                <dt className="font-medium text-gray-500 dark:text-gray-500 flex-shrink-0">Intake:</dt>
+                                <dd className="text-gray-900 dark:text-gray-100 break-words min-w-0">{getIntakeName(application.intake)}</dd>
                               </div>
-                              <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500 dark:text-gray-500">Submitted:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">{formatDate(application.submitted_at)}</dd>
+                              <div className="flex gap-2 min-w-0">
+                                <dt className="font-medium text-gray-500 dark:text-gray-500 flex-shrink-0">Submitted:</dt>
+                                <dd className="text-gray-900 dark:text-gray-100 min-w-0">{formatDate(application.submitted_at)}</dd>
                               </div>
                             </dl>
                           </div>
@@ -526,25 +538,25 @@ export default function StudentDashboard() {
                   icon={<User className="h-5 w-5" />}
                 >
                   <div className="grid gap-3">
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3 overflow-hidden">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Full name</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3 overflow-hidden">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Email</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-all overflow-wrap-anywhere">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
                     </div>
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3 overflow-hidden">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Phone</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3 overflow-hidden">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Residence</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}
                       </p>
                     </div>
@@ -622,9 +634,13 @@ export default function StudentDashboard() {
                         className="w-full justify-start border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30"
                         disabled={isClearingAllDrafts}
                         onClick={async () => {
-                          if (!confirm('Are you sure you want to clear all drafts? This action cannot be undone.')) {
-                            return
-                          }
+                          const confirmed = await confirmDialog.confirm({
+                            title: 'Clear All Drafts',
+                            message: 'All draft applications will be permanently deleted.',
+                            confirmText: 'Clear All',
+                            variant: 'danger'
+                          })
+                          if (!confirmed) return
                           setIsClearingAllDrafts(true)
                           try {
                             clearAllDraftData()
@@ -680,6 +696,17 @@ export default function StudentDashboard() {
             </div>
           </div>
         )}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={confirmDialog.handleCancel}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
+      </div>
     </div>
   )
 }

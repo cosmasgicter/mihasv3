@@ -1,14 +1,15 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSidebar } from '@/contexts/SidebarContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 
 export const DesktopSidebar = React.memo(function DesktopSidebar() {
   const location = useLocation()
   const { user, isAdmin } = useAuth()
-  const [collapsed, setCollapsed] = useState(false)
+  const { collapsed, setCollapsed } = useSidebar()
 
   if (!user) return null
 

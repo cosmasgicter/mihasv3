@@ -41,16 +41,16 @@ function normalizeRecord(record) {
   return {
     id: record.id,
     action: record.action,
-    actorId: record.actor_id,
+    actorId: record.actor_id || record.user_id,
     actorEmail: record.actor_email,
     actorRoles: record.actor_roles || [],
-    targetTable: record.target_table,
-    targetId: record.target_id,
-    targetLabel: record.target_label,
-    requestId: record.request_id,
-    requestIp: record.request_ip,
+    targetTable: record.target_table || record.table_name,
+    targetId: record.target_id || record.record_id,
+    targetLabel: record.target_label || null,
+    requestId: record.request_id || record.id,
+    requestIp: record.request_ip || record.ip_address,
     userAgent: record.user_agent,
-    metadata: record.metadata || {},
+    metadata: record.metadata || record.details || {},
     createdAt: record.created_at
   }
 }
@@ -90,10 +90,10 @@ function applyAuditLogFilters(query, filters = {}) {
     nextQuery = nextQuery.ilike('actor_email', `%${filters.actorEmail}%`)
   }
   if (filters.targetTable) {
-    nextQuery = nextQuery.eq('target_table', filters.targetTable)
+    nextQuery = nextQuery.or(`target_table.eq.${filters.targetTable},table_name.eq.${filters.targetTable}`)
   }
   if (filters.targetId) {
-    nextQuery = nextQuery.eq('target_id', filters.targetId)
+    nextQuery = nextQuery.or(`target_id.eq.${filters.targetId},record_id.eq.${filters.targetId}`)
   }
   if (filters.from) {
     nextQuery = nextQuery.gte('created_at', filters.from)

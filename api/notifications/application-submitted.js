@@ -69,6 +69,7 @@ async function handler(req, res) {
       return res.status(404).json({ error: 'Application not found or access denied' })
     }
 
+    // Create in-app notification
     const { data: notification, error: notifError } = await supabaseAdminClient
       .from('in_app_notifications')
       .insert({
@@ -87,12 +88,37 @@ async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to create notification' })
     }
 
+    // Send email notification
+    if (application.email) {
+      try {
+        const { generateApplicationSubmittedEmail } = await import('../_lib/emailTemplates.js');
+        const html = generateApplicationSubmittedEmail({
+          full_name: application.full_name,
+          application_number: application.application_number,
+          public_tracking_code: application.public_tracking_code,
+          program_name: application.program,
+          institution: application.institution,
+          submitted_at: application.submitted_at
+        });
+        
+        await supabaseAdminClient.functions.invoke('send-email', {
+          body: {
+            to: application.email,
+            subject: `✅ Application Submitted Successfully - ${application.program}`,
+            html
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send submission email:', emailError);
+      }
+    }
+
     await supabaseAdminClient
       .from('notification_logs')
       .insert({
         user_id: userId,
         type: 'application_submitted',
-        channels: ['in_app'],
+        channels: ['in_app', 'email'],
         success_count: 1,
         total_count: 1,
         sent_at: new Date().toISOString()

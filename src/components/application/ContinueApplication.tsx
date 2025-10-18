@@ -7,6 +7,8 @@ import { applicationSessionManager } from '@/lib/applicationSession'
 import { cn, formatDate } from '@/lib/utils'
 import { FileText, Clock, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
 import { clearAllDraftData } from '@/lib/draftCleanup'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 interface DraftInfo {
   exists: boolean
@@ -23,6 +25,7 @@ export function ContinueApplication() {
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [currentTime, setCurrentTime] = useState(Date.now())
+  const confirmDialog = useConfirmDialog()
 
   useEffect(() => {
     if (user) {
@@ -56,9 +59,15 @@ export function ContinueApplication() {
   }
 
   const handleDeleteDraft = async () => {
-    if (!user || !confirm('Are you sure you want to delete your saved draft? This action cannot be undone.')) {
-      return
-    }
+    if (!user) return
+    
+    const confirmed = await confirmDialog.confirm({
+      title: 'Delete Draft',
+      message: 'Your saved draft will be permanently deleted.',
+      confirmText: 'Delete',
+      variant: 'danger'
+    })
+    if (!confirmed) return
 
     try {
       setDeleting(true)
@@ -222,6 +231,16 @@ export function ContinueApplication() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={confirmDialog.handleCancel}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </div>
   )
 }

@@ -27,9 +27,25 @@ a:hover {
   color: #535bf2;
 }
 
-body {
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+html, body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body {
   min-width: 320px;
   min-height: 100vh;
   font-family: Inter, system-ui, sans-serif;
@@ -37,8 +53,8 @@ body {
   color: #1f2937;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  width: 100%;
-  overflow-x: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 h1 {
@@ -141,6 +157,29 @@ button:focus-visible {
   box-sizing: border-box;
 }
 
+/* Root element */
+#root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Prevent text overflow globally */
+h1, h2, h3, h4, h5, h6, p, span, div {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.125rem; }
+}
+
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
@@ -203,14 +242,16 @@ html {
 /* Layout utilities */
 .page-container {
   width: 100%;
+  max-width: 100vw;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .content-wrapper {
   width: 100%;
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   padding-left: 1rem;
   padding-right: 1rem;
@@ -221,6 +262,7 @@ html {
   .content-wrapper {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
+    max-width: 1200px;
   }
 }
 
@@ -228,6 +270,13 @@ html {
   .content-wrapper {
     padding-left: 2rem;
     padding-right: 2rem;
+    max-width: 1400px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .content-wrapper {
+    max-width: 1600px;
   }
 }
 
@@ -238,12 +287,13 @@ html {
   justify-content: center;
   min-height: 50vh;
   width: 100%;
+  padding: 1rem;
 }
 
 .loading-card {
   background: white;
   border-radius: 1rem;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.05);
   max-width: 28rem;
@@ -251,15 +301,38 @@ html {
   text-align: center;
 }
 
-/* Legacy animation utilities - replaced by smooth-animations.css */
-.animate-fadeIn {
-  animation: smoothFadeIn 0.3s ease-out;
+@media (min-width: 640px) {
+  .loading-card {
+    padding: 2rem;
+  }
 }
 
-.animate-slideUp {
-  animation: smoothSlideUp 0.3s ease-out;
+/* Responsive utilities */
+.truncate-mobile {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.animate-slideDown {
-  animation: smoothSlideDown 0.3s ease-out;
+@media (min-width: 640px) {
+  .truncate-mobile {
+    white-space: normal;
+  }
+}
+
+/* Safe area for mobile notches */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
 }

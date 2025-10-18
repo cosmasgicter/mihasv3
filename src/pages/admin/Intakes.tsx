@@ -12,7 +12,7 @@ import {
   DialogFooter,
 } from '@/components/ui/Dialog'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { Pencil, Trash2, Plus, ArrowLeft } from 'lucide-react'
+import { Pencil, Trash2, Plus, ArrowLeft, Calendar, BarChart3, Target } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'

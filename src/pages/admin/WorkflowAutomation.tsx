@@ -100,9 +100,9 @@ export default function WorkflowAutomation() {
       case 'time_based':
         return '⏰'
       case 'score_threshold':
-        return '<Target className="w-5 h-5" />'
+        return '🎯'
       default:
-        return '<Zap className="w-5 h-5" />'
+        return '⚡'
     }
   }
 

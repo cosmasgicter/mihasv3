@@ -118,6 +118,8 @@ const getAppBaseUrl = () => {
   return import.meta.env.VITE_APP_BASE_URL || apiBase
 }
 
+// DEPRECATED: Legacy text-based email templates
+// Use api/_lib/emailTemplates.js for new HTML email templates
 export const EMAIL_TEMPLATES = {
   submitted: {
     subject: (program: string) => `✅ Application Submitted Successfully - ${program}`,

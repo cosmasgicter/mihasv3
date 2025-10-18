@@ -180,10 +180,9 @@ export class AnalyticsService {
       })
       .eq('id', id)
       .select()
-      .single()
 
     if (error) throw error
-    return data
+    return data?.[0]
   }
 
   static async deleteApplicationStats(id: string) {
@@ -272,7 +271,7 @@ export class AnalyticsService {
     if (error) throw error
   }
 
-  static async getProgramAnalytics(programId?: string): Promise<ProgramAnalytics[]> {
+  static async getProgramAnalytics(programId?: string, startDate?: string, endDate?: string): Promise<ProgramAnalytics[]> {
     let query = supabase
       .from('program_analytics')
       .select(`
@@ -282,6 +281,14 @@ export class AnalyticsService {
 
     if (programId) {
       query = query.eq('program_id', programId)
+    }
+
+    if (startDate) {
+      query = query.gte('date', startDate)
+    }
+
+    if (endDate) {
+      query = query.lte('date', endDate)
     }
 
     const { data, error } = await query.order('date', { ascending: false })
@@ -528,8 +535,7 @@ export class AnalyticsService {
     const { data: applications } = await supabase
       .from('applications')
       .select('*')
-      .gte('created_at', `${today}T00:00:00`)
-      .lt('created_at', `${today}T23:59:59`)
+      .neq('status', 'draft')
 
     if (applications) {
       const stats = {
@@ -541,18 +547,22 @@ export class AnalyticsService {
         pendingApplications: applications.filter(app => ['submitted', 'under_review'].includes(app.status)).length
       }
 
-      // Check if today's stats exist, update or create
-      const { data: existingStats } = await supabase
+      // Upsert today's stats
+      const { error } = await supabase
         .from('application_statistics')
-        .select('id')
-        .eq('date', today)
-        .single()
+        .upsert({
+          date: today,
+          total_applications: stats.totalApplications,
+          submitted_applications: stats.submittedApplications,
+          approved_applications: stats.approvedApplications,
+          rejected_applications: stats.rejectedApplications,
+          pending_applications: stats.pendingApplications,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'date'
+        })
 
-      if (existingStats) {
-        await this.updateApplicationStats(existingStats.id, stats)
-      } else {
-        await this.createApplicationStats(stats)
-      }
+      if (error) throw error
     }
   }
 
@@ -591,7 +601,7 @@ export class AnalyticsService {
   static async getAnalyticsSummary(startDate: string, endDate: string) {
     const [appStats, progAnalytics, eligAnalytics, engagement] = await Promise.all([
       this.getApplicationStatistics(startDate, endDate),
-      this.getProgramAnalytics(),
+      this.getProgramAnalytics(undefined, startDate, endDate),
       this.getEligibilityAnalytics(startDate, endDate),
       this.getUserEngagementMetrics(startDate, endDate)
     ])

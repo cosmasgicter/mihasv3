@@ -647,12 +647,12 @@ export default function AuditTrailPage() {
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All categories</option>
-                <option value="Authentication">🔐 Authentication</option>
-                <option value="Data"><BarChart3 className="w-5 h-5" /> Data Operations</option>
-                <option value="Access">👁️ Access & Views</option>
-                <option value="System">⚙️ System Settings</option>
-                <option value="Communication">📧 Communications</option>
-                <option value="Analytics"><TrendingUp className="w-5 h-5" /> Analytics</option>
+                <option value="Authentication">Authentication</option>
+                <option value="Data">Data Operations</option>
+                <option value="Access">Access & Views</option>
+                <option value="System">System Settings</option>
+                <option value="Communication">Communications</option>
+                <option value="Analytics">Analytics</option>
               </select>
             </div>
             <div>

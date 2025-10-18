@@ -4,7 +4,9 @@ import { supabase } from '@/lib/supabase'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { ArrowLeft, Plus, Edit2, Trash2, Save, X, Settings, Globe, Lock, Database } from 'lucide-react'
+import { ArrowLeft, Plus, Edit2, Trash2, Save, X, Settings, Globe, Lock, Database, Grid, List } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 interface SystemSetting {
   id: string
@@ -36,7 +38,9 @@ export default function AdminSettings() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'public' | 'private'>('all')
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
   const [editForm, setEditForm] = useState<Partial<SystemSetting>>({})
+  const confirmDialog = useConfirmDialog()
   const [newSetting, setNewSetting] = useState<NewSetting>({
     setting_key: '',
     setting_value: '',
@@ -114,7 +118,13 @@ export default function AdminSettings() {
   }
 
   const handleDelete = async (id: string, key: string) => {
-    if (!confirm(`Are you sure you want to delete the setting "${key}"?`)) return
+    const confirmed = await confirmDialog.confirm({
+      title: 'Delete Setting',
+      message: `The setting "${key}" will be permanently deleted.`,
+      confirmText: 'Delete',
+      variant: 'danger'
+    })
+    if (!confirmed) return
     try {
       setSaving(true)
       setError('')
@@ -211,9 +221,26 @@ export default function AdminSettings() {
 
   const formatValue = (value: string, type: string) => {
     if (type === 'boolean') return value === 'true' ? '✅ Yes' : '❌ No'
-    if (type === 'decimal') return `$${value}`
+    if (type === 'decimal') return parseFloat(value).toFixed(2)
+    if (type === 'integer') return parseInt(value).toLocaleString()
     return value
   }
+
+  const getSettingCategory = (key: string): string => {
+    if (key.includes('email') || key.includes('contact') || key.includes('phone')) return 'Contact'
+    if (key.includes('fee') || key.includes('payment') || key.includes('price')) return 'Financial'
+    if (key.includes('enable') || key.includes('allow') || key.includes('disable')) return 'Features'
+    if (key.includes('max') || key.includes('min') || key.includes('limit')) return 'Limits'
+    if (key.includes('site') || key.includes('name') || key.includes('title')) return 'General'
+    return 'Other'
+  }
+
+  const groupedSettings = filteredSettings.reduce((acc, setting) => {
+    const category = getSettingCategory(setting.setting_key)
+    if (!acc[category]) acc[category] = []
+    acc[category].push(setting)
+    return acc
+  }, {} as Record<string, SystemSetting[]>)
 
   const exportSettings = () => {
     const exportData = {
@@ -265,7 +292,13 @@ export default function AdminSettings() {
   }
 
   const resetToDefaults = async () => {
-    if (!confirm('Are you sure you want to reset all settings to defaults? This will delete all custom settings.')) return
+    const confirmed = await confirmDialog.confirm({
+      title: 'Reset to Defaults',
+      message: 'All custom settings will be deleted and replaced with default values.',
+      confirmText: 'Reset',
+      variant: 'warning'
+    })
+    if (!confirmed) return
     
     try {
       setSaving(true)
@@ -341,9 +374,9 @@ export default function AdminSettings() {
   }
 
   return (
-    
-        <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -365,7 +398,7 @@ export default function AdminSettings() {
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button 
                   onClick={() => setShowAddForm(true)}
-                  className="bg-white/10 dark:bg-gray-800/20 hover:bg-white/10 dark:bg-gray-800/20 text-gray-900 dark:text-gray-900 dark:text-white border-white/30"
+                  className="bg-white/10 dark:bg-gray-800/20 hover:bg-white/20 text-white border-white/30"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Setting
@@ -374,13 +407,13 @@ export default function AdminSettings() {
                   <Button 
                     onClick={exportSettings}
                     variant="outline"
-                    className="bg-white/10 dark:bg-gray-800/10 hover:bg-white/10 dark:bg-gray-800/20 text-gray-900 dark:text-gray-900 dark:text-white border-white/30"
+                    className="bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 text-white border-white/30"
                     size="sm"
                   >
                     Export
                   </Button>
                   <label className="cursor-pointer">
-                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm border-2 border-secondary bg-transparent text-white hover:bg-secondary hover:text-white bg-white dark:bg-gray-800/10 hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30">
+                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 text-white border-white/30">
                       Import
                     </span>
                     <input
@@ -431,6 +464,22 @@ export default function AdminSettings() {
                 />
               </div>
               <div className="flex flex-wrap gap-2">
+                <div className="flex gap-1 mr-2">
+                  <Button
+                    variant={viewMode === 'table' ? 'primary' : 'outline'}
+                    onClick={() => setViewMode('table')}
+                    size="sm"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'cards' ? 'primary' : 'outline'}
+                    onClick={() => setViewMode('cards')}
+                    size="sm"
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                </div>
                 <Button
                   variant={filterType === 'all' ? 'primary' : 'outline'}
                   onClick={() => setFilterType('all')}
@@ -515,7 +564,7 @@ export default function AdminSettings() {
                         <select
                           value={newSetting.setting_type}
                           onChange={(e) => setNewSetting({...newSetting, setting_type: e.target.value as any})}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="string">String</option>
                           <option value="integer">Integer</option>
@@ -535,7 +584,7 @@ export default function AdminSettings() {
                           id="is_public"
                           checked={newSetting.is_public}
                           onChange={(e) => setNewSetting({...newSetting, is_public: e.target.checked})}
-                          className="rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+                          className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
                         />
                         <label htmlFor="is_public" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           Public Setting
@@ -562,10 +611,71 @@ export default function AdminSettings() {
                   </div>
                 )}
 
-                {/* Settings Table */}
-                <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
+                {/* Settings Display */}
+                {viewMode === 'cards' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Object.entries(groupedSettings).map(([category, categorySettings]) => (
+                      <div key={category} className="space-y-3">
+                        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide px-2">
+                          {category}
+                        </h3>
+                        {categorySettings.map((setting) => (
+                          <div key={setting.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Database className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{setting.setting_key}</span>
+                                </div>
+                                <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
+                                  setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
+                                  setting.setting_type === 'integer' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' :
+                                  setting.setting_type === 'decimal' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
+                                  'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
+                                }`}>
+                                  {setting.setting_type}
+                                </span>
+                              </div>
+                              <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
+                                setting.is_public ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                              }`}>
+                                {setting.is_public ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                              </span>
+                            </div>
+                            <div className="mb-3">
+                              <div className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+                                {formatValue(setting.setting_value, setting.setting_type)}
+                              </div>
+                              <p className="text-xs text-gray-500 dark:text-gray-500">{setting.description || 'No description'}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditStart(setting)}
+                                className="flex-1"
+                              >
+                                <Edit2 className="h-3 w-3 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDelete(setting.id, setting.setting_key)}
+                                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50 dark:bg-gray-900">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
@@ -588,7 +698,7 @@ export default function AdminSettings() {
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-200 divide-y divide-gray-200">
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                         {filteredSettings.map((setting) => (
                           <tr key={setting.id} className="hover:bg-gray-50 dark:bg-gray-900">
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -613,9 +723,9 @@ export default function AdminSettings() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                 setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
-                                setting.setting_type === 'integer' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800' :
+                                setting.setting_type === 'integer' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' :
                                 setting.setting_type === 'decimal' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
-                                'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+                                'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
                               }`}>
                                 {setting.setting_type}
                               </span>
@@ -626,7 +736,7 @@ export default function AdminSettings() {
                                   type="checkbox"
                                   checked={editForm.is_public || false}
                                   onChange={(e) => setEditForm({...editForm, is_public: e.target.checked})}
-                                  className="rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+                                  className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
                                 />
                               ) : (
                                 <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
@@ -694,9 +804,11 @@ export default function AdminSettings() {
                             </td>
                           </tr>
                         ))}
-                      </tbody>
-                    </table>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
+                )}
                   
                   {filteredSettings.length === 0 && (
                     <div className="text-center py-12">
@@ -713,12 +825,21 @@ export default function AdminSettings() {
                       )}
                     </div>
                   )}
-                </div>
               </>
             )}
           </div>
         </div>
       </div>
-    
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={confirmDialog.handleCancel}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
+    </div>
   )
 }
