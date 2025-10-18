@@ -396,6 +396,7 @@ const useWizardController = (): UseWizardControllerResult => {
       const dateOfBirth = getBestValue(profile?.date_of_birth, metadata.date_of_birth, '')
       const sex = getBestValue(profile?.sex, metadata.sex, '')
       const residenceTown = getBestValue(profile?.city || profile?.address, metadata.city, '')
+      const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
       const nextOfKinName = getBestValue(profile?.next_of_kin_name, metadata.next_of_kin_name, '')
       const nextOfKinPhone = getBestValue(profile?.next_of_kin_phone, metadata.next_of_kin_phone, '')
 
@@ -405,6 +406,7 @@ const useWizardController = (): UseWizardControllerResult => {
       if (dateOfBirth) setValue('date_of_birth', dateOfBirth)
       if (sex) setValue('sex', sex as 'Male' | 'Female')
       if (residenceTown) setValue('residence_town', residenceTown)
+      if (nationality) setValue('nationality', nationality)
       if (nextOfKinName) setValue('next_of_kin_name', nextOfKinName)
       if (nextOfKinPhone) setValue('next_of_kin_phone', nextOfKinPhone)
     }
@@ -483,6 +485,7 @@ const useWizardController = (): UseWizardControllerResult => {
           setValue('phone', app.phone || '')
           setValue('email', app.email || '')
           setValue('residence_town', app.residence_town || '')
+          setValue('nationality', (app as any).nationality || 'Zambian')
           setValue('next_of_kin_name', app.next_of_kin_name || '')
           setValue('next_of_kin_phone', app.next_of_kin_phone || '')
           setValue('payment_method', app.payment_method || '')
@@ -586,7 +589,35 @@ const useWizardController = (): UseWizardControllerResult => {
     const subscription = watch(() => {
       if (timeoutId) clearTimeout(timeoutId)
       timeoutId = setTimeout(() => {
-        void saveDraft()
+        // Inline save logic to avoid circular dependency
+        if (!user || isDraftSaving || restoringDraft || isSavingRef.current) return
+        
+        isSavingRef.current = true
+        setIsDraftSaving(true)
+        
+        try {
+          const formData = watch()
+          const draft = {
+            formData,
+            selectedGrades,
+            currentStep: currentStepConfig.id,
+            currentStepKey: currentStepConfig.key,
+            applicationId,
+            savedAt: new Date().toISOString(),
+            version: 2
+          }
+
+          localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
+          sessionStorage.removeItem('applicationWizardDraft')
+
+          setDraftSaved(true)
+          setTimeout(() => setDraftSaved(false), 2000)
+        } catch (error) {
+          console.error('Error saving draft:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+        } finally {
+          setIsDraftSaving(false)
+          isSavingRef.current = false
+        }
       }, 8000)
     })
 
@@ -594,7 +625,7 @@ const useWizardController = (): UseWizardControllerResult => {
       subscription.unsubscribe()
       if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [draftLoaded, restoringDraft, watch, saveDraft])
+  }, [draftLoaded, restoringDraft, watch, user, isDraftSaving, selectedGrades, currentStepConfig, applicationId])
 
   const addGrade = useCallback(() => {
     setSelectedGrades(prev => (prev.length < 10 ? [...prev, { subject_id: '', grade: 1 }] : prev))

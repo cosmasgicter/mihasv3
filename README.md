@@ -1,289 +1,100 @@
-# MIHAS Application System V2
+# MIHAS V3 - Application System
 
-## 🎉 Version 2.0 - Complete with All Improvements + Security Audit
+## 🎯 Project Overview
 
-This is the upgraded MIHAS/KATC Application System with all Phase 2 improvements integrated, comprehensive security audit completed, and ready for production deployment on Netlify.
+MIHAS (Medical Institute of Health and Allied Sciences) Application System V3 - A complete TypeScript/React application system for student admissions with enterprise-grade eligibility checking.
 
-### 🔒 Security Audit Completed
-- ✅ **300+ security vulnerabilities identified and fixed**
-- ✅ **Zero critical security issues remaining**
-- ✅ **Enterprise-grade security framework implemented**
-- ✅ **Production-ready security posture achieved**
-- ✅ **Comprehensive security test suite added**
+## 📁 Project Structure
 
-### ✨ V2 Features Included
+```
+mihasv3/
+├── src/                          # Source code
+├── api-functions/                # Netlify serverless functions
+├── docs/                         # Documentation
+│   ├── reports/                  # Analysis and audit reports
+│   ├── guides/                   # User guides and manuals
+│   └── analysis/                 # Technical analysis
+├── scripts/                      # Utility scripts
+│   ├── tests/                    # Test scripts
+│   ├── setup/                    # Setup and deployment scripts
+│   └── deployment/               # Deployment utilities
+├── archive/                      # Archived files
+├── COMPLETE_SOURCE_CODE_FINAL.md # Complete source code (2.6MB)
+├── COMPLETE_SOURCE_CODE_FINAL.txt # Complete source code (TXT format)
+├── package.json                  # Dependencies
+├── netlify.toml                  # Netlify configuration
+└── README.md                     # This file
+```
 
-#### Performance Enhancements
-- ✅ **Enhanced Loading Components**: Advanced spinners, skeletons, and progress indicators
-- ✅ **API Response Caching**: Smart caching with network-aware TTL
-- ✅ **Image Compression**: Automatic client-side compression before upload
-- ✅ **Database Optimization**: Connection pooling and query optimization utilities
+## 🚀 Quick Start
 
-#### Mobile-First Improvements
-- ✅ **Enhanced Mobile Navigation**: Fixed overlapping issues with proper z-index management
-- ✅ **Touch-Optimized Components**: 44px minimum touch targets following Apple/Google guidelines
-- ✅ **Mobile-Optimized Buttons**: Comprehensive button system with touch feedback
-- ✅ **Responsive Design**: Improved layouts across all screen sizes
-
-#### File Upload Enhancements
-- ✅ **Drag & Drop Support**: Modern file upload experience with react-dropzone
-- ✅ **Image Compression**: Client-side compression for large images
-- ✅ **Progress Tracking**: Real-time upload and compression progress
-- ✅ **Network Awareness**: Adaptive behavior based on connection speed
-- ✅ **Enhanced Validation**: Better error messages and file type checking
-
-#### Auto-Save & Draft Management
-- ✅ **Auto-Save Every 30 Seconds**: Automatic form data persistence
-- ✅ **Session Recovery**: Restore forms after browser crashes
-- ✅ **Draft Warnings**: Clear notifications about unsaved changes
-- ✅ **Session Timeout**: Configurable timeout with warnings
-
-#### Smart Features
-- ✅ **OCR Auto-Fill**: Extract data from uploaded documents using Tesseract.js
-- ✅ **Grade Calculator**: Automatic eligibility scoring
-- ✅ **Duplicate Detection**: Advanced duplicate application detection
-- ✅ **Smart Matching**: AI-powered program recommendations
-
-#### Enhanced Admin Tools
-- ✅ **Bulk Operations**: Multi-select with batch actions
-- ✅ **Enhanced Filtering**: 8+ filter types with quick filters
-- ✅ **Export Improvements**: Filtered data export capabilities
-- ✅ **Performance Dashboard**: Real-time system metrics
-
-#### Error Handling & UX
-- ✅ **User-Friendly Messages**: Technical errors translated to readable text
-- ✅ **Inline Validation**: Real-time form validation
-- ✅ **Error Recovery**: Automatic retry mechanisms with backoff
-- ✅ **Global Error Boundary**: Graceful error handling across the app
-
-#### Security & Compliance
-- ✅ **Comprehensive Security Framework**: Enterprise-grade security implementation
-- ✅ **Input Sanitization**: XSS and injection attack prevention
-- ✅ **SSRF Protection**: Server-side request forgery prevention
-- ✅ **File Upload Security**: Secure file handling with validation
-- ✅ **Rate Limiting**: API abuse prevention
-- ✅ **Security Headers**: CSP, HSTS, and other security headers
-- ✅ **Secure Error Handling**: Sanitized error messages and logging
-
-### 🚀 Quick Start
-
-#### For Netlify Deployment (Recommended)
-1. Upload this entire directory to Netlify
-2. Set build command: `npm run build:prod`
-3. Set publish directory: `dist`
-4. Configure environment variables (see DEPLOYMENT_GUIDE.md)
-5. Deploy!
-
-#### For the CloudFront CDN Deployment
-1. Provision the infrastructure in `infra/cdn` (Terraform 1.6+, AWS credentials required)
-   ```bash
-   cd infra/cdn
-   terraform init
-   terraform apply \
-     -var="project=mihas" \
-     -var="bucket_name=<unique-s3-bucket-name>" \
-     -var="domain_name=application.mihas.edu.zm" \
-     -var="hosted_zone_id=<route53-zone-id>" \
-     -var="certificate_arn=<acm-certificate-arn>"
-   ```
-2. Point your DNS `CNAME`/`A` record to the CloudFront domain output by Terraform (or let Terraform manage Route53).
-3. Build the site: `npm run build:prod`.
-4. Export the CloudFront details as environment variables before running `./deploy.sh`:
-   ```bash
-   export CDN_BUCKET_NAME=<same-s3-bucket-name>
-   export CDN_DISTRIBUTION_ID=<terraform-output-cdn_distribution_id>
-   ./deploy.sh
-   ```
-5. Verify the distribution is serving the new build from all required regions (see DEPLOYMENT_GUIDE.md for testing tips).
-
-#### For Local Development
+### Development
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
+```
 
-# Build for production
+### Production Build
+```bash
 npm run build:prod
 ```
 
-> The Vite development server reads its port from the `VITE_DEV_SERVER_PORT` environment variable (default `5173`).
-> Add it to your `.env.local` or `.env.development` file if you need to run on a different port.
-
-### 🌐 CDN Automation Environment Variables
-
-The `deploy.sh` script can automatically push the `dist/` build to CloudFront and invalidate cached objects when the following
-environment variables are defined:
-
-| Variable | Description |
-| --- | --- |
-| `CDN_BUCKET_NAME` | Name of the S3 bucket created by Terraform to store the static assets |
-| `CDN_DISTRIBUTION_ID` | CloudFront distribution identifier returned by Terraform |
-| `CDN_INVALIDATION_PATHS` | Optional space-delimited list of paths to invalidate (default: `/*`) |
-| `CDN_DEFAULT_CACHE_CONTROL` | Optional Cache-Control header applied during the S3 sync for hashed assets |
-| `CDN_HTML_CACHE_CONTROL` | Optional Cache-Control header override for HTML shell files |
-| `PUBLISH_TO_CDN` | Set to `false` to skip CDN publishing during a deploy run |
-
-### 📁 Project Structure
-
-```
-mihas-application-v2/
-├── src/
-│   ├── components/
-│   │   ├── ui/              # Enhanced UI components
-│   │   ├── admin/           # Enhanced admin components
-│   │   ├── forms/           # Form components
-│   │   └── ...
-│   ├── hooks/               # Enhanced hooks including V2 improvements
-│   ├── utils/               # V2 utilities (OCR, caching, etc.)
-│   ├── contexts/            # React contexts
-│   └── ...
-├── api/                     # Backend API functions
-├── netlify/
-│   └── functions/           # Netlify serverless functions
-├── .env                     # Environment variables template
-├── .env.production          # Production environment variables
-├── netlify.toml             # Netlify configuration with security headers
-├── deploy.sh                # Deployment script
-├── DEPLOYMENT_GUIDE.md      # Comprehensive deployment guide
-└── package.json             # Dependencies with V2 additions
+### Testing
+```bash
+npm run test
+npm run test:unit
 ```
 
-### 🔧 Technology Stack
+## 📖 Documentation
+
+- **Complete Source Code**: `COMPLETE_SOURCE_CODE_FINAL.md` (2.6MB, 457 files)
+- **User Guides**: `docs/guides/`
+- **Technical Reports**: `docs/reports/`
+- **Deployment Guide**: `docs/DEPLOYMENT_GUIDE.md`
+
+## 🔧 Technology Stack
 
 - **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: Tailwind CSS + Radix UI
-- **Backend**: Supabase (Database, Auth, Storage, Edge Functions)
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
 - **Deployment**: Netlify with serverless functions
-- **State Management**: Zustand + React Query
-- **File Upload**: React-Dropzone with compression
-- **OCR**: Tesseract.js for text extraction
-- **Forms**: React Hook Form + Zod validation
+- **State**: Zustand + React Query
+- **Forms**: React Hook Form + Zod
+- **Styling**: Tailwind CSS + Radix UI
 
-### 🌟 Key V2 Components
+## ✨ Key Features
 
-#### Enhanced File Upload
-```tsx
-import { EnhancedFileUpload } from '@/components/ui/EnhancedFileUpload'
+- 4-step application wizard
+- Enterprise eligibility checking (HPCZ, GNC/NMCZ, ECZ)
+- Auto-save every 8 seconds
+- Real-time eligibility assessment
+- Non-blocking design (students can always proceed)
+- Mobile-responsive
+- Offline capability (PWA)
 
-<EnhancedFileUpload
-  onFileSelect={handleFileUpload}
-  accept={['image/*', '.pdf']}
-  maxSize={5 * 1024 * 1024} // 5MB
-  autoCompress={true}
-  compressionQuality={0.8}
-/>
-```
+## 📊 System Statistics
 
-#### Auto-Save Hook
-```tsx
-import { useAutoSave } from '@/hooks/useAutoSave'
+- **Database Tables**: 86
+- **Source Files**: 457
+- **Lines of Code**: ~56,000
+- **API Functions**: 136
+- **React Components**: 120+
+- **Custom Hooks**: 38
 
-const { lastSaved, isDirty, isSaving } = useAutoSave(formData, {
-  interval: 30000, // 30 seconds
-  key: 'application-form'
-})
-```
+## 🔐 Security
 
-#### Enhanced Loading Spinner
-```tsx
-import { EnhancedLoadingSpinner } from '@/components/ui/EnhancedLoadingSpinner'
+- 300+ security vulnerabilities fixed
+- Zero critical issues
+- Enterprise-grade security framework
+- Input sanitization and validation
+- Rate limiting and CSRF protection
 
-<EnhancedLoadingSpinner 
-  variant="spinner" 
-  size="lg" 
-  message="Processing your application..." 
-/>
-```
+## 📞 Support
 
-### 📋 Environment Variables
-
-All environment variables are pre-configured for production. See `.env.production` for the complete list.
-
-- `VITE_DEV_SERVER_PORT` (default `5173`) – overrides the port used by the local Vite development scripts:
-  - `npm run dev`
-  - `npm run dev:network`
-
-#### Email delivery configuration
-
-The Supabase edge function `send-email` expects the following secrets to be configured (via `supabase secrets set` or your hosting provider):
-
-- `EMAIL_PROVIDER` – set to `resend` or `sendgrid`.
-- `EMAIL_FROM_ADDRESS` – default sender address used when provider-specific values are not supplied.
-- `RESEND_API_KEY` and optionally `RESEND_FROM_EMAIL` – required when `EMAIL_PROVIDER=resend`.
-- `SENDGRID_API_KEY` and optionally `SENDGRID_FROM_EMAIL` – required when `EMAIL_PROVIDER=sendgrid`.
-
-You may also provide `DEFAULT_FROM_EMAIL` as a fallback sender address if `EMAIL_FROM_ADDRESS` is not available.
-
-### 📖 Documentation
-
-- **DEPLOYMENT_GUIDE.md** - Complete deployment instructions
-- **Component documentation** - Available in V2 improvements package
-- **API documentation** - Available in the API directory
-
-### 🔐 Security Features
-
-- Content Security Policy headers
-- XSS protection
-- CSRF protection via Supabase RLS
-- Input validation and sanitization
-- File upload security checks
-
-### 📊 Performance Features
-
-- Code splitting and lazy loading
-- Service worker for offline capability
-- Image optimization and compression
-- API response caching
-- Database query optimization
-
-### 🧠 Shared API Cache Usage
-
-Feature teams can use the shared API client cache without changing existing service layers. `apiClient.request` automatically serves GET requests through the cache with a default TTL of five minutes and invalidates related entries after successful mutations. Use the following options to tune behavior when needed:
-
-```ts
-// Adjust cache lifetime for high-churn data (value in milliseconds)
-const programs = await apiClient.request('/api/catalog/programs', {
-  cacheTTL: 2 * 60 * 1000 // Cache results for 2 minutes
-})
-
-// Skip the cache when a fresh fetch is required (e.g., admin overrides)
-const latest = await apiClient.request('/api/catalog/programs', {
-  skipCache: true
-})
-
-// Disable caching for a specific call without affecting global defaults
-await apiClient.request('/api/catalog/programs', {
-  useCache: false
-})
-
-// Provide explicit invalidation targets for mutations that affect multiple views
-await apiClient.request('/api/catalog/programs', {
-  method: 'POST',
-  body: JSON.stringify(newProgram),
-  invalidateCache: [
-    '/api/catalog/programs',
-    `/api/catalog/programs/${newProgram.id}`
-  ]
-})
-```
-
-Additional controls include the `cacheKey` option (for advanced scenarios such as multi-tenant caches) and the automatic cache purge for related REST routes when a mutation succeeds. Teams can also combine these options—e.g., `skipCache: true` together with a custom `invalidateCache` pattern—to orchestrate cache refreshes tailored to their feature domains.
-
-### 🎯 Production Ready
-
-This application is fully configured and ready for production deployment with:
-- ✅ All V2 improvements integrated
-- ✅ Production environment variables configured
-- ✅ Netlify deployment configuration complete
-- ✅ Security headers and performance optimizations
-- ✅ Error handling and monitoring
-- ✅ Mobile-first responsive design
+- **Technical**: admin@mihas.edu.zm
+- **Admissions**: admissions@mihas.edu.zm
 
 ---
 
-**Version**: 2.0.0 with V2 Improvements  
+**Version**: 3.0 (Enterprise Eligibility System)  
 **Status**: Production Ready  
-**Last Updated**: 2025-09-23  
-**Author**: MiniMax Agent
+**Last Updated**: 2025-01-23

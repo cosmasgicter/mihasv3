@@ -22,95 +22,143 @@ export interface ComplianceCheck {
   verified_at?: string
 }
 
-// HPCZ Guidelines for Health Programs
+// HPCZ Guidelines for Health Programs (Based on official HPCZ requirements)
 export const HPCZ_GUIDELINES: RegulatoryGuideline[] = [
   {
     id: 'hpcz-001',
     regulatory_body: 'HPCZ',
-    program_code: 'CMED',
-    program_name: 'Clinical Medicine',
+    program_code: 'DCM',
+    program_name: 'Diploma in Clinical Medicine',
     guideline_type: 'admission',
-    requirement_text: 'Minimum of 5 O-Level credits including English, Mathematics, Biology, Chemistry, and Physics with grades 1-6',
+    requirement_text: 'Minimum of 5 O-Level credits (grades 1-6) including English, Mathematics, Biology, Chemistry, and Physics',
     compliance_level: 'mandatory',
     verification_required: true,
     effective_date: '2024-01-01',
-    last_updated: '2024-01-01'
+    last_updated: '2025-01-23'
   },
   {
     id: 'hpcz-002',
     regulatory_body: 'HPCZ',
-    program_code: 'CMED',
-    program_name: 'Clinical Medicine',
+    program_code: 'DCM',
+    program_name: 'Diploma in Clinical Medicine',
     guideline_type: 'academic',
-    requirement_text: 'Science subjects (Biology, Chemistry, Physics) must have grades 1-5 for direct entry',
+    requirement_text: 'Core science subjects (Biology, Chemistry, Physics) must have minimum grade 6 (credit level)',
     compliance_level: 'mandatory',
     verification_required: true,
     effective_date: '2024-01-01',
-    last_updated: '2024-01-01'
+    last_updated: '2025-01-23'
   },
   {
     id: 'hpcz-003',
     regulatory_body: 'HPCZ',
-    program_code: 'ENVH',
-    program_name: 'Environmental Health',
-    guideline_type: 'admission',
-    requirement_text: 'Minimum of 5 O-Level credits including English, Mathematics, Biology, and preferably Chemistry',
+    program_code: 'DCM',
+    program_name: 'Diploma in Clinical Medicine',
+    guideline_type: 'professional',
+    requirement_text: 'Medical fitness certificate and good conduct required before enrollment',
     compliance_level: 'mandatory',
     verification_required: true,
     effective_date: '2024-01-01',
-    last_updated: '2024-01-01'
+    last_updated: '2025-01-23'
   },
   {
     id: 'hpcz-004',
     regulatory_body: 'HPCZ',
-    program_code: 'ENVH',
-    program_name: 'Environmental Health',
+    program_code: 'DEH',
+    program_name: 'Diploma in Environmental Health',
+    guideline_type: 'admission',
+    requirement_text: 'Minimum of 5 O-Level credits (grades 1-6) including English, Mathematics, Biology, and Chemistry',
+    compliance_level: 'mandatory',
+    verification_required: true,
+    effective_date: '2024-01-01',
+    last_updated: '2025-01-23'
+  },
+  {
+    id: 'hpcz-005',
+    regulatory_body: 'HPCZ',
+    program_code: 'DEH',
+    program_name: 'Diploma in Environmental Health',
     guideline_type: 'academic',
-    requirement_text: 'Geography or Agricultural Science is highly recommended for environmental health programs',
+    requirement_text: 'Geography, Agricultural Science, or Physics is highly recommended',
     compliance_level: 'recommended',
     verification_required: false,
     effective_date: '2024-01-01',
-    last_updated: '2024-01-01'
+    last_updated: '2025-01-23'
+  },
+  {
+    id: 'hpcz-006',
+    regulatory_body: 'HPCZ',
+    program_code: 'DEH',
+    program_name: 'Diploma in Environmental Health',
+    guideline_type: 'academic',
+    requirement_text: 'Biology and Chemistry must have minimum grade 6 (credit level)',
+    compliance_level: 'mandatory',
+    verification_required: true,
+    effective_date: '2024-01-01',
+    last_updated: '2025-01-23'
   }
 ]
 
-// NMCZ Guidelines for Nursing Programs
+// GNC (General Nursing Council) / NMCZ Guidelines for Nursing Programs
 export const NMCZ_GUIDELINES: RegulatoryGuideline[] = [
   {
     id: 'nmcz-001',
     regulatory_body: 'NMCZ',
-    program_code: 'RN',
-    program_name: 'Registered Nursing',
+    program_code: 'DRN',
+    program_name: 'Diploma in Registered Nursing',
     guideline_type: 'admission',
-    requirement_text: 'Minimum of 5 O-Level credits including English, Mathematics, Biology, and preferably Chemistry',
+    requirement_text: 'Minimum of 5 O-Level credits (grades 1-6) including English, Mathematics, Biology, and Chemistry or Physics',
     compliance_level: 'mandatory',
     verification_required: true,
     effective_date: '2024-01-01',
-    last_updated: '2024-01-01'
+    last_updated: '2025-01-23'
   },
   {
     id: 'nmcz-002',
     regulatory_body: 'NMCZ',
-    program_code: 'RN',
-    program_name: 'Registered Nursing',
-    guideline_type: 'professional',
-    requirement_text: 'Good moral character and physical fitness certification required',
+    program_code: 'DRN',
+    program_name: 'Diploma in Registered Nursing',
+    guideline_type: 'academic',
+    requirement_text: 'English and Mathematics must have minimum grade 6 (credit level)',
     compliance_level: 'mandatory',
     verification_required: true,
     effective_date: '2024-01-01',
-    last_updated: '2024-01-01'
+    last_updated: '2025-01-23'
   },
   {
     id: 'nmcz-003',
     regulatory_body: 'NMCZ',
-    program_code: 'RN',
-    program_name: 'Registered Nursing',
+    program_code: 'DRN',
+    program_name: 'Diploma in Registered Nursing',
     guideline_type: 'academic',
-    requirement_text: 'English and Mathematics must have grades 1-6, Biology must have grade 1-5',
+    requirement_text: 'Biology must have minimum grade 6 (credit level)',
     compliance_level: 'mandatory',
     verification_required: true,
     effective_date: '2024-01-01',
-    last_updated: '2024-01-01'
+    last_updated: '2025-01-23'
+  },
+  {
+    id: 'nmcz-004',
+    regulatory_body: 'NMCZ',
+    program_code: 'DRN',
+    program_name: 'Diploma in Registered Nursing',
+    guideline_type: 'professional',
+    requirement_text: 'Medical fitness certificate, police clearance, and good conduct certificate required before enrollment',
+    compliance_level: 'mandatory',
+    verification_required: true,
+    effective_date: '2024-01-01',
+    last_updated: '2025-01-23'
+  },
+  {
+    id: 'nmcz-005',
+    regulatory_body: 'NMCZ',
+    program_code: 'DRN',
+    program_name: 'Diploma in Registered Nursing',
+    guideline_type: 'admission',
+    requirement_text: 'Minimum age of 18 years at time of enrollment',
+    compliance_level: 'mandatory',
+    verification_required: true,
+    effective_date: '2024-01-01',
+    last_updated: '2025-01-23'
   }
 ]
 

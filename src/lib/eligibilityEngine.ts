@@ -387,10 +387,15 @@ export class EligibilityEngine {
   ): Promise<string[]> {
     const recommendations: string[] = []
 
+    // Always remind students they can proceed
+    if (missingRequirements.length > 0) {
+      recommendations.push('You can still submit your application - the admissions committee will review your case')
+    }
+
     // Critical missing requirements
     const criticalMissing = missingRequirements.filter(r => r.severity === 'critical')
     if (criticalMissing.length > 0) {
-      recommendations.push('Address critical missing requirements first')
+      recommendations.push('Note the following requirements for your reference:')
       criticalMissing.forEach(req => recommendations.push(req.suggestion))
     }
 
@@ -409,7 +414,11 @@ export class EligibilityEngine {
       .eq('is_active', true)
 
     if (pathways && pathways.length > 0 && missingRequirements.length > 0) {
-      recommendations.push('Consider foundation program pathway if direct entry requirements are not met')
+      recommendations.push('Alternative pathways available: Foundation program or Certificate program')
+    }
+
+    if (recommendations.length === 0) {
+      recommendations.push('All requirements met - proceed with confidence!')
     }
 
     return recommendations
@@ -423,10 +432,13 @@ export class EligibilityEngine {
     score: number,
     missingRequirements: MissingRequirement[]
   ): 'eligible' | 'not_eligible' | 'conditional' | 'under_review' {
+    // IMPORTANT: Never block applications - always allow students to proceed
+    // Status is advisory only for admissions committee review
+    
     const criticalMissing = missingRequirements.filter(r => r.severity === 'critical')
     
     if (criticalMissing.length > 0) {
-      return 'not_eligible'
+      return 'conditional' // Changed from 'not_eligible' to allow proceeding
     }
     
     if (score >= 80) {
@@ -437,7 +449,7 @@ export class EligibilityEngine {
       return 'conditional'
     }
     
-    return 'not_eligible'
+    return 'conditional' // Changed from 'not_eligible' to allow proceeding
   }
 
   private isRuleMet(rule: EligibilityRule, grades: SubjectGrade[]): boolean {
