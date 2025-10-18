@@ -296,16 +296,36 @@ export async function exportToPDF(
   autoTable(doc, {
     head: [Array.from(HEADERS)],
     body: rows,
-    startY: 20,
-    styles: { fontSize: 8, cellPadding: 1.5 },
-    headStyles: { fillColor: [37, 99, 235], textColor: 255 },
-    alternateRowStyles: { fillColor: [245, 247, 255] },
-    margin: { top: 20, bottom: 20, left: 10, right: 10 },
+    startY: 25,
+    styles: { 
+      fontSize: 7,
+      cellPadding: 2,
+      overflow: 'linebreak',
+      cellWidth: 'wrap'
+    },
+    headStyles: { 
+      fillColor: [37, 99, 235], 
+      textColor: 255,
+      fontSize: 8,
+      fontStyle: 'bold',
+      halign: 'left'
+    },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { top: 30, bottom: 15, left: 8, right: 8 },
+    theme: 'grid',
+    tableWidth: 'auto',
     didDrawPage: (data) => {
-      doc.setFontSize(14)
-      doc.text('Applications Export', data.settings.margin.left, 12)
-      doc.setFontSize(10)
-      doc.text(`Generated: ${exportTimestamp}`, data.settings.margin.left, 17)
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Applications Export', data.settings.margin.left, 15)
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Generated: ${exportTimestamp}`, data.settings.margin.left, 22)
+      
+      const pageCount = doc.internal.pages.length - 1
+      const pageNum = doc.internal.getCurrentPageInfo().pageNumber
+      doc.setFontSize(8)
+      doc.text(`Page ${pageNum} of ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10)
     }
   })
 

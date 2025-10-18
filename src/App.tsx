@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
 import { ToastProvider } from '@/components/ui/Toast'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
@@ -52,6 +53,8 @@ const renderRoute = (route: RouteConfig) => {
   switch (guard) {
     case 'auth':
       return <ProtectedRoute>{routeElement}</ProtectedRoute>
+    case 'student':
+      return <StudentRoute>{routeElement}</StudentRoute>
     case 'admin':
       return <AdminRoute>{routeElement}</AdminRoute>
     default:

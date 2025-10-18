@@ -136,6 +136,8 @@ const useWizardController = (): UseWizardControllerResult => {
   const { profile } = useProfileQuery()
   const showError = (message: string) => toast.error(message)
   const showWarning = (message: string) => toast.warning(message)
+  const showSuccess = (title: string, message?: string) => toast.success(message || title)
+  const showInfo = (title: string, message?: string) => toast.info(message || title)
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -356,7 +358,7 @@ const useWizardController = (): UseWizardControllerResult => {
     submittedApplication,
     slipPayload,
     success,
-    toast: { showError, showWarning },
+    toast: { showError, showWarning, showSuccess, showInfo },
     createApplicationSlip,
     onEmailUpdate: email => setSubmittedApplication(prev => (prev ? { ...prev, email } : prev))
   })

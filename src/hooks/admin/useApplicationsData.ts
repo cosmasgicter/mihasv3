@@ -183,6 +183,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       let query = supabase
         .from('admin_application_detailed')
         .select('*', { count: 'exact' })
+        .neq('status', 'draft')
 
       if (activeFilters.searchTerm) {
         const searchValue = sanitizeSearchTerm(activeFilters.searchTerm)

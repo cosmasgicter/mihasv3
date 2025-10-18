@@ -27,7 +27,7 @@ export function UserMenu() {
   }
 
   return (
-    <div className="relative z-50" ref={menuRef}>
+    <div className="relative" ref={menuRef}>
       <Button
         variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
@@ -56,7 +56,7 @@ export function UserMenu() {
 
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-[9999]"
+          className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 py-1 z-[110]"
           data-testid="user-menu-dropdown"
         >
           <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">

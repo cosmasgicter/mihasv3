@@ -220,7 +220,7 @@ export default function AdminIntakes() {
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                 <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white dark:bg-gray-800/20 border-white/30">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>

@@ -49,26 +49,32 @@ const sanitizeSearchTerm = (value: string) => {
     .replace(/,/g, '\\,')
 }
 
-const mapRecordToApplication = (record: any): ApplicationData => ({
-  application_number: record.application_number ?? '',
-  full_name: record.full_name ?? '',
-  email: record.email ?? '',
-  phone: record.phone ?? '',
-  program: record.program ?? '',
-  intake: record.intake ?? '',
-  institution: record.institution ?? '',
-  status: record.status ?? '',
-  payment_status: record.payment_status ?? '',
-  application_fee: Number(record.application_fee ?? 0),
-  paid_amount: Number(record.paid_amount ?? 0),
-  submitted_at: record.submitted_at || record.created_at || '',
-  created_at: record.created_at || record.submitted_at || '',
-  grades_summary: record.grades_summary ?? '',
-  total_subjects: Number(record.total_subjects ?? 0),
-  points: Number(record.points ?? calculatePointsFromSummary(record.grades_summary)),
-  age: Number(record.age ?? 0),
-  days_since_submission: Number(record.days_since_submission ?? 0)
-})
+const mapRecordToApplication = (record: any): ApplicationData => {
+  const points = record.points && Number(record.points) > 0 
+    ? Number(record.points) 
+    : calculatePointsFromSummary(record.grades_summary)
+  
+  return {
+    application_number: record.application_number ?? '',
+    full_name: record.full_name ?? '',
+    email: record.email ?? '',
+    phone: record.phone ?? '',
+    program: record.program ?? '',
+    intake: record.intake ?? '',
+    institution: record.institution ?? '',
+    status: record.status ?? '',
+    payment_status: record.payment_status ?? '',
+    application_fee: Number(record.application_fee ?? 0),
+    paid_amount: Number(record.paid_amount ?? 0),
+    submitted_at: record.submitted_at || record.created_at || '',
+    created_at: record.created_at || record.submitted_at || '',
+    grades_summary: record.grades_summary ?? '',
+    total_subjects: Number(record.total_subjects ?? 0),
+    points,
+    age: Number(record.age ?? 0),
+    days_since_submission: Number(record.days_since_submission ?? 0)
+  }
+}
 
 const yieldToBrowser = () => new Promise<void>(resolve => setTimeout(resolve, 0))
 

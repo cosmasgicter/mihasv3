@@ -35,7 +35,7 @@ const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
 import { DashboardRedirect } from '@/components/DashboardRedirect'
 import { Navigate } from 'react-router-dom'
 
-export type RouteGuard = 'public' | 'auth' | 'admin'
+export type RouteGuard = 'public' | 'auth' | 'student' | 'admin'
 
 export interface RouteConfig {
   path: string
@@ -60,16 +60,16 @@ export const routes: RouteConfig[] = [
   { path: '/dashboard', element: <DashboardRedirect />, guard: 'public' },
   
   // Student routes
-  { path: '/student/dashboard', element: StudentDashboard, guard: 'auth', lazy: true },
-  { path: '/apply', element: ApplicationWizard, guard: 'auth', lazy: true },
-  { path: '/student/application-wizard', element: ApplicationWizard, guard: 'auth', lazy: true },
-  { path: '/student/status', element: ApplicationStatus, guard: 'auth', lazy: true },
-  { path: '/application/:id', element: ApplicationStatus, guard: 'auth', lazy: true },
-  { path: '/student/application/:id', element: ApplicationDetail, guard: 'auth', lazy: true },
-  { path: '/settings', element: StudentSettings, guard: 'auth', lazy: true },
-  { path: '/student/profile', element: StudentSettings, guard: 'auth', lazy: true },
-  { path: '/student/settings', element: StudentSettings, guard: 'auth', lazy: true },
-  { path: '/student/notifications', element: StudentNotificationSettings, guard: 'auth', lazy: true },
+  { path: '/student/dashboard', element: StudentDashboard, guard: 'student', lazy: true },
+  { path: '/apply', element: ApplicationWizard, guard: 'student', lazy: true },
+  { path: '/student/application-wizard', element: ApplicationWizard, guard: 'student', lazy: true },
+  { path: '/student/status', element: ApplicationStatus, guard: 'student', lazy: true },
+  { path: '/application/:id', element: ApplicationStatus, guard: 'student', lazy: true },
+  { path: '/student/application/:id', element: ApplicationDetail, guard: 'student', lazy: true },
+  { path: '/settings', element: StudentSettings, guard: 'student', lazy: true },
+  { path: '/student/profile', element: StudentSettings, guard: 'student', lazy: true },
+  { path: '/student/settings', element: StudentSettings, guard: 'student', lazy: true },
+  { path: '/student/notifications', element: StudentNotificationSettings, guard: 'student', lazy: true },
   
   // Admin routes
   { path: '/admin', element: AdminDashboard, guard: 'admin', lazy: true },

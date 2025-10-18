@@ -239,7 +239,7 @@ export default function LandingPageNew() {
             <Button 
               variant="outline" 
               size="xl" 
-              className="border-2 border-white text-white hover:bg-white dark:bg-gray-800 dark:bg-gray-200 hover:text-blue-600 dark:text-blue-400 font-semibold"
+              className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-semibold"
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <span className="mr-2">Learn More</span>
@@ -665,7 +665,7 @@ export default function LandingPageNew() {
             whileTap={maybeMotion({ scale: 0.95 })}
           >
             <Link to="/auth/signup">
-              <Button variant="outline" size="xl" className="border-2 border-white text-white hover:bg-white dark:bg-gray-800 dark:bg-gray-200 hover:text-blue-600 dark:text-blue-400">
+              <Button variant="outline" size="xl" className="border-2 border-white text-white hover:bg-white hover:text-blue-600">
                 <span className="mr-2">Apply Now</span>
                 <ArrowRight className="w-6 h-6" />
               </Button>

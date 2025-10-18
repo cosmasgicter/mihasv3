@@ -743,7 +743,7 @@ export default function PublicApplicationTracker() {
                           initial={maybeMotion({ scale: 0 })}
                           animate={maybeMotion({ scale: 1 })}
                           transition={maybeMotion({ delay: 0.5, type: "spring" })}
-                          className="inline-block bg-white dark:bg-gray-800/25 backdrop-blur-sm px-4 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-white font-black text-base sm:text-2xl border-2 border-white/30 shadow-lg"
+                          className="inline-block bg-white/10 dark:bg-gray-800/25 backdrop-blur-sm px-4 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-gray-900 dark:text-white font-black text-base sm:text-2xl border-2 border-white/30 shadow-lg"
                         >
                           {application.status.replace('_', ' ').toUpperCase()}
                         </motion.span>
@@ -758,7 +758,7 @@ export default function PublicApplicationTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => setShowShareModal(true)}
-                            className="bg-white dark:bg-gray-800/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30 btn-mobile touch-target"
                           >
                             <Share2 className="h-4 w-4 mr-2" />
                             Share
@@ -767,7 +767,7 @@ export default function PublicApplicationTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => copyToClipboard(application.application_number)}
-                            className="bg-white dark:bg-gray-800/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30 btn-mobile touch-target"
                           >
                             <Copy className="h-4 w-4 mr-2" />
                             {copied ? 'Copied!' : 'Copy #'}
@@ -779,7 +779,7 @@ export default function PublicApplicationTracker() {
                             size="sm"
                             onClick={handleDownloadSlip}
                             loading={slipLoading}
-                            className="bg-white dark:bg-gray-800/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30 btn-mobile touch-target"
                           >
                             <Download className="h-4 w-4 mr-2" />
                             Download Slip
@@ -789,7 +789,7 @@ export default function PublicApplicationTracker() {
                             size="sm"
                             onClick={handleEmailSlip}
                             loading={emailLoading}
-                            className="bg-white dark:bg-gray-800/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30 btn-mobile touch-target"
                           >
                             <Mail className="h-4 w-4 mr-2" />
                             Email Me the Slip

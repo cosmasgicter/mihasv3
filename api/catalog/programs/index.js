@@ -66,11 +66,13 @@ async function handler(req, res) {
         .from('programs')
         .insert({ name: name.trim(), description: description?.trim() || null, duration_years, institution_id, is_active: true })
         .select()
+        .single()
 
       if (createError) {
+        console.error('Program create error:', createError)
         return res.status(400).json({ error: createError.message })
       }
-      return res.status(201).json({ program: newProgram[0] })
+      return res.status(201).json({ program: newProgram })
 
     case 'PUT':
       const {
@@ -89,11 +91,16 @@ async function handler(req, res) {
         .update({ name: updateName.trim(), description: updateDesc?.trim() || null, duration_years: updateDuration, institution_id: updateInstitution })
         .eq('id', id)
         .select()
+        .single()
 
       if (updateError) {
+        console.error('Program update error:', updateError)
+        if (updateError.code === 'PGRST116') {
+          return res.status(404).json({ error: 'Program not found' })
+        }
         return res.status(400).json({ error: updateError.message })
       }
-      return res.status(200).json({ program: updatedProgram[0] })
+      return res.status(200).json({ program: updatedProgram })
 
     case 'DELETE':
       const { id: deleteId } = req.body
@@ -106,11 +113,16 @@ async function handler(req, res) {
         .update({ is_active: false })
         .eq('id', deleteId)
         .select()
+        .single()
 
       if (deleteError) {
+        console.error('Program delete error:', deleteError)
+        if (deleteError.code === 'PGRST116') {
+          return res.status(404).json({ error: 'Program not found' })
+        }
         return res.status(400).json({ error: deleteError.message })
       }
-      return res.status(200).json({ program: deletedProgram[0] })
+      return res.status(200).json({ program: deletedProgram })
 
     default:
       return res.status(405).json({ error: 'Method not allowed' })

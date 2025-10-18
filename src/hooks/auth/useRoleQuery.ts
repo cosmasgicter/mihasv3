@@ -74,7 +74,9 @@ export function useRoleQuery(options: UseRoleQueryOptions = {}): RoleQueryResult
           .select('*')
           .eq('user_id', user.id)
           .eq('is_active', true)
-          .maybeSingle()
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
 
         if (roleError) {
           console.error('Role query error:', sanitizeForLog(roleError.message))

@@ -312,7 +312,7 @@ export default function AdminDashboard() {
                     size="sm"
                     onClick={refreshDashboard}
                     loading={isRefreshing}
-                    className="bg-white dark:bg-gray-800/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30"
+                    className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Refresh
