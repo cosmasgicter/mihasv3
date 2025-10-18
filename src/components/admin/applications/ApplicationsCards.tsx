@@ -93,7 +93,7 @@ export function ApplicationsCards({
                         type="checkbox"
                         checked={selectedApplications.includes(application.id)}
                         onChange={() => onToggleSelection(application.id)}
-                        className="h-5 w-5 mt-1 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded touch-target"
+                        className="h-5 w-5 mt-1 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded touch-target"
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">
@@ -136,7 +136,7 @@ export function ApplicationsCards({
                     </div>
                     
                     {/* Documents - Mobile Optimized */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700 dark:border-gray-300">
                       <div className="flex items-center space-x-2 text-xs sm:text-sm text-secondary">
                         <FileCheck className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>{(application.result_slip_url ? 1 : 0) + (application.extra_kyc_url ? 1 : 0) + (application.pop_url ? 1 : 0)} docs</span>

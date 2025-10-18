@@ -104,7 +104,7 @@ export function TestNotifications() {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center">
         <Bell className="h-5 w-5 mr-2" />
         Test Notification System
       </h3>
@@ -134,8 +134,8 @@ export function TestNotifications() {
         {message && (
           <div className={`p-3 rounded-lg text-sm ${
             message.includes('✅') 
-              ? 'bg-green-50 text-green-700 border border-green-200' 
-              : 'bg-red-50 text-red-700 border border-red-200'
+              ? 'bg-green-50 text-green-700 dark:text-green-300 border border-green-200' 
+              : 'bg-red-50 text-red-700 dark:text-red-300 border border-red-200'
           }`}>
             {message}
           </div>

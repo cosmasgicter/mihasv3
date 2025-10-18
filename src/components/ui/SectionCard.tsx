@@ -5,7 +5,7 @@ type HeaderVariant = 'default' | 'tinted' | 'plain'
 type PaddingScale = 'sm' | 'md' | 'lg'
 
 const headerVariantStyles: Record<HeaderVariant, string> = {
-  default: 'bg-white',
+  default: 'bg-white dark:bg-gray-800',
   tinted: 'bg-gradient-to-r from-gray-50 to-blue-50',
   plain: 'bg-transparent'
 }
@@ -49,12 +49,12 @@ export function SectionCard({
 
   return (
     <section
-      className={cn('rounded-2xl border border-gray-200/70 bg-white shadow-lg backdrop-blur-sm', className)}
+      className={cn('rounded-2xl border border-gray-200 dark:border-gray-700 dark:border-gray-300/70 bg-white dark:bg-gray-800 shadow-lg backdrop-blur-sm', className)}
     >
       {hasHeader && (
         <div
           className={cn(
-            'flex flex-col gap-3 border-b border-gray-200/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between',
+            'flex flex-col gap-3 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between',
             headerVariantStyles[headerVariant],
             stickyHeader && 'sticky top-[4.25rem] z-10 backdrop-blur-md',
             headerClassName
@@ -67,7 +67,7 @@ export function SectionCard({
               </div>
             )}
             <div className="space-y-1">
-              {title && <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>}
+              {title && <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{title}</h2>}
               {description && <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{description}</p>}
             </div>
           </div>
@@ -78,7 +78,7 @@ export function SectionCard({
       <div className={cn('space-y-4', paddingScale[padding], contentClassName)}>{children}</div>
 
       {footer && (
-        <div className={cn('border-t border-gray-200/70', paddingScale[padding])}>{footer}</div>
+        <div className={cn('border-t border-gray-200 dark:border-gray-700 dark:border-gray-300/70', paddingScale[padding])}>{footer}</div>
       )}
     </section>
   )

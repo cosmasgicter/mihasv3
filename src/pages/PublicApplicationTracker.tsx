@@ -259,7 +259,7 @@ export default function PublicApplicationTracker() {
         return 'bg-rose-100 text-rose-800 border-rose-200'
       case 'pending_review':
       default:
-        return 'bg-amber-100 text-amber-800 border-amber-200'
+        return 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 border-amber-200'
     }
   }
 
@@ -590,7 +590,7 @@ export default function PublicApplicationTracker() {
                         onPaste={handlePaste}
                         onKeyPress={handleKeyPress}
                         placeholder="Enter application number..."
-                        className="form-input-mobile w-full text-base sm:text-xl py-4 sm:py-6 pl-12 sm:pl-16 pr-4 sm:pr-6 border-3 border-gray-200 dark:border-gray-700 focus:border-blue-600 rounded-2xl shadow-lg font-medium"
+                        className="form-input-mobile w-full text-base sm:text-xl py-4 sm:py-6 pl-12 sm:pl-16 pr-4 sm:pr-6 border-3 border-gray-200 dark:border-gray-700 dark:border-gray-300 focus:border-blue-600 rounded-2xl shadow-lg font-medium"
                       />
                     </motion.div>
                   </div>
@@ -758,7 +758,7 @@ export default function PublicApplicationTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => setShowShareModal(true)}
-                            className="bg-white/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-white dark:bg-gray-800/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
                           >
                             <Share2 className="h-4 w-4 mr-2" />
                             Share
@@ -767,7 +767,7 @@ export default function PublicApplicationTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => copyToClipboard(application.application_number)}
-                            className="bg-white/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-white dark:bg-gray-800/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
                           >
                             <Copy className="h-4 w-4 mr-2" />
                             {copied ? 'Copied!' : 'Copy #'}
@@ -779,7 +779,7 @@ export default function PublicApplicationTracker() {
                             size="sm"
                             onClick={handleDownloadSlip}
                             loading={slipLoading}
-                            className="bg-white/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-white dark:bg-gray-800/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
                           >
                             <Download className="h-4 w-4 mr-2" />
                             Download Slip
@@ -789,7 +789,7 @@ export default function PublicApplicationTracker() {
                             size="sm"
                             onClick={handleEmailSlip}
                             loading={emailLoading}
-                            className="bg-white/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-white dark:bg-gray-800/20 border-white/30 text-white hover:bg-white dark:bg-gray-800/30 btn-mobile touch-target"
                           >
                             <Mail className="h-4 w-4 mr-2" />
                             Email Me the Slip
@@ -819,9 +819,9 @@ export default function PublicApplicationTracker() {
                           application.status === 'approved' 
                             ? 'from-green-50 via-emerald-50 to-teal-50 border-green-300'
                             : application.status === 'rejected'
-                            ? 'from-red-50 via-pink-50 to-rose-50 border-red-300'
+                            ? 'from-red-50 via-pink-50 to-rose-50 border-red-300 dark:border-red-700'
                             : application.status === 'under_review'
-                            ? 'from-blue-50 via-indigo-50 to-purple-50 border-blue-300'
+                            ? 'from-blue-50 via-indigo-50 to-purple-50 border-blue-300 dark:border-blue-700'
                             : 'from-yellow-50 via-orange-50 to-amber-50 border-yellow-300'
                         }`}>
                           <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 lg:space-x-8">
@@ -857,12 +857,12 @@ export default function PublicApplicationTracker() {
                             transition={maybeMotion({ delay: 0.7 })}
                             className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-2 border-green-300 dark:border-green-700 rounded-2xl space-responsive shadow-2xl"
                           >
-                            <h5 className="font-black text-green-900 mb-4 sm:mb-6 text-lg sm:text-xl lg:text-2xl flex items-center space-x-2 sm:space-x-3">
+                            <h5 className="font-black text-green-900 dark:text-green-100 mb-4 sm:mb-6 text-lg sm:text-xl lg:text-2xl flex items-center space-x-2 sm:space-x-3">
                               <span className="text-xl sm:text-2xl">💬</span>
                               <span>Message from Admissions</span>
                             </h5>
                             <div className="bg-white dark:bg-gray-800/70 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
-                              <p className="text-green-800 text-base sm:text-lg lg:text-xl leading-relaxed font-medium">
+                              <p className="text-green-800 dark:text-green-200 text-base sm:text-lg lg:text-xl leading-relaxed font-medium">
                                 {application.admin_feedback}
                               </p>
                             </div>
@@ -1152,15 +1152,15 @@ export default function PublicApplicationTracker() {
                   </h4>
                   <ul className="text-secondary space-y-3 text-lg text-left">
                     <li className="flex items-start space-x-3">
-                      <span className="text-blue-500 font-bold">•</span>
+                      <span className="text-blue-500 dark:text-blue-400 font-bold">•</span>
                       <span>Check your email confirmation after submitting</span>
                     </li>
                     <li className="flex items-start space-x-3">
-                      <span className="text-blue-500 font-bold">•</span>
+                      <span className="text-blue-500 dark:text-blue-400 font-bold">•</span>
                       <span>Look for format: <code className="bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded font-mono">MIHAS123456</code></span>
                     </li>
                     <li className="flex items-start space-x-3">
-                      <span className="text-blue-500 font-bold">•</span>
+                      <span className="text-blue-500 dark:text-blue-400 font-bold">•</span>
                       <span>Contact admissions if you can't find it</span>
                     </li>
                   </ul>

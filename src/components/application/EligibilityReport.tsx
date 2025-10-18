@@ -37,28 +37,28 @@ export function EligibilityReport({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'eligible':
-        return 'text-green-800 bg-green-100'
+        return 'text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-900/30'
       case 'conditional':
-        return 'text-yellow-800 bg-yellow-100'
+        return 'text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-900/30'
       case 'not_eligible':
-        return 'text-red-800 bg-red-100'
+        return 'text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-900/30'
       case 'under_review':
-        return 'text-blue-800 bg-blue-100'
+        return 'text-blue-800 dark:text-blue-200 dark:text-blue-800 bg-blue-100 dark:bg-blue-900/30'
       default:
-        return 'text-gray-800 bg-gray-100'
+        return 'text-gray-800 dark:text-gray-200 dark:text-gray-700 bg-gray-100 dark:bg-gray-800'
     }
   }
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return 'border-red-300 bg-red-50'
+        return 'border-red-300 dark:border-red-700 bg-red-50'
       case 'major':
         return 'border-orange-300 bg-orange-50'
       case 'minor':
         return 'border-yellow-300 bg-yellow-50'
       default:
-        return 'border-gray-300 bg-gray-50'
+        return 'border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-gray-50 dark:bg-gray-900'
     }
   }
 
@@ -130,12 +130,12 @@ For appeals or queries, please contact the admissions office.
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="border-b border-gray-200 dark:border-gray-700 pb-6 mb-6">
+      <div className="border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 pb-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <FileText className="h-10 w-10 text-blue-600 dark:text-blue-400" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                 Eligibility Assessment Report
               </h1>
               <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
@@ -156,7 +156,7 @@ For appeals or queries, please contact the admissions office.
       {/* Application Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Application Details</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Application Details</h2>
           <div className="space-y-2 text-sm">
             <div><strong>Application Number:</strong> {applicationNumber}</div>
             <div><strong>Applicant Name:</strong> {applicantName}</div>
@@ -166,7 +166,7 @@ For appeals or queries, please contact the admissions office.
         </div>
         
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Assessment Summary</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Assessment Summary</h2>
           <div className="space-y-2 text-sm">
             <div><strong>Assessment Date:</strong> {new Date().toLocaleDateString()}</div>
             <div><strong>Requirements Met:</strong> {assessment.detailed_breakdown.requirements_met}/{assessment.detailed_breakdown.total_requirements}</div>
@@ -195,29 +195,29 @@ For appeals or queries, please contact the admissions office.
 
       {/* Detailed Breakdown */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Detailed Score Breakdown</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Detailed Score Breakdown</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4">
             <div className="text-sm font-medium text-blue-600 dark:text-blue-400">Subject Count</div>
-            <div className="text-2xl font-bold text-blue-900">
+            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 dark:text-blue-900">
               {Math.round(assessment.detailed_breakdown.subject_count_score)}%
             </div>
           </div>
           <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4">
             <div className="text-sm font-medium text-green-600 dark:text-green-400">Grade Average</div>
-            <div className="text-2xl font-bold text-green-900">
+            <div className="text-2xl font-bold text-green-900 dark:text-green-100">
               {Math.round(assessment.detailed_breakdown.grade_average_score)}%
             </div>
           </div>
           <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-4">
             <div className="text-sm font-medium text-purple-600 dark:text-purple-400">Core Subjects</div>
-            <div className="text-2xl font-bold text-purple-900">
+            <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">
               {Math.round(assessment.detailed_breakdown.core_subjects_score)}%
             </div>
           </div>
           <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
             <div className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Weighted Total</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">
               {Math.round(assessment.detailed_breakdown.total_weighted_score)}%
             </div>
           </div>
@@ -227,7 +227,7 @@ For appeals or queries, please contact the admissions office.
       {/* Missing Requirements */}
       {assessment.missing_requirements.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Missing Requirements</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Missing Requirements</h2>
           <div className="space-y-3">
             {assessment.missing_requirements.map((req: MissingRequirement, index: number) => (
               <div key={index} className={`border rounded-lg p-4 ${getSeverityColor(req.severity)}`}>
@@ -235,16 +235,16 @@ For appeals or queries, please contact the admissions office.
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <span className={`px-2 py-1 text-xs font-medium rounded uppercase ${
-                        req.severity === 'critical' ? 'bg-red-200 text-red-800' :
+                        req.severity === 'critical' ? 'bg-red-200 text-red-800 dark:text-red-200' :
                         req.severity === 'major' ? 'bg-orange-200 text-orange-800' :
-                        'bg-yellow-200 text-yellow-800'
+                        'bg-yellow-200 text-yellow-800 dark:text-yellow-200'
                       }`}>
                         {req.severity}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-500 uppercase">{req.type}</span>
                     </div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100 mb-1">{req.description}</div>
-                    <div className="text-sm text-gray-700 dark:text-gray-300">{req.suggestion}</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-1">{req.description}</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">{req.suggestion}</div>
                   </div>
                 </div>
               </div>
@@ -256,13 +256,13 @@ For appeals or queries, please contact the admissions office.
       {/* Recommendations */}
       {assessment.recommendations.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recommendations</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Recommendations</h2>
           <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <ul className="space-y-2">
               {assessment.recommendations.map((rec: string, index: number) => (
                 <li key={index} className="flex items-start space-x-2">
                   <div className="w-2 h-2 bg-blue-50 dark:bg-blue-950/300 rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-blue-800 dark:text-blue-200">{rec}</span>
+                  <span className="text-blue-800 dark:text-blue-200 dark:text-blue-800">{rec}</span>
                 </li>
               ))}
             </ul>
@@ -273,15 +273,15 @@ For appeals or queries, please contact the admissions office.
       {/* Assessor Notes */}
       {assessment.assessor_notes && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Assessor Notes</h2>
-          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-            <p className="text-gray-700 dark:text-gray-300">{assessment.assessor_notes}</p>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Assessor Notes</h2>
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg p-4">
+            <p className="text-gray-700 dark:text-gray-300 dark:text-gray-600">{assessment.assessor_notes}</p>
           </div>
         </div>
       )}
 
       {/* Footer */}
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+      <div className="border-t border-gray-200 dark:border-gray-700 dark:border-gray-300 pt-6">
         <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
           <p className="mb-2">
             <strong>Important Notes:</strong>
@@ -293,7 +293,7 @@ For appeals or queries, please contact the admissions office.
             <li>• For appeals or queries, please contact the admissions office</li>
           </ul>
           
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 dark:border-gray-300">
             <p className="text-xs text-gray-500 dark:text-gray-500">
               This report was generated automatically by the Eligibility Assessment System on {new Date().toLocaleString()}.
               Report ID: {assessment.id}

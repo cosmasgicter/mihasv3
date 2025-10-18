@@ -41,7 +41,7 @@ export function DraftWarningBanner({
       <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
       
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-medium text-yellow-800">
+        <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
           Draft Found
         </h3>
         <p className="text-sm text-yellow-700 mt-1">
@@ -105,7 +105,7 @@ export function AutoSaveIndicator({
     if (isSaving) return 'text-blue-600'
     if (hasUnsavedChanges) return 'text-yellow-600'
     if (lastSaved) return 'text-green-600'
-    return 'text-gray-500'
+    return 'text-gray-500 dark:text-gray-500'
   }
 
   const getIcon = () => {
@@ -159,7 +159,7 @@ export function SessionTimeoutWarning({
         <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
         
         <div className="flex-1">
-          <h3 className="text-sm font-medium text-red-800">
+          <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
             Session Expiring
           </h3>
           <p className="text-sm text-red-700 dark:text-red-300 mt-1">
@@ -206,7 +206,7 @@ export function FormRecoveryBanner({
       <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
       
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-medium text-red-800">
+        <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
           Form Submission Failed
         </h3>
         <p className="text-sm text-red-700 dark:text-red-300 mt-1">

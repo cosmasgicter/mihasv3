@@ -97,7 +97,7 @@ export function AdminSearchBar() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'application':
-        return <FileText className="h-4 w-4 text-blue-500" />
+        return <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400" />
       case 'user':
         return <Users className="h-4 w-4 text-green-500" />
       case 'program':
@@ -128,7 +128,7 @@ export function AdminSearchBar() {
           onKeyDown={handleKeyDown}
           onFocus={() => query.length > 2 && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-          className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-all duration-200"
+          className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-all duration-200"
         />
       </div>
 
@@ -138,7 +138,7 @@ export function AdminSearchBar() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-80 overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 dark:border-gray-300 z-50 max-h-80 overflow-y-auto"
           >
             <div className="p-2">
               {results.map((result, index) => (
@@ -151,24 +151,24 @@ export function AdminSearchBar() {
                   className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
                     selectedIndex === index
                       ? 'bg-primary text-white'
-                      : 'hover:bg-gray-50'
+                      : 'hover:bg-gray-50 dark:bg-gray-900'
                   }`}
                 >
                   {getIcon(result.type)}
                   <div className="flex-1 min-w-0">
                     <p className={`font-medium text-sm ${
-                      selectedIndex === index ? 'text-white' : 'text-gray-900'
+                      selectedIndex === index ? 'text-white' : 'text-gray-900 dark:text-gray-100 dark:text-gray-900'
                     }`}>
                       {result.title}
                     </p>
                     <p className={`text-xs ${
-                      selectedIndex === index ? 'text-white/80' : 'text-gray-500'
+                      selectedIndex === index ? 'text-white/80' : 'text-gray-500 dark:text-gray-500'
                     }`}>
                       {result.subtitle}
                     </p>
                   </div>
                   <ArrowRight className={`h-4 w-4 ${
-                    selectedIndex === index ? 'text-white' : 'text-gray-400'
+                    selectedIndex === index ? 'text-white' : 'text-gray-400 dark:text-gray-500'
                   }`} />
                 </motion.div>
               ))}

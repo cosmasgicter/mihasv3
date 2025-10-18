@@ -51,7 +51,7 @@ export function EnhancedDashboard({
 
   if (!metrics) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800">
         <p className="text-sm text-gray-500 dark:text-gray-500">Dashboard metrics are not available right now.</p>
       </div>
     )
@@ -64,7 +64,7 @@ export function EnhancedDashboard({
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 relative overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -73,7 +73,7 @@ export function EnhancedDashboard({
                 <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metrics.todayApplications}</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{metrics.todayApplications}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Today</div>
               </div>
             </div>
@@ -85,16 +85,16 @@ export function EnhancedDashboard({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 relative overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-orange-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-yellow-100 rounded-xl">
+              <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl">
                 <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metrics.pendingApplications}</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{metrics.pendingApplications}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Pending</div>
               </div>
             </div>
@@ -109,7 +109,7 @@ export function EnhancedDashboard({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 relative overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-green-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -118,7 +118,7 @@ export function EnhancedDashboard({
                 <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metrics.approvalRate}%</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{metrics.approvalRate}%</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Rate</div>
               </div>
             </div>
@@ -134,7 +134,7 @@ export function EnhancedDashboard({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 relative overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -143,7 +143,7 @@ export function EnhancedDashboard({
                 <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metrics.avgProcessingTime}</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{metrics.avgProcessingTime}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Days</div>
               </div>
             </div>
@@ -162,10 +162,10 @@ export function EnhancedDashboard({
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 flex items-center justify-between">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -192,7 +192,7 @@ export function EnhancedDashboard({
                   'bg-blue-500'
                 }`}></div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{activity.message}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 truncate">{activity.message}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-500">{new Date(activity.timestamp).toLocaleString()}</p>
                 </div>
               </motion.div>
@@ -209,17 +209,17 @@ export function EnhancedDashboard({
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">🛡️ System Health</h3>
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">🛡️ System Health</h3>
           </div>
           
           <div className="p-6 space-y-4">
             <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-xl">
               <div className="flex items-center space-x-2">
                 <Database className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Database</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">Database</span>
               </div>
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
                 systemHealth?.database === 'healthy' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
@@ -231,7 +231,7 @@ export function EnhancedDashboard({
             <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-xl">
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Security</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">Security</span>
               </div>
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-green-50 dark:bg-green-950/300 text-white">
                 ✓ {systemHealth?.security || 'Secure'}
@@ -241,7 +241,7 @@ export function EnhancedDashboard({
             <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
               <div className="flex items-center space-x-2">
                 <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Performance</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">Performance</span>
               </div>
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/300 text-white">
                 ✓ {systemHealth?.performance || 'Optimal'}
@@ -251,10 +251,10 @@ export function EnhancedDashboard({
             <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Active Users</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">Active Users</p>
                   <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{metrics.activeUsers}</p>
                 </div>
-                <Users className="h-8 w-8 text-blue-500" />
+                <Users className="h-8 w-8 text-blue-500 dark:text-blue-400" />
               </div>
             </div>
           </div>

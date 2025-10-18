@@ -202,12 +202,12 @@ export function EnhancedApplicationsTable({
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      'draft': 'bg-gray-100 text-gray-800',
-      'submitted': 'bg-blue-100 text-blue-800',
-      'under-review': 'bg-yellow-100 text-yellow-800',
-      'approved': 'bg-green-100 text-green-800',
-      'rejected': 'bg-red-100 text-red-800'
-    }[status] || 'bg-gray-100 text-gray-800'
+      'draft': 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700',
+      'submitted': 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800',
+      'under-review': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200',
+      'approved': 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200',
+      'rejected': 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+    }[status] || 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
 
     return (
       <span className={cn(
@@ -221,10 +221,10 @@ export function EnhancedApplicationsTable({
 
   const getPaymentBadge = (status: string) => {
     const styles = {
-      'pending': 'bg-yellow-100 text-yellow-800',
-      'verified': 'bg-green-100 text-green-800',
-      'rejected': 'bg-red-100 text-red-800'
-    }[status] || 'bg-gray-100 text-gray-800'
+      'pending': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200',
+      'verified': 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200',
+      'rejected': 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+    }[status] || 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
 
     return (
       <span className={cn(
@@ -249,49 +249,49 @@ export function EnhancedApplicationsTable({
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300">
           <div className="flex items-center">
             <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <span className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Total</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{stats.total}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mt-1">{stats.total}</p>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300">
           <div className="flex items-center">
             <FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
             <span className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Submitted</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{stats.submitted}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mt-1">{stats.submitted}</p>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300">
           <div className="flex items-center">
             <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
             <span className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Review</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{stats.underReview}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mt-1">{stats.underReview}</p>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300">
           <div className="flex items-center">
             <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
             <span className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Approved</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{stats.approved}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mt-1">{stats.approved}</p>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300">
           <div className="flex items-center">
             <Clock className="w-5 h-5 text-orange-600" />
             <span className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Payment</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{stats.pendingPayment}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mt-1">{stats.pendingPayment}</p>
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 space-y-4">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 space-y-4">
         {/* Main toolbar */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex-1 max-w-md">
@@ -339,7 +339,7 @@ export function EnhancedApplicationsTable({
 
         {/* Filters */}
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700 dark:border-gray-300">
             <EnhancedSelect
               placeholder="All Statuses"
               value={filters.status}
@@ -402,7 +402,7 @@ export function EnhancedApplicationsTable({
       )}
 
       {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50 dark:bg-gray-900">
@@ -412,7 +412,7 @@ export function EnhancedApplicationsTable({
                     type="checkbox"
                     checked={selectedIds.length === filteredAndSortedApplications.length && filteredAndSortedApplications.length > 0}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-blue-600 dark:text-blue-400 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-blue-600 dark:text-blue-400 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded focus:ring-blue-500"
                   />
                 </th>
                 
@@ -485,13 +485,13 @@ export function EnhancedApplicationsTable({
                       type="checkbox"
                       checked={selectedIds.includes(application.id)}
                       onChange={() => handleSelectOne(application.id)}
-                      className="w-4 h-4 text-blue-600 dark:text-blue-400 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-blue-600 dark:text-blue-400 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded focus:ring-blue-500"
                     />
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                         {application.fullName}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-500">
@@ -501,12 +501,12 @@ export function EnhancedApplicationsTable({
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 dark:text-gray-100">{application.email}</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.email}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-500">{application.phone}</div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 dark:text-gray-100">
+                    <div className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
                       {application.program.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-500">{getInstitutionName(application.institution)}</div>
@@ -537,7 +537,7 @@ export function EnhancedApplicationsTable({
                             style={{ width: `${application.eligibilityScore}%` }}
                           />
                         </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                           {application.eligibilityScore}%
                         </span>
                       </div>
@@ -553,7 +553,7 @@ export function EnhancedApplicationsTable({
           {filteredAndSortedApplications.length === 0 && (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No applications found</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No applications found</h3>
               <p className="text-gray-500 dark:text-gray-500">
                 {applications.length === 0 
                   ? 'No applications have been submitted yet.'

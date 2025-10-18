@@ -30,26 +30,26 @@ const toastStyles = {
   success: {
     container: 'bg-green-50 border-green-200',
     icon: 'text-green-600',
-    title: 'text-green-800',
-    message: 'text-green-700'
+    title: 'text-green-800 dark:text-green-200',
+    message: 'text-green-700 dark:text-green-300'
   },
   error: {
     container: 'bg-red-50 border-red-200',
     icon: 'text-red-600',
-    title: 'text-red-800',
-    message: 'text-red-700'
+    title: 'text-red-800 dark:text-red-200',
+    message: 'text-red-700 dark:text-red-300'
   },
   warning: {
     container: 'bg-yellow-50 border-yellow-200',
     icon: 'text-yellow-600',
-    title: 'text-yellow-800',
+    title: 'text-yellow-800 dark:text-yellow-200',
     message: 'text-yellow-700'
   },
   info: {
     container: 'bg-blue-50 border-blue-200',
     icon: 'text-blue-600',
-    title: 'text-blue-800',
-    message: 'text-blue-700'
+    title: 'text-blue-800 dark:text-blue-200 dark:text-blue-800',
+    message: 'text-blue-700 dark:text-blue-300'
   }
 }
 

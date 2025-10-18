@@ -90,7 +90,7 @@ export default function ApplicationStatus() {
       case 'submitted':
         return <AlertCircle className="h-5 w-5 text-yellow-500" />
       case 'interview_scheduled':
-        return <Calendar className="h-5 w-5 text-blue-500" />
+        return <Calendar className="h-5 w-5 text-blue-500 dark:text-blue-400" />
       default:
         return <Clock className="h-5 w-5 text-secondary" />
     }
@@ -228,19 +228,19 @@ export default function ApplicationStatus() {
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{formatInterviewDateTime(interview.scheduled_at)}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{formatInterviewDateTime(interview.scheduled_at)}</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{interview.mode?.replace('_', ' ') || 'Interview'}</p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Location / Link</p>
-                    <p className="text-sm text-gray-900 dark:text-gray-100">
+                    <p className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
                       {interview.location || 'You will receive the meeting details shortly.'}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Important notes</p>
-                    <p className="text-sm text-gray-900 dark:text-gray-100">
+                    <p className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
                       {interview.notes || 'Please arrive 10 minutes early and bring your identification.'}
                     </p>
                   </div>
@@ -281,13 +281,13 @@ export default function ApplicationStatus() {
                         className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full shadow-lg ${
                           step.completed
                             ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
-                            : 'bg-gray-100 text-gray-500'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500'
                         }`}
                       >
                         {step.completed ? <CheckCircle className="h-5 w-5" /> : getStatusIcon(step.status)}
                       </div>
                       <div className="flex-1">
-                        <p className={`font-semibold ${step.completed ? 'text-gray-900' : 'text-gray-600'}`}>
+                        <p className={`font-semibold ${step.completed ? 'text-gray-900 dark:text-gray-100 dark:text-gray-900' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'}`}>
                           {step.description}
                         </p>
                         {step.date && (
@@ -306,8 +306,8 @@ export default function ApplicationStatus() {
               >
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-5 py-4">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3"><User className="w-5 h-5" /> Personal information</h3>
-                    <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3"><User className="w-5 h-5" /> Personal information</h3>
+                    <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Full name:</span>
                         <span className="font-semibold">{application.full_name}</span>
@@ -331,8 +331,8 @@ export default function ApplicationStatus() {
                     </div>
                   </div>
                   <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 px-5 py-4">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3"><Phone className="w-5 h-5" /> Contact information</h3>
-                    <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3"><Phone className="w-5 h-5" /> Contact information</h3>
+                    <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Residence:</span>
                         <span className="font-semibold">{application.residence_town}</span>
@@ -352,8 +352,8 @@ export default function ApplicationStatus() {
                     </div>
                   </div>
                   <div className="rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 px-5 py-4 lg:col-span-2">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
-                    <div className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
+                    <div className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600 sm:grid-cols-2">
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Payment reference:</span>
                         <span className="font-semibold">{application.payment_reference || 'Not provided'}</span>
@@ -392,7 +392,7 @@ export default function ApplicationStatus() {
                           <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Result slip</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Result slip</p>
                           <p className="text-xs font-medium text-blue-600 dark:text-blue-400">✓ Uploaded</p>
                         </div>
                       </div>
@@ -420,7 +420,7 @@ export default function ApplicationStatus() {
                           <FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Extra KYC documents</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Extra KYC documents</p>
                           <p className="text-xs font-medium text-green-600 dark:text-green-400">✓ Uploaded</p>
                         </div>
                       </div>
@@ -448,7 +448,7 @@ export default function ApplicationStatus() {
                           <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Proof of payment</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Proof of payment</p>
                           <p className="text-xs font-medium text-purple-600 dark:text-purple-400">✓ Uploaded</p>
                         </div>
                       </div>

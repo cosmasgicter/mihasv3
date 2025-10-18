@@ -102,11 +102,11 @@ export function ApplicationsTable({
 
   const getStatusBadge = useCallback((status: string) => {
     const statusConfig = {
-      draft: { color: 'bg-gray-100 text-gray-800', icon: Clock },
-      submitted: { color: 'bg-blue-100 text-blue-800', icon: AlertTriangle },
-      under_review: { color: 'bg-yellow-100 text-yellow-800', icon: Eye },
-      approved: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      rejected: { color: 'bg-red-100 text-red-800', icon: XCircle }
+      draft: { color: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700', icon: Clock },
+      submitted: { color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800', icon: AlertTriangle },
+      under_review: { color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200', icon: Eye },
+      approved: { color: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200', icon: CheckCircle },
+      rejected: { color: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200', icon: XCircle }
     }
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft
@@ -122,9 +122,9 @@ export function ApplicationsTable({
 
   const getPaymentBadge = useCallback((paymentStatus: string) => {
     const paymentConfig = {
-      pending_review: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-      verified: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      rejected: { color: 'bg-red-100 text-red-800', icon: XCircle }
+      pending_review: { color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200', icon: Clock },
+      verified: { color: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200', icon: CheckCircle },
+      rejected: { color: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200', icon: XCircle }
     }
 
     const config = paymentConfig[paymentStatus as keyof typeof paymentConfig] || paymentConfig.pending_review
@@ -170,23 +170,23 @@ export function ApplicationsTable({
         <>
           {/* Select All Header */}
           {onSelectionChange && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-4 mb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     checked={selectedIds.length === applications.length && applications.length > 0}
                     onChange={handleSelectAll}
-                    className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+                    className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">
                     {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'Select all'}
                   </span>
                 </div>
                 {selectedIds.length > 0 && (
                   <button
                     onClick={() => onSelectionChange([])}
-                    className="text-sm text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300"
+                    className="text-sm text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:text-gray-600"
                   >
                     Clear selection
                   </button>
@@ -213,20 +213,20 @@ export function ApplicationsTable({
             ))}
           </div>
           
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 dark:border-gray-300 shadow-sm">
             <div className="flex items-center gap-4">
               <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
-                Showing <span className="font-semibold text-gray-900 dark:text-gray-100">{loadedCount}</span>
+                Showing <span className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{loadedCount}</span>
                 {totalCount > 0 && (
                   <>
                     {' '}of{' '}
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">{totalCount}</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{totalCount}</span>
                   </>
                 )}{' '}
                 applications
               </div>
               {totalCount > 0 && (
-                <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
+                <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 dark:bg-gray-400" />
               )}
               <div className="text-xs text-gray-500 dark:text-gray-500">
                 {Math.round((loadedCount / Math.max(totalCount, 1)) * 100)}% loaded
@@ -254,11 +254,11 @@ export function ApplicationsTable({
           </div>
         </>
       ) : (
-        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 dark:border-gray-300">
           <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
             <FileText className="h-8 w-8 text-gray-400 dark:text-gray-500" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No applications found</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No applications found</h3>
           <p className="text-sm text-gray-500 dark:text-gray-500">Try adjusting your filters to see more results.</p>
         </div>
       )}
@@ -313,8 +313,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const documentsCount = [app.result_slip_url, app.extra_kyc_url, app.pop_url].filter(Boolean).length
 
   return (
-    <div className={`relative bg-white rounded-xl border p-6 hover:shadow-lg transition-all duration-200 group ${
-      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+    <div className={`relative bg-white dark:bg-gray-800 rounded-xl border p-6 hover:shadow-lg transition-all duration-200 group ${
+      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 dark:border-gray-700 dark:border-gray-300 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
     }`}>
       {/* Selection Checkbox */}
       {onSelect && (
@@ -323,7 +323,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
             type="checkbox"
             checked={isSelected}
             onChange={(e) => onSelect(app.id, e.target.checked)}
-            className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+            className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded"
           />
         </div>
       )}
@@ -332,11 +332,11 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <User className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{app.full_name}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 truncate">{app.full_name}</h3>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
             <span className="font-mono">#{app.application_number}</span>
-            <span className="text-gray-300">•</span>
+            <span className="text-gray-300 dark:text-gray-600">•</span>
             <Calendar className="h-3 w-3" />
             <span>{formatDate(app.submitted_at || app.created_at)}</span>
           </div>
@@ -361,13 +361,13 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       {/* Program Info */}
       <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 mb-4">
         <div className="flex items-center gap-2 mb-1">
-          <GraduationCap className="h-4 w-4 text-blue-500" />
-          <span className="font-medium text-gray-900 dark:text-gray-100 text-sm">{app.program}</span>
+          <GraduationCap className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+          <span className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 text-sm">{app.program}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
           <Building className="h-3 w-3 text-gray-400 dark:text-gray-500" />
           <span>{getInstitutionName(app.institution)}</span>
-          <span className="text-gray-300">•</span>
+          <span className="text-gray-300 dark:text-gray-600">•</span>
           <span>{app.intake}</span>
         </div>
       </div>
@@ -377,7 +377,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
         <div>
           <div className="text-xs text-gray-500 dark:text-gray-500 mb-1">Payment Status</div>
           {getPaymentBadge(app.payment_status)}
-          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
+          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mt-1">
             K{app.paid_amount || 0} / K{app.application_fee}
           </div>
         </div>
@@ -386,7 +386,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
           <div>
             <div className="text-xs text-gray-500 dark:text-gray-500 mb-1">Academic</div>
             <div className="text-sm">
-              <span className="text-gray-700 dark:text-gray-300">{app.total_subjects} subjects</span>
+              <span className="text-gray-700 dark:text-gray-300 dark:text-gray-600">{app.total_subjects} subjects</span>
               {app.points > 0 && (
                 <div className={`font-medium ${getPointsColor(app.points)}`}>
                   Points: {app.points}
@@ -398,12 +398,12 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       </div>
 
       {app.grades_summary && (
-        <div className="mb-4 rounded-lg border border-gray-100 bg-gray-50 dark:bg-gray-900 p-3">
+        <div className="mb-4 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 p-3">
           <div className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500 mb-2">
             Grades Summary
           </div>
           <div
-            className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 [&_p]:mb-2"
+            className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 dark:text-gray-600 [&_p]:mb-2"
             dangerouslySetInnerHTML={{ __html: sanitizedGradesSummary }}
           />
         </div>
@@ -412,7 +412,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       {/* Documents */}
       {documentsCount > 0 && (
         <div className="flex items-center gap-2 mb-4 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-          <FileText className="h-4 w-4 text-blue-500" />
+          <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400" />
           <span className="text-sm text-blue-700 dark:text-blue-300">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
         </div>
       )}
@@ -428,7 +428,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       />
 
       {/* Actions */}
-      <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+      <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
         <button
           onClick={() => onViewDetails(app.id)}
           className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm py-2.5 px-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center justify-center gap-2 group-hover:shadow-md"
@@ -444,7 +444,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                 href={app.result_slip_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-2.5 rounded-lg transition-colors"
+                className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 dark:text-gray-600 p-2.5 rounded-lg transition-colors"
                 title="Result Slip"
               >
                 <FileText className="h-4 w-4" />
@@ -455,7 +455,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                 href={app.pop_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-2.5 rounded-lg transition-colors"
+                className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 dark:text-gray-600 p-2.5 rounded-lg transition-colors"
                 title="Proof of Payment"
               >
                 <CreditCard className="h-4 w-4" />

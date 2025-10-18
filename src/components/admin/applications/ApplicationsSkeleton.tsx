@@ -8,7 +8,7 @@ export function ApplicationsSkeleton() {
         {Array.from({ length: 6 }).map((_, index) => (
           <div
             key={index}
-            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 animate-pulse"
+            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6 animate-pulse"
           >
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
@@ -60,7 +60,7 @@ export function ApplicationsSkeleton() {
       </div>
 
       {/* Pagination Skeleton */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 dark:border-gray-300">
         <div className="flex justify-between items-center">
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48" />
           <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32" />

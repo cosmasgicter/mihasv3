@@ -237,7 +237,7 @@ export default function AdminUsers() {
       case 'registrar':
       case 'finance_officer':
       case 'academic_head':
-        return <Shield className="h-4 w-4 text-blue-500" />
+        return <Shield className="h-4 w-4 text-blue-500 dark:text-blue-400" />
       default:
         return <User className="h-4 w-4 text-gray-500 dark:text-gray-500" />
     }
@@ -247,14 +247,14 @@ export default function AdminUsers() {
     switch (role) {
       case 'admin':
       case 'super_admin':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
       case 'admissions_officer':
       case 'registrar':
       case 'finance_officer':
       case 'academic_head':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
     }
   }
 
@@ -266,7 +266,7 @@ export default function AdminUsers() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
           {/* Header - Mobile First */}
           <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -329,7 +329,7 @@ export default function AdminUsers() {
           </div>
 
           {/* Search and Filters */}
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gray-50 dark:bg-gray-900">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
@@ -339,7 +339,7 @@ export default function AdminUsers() {
                     placeholder="Search users by name, email, or phone..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
                 </div>
               </div>
@@ -349,7 +349,7 @@ export default function AdminUsers() {
                   <select
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 appearance-none bg-white dark:bg-gray-800"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 appearance-none bg-white dark:bg-gray-800"
                   >
                     <option value="">All Roles</option>
                     {AVAILABLE_ROLES.map(role => (
@@ -363,14 +363,14 @@ export default function AdminUsers() {
 
           {/* User Statistics */}
           {showStats && (
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-purple-50">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gradient-to-r from-gray-50 to-purple-50">
               <UserStats users={users} />
             </div>
           )}
 
           {/* Bulk Operations */}
           {selectedUsers.length > 0 && (
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-950/30">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-blue-50 dark:bg-blue-950/30">
               <BulkUserOperations
                 users={filteredUsers}
                 selectedUsers={selectedUsers}
@@ -402,7 +402,7 @@ export default function AdminUsers() {
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-8xl mb-6">👥</div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Users Found</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No Users Found</h3>
                 <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-6 max-w-md mx-auto">
                   No users have been registered yet. Users will appear here once they sign up for the system.
                 </p>
@@ -415,12 +415,12 @@ export default function AdminUsers() {
                 {/* Mobile Cards View */}
                 <div className="block lg:hidden space-y-4">
                   {filteredUsers.map((user) => (
-                    <div key={user.user_id} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                    <div key={user.user_id} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 dark:border-gray-300">
                       <div className="flex items-start space-x-3 mb-3">
                         <div className="flex-shrink-0 flex items-center space-x-2">
                           <button
                             onClick={() => handleUserSelect(user.user_id)}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200 dark:text-blue-800"
                           >
                             {selectedUsers.includes(user.user_id) ? (
                               <CheckSquare className="h-4 w-4" />
@@ -431,7 +431,7 @@ export default function AdminUsers() {
                           {getRoleIcon(user.role)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 truncate">
+                          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 dark:text-gray-900 truncate">
                             {sanitizeForDisplay(user.full_name) || 'No name provided'}
                           </h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{sanitizeForDisplay(user.email)}</p>
@@ -449,7 +449,7 @@ export default function AdminUsers() {
                         </span>
                       </div>
                       
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700 dark:border-gray-300">
                         <div className="text-xs text-gray-500 dark:text-gray-500">
                           Joined: {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                         </div>
@@ -476,7 +476,7 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={() => openActivityLog(user.user_id)}
-                            className="text-gray-600 dark:text-gray-400 dark:text-gray-500 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:bg-gray-900"
+                            className="text-gray-600 dark:text-gray-400 dark:text-gray-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 hover:bg-gray-50 dark:bg-gray-900"
                           >
                             <Clock className="h-3 w-3 mr-1" />
                             Activity
@@ -503,11 +503,11 @@ export default function AdminUsers() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gradient-to-r from-gray-50 to-purple-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={handleSelectAll}
-                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200 dark:text-blue-800"
                             >
                               {selectedUsers.length === filteredUsers.length && filteredUsers.length > 0 ? (
                                 <CheckSquare className="h-4 w-4" />
@@ -518,16 +518,16 @@ export default function AdminUsers() {
                             <span><User className="w-5 h-5" /> User</span>
                           </div>
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
                           <Phone className="w-5 h-5" /> Contact
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
                           <Trophy className="w-5 h-5" /> Role
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
                           <Calendar className="w-5 h-5" /> Joined
                         </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
                           ⚙️ Actions
                         </th>
                       </tr>
@@ -539,7 +539,7 @@ export default function AdminUsers() {
                             <div className="flex items-center">
                               <button
                                 onClick={() => handleUserSelect(user.user_id)}
-                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200 mr-3"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200 dark:text-blue-800 mr-3"
                               >
                                 {selectedUsers.includes(user.user_id) ? (
                                   <CheckSquare className="h-4 w-4" />
@@ -549,7 +549,7 @@ export default function AdminUsers() {
                               </button>
                               {getRoleIcon(user.role)}
                               <div className="ml-3">
-                                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                                   {sanitizeForDisplay(user.full_name) || 'No name provided'}
                                 </div>
                                 <div className="text-xs text-gray-500 dark:text-gray-500 font-mono">
@@ -559,7 +559,7 @@ export default function AdminUsers() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm text-gray-900 dark:text-gray-100">{sanitizeForDisplay(user.email)}</div>
+                            <div className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">{sanitizeForDisplay(user.email)}</div>
                             {user.phone && (
                               <div className="text-sm text-gray-500 dark:text-gray-500">{sanitizeForDisplay(user.phone)}</div>
                             )}
@@ -600,7 +600,7 @@ export default function AdminUsers() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openActivityLog(user.user_id)}
-                                className="text-gray-600 dark:text-gray-400 dark:text-gray-500 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:bg-gray-900"
+                                className="text-gray-600 dark:text-gray-400 dark:text-gray-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 hover:bg-gray-50 dark:bg-gray-900"
                                 disabled={selectedUsers.length > 0}
                               >
                                 <Clock className="h-3 w-3 mr-1" />
@@ -667,7 +667,7 @@ export default function AdminUsers() {
               />
               <button
                 type="button"
-                className="absolute right-3 top-8 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
+                className="absolute right-3 top-8 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -680,13 +680,13 @@ export default function AdminUsers() {
               placeholder="Enter phone number"
             />
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
                 Role <span className="text-red-500">*</span>
               </label>
               <select
                 value={createForm.role}
                 onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               >
                 {AVAILABLE_ROLES.map(role => (
@@ -748,13 +748,13 @@ export default function AdminUsers() {
               placeholder="Enter phone number"
             />
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
                 Role <span className="text-red-500">*</span>
               </label>
               <select
                 value={editForm.role}
                 onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
                 disabled={selectedUser?.role === 'super_admin'}
               >

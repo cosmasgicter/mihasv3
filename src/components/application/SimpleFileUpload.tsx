@@ -253,9 +253,9 @@ export function SimpleFileUpload({
   const isUploading_ = isUploading || isCompressing || uploadingFiles.length > 0
   
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
           Supporting Documents
         </h2>
         {uploadedFiles.length > 0 && (
@@ -281,10 +281,10 @@ export function SimpleFileUpload({
             className={cn(
               'border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 min-h-[48px] touch-target',
               isUploading_
-                ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+                ? 'border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gray-50 dark:bg-gray-900 cursor-not-allowed'
                 : dragActive
                 ? 'border-blue-600 bg-primary/5 cursor-pointer'
-                : 'border-gray-300 hover:border-blue-600 hover:bg-blue-600/5 cursor-pointer'
+                : 'border-gray-300 dark:border-gray-600 dark:border-gray-400 hover:border-blue-600 hover:bg-blue-600/5 cursor-pointer'
             )}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -321,11 +321,11 @@ export function SimpleFileUpload({
                 <>
                   <Upload className={cn(
                     'h-8 w-8 mx-auto',
-                    dragActive ? 'text-blue-600' : 'text-gray-600'
+                    dragActive ? 'text-blue-600' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
                   )} />
                   <p className={cn(
                     'text-sm font-medium',
-                    dragActive ? 'text-blue-600' : 'text-gray-600'
+                    dragActive ? 'text-blue-600' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
                   )}>
                     {dragActive ? 'Drop files here' : 'Click to upload or drag and drop'}
                   </p>
@@ -354,7 +354,7 @@ export function SimpleFileUpload({
             <div className="flex items-start space-x-3">
               <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-red-800">Upload Error</p>
+                <p className="text-sm font-medium text-red-800 dark:text-red-200">Upload Error</p>
                 <p className="text-sm text-red-700 dark:text-red-300 mt-1">{displayError}</p>
               </div>
             </div>
@@ -372,7 +372,7 @@ export function SimpleFileUpload({
             <div className="flex items-start space-x-3">
               <Zap className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-green-800">Image Optimization Complete</p>
+                <p className="text-sm font-medium text-green-800 dark:text-green-200">Image Optimization Complete</p>
                 <div className="mt-2 space-y-1">
                   {compressionResults.map((result, index) => (
                     <div key={index} className="text-xs text-green-700 dark:text-green-300">
@@ -387,7 +387,7 @@ export function SimpleFileUpload({
                 variant="ghost"
                 size="sm"
                 onClick={clearResults}
-                className="text-green-700 dark:text-green-300 hover:text-green-800 p-1 h-auto"
+                className="text-green-700 dark:text-green-300 hover:text-green-800 dark:text-green-200 p-1 h-auto"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -413,7 +413,7 @@ export function SimpleFileUpload({
                       <div className="h-4 w-4 mr-2 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     )}
                     <span className={`text-sm font-medium ${
-                      isComplete ? 'text-green-800' : 'text-blue-800'
+                      isComplete ? 'text-green-800 dark:text-green-200' : 'text-blue-800 dark:text-blue-200 dark:text-blue-800'
                     }`}>{fileName}</span>
                   </div>
                   <span className={`text-sm font-semibold ${
@@ -445,7 +445,7 @@ export function SimpleFileUpload({
 
       {uploadedFiles.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-3">
             Uploaded Files ({uploadedFiles.length})
           </h3>
           <AnimatePresence>
@@ -469,7 +469,7 @@ export function SimpleFileUpload({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-green-800 truncate">{file.name}</p>
+                      <p className="text-sm font-medium text-green-800 dark:text-green-200 truncate">{file.name}</p>
                       <div className="flex items-center space-x-3 mt-1">
                         <p className="text-xs text-green-600 dark:text-green-400">{formatFileSize(file.size)}</p>
                         {file.compressed && file.originalSize && (

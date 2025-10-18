@@ -12,7 +12,7 @@ interface SaveStatusProps {
 export function SaveStatus({ isSaving, lastSaved, isOnline, pendingChanges, error }: SaveStatusProps) {
   const getStatusIcon = () => {
     if (error) return <AlertCircle className="h-4 w-4 text-red-500" />
-    if (isSaving) return <Clock className="h-4 w-4 text-blue-500 animate-spin" />
+    if (isSaving) return <Clock className="h-4 w-4 text-blue-500 dark:text-blue-400 animate-spin" />
     if (!isOnline) return <WifiOff className="h-4 w-4 text-orange-500" />
     if (lastSaved) return <Check className="h-4 w-4 text-green-500" />
     return <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500" />

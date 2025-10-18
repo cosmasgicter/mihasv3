@@ -110,14 +110,14 @@ export default function OfflineAdminDashboard() {
           {/* Today's Applications */}
           <motion.div 
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-800"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
                 <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.todayApplications}</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.todayApplications}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Today</div>
               </div>
             </div>
@@ -127,14 +127,14 @@ export default function OfflineAdminDashboard() {
           {/* Pending Reviews */}
           <motion.div 
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-800"
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-yellow-100 rounded-xl">
+              <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl">
                 <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.pendingApplications}</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.pendingApplications}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Pending</div>
               </div>
             </div>
@@ -147,14 +147,14 @@ export default function OfflineAdminDashboard() {
           {/* Approved Applications */}
           <motion.div 
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-800"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
                 <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.approvedApplications}</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.approvedApplications}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Approved</div>
               </div>
             </div>
@@ -164,14 +164,14 @@ export default function OfflineAdminDashboard() {
           {/* Processing Time */}
           <motion.div 
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-800"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
                 <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.avgProcessingTime}</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.avgProcessingTime}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Days</div>
               </div>
             </div>
@@ -187,13 +187,13 @@ export default function OfflineAdminDashboard() {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
         >
           <Link to="/admin/applications" className="block">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:border-blue-600/20">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-800 hover:border-blue-600/20">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
                   <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Manage Applications</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Manage Applications</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Review and process applications</p>
                 </div>
               </div>
@@ -201,13 +201,13 @@ export default function OfflineAdminDashboard() {
           </Link>
 
           <Link to="/admin/users" className="block">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:border-blue-600/20">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-800 hover:border-blue-600/20">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
                   <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">User Management</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">User Management</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Manage users and roles</p>
                 </div>
               </div>
@@ -215,13 +215,13 @@ export default function OfflineAdminDashboard() {
           </Link>
 
           <Link to="/admin/programs" className="block">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:border-blue-600/20">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-800 hover:border-blue-600/20">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
                   <GraduationCap className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Programs & Intakes</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Programs & Intakes</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Manage academic programs</p>
                 </div>
               </div>
@@ -234,9 +234,9 @@ export default function OfflineAdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
         >
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">System Status</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">System Status</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.weekApplications}</div>

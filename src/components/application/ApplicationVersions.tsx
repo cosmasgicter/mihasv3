@@ -96,7 +96,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
         variant="outline"
         size="sm"
         onClick={() => setShowVersions(true)}
-        className="text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-800 dark:text-gray-200"
+        className="text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-800 dark:text-gray-200 dark:text-gray-700"
       >
         <History className="h-4 w-4 mr-2" />
         Version History
@@ -109,7 +109,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
               Application Version History
             </h3>
             <Button
@@ -126,7 +126,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
           {/* Version List */}
           <div className="w-1/3 border-r overflow-y-auto">
             <div className="p-4">
-              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Versions</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3">Versions</h4>
               
               {loading ? (
                 <div className="text-center py-8">
@@ -145,7 +145,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                       className={`p-3 rounded-lg border cursor-pointer transition-colors ${
                         selectedVersion?.id === version.id
                           ? 'border-blue-600 bg-primary/5'
-                          : 'border-gray-200 hover:border-gray-300'
+                          : 'border-gray-200 dark:border-gray-700 dark:border-gray-300 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
                       }`}
                       onClick={() => setSelectedVersion(version)}
                     >
@@ -191,7 +191,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
             {selectedVersion ? (
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                     Version {selectedVersion.version_number} Details
                   </h4>
                   <div className="flex space-x-2">
@@ -219,20 +219,20 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
                       Created
                     </label>
-                    <p className="text-sm text-gray-900 dark:text-gray-100">
+                    <p className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
                       {formatDate(selectedVersion.created_at)}
                     </p>
                   </div>
 
                   {selectedVersion.change_summary && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
                         Changes
                       </label>
-                      <p className="text-sm text-gray-900 dark:text-gray-100">
+                      <p className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
                         {selectedVersion.change_summary?.replace(/[<>&"']/g, (char) => {
                           const entities: Record<string, string> = {
                             '<': '&lt;',
@@ -248,11 +248,11 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
                       Form Data Preview
                     </label>
                     <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 max-h-64 overflow-y-auto">
-                      <pre className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                      <pre className="text-xs text-gray-700 dark:text-gray-300 dark:text-gray-600 whitespace-pre-wrap">
                         {JSON.stringify(selectedVersion.form_data, null, 2)}
                       </pre>
                     </div>

@@ -181,11 +181,11 @@ function ApplicationsAdminContent() {
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      draft: 'bg-gray-100 text-gray-800',
-      submitted: 'bg-blue-100 text-blue-800',
-      under_review: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800'
+      draft: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700',
+      submitted: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800',
+      under_review: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200',
+      approved: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200',
+      rejected: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
     }
     
     return (
@@ -197,9 +197,9 @@ function ApplicationsAdminContent() {
 
   const getPaymentBadge = (paymentStatus: string) => {
     const colors = {
-      pending_review: 'bg-yellow-100 text-yellow-800',
-      verified: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800'
+      pending_review: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200',
+      verified: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200',
+      rejected: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
     }
     
     return (
@@ -212,7 +212,7 @@ function ApplicationsAdminContent() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">
             Applications Management
           </h1>
           <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
@@ -258,7 +258,7 @@ function ApplicationsAdminContent() {
                     <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
                       {selectedApplications.length} selected
                     </span>
-                    <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
+                    <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 dark:bg-gray-400" />
                     <select
                       onChange={(e) => {
                         if (e.target.value) {
@@ -267,7 +267,7 @@ function ApplicationsAdminContent() {
                         }
                       }}
                       aria-label="Bulk status update"
-                      className="text-xs rounded border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
+                      className="text-xs rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500"
                     >
                       <option value="">Bulk Status Update</option>
                       <option value="under_review">Under Review</option>
@@ -282,7 +282,7 @@ function ApplicationsAdminContent() {
                         }
                       }}
                       aria-label="Bulk payment update"
-                      className="text-xs rounded border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
+                      className="text-xs rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500"
                     >
                       <option value="">Bulk Payment Update</option>
                       <option value="verified">Verify</option>
@@ -314,7 +314,7 @@ function ApplicationsAdminContent() {
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     aria-label="Filter by status"
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Statuses</option>
                     <option value="draft">Draft</option>
@@ -330,7 +330,7 @@ function ApplicationsAdminContent() {
                     value={paymentFilter}
                     onChange={(e) => setPaymentFilter(e.target.value)}
                     aria-label="Filter by payment status"
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Payments</option>
                     <option value="pending_review">Pending Review</option>
@@ -344,7 +344,7 @@ function ApplicationsAdminContent() {
                     value={programFilter}
                     onChange={(e) => setProgramFilter(e.target.value)}
                     aria-label="Filter by program"
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Programs</option>
                     <option value="Clinical Medicine">Clinical Medicine</option>
@@ -358,7 +358,7 @@ function ApplicationsAdminContent() {
                     value={institutionFilter}
                     onChange={(e) => setInstitutionFilter(e.target.value)}
                     aria-label="Filter by institution"
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Institutions</option>
                     <option value="KATC">Kalulushi Training Centre</option>
@@ -385,7 +385,7 @@ function ApplicationsAdminContent() {
                         <button
                           onClick={selectAll}
                           aria-label={selectedApplications.length === filteredApplications.length && filteredApplications.length > 0 ? 'Deselect all applications' : 'Select all applications'}
-                          className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider hover:text-gray-700 dark:text-gray-300"
+                          className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider hover:text-gray-700 dark:text-gray-300 dark:text-gray-600"
                         >
                           {selectedApplications.length === filteredApplications.length && filteredApplications.length > 0 ? (
                             <CheckSquare className="h-4 w-4" />
@@ -424,7 +424,7 @@ function ApplicationsAdminContent() {
                           <button
                             onClick={() => toggleSelection(app.id)}
                             aria-label={selectedApplications.includes(app.id) ? `Deselect ${app.full_name}` : `Select ${app.full_name}`}
-                            className="text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
+                            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
                           >
                             {selectedApplications.includes(app.id) ? (
                               <CheckSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -434,7 +434,7 @@ function ApplicationsAdminContent() {
                           </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                             {app.application_number}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-500">
@@ -442,7 +442,7 @@ function ApplicationsAdminContent() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                             {app.full_name}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-500">
@@ -453,7 +453,7 @@ function ApplicationsAdminContent() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                             {app.program}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-500">
@@ -469,7 +469,7 @@ function ApplicationsAdminContent() {
                                 onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
                                 disabled={updating === app.id}
                                 aria-label={`Update status for ${app.full_name}`}
-                                className="block w-full text-xs rounded border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                                className="block w-full text-xs rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
                               >
                                 <option value="draft">Draft</option>
                                 <option value="submitted">Submitted</option>
@@ -497,7 +497,7 @@ function ApplicationsAdminContent() {
                                 onChange={(e) => handlePaymentStatusUpdate(app.id, e.target.value)}
                                 disabled={updatingPayment === app.id}
                                 aria-label={`Update payment status for ${app.full_name}`}
-                                className="block w-full text-xs rounded border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                                className="block w-full text-xs rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
                               >
                                 <option value="pending_review">Pending Review</option>
                                 <option value="verified">Verified</option>
@@ -512,7 +512,7 @@ function ApplicationsAdminContent() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-gray-100">
+                          <div className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
                             {app.total_subjects} subjects
                           </div>
                           {app.grades_summary && (
@@ -547,17 +547,17 @@ function ApplicationsAdminContent() {
                 <div className="text-gray-500 dark:text-gray-500">No applications found matching your criteria.</div>
               </div>
             )}
-            <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="border-t border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gray-50 dark:bg-gray-900 px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-gray-500 dark:text-gray-500">
                 Showing{' '}
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{filteredApplications.length}</span>
+                <span className="font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-600">{filteredApplications.length}</span>
                 {' '}of{' '}
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{pagination.loadedCount}</span>{' '}
+                <span className="font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-600">{pagination.loadedCount}</span>{' '}
                 loaded
                 {pagination.totalCount > 0 && (
                   <>
                     {' '}•{' '}
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">{pagination.totalCount}</span>{' '}
+                    <span className="font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-600">{pagination.totalCount}</span>{' '}
                     total
                   </>
                 )}{' '}
@@ -585,7 +585,7 @@ function ApplicationsAdminContent() {
             {/* Summary Stats */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                   {pagination.totalCount}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-500">Total Applications</div>

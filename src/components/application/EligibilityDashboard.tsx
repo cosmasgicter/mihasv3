@@ -241,11 +241,11 @@ export function EligibilityDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Eligibility Metrics Dashboard</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">Eligibility Metrics Dashboard</h2>
         <select
           value={selectedProgram}
           onChange={(e) => setSelectedProgram(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">All Programs</option>
           {programs.map(program => (
@@ -261,7 +261,7 @@ export function EligibilityDashboard() {
             <Users className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Total Applications</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metrics.totalApplications}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{metrics.totalApplications}</p>
             </div>
           </div>
         </div>
@@ -271,7 +271,7 @@ export function EligibilityDashboard() {
             <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Eligible</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metrics.eligibleCount}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{metrics.eligibleCount}</p>
               <p className="text-xs text-gray-500 dark:text-gray-500">
                 {metrics.totalApplications > 0 ? Math.round((metrics.eligibleCount / metrics.totalApplications) * 100) : 0}%
               </p>
@@ -284,7 +284,7 @@ export function EligibilityDashboard() {
             <Target className="h-8 w-8 text-orange-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Average Score</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{Math.round(metrics.averageScore)}%</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{Math.round(metrics.averageScore)}%</p>
             </div>
           </div>
         </div>
@@ -294,7 +294,7 @@ export function EligibilityDashboard() {
             <TrendingUp className="h-8 w-8 text-purple-600 dark:text-purple-400" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Eligibility Rate</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{Math.round(eligibilityRate)}%</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{Math.round(eligibilityRate)}%</p>
             </div>
           </div>
         </div>
@@ -304,7 +304,7 @@ export function EligibilityDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Eligibility Status Distribution */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Eligibility Status Distribution</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Eligibility Status Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -336,7 +336,7 @@ export function EligibilityDashboard() {
 
         {/* Score Distribution */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Score Distribution</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Score Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={metrics.scoreDistribution}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -352,7 +352,7 @@ export function EligibilityDashboard() {
       {/* Program Breakdown */}
       {metrics.programBreakdown.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Program Breakdown</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Program Breakdown</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 dark:bg-gray-900">
@@ -380,7 +380,7 @@ export function EligibilityDashboard() {
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                 {metrics.programBreakdown.map((program, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                       {program.program}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
@@ -395,7 +395,7 @@ export function EligibilityDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 dark:text-red-400">
                       {program.not_eligible}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
                       {program.total > 0 ? Math.round(((program.eligible + program.conditional) / program.total) * 100) : 0}%
                     </td>
                   </tr>
@@ -409,16 +409,16 @@ export function EligibilityDashboard() {
       {/* Common Missing Requirements */}
       {metrics.commonMissingRequirements.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Most Common Missing Requirements</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Most Common Missing Requirements</h3>
           <div className="space-y-3">
             {metrics.commonMissingRequirements.map((req, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{req.requirement}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{req.requirement}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-500">{req.count} applications affected</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                     {Math.round(req.percentage)}%
                   </span>
                 </div>

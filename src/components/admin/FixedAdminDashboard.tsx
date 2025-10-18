@@ -39,9 +39,9 @@ const statusColorMap: Record<string, string> = {
 
 const systemHealthStyles: Record<AdminDashboardStats['systemHealth'], string> = {
   excellent: 'bg-emerald-100 text-emerald-700',
-  good: 'bg-blue-100 text-blue-700',
-  warning: 'bg-amber-100 text-amber-700',
-  critical: 'bg-red-100 text-red-700'
+  good: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+  warning: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  critical: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
 }
 
 const formatStatusLabel = (status: string) =>
@@ -179,7 +179,7 @@ export function FixedAdminDashboard() {
           >
             <AlertTriangle className="h-5 w-5 text-red-500" />
             <div>
-              <p className="text-red-800 font-medium">Dashboard Error</p>
+              <p className="text-red-800 dark:text-red-200 font-medium">Dashboard Error</p>
               <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
             </div>
             <Button
@@ -198,7 +198,7 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 relative overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -208,7 +208,7 @@ export function FixedAdminDashboard() {
               </div>
               <div className="text-right">
                 <div
-                  className="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                  className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900"
                   data-testid="today-applications-value"
                 >
                   {integerFormatter.format(stats.todayApplications)}
@@ -228,17 +228,17 @@ export function FixedAdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 relative overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-orange-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-yellow-100 rounded-xl">
+              <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl">
                 <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
               </div>
               <div className="text-right">
                 <div
-                  className="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                  className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900"
                   data-testid="pending-applications-value"
                 >
                   {integerFormatter.format(stats.pendingApplications)}
@@ -257,7 +257,7 @@ export function FixedAdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 relative overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-green-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -267,7 +267,7 @@ export function FixedAdminDashboard() {
               </div>
               <div className="text-right">
                 <div
-                  className="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                  className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900"
                   data-testid="approval-rate-value"
                 >
                   {approvalRate}%
@@ -287,7 +287,7 @@ export function FixedAdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 relative overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -297,7 +297,7 @@ export function FixedAdminDashboard() {
               </div>
               <div className="text-right">
                 <div
-                  className="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                  className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900"
                   data-testid="avg-processing-value"
                 >
                   {decimalFormatter.format(averageProcessingDays)}
@@ -318,10 +318,10 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 xl:col-span-2"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 xl:col-span-2"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100"><BarChart3 className="w-5 h-5" /> Status Distribution</h3>
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 flex items-center justify-between">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900"><BarChart3 className="w-5 h-5" /> Status Distribution</h3>
             <span className="text-sm text-gray-500 dark:text-gray-500">Total: {formatCount(totalApplications)}</span>
           </div>
           <div className="p-6 space-y-4">
@@ -335,7 +335,7 @@ export function FixedAdminDashboard() {
 
                 return (
                   <div key={status} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <div className="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">
                       <span>{formatStatusLabel(status)}</span>
                       <span>{formatCount(numericValue)} ({percentage}%)</span>
                     </div>
@@ -360,10 +360,10 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 xl:col-span-2"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 xl:col-span-2"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100"><Zap className="w-5 h-5" /> Processing Performance</h3>
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900"><Zap className="w-5 h-5" /> Processing Performance</h3>
           </div>
           <div className="p-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -374,7 +374,7 @@ export function FixedAdminDashboard() {
               ].map(period => (
                 <div key={period.label} className="p-3 bg-slate-50 rounded-xl">
                   <div className="text-xs text-gray-500 dark:text-gray-500">{period.label}</div>
-                  <div className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                     {formatCount(period.value)}
                   </div>
                 </div>
@@ -387,7 +387,7 @@ export function FixedAdminDashboard() {
                   <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                   <span>Average processing time</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                   {decimalFormatter.format(averageProcessingDays)} days · {formatHours(averageProcessingHours)}h
                 </span>
               </div>
@@ -397,7 +397,7 @@ export function FixedAdminDashboard() {
                   <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                   <span>Median decision time</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                   {formatHours(medianProcessingHours)}h
                 </span>
               </div>
@@ -407,7 +407,7 @@ export function FixedAdminDashboard() {
                   <Zap className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                   <span>P95 response time</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                   {formatHours(p95ProcessingHours)}h
                 </span>
               </div>
@@ -417,7 +417,7 @@ export function FixedAdminDashboard() {
                   <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   <span>Decisions in last 24h</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                   {formatCount(processingMetrics.decisionVelocity24h)}
                 </span>
               </div>
@@ -430,10 +430,10 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 flex items-center justify-between">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -468,7 +468,7 @@ export function FixedAdminDashboard() {
                   >
                     <div className={`w-2 h-2 rounded-full mt-2 ${accentColor}`}></div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{activity.message}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 truncate">{activity.message}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-500">{formatTimestamp(activity.timestamp)}</p>
                     </div>
                   </motion.div>
@@ -486,16 +486,16 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">🛡️ System Health</h3>
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">🛡️ System Health</h3>
           </div>
 
           <div className="p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
-                <Shield className="h-5 w-5 text-blue-500" />
+                <Shield className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                 <span>Overall status</span>
               </div>
               <span className={`px-3 py-1 rounded-full text-xs font-semibold ${systemHealthStyles[stats.systemHealth]}`}>
@@ -510,7 +510,7 @@ export function FixedAdminDashboard() {
                   <span>Active admins (24h)</span>
                 </div>
                 <p
-                  className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                  className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900"
                   data-testid="active-admins-24h"
                 >
                   {formatCount(processingMetrics.activeAdminsLast24h)}
@@ -521,7 +521,7 @@ export function FixedAdminDashboard() {
                   <TrendingUp className="h-4 w-4 text-sky-600" />
                   <span>Active admins (7d)</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                   {formatCount(processingMetrics.activeAdminsLast7d)}
                 </p>
               </div>
@@ -530,7 +530,7 @@ export function FixedAdminDashboard() {
                   <Database className="h-4 w-4 text-emerald-600" />
                   <span>Total applications</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100" data-testid="total-applications-value">
+                <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900" data-testid="total-applications-value">
                   {formatCount(totalApplications)}
                 </p>
               </div>
@@ -539,7 +539,7 @@ export function FixedAdminDashboard() {
                   <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   <span>Active intakes</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                   {formatCount(stats.activeIntakes)}
                 </p>
               </div>
@@ -551,7 +551,7 @@ export function FixedAdminDashboard() {
                   <Activity className="h-4 w-4" />
                   <span>Decision velocity (24h)</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold text-blue-900">
+                <p className="mt-2 text-lg font-semibold text-blue-900 dark:text-blue-100 dark:text-blue-900">
                   {formatCount(processingMetrics.decisionVelocity24h)} decisions
                 </p>
               </div>
@@ -560,7 +560,7 @@ export function FixedAdminDashboard() {
                   <Users className="h-4 w-4" />
                   <span>Total students</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold text-purple-900">
+                <p className="mt-2 text-lg font-semibold text-purple-900 dark:text-purple-100">
                   {formatCount(stats.totalStudents)}
                 </p>
               </div>

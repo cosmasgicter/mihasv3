@@ -39,12 +39,12 @@ export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClic
                   ? 'bg-green-500 text-white' 
                   : isActive 
                   ? 'bg-primary text-white' 
-                  : 'bg-gray-200 text-gray-600'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 dark:text-gray-500'
               }`}>
                 {isCompleted ? '✓' : stepNumber}
               </div>
               <span className={`text-xs mt-1 text-center ${
-                isActive ? 'text-blue-600 font-medium' : 'text-gray-500'
+                isActive ? 'text-blue-600 font-medium' : 'text-gray-500 dark:text-gray-500'
               }`}>
                 {title}
               </span>

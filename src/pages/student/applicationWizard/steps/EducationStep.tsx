@@ -54,15 +54,15 @@ const EducationStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-100"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
       data-testid="education-step"
     >
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">{title}</h2>
 
       <div className="space-y-6">
         <div>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h3 className="text-md font-medium text-gray-900 dark:text-gray-100">Grade 12 Subjects (Minimum 5 required)</h3>
+            <h3 className="text-md font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">Grade 12 Subjects (Minimum 5 required)</h3>
             <Button
               type="button"
               onClick={event => {
@@ -91,7 +91,7 @@ const EducationStep = ({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800 mb-2">
                 Recommended subjects for {selectedProgram}:
               </h4>
               <div className="flex flex-wrap gap-1">
@@ -122,13 +122,13 @@ const EducationStep = ({
                   transition={{ delay: index * 0.1 }}
                 >
                   <div className="flex-1 min-w-0">
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 sm:hidden">
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1 sm:hidden">
                       Subject
                     </label>
                     <select
                       value={grade.subject_id}
                       onChange={event => updateGrade(index, 'subject_id', event.target.value)}
-                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       disabled={subjects.length === 0}
                     >
                       <option value="">{subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}</option>
@@ -144,11 +144,11 @@ const EducationStep = ({
                   </div>
 
                   <div className="w-full sm:w-24">
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 sm:hidden">Grade</label>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1 sm:hidden">Grade</label>
                     <select
                       value={grade.grade}
                       onChange={event => updateGrade(index, 'grade', parseInt(event.target.value))}
-                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value={1}>1 (A+)</option>
                       <option value={2}>2 (A)</option>
@@ -198,7 +198,7 @@ const EducationStep = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">
               Result Slip <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -245,7 +245,7 @@ const EducationStep = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">
               Extra KYC Documents (Optional)
             </label>
             <div className="relative">

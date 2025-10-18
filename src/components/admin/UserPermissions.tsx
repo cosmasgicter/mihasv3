@@ -142,7 +142,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
           <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
               <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="font-medium text-blue-900">Current Role: {user.role.replace('_', ' ').toUpperCase()}</span>
+              <span className="font-medium text-blue-900 dark:text-blue-100 dark:text-blue-900">Current Role: {user.role.replace('_', ' ').toUpperCase()}</span>
             </div>
             <p className="text-sm text-blue-700 dark:text-blue-300">
               Customize permissions for this user. Changes will override default role permissions.
@@ -160,9 +160,9 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
               const allSelected = selectedInCategory === categoryPermissions.length
 
               return (
-                <div key={category} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div key={category} className="border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 flex items-center space-x-2">
                     <span>{category}</span>
                     <span className="text-sm text-gray-500 dark:text-gray-500">({selectedInCategory}/{categoryPermissions.length})</span>
                   </h3>
@@ -193,21 +193,21 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                       key={permission.id}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                         selectedPermissions.includes(permission.id)
-                          ? 'border-blue-300 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-blue-300 dark:border-blue-700 bg-blue-50'
+                          : 'border-gray-200 dark:border-gray-700 dark:border-gray-300 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
                       }`}
                       onClick={() => handlePermissionToggle(permission.id)}
                     >
                       <div className="flex items-start space-x-3">
                         <div className={`mt-0.5 ${
-                          selectedPermissions.includes(permission.id) ? 'text-blue-600' : 'text-gray-400'
+                          selectedPermissions.includes(permission.id) ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'
                         }`}>
                           {permission.icon}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2">
                             <h4 className={`font-medium text-sm ${
-                              selectedPermissions.includes(permission.id) ? 'text-blue-900' : 'text-gray-900'
+                              selectedPermissions.includes(permission.id) ? 'text-blue-900 dark:text-blue-100 dark:text-blue-900' : 'text-gray-900 dark:text-gray-100 dark:text-gray-900'
                             }`}>
                               {permission.name}
                             </h4>
@@ -216,7 +216,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                             )}
                           </div>
                           <p className={`text-xs mt-1 ${
-                            selectedPermissions.includes(permission.id) ? 'text-blue-700' : 'text-gray-600'
+                            selectedPermissions.includes(permission.id) ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
                           }`}>
                             {permission.description}
                           </p>

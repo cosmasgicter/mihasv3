@@ -104,7 +104,7 @@ export function UploadDebugger() {
       
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">
             Select File to Test Upload
           </label>
           <input
@@ -174,7 +174,7 @@ export function UploadDebugger() {
 
         {logs.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Debug Logs:</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">Debug Logs:</h3>
             <div className="bg-gray-900 text-green-400 p-3 rounded text-xs font-mono max-h-64 overflow-y-auto">
               {logs.map((log, index) => (
                 <div key={index}>{log}</div>

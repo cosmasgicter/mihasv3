@@ -60,18 +60,18 @@ export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningP
           ) : (
             <AlertTriangle className="h-6 w-6 text-red-500" />
           )}
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
             Session {warning.type === 'timeout' ? 'Timeout Warning' : 'Expired'}
           </h3>
         </div>
 
         <div className="mb-6">
-          <p className="text-gray-700 dark:text-gray-300 mb-3">{warning.message}</p>
+          <p className="text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-3">{warning.message}</p>
           
           {timeLeft > 0 && (
             <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-yellow-800">
+                <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
                   Time remaining:
                 </span>
                 <span className="text-lg font-mono font-bold text-yellow-900">

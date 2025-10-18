@@ -44,7 +44,7 @@ export function SessionMonitor() {
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-yellow-800">Session Expiring Soon</h3>
+              <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Session Expiring Soon</h3>
               <p className="mt-1 text-xs text-yellow-700">Your session will expire soon. Please save your work.</p>
             </div>
           </div>

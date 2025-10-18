@@ -35,7 +35,7 @@ export function DataPopulationConfirmation({
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-4">
             <CheckCircle className="h-6 w-6 text-green-500" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
               Auto-Fill Detected
             </h3>
           </div>
@@ -48,7 +48,7 @@ export function DataPopulationConfirmation({
           <div className="space-y-2 mb-6">
             {populatedFields.map((field, index) => (
               <div key={index} className="flex justify-between text-sm">
-                <span className="font-medium text-gray-700 dark:text-gray-300">{field.label}:</span>
+                <span className="font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">{field.label}:</span>
                 <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">{field.value}</span>
               </div>
             ))}

@@ -325,7 +325,7 @@ export default function StudentDashboard() {
                   <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
                     <div className="text-gray-400 dark:text-gray-500"><FileText className="w-16 h-16" /></div>
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">No applications yet</h3>
+                      <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">No applications yet</h3>
                       <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
                         Start your journey by submitting your first application. We'll guide you every step of the way.
                       </p>
@@ -351,21 +351,21 @@ export default function StudentDashboard() {
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">Draft application #{application.application_number}</h4>
+                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Draft application #{application.application_number}</h4>
                               <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Draft</span>
                             </div>
-                            <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
+                            <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600 sm:grid-cols-2">
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Program:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">{application.program}</dd>
+                                <dd className="text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.program}</dd>
                               </div>
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Intake:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">{application.intake}</dd>
+                                <dd className="text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.intake}</dd>
                               </div>
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Created:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">{formatDate(application.created_at)}</dd>
+                                <dd className="text-gray-900 dark:text-gray-100 dark:text-gray-900">{formatDate(application.created_at)}</dd>
                               </div>
                             </dl>
                           </div>
@@ -419,7 +419,7 @@ export default function StudentDashboard() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">Local draft in progress</h4>
+                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Local draft in progress</h4>
                               <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Draft</span>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Progress: {getDraftProgress()}</p>
@@ -483,23 +483,23 @@ export default function StudentDashboard() {
                           <div className="space-y-2">
                             <div className="flex items-center gap-3">
                               {getStatusIcon(application.status)}
-                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">{getProgramName(application.program)}</h4>
+                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{getProgramName(application.program)}</h4>
                               <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(application.status)}`}>
                                 {application.status.replace('_', ' ').toUpperCase()}
                               </span>
                             </div>
-                            <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
+                            <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600 sm:grid-cols-2">
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Application:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">#{application.application_number}</dd>
+                                <dd className="text-gray-900 dark:text-gray-100 dark:text-gray-900">#{application.application_number}</dd>
                               </div>
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Intake:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">{getIntakeName(application.intake)}</dd>
+                                <dd className="text-gray-900 dark:text-gray-100 dark:text-gray-900">{getIntakeName(application.intake)}</dd>
                               </div>
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Submitted:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">{formatDate(application.submitted_at)}</dd>
+                                <dd className="text-gray-900 dark:text-gray-100 dark:text-gray-900">{formatDate(application.submitted_at)}</dd>
                               </div>
                             </dl>
                           </div>
@@ -528,23 +528,23 @@ export default function StudentDashboard() {
                   <div className="grid gap-3">
                     <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Full name</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                         {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
                       </p>
                     </div>
                     <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Email</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 truncate">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
                     </div>
                     <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Phone</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                         {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
                       </p>
                     </div>
                     <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Residence</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
                         {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}
                       </p>
                     </div>
@@ -574,7 +574,7 @@ export default function StudentDashboard() {
                         transition={{ delay: 0.1 * index }}
                         className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3"
                       >
-                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{intake.name}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{intake.name}</p>
                         <p className="text-xs font-semibold text-red-600 dark:text-red-400">Deadline: {formatDate(intake.application_deadline)}</p>
                       </motion.div>
                     ))}
@@ -668,7 +668,7 @@ export default function StudentDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full justify-start border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900"
+                        className="w-full justify-start border-gray-200 dark:border-gray-700 dark:border-gray-300 text-gray-700 dark:text-gray-300 dark:text-gray-600 hover:bg-gray-50 dark:bg-gray-900"
                       >
                         <User className="mr-2 h-4 w-4" />
                         Profile settings

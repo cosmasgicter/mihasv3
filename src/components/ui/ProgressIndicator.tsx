@@ -78,7 +78,7 @@ export function ProgressIndicator({
       case 'error':
         return cn(baseClasses, 'bg-red-500 border-red-500 text-white')
       default:
-        return cn(baseClasses, 'bg-gray-100 border-gray-300 text-gray-600')
+        return cn(baseClasses, 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 dark:border-gray-400 text-gray-600 dark:text-gray-400 dark:text-gray-500')
     }
   }
 
@@ -93,14 +93,14 @@ export function ProgressIndicator({
       return cn(
         baseClasses,
         'flex-1 mx-2',
-        isCompleted ? 'bg-green-500' : 'bg-gray-200'
+        isCompleted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
       )
     }
     
     return cn(
       baseClasses,
       'my-2 h-8',
-      isCompleted ? 'bg-green-500' : 'bg-gray-200'
+      isCompleted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
     )
   }
 
@@ -119,13 +119,13 @@ export function ProgressIndicator({
                     <div className={cn(
                       'font-medium',
                       sizeClasses[size].title,
-                      step.status === 'current' ? 'text-blue-600' : 'text-gray-900'
+                      step.status === 'current' ? 'text-blue-600' : 'text-gray-900 dark:text-gray-100 dark:text-gray-900'
                     )}>
                       {step.title}
                     </div>
                     {step.description && (
                       <div className={cn(
-                        'text-gray-500 mt-1',
+                        'text-gray-500 dark:text-gray-500 mt-1',
                         sizeClasses[size].description
                       )}>
                         {step.description}
@@ -163,13 +163,13 @@ export function ProgressIndicator({
                 <div className={cn(
                   'font-medium',
                   sizeClasses[size].title,
-                  step.status === 'current' ? 'text-blue-600' : 'text-gray-900'
+                  step.status === 'current' ? 'text-blue-600' : 'text-gray-900 dark:text-gray-100 dark:text-gray-900'
                 )}>
                   {step.title}
                 </div>
                 {step.description && (
                   <div className={cn(
-                    'text-gray-500 mt-1',
+                    'text-gray-500 dark:text-gray-500 mt-1',
                     sizeClasses[size].description
                   )}>
                     {step.description}
@@ -219,12 +219,12 @@ export function ProgressBar({
     <div className={cn('w-full', className)}>
       {showPercentage && (
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">Progress</span>
           <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{percentage}%</span>
         </div>
       )}
       <div className={cn(
-        'w-full bg-gray-200 rounded-full overflow-hidden',
+        'w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden',
         sizeClasses[size]
       )}>
         <div 

@@ -162,7 +162,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                 placeholder="Filter by action..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
@@ -173,7 +173,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
@@ -194,7 +194,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
           ) : filteredActivities.length === 0 ? (
             <div className="text-center py-8">
               <Clock className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Activity Found</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No Activity Found</h3>
               <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
                 {filter || dateFilter ? 'No activities match your filters.' : 'No activity recorded for this user.'}
               </p>
@@ -202,14 +202,14 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
           ) : (
             <div className="space-y-4 p-4">
               {filteredActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-sm transition-shadow">
+                <div key={activity.id} className="flex items-start space-x-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg hover:shadow-sm transition-shadow">
                   <div className="flex-shrink-0 mt-1">
                     {ACTION_ICONS[activity.action] || <Eye className="h-4 w-4 text-gray-500 dark:text-gray-500" />}
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
                         {ACTION_LABELS[activity.action] || activity.action}
                       </h4>
                       <time className="text-xs text-gray-500 dark:text-gray-500">
@@ -240,7 +240,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
           )}
         </div>
 
-        <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700 dark:border-gray-300">
           <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
             {filteredActivities.length} of {activities.length} activities
           </div>

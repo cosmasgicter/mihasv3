@@ -343,7 +343,7 @@ export default function AdminSettings() {
   return (
     
         <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -365,7 +365,7 @@ export default function AdminSettings() {
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button 
                   onClick={() => setShowAddForm(true)}
-                  className="bg-white/20 hover:bg-white dark:bg-gray-800/30 text-white border-white/30"
+                  className="bg-white dark:bg-gray-800/20 hover:bg-white dark:bg-gray-800/30 text-white border-white/30"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Setting
@@ -374,13 +374,13 @@ export default function AdminSettings() {
                   <Button 
                     onClick={exportSettings}
                     variant="outline"
-                    className="bg-white/10 hover:bg-white dark:bg-gray-800/20 text-white border-white/30"
+                    className="bg-white dark:bg-gray-800/10 hover:bg-white dark:bg-gray-800/20 text-white border-white/30"
                     size="sm"
                   >
                     Export
                   </Button>
                   <label className="cursor-pointer">
-                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm border-2 border-secondary bg-transparent text-white hover:bg-secondary hover:text-white bg-white/10 hover:bg-white dark:bg-gray-800/20 border-white/30">
+                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm border-2 border-secondary bg-transparent text-white hover:bg-secondary hover:text-white bg-white dark:bg-gray-800/10 hover:bg-white dark:bg-gray-800/20 border-white/30">
                       Import
                     </span>
                     <input
@@ -396,7 +396,7 @@ export default function AdminSettings() {
           </div>
 
           {/* Statistics */}
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{settings.length}</div>
@@ -420,7 +420,7 @@ export default function AdminSettings() {
           </div>
 
           {/* Filters and Search */}
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gray-50 dark:bg-gray-900">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <Input
@@ -499,7 +499,7 @@ export default function AdminSettings() {
                 {/* Add New Setting Form */}
                 {showAddForm && (
                   <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center">
                       <Plus className="h-5 w-5 mr-2" />
                       Add New Setting
                     </h3>
@@ -511,11 +511,11 @@ export default function AdminSettings() {
                         placeholder="e.g., max_file_size"
                       />
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">Type</label>
                         <select
                           value={newSetting.setting_type}
                           onChange={(e) => setNewSetting({...newSetting, setting_type: e.target.value as any})}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="string">String</option>
                           <option value="integer">Integer</option>
@@ -535,9 +535,9 @@ export default function AdminSettings() {
                           id="is_public"
                           checked={newSetting.is_public}
                           onChange={(e) => setNewSetting({...newSetting, is_public: e.target.checked})}
-                          className="rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+                          className="rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
                         />
-                        <label htmlFor="is_public" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label htmlFor="is_public" className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">
                           Public Setting
                         </label>
                       </div>
@@ -563,7 +563,7 @@ export default function AdminSettings() {
                 )}
 
                 {/* Settings Table */}
-                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-xl overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50 dark:bg-gray-900">
@@ -594,7 +594,7 @@ export default function AdminSettings() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <Database className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
-                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{setting.setting_key}</span>
+                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{setting.setting_key}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4">
@@ -605,7 +605,7 @@ export default function AdminSettings() {
                                   className="w-full"
                                 />
                               ) : (
-                                <span className="text-sm text-gray-900 dark:text-gray-100 break-words">
+                                <span className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900 break-words">
                                   {formatValue(setting.setting_value, setting.setting_type)}
                                 </span>
                               )}
@@ -613,9 +613,9 @@ export default function AdminSettings() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                 setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
-                                setting.setting_type === 'integer' ? 'bg-blue-100 text-blue-800' :
-                                setting.setting_type === 'decimal' ? 'bg-green-100 text-green-800' :
-                                'bg-gray-100 text-gray-800'
+                                setting.setting_type === 'integer' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800' :
+                                setting.setting_type === 'decimal' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
+                                'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
                               }`}>
                                 {setting.setting_type}
                               </span>
@@ -626,11 +626,11 @@ export default function AdminSettings() {
                                   type="checkbox"
                                   checked={editForm.is_public || false}
                                   onChange={(e) => setEditForm({...editForm, is_public: e.target.checked})}
-                                  className="rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+                                  className="rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
                                 />
                               ) : (
                                 <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
-                                  setting.is_public ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                  setting.is_public ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
                                 }`}>
                                   {setting.is_public ? (
                                     <><Globe className="h-3 w-3 mr-1" /> Public</>
@@ -701,7 +701,7 @@ export default function AdminSettings() {
                   {filteredSettings.length === 0 && (
                     <div className="text-center py-12">
                       <Database className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No settings found</h3>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No settings found</h3>
                       <p className="text-gray-500 dark:text-gray-500 mb-4">
                         {searchTerm ? 'No settings match your search criteria.' : 'No settings configured yet.'}
                       </p>

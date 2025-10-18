@@ -67,14 +67,14 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
     color: string
     trend?: number 
   }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 dark:border-gray-300 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">{title}</p>
           <p className={`text-2xl font-bold ${color}`}>{value}</p>
           {trend !== undefined && (
             <div className={`flex items-center mt-1 text-sm ${
-              trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-500'
+              trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-500 dark:text-gray-500'
             }`}>
               <TrendingUp className={`h-3 w-3 mr-1 ${trend < 0 ? 'rotate-180' : ''}`} />
               {trend > 0 ? '+' : ''}{trend} from yesterday

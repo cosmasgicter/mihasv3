@@ -12,7 +12,7 @@ export function MobileBottomNav() {
 
   const studentLinks = [
     { to: '/student/dashboard', icon: Home, label: 'Home' },
-    { to: '/student/application', icon: FileText, label: 'Apply' },
+    { to: '/apply', icon: FileText, label: 'Apply' },
     { to: '/student/status', icon: Bell, label: 'Status' },
     { to: '/student/profile', icon: User, label: 'Profile' },
   ]
@@ -50,14 +50,14 @@ export function MobileBottomNav() {
                 className={`h-5 w-5 transition-all duration-300 ${
                   isActive
                     ? 'text-blue-600 dark:text-blue-400 scale-110'
-                    : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300 group-hover:scale-105'
+                    : 'text-gray-600 dark:text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-300 group-hover:scale-105'
                 }`}
               />
               <span
                 className={`text-xs mt-1 transition-all duration-300 ${
                   isActive
                     ? 'text-blue-600 dark:text-blue-400 font-medium'
-                    : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                    : 'text-gray-600 dark:text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-300'
                 }`}
               >
                 {label}

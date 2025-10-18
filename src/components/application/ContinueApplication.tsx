@@ -107,7 +107,7 @@ export function ContinueApplication() {
 
   if (loading) {
     return (
-      <div className={cn(baseCardClasses, 'bg-white/90 border-gray-200/80 text-gray-600')}>
+      <div className={cn(baseCardClasses, 'bg-white dark:bg-gray-800/90 border-gray-200 dark:border-gray-700 dark:border-gray-300/80 text-gray-600 dark:text-gray-400 dark:text-gray-500')}>
         <div className="flex items-center gap-3">
           <RefreshCw className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
           <span>Checking for saved applications...</span>
@@ -142,7 +142,7 @@ export function ContinueApplication() {
 
   const cardTone = isExpiringSoon()
     ? 'bg-amber-50/90 border-amber-200 text-amber-900'
-    : 'bg-white/90 border-gray-200/80 text-gray-900'
+    : 'bg-white dark:bg-gray-800/90 border-gray-200 dark:border-gray-700 dark:border-gray-300/80 text-gray-900 dark:text-gray-100 dark:text-gray-900'
 
   return (
     <div className={cn(baseCardClasses, 'flex flex-col gap-5', cardTone)}>
@@ -153,7 +153,7 @@ export function ContinueApplication() {
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Continue your application</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Continue your application</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Jump back in where you left off—your progress is saved securely.</p>
             </div>
           </div>
@@ -165,19 +165,19 @@ export function ContinueApplication() {
             </div>
           )}
 
-          <dl className="mt-4 grid gap-3 text-sm text-gray-700 dark:text-gray-300 sm:max-w-md">
-            <div className="flex items-center justify-between rounded-xl bg-white dark:bg-gray-800/70 px-4 py-2 font-medium text-gray-900 dark:text-gray-100 shadow-sm">
+          <dl className="mt-4 grid gap-3 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600 sm:max-w-md">
+            <div className="flex items-center justify-between rounded-xl bg-white dark:bg-gray-800/70 px-4 py-2 font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 shadow-sm">
               <dt className="text-gray-500 dark:text-gray-500">Progress</dt>
               <dd>{draftInfo.progress}</dd>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-white dark:bg-gray-800/70 px-4 py-2 font-medium text-gray-900 dark:text-gray-100 shadow-sm">
+            <div className="flex items-center justify-between rounded-xl bg-white dark:bg-gray-800/70 px-4 py-2 font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 shadow-sm">
               <dt className="text-gray-500 dark:text-gray-500">Last saved</dt>
               <dd>{draftInfo.lastSaved ? formatDate(draftInfo.lastSaved) : 'Unknown'}</dd>
             </div>
             {draftInfo.expiresAt && (
-              <div className="flex items-center justify-between rounded-xl bg-white dark:bg-gray-800/70 px-4 py-2 font-medium text-gray-900 dark:text-gray-100 shadow-sm">
+              <div className="flex items-center justify-between rounded-xl bg-white dark:bg-gray-800/70 px-4 py-2 font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 shadow-sm">
                 <dt className="text-gray-500 dark:text-gray-500">Expires in</dt>
-                <dd className={cn(isExpiringSoon() ? 'text-amber-700' : 'text-gray-900')}>{getTimeUntilExpiry()}</dd>
+                <dd className={cn(isExpiringSoon() ? 'text-amber-700 dark:text-amber-300' : 'text-gray-900 dark:text-gray-100 dark:text-gray-900')}>{getTimeUntilExpiry()}</dd>
               </div>
             )}
           </dl>

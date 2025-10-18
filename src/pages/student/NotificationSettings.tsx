@@ -250,18 +250,18 @@ export default function NotificationSettings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: consentType === 'outreach' ? 0.05 : 0.15 }}
-        className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm"
+        className="rounded-2xl border border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-white dark:bg-gray-800 p-5 shadow-sm"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{detail.label}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{detail.label}</h3>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{detail.description}</p>
           </div>
           <span
             className={`px-3 py-1 text-xs font-semibold rounded-full ${
               isActive
                 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                : 'bg-gray-100 text-gray-600 border border-gray-200'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700 dark:border-gray-300'
             }`}
           >
             {isActive ? 'Active' : 'Inactive'}
@@ -306,7 +306,7 @@ export default function NotificationSettings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: channel === 'sms' ? 0.1 : 0.2 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 space-y-4"
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -314,20 +314,20 @@ export default function NotificationSettings() {
               <details.Icon className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{details.title}</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{details.title}</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{details.description} <span className="text-green-600 dark:text-green-400 font-medium">(Enabled by default)</span></p>
             </div>
           </div>
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-gray-100 text-gray-600 border border-gray-200'
+              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700 dark:border-gray-300'
             }`}
           >
             {optedIn ? 'Enabled' : 'Disabled'}
           </span>
         </div>
 
-        <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+        <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">
           {optedIn && summary.optInAt && (
             <p>
               <span className="font-semibold">Opted in:</span> {summary.optInAt}
@@ -350,7 +350,7 @@ export default function NotificationSettings() {
             <div className="rounded-xl bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
               <p className="font-medium">Add a valid phone number in your profile to enable this channel.</p>
               <p>
-                <Link to="/settings" className="underline font-semibold text-yellow-800">
+                <Link to="/settings" className="underline font-semibold text-yellow-800 dark:text-yellow-200">
                   Update contact information
                 </Link>
               </p>
@@ -359,13 +359,13 @@ export default function NotificationSettings() {
 
           <div className="flex flex-col gap-2 text-xs text-gray-500 dark:text-gray-500">
             <span className="uppercase tracking-wide text-gray-400 dark:text-gray-500 font-semibold">Current contact</span>
-            <span className="text-sm text-gray-700 dark:text-gray-300">{preferences?.phone || 'No phone number on file'}</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">{preferences?.phone || 'No phone number on file'}</span>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
           <div className="text-xs text-gray-500 dark:text-gray-500">
-            Priority: <span className="font-medium text-gray-700 dark:text-gray-300">{entry.priority}</span>
+            Priority: <span className="font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">{entry.priority}</span>
           </div>
           <Button
             type="button"
@@ -438,10 +438,10 @@ export default function NotificationSettings() {
           </div>
         ) : (
           <div className="space-y-6">
-            <section className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
+            <section className="rounded-2xl border border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-white dark:bg-gray-800 p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Data usage preferences</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Data usage preferences</h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
                     All data usage is enabled by default to provide you the best service. You can opt out of any you prefer not to have.
                   </p>

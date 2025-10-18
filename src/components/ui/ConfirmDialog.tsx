@@ -54,12 +54,12 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 <AlertTriangle className="h-6 w-6" />
               </div>
               <div className="ml-3 flex-1">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{title}</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{title}</h3>
                 <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{message}</p>
               </div>
               <button
                 onClick={onCancel}
-                className="ml-4 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
+                className="ml-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
               >
                 <X className="h-5 w-5" />
               </button>

@@ -131,7 +131,7 @@ const ApplicationWizardContent = () => {
             Back to Dashboard
           </Link>
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Student Application</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Student Application</h1>
             <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Complete the {totalSteps}-step application process</p>
             <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Logged in as: {user.email}</div>
           </motion.div>
@@ -139,7 +139,7 @@ const ApplicationWizardContent = () => {
 
         <div className="mb-6 lg:mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
               Step {currentStepConfig.id} of {totalSteps}: {currentStepConfig.progressTitle}
             </h2>
             <div className="flex items-center space-x-4">
@@ -182,14 +182,14 @@ const ApplicationWizardContent = () => {
                           ? 'bg-green-500 border-green-500 text-white shadow-lg'
                           : isActive
                           ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-110'
-                          : 'bg-white border-gray-300 text-gray-400'
+                          : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 dark:border-gray-400 text-gray-400 dark:text-gray-500'
                       }`}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                     </motion.div>
-                    <div className={`mt-2 text-xs font-medium text-center whitespace-nowrap ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
+                    <div className={`mt-2 text-xs font-medium text-center whitespace-nowrap ${isActive ? 'text-blue-600' : 'text-gray-500 dark:text-gray-500'}`}>
                       {step.title}
                     </div>
                   </motion.div>
@@ -208,7 +208,7 @@ const ApplicationWizardContent = () => {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
                 <div className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</div>
                 <div className="mt-2">
                   <button
@@ -293,7 +293,7 @@ const ApplicationWizardContent = () => {
             )}
           </AnimatePresence>
 
-          <motion.div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-gray-100" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <motion.div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-gray-100 dark:border-gray-800" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

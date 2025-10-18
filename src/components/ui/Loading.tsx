@@ -21,7 +21,7 @@ export function Loading({ size = 'md', text, fullScreen = false }: LoadingProps)
         {/* Outer ring */}
         <motion.div
           className={cn(
-            'rounded-full border-2 border-gray-200 dark:border-gray-700',
+            'rounded-full border-2 border-gray-200 dark:border-gray-700 dark:border-gray-300',
             sizeClasses[size]
           )}
         />

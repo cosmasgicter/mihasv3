@@ -53,7 +53,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       case 'registrar':
       case 'finance_officer':
       case 'academic_head':
-        return <Shield className="h-4 w-4 text-blue-500" />
+        return <Shield className="h-4 w-4 text-blue-500 dark:text-blue-400" />
       default:
         return <User className="h-4 w-4 text-gray-500 dark:text-gray-500" />
     }
@@ -63,14 +63,14 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
     switch (role) {
       case 'admin':
       case 'super_admin':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200'
       case 'admissions_officer':
       case 'registrar':
       case 'finance_officer':
       case 'academic_head':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 border-blue-200'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700 border-gray-200 dark:border-gray-700 dark:border-gray-300'
     }
   }
 
@@ -80,7 +80,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
 
   if (!stats) {
     return (
-      <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 ${className}`}>
+      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6 ${className}`}>
         <div className="animate-pulse">
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
@@ -100,10 +100,10 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium">Total Users</p>
+              <p className="text-blue-100 dark:text-blue-900 text-sm font-medium">Total Users</p>
               <p className="text-3xl font-bold">{stats.total}</p>
             </div>
-            <Users className="h-8 w-8 text-blue-200" />
+            <Users className="h-8 w-8 text-blue-200 dark:text-blue-800" />
           </div>
         </div>
 
@@ -135,8 +135,8 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       </div>
 
       {/* Role Distribution */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center">
           <Shield className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400 dark:text-gray-500" />
           Role Distribution
         </h3>
@@ -144,10 +144,10 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
           {Object.entries(stats.byRole)
             .sort(([, a], [, b]) => b - a)
             .map(([role, count]) => (
-              <div key={role} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 dark:bg-gray-900">
+              <div key={role} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:bg-gray-900">
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(role)}
-                  <span className="font-medium text-gray-900 dark:text-gray-100">{getRoleLabel(role)}</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{getRoleLabel(role)}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getRoleColor(role)}`}>
@@ -169,19 +169,19 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       </div>
 
       {/* Recent Users */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center">
           <Calendar className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400 dark:text-gray-500" />
           Recent Users
         </h3>
         <div className="space-y-3">
           {recentUsers.length > 0 ? (
             recentUsers.map((user) => (
-              <div key={user.user_id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 dark:bg-gray-900">
+              <div key={user.user_id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:bg-gray-900">
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(user.role)}
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{sanitizeForDisplay(user.full_name) || 'No name'}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{sanitizeForDisplay(user.full_name) || 'No name'}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-500">{sanitizeForDisplay(user.email)}</p>
                   </div>
                 </div>

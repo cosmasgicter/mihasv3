@@ -104,7 +104,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
       return { icon: <Trash2 className="h-4 w-4" />, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', label: 'Deleted Record', category: 'Data' }
     }
     if (actionLower.includes('view') || actionLower.includes('read') || actionLower.includes('get')) {
-      return { icon: <Eye className="h-4 w-4" />, color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-200', label: 'Viewed Record', category: 'Access' }
+      return { icon: <Eye className="h-4 w-4" />, color: 'text-gray-600 dark:text-gray-400 dark:text-gray-500', bg: 'bg-gray-50 dark:bg-gray-900', border: 'border-gray-200 dark:border-gray-700 dark:border-gray-300', label: 'Viewed Record', category: 'Access' }
     }
     
     // System actions
@@ -119,7 +119,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
     }
     
     // Default
-    return { icon: <Activity className="h-4 w-4" />, color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-200', label: 'System Action', category: 'General' }
+    return { icon: <Activity className="h-4 w-4" />, color: 'text-gray-600 dark:text-gray-400 dark:text-gray-500', bg: 'bg-gray-50 dark:bg-gray-900', border: 'border-gray-200 dark:border-gray-700 dark:border-gray-300', label: 'System Action', category: 'General' }
   }
 
   const actionDetails = getActionDetails(entry.action)
@@ -139,7 +139,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
   }
 
   return (
-    <div className={`group bg-white border rounded-xl hover:shadow-lg transition-all duration-300 ${actionDetails.border} ${actionDetails.bg} hover:scale-[1.01]`}>
+    <div className={`group bg-white dark:bg-gray-800 border rounded-xl hover:shadow-lg transition-all duration-300 ${actionDetails.border} ${actionDetails.bg} hover:scale-[1.01]`}>
       {/* Main List Item */}
       <div 
         className="p-4 cursor-pointer"
@@ -156,7 +156,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
             {/* Action Details */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{actionDetails.label}</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 truncate">{actionDetails.label}</h3>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${actionDetails.color} ${actionDetails.bg} border ${actionDetails.border}`}>
                   {actionDetails.category}
                 </span>
@@ -194,32 +194,32 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
           {/* Right Side - Time */}
           <div className="flex items-center space-x-3 flex-shrink-0">
             <div className="text-right">
-              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{relativeTime}</div>
+              <div className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{relativeTime}</div>
               <div className="text-xs text-gray-500 dark:text-gray-500">{exactTime}</div>
             </div>
-            <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${showDetails ? 'rotate-90' : ''}`} />
+            <ChevronRight className={`h-4 w-4 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${showDetails ? 'rotate-90' : ''}`} />
           </div>
         </div>
       </div>
       
       {/* Expanded Details */}
       {showDetails && (
-        <div className="border-t border-gray-100 p-4 bg-gray-50 dark:bg-gray-900/50">
+        <div className="border-t border-gray-100 dark:border-gray-800 p-4 bg-gray-50 dark:bg-gray-900/50">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Actor Details */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 dark:border-gray-300">
               <div className="flex items-center gap-2 mb-3">
                 <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Actor Information</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Actor Information</span>
               </div>
               <div className="space-y-2">
                 <div>
                   <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Email:</span>
-                  <p className="text-sm text-gray-900 dark:text-gray-100">{entry.actorEmail || 'Unknown'}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">{entry.actorEmail || 'Unknown'}</p>
                 </div>
                 <div>
                   <span className="text-xs font-medium text-gray-500 dark:text-gray-500">User ID:</span>
-                  <p className="text-sm font-mono text-gray-700 dark:text-gray-300">{entry.actorId || 'N/A'}</p>
+                  <p className="text-sm font-mono text-gray-700 dark:text-gray-300 dark:text-gray-600">{entry.actorId || 'N/A'}</p>
                 </div>
                 {entry.actorRoles?.length > 0 && (
                   <div>
@@ -228,7 +228,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
                       {entry.actorRoles.map((role, index) => (
                         <span
                           key={`${entry.id}-${role}-${index}`}
-                          className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200"
+                          className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800"
                         >
                           {role.replace('_', ' ').toUpperCase()}
                         </span>
@@ -240,26 +240,26 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
             </div>
             
             {/* Request Details */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 dark:border-gray-300">
               <div className="flex items-center gap-2 mb-3">
                 <Activity className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Request Details</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Request Details</span>
               </div>
               <div className="space-y-2">
                 <div>
                   <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Action:</span>
-                  <p className="text-sm font-mono text-gray-900 dark:text-gray-100">{entry.action}</p>
+                  <p className="text-sm font-mono text-gray-900 dark:text-gray-100 dark:text-gray-900">{entry.action}</p>
                 </div>
                 {entry.requestId && (
                   <div>
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Request ID:</span>
-                    <p className="text-sm font-mono text-gray-700 dark:text-gray-300">{entry.requestId}</p>
+                    <p className="text-sm font-mono text-gray-700 dark:text-gray-300 dark:text-gray-600">{entry.requestId}</p>
                   </div>
                 )}
                 {entry.requestIp && (
                   <div>
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-500">IP Address:</span>
-                    <p className="text-sm font-mono text-gray-700 dark:text-gray-300">{entry.requestIp}</p>
+                    <p className="text-sm font-mono text-gray-700 dark:text-gray-300 dark:text-gray-600">{entry.requestIp}</p>
                   </div>
                 )}
                 {entry.userAgent && (
@@ -274,26 +274,26 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
           
           {/* Target Information */}
           {entry.targetTable && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 mt-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 dark:border-gray-300 mt-4">
               <div className="flex items-center gap-2 mb-3">
                 <Database className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Target Information</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Target Information</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Table:</span>
-                  <p className="text-sm text-gray-900 dark:text-gray-100">{getTableDisplayName(entry.targetTable)}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">{getTableDisplayName(entry.targetTable)}</p>
                 </div>
                 {entry.targetId && (
                   <div>
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Record ID:</span>
-                    <p className="text-sm font-mono text-gray-700 dark:text-gray-300">{entry.targetId}</p>
+                    <p className="text-sm font-mono text-gray-700 dark:text-gray-300 dark:text-gray-600">{entry.targetId}</p>
                   </div>
                 )}
                 {entry.targetLabel && (
                   <div>
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Label:</span>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{entry.targetLabel}</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">{entry.targetLabel}</p>
                   </div>
                 )}
               </div>
@@ -302,10 +302,10 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
           
           {/* Metadata */}
           {entry.metadata && Object.keys(entry.metadata).length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 mt-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 dark:border-gray-300 mt-4">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="h-4 w-4 text-indigo-600" />
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Additional Data</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Additional Data</span>
                 <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">
                   {Object.keys(entry.metadata).length} fields
                 </span>
@@ -437,14 +437,14 @@ export default function AuditTrailPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3 sm:px-6">
+      <div className="sticky top-0 z-40 bg-white dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 px-4 py-3 sm:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl">
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">System Audit Trail</h1>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">System Audit Trail</h1>
               <p className="text-xs text-gray-500 dark:text-gray-500">
                 {response?.totalCount || 0} security events tracked
               </p>
@@ -486,7 +486,7 @@ export default function AuditTrailPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Total Events</p>
-                <p className="text-2xl font-bold text-blue-900">{response?.totalCount || 0}</p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 dark:text-blue-900">{response?.totalCount || 0}</p>
               </div>
               <div className="p-3 bg-blue-50 dark:bg-blue-950/300 rounded-xl">
                 <Activity className="h-5 w-5 text-white" />
@@ -498,7 +498,7 @@ export default function AuditTrailPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wide">This Page</p>
-                <p className="text-2xl font-bold text-green-900">{response?.data?.length || 0}</p>
+                <p className="text-2xl font-bold text-green-900 dark:text-green-100">{response?.data?.length || 0}</p>
               </div>
               <div className="p-3 bg-green-50 dark:bg-green-950/300 rounded-xl">
                 <FileText className="h-5 w-5 text-white" />
@@ -510,7 +510,7 @@ export default function AuditTrailPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide">Page {response?.page || 1}</p>
-                <p className="text-2xl font-bold text-purple-900">of {response?.totalPages || 1}</p>
+                <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">of {response?.totalPages || 1}</p>
               </div>
               <div className="p-3 bg-purple-50 dark:bg-purple-950/300 rounded-xl">
                 <BarChart3 className="h-5 w-5 text-white" />
@@ -533,10 +533,10 @@ export default function AuditTrailPage() {
 
         {/* Mobile Filters Panel */}
         {showFilters && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 mb-6 sm:hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-6 sm:hidden">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><Search className="w-5 h-5" /> Search Actions</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1"><Search className="w-5 h-5" /> Search Actions</label>
                 <Input
                   value={formFilters.action}
                   onChange={event => setFormFilters(filters => ({ ...filters, action: event.target.value }))}
@@ -544,7 +544,7 @@ export default function AuditTrailPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><User className="w-5 h-5" /> User Email</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1"><User className="w-5 h-5" /> User Email</label>
                 <Input
                   value={formFilters.actorEmail}
                   onChange={event => setFormFilters(filters => ({ ...filters, actorEmail: event.target.value }))}
@@ -552,11 +552,11 @@ export default function AuditTrailPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">🗂️ Data Type</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">🗂️ Data Type</label>
                 <select
                   value={formFilters.targetTable}
                   onChange={event => setFormFilters(filters => ({ ...filters, targetTable: event.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">All data types</option>
                   <option value="applications">Applications</option>
@@ -570,7 +570,7 @@ export default function AuditTrailPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">From</label>
                   <Input
                     type="datetime-local"
                     value={formFilters.from}
@@ -578,7 +578,7 @@ export default function AuditTrailPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">To</label>
                   <Input
                     type="datetime-local"
                     value={formFilters.to}
@@ -600,14 +600,14 @@ export default function AuditTrailPage() {
         )}
 
         {/* Desktop Filters */}
-        <div className="hidden sm:block bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+        <div className="hidden sm:block bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="h-5 w-5 text-gray-600 dark:text-gray-400 dark:text-gray-500" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Filters</h2>
           </div>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><Search className="w-5 h-5" /> Search Actions</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1"><Search className="w-5 h-5" /> Search Actions</label>
               <Input
                 value={formFilters.action}
                 onChange={event => setFormFilters(filters => ({ ...filters, action: event.target.value }))}
@@ -615,7 +615,7 @@ export default function AuditTrailPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><User className="w-5 h-5" /> User Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1"><User className="w-5 h-5" /> User Email</label>
               <Input
                 value={formFilters.actorEmail}
                 onChange={event => setFormFilters(filters => ({ ...filters, actorEmail: event.target.value }))}
@@ -623,11 +623,11 @@ export default function AuditTrailPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">🗂️ Data Type</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">🗂️ Data Type</label>
               <select
                 value={formFilters.targetTable}
                 onChange={event => setFormFilters(filters => ({ ...filters, targetTable: event.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All data types</option>
                 <option value="applications">Applications</option>
@@ -640,11 +640,11 @@ export default function AuditTrailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">📂 Category</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">📂 Category</label>
               <select
                 value={formFilters.category}
                 onChange={event => setFormFilters(filters => ({ ...filters, category: event.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All categories</option>
                 <option value="Authentication">🔐 Authentication</option>
@@ -656,7 +656,7 @@ export default function AuditTrailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">From</label>
               <Input
                 type="datetime-local"
                 value={formFilters.from}
@@ -664,7 +664,7 @@ export default function AuditTrailPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">To</label>
               <Input
                 type="datetime-local"
                 value={formFilters.to}
@@ -689,7 +689,7 @@ export default function AuditTrailPage() {
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
               <div>
-                <h3 className="text-sm font-medium text-red-800">Error Loading Audit Log</h3>
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error Loading Audit Log</h3>
                 <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
               </div>
               <Button
@@ -709,7 +709,7 @@ export default function AuditTrailPage() {
         {loading ? (
           <div className="space-y-6">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 animate-pulse">
+              <div key={index} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6 animate-pulse">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded" />
@@ -738,16 +738,16 @@ export default function AuditTrailPage() {
             </div>
             
             {/* Pagination */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 dark:border-gray-300 shadow-sm">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
-                    Showing page <span className="font-semibold text-gray-900 dark:text-gray-100">{response.page}</span> of{' '}
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">{response.totalPages}</span>
+                    Showing page <span className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{response.page}</span> of{' '}
+                    <span className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{response.totalPages}</span>
                   </div>
-                  <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
+                  <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 dark:bg-gray-400" />
                   <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">{response.totalCount}</span> total entries
+                    <span className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{response.totalCount}</span> total entries
                   </div>
                 </div>
                 
@@ -792,7 +792,7 @@ export default function AuditTrailPage() {
                         className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                           pageNum === response.page
                             ? 'bg-blue-600 text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
+                            : 'text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:bg-gray-800'
                         }`}
                       >
                         {pageNum}
@@ -815,11 +815,11 @@ export default function AuditTrailPage() {
             </div>
           </>
         ) : (
-          <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 dark:border-gray-700 dark:border-gray-300">
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
               <Shield className="h-10 w-10 text-gray-500 dark:text-gray-500" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No Security Events Found</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No Security Events Found</h3>
             <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-6 max-w-md mx-auto">
               {Object.keys(appliedFilters).length > 0 
                 ? 'No audit entries match your current search criteria. Try adjusting your filters.' 
