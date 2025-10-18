@@ -168,8 +168,8 @@ export async function fetchWithCache<T>(
   const timeoutController = new AbortController()
   const timeoutId = setTimeout(() => timeoutController.abort(), timeout)
 
-  // Combine signals
-  const combinedSignal = signal || timeoutController.signal
+  // Use external signal if provided, otherwise use timeout signal
+  const combinedSignal = signal ?? timeoutController.signal
 
   let lastError: Error
 
@@ -229,7 +229,12 @@ export async function fetchWithCache<T>(
     } catch (error) {
       const trackedError = error as Error & { __apiCacheNotified?: boolean }
       lastError = trackedError
-      if (!trackedError.__apiCacheNotified) {
+      
+      // Skip logging for AbortError (React Strict Mode double-mount in dev)
+      const isAbortError = lastError.name === 'AbortError' || 
+        (error instanceof Error && error.message?.includes('aborted'))
+      
+      if (!isAbortError && !trackedError.__apiCacheNotified) {
         onError?.(trackedError, Date.now() - attemptStart)
         trackedError.__apiCacheNotified = true
       }

@@ -1,21 +1,17 @@
-// Simple toast utility without React context
 export const toast = {
   success: (message: string) => {
-    // You can replace this with a proper toast implementation
     if (typeof window !== 'undefined') {
-      // Simple browser notification for now
       const event = new CustomEvent('toast', {
-        detail: { type: 'success', message }
+        detail: { type: 'success', title: message }
       })
       window.dispatchEvent(event)
     }
   },
   
   error: (message: string) => {
-    console.error('❌ Error:', message)
     if (typeof window !== 'undefined') {
       const event = new CustomEvent('toast', {
-        detail: { type: 'error', message }
+        detail: { type: 'error', title: message }
       })
       window.dispatchEvent(event)
     }
@@ -24,17 +20,16 @@ export const toast = {
   warning: (message: string) => {
     if (typeof window !== 'undefined') {
       const event = new CustomEvent('toast', {
-        detail: { type: 'warning', message }
+        detail: { type: 'warning', title: message }
       })
       window.dispatchEvent(event)
     }
   },
   
   info: (message: string) => {
-    console.info('ℹ️ Info:', message)
     if (typeof window !== 'undefined') {
       const event = new CustomEvent('toast', {
-        detail: { type: 'info', message }
+        detail: { type: 'info', title: message }
       })
       window.dispatchEvent(event)
     }

@@ -23,6 +23,7 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   'program',
   'intake',
   'institution',
+  'nationality',
   'result_slip_url',
   'extra_kyc_url',
   'payment_method',
