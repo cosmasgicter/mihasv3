@@ -67,10 +67,10 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
     color: string
     trend?: number 
   }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 dark:border-gray-300 shadow-sm">
+    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">{title}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{title}</p>
           <p className={`text-2xl font-bold ${color}`}>{value}</p>
           {trend !== undefined && (
             <div className={`flex items-center mt-1 text-sm ${
@@ -102,7 +102,7 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
         title="Pending Review"
         value={metrics.pendingReview}
         icon={Clock}
-        color="text-yellow-600 dark:text-yellow-400"
+        color="text-yellow-600 dark:text-yellow-400 dark:text-yellow-500"
       />
       
       <MetricCard

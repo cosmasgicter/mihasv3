@@ -66,7 +66,7 @@ export function SaveNotification({
             setIsVisible(false)
             setTimeout(onClose, 300)
           }}
-          className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
+          className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400"
         >
           <X className="h-4 w-4" />
         </button>

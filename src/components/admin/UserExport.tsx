@@ -281,7 +281,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
         <div className="space-y-6">
           {/* Export Format */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3">Export Format</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">Export Format</h3>
             <div className="grid grid-cols-3 gap-4">
               {[
                 { value: 'csv', label: 'CSV', icon: <FileSpreadsheet className="h-5 w-5" />, description: 'Comma-separated values' },
@@ -293,7 +293,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                     exportOptions.format === format.value
                       ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 dark:border-gray-700 dark:border-gray-300 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
                   }`}
                   onClick={() => setExportOptions({ ...exportOptions, format: format.value as typeof exportOptions.format })}
                 >
@@ -303,7 +303,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                     </div>
                     <div>
                       <h4 className="font-medium">{format.label}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{format.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{format.description}</p>
                     </div>
                   </div>
                 </div>
@@ -314,7 +314,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
           {/* Fields Selection */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">Fields to Export</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Fields to Export</h3>
               <Button
                 variant="outline"
                 size="sm"
@@ -334,14 +334,14 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                 )}
               </Button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg p-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
               {AVAILABLE_FIELDS.map(field => (
                 <div
                   key={field.id}
                   className={`p-2 border rounded cursor-pointer transition-colors ${
                     exportOptions.fields.includes(field.id)
                       ? 'border-blue-300 dark:border-blue-700 bg-blue-50'
-                      : 'border-gray-200 dark:border-gray-700 dark:border-gray-300 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
                   }`}
                   onClick={() => handleFieldToggle(field.id)}
                 >
@@ -353,7 +353,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                     )}
                     <div>
                       <p className="text-sm font-medium">{field.label}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">{field.description}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">{field.description}</p>
                     </div>
                   </div>
                 </div>
@@ -363,7 +363,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
 
           {/* Filters */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3 flex items-center">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center">
               <Filter className="h-5 w-5 mr-2" />
               Filters
             </h3>
@@ -371,7 +371,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
             {/* Role Filter */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">User Roles</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">User Roles</label>
                 <Button
                   variant="outline"
                   size="sm"
@@ -389,7 +389,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                     className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors ${
                       exportOptions.filters.roles.includes(role)
                         ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 border-blue-300 dark:border-blue-700'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 dark:text-gray-600 border-gray-300 dark:border-gray-600 dark:border-gray-400 hover:bg-gray-200 dark:bg-gray-700'
+                        : 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 dark:border-gray-400 hover:bg-gray-200 dark:bg-gray-700'
                     }`}
                   >
                     {role.replace(/_/g, ' ').toUpperCase()}
@@ -401,7 +401,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
             {/* Date Range Filter */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Registration Date From
                 </label>
                 <input
@@ -418,7 +418,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Registration Date To
                 </label>
                 <input
@@ -438,17 +438,17 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
           </div>
 
           {/* Preview */}
-          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 flex items-center">
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 flex items-center">
                 <Users className="h-4 w-4 mr-2" />
                 Export Preview
               </h4>
-              <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 {filteredUsers.length} users will be exported
               </span>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               <p>Format: {exportOptions.format.toUpperCase()}</p>
               <p>Fields: {exportOptions.fields.length} selected</p>
               {exportOptions.filters.roles.length > 0 && (

@@ -160,9 +160,9 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
               const allSelected = selectedInCategory === categoryPermissions.length
 
               return (
-                <div key={category} className="border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg p-4">
+                <div key={category} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 flex items-center space-x-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
                     <span>{category}</span>
                     <span className="text-sm text-gray-500 dark:text-gray-500">({selectedInCategory}/{categoryPermissions.length})</span>
                   </h3>
@@ -194,7 +194,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                         selectedPermissions.includes(permission.id)
                           ? 'border-blue-300 dark:border-blue-700 bg-blue-50'
-                          : 'border-gray-200 dark:border-gray-700 dark:border-gray-300 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
                       }`}
                       onClick={() => handlePermissionToggle(permission.id)}
                     >
@@ -207,7 +207,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2">
                             <h4 className={`font-medium text-sm ${
-                              selectedPermissions.includes(permission.id) ? 'text-blue-900 dark:text-blue-100 dark:text-blue-900' : 'text-gray-900 dark:text-gray-100 dark:text-gray-900'
+                              selectedPermissions.includes(permission.id) ? 'text-blue-900 dark:text-blue-100 dark:text-blue-900' : 'text-gray-900 dark:text-gray-100'
                             }`}>
                               {permission.name}
                             </h4>
@@ -216,7 +216,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                             )}
                           </div>
                           <p className={`text-xs mt-1 ${
-                            selectedPermissions.includes(permission.id) ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
+                            selectedPermissions.includes(permission.id) ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'
                           }`}>
                             {permission.description}
                           </p>
@@ -233,7 +233,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
 
         <DialogFooter>
           <div className="flex items-center justify-between w-full">
-            <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               {selectedPermissions.length} of {AVAILABLE_PERMISSIONS.length} permissions selected
             </div>
             <div className="flex space-x-2">

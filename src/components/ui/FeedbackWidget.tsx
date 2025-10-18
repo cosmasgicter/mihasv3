@@ -50,7 +50,7 @@ export function FeedbackWidget() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-80 bg-white dark:bg-gray-800 border rounded-lg shadow-xl">
+    <div className="fixed bottom-4 right-4 z-50 w-80 bg-white dark:bg-gray-800 dark:bg-gray-200 border rounded-lg shadow-xl">
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Feedback</h3>
@@ -91,7 +91,7 @@ export function FeedbackWidget() {
                     key={star}
                     type="button"
                     onClick={() => setFeedback(prev => ({ ...prev, rating: star }))}
-                    className={`p-1 ${star <= (feedback.rating || 0) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+                    className={`p-1 ${star <= (feedback.rating || 0) ? 'text-yellow-400 dark:text-yellow-500' : 'text-gray-300 dark:text-gray-600'}`}
                   >
                     <Star className="h-4 w-4 fill-current" />
                   </button>

@@ -230,7 +230,7 @@ export default function SignUpPage() {
             <select
               {...register('sex')}
               id="sex"
-              className="w-full rounded-md border border-secondary/30 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-secondary placeholder:text-secondary/60 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="w-full rounded-md border border-secondary/30 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm text-secondary placeholder:text-secondary/60 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
             >
               <option value="">Select Sex</option>
               <option value="Male">Male</option>

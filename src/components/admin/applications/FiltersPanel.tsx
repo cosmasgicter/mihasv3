@@ -21,7 +21,7 @@ export function FiltersPanel({
   onFilterChange
 }: FiltersPanelProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow p-6 mb-6">
       <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <div className="md:col-span-2">
           <div className="relative">
@@ -39,7 +39,7 @@ export function FiltersPanel({
           <select
             value={statusFilter}
             onChange={(e) => onFilterChange('statusFilter', e.target.value)}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Statuses</option>
             <option value="draft">Draft</option>
@@ -54,7 +54,7 @@ export function FiltersPanel({
           <select
             value={paymentFilter}
             onChange={(e) => onFilterChange('paymentFilter', e.target.value)}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Payments</option>
             <option value="pending_review">Pending Review</option>
@@ -67,7 +67,7 @@ export function FiltersPanel({
           <select
             value={programFilter}
             onChange={(e) => onFilterChange('programFilter', e.target.value)}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Programs</option>
             <option value="Clinical Medicine">Clinical Medicine</option>
@@ -80,7 +80,7 @@ export function FiltersPanel({
           <select
             value={institutionFilter}
             onChange={(e) => onFilterChange('institutionFilter', e.target.value)}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">All Institutions</option>
             <option value="Kalulushi Training Centre">Kalulushi Training Centre</option>

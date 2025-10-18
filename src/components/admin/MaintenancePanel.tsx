@@ -75,7 +75,7 @@ export function MaintenancePanel() {
       case 'completed': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
       case 'failed': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
       case 'running': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800'
-      default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+      default: return 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
     }
   }
 
@@ -103,7 +103,7 @@ export function MaintenancePanel() {
           <CardContent>
             <div className="space-y-2">
               <p className="font-medium">Version {updateInfo.version}</p>
-              <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 <p><strong>Features:</strong> {updateInfo.features.join(', ')}</p>
                 <p><strong>Fixes:</strong> {updateInfo.fixes.join(', ')}</p>
               </div>
@@ -136,7 +136,7 @@ export function MaintenancePanel() {
                       {task.status}
                     </Badge>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-2">{task.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{task.description}</p>
                   <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500">
                     <span>Schedule: {task.schedule}</span>
                     <span>Next: {task.nextRun.toLocaleString()}</span>

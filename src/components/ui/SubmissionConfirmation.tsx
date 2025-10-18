@@ -35,28 +35,28 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4">
       <div className="max-w-2xl w-full">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-8">
           {/* Success Header */}
           <div className="text-center mb-8">
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
               <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Application Submitted Successfully!
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
+            <p className="text-gray-600 dark:text-gray-400">
               Your application has been received and is being processed.
             </p>
           </div>
 
           {/* Application Details */}
           <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Application Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Reference Number
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
@@ -65,7 +65,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   </span>
                   <button
                     onClick={() => copyToClipboard(referenceNumber, 'Reference number')}
-                    className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
+                    className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
@@ -73,7 +73,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Tracking Code
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
@@ -82,7 +82,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   </span>
                   <button
                     onClick={() => copyToClipboard(trackingCode, 'Tracking code')}
-                    className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
+                    className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
@@ -90,23 +90,23 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Program
                 </label>
-                <p className="mt-1 text-gray-900 dark:text-gray-100 dark:text-gray-900">{programName}</p>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{programName}</p>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Submission Date
                 </label>
-                <p className="mt-1 text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                <p className="mt-1 text-gray-900 dark:text-gray-100">
                   {new Date(submissionDate).toLocaleDateString()}
                 </p>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Payment Status
                 </label>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -114,19 +114,19 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                     ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
                     : paymentStatus === 'pending'
                     ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+                    : 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
                 }`}>
                   {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
                 </span>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email Confirmation
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
                   <Mail className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Sent to {userEmail}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Sent to {userEmail}</span>
                 </div>
               </div>
             </div>

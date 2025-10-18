@@ -168,7 +168,7 @@ export default function ApplicationStatus() {
       
           <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <SectionCard className="mx-auto max-w-xl text-center" title="Application not found" icon={<AlertCircle className="h-5 w-5" />}>
-            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
+            <p className="text-gray-600 dark:text-gray-400">
               {error || 'The application you are looking for does not exist or you do not have permission to view it.'}
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -217,7 +217,7 @@ export default function ApplicationStatus() {
               }
             ]}
           >
-            <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Intake: {application.intake}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Intake: {application.intake}</p>
           </PageHeader>
 
           {hasActiveInterview && interview && (
@@ -228,19 +228,19 @@ export default function ApplicationStatus() {
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{formatInterviewDateTime(interview.scheduled_at)}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{interview.mode?.replace('_', ' ') || 'Interview'}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{formatInterviewDateTime(interview.scheduled_at)}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{interview.mode?.replace('_', ' ') || 'Interview'}</p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Location / Link</p>
-                    <p className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                    <p className="text-sm text-gray-900 dark:text-gray-100">
                       {interview.location || 'You will receive the meeting details shortly.'}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Important notes</p>
-                    <p className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                    <p className="text-sm text-gray-900 dark:text-gray-100">
                       {interview.notes || 'Please arrive 10 minutes early and bring your identification.'}
                     </p>
                   </div>
@@ -255,7 +255,7 @@ export default function ApplicationStatus() {
               description="Our admissions team will contact you if a new interview is required."
               icon={<Calendar className="h-5 w-5" />}
             >
-              <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 If you have questions, please reach out to admissions support.
               </p>
             </SectionCard>
@@ -281,13 +281,13 @@ export default function ApplicationStatus() {
                         className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full shadow-lg ${
                           step.completed
                             ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500'
+                            : 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-500 dark:text-gray-500'
                         }`}
                       >
                         {step.completed ? <CheckCircle className="h-5 w-5" /> : getStatusIcon(step.status)}
                       </div>
                       <div className="flex-1">
-                        <p className={`font-semibold ${step.completed ? 'text-gray-900 dark:text-gray-100 dark:text-gray-900' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'}`}>
+                        <p className={`font-semibold ${step.completed ? 'text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}`}>
                           {step.description}
                         </p>
                         {step.date && (
@@ -306,68 +306,68 @@ export default function ApplicationStatus() {
               >
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-5 py-4">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3"><User className="w-5 h-5" /> Personal information</h3>
-                    <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3"><User className="w-5 h-5" /> Personal information</h3>
+                    <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Full name:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Full name:</span>
                         <span className="font-semibold">{application.full_name}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Date of birth:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Date of birth:</span>
                         <span className="font-semibold">{application.date_of_birth}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Sex:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Sex:</span>
                         <span className="font-semibold">{application.sex}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Phone:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Phone:</span>
                         <span className="font-semibold">{application.phone}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Email:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Email:</span>
                         <span className="font-semibold truncate">{application.email}</span>
                       </div>
                     </div>
                   </div>
                   <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 px-5 py-4">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3"><Phone className="w-5 h-5" /> Contact information</h3>
-                    <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3"><Phone className="w-5 h-5" /> Contact information</h3>
+                    <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Residence:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Residence:</span>
                         <span className="font-semibold">{application.residence_town}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">NRC:</span>
+                        <span className="text-gray-600 dark:text-gray-400">NRC:</span>
                         <span className="font-semibold">{application.nrc_number || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Guardian:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Guardian:</span>
                         <span className="font-semibold">{application.guardian_name || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Guardian phone:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Guardian phone:</span>
                         <span className="font-semibold">{application.guardian_phone || 'Not provided'}</span>
                       </div>
                     </div>
                   </div>
                   <div className="rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 px-5 py-4 lg:col-span-2">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
-                    <div className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600 sm:grid-cols-2">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
+                    <div className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Payment reference:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Payment reference:</span>
                         <span className="font-semibold">{application.payment_reference || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Payment method:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Payment method:</span>
                         <span className="font-semibold">{application.payment_method || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Amount paid:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Amount paid:</span>
                         <span className="font-semibold">K{application.amount || application.application_fee || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Payment status:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Payment status:</span>
                         <span className="font-semibold">{application.payment_status}</span>
                       </div>
                     </div>
@@ -392,7 +392,7 @@ export default function ApplicationStatus() {
                           <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Result slip</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Result slip</p>
                           <p className="text-xs font-medium text-blue-600 dark:text-blue-400">✓ Uploaded</p>
                         </div>
                       </div>
@@ -420,7 +420,7 @@ export default function ApplicationStatus() {
                           <FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Extra KYC documents</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Extra KYC documents</p>
                           <p className="text-xs font-medium text-green-600 dark:text-green-400">✓ Uploaded</p>
                         </div>
                       </div>
@@ -448,7 +448,7 @@ export default function ApplicationStatus() {
                           <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Proof of payment</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Proof of payment</p>
                           <p className="text-xs font-medium text-purple-600 dark:text-purple-400">✓ Uploaded</p>
                         </div>
                       </div>
@@ -481,23 +481,23 @@ export default function ApplicationStatus() {
               >
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Application ID</span>
+                    <span className="text-gray-600 dark:text-gray-400">Application ID</span>
                     <span className="font-semibold">#{application.application_number}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Program</span>
+                    <span className="text-gray-600 dark:text-gray-400">Program</span>
                     <span className="font-semibold text-right">{application.program}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Intake</span>
+                    <span className="text-gray-600 dark:text-gray-400">Intake</span>
                     <span className="font-semibold">{application.intake}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Submitted</span>
+                    <span className="text-gray-600 dark:text-gray-400">Submitted</span>
                     <span className="font-semibold">{formatDate(application.submitted_at)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Last updated</span>
+                    <span className="text-gray-600 dark:text-gray-400">Last updated</span>
                     <span className="font-semibold">{formatDate(application.updated_at)}</span>
                   </div>
                 </div>

@@ -21,7 +21,7 @@ export function Loading({ size = 'md', text, fullScreen = false }: LoadingProps)
         {/* Outer ring */}
         <motion.div
           className={cn(
-            'rounded-full border-2 border-gray-200 dark:border-gray-700 dark:border-gray-300',
+            'rounded-full border-2 border-gray-200 dark:border-gray-700',
             sizeClasses[size]
           )}
         />
@@ -37,7 +37,7 @@ export function Loading({ size = 'md', text, fullScreen = false }: LoadingProps)
       </div>
       {text && (
         <motion.p
-          className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500"
+          className="text-sm text-gray-600 dark:text-gray-400"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -50,7 +50,7 @@ export function Loading({ size = 'md', text, fullScreen = false }: LoadingProps)
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-gray-800/80 dark:bg-gray-900/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-gray-800/80 backdrop-blur-sm">
         {spinner}
       </div>
     )

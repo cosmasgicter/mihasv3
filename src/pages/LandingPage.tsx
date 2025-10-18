@@ -239,7 +239,7 @@ export default function LandingPageNew() {
             <Button 
               variant="outline" 
               size="xl" 
-              className="border-2 border-white text-white hover:bg-white dark:bg-gray-800 hover:text-blue-600 dark:text-blue-400 font-semibold"
+              className="border-2 border-white text-white hover:bg-white dark:bg-gray-800 dark:bg-gray-200 hover:text-blue-600 dark:text-blue-400 font-semibold"
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <span className="mr-2">Learn More</span>
@@ -255,9 +255,9 @@ export default function LandingPageNew() {
           transition={maybeMotion({ duration: 2, repeat: Infinity })}
           onClick={() => document.getElementById('stats')?.scrollIntoView({ behavior: 'smooth' })}
         >
-          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-gray-200 dark:border-gray-700 dark:border-gray-300 transition-colors">
+          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-gray-200 dark:border-gray-700 transition-colors">
             <motion.div
-              className="w-1 h-3 bg-white dark:bg-gray-800 rounded-full mt-2"
+              className="w-1 h-3 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-full mt-2"
               animate={maybeMotion({ y: [0, 12, 0] })}
               transition={maybeMotion({ duration: 2, repeat: Infinity })}
             />
@@ -266,7 +266,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Stats Section */}
-      <section id="stats" ref={statsBackgroundRef} className="py-20 bg-white dark:bg-gray-800 relative transition-colors duration-500">
+      <section id="stats" ref={statsBackgroundRef} className="py-20 bg-white dark:bg-gray-800 dark:bg-gray-200 relative transition-colors duration-500">
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
             <FloatingElements
@@ -299,7 +299,7 @@ export default function LandingPageNew() {
                 >
                   {stat.number}
                 </motion.div>
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 dark:text-gray-500 font-medium text-center">{stat.label}</p>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium text-center">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -324,7 +324,7 @@ export default function LandingPageNew() {
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold gradient-text mb-6 px-4">
               Why Choose MIHAS-KATC for Your Healthcare Career?
             </h2>
-            <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 dark:text-gray-600 max-w-3xl mx-auto font-medium px-4">
+            <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-medium px-4">
               Join 300+ successful graduates working across Zambia and internationally. Get job-ready with our accredited programs and industry partnerships
             </p>
           </motion.div>
@@ -347,18 +347,18 @@ export default function LandingPageNew() {
                   >
                     <feature.icon className="h-10 w-10 text-white" />
                   </motion.div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100 dark:text-gray-900">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 dark:text-gray-600 leading-relaxed font-medium">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
                     {feature.description}
                   </p>
                 </AnimatedCard>
               ) : (
-                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center group">
+                <div key={index} className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 text-center group">
                   <div className={`bg-gradient-to-br ${feature.gradient} w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg`}>
                     <feature.icon className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100 dark:text-gray-900">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 dark:text-gray-600 leading-relaxed font-medium">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
                     {feature.description}
                   </p>
                 </div>
@@ -369,7 +369,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Accreditation Section */}
-      <section className="py-16 bg-white dark:bg-gray-800 relative transition-colors duration-500">
+      <section className="py-16 bg-white dark:bg-gray-800 dark:bg-gray-200 relative transition-colors duration-500">
         <div className="content-wrapper">
           <motion.div
             className="text-center mb-12"
@@ -381,14 +381,14 @@ export default function LandingPageNew() {
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold gradient-text mb-4 px-4">
               Qualifications Recognized by Employers Across Zambia & Beyond
             </h2>
-            <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 dark:text-gray-600 px-4">
+            <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 px-4">
               Our graduates are qualified to work in hospitals, clinics, and health organizations throughout Zambia, SADC region, and internationally
             </p>
           </motion.div>
           
           <div className={`grid ${isMobile ? 'grid-cols-1 gap-6 px-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8'} items-stretch`}>
             <motion.div
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+              className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -404,8 +404,8 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">NMCZ Accredited</h3>
-                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">NMCZ Accredited</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3">
                   Nursing and Midwifery Council of Zambia
                 </p>
               </div>
@@ -415,7 +415,7 @@ export default function LandingPageNew() {
             </motion.div>
             
             <motion.div
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+              className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -431,8 +431,8 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">HPCZ Accredited</h3>
-                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">HPCZ Accredited</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3">
                   Health Professions Council of Zambia
                 </p>
               </div>
@@ -442,7 +442,7 @@ export default function LandingPageNew() {
             </motion.div>
             
             <motion.div
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+              className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -458,8 +458,8 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">ECZ Recognized</h3>
-                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">ECZ Recognized</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3">
                   Examinations Council of Zambia
                 </p>
               </div>
@@ -469,7 +469,7 @@ export default function LandingPageNew() {
             </motion.div>
             
             <motion.div
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+              className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -485,8 +485,8 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">UNZA Affiliated</h3>
-                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">UNZA Affiliated</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3">
                   University of Zambia
                 </p>
               </div>
@@ -499,7 +499,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Enhanced Programs Section */}
-      <section ref={programsBackgroundRef} className="py-20 bg-white dark:bg-gray-800 relative transition-colors duration-500">
+      <section ref={programsBackgroundRef} className="py-20 bg-white dark:bg-gray-800 dark:bg-gray-200 relative transition-colors duration-500">
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
             <FloatingElements
@@ -519,7 +519,7 @@ export default function LandingPageNew() {
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold gradient-text mb-6 px-4">
               High-Demand Healthcare Jobs Training Programs
             </h2>
-            <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 dark:text-gray-600 font-medium px-4">
+            <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 font-medium px-4">
               Three government-accredited programs with guaranteed job opportunities in Zambia's growing healthcare sector
             </p>
           </motion.div>
@@ -585,7 +585,7 @@ export default function LandingPageNew() {
                     </div>
                 </AnimatedCard>
               ) : (
-                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 overflow-hidden">
+                <div key={index} className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 overflow-hidden">
                   <div className="relative">
                     <picture className="w-full h-48 rounded-lg mb-6 overflow-hidden block">
                       <source srcSet={program.image} type="image/webp" />
@@ -665,7 +665,7 @@ export default function LandingPageNew() {
             whileTap={maybeMotion({ scale: 0.95 })}
           >
             <Link to="/auth/signup">
-              <Button variant="outline" size="xl" className="border-2 border-white text-white hover:bg-white dark:bg-gray-800 hover:text-blue-600 dark:text-blue-400">
+              <Button variant="outline" size="xl" className="border-2 border-white text-white hover:bg-white dark:bg-gray-800 dark:bg-gray-200 hover:text-blue-600 dark:text-blue-400">
                 <span className="mr-2">Apply Now</span>
                 <ArrowRight className="w-6 h-6" />
               </Button>
@@ -675,7 +675,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Enhanced Footer */}
-      <footer ref={footerBackgroundRef} className="bg-gray-900 text-white py-16 relative">
+      <footer ref={footerBackgroundRef} className="bg-gray-900 dark:bg-gray-100 text-white py-16 relative">
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
             <FloatingElements

@@ -43,7 +43,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
       case 'failed':
         return 'border-red-200 bg-red-50'
       default:
-        return 'border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gray-50 dark:bg-gray-900'
+        return 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900'
     }
   }
 
@@ -53,9 +53,9 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
         <div className="flex items-center space-x-3">
           {getStatusIcon()}
           <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{status.message}</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">{status.message}</p>
             {status.step && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Step: {status.step}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Step: {status.step}</p>
             )}
             <p className="text-xs text-gray-500 dark:text-gray-500">
               {new Date(status.timestamp).toLocaleString()}
@@ -75,7 +75,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
           {(status.status === 'processing' || status.status === 'retry') && onCancel && (
             <button
               onClick={onCancel}
-              className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
+              className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400"
             >
               <X className="h-4 w-4" />
             </button>

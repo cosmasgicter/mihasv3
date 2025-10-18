@@ -253,9 +253,9 @@ export function SimpleFileUpload({
   const isUploading_ = isUploading || isCompressing || uploadingFiles.length > 0
   
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6">
+    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Supporting Documents
         </h2>
         {uploadedFiles.length > 0 && (
@@ -281,7 +281,7 @@ export function SimpleFileUpload({
             className={cn(
               'border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 min-h-[48px] touch-target',
               isUploading_
-                ? 'border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gray-50 dark:bg-gray-900 cursor-not-allowed'
+                ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 cursor-not-allowed'
                 : dragActive
                 ? 'border-blue-600 bg-primary/5 cursor-pointer'
                 : 'border-gray-300 dark:border-gray-600 dark:border-gray-400 hover:border-blue-600 hover:bg-blue-600/5 cursor-pointer'
@@ -321,11 +321,11 @@ export function SimpleFileUpload({
                 <>
                   <Upload className={cn(
                     'h-8 w-8 mx-auto',
-                    dragActive ? 'text-blue-600' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
+                    dragActive ? 'text-blue-600' : 'text-gray-600 dark:text-gray-400'
                   )} />
                   <p className={cn(
                     'text-sm font-medium',
-                    dragActive ? 'text-blue-600' : 'text-gray-600 dark:text-gray-400 dark:text-gray-500'
+                    dragActive ? 'text-blue-600' : 'text-gray-600 dark:text-gray-400'
                   )}>
                     {dragActive ? 'Drop files here' : 'Click to upload or drag and drop'}
                   </p>
@@ -445,7 +445,7 @@ export function SimpleFileUpload({
 
       {uploadedFiles.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-3">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Uploaded Files ({uploadedFiles.length})
           </h3>
           <AnimatePresence>

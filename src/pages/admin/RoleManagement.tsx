@@ -56,7 +56,7 @@ export default function RoleManagement() {
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Role Management</h1>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50 dark:bg-gray-900">
             <tr>
@@ -68,23 +68,23 @@ export default function RoleManagement() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-200 divide-y divide-gray-200">
             {users?.map((user: any) => {
               const authRole = user.user_roles?.[0]?.role
               const synced = user.role === authRole
               
               return (
                 <tr key={user.user_id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                     {user.full_name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                     {user.email}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 rounded">{user.role}</span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     {authRole ? (
                       <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded">{authRole}</span>
                     ) : (
@@ -120,7 +120,7 @@ export default function RoleManagement() {
                         </button>
                         <button
                           onClick={() => setSelectedUser(null)}
-                          className="px-3 py-1 bg-gray-300 dark:bg-gray-600 dark:bg-gray-400 text-gray-700 dark:text-gray-300 dark:text-gray-600 rounded hover:bg-gray-400"
+                          className="px-3 py-1 bg-gray-300 dark:bg-gray-600 dark:bg-gray-400 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-400"
                         >
                           Cancel
                         </button>

@@ -40,7 +40,7 @@ export function LoadingFallback({
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <motion.div 
-          className="text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 max-w-md"
+          className="text-center p-8 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 max-w-md"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
@@ -48,8 +48,8 @@ export function LoadingFallback({
           <div className="w-16 h-16 mx-auto mb-4 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Taking longer than expected</h3>
-          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-4">Please check your internet connection and try refreshing the page.</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Taking longer than expected</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Please check your internet connection and try refreshing the page.</p>
           <button 
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600/90 transition-colors"
@@ -64,7 +64,7 @@ export function LoadingFallback({
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
       <motion.div 
-        className="text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300"
+        className="text-center p-8 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -82,7 +82,7 @@ export function LoadingFallback({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-2">
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
               <span>Loading</span>
               <span>{Math.round(progress)}%</span>
             </div>

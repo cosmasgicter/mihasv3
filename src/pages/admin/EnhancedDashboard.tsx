@@ -73,7 +73,7 @@ export default function EnhancedAdminDashboard() {
           className="text-center"
         >
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 dark:text-gray-500 font-medium">Loading dashboard...</p>
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 font-medium">Loading dashboard...</p>
         </motion.div>
       </div>
     )
@@ -83,8 +83,8 @@ export default function EnhancedAdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Authentication Required</h2>
-          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-4">Please sign in to access the admin dashboard.</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Authentication Required</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Please sign in to access the admin dashboard.</p>
           <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
         </div>
       </div>
@@ -169,7 +169,7 @@ export default function EnhancedAdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-2">
+          <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-2">
             <div className="flex space-x-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon
@@ -180,7 +180,7 @@ export default function EnhancedAdminDashboard() {
                     className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                       activeTab === tab.id
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                        : 'text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:bg-gray-900'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900'
                     }`}
                   >
                     <Icon className="h-5 w-5" />
@@ -203,12 +203,12 @@ export default function EnhancedAdminDashboard() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Bell className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                  <Bell className="h-5 w-5 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
                   <div>
                     <p className="font-semibold text-yellow-800 dark:text-yellow-200">
                       {stats.pendingApplications} applications need your attention
                     </p>
-                    <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400 dark:text-yellow-500">
                       Review pending applications to keep the process moving smoothly
                     </p>
                   </div>
@@ -283,8 +283,8 @@ export default function EnhancedAdminDashboard() {
               className="text-center py-12"
             >
               <div className="text-6xl mb-4"><BarChart3 className="w-5 h-5" /></div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Advanced Analytics</h3>
-              <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-6">Detailed analytics and reporting features coming soon</p>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Advanced Analytics</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">Detailed analytics and reporting features coming soon</p>
               <Button onClick={() => window.location.href = '/admin/analytics'}>
                 View Current Analytics
               </Button>
@@ -297,9 +297,9 @@ export default function EnhancedAdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+          className="mt-8 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
         >
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4"><TrendingUp className="w-5 h-5" /> Quick Insights</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4"><TrendingUp className="w-5 h-5" /> Quick Insights</h3>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -307,19 +307,19 @@ export default function EnhancedAdminDashboard() {
                   ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                   : 0}%
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Approval Rate</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Approval Rate</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.avgProcessingTime} days</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Avg Processing</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Processing</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.activeIntakes}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Active Intakes</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Active Intakes</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">99.9%</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">System Uptime</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">System Uptime</div>
             </div>
           </div>
         </motion.div>
