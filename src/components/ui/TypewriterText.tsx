@@ -7,14 +7,16 @@ interface TypewriterTextProps {
   speed?: number
   className?: string
   showCursor?: boolean
+  onComplete?: () => void
 }
 
 function TypewriterText({
   text,
   delay = 0,
-  speed = 100,
+  speed = 50,
   className = '',
-  showCursor = true
+  showCursor = true,
+  onComplete
 }: TypewriterTextProps) {
   const [displayedText, setDisplayedText] = useState('')
   const [started, setStarted] = useState(false)
@@ -41,11 +43,12 @@ function TypewriterText({
         i++
       } else {
         clearInterval(timer)
+        onComplete?.()
       }
     }, speed)
 
     return () => clearInterval(timer)
-  }, [text, speed, started])
+  }, [text, speed, started, onComplete])
 
   return (
     <div className={className}>

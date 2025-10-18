@@ -219,8 +219,8 @@ export function ProgressBar({
     <div className={cn('w-full', className)}>
       {showPercentage && (
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium text-gray-700">Progress</span>
-          <span className="text-sm text-gray-600">{percentage}%</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{percentage}%</span>
         </div>
       )}
       <div className={cn(

@@ -59,7 +59,7 @@ export function ApplicationsFilters({
       {/* Top Controls */}
       <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
         <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
-          <h2 className="text-lg sm:text-xl font-bold text-secondary">🔍 Search & Filter</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-secondary"><Search className="w-5 h-5" /> Search & Filter</h2>
           {selectedCount > 0 && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
@@ -131,7 +131,7 @@ export function ApplicationsFilters({
               placeholder="Search applications..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="form-input-mobile w-full pl-10 sm:pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              className="form-input-mobile w-full pl-10 sm:pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
             />
           </div>
         </div>
@@ -141,12 +141,12 @@ export function ApplicationsFilters({
           <select
             value={statusFilter}
             onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
           >
             <option value="all">All Status</option>
-            <option value="draft">📝 Draft</option>
-            <option value="submitted">📋 Submitted</option>
-            <option value="under_review">🔍 Under Review</option>
+            <option value="draft"><FileEdit className="w-5 h-5" /> Draft</option>
+            <option value="submitted"><FileText className="w-5 h-5" /> Submitted</option>
+            <option value="under_review"><Search className="w-5 h-5" /> Under Review</option>
             <option value="approved">✅ Approved</option>
             <option value="rejected">❌ Rejected</option>
           </select>
@@ -160,13 +160,13 @@ export function ApplicationsFilters({
               const [field, order] = e.target.value.split('-')
               onSortChange(field, order)
             }}
-            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
           >
-            <option value="date-desc">📅 Newest</option>
-            <option value="date-asc">📅 Oldest</option>
-            <option value="name-asc">👤 A-Z</option>
-            <option value="name-desc">👤 Z-A</option>
-            <option value="status-asc">📊 Status</option>
+            <option value="date-desc"><Calendar className="w-5 h-5" /> Newest</option>
+            <option value="date-asc"><Calendar className="w-5 h-5" /> Oldest</option>
+            <option value="name-asc"><User className="w-5 h-5" /> A-Z</option>
+            <option value="name-desc"><User className="w-5 h-5" /> Z-A</option>
+            <option value="status-asc"><BarChart3 className="w-5 h-5" /> Status</option>
           </select>
         </div>
       </div>
@@ -178,10 +178,10 @@ export function ApplicationsFilters({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-6"
+            className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-secondary">🎯 Advanced Filters</h3>
+              <h3 className="text-lg font-bold text-secondary"><Target className="w-5 h-5" /> Advanced Filters</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -195,20 +195,20 @@ export function ApplicationsFilters({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Date Range */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-secondary">📅 Date Range</label>
+                <label className="text-sm font-medium text-secondary"><Calendar className="w-5 h-5" /> Date Range</label>
                 <div className="space-y-2">
                   <input
                     type="date"
                     value={dateRange.start}
                     onChange={(e) => onDateRangeChange({...dateRange, start: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
                     placeholder="Start date"
                   />
                   <input
                     type="date"
                     value={dateRange.end}
                     onChange={(e) => onDateRangeChange({...dateRange, end: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
                     placeholder="End date"
                   />
                 </div>
@@ -216,11 +216,11 @@ export function ApplicationsFilters({
               
               {/* Program Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-secondary">🎓 Program</label>
+                <label className="text-sm font-medium text-secondary"><GraduationCap className="w-5 h-5" /> Program</label>
                 <select
                   value={programFilter}
                   onChange={(e) => onProgramFilterChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
                 >
                   <option value="all">All Programs</option>
                   <option value="Clinical Medicine">Clinical Medicine</option>
@@ -235,7 +235,7 @@ export function ApplicationsFilters({
                 <select
                   value={institutionFilter}
                   onChange={(e) => onInstitutionFilterChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
                 >
                   <option value="all">All Institutions</option>
                   <option value="Kalulushi Training Centre">Kalulushi Training Centre</option>
@@ -245,11 +245,11 @@ export function ApplicationsFilters({
               
               {/* Payment Status Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-secondary">💳 Payment Status</label>
+                <label className="text-sm font-medium text-secondary"><CreditCard className="w-5 h-5" /> Payment Status</label>
                 <select
                   value={paymentStatusFilter}
                   onChange={(e) => onPaymentStatusFilterChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
                 >
                   <option value="all">All Payment Status</option>
                   <option value="pending_review">Pending Review</option>

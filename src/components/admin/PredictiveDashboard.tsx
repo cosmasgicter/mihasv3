@@ -220,19 +220,19 @@ export function PredictiveDashboard() {
       <div ref={containerRef} className="space-y-6">
         {loading ? (
           <div className="animate-pulse space-y-6">
-            <div className="h-40 bg-gray-200 rounded-2xl"></div>
+            <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="h-64 bg-gray-200 rounded-lg"></div>
-              <div className="h-64 bg-gray-200 rounded-lg"></div>
+              <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
             </div>
-            <div className="h-80 bg-gray-200 rounded-lg"></div>
+            <div className="h-80 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
           </div>
         ) : (
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">AI Predictive Dashboard</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">AI Predictive Dashboard</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
                   Predictive insights will load once the dashboard is ready.
                 </p>
               </div>
@@ -263,11 +263,11 @@ export function PredictiveDashboard() {
       {/* Header with refresh */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">AI Predictive Dashboard</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">AI Predictive Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
             Real-time insights and automation analytics
             {lastUpdated && (
-              <span className="ml-2 text-sm text-gray-500">
+              <span className="ml-2 text-sm text-gray-500 dark:text-gray-500">
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
@@ -329,18 +329,18 @@ export function PredictiveDashboard() {
         >
           <Card className="p-6">
             <div className="flex items-center mb-4">
-              <TrendingUp className="h-6 w-6 mr-2 text-green-600" />
+              <TrendingUp className="h-6 w-6 mr-2 text-green-600 dark:text-green-400" />
               <h3 className="text-lg font-semibold">Application Trends</h3>
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Trend Direction</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Trend Direction</span>
                 <div className="flex items-center">
                   {metrics.trendDirection === 'up' && (
-                    <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
+                    <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400 mr-1" />
                   )}
                   {metrics.trendDirection === 'down' && (
-                    <TrendingUp className="h-4 w-4 text-red-600 mr-1 rotate-180" />
+                    <TrendingUp className="h-4 w-4 text-red-600 dark:text-red-400 mr-1 rotate-180" />
                   )}
                   <span className={`text-sm font-medium ${
                     metrics.trendDirection === 'up' ? 'text-green-600' : 
@@ -352,16 +352,16 @@ export function PredictiveDashboard() {
                 </div>
               </div>
               <div>
-                <span className="text-sm text-gray-600 block mb-2">Peak Application Times</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 block mb-2">Peak Application Times</span>
                 <div className="flex flex-wrap gap-2">
                   {metrics.peakApplicationTimes.length > 0 ? (
                     metrics.peakApplicationTimes.slice(0, 4).map((time, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                      <span key={idx} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded">
                         {time}
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-gray-500">No peak times identified</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-500">No peak times identified</span>
                   )}
                 </div>
               </div>
@@ -376,20 +376,20 @@ export function PredictiveDashboard() {
         >
           <Card className="p-6">
             <div className="flex items-center mb-4">
-              <AlertTriangle className="h-6 w-6 mr-2 text-yellow-600" />
+              <AlertTriangle className="h-6 w-6 mr-2 text-yellow-600 dark:text-yellow-400" />
               <h3 className="text-lg font-semibold">System Bottlenecks</h3>
             </div>
             <div className="space-y-3 max-h-48 overflow-y-auto">
               {metrics.processingBottlenecks.length > 0 ? (
                 metrics.processingBottlenecks.map((bottleneck, idx) => (
-                  <div key={idx} className="flex items-start p-3 bg-yellow-50 rounded-lg">
-                    <Clock className="h-4 w-4 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <div key={idx} className="flex items-start p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
+                    <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mr-2 mt-0.5 flex-shrink-0" />
                     <span className="text-sm text-yellow-800">{bottleneck}</span>
                   </div>
                 ))
               ) : (
-                <div className="flex items-center p-3 bg-green-50 rounded-lg">
-                  <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                <div className="flex items-center p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mr-2" />
                   <span className="text-sm text-green-800">No bottlenecks detected - system running smoothly</span>
                 </div>
               )}
@@ -405,18 +405,18 @@ export function PredictiveDashboard() {
         >
           <Card className="p-6">
             <div className="flex items-center mb-4">
-              <Zap className="h-6 w-6 mr-2 text-purple-600" />
+              <Zap className="h-6 w-6 mr-2 text-purple-600 dark:text-purple-400" />
               <h3 className="text-lg font-semibold">Workflow Automation</h3>
             </div>
             <div className="space-y-3">
               {metrics.workflowStats ? (
                 <>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Total Executions (7 days)</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Total Executions (7 days)</span>
                     <span className="text-lg font-semibold">{metrics.workflowStats.totalExecutions}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Success Rate</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Success Rate</span>
                     <span className={`text-lg font-semibold ${
                       metrics.workflowStats.totalExecutions > 0 
                         ? (metrics.workflowStats.successfulExecutions / metrics.workflowStats.totalExecutions) > 0.9 
@@ -429,15 +429,15 @@ export function PredictiveDashboard() {
                     </span>
                   </div>
                   <div className="pt-2 border-t">
-                    <span className="text-xs text-gray-500">Most Active Rules</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-500">Most Active Rules</span>
                     <div className="mt-1 space-y-1">
                       {Object.entries(metrics.workflowStats.ruleStats)
                         .sort(([,a], [,b]) => (b as number) - (a as number))
                         .slice(0, 3)
                         .map(([ruleId, count]) => (
                           <div key={ruleId} className="flex justify-between text-xs">
-                            <span className="text-gray-600 truncate">{ruleId.replace(/_/g, ' ')}</span>
-                            <span className="text-gray-800 font-medium">{count as number}</span>
+                            <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500 truncate">{ruleId.replace(/_/g, ' ')}</span>
+                            <span className="text-gray-800 dark:text-gray-200 font-medium">{count as number}</span>
                           </div>
                         ))
                       }
@@ -445,7 +445,7 @@ export function PredictiveDashboard() {
                   </div>
                 </>
               ) : (
-                <div className="text-sm text-gray-500">Loading workflow statistics...</div>
+                <div className="text-sm text-gray-500 dark:text-gray-500">Loading workflow statistics...</div>
               )}
             </div>
           </Card>
@@ -460,47 +460,47 @@ export function PredictiveDashboard() {
       >
         <Card className="p-6">
           <div className="flex items-center mb-6">
-            <Brain className="h-6 w-6 mr-2 text-purple-600" />
+            <Brain className="h-6 w-6 mr-2 text-purple-600 dark:text-purple-400" />
             <h3 className="text-lg font-semibold">AI Recommendations</h3>
-            <span className="ml-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+            <span className="ml-auto text-xs text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
               Updated {refreshing ? 'now' : 'recently'}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="font-medium text-blue-800 mb-2 flex items-center">
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center">
                 <FileText className="h-4 w-4 mr-1" />
                 Workflow Optimization
               </h4>
-              <p className="text-sm text-blue-700">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
                 {metrics.workflowStats?.successfulExecutions > 50 
                   ? 'Automation is performing well. Consider expanding auto-approval rules for high-confidence applications.'
                   : 'Consider implementing automated document verification for applications with high confidence scores (>90%).'}
               </p>
             </div>
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+            <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
               <h4 className="font-medium text-green-800 mb-2 flex items-center">
                 <Users className="h-4 w-4 mr-1" />
                 Resource Allocation
               </h4>
-              <p className="text-sm text-green-700">
+              <p className="text-sm text-green-700 dark:text-green-300">
                 {metrics.peakApplicationTimes.length > 0 
                   ? `Peak times identified: ${metrics.peakApplicationTimes.slice(0, 2).join(', ')}. Consider increasing staff during these hours.`
                   : 'Application volume is evenly distributed. Current staffing appears adequate.'}
               </p>
             </div>
-            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <div className="p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
               <h4 className="font-medium text-purple-800 mb-2 flex items-center">
                 <AlertTriangle className="h-4 w-4 mr-1" />
                 Proactive Outreach
               </h4>
-              <p className="text-sm text-purple-700">
+              <p className="text-sm text-purple-700 dark:text-purple-300">
                 {metrics.riskApplications > 0 
                   ? `${metrics.riskApplications} applications identified as high-risk. Consider proactive support outreach.`
                   : 'No high-risk applications detected. Current support processes are effective.'}
               </p>
             </div>
-            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-200">
               <h4 className="font-medium text-yellow-800 mb-2 flex items-center">
                 <Target className="h-4 w-4 mr-1" />
                 Process Improvement

@@ -99,24 +99,24 @@ export function UploadDebugger() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow">
+    <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
       <h2 className="text-lg font-semibold mb-4">Upload Debugger</h2>
       
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Select File to Test Upload
           </label>
           <input
             type="file"
             accept=".pdf,.jpg,.jpeg,.png"
             onChange={handleFileSelect}
-            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="w-full text-sm text-gray-500 dark:text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:bg-blue-950/30 file:text-blue-700 dark:text-blue-300 hover:file:bg-blue-100 dark:bg-blue-900/30"
           />
         </div>
 
         {file && (
-          <div className="p-3 bg-gray-50 rounded">
+          <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded">
             <p className="text-sm">
               <strong>Selected:</strong> {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
             </p>
@@ -141,11 +141,11 @@ export function UploadDebugger() {
 
         {uploading && (
           <div>
-            <div className="flex justify-between text-sm text-gray-600 mb-1">
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">
               <span>Progress</span>
               <span>{progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div 
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
@@ -155,8 +155,8 @@ export function UploadDebugger() {
         )}
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded">
-            <div className="flex items-center text-sm text-red-700">
+          <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded">
+            <div className="flex items-center text-sm text-red-700 dark:text-red-300">
               <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -164,8 +164,8 @@ export function UploadDebugger() {
         )}
 
         {success && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded">
-            <div className="flex items-center text-sm text-green-700">
+          <div className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded">
+            <div className="flex items-center text-sm text-green-700 dark:text-green-300">
               <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>{success}</span>
             </div>
@@ -174,7 +174,7 @@ export function UploadDebugger() {
 
         {logs.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Debug Logs:</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Debug Logs:</h3>
             <div className="bg-gray-900 text-green-400 p-3 rounded text-xs font-mono max-h-64 overflow-y-auto">
               {logs.map((log, index) => (
                 <div key={index}>{log}</div>
@@ -184,7 +184,7 @@ export function UploadDebugger() {
         )}
 
         {!user && (
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+          <div className="p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 rounded">
             <p className="text-sm text-yellow-700">
               Please sign in to test file uploads
             </p>

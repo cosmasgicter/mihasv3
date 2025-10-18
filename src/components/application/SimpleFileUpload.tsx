@@ -253,13 +253,13 @@ export function SimpleFileUpload({
   const isUploading_ = isUploading || isCompressing || uploadingFiles.length > 0
   
   return (
-    <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Supporting Documents
         </h2>
         {uploadedFiles.length > 0 && (
-          <div className="flex items-center text-sm text-green-600">
+          <div className="flex items-center text-sm text-green-600 dark:text-green-400">
             <CheckCircle className="h-4 w-4 mr-1" />
             {uploadedFiles.length} file{uploadedFiles.length !== 1 ? 's' : ''} uploaded
           </div>
@@ -283,8 +283,8 @@ export function SimpleFileUpload({
               isUploading_
                 ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
                 : dragActive
-                ? 'border-primary bg-primary/5 cursor-pointer'
-                : 'border-gray-300 hover:border-primary hover:bg-primary/5 cursor-pointer'
+                ? 'border-blue-600 bg-primary/5 cursor-pointer'
+                : 'border-gray-300 hover:border-blue-600 hover:bg-blue-600/5 cursor-pointer'
             )}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -293,13 +293,13 @@ export function SimpleFileUpload({
             <div className="flex flex-col items-center space-y-2">
               {isCompressing ? (
                 <>
-                  <Zap className="h-8 w-8 text-primary animate-pulse" />
-                  <p className="text-sm text-primary font-medium">Optimizing image...</p>
+                  <Zap className="h-8 w-8 text-blue-600 dark:text-blue-400 animate-pulse" />
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Optimizing image...</p>
                 </>
               ) : isUploading ? (
                 <>
-                  <Upload className="h-8 w-8 text-primary animate-bounce" />
-                  <p className="text-sm text-primary font-medium">Uploading...</p>
+                  <Upload className="h-8 w-8 text-blue-600 dark:text-blue-400 animate-bounce" />
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Uploading...</p>
                     {uploadStats.progress > 0 && (
                       <div className="w-full max-w-xs">
                         <ProgressBar
@@ -309,7 +309,7 @@ export function SimpleFileUpload({
                           color="blue"
                         />
                       {uploadStats.speed > 0 && (
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-500 mt-1">
                           <span>{formatFileSize(uploadStats.speed)}/s</span>
                           <span>~{Math.ceil(uploadStats.eta)}s remaining</span>
                         </div>
@@ -321,19 +321,19 @@ export function SimpleFileUpload({
                 <>
                   <Upload className={cn(
                     'h-8 w-8 mx-auto',
-                    dragActive ? 'text-primary' : 'text-gray-600'
+                    dragActive ? 'text-blue-600' : 'text-gray-600'
                   )} />
                   <p className={cn(
                     'text-sm font-medium',
-                    dragActive ? 'text-primary' : 'text-gray-600'
+                    dragActive ? 'text-blue-600' : 'text-gray-600'
                   )}>
                     {dragActive ? 'Drop files here' : 'Click to upload or drag and drop'}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
                     {acceptedTypes.join(', ').replace(/\./g, '').toUpperCase()} up to {formatFileSize(maxFileSize)}
                   </p>
                   {enableCompression && (
-                    <p className="text-xs text-primary flex items-center">
+                    <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center">
                       <ImageIcon className="h-3 w-3 mr-1" />
                       Images will be automatically optimized
                     </p>
@@ -346,7 +346,7 @@ export function SimpleFileUpload({
         
         {displayError && (
           <motion.div 
-            className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg"
+            className="mt-4 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -355,7 +355,7 @@ export function SimpleFileUpload({
               <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-red-800">Upload Error</p>
-                <p className="text-sm text-red-700 mt-1">{displayError}</p>
+                <p className="text-sm text-red-700 dark:text-red-300 mt-1">{displayError}</p>
               </div>
             </div>
           </motion.div>
@@ -364,18 +364,18 @@ export function SimpleFileUpload({
         {/* Compression Stats */}
         {showCompressionStats && compressionResults.length > 0 && (
           <motion.div 
-            className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg"
+            className="mt-4 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
           >
             <div className="flex items-start space-x-3">
-              <Zap className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <Zap className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-green-800">Image Optimization Complete</p>
                 <div className="mt-2 space-y-1">
                   {compressionResults.map((result, index) => (
-                    <div key={index} className="text-xs text-green-700">
+                    <div key={index} className="text-xs text-green-700 dark:text-green-300">
                       <span className="font-medium">{result.originalFile.name}</span>: 
                       {formatFileSize(result.originalSize)} → {formatFileSize(result.compressedSize)} 
                       ({result.compressionRatio.toFixed(1)}% smaller)
@@ -387,7 +387,7 @@ export function SimpleFileUpload({
                 variant="ghost"
                 size="sm"
                 onClick={clearResults}
-                className="text-green-700 hover:text-green-800 p-1 h-auto"
+                className="text-green-700 dark:text-green-300 hover:text-green-800 p-1 h-auto"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -408,7 +408,7 @@ export function SimpleFileUpload({
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center">
                     {isComplete ? (
-                      <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mr-2" />
                     ) : (
                       <div className="h-4 w-4 mr-2 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     )}
@@ -422,7 +422,7 @@ export function SimpleFileUpload({
                     {isComplete ? 'Complete!' : `${progress}%`}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div 
                     className={`h-2 rounded-full transition-all duration-500 ${
                       isComplete 
@@ -433,7 +433,7 @@ export function SimpleFileUpload({
                   />
                 </div>
                 {isComplete && (
-                  <div className="mt-2 text-xs text-green-600">
+                  <div className="mt-2 text-xs text-green-600 dark:text-green-400">
                     File uploaded successfully!
                   </div>
                 )}
@@ -445,7 +445,7 @@ export function SimpleFileUpload({
 
       {uploadedFiles.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Uploaded Files ({uploadedFiles.length})
           </h3>
           <AnimatePresence>
@@ -456,26 +456,26 @@ export function SimpleFileUpload({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
-                className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg transition-all duration-200 hover:shadow-md group"
+                className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 dark:border-green-800 rounded-lg transition-all duration-200 hover:shadow-md group"
               >
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center space-x-4 flex-1">
                     <div className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                      <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
                       {file.type?.startsWith('image/') ? (
-                        <ImageIcon className="h-5 w-5 text-green-700" />
+                        <ImageIcon className="h-5 w-5 text-green-700 dark:text-green-300" />
                       ) : (
-                        <FileText className="h-5 w-5 text-green-700" />
+                        <FileText className="h-5 w-5 text-green-700 dark:text-green-300" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-green-800 truncate">{file.name}</p>
                       <div className="flex items-center space-x-3 mt-1">
-                        <p className="text-xs text-green-600">{formatFileSize(file.size)}</p>
+                        <p className="text-xs text-green-600 dark:text-green-400">{formatFileSize(file.size)}</p>
                         {file.compressed && file.originalSize && (
                           <div className="flex items-center space-x-1">
-                            <Zap className="h-3 w-3 text-primary" />
-                            <span className="text-xs text-primary font-medium">
+                            <Zap className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
                               Optimized ({((1 - file.size / file.originalSize) * 100).toFixed(0)}% smaller)
                             </span>
                           </div>
@@ -487,7 +487,7 @@ export function SimpleFileUpload({
                     variant="ghost"
                     size="sm"
                     onClick={() => onRemoveFile(file.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px] min-w-[44px] touch-target opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30 min-h-[44px] min-w-[44px] touch-target opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label={`Remove ${file.name}`}
                   >
                     <X className="h-4 w-4" />

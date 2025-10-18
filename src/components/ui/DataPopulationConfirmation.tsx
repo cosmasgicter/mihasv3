@@ -31,16 +31,16 @@ export function DataPopulationConfirmation({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-4">
             <CheckCircle className="h-6 w-6 text-green-500" />
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Auto-Fill Detected
             </h3>
           </div>
           
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-4">
             We found information in your profile that can be used to pre-fill this application. 
             Please review and confirm the accuracy of this data:
           </p>
@@ -48,8 +48,8 @@ export function DataPopulationConfirmation({
           <div className="space-y-2 mb-6">
             {populatedFields.map((field, index) => (
               <div key={index} className="flex justify-between text-sm">
-                <span className="font-medium text-gray-700">{field.label}:</span>
-                <span className="text-gray-600">{field.value}</span>
+                <span className="font-medium text-gray-700 dark:text-gray-300">{field.label}:</span>
+                <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">{field.value}</span>
               </div>
             ))}
           </div>

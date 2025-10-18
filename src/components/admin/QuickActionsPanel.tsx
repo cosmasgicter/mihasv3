@@ -31,7 +31,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
       description: `${stats.pendingApplications} pending review`,
       icon: FileText,
       href: '/admin/applications',
-      color: 'from-primary to-secondary',
+      color: 'from-blue-600 to-purple-600',
       urgent: stats.pendingApplications > 0
     },
     {
@@ -93,11 +93,11 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100"
       >
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900">⚡ Quick Actions</h3>
-          <p className="text-sm text-gray-600 mt-1">Manage your system efficiently</p>
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100"><Zap className="w-5 h-5" /> Quick Actions</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">Manage your system efficiently</p>
         </div>
         
         <div className="p-6">
@@ -119,13 +119,13 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                     >
                       {action.urgent && (
                         <div className="absolute top-2 right-2">
-                          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                          <div className="w-3 h-3 bg-red-50 dark:bg-red-950/300 rounded-full animate-pulse"></div>
                         </div>
                       )}
                       <Icon className="h-6 w-6 group-hover:scale-110 transition-transform" />
                       <span className="font-semibold text-sm">{action.title}</span>
                       {action.urgent && (
-                        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                        <span className="text-xs bg-white dark:bg-gray-800/20 px-2 py-1 rounded-full">
                           {action.description}
                         </span>
                       )}
@@ -143,10 +143,10 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100"
       >
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900">🛠️ System Tools</h3>
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">🛠️ System Tools</h3>
         </div>
         
         <div className="p-6 space-y-3">
@@ -163,12 +163,12 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                 >
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start h-12 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-300"
+                    className="w-full justify-start h-12 border-2 hover:border-blue-600 hover:bg-blue-600/5 transition-all duration-300"
                   >
                     <Icon className="h-4 w-4 mr-3" />
                     <div className="text-left">
                       <div className="font-medium">{action.title}</div>
-                      <div className="text-xs text-gray-500">{action.description}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500">{action.description}</div>
                     </div>
                   </Button>
                 </motion.div>
@@ -194,7 +194,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
               <Download className="h-4 w-4 mr-3" />
               <div className="text-left">
                 <div className="font-medium">Export Data</div>
-                <div className="text-xs text-gray-500">Download reports</div>
+                <div className="text-xs text-gray-500 dark:text-gray-500">Download reports</div>
               </div>
             </Button>
           </motion.div>
@@ -206,17 +206,17 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200"
+        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200 dark:border-blue-800"
       >
-        <h3 className="text-lg font-bold text-gray-900 mb-4">📊 Quick Stats</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4"><BarChart3 className="w-5 h-5" /> Quick Stats</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.pendingApplications}</div>
-            <div className="text-sm text-gray-600">Pending</div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.pendingApplications}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Pending</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{stats.totalPrograms}</div>
-            <div className="text-sm text-gray-600">Programs</div>
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.totalPrograms}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Programs</div>
           </div>
         </div>
       </motion.div>

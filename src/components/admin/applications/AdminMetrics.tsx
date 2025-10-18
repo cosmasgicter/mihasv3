@@ -67,10 +67,10 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
     color: string
     trend?: number 
   }) => (
-    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-600 mb-1">{title}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">{title}</p>
           <p className={`text-2xl font-bold ${color}`}>{value}</p>
           {trend !== undefined && (
             <div className={`flex items-center mt-1 text-sm ${
@@ -94,7 +94,7 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
         title="Today's Submissions"
         value={metrics.todaySubmissions}
         icon={Users}
-        color="text-blue-600"
+        color="text-blue-600 dark:text-blue-400"
         trend={metrics.submissionTrend}
       />
       
@@ -102,14 +102,14 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
         title="Pending Review"
         value={metrics.pendingReview}
         icon={Clock}
-        color="text-yellow-600"
+        color="text-yellow-600 dark:text-yellow-400"
       />
       
       <MetricCard
         title="Approval Rate"
         value={`${metrics.approvalRate.toFixed(1)}%`}
         icon={CheckCircle}
-        color="text-green-600"
+        color="text-green-600 dark:text-green-400"
       />
       
       <MetricCard

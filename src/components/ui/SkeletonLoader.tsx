@@ -68,7 +68,7 @@ export function SkeletonLoader({
 // Preset skeleton components for common use cases
 export function SkeletonCard() {
   return (
-    <div className="p-4 border border-gray-200 rounded-lg space-y-3">
+    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
       <SkeletonLoader height={20} width="60%" />
       <SkeletonLoader height={16} count={3} />
       <SkeletonLoader height={14} width="40%" />

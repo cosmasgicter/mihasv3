@@ -160,27 +160,27 @@ export default function EligibilityManagement() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             Eligibility Management System
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
             Manage course requirements, regulatory compliance, and eligibility assessments
           </p>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow mb-8">
-          <div className="border-b border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
+          <div className="border-b border-gray-200 dark:border-gray-700">
             <nav className="-mb-px flex space-x-8 px-6">
               {[
                 { id: 'dashboard', name: 'Analytics Dashboard', icon: BarChart3 },
@@ -212,7 +212,7 @@ export default function EligibilityManagement() {
         {activeTab === 'rules' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">Eligibility Rules</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Eligibility Rules</h2>
               <Button
                 onClick={() => {
                   resetRuleForm()
@@ -225,43 +225,43 @@ export default function EligibilityManagement() {
               </Button>
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-gray-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                       Rule Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                       Program
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                       Weight
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                   {rules.map((rule) => (
                     <tr key={rule.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                         {rule.rule_name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                         {(rule as any).programs?.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                         {rule.rule_type}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                         {rule.weight}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -276,13 +276,13 @@ export default function EligibilityManagement() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                         <button
                           onClick={() => handleEditRule(rule)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-900"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteRule(rule.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 dark:text-red-400 hover:text-red-900"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -299,8 +299,8 @@ export default function EligibilityManagement() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Regulatory Guidelines</h2>
-                <p className="text-gray-600 mt-1">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Regulatory Guidelines</h2>
+                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">
                   HPCZ, NMCZ, and ECZ compliance requirements for health and education programs
                 </p>
               </div>
@@ -312,7 +312,7 @@ export default function EligibilityManagement() {
         {/* Rule Form Modal */}
         {showRuleForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full mx-4 p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full mx-4 p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">
                   {editingRule ? 'Edit Rule' : 'Add New Rule'}
@@ -322,7 +322,7 @@ export default function EligibilityManagement() {
                     setShowRuleForm(false)
                     setEditingRule(null)
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
                 >
                   <X className="h-6 w-6" />
                 </button>
@@ -330,14 +330,14 @@ export default function EligibilityManagement() {
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="program" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="program" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Program
                   </label>
                   <select
                     id="program"
                     value={ruleForm.program_id}
                     onChange={(e) => setRuleForm({ ...ruleForm, program_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select Program</option>
                     {programs.map((program) => (
@@ -355,14 +355,14 @@ export default function EligibilityManagement() {
                 />
 
                 <div>
-                  <label htmlFor="rule_type" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="rule_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Rule Type
                   </label>
                   <select
                     id="rule_type"
                     value={ruleForm.rule_type}
                     onChange={(e) => setRuleForm({ ...ruleForm, rule_type: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="subject_count">Subject Count</option>
                     <option value="grade_average">Grade Average</option>
@@ -395,7 +395,7 @@ export default function EligibilityManagement() {
                     onChange={(e) => setRuleForm({ ...ruleForm, is_active: e.target.checked })}
                     className="mr-2"
                   />
-                  <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
+                  <label htmlFor="is_active" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Active
                   </label>
                 </div>

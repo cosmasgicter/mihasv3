@@ -122,7 +122,7 @@ interface ApplicationDetailModalProps {
 function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean }) {
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
         <LoadingSpinner size="sm" />
         <span>Loading grades...</span>
       </div>
@@ -131,7 +131,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 
   if (grades.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-gray-500 dark:text-gray-500">
         <GraduationCap className="h-8 w-8 mx-auto mb-2 text-gray-300" />
         <p className="text-sm">No grades recorded</p>
       </div>
@@ -154,14 +154,14 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+      <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
         <div>
           <p className="text-sm font-medium text-blue-900">{grades.length} Subjects</p>
-          <p className="text-xs text-blue-700">Grade 12 Results</p>
+          <p className="text-xs text-blue-700 dark:text-blue-300">Grade 12 Results</p>
         </div>
         <div className="text-right">
           <p className="text-lg font-bold text-blue-900">{totalPoints}</p>
-          <p className="text-xs text-blue-700">Points (Best 5)</p>
+          <p className="text-xs text-blue-700 dark:text-blue-300">Points (Best 5)</p>
         </div>
       </div>
 
@@ -174,8 +174,8 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
               isBestFive ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
             }`}>
               <div>
-                <span className="font-medium text-gray-900">{grade.subject_name}</span>
-                {isBestFive && <span className="ml-2 text-xs text-green-600 font-medium">BEST 5</span>}
+                <span className="font-medium text-gray-900 dark:text-gray-100">{grade.subject_name}</span>
+                {isBestFive && <span className="ml-2 text-xs text-green-600 dark:text-green-400 font-medium">BEST 5</span>}
               </div>
               <span className={`px-3 py-1 rounded-full text-sm font-bold ${
                 normalized !== null && normalized <= 3 ? 'bg-green-100 text-green-800' :
@@ -195,7 +195,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem[], loading: boolean }) {
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
         <LoadingSpinner size="sm" />
         <span>Loading history...</span>
       </div>
@@ -204,7 +204,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
   
   if (history.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-gray-500 dark:text-gray-500">
         <History className="h-8 w-8 mx-auto mb-2 text-gray-300" />
         <p className="text-sm">No status changes recorded</p>
       </div>
@@ -214,7 +214,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
   return (
     <div className="space-y-3">
       {history.map((item) => (
-        <div key={item.id} className="flex gap-4 p-4 bg-white border border-gray-200 rounded-lg">
+        <div key={item.id} className="flex gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
           <div className="flex-shrink-0">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
               item.status === 'approved' ? 'bg-green-100' :
@@ -222,26 +222,26 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
               item.status === 'under_review' ? 'bg-yellow-100' :
               'bg-blue-100'
             }`}>
-              {item.status === 'approved' ? <CheckCircle className="h-4 w-4 text-green-600" /> :
-               item.status === 'rejected' ? <XCircle className="h-4 w-4 text-red-600" /> :
-               item.status === 'under_review' ? <Eye className="h-4 w-4 text-yellow-600" /> :
-               <Clock className="h-4 w-4 text-blue-600" />}
+              {item.status === 'approved' ? <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" /> :
+               item.status === 'rejected' ? <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" /> :
+               item.status === 'under_review' ? <Eye className="h-4 w-4 text-yellow-600 dark:text-yellow-400" /> :
+               <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
             </div>
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
-              <p className="font-medium text-gray-900 capitalize">
+              <p className="font-medium text-gray-900 dark:text-gray-100 capitalize">
                 {item.status.replace('_', ' ')}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-500">
                 {formatDate(item.created_at)}
               </p>
             </div>
-            <p className="text-sm text-gray-600 mb-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-2">
               Changed by {item.changed_by_profile?.full_name || item.changed_by_profile?.email || 'System'}
             </p>
             {item.notes && (
-              <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+              <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 p-2 rounded">
                 {item.notes}
               </p>
             )}
@@ -255,7 +255,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
 function DocumentsDisplay({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: ApplicationWithDetails | null }) {
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
         <LoadingSpinner size="sm" />
         <span>Loading documents...</span>
       </div>
@@ -303,7 +303,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
   
   if (allDocuments.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-gray-500 dark:text-gray-500">
         <FileText className="h-8 w-8 mx-auto mb-2 text-gray-300" />
         <p className="text-sm">No documents uploaded</p>
       </div>
@@ -313,7 +313,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
   return (
     <div className="space-y-3">
       {allDocuments.map((doc) => (
-        <div key={doc.id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg">
+        <div key={doc.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
               doc.verification_status === 'verified' ? 'bg-green-100' :
@@ -327,8 +327,8 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
               }`} />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{doc.document_name}</p>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
+              <p className="font-medium text-gray-900 dark:text-gray-100">{doc.document_name}</p>
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
                 <span className={`px-2 py-1 rounded-full ${
                   doc.verification_status === 'verified' ? 'bg-green-100 text-green-800' :
                   doc.verification_status === 'rejected' ? 'bg-red-100 text-red-800' :
@@ -337,7 +337,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
                   {doc.verification_status.toUpperCase()}
                 </span>
                 {doc.system_generated && (
-                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
                     SYSTEM
                   </span>
                 )}
@@ -346,7 +346,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
                 )}
               </div>
               {doc.verification_notes && (
-                <p className="text-xs text-gray-600 mt-1">{doc.verification_notes}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">{doc.verification_notes}</p>
               )}
             </div>
           </div>
@@ -354,7 +354,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
             href={doc.file_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 px-3 py-2 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+            className="flex items-center gap-1 px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200 hover:bg-blue-50 dark:bg-blue-950/30 rounded-lg transition-colors"
           >
             <Download className="h-4 w-4" />
             View
@@ -646,19 +646,19 @@ export function ApplicationDetailModal({
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'approved': return <CheckCircle className="h-5 w-5 text-green-600" />
-      case 'rejected': return <XCircle className="h-5 w-5 text-red-600" />
-      case 'under_review': return <Eye className="h-5 w-5 text-yellow-600" />
-      case 'submitted': return <AlertCircle className="h-5 w-5 text-blue-600" />
-      default: return <Clock className="h-5 w-5 text-gray-600" />
+      case 'approved': return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+      case 'rejected': return <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+      case 'under_review': return <Eye className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+      case 'submitted': return <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+      default: return <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400 dark:text-gray-500" />
     }
   }
 
   const getPaymentIcon = (status: string) => {
     switch (status) {
-      case 'verified': return <CheckCircle className="h-5 w-5 text-green-600" />
-      case 'rejected': return <XCircle className="h-5 w-5 text-red-600" />
-      default: return <Clock className="h-5 w-5 text-yellow-600" />
+      case 'verified': return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+      case 'rejected': return <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+      default: return <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
     }
   }
 
@@ -694,21 +694,21 @@ export function ApplicationDetailModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-50">
-      <div className="bg-white w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-gray-800 w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
                 <User className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {application.full_name}
                 </h2>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
+                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
                   <span className="font-mono">#{application.application_number}</span>
-                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-400 dark:text-gray-500">•</span>
                   <div className="flex items-center gap-1">
                     {getStatusIcon(application.status)}
                     <span className="capitalize">{application.status.replace('_', ' ')}</span>
@@ -720,7 +720,7 @@ export function ApplicationDetailModal({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="hover:bg-white/50"
+              className="hover:bg-white dark:bg-gray-800/50"
             >
               <XCircle className="h-5 w-5" />
             </Button>
@@ -728,7 +728,7 @@ export function ApplicationDetailModal({
         </div>
 
         {/* Tabs */}
-        <div className="flex-shrink-0 border-b border-gray-200 bg-white">
+        <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="flex px-6">
             {tabs.map((tab) => {
               const Icon = tab.icon
@@ -756,7 +756,7 @@ export function ApplicationDetailModal({
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <LoadingSpinner size="lg" className="mx-auto mb-4" />
-                  <p className="text-gray-600">Loading application details...</p>
+                  <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Loading application details...</p>
                 </div>
               </div>
             ) : (
@@ -769,7 +769,7 @@ export function ApplicationDetailModal({
                         <div className="flex items-center gap-3">
                           {getStatusIcon(application.status)}
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Application Status</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Application Status</p>
                             <p className="text-lg font-bold text-blue-900 capitalize">
                               {application.status.replace('_', ' ')}
                             </p>
@@ -781,7 +781,7 @@ export function ApplicationDetailModal({
                         <div className="flex items-center gap-3">
                           {getPaymentIcon(application.payment_status || 'pending')}
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Payment Status</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Payment Status</p>
                             <p className="text-lg font-bold text-green-900 capitalize">
                               {(application.payment_status || 'pending').replace('_', ' ')}
                             </p>
@@ -791,9 +791,9 @@ export function ApplicationDetailModal({
                       
                       <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-xl">
                         <div className="flex items-center gap-3">
-                          <Calendar className="h-5 w-5 text-purple-600" />
+                          <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Submitted</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Submitted</p>
                             <p className="text-lg font-bold text-purple-900">
                               {formatDate(application.submitted_at || application.created_at)}
                             </p>
@@ -803,18 +803,18 @@ export function ApplicationDetailModal({
                     </div>
 
                     {hasActiveInterview && (
-                      <div className="bg-white border border-blue-100 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="bg-white dark:bg-gray-800 border border-blue-100 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex items-center gap-3">
                           <Calendar className="h-10 w-10 text-blue-500" />
                           <div>
-                            <p className="text-sm text-gray-500">Upcoming interview</p>
-                            <p className="text-base font-semibold text-gray-900">
+                            <p className="text-sm text-gray-500 dark:text-gray-500">Upcoming interview</p>
+                            <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
                               {formatInterviewDateTime(currentInterview?.scheduled_at)}
                             </p>
                           </div>
                         </div>
-                        <div className="text-sm text-gray-600">
-                          <p className="font-medium text-gray-800">
+                        <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                          <p className="font-medium text-gray-800 dark:text-gray-200">
                             Mode: {formatInterviewModeLabel(currentInterview?.mode)}
                           </p>
                           <p>Status: {formatInterviewStatus(currentInterview?.status)}</p>
@@ -823,55 +823,55 @@ export function ApplicationDetailModal({
                     )}
 
                     {/* Personal Information */}
-                    <div className="bg-white border border-gray-200 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <User className="h-5 w-5 text-blue-600" />
+                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         Personal Information
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                           <div className="flex items-center gap-3">
-                            <Mail className="h-4 w-4 text-gray-400" />
+                            <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
-                              <p className="text-sm text-gray-500">Email</p>
-                              <p className="font-medium text-gray-900">{application.email}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-500">Email</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.email}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Phone className="h-4 w-4 text-gray-400" />
+                            <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
-                              <p className="text-sm text-gray-500">Phone</p>
-                              <p className="font-medium text-gray-900">{application.phone || 'Not provided'}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-500">Phone</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.phone || 'Not provided'}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Calendar className="h-4 w-4 text-gray-400" />
+                            <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
-                              <p className="text-sm text-gray-500">Date of Birth</p>
-                              <p className="font-medium text-gray-900">{application.date_of_birth || 'Not provided'}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-500">Date of Birth</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.date_of_birth || 'Not provided'}</p>
                             </div>
                           </div>
                         </div>
                         <div className="space-y-4">
                           <div className="flex items-center gap-3">
-                            <MapPin className="h-4 w-4 text-gray-400" />
+                            <MapPin className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
-                              <p className="text-sm text-gray-500">Residence</p>
-                              <p className="font-medium text-gray-900">{application.residence_town || 'Not provided'}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-500">Residence</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.residence_town || 'Not provided'}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Users className="h-4 w-4 text-gray-400" />
+                            <Users className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
-                              <p className="text-sm text-gray-500">Next of Kin</p>
-                              <p className="font-medium text-gray-900">{application.next_of_kin_name || 'Not provided'}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-500">Next of Kin</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.next_of_kin_name || 'Not provided'}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <FileText className="h-4 w-4 text-gray-400" />
+                            <FileText className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
-                              <p className="text-sm text-gray-500">NRC Number</p>
-                              <p className="font-medium text-gray-900">{application.nrc_number || 'Not provided'}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-500">NRC Number</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.nrc_number || 'Not provided'}</p>
                             </div>
                           </div>
                         </div>
@@ -879,70 +879,70 @@ export function ApplicationDetailModal({
                     </div>
 
                     {/* Program Information */}
-                    <div className="bg-white border border-gray-200 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <GraduationCap className="h-5 w-5 text-blue-600" />
+                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         Program Information
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="flex items-center gap-3">
-                          <GraduationCap className="h-4 w-4 text-gray-400" />
+                          <GraduationCap className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                           <div>
-                            <p className="text-sm text-gray-500">Program</p>
-                            <p className="font-medium text-gray-900">{application.program}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-500">Program</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{application.program}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Building className="h-4 w-4 text-gray-400" />
+                          <Building className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                           <div>
-                            <p className="text-sm text-gray-500">Institution</p>
-                            <p className="font-medium text-gray-900">{getInstitutionName(application.institution)}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-500">Institution</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{getInstitutionName(application.institution)}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Calendar className="h-4 w-4 text-gray-400" />
+                          <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                           <div>
-                            <p className="text-sm text-gray-500">Intake</p>
-                            <p className="font-medium text-gray-900">{application.intake}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-500">Intake</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{application.intake}</p>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Payment Information */}
-                    <div className="bg-white border border-gray-200 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <CreditCard className="h-5 w-5 text-blue-600" />
+                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         Payment Information
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                           <div>
-                            <p className="text-sm text-gray-500 mb-1">Payment Method</p>
-                            <p className="font-medium text-gray-900">{application.payment_method || 'Not specified'}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-500 mb-1">Payment Method</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{application.payment_method || 'Not specified'}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500 mb-1">Amount Paid</p>
-                            <p className="text-2xl font-bold text-green-600">
+                            <p className="text-sm text-gray-500 dark:text-gray-500 mb-1">Amount Paid</p>
+                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                               K{application.amount || 0} / K{application.application_fee || 0}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500 mb-1">Payer Name</p>
-                            <p className="font-medium text-gray-900">{application.payer_name || 'Not provided'}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-500 mb-1">Payer Name</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{application.payer_name || 'Not provided'}</p>
                           </div>
                         </div>
                         {application.payment_verified_at && (
-                          <div className="bg-green-50 p-4 rounded-lg">
+                          <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-lg">
                             <div className="flex items-center gap-2 mb-2">
-                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                               <p className="font-medium text-green-900">Payment Verified</p>
                             </div>
-                            <p className="text-sm text-green-700 mb-1">
+                            <p className="text-sm text-green-700 dark:text-green-300 mb-1">
                               Verified on {formatDate(application.payment_verified_at)}
                             </p>
                             {(application.payment_verified_by_name || application.payment_verified_by_email) && (
-                              <p className="text-sm text-green-700">
+                              <p className="text-sm text-green-700 dark:text-green-300">
                                 By: {application.payment_verified_by_name || application.payment_verified_by_email}
                               </p>
                             )}
@@ -952,7 +952,7 @@ export function ApplicationDetailModal({
                     </div>
 
                     {/* Admin Feedback */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
                       <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
                         <AlertCircle className="h-5 w-5" />
                         Admin Feedback
@@ -964,11 +964,11 @@ export function ApplicationDetailModal({
                           onChange={(e) => setAdminFeedback(e.target.value)}
                           placeholder="Add feedback for the applicant..."
                           rows={4}
-                          className="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                          className="w-full rounded-lg border border-blue-200 dark:border-blue-800 px-3 py-2 text-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
                         />
                         
                         <div className="flex items-center justify-between">
-                          <div className="text-sm text-blue-600">
+                          <div className="text-sm text-blue-600 dark:text-blue-400">
                             {application.admin_feedback_date && (
                               <span>Last updated: {formatDate(application.admin_feedback_date)}</span>
                             )}
@@ -991,9 +991,9 @@ export function ApplicationDetailModal({
 
                 {activeTab === 'interview' && (
                   <div className="space-y-6">
-                    <div className="bg-white border border-gray-200 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <Calendar className="h-5 w-5 text-blue-600" />
+                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         Interview Overview
                       </h3>
                       {hasActiveInterview ? (
@@ -1001,15 +1001,15 @@ export function ApplicationDetailModal({
                           <div className="flex items-center gap-3">
                             <Clock className="h-5 w-5 text-blue-500" />
                             <div>
-                              <p className="text-sm text-gray-500">Scheduled for</p>
-                              <p className="text-base font-medium text-gray-900">
+                              <p className="text-sm text-gray-500 dark:text-gray-500">Scheduled for</p>
+                              <p className="text-base font-medium text-gray-900 dark:text-gray-100">
                                 {formatInterviewDateTime(currentInterview?.scheduled_at)}
                               </p>
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                              <p className="text-sm text-blue-700 uppercase tracking-wide">Mode</p>
+                            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 rounded-lg p-4">
+                              <p className="text-sm text-blue-700 dark:text-blue-300 uppercase tracking-wide">Mode</p>
                               <p className="text-lg font-semibold text-blue-900">
                                 {formatInterviewModeLabel(currentInterview?.mode)}
                               </p>
@@ -1023,14 +1023,14 @@ export function ApplicationDetailModal({
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <p className="text-sm font-medium text-gray-600 mb-1">Location / Link</p>
-                              <p className="text-base text-gray-900">
+                              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">Location / Link</p>
+                              <p className="text-base text-gray-900 dark:text-gray-100">
                                 {currentInterview?.location || 'Not provided'}
                               </p>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-600 mb-1">Notes</p>
-                              <p className="text-base text-gray-900">
+                              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">Notes</p>
+                              <p className="text-base text-gray-900 dark:text-gray-100">
                                 {currentInterview?.notes || 'No additional notes recorded.'}
                               </p>
                             </div>
@@ -1039,17 +1039,17 @@ export function ApplicationDetailModal({
                       ) : (
                         <div className="text-center py-8">
                           <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                          <p className="text-base font-medium text-gray-700 mb-1">No interview scheduled yet</p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-base font-medium text-gray-700 dark:text-gray-300 mb-1">No interview scheduled yet</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-500">
                             Use the form below to schedule and notify the applicant about their interview.
                           </p>
                         </div>
                       )}
                     </div>
 
-                    <div className="bg-white border border-gray-200 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <Users className="h-5 w-5 text-blue-600" />
+                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         Manage Interview Schedule
                       </h3>
 
@@ -1068,7 +1068,7 @@ export function ApplicationDetailModal({
                       <form onSubmit={event => { void handleInterviewSubmit(event) }} className="space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="interview-scheduled-at">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="interview-scheduled-at">
                               Interview date &amp; time
                             </label>
                             <input
@@ -1076,19 +1076,19 @@ export function ApplicationDetailModal({
                               type="datetime-local"
                               value={interviewForm.scheduledAt}
                               onChange={handleInterviewFieldChange('scheduledAt')}
-                              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+                              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
                               required
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="interview-mode">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="interview-mode">
                               Interview mode
                             </label>
                             <select
                               id="interview-mode"
                               value={interviewForm.mode}
                               onChange={handleInterviewFieldChange('mode')}
-                              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+                              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
                             >
                               <option value="in_person">In person</option>
                               <option value="virtual">Virtual</option>
@@ -1098,7 +1098,7 @@ export function ApplicationDetailModal({
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="interview-location">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="interview-location">
                             Location / meeting link
                           </label>
                           <input
@@ -1107,12 +1107,12 @@ export function ApplicationDetailModal({
                             value={interviewForm.location}
                             onChange={handleInterviewFieldChange('location')}
                             placeholder={interviewForm.mode === 'virtual' ? 'Zoom/Teams link' : 'Campus room or venue'}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+                            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="interview-notes">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="interview-notes">
                             Notes for applicant
                           </label>
                           <textarea
@@ -1120,7 +1120,7 @@ export function ApplicationDetailModal({
                             value={interviewForm.notes}
                             onChange={handleInterviewFieldChange('notes')}
                             rows={4}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+                            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
                             placeholder="Add preparation details, required documents or virtual meeting instructions"
                           />
                         </div>
@@ -1137,7 +1137,7 @@ export function ApplicationDetailModal({
                               variant="outline"
                               loading={isCancellingInterview}
                               onClick={() => { void handleInterviewCancel() }}
-                              className="text-red-600 border-red-300 hover:bg-red-50"
+                              className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
                             >
                               <XCircle className="h-4 w-4 mr-2" />
                               Cancel interview
@@ -1175,7 +1175,7 @@ export function ApplicationDetailModal({
           </div>
         </div>
         {/* Footer Actions */}
-        <div className="flex-shrink-0 p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex-shrink-0 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
             <div className="flex flex-wrap gap-2">
               <Button
@@ -1236,7 +1236,7 @@ export function ApplicationDetailModal({
                     variant="outline"
                     loading={updating === application.id}
                     onClick={() => onUpdateStatus(application.id, 'rejected')}
-                    className="text-red-600 border-red-300 hover:bg-red-50"
+                    className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
                   >
                     <XCircle className="h-4 w-4 mr-2" />
                     Reject

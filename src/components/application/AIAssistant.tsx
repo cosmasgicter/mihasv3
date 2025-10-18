@@ -70,11 +70,11 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
 
   const getStepGuidance = (step: number, appData: any): string => {
     const stepGuides = {
-      1: `📝 **Step 1: Basic Information**\n\nYou're filling out your personal details and selecting your program.\n\n**What you need**:\n• Full name and contact information\n• Program selection (Clinical Medicine, Environmental Health, or Registered Nursing)\n• Basic demographic information\n\n**Tips**:\n• Double-check your contact information\n• Choose your program carefully - this affects requirements\n• All fields marked with * are required`,
+      1: `<FileEdit className="w-5 h-5" /> **Step 1: Basic Information**\n\nYou're filling out your personal details and selecting your program.\n\n**What you need**:\n• Full name and contact information\n• Program selection (Clinical Medicine, Environmental Health, or Registered Nursing)\n• Basic demographic information\n\n**Tips**:\n• Double-check your contact information\n• Choose your program carefully - this affects requirements\n• All fields marked with * are required`,
       
       2: `📚 **Step 2: Education Details**\n\nTime to add your Grade 12 subjects and upload documents.\n\n**Requirements**:\n• Minimum 5 subjects (recommended: 6-8)\n• Include core subjects for your program\n• Upload clear, readable result slip\n\n**Program-specific core subjects**:\n${getCoreSubjectsForProgram(appData?.program)}\n\n**Current progress**: ${appData?.grades?.length || 0} subjects added`,
       
-      3: `💳 **Step 3: Payment Information**\n\nUpload your proof of payment for the K153 application fee.\n\n**Payment details**:\n• Amount: K153.00\n• Method: Mobile Money\n• Pay to: ${getPaymentNumber(appData?.program)}\n\n**Upload requirements**:\n• Clear screenshot or photo of transaction\n• Include transaction reference if available\n• Accepted formats: JPG, PNG, PDF`,
+      3: `<CreditCard className="w-5 h-5" /> **Step 3: Payment Information**\n\nUpload your proof of payment for the K153 application fee.\n\n**Payment details**:\n• Amount: K153.00\n• Method: Mobile Money\n• Pay to: ${getPaymentNumber(appData?.program)}\n\n**Upload requirements**:\n• Clear screenshot or photo of transaction\n• Include transaction reference if available\n• Accepted formats: JPG, PNG, PDF`,
       
       4: `✅ **Step 4: Review & Submit**\n\nFinal check before submitting your application.\n\n**Review checklist**:\n• Personal information is correct\n• All required subjects added\n• Documents are clear and readable\n• Payment proof is uploaded\n\n**After submission**:\n• You'll receive a tracking code\n• Processing takes 3-5 business days\n• You can track status anytime`
     }
@@ -110,11 +110,11 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
     const totalRequired = completionItems.filter(item => item.required).length
     const completionPercentage = Math.round((requiredCompleted / totalRequired) * 100)
     
-    return `📊 **Application Status**:\n\n**Overall Progress**: ${completionPercentage}% complete\n\n**Checklist**:\n${completionItems.map(item => 
+    return `<BarChart3 className="w-5 h-5" /> **Application Status**:\n\n**Overall Progress**: ${completionPercentage}% complete\n\n**Checklist**:\n${completionItems.map(item => 
       `${item.completed ? '✅' : '❌'} ${item.name}${item.required ? ' (Required)' : ' (Optional)'}`
     ).join('\n')}\n\n**Next Steps**:\n${completionItems.filter(item => item.required && !item.completed).length > 0 ? 
       completionItems.filter(item => item.required && !item.completed).map(item => `• Complete ${item.name}`).join('\n') :
-      '🎉 All required items complete! Ready to submit your application.'
+      '<PartyPopper className="w-5 h-5" /> All required items complete! Ready to submit your application.'
     }\n\n**Estimated Time to Complete**: ${completionItems.filter(item => item.required && !item.completed).length * 5} minutes`
   }
 
@@ -122,7 +122,7 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
     const tips = []
     
     if (!appData?.program) {
-      tips.push('🎯 Choose your program carefully - it affects all requirements')
+      tips.push('<Target className="w-5 h-5" /> Choose your program carefully - it affects all requirements')
     }
     
     if ((appData?.grades?.length || 0) < 6) {
@@ -132,9 +132,9 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
     if (appData?.grades?.length > 0) {
       const avgGrade = appData.grades.reduce((sum: number, g: any) => sum + g.grade, 0) / appData.grades.length
       if (avgGrade > 4) {  // In Zambian system, higher numbers are worse grades
-        tips.push('📈 Focus on your strongest subjects - quality over quantity')
+        tips.push('<TrendingUp className="w-5 h-5" /> Focus on your strongest subjects - quality over quantity')
       } else {
-        tips.push('🌟 Great grades! You have excellent admission chances')
+        tips.push('<Star className="w-5 h-5" /> Great grades! You have excellent admission chances')
       }
     }
     
@@ -143,16 +143,16 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
     }
     
     if (!appData?.pop_url) {
-      tips.push('💳 Upload payment proof as soon as possible to avoid delays')
+      tips.push('<CreditCard className="w-5 h-5" /> Upload payment proof as soon as possible to avoid delays')
     }
     
     if (tips.length === 0) {
-      tips.push('🎉 Your application looks great! Double-check everything before submitting')
+      tips.push('<PartyPopper className="w-5 h-5" /> Your application looks great! Double-check everything before submitting')
       tips.push('⏰ Submit early - applications are processed first-come, first-served')
-      tips.push('📞 Save our contact number in case you need help later')
+      tips.push('<Phone className="w-5 h-5" /> Save our contact number in case you need help later')
     }
     
-    return `💡 **Personalized Tips for You**:\n\n${tips.map((tip, idx) => `${idx + 1}. ${tip}`).join('\n')}\n\n**Pro Tip**: The AI can auto-fill information from your documents - just upload clear, readable files!`
+    return `<Lightbulb className="w-5 h-5" /> **Personalized Tips for You**:\n\n${tips.map((tip, idx) => `${idx + 1}. ${tip}`).join('\n')}\n\n**Pro Tip**: The AI can auto-fill information from your documents - just upload clear, readable files!`
   }
 
   const generateContextualSuggestions = (userMessage: string, appData: any): string[] => {
@@ -196,7 +196,7 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
         const welcomeMessage: Message = {
           id: '1',
           type: 'assistant',
-          content: `👋 Hi ${profile?.full_name || 'there'}! I'm your AI application assistant. I can help you with:\n\n• Filling out your application\n• Understanding requirements\n• Checking eligibility\n• Uploading documents\n• Program-specific guidance\n\nHow can I help you today?`,
+          content: ` Hi ${profile?.full_name || 'there'}! I'm your AI application assistant. I can help you with:\n\n• Filling out your application\n• Understanding requirements\n• Checking eligibility\n• Uploading documents\n• Program-specific guidance\n\nHow can I help you today?`,
           timestamp: new Date(),
           suggestions: [
             'Check my eligibility for my program',
@@ -226,7 +226,7 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
         const welcomeMessage: Message = {
           id: '1',
           type: 'assistant',
-          content: `👋 Hi ${profile?.full_name || 'there'}! I'm your AI application assistant. I can help you with:\n\n• Filling out your application\n• Understanding requirements\n• Checking eligibility\n• Uploading documents\n• Program-specific guidance\n\nHow can I help you today?`,
+          content: ` Hi ${profile?.full_name || 'there'}! I'm your AI application assistant. I can help you with:\n\n• Filling out your application\n• Understanding requirements\n• Checking eligibility\n• Uploading documents\n• Program-specific guidance\n\nHow can I help you today?`,
           timestamp: new Date(),
           suggestions: [
             'Check my eligibility for my program',
@@ -312,7 +312,7 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
             const prediction = await predictiveAnalytics.predictAdmissionSuccess(applicationData)
             const probability = Math.round(prediction.admissionProbability * 100)
             
-            eligibilityInfo = `\n\n🎯 **AI Prediction**: ${probability}% admission probability\n⚠️ **Risk Factors**: ${prediction.riskFactors.length > 0 ? prediction.riskFactors.join(', ') : 'None identified'}\n💡 **Recommendations**: ${prediction.recommendations.slice(0, 2).join(', ')}`
+            eligibilityInfo = `\n\n<Target className="w-5 h-5" /> **AI Prediction**: ${probability}% admission probability\n⚠️ **Risk Factors**: ${prediction.riskFactors.length > 0 ? prediction.riskFactors.join(', ') : 'None identified'}\n<Lightbulb className="w-5 h-5" /> **Recommendations**: ${prediction.recommendations.slice(0, 2).join(', ')}`
           } catch (error) {
             console.error('Failed to get prediction:', error)
           }
@@ -320,9 +320,9 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
         
         return `Based on your current application data, here's your eligibility status:
 
-📊 **Current Status**: ${applicationData?.program ? 'Good progress' : 'Just getting started'}
+<BarChart3 className="w-5 h-5" /> **Current Status**: ${applicationData?.program ? 'Good progress' : 'Just getting started'}
 📚 **Program**: ${applicationData?.program || 'Not selected yet'}
-📝 **Subjects**: ${applicationData?.grades?.length || 0} subjects added
+<FileEdit className="w-5 h-5" /> **Subjects**: ${applicationData?.grades?.length || 0} subjects added
 📄 **Documents**: ${getDocumentStatus(applicationData)}${eligibilityInfo}
 
 **Next Steps**:
@@ -424,7 +424,7 @@ ${currentGrades.length < 5 ? 'You need to add more subjects to meet the minimum 
       const paymentTarget = institution === 'KATC' ? 'MTN 0966 992 299' : 'MTN 0961 515 151'
       const paymentStatus = applicationData?.pop_url ? '✅ Payment proof uploaded' : '❌ Payment proof needed'
       
-      return `💳 **Payment Information**:
+      return `<CreditCard className="w-5 h-5" /> **Payment Information**:
 
 **Application Fee**: K153.00
 **Payment Method**: Mobile Money
@@ -450,9 +450,9 @@ ${!applicationData?.pop_url ? 'Ready to upload your payment proof?' : 'Great! Yo
     
     if (lowerMessage.includes('step') || lowerMessage.includes('next')) {
       const stepGuide = [
-        '📝 **Step 1**: Basic KYC - Personal information and program selection',
+        '<FileEdit className="w-5 h-5" /> **Step 1**: Basic KYC - Personal information and program selection',
         '📚 **Step 2**: Education - Grade 12 subjects and document upload',
-        '💳 **Step 3**: Payment - Application fee and proof of payment',
+        '<CreditCard className="w-5 h-5" /> **Step 3**: Payment - Application fee and proof of payment',
         '✅ **Step 4**: Review - Final check and submission'
       ]
       
@@ -503,17 +503,17 @@ ${currentStep ? `\n**Current Step ${currentStep}**:\n${getStepGuidance(currentSt
 
 Based on your current progress, here are some ways I can help:
 
-🎯 **Application Guidance**
+<Target className="w-5 h-5" /> **Application Guidance**
 • Step-by-step process walkthrough
 • Program-specific requirements for ${applicationData?.program || 'your chosen program'}
 • Document upload assistance
 
-📊 **Eligibility Check**
+<BarChart3 className="w-5 h-5" /> **Eligibility Check**
 • Real-time eligibility assessment
 • Subject recommendations
 • Grade requirements analysis
 
-💡 **Smart Suggestions**
+<Lightbulb className="w-5 h-5" /> **Smart Suggestions**
 • Auto-fill from documents
 • Missing information alerts
 • Optimization tips
@@ -625,7 +625,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
       >
         <MessageCircle className="h-6 w-6" />
         {hasUnreadSuggestions && (
-          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+          <div className="absolute -top-2 -right-2 bg-red-50 dark:bg-red-950/300 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
             !
           </div>
         )}
@@ -638,7 +638,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+            className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
@@ -655,7 +655,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-white hover:bg-white/20 p-1 rounded transition-colors"
+                className="text-white hover:bg-white dark:bg-gray-800/20 p-1 rounded transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -665,8 +665,8 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                  <span className="ml-2 text-gray-600">Loading conversation...</span>
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-600 dark:text-blue-400" />
+                  <span className="ml-2 text-gray-600 dark:text-gray-400 dark:text-gray-500">Loading conversation...</span>
                 </div>
               ) : (
                 messages.map((message) => (
@@ -683,7 +683,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                     }`}>
                       <div className="flex items-start space-x-2">
                         {message.type === 'assistant' && (
-                          <Bot className="h-4 w-4 mt-1 flex-shrink-0 text-blue-600" />
+                          <Bot className="h-4 w-4 mt-1 flex-shrink-0 text-blue-600 dark:text-blue-400" />
                         )}
                         <div className="flex-1">
                           <p className="text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
@@ -694,7 +694,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                                 <button
                                   key={idx}
                                   onClick={() => handleSuggestionClick(suggestion)}
-                                  className="block w-full text-left text-xs bg-white/20 hover:bg-white/30 rounded-lg p-2 transition-colors border border-white/10"
+                                  className="block w-full text-left text-xs bg-white/20 hover:bg-white dark:bg-gray-800/30 rounded-lg p-2 transition-colors border border-white/10"
                                 >
                                   {suggestion}
                                 </button>
@@ -714,15 +714,15 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                   animate={{ opacity: 1, y: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="bg-gray-100 rounded-2xl p-3 max-w-[85%]">
+                  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-3 max-w-[85%]">
                     <div className="flex items-center space-x-2">
-                      <Bot className="h-4 w-4 text-blue-600" />
+                      <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
-                      <span className="text-xs text-gray-500">AI is thinking...</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-500">AI is thinking...</span>
                     </div>
                   </div>
                 </motion.div>
@@ -731,7 +731,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-gray-200 bg-gray-50">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
               <div className="flex space-x-2">
                 <input
                   type="text"
@@ -740,7 +740,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                   onKeyPress={handleKeyPress}
                   placeholder={isTyping ? 'AI is thinking...' : 'Ask me anything about your application...'}
                   disabled={isTyping || isLoading}
-                  className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="flex-1 border border-gray-300 dark:border-gray-600 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800 disabled:cursor-not-allowed"
                 />
                 <Button
                   onClick={handleSendMessage}
@@ -756,8 +756,8 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                 </Button>
               </div>
               {currentStep && (
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  💡 Currently on Step {currentStep} - I can help with this step specifically
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 text-center">
+                  <Lightbulb className="w-5 h-5" /> Currently on Step {currentStep} - I can help with this step specifically
                 </p>
               )}
             </div>

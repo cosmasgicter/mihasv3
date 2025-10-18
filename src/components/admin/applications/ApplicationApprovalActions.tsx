@@ -67,7 +67,7 @@ export function ApplicationApprovalActions({
     <div className="space-y-3">
       {/* Application Status Controls */}
       <div>
-        <label className="text-xs font-medium text-gray-700 mb-1 block">
+        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">
           Application Status
         </label>
         <div className="flex gap-1">
@@ -75,7 +75,7 @@ export function ApplicationApprovalActions({
             <button
               onClick={() => handleStatusUpdate('under_review')}
               disabled={updatingStatus || disabled}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+              className="flex-1 bg-blue-50 dark:bg-blue-950/300 hover:bg-blue-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
             >
               {updatingStatus ? (
                 <LoadingSpinner size="sm" />
@@ -93,7 +93,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('approved')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-green-50 dark:bg-green-950/300 hover:bg-green-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingStatus ? (
                   <LoadingSpinner size="sm" />
@@ -107,7 +107,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('rejected')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-red-50 dark:bg-red-950/300 hover:bg-red-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingStatus ? (
                   <LoadingSpinner size="sm" />
@@ -147,7 +147,7 @@ export function ApplicationApprovalActions({
 
       {/* Payment Status Controls */}
       <div>
-        <label className="text-xs font-medium text-gray-700 mb-1 block">
+        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">
           Payment Status
         </label>
         <div className="flex gap-1">
@@ -156,7 +156,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handlePaymentUpdate('verified')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-green-50 dark:bg-green-950/300 hover:bg-green-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingPayment ? (
                   <LoadingSpinner size="sm" />
@@ -170,7 +170,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handlePaymentUpdate('rejected')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-red-50 dark:bg-red-950/300 hover:bg-red-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingPayment ? (
                   <LoadingSpinner size="sm" />

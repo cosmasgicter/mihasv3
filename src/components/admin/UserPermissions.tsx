@@ -133,18 +133,18 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Shield className="h-5 w-5 text-blue-600" />
+            <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             <span>Manage Permissions - {user.full_name}</span>
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <Shield className="h-4 w-4 text-blue-600" />
+              <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <span className="font-medium text-blue-900">Current Role: {user.role.replace('_', ' ').toUpperCase()}</span>
             </div>
-            <p className="text-sm text-blue-700">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
               Customize permissions for this user. Changes will override default role permissions.
             </p>
           </div>
@@ -160,11 +160,11 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
               const allSelected = selectedInCategory === categoryPermissions.length
 
               return (
-                <div key={category} className="border border-gray-200 rounded-lg p-4">
+                <div key={category} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900 flex items-center space-x-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
                     <span>{category}</span>
-                    <span className="text-sm text-gray-500">({selectedInCategory}/{categoryPermissions.length})</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-500">({selectedInCategory}/{categoryPermissions.length})</span>
                   </h3>
                   <Button
                     variant="outline"
@@ -212,7 +212,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                               {permission.name}
                             </h4>
                             {selectedPermissions.includes(permission.id) && (
-                              <Shield className="h-3 w-3 text-blue-600" />
+                              <Shield className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                             )}
                           </div>
                           <p className={`text-xs mt-1 ${
@@ -233,7 +233,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
 
         <DialogFooter>
           <div className="flex items-center justify-between w-full">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
               {selectedPermissions.length} of {AVAILABLE_PERMISSIONS.length} permissions selected
             </div>
             <div className="flex space-x-2">

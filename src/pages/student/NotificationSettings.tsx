@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { format } from 'date-fns'
-import { AuthenticatedNavigation } from '@/components/ui/AuthenticatedNavigation'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { notificationService } from '@/services/notifications'
@@ -251,12 +250,12 @@ export default function NotificationSettings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: consentType === 'outreach' ? 0.05 : 0.15 }}
-        className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+        className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{detail.label}</h3>
-            <p className="mt-1 text-sm text-gray-600">{detail.description}</p>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{detail.label}</h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{detail.description}</p>
           </div>
           <span
             className={`px-3 py-1 text-xs font-semibold rounded-full ${
@@ -269,7 +268,7 @@ export default function NotificationSettings() {
           </span>
         </div>
 
-        <div className="mt-4 space-y-1 text-xs text-gray-500">
+        <div className="mt-4 space-y-1 text-xs text-gray-500 dark:text-gray-500">
           <p>
             Last granted: {record?.grantedAt ? formatTimestamp(record.grantedAt) ?? record.grantedAt : '—'}
           </p>
@@ -307,16 +306,16 @@ export default function NotificationSettings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: channel === 'sms' ? 0.1 : 0.2 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4"
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="p-3 rounded-xl bg-blue-100 text-blue-600 shadow-inner">
+            <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shadow-inner">
               <details.Icon className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">{details.title}</h2>
-              <p className="text-sm text-gray-600">{details.description} <span className="text-green-600 font-medium">(Enabled by default)</span></p>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{details.title}</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{details.description} <span className="text-green-600 dark:text-green-400 font-medium">(Enabled by default)</span></p>
             </div>
           </div>
           <span
@@ -328,27 +327,27 @@ export default function NotificationSettings() {
           </span>
         </div>
 
-        <div className="space-y-2 text-sm text-gray-700">
+        <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
           {optedIn && summary.optInAt && (
             <p>
               <span className="font-semibold">Opted in:</span> {summary.optInAt}
-              {summary.source && <span className="text-gray-500"> · via {summary.source}</span>}
+              {summary.source && <span className="text-gray-500 dark:text-gray-500"> · via {summary.source}</span>}
             </p>
           )}
 
           {!optedIn && summary.optOutAt && (
             <p>
               <span className="font-semibold">Consent revoked:</span> {summary.optOutAt}
-              {summary.optOutReason && <span className="text-gray-500"> · {summary.optOutReason}</span>}
+              {summary.optOutReason && <span className="text-gray-500 dark:text-gray-500"> · {summary.optOutReason}</span>}
             </p>
           )}
 
           {!optedIn && !summary.optOutAt && (
-            <p className="text-gray-600">This channel is enabled by default. You can opt out if you prefer.</p>
+            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">This channel is enabled by default. You can opt out if you prefer.</p>
           )}
 
           {disableGrant && (
-            <div className="rounded-xl bg-yellow-50 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
+            <div className="rounded-xl bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
               <p className="font-medium">Add a valid phone number in your profile to enable this channel.</p>
               <p>
                 <Link to="/settings" className="underline font-semibold text-yellow-800">
@@ -358,15 +357,15 @@ export default function NotificationSettings() {
             </div>
           )}
 
-          <div className="flex flex-col gap-2 text-xs text-gray-500">
-            <span className="uppercase tracking-wide text-gray-400 font-semibold">Current contact</span>
-            <span className="text-sm text-gray-700">{preferences?.phone || 'No phone number on file'}</span>
+          <div className="flex flex-col gap-2 text-xs text-gray-500 dark:text-gray-500">
+            <span className="uppercase tracking-wide text-gray-400 dark:text-gray-500 font-semibold">Current contact</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">{preferences?.phone || 'No phone number on file'}</span>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-gray-100">
-          <div className="text-xs text-gray-500">
-            Priority: <span className="font-medium text-gray-700">{entry.priority}</span>
+          <div className="text-xs text-gray-500 dark:text-gray-500">
+            Priority: <span className="font-medium text-gray-700 dark:text-gray-300">{entry.priority}</span>
           </div>
           <Button
             type="button"
@@ -384,13 +383,12 @@ export default function NotificationSettings() {
 
   return (
     <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <AuthenticatedNavigation />
       <main className="w-full">
         <div className="content-wrapper py-4 sm:py-6 lg:py-8 safe-area-bottom">
         <div className="mb-6 sm:mb-8">
           <Link
             to="/settings"
-            className="inline-flex items-center text-primary hover:text-primary/80 mb-4 font-medium transition-colors"
+            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-600/80 mb-4 font-medium transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Profile Settings
@@ -399,7 +397,7 @@ export default function NotificationSettings() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-6 sm:p-8 text-white shadow-xl"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl"
           >
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Notification Preferences</h1>
             <p className="text-lg sm:text-xl text-white/90">
@@ -412,11 +410,11 @@ export default function NotificationSettings() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-red-50 border border-red-200 p-4 sm:p-6 mb-6 shadow-lg"
+            className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4 sm:p-6 mb-6 shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="text-3xl">⚠️</div>
-              <div className="text-red-700 font-medium">{error}</div>
+              <div className="text-red-700 dark:text-red-300 font-medium">{error}</div>
             </div>
           </motion.div>
         )}
@@ -440,11 +438,11 @@ export default function NotificationSettings() {
           </div>
         ) : (
           <div className="space-y-6">
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <section className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Data usage preferences</h2>
-                  <p className="text-sm text-gray-600">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Data usage preferences</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
                     All data usage is enabled by default to provide you the best service. You can opt out of any you prefer not to have.
                   </p>
                 </div>

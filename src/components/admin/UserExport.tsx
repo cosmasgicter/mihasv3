@@ -273,7 +273,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Download className="h-5 w-5 text-blue-600" />
+            <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             <span>Export Users</span>
           </DialogTitle>
         </DialogHeader>
@@ -281,7 +281,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
         <div className="space-y-6">
           {/* Export Format */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-3">Export Format</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">Export Format</h3>
             <div className="grid grid-cols-3 gap-4">
               {[
                 { value: 'csv', label: 'CSV', icon: <FileSpreadsheet className="h-5 w-5" />, description: 'Comma-separated values' },
@@ -303,7 +303,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                     </div>
                     <div>
                       <h4 className="font-medium">{format.label}</h4>
-                      <p className="text-sm text-gray-600">{format.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{format.description}</p>
                     </div>
                   </div>
                 </div>
@@ -314,7 +314,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
           {/* Fields Selection */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-medium text-gray-900">Fields to Export</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Fields to Export</h3>
               <Button
                 variant="outline"
                 size="sm"
@@ -334,7 +334,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                 )}
               </Button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
               {AVAILABLE_FIELDS.map(field => (
                 <div
                   key={field.id}
@@ -347,13 +347,13 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                 >
                   <div className="flex items-center space-x-2">
                     {exportOptions.fields.includes(field.id) ? (
-                      <CheckSquare className="h-4 w-4 text-blue-600" />
+                      <CheckSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     ) : (
-                      <Square className="h-4 w-4 text-gray-400" />
+                      <Square className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     )}
                     <div>
                       <p className="text-sm font-medium">{field.label}</p>
-                      <p className="text-xs text-gray-600">{field.description}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">{field.description}</p>
                     </div>
                   </div>
                 </div>
@@ -363,7 +363,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
 
           {/* Filters */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center">
               <Filter className="h-5 w-5 mr-2" />
               Filters
             </h3>
@@ -371,7 +371,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
             {/* Role Filter */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700">User Roles</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">User Roles</label>
                 <Button
                   variant="outline"
                   size="sm"
@@ -401,7 +401,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
             {/* Date Range Filter */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Registration Date From
                 </label>
                 <input
@@ -414,11 +414,11 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                       dateRange: { ...exportOptions.filters.dateRange, start: e.target.value }
                     }
                   })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Registration Date To
                 </label>
                 <input
@@ -431,24 +431,24 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                       dateRange: { ...exportOptions.filters.dateRange, end: e.target.value }
                     }
                   })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
           </div>
 
           {/* Preview */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-gray-900 flex items-center">
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 flex items-center">
                 <Users className="h-4 w-4 mr-2" />
                 Export Preview
               </h4>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
                 {filteredUsers.length} users will be exported
               </span>
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
               <p>Format: {exportOptions.format.toUpperCase()}</p>
               <p>Fields: {exportOptions.fields.length} selected</p>
               {exportOptions.filters.roles.length > 0 && (

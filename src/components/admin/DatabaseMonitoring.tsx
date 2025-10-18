@@ -151,7 +151,7 @@ export default function DatabaseMonitoring() {
       case 'critical':
         return <AlertTriangle className="w-5 h-5 text-red-500" />
       default:
-        return <Database className="w-5 h-5 text-gray-500" />
+        return <Database className="w-5 h-5 text-gray-500 dark:text-gray-500" />
     }
   }
 
@@ -179,7 +179,7 @@ export default function DatabaseMonitoring() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Database Monitoring</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Database Monitoring</h1>
         <div className="flex space-x-3">
           <Button
             onClick={loadDashboardData}
@@ -212,10 +212,10 @@ export default function DatabaseMonitoring() {
       </div>
 
       {errorState.hasError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <div className="flex items-center">
             <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
-            <span className="text-red-700">
+            <span className="text-red-700 dark:text-red-300">
               Error: {errorState.error?.message}
             </span>
           </div>
@@ -230,15 +230,15 @@ export default function DatabaseMonitoring() {
             className={`p-4 rounded-lg border ${getStatusColor(metric.status)}`}
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-gray-900">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">
                 {metric.metric.replace(/_/g, ' ').toUpperCase()}
               </h3>
               {getStatusIcon(metric.status)}
             </div>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {metric.current_value.toLocaleString()}
             </p>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">
               {metric.message}
             </p>
           </div>
@@ -246,46 +246,46 @@ export default function DatabaseMonitoring() {
       </div>
 
       {/* Error Statistics */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
           <Shield className="w-5 h-5 mr-2" />
           Error Statistics (Last 24 Hours)
         </h2>
         
         {errorStats.length === 0 ? (
-          <p className="text-gray-500">No errors recorded in the last 24 hours</p>
+          <p className="text-gray-500 dark:text-gray-500">No errors recorded in the last 24 hours</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Error Code
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Count
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Last Occurrence
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Recovery Rate
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                 {errorStats.map((stat, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                       {stat.error_code}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                       {stat.error_count}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                       {new Date(stat.last_occurrence).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                       {stat.recovery_rate ? `${stat.recovery_rate}%` : 'N/A'}
                     </td>
                   </tr>
@@ -297,8 +297,8 @@ export default function DatabaseMonitoring() {
       </div>
 
       {/* Data Integrity */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Data Integrity Status
         </h2>
         
@@ -311,7 +311,7 @@ export default function DatabaseMonitoring() {
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium text-gray-900">
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">
                   {issue.issue_type.replace(/_/g, ' ').toUpperCase()}
                 </h3>
                 {issue.issue_count > 0 ? (
@@ -320,7 +320,7 @@ export default function DatabaseMonitoring() {
                   <CheckCircle className="w-5 h-5 text-green-500" />
                 )}
               </div>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-2">
                 {issue.description}
               </p>
               <div className="flex justify-between text-sm">

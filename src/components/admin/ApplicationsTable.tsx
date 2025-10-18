@@ -12,22 +12,22 @@ export function ApplicationsTable() {
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full bg-white border border-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <thead className="bg-gray-50 dark:bg-gray-900">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">
               Application #
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">
               Student Name
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">
               Program
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">
               Actions
             </th>
           </tr>
@@ -35,13 +35,13 @@ export function ApplicationsTable() {
         <tbody className="divide-y divide-gray-200">
           {applications.map((app: Application) => (
             <tr key={app.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                 {app.application_number}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                 {app.full_name}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                 {app.program}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">

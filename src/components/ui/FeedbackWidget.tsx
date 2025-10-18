@@ -50,7 +50,7 @@ export function FeedbackWidget() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-80 bg-white border rounded-lg shadow-xl">
+    <div className="fixed bottom-4 right-4 z-50 w-80 bg-white dark:bg-gray-800 border rounded-lg shadow-xl">
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Feedback</h3>
@@ -65,7 +65,7 @@ export function FeedbackWidget() {
 
         {submitted ? (
           <div className="text-center py-4">
-            <p className="text-green-600">Thank you for your feedback!</p>
+            <p className="text-green-600 dark:text-green-400">Thank you for your feedback!</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">

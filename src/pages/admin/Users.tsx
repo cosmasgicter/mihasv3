@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { UserProfile } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { AdminNavigation } from '@/components/ui/AdminNavigation'
 import { Input } from '@/components/ui/Input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
 import { UserStats } from '@/components/admin/UserStats'
@@ -240,7 +239,7 @@ export default function AdminUsers() {
       case 'academic_head':
         return <Shield className="h-4 w-4 text-blue-500" />
       default:
-        return <User className="h-4 w-4 text-gray-500" />
+        return <User className="h-4 w-4 text-gray-500 dark:text-gray-500" />
     }
   }
 
@@ -266,15 +265,14 @@ export default function AdminUsers() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <AdminNavigation />
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           {/* Header - Mobile First */}
           <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                 <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 border-white/30">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white dark:bg-gray-800/20 border-white/30">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
@@ -290,7 +288,7 @@ export default function AdminUsers() {
                     onClick={() => setShowStats(!showStats)}
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white/20 border-white/30"
+                    className="text-white hover:bg-white dark:bg-gray-800/20 border-white/30"
                   >
                     <BarChart3 className="h-4 w-4 mr-2" />
                     {showStats ? 'Hide Stats' : 'Show Stats'}
@@ -299,7 +297,7 @@ export default function AdminUsers() {
                     onClick={() => setShowImportDialog(true)}
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white/20 border-white/30"
+                    className="text-white hover:bg-white dark:bg-gray-800/20 border-white/30"
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     Import
@@ -308,14 +306,14 @@ export default function AdminUsers() {
                     onClick={() => setShowExportDialog(true)}
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white/20 border-white/30"
+                    className="text-white hover:bg-white dark:bg-gray-800/20 border-white/30"
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
                   <Button
                     onClick={() => setShowCreateDialog(true)}
-                    className="bg-white text-purple-600 hover:bg-gray-100 font-semibold"
+                    className="bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 hover:bg-gray-100 dark:bg-gray-800 font-semibold"
                     size="sm"
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
@@ -331,27 +329,27 @@ export default function AdminUsers() {
           </div>
 
           {/* Search and Filters */}
-          <div className="p-6 border-b border-gray-200 bg-gray-50">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
                   <input
                     type="text"
                     placeholder="Search users by name, email, or phone..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
                 </div>
               </div>
               <div className="sm:w-48">
                 <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
                   <select
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 appearance-none bg-white"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 appearance-none bg-white dark:bg-gray-800"
                   >
                     <option value="">All Roles</option>
                     {AVAILABLE_ROLES.map(role => (
@@ -365,14 +363,14 @@ export default function AdminUsers() {
 
           {/* User Statistics */}
           {showStats && (
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-purple-50">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-purple-50">
               <UserStats users={users} />
             </div>
           )}
 
           {/* Bulk Operations */}
           {selectedUsers.length > 0 && (
-            <div className="p-6 border-b border-gray-200 bg-blue-50">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-950/30">
               <BulkUserOperations
                 users={filteredUsers}
                 selectedUsers={selectedUsers}
@@ -386,10 +384,10 @@ export default function AdminUsers() {
           <div className="p-6">
 
             {error && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-6 mb-6">
+              <div className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-6 mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="text-4xl">😱</div>
-                  <div className="text-red-700 font-medium">{error}</div>
+                  <div className="text-red-700 dark:text-red-300 font-medium">{error}</div>
                 </div>
               </div>
             )}
@@ -398,14 +396,14 @@ export default function AdminUsers() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-gray-600">Loading users...</p>
+                  <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 dark:text-gray-500">Loading users...</p>
                 </div>
               </div>
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-8xl mb-6">👥</div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">No Users Found</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Users Found</h3>
+                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-6 max-w-md mx-auto">
                   No users have been registered yet. Users will appear here once they sign up for the system.
                 </p>
                 <Button onClick={() => refetch()} className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold">
@@ -417,12 +415,12 @@ export default function AdminUsers() {
                 {/* Mobile Cards View */}
                 <div className="block lg:hidden space-y-4">
                   {filteredUsers.map((user) => (
-                    <div key={user.user_id} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div key={user.user_id} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                       <div className="flex items-start space-x-3 mb-3">
                         <div className="flex-shrink-0 flex items-center space-x-2">
                           <button
                             onClick={() => handleUserSelect(user.user_id)}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                           >
                             {selectedUsers.includes(user.user_id) ? (
                               <CheckSquare className="h-4 w-4" />
@@ -433,14 +431,14 @@ export default function AdminUsers() {
                           {getRoleIcon(user.role)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-lg text-gray-900 truncate">
+                          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 truncate">
                             {sanitizeForDisplay(user.full_name) || 'No name provided'}
                           </h3>
-                          <p className="text-sm text-gray-600">{sanitizeForDisplay(user.email)}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{sanitizeForDisplay(user.email)}</p>
                           {user.phone && (
-                            <p className="text-sm text-gray-500">{sanitizeForDisplay(user.phone)}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-500">{sanitizeForDisplay(user.phone)}</p>
                           )}
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                             ID: {user.user_id.slice(0, 8)}...
                           </p>
                         </div>
@@ -451,8 +449,8 @@ export default function AdminUsers() {
                         </span>
                       </div>
                       
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                        <div className="text-xs text-gray-500">
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div className="text-xs text-gray-500 dark:text-gray-500">
                           Joined: {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -460,7 +458,7 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={() => openEditDialog(user)}
-                            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                            className="text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
                           >
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
@@ -469,7 +467,7 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={() => openPermissionsDialog(user)}
-                            className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                            className="text-purple-600 dark:text-purple-400 border-purple-300 hover:bg-purple-50 dark:bg-purple-950/30"
                           >
                             <Lock className="h-3 w-3 mr-1" />
                             Permissions
@@ -478,7 +476,7 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={() => openActivityLog(user.user_id)}
-                            className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                            className="text-gray-600 dark:text-gray-400 dark:text-gray-500 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:bg-gray-900"
                           >
                             <Clock className="h-3 w-3 mr-1" />
                             Activity
@@ -488,7 +486,7 @@ export default function AdminUsers() {
                               variant="outline"
                               size="sm"
                               onClick={() => openDeleteDialog(user)}
-                              className="text-red-600 border-red-300 hover:bg-red-50"
+                              className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
                             >
                               <Trash2 className="h-3 w-3 mr-1" />
                               Delete
@@ -505,11 +503,11 @@ export default function AdminUsers() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gradient-to-r from-gray-50 to-purple-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={handleSelectAll}
-                              className="text-blue-600 hover:text-blue-800"
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                             >
                               {selectedUsers.length === filteredUsers.length && filteredUsers.length > 0 ? (
                                 <CheckSquare className="h-4 w-4" />
@@ -517,31 +515,31 @@ export default function AdminUsers() {
                                 <Square className="h-4 w-4" />
                               )}
                             </button>
-                            <span>👤 User</span>
+                            <span><User className="w-5 h-5" /> User</span>
                           </div>
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                          📞 Contact
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          <Phone className="w-5 h-5" /> Contact
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                          🏆 Role
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          <Trophy className="w-5 h-5" /> Role
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                          📅 Joined
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          <Calendar className="w-5 h-5" /> Joined
                         </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           ⚙️ Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                       {filteredUsers.map((user) => (
-                        <tr key={user.user_id} className="hover:bg-purple-50 transition-colors">
+                        <tr key={user.user_id} className="hover:bg-purple-50 dark:bg-purple-950/30 transition-colors">
                           <td className="px-6 py-4">
                             <div className="flex items-center">
                               <button
                                 onClick={() => handleUserSelect(user.user_id)}
-                                className="text-blue-600 hover:text-blue-800 mr-3"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200 mr-3"
                               >
                                 {selectedUsers.includes(user.user_id) ? (
                                   <CheckSquare className="h-4 w-4" />
@@ -551,19 +549,19 @@ export default function AdminUsers() {
                               </button>
                               {getRoleIcon(user.role)}
                               <div className="ml-3">
-                                <div className="text-sm font-semibold text-gray-900">
+                                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                   {sanitizeForDisplay(user.full_name) || 'No name provided'}
                                 </div>
-                                <div className="text-xs text-gray-500 font-mono">
+                                <div className="text-xs text-gray-500 dark:text-gray-500 font-mono">
                                   ID: {user.user_id.slice(0, 8)}...
                                 </div>
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm text-gray-900">{sanitizeForDisplay(user.email)}</div>
+                            <div className="text-sm text-gray-900 dark:text-gray-100">{sanitizeForDisplay(user.email)}</div>
                             {user.phone && (
-                              <div className="text-sm text-gray-500">{sanitizeForDisplay(user.phone)}</div>
+                              <div className="text-sm text-gray-500 dark:text-gray-500">{sanitizeForDisplay(user.phone)}</div>
                             )}
                           </td>
                           <td className="px-6 py-4">
@@ -573,7 +571,7 @@ export default function AdminUsers() {
                               {getRoleLabel(user.role)}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
                             {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                           </td>
                           <td className="px-6 py-4 text-right">
@@ -582,7 +580,7 @@ export default function AdminUsers() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openEditDialog(user)}
-                                className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                                className="text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
                                 disabled={selectedUsers.length > 0}
                               >
                                 <Edit className="h-3 w-3 mr-1" />
@@ -592,7 +590,7 @@ export default function AdminUsers() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openPermissionsDialog(user)}
-                                className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                                className="text-purple-600 dark:text-purple-400 border-purple-300 hover:bg-purple-50 dark:bg-purple-950/30"
                                 disabled={selectedUsers.length > 0}
                               >
                                 <Lock className="h-3 w-3 mr-1" />
@@ -602,7 +600,7 @@ export default function AdminUsers() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openActivityLog(user.user_id)}
-                                className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                                className="text-gray-600 dark:text-gray-400 dark:text-gray-500 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:bg-gray-900"
                                 disabled={selectedUsers.length > 0}
                               >
                                 <Clock className="h-3 w-3 mr-1" />
@@ -613,7 +611,7 @@ export default function AdminUsers() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => openDeleteDialog(user)}
-                                  className="text-red-600 border-red-300 hover:bg-red-50"
+                                  className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
                                   disabled={selectedUsers.length > 0}
                                 >
                                   <Trash2 className="h-3 w-3 mr-1" />
@@ -638,7 +636,7 @@ export default function AdminUsers() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
-              <UserPlus className="h-5 w-5 text-purple-600" />
+              <UserPlus className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <span>Create New User</span>
             </DialogTitle>
           </DialogHeader>
@@ -669,7 +667,7 @@ export default function AdminUsers() {
               />
               <button
                 type="button"
-                className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-8 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -682,13 +680,13 @@ export default function AdminUsers() {
               placeholder="Enter phone number"
             />
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Role <span className="text-red-500">*</span>
               </label>
               <select
                 value={createForm.role}
                 onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
               >
                 {AVAILABLE_ROLES.map(role => (
@@ -723,7 +721,7 @@ export default function AdminUsers() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
-              <Edit className="h-5 w-5 text-blue-600" />
+              <Edit className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <span>Edit User</span>
             </DialogTitle>
           </DialogHeader>
@@ -750,13 +748,13 @@ export default function AdminUsers() {
               placeholder="Enter phone number"
             />
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Role <span className="text-red-500">*</span>
               </label>
               <select
                 value={editForm.role}
                 onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 required
                 disabled={selectedUser?.role === 'super_admin'}
               >
@@ -767,7 +765,7 @@ export default function AdminUsers() {
                 ))}
               </select>
               {selectedUser?.role === 'super_admin' && (
-                <p className="text-xs text-gray-500 mt-1">Super admin role cannot be changed</p>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Super admin role cannot be changed</p>
               )}
             </div>
           </div>
@@ -794,18 +792,18 @@ export default function AdminUsers() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2 text-red-600">
+            <DialogTitle className="flex items-center space-x-2 text-red-600 dark:text-red-400">
               <Trash2 className="h-5 w-5" />
               <span>Delete User</span>
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
               Are you sure you want to delete <strong>{sanitizeForDisplay(selectedUser?.full_name)}</strong>? 
               This action cannot be undone and will remove all user data.
             </p>
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-700">
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-700 dark:text-red-300">
                 ⚠️ This will permanently delete the user profile and cannot be reversed.
               </p>
             </div>

@@ -47,7 +47,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
       case 'recommended':
         return <CheckCircle className="h-4 w-4 text-yellow-500" />
       case 'optional':
-        return <Clock className="h-4 w-4 text-gray-500" />
+        return <Clock className="h-4 w-4 text-gray-500 dark:text-gray-500" />
       default:
         return null
     }
@@ -84,11 +84,11 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
   return (
     <div className="space-y-4">
       {/* Search and Filter Controls */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <Input
                 placeholder="Search guidelines by program, requirement, or regulatory body..."
                 value={searchQuery}
@@ -112,13 +112,13 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
         {showFilters && (
           <div className="mt-4 pt-4 border-t grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Regulatory Body
               </label>
               <select
                 value={filters.regulatory_body}
                 onChange={(e) => setFilters({ ...filters, regulatory_body: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Bodies</option>
                 <option value="HPCZ">HPCZ</option>
@@ -128,13 +128,13 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Program Code
               </label>
               <select
                 value={filters.program_code}
                 onChange={(e) => setFilters({ ...filters, program_code: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Programs</option>
                 <option value="CMED">Clinical Medicine</option>
@@ -145,13 +145,13 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Compliance Level
               </label>
               <select
                 value={filters.compliance_level}
                 onChange={(e) => setFilters({ ...filters, compliance_level: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Levels</option>
                 <option value="mandatory">Mandatory</option>
@@ -164,7 +164,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
       </div>
 
       {/* Results Summary */}
-      <div className="flex items-center justify-between text-sm text-gray-600">
+      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
         <span>
           Showing {filteredGuidelines.length} guidelines
           {searchQuery && ` for "${searchQuery}"`}
@@ -185,14 +185,14 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
       </div>
 
       {/* Guidelines Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-500">Loading guidelines...</p>
+            <p className="text-gray-500 dark:text-gray-500">Loading guidelines...</p>
           </div>
         ) : filteredGuidelines.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-gray-500 dark:text-gray-500">
             <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <h3 className="text-lg font-medium mb-2">No guidelines found</h3>
             <p>Try adjusting your search terms or filters</p>
@@ -200,54 +200,54 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Regulatory Body
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Program
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Requirement
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Compliance Level
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Verification
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                 {filteredGuidelines.map((guideline) => (
-                  <tr key={guideline.id} className="hover:bg-gray-50">
+                  <tr key={guideline.id} className="hover:bg-gray-50 dark:bg-gray-900">
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getRegulatoryBodyBadge(guideline.regulatory_body)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {guideline.program_name}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 dark:text-gray-500">
                           {guideline.program_code}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-md">
+                      <div className="text-sm text-gray-900 dark:text-gray-100 max-w-md">
                         {guideline.requirement_text}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-500 capitalize">
+                      <span className="text-sm text-gray-500 dark:text-gray-500 capitalize">
                         {guideline.guideline_type}
                       </span>
                     </td>
@@ -271,7 +271,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
                         variant="ghost"
                         size="sm"
                         onClick={() => onGuidelineSelect?.(guideline)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900"
                       >
                         <Eye className="h-4 w-4 mr-1" />
                         View

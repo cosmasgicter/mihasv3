@@ -136,7 +136,7 @@ export function ApplicationStatus({
           {statusConfig.label}
         </span>
         {eligibilityScore && (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
             <Star className="h-3 w-3 mr-1" />
             {eligibilityScore}%
           </span>
@@ -153,7 +153,7 @@ export function ApplicationStatus({
           <h3 className={`text-lg font-semibold ${statusConfig.color}`}>
             {statusConfig.label}
           </h3>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">
             {statusConfig.description}
           </p>
           
@@ -176,7 +176,7 @@ export function ApplicationStatus({
                     {eligibilityConfig.label}
                   </span>
                   {eligibilityScore && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
                       <Star className="h-3 w-3 mr-1" />
                       Score: {eligibilityScore}%
                     </span>

@@ -109,11 +109,11 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
   const navigationItems = [
     { href: '/admin', label: 'Dashboard', icon: Home, emoji: '🏠' },
-    { href: '/admin/applications', label: 'Applications', icon: FileText, emoji: '📋' },
-    { href: '/admin/programs', label: 'Programs', icon: GraduationCap, emoji: '🎓' },
-    { href: '/admin/intakes', label: 'Intakes', icon: Calendar, emoji: '📅' },
+    { href: '/admin/applications', label: 'Applications', icon: FileText, emoji: '<FileText className="w-5 h-5" />' },
+    { href: '/admin/programs', label: 'Programs', icon: GraduationCap, emoji: '<GraduationCap className="w-5 h-5" />' },
+    { href: '/admin/intakes', label: 'Intakes', icon: Calendar, emoji: '<Calendar className="w-5 h-5" />' },
     { href: '/admin/users', label: 'Users', icon: Users, emoji: '👥' },
-    { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, emoji: '📊' },
+    { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, emoji: '<BarChart3 className="w-5 h-5" />' },
     { href: '/admin/audit', label: 'Audit trail', icon: Activity, emoji: '🛡️' },
     { href: '/admin/settings', label: 'Settings', icon: Settings, emoji: '⚙️' },
   ]
@@ -136,17 +136,17 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
                 <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-sm sm:text-lg font-bold text-gray-900">
+                <h1 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-gray-100">
                   {isMobile ? 'Admin' : 'Admin Dashboard'}
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 hidden sm:block">
                   Welcome, {profile?.full_name || 'Admin'}
                 </p>
-                <p className="text-xs text-gray-600 sm:hidden">
+                <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500 sm:hidden">
                   {profile?.full_name || 'Admin'}
                 </p>
               </div>
@@ -179,7 +179,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             })}
             
             <NavigationMenu.Item>
-              <div className="hidden xl:flex items-center text-xs text-gray-500 px-3 py-2 bg-gray-50 rounded-lg ml-2">
+              <div className="hidden xl:flex items-center text-xs text-gray-500 dark:text-gray-500 px-3 py-2 bg-gray-50 dark:bg-gray-900 rounded-lg ml-2">
                 <span className="font-medium">{userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}</span>
               </div>
             </NavigationMenu.Item>
@@ -189,7 +189,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="ml-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 whitespace-nowrap flex items-center logout-button"
+                className="ml-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:bg-red-950/30 hover:border-red-300 dark:border-red-700 whitespace-nowrap flex items-center logout-button"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
@@ -199,7 +199,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
           {/* Mobile Menu Button */}
           <motion.button
-            className="lg:hidden p-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[48px] min-w-[48px] touch-target border-2 border-gray-600 hover:border-gray-500 shadow-lg nav-toggle-button"
+            className="lg:hidden p-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-h-[48px] min-w-[48px] touch-target border-2 border-gray-600 hover:border-gray-500 shadow-lg nav-toggle-button"
             onClick={toggleMenu}
             whileTap={{ scale: 0.95 }}
             aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -247,7 +247,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l-4 border-primary overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white dark:bg-gray-800 shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l-4 border-blue-600 overflow-y-auto"
               style={{
                 backgroundColor: '#ffffff',
                 zIndex: 9999,
@@ -261,18 +261,18 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200/70 bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700/70 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm">
                   <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
                       <Shield className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900 text-lg">Admin Panel</p>
-                      <p className="text-sm text-gray-600">{profile?.full_name || 'Administrator'}</p>
+                      <p className="font-bold text-gray-900 dark:text-gray-100 text-lg">Admin Panel</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{profile?.full_name || 'Administrator'}</p>
                     </div>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target"
+                    className="p-2 rounded-lg text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -299,7 +299,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                             className={cn(
                               "mobile-nav-item mobile-nav-focus transition-all duration-300",
                               isActive 
-                                ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg" 
+                                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
                                 : "text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-gray-300"
                             )}
                             style={{
@@ -336,10 +336,10 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                   })}
 
                   {/* Role Badge */}
-                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200 dark:border-blue-800">
                     <div className="text-center">
-                      <div className="text-sm font-medium text-gray-700 mb-1">Current Role</div>
-                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-primary to-secondary text-white">
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Role</div>
+                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                         {userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}
                       </div>
                     </div>
@@ -358,7 +358,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                           closeMenu()
                           await handleSignOut()
                         }}
-                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-red-500 logout-button"
+                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-red-500 logout-button"
                       >
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center space-x-3">
@@ -373,12 +373,12 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 </NavigationMenu.List>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-200/70 bg-gray-50/80 backdrop-blur-sm">
+                <div className="p-6 border-t border-gray-200 dark:border-gray-700/70 bg-gray-50 dark:bg-gray-900/80 backdrop-blur-sm">
                   <div className="text-center">
-                    <p className="text-sm font-medium text-gray-700 mb-1">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       MIHAS-KATC Admin Portal
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
                       Secure Administrative Access
                     </p>
                   </div>

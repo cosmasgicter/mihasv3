@@ -225,23 +225,23 @@ export function EnhancedFileUpload({
           )} />
           
           <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {isDragActive || dzIsDragActive
                 ? 'Drop files here'
                 : 'Drop files here or click to browse'
               }
             </p>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">
               {accept.join(', ')} up to {formatFileSize(maxSize)}
               {autoCompress && ' (Images will be compressed)'}
             </p>
             {!isOnline && (
-              <p className="text-xs text-red-600">
+              <p className="text-xs text-red-600 dark:text-red-400">
                 No internet connection - upload disabled
               </p>
             )}
             {isSlowConnection && (
-              <p className="text-xs text-yellow-600">
+              <p className="text-xs text-yellow-600 dark:text-yellow-400">
                 Slow connection detected - uploads may take longer
               </p>
             )}
@@ -252,7 +252,7 @@ export function EnhancedFileUpload({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-900">
+          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
             Files ({files.length}/{maxFiles})
           </h4>
           
@@ -260,7 +260,7 @@ export function EnhancedFileUpload({
             {files.map((fileWithProgress, index) => (
               <div
                 key={`${fileWithProgress.file.name}-${index}`}
-                className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
+                className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
               >
                 {/* File Icon */}
                 <div className="shrink-0">
@@ -270,27 +270,27 @@ export function EnhancedFileUpload({
                 {/* File Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {fileWithProgress.file.name}
                     </p>
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(fileWithProgress)}
                       <button
                         onClick={() => removeFile(fileWithProgress.file)}
-                        className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                        className="p-1 hover:bg-gray-200 dark:bg-gray-700 rounded-full transition-colors"
                         type="button"
                       >
-                        <X className="w-4 h-4 text-gray-500" />
+                        <X className="w-4 h-4 text-gray-500 dark:text-gray-500" />
                       </button>
                     </div>
                   </div>
                   
                   <div className="mt-1 space-y-1">
-                    <div className="flex items-center justify-between text-xs text-gray-600">
+                    <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">
                       <span>
                         {formatFileSize(fileWithProgress.file.size)}
                         {fileWithProgress.compressed && fileWithProgress.originalSize && (
-                          <span className="text-green-600 ml-1">
+                          <span className="text-green-600 dark:text-green-400 ml-1">
                             (compressed from {formatFileSize(fileWithProgress.originalSize)})
                           </span>
                         )}
@@ -313,10 +313,10 @@ export function EnhancedFileUpload({
                     {/* Error Message */}
                     {fileWithProgress.status === 'error' && fileWithProgress.error && (
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-red-600">{fileWithProgress.error}</p>
+                        <p className="text-xs text-red-600 dark:text-red-400">{fileWithProgress.error}</p>
                         <button
                           onClick={() => retryUpload(fileWithProgress.file)}
-                          className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:text-blue-300 font-medium"
                           type="button"
                         >
                           Retry
@@ -326,10 +326,10 @@ export function EnhancedFileUpload({
                     
                     {/* Status Messages */}
                     {fileWithProgress.status === 'compressing' && (
-                      <p className="text-xs text-blue-600">Compressing image...</p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">Compressing image...</p>
                     )}
                     {fileWithProgress.status === 'completed' && (
-                      <p className="text-xs text-green-600">Upload completed</p>
+                      <p className="text-xs text-green-600 dark:text-green-400">Upload completed</p>
                     )}
                   </div>
                 </div>

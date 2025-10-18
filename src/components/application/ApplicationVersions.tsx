@@ -96,7 +96,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
         variant="outline"
         size="sm"
         onClick={() => setShowVersions(true)}
-        className="text-gray-600 hover:text-gray-800"
+        className="text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-800 dark:text-gray-200"
       >
         <History className="h-4 w-4 mr-2" />
         Version History
@@ -106,10 +106,10 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Application Version History
             </h3>
             <Button
@@ -126,14 +126,14 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
           {/* Version List */}
           <div className="w-1/3 border-r overflow-y-auto">
             <div className="p-4">
-              <h4 className="font-medium text-gray-900 mb-3">Versions</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Versions</h4>
               
               {loading ? (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 </div>
               ) : versions.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500 dark:text-gray-500">
                   <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">No versions found</p>
                 </div>
@@ -144,7 +144,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                       key={version.id}
                       className={`p-3 rounded-lg border cursor-pointer transition-colors ${
                         selectedVersion?.id === version.id
-                          ? 'border-primary bg-primary/5'
+                          ? 'border-blue-600 bg-primary/5'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                       onClick={() => setSelectedVersion(version)}
@@ -153,13 +153,13 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                         <span className="font-medium text-sm">
                           Version {version.version_number}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-gray-500">
                           {formatDate(version.created_at)}
                         </span>
                       </div>
                       
                       {version.change_summary && (
-                        <p className="text-xs text-gray-600 truncate">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500 truncate">
                           {version.change_summary.replace(/[<>&"']/g, (char) => {
                             const entities: Record<string, string> = {
                               '<': '&lt;',
@@ -174,8 +174,8 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                       )}
                       
                       <div className="flex items-center mt-2 space-x-1">
-                        <Clock className="h-3 w-3 text-gray-400" />
-                        <span className="text-xs text-gray-500">
+                        <Clock className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+                        <span className="text-xs text-gray-500 dark:text-gray-500">
                           {new Date(version.created_at).toLocaleTimeString()}
                         </span>
                       </div>
@@ -191,7 +191,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
             {selectedVersion ? (
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-medium text-gray-900">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100">
                     Version {selectedVersion.version_number} Details
                   </h4>
                   <div className="flex space-x-2">
@@ -219,20 +219,20 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Created
                     </label>
-                    <p className="text-sm text-gray-900">
+                    <p className="text-sm text-gray-900 dark:text-gray-100">
                       {formatDate(selectedVersion.created_at)}
                     </p>
                   </div>
 
                   {selectedVersion.change_summary && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Changes
                       </label>
-                      <p className="text-sm text-gray-900">
+                      <p className="text-sm text-gray-900 dark:text-gray-100">
                         {selectedVersion.change_summary?.replace(/[<>&"']/g, (char) => {
                           const entities: Record<string, string> = {
                             '<': '&lt;',
@@ -248,11 +248,11 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Form Data Preview
                     </label>
-                    <div className="bg-gray-50 rounded-lg p-3 max-h-64 overflow-y-auto">
-                      <pre className="text-xs text-gray-700 whitespace-pre-wrap">
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 max-h-64 overflow-y-auto">
+                      <pre className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                         {JSON.stringify(selectedVersion.form_data, null, 2)}
                       </pre>
                     </div>
@@ -260,7 +260,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-500">
                 <div className="text-center">
                   <Eye className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">Select a version to view details</p>
@@ -270,7 +270,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
           </div>
         </div>
 
-        <div className="p-4 border-t bg-gray-50">
+        <div className="p-4 border-t bg-gray-50 dark:bg-gray-900">
           <div className="flex justify-end">
             <Button
               variant="outline"

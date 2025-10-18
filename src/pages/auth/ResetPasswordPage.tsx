@@ -138,8 +138,8 @@ export default function ResetPasswordPage() {
     if (status === 'error') {
       return (
         <div className="space-y-4 text-center">
-          <div className="rounded-2xl border border-red-200/70 bg-red-50/80 p-6">
-            <h3 className="text-lg font-semibold text-red-700">Unable to reset password</h3>
+          <div className="rounded-2xl border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/30/80 p-6">
+            <h3 className="text-lg font-semibold text-red-700 dark:text-red-300">Unable to reset password</h3>
             <p className="mt-2 text-sm text-secondary/80">{error}</p>
           </div>
           <Button
@@ -174,8 +174,8 @@ export default function ResetPasswordPage() {
         />
 
         {error && (
-          <div className="rounded-xl border border-red-200/70 bg-red-50/80 p-4 text-left shadow-sm">
-            <div className="text-sm font-medium text-red-700">{error}</div>
+          <div className="rounded-xl border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/30/80 p-4 text-left shadow-sm">
+            <div className="text-sm font-medium text-red-700 dark:text-red-300">{error}</div>
           </div>
         )}
 

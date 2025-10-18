@@ -111,7 +111,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
   ]
 
   return (
-    <NavigationMenu.Root className={cn("nav-container bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200/50 sticky top-0 z-50 w-full", className)}>
+    <NavigationMenu.Root className={cn("nav-container bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-50 w-full transition-colors duration-500", className)}>
       <div className="container-mobile">
         <div className="flex justify-between items-center py-3 sm:py-4">
           {/* User Info - Mobile First */}
@@ -121,23 +121,23 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
                 <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-sm sm:text-lg font-bold text-gray-900 truncate">
+                <h1 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
                   {profile?.full_name ? (
                     isMobile ? profile.full_name.split(' ')[0] : `Welcome, ${profile.full_name}`
                   ) : (
                     <span className="inline-flex items-center space-x-2">
-                      <span className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+                      <span className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                     </span>
                   )}
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-600 truncate max-w-[200px]">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 truncate max-w-[200px]">
                   {profile?.email || (
                     <span className="inline-flex items-center">
-                      <span className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+                      <span className="h-3 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                     </span>
                   )}
                 </p>
@@ -159,7 +159,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex items-center space-x-2 hover:bg-primary/10 hover:text-primary smooth-transition"
+                      className="flex items-center space-x-2 hover:bg-blue-50 dark:bg-blue-950/30 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-400 smooth-transition"
                     >
                       <item.icon className="h-4 w-4" />
                       <span className="font-medium">{item.label}</span>
@@ -177,7 +177,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                   variant="outline"
                   size="sm"
                   onClick={handleSignOut}
-                  className="ml-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 flex items-center !visible !flex"
+                  className="ml-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:bg-red-950/30 hover:border-red-300 dark:border-red-700 flex items-center !visible !flex"
                   style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
@@ -188,7 +188,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu Button */}
             <motion.button
-              className="lg:hidden p-3 rounded-xl bg-white shadow-lg border border-gray-200 hover:bg-gray-50 smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target nav-toggle-button"
+              className="lg:hidden p-3 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-700 smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target nav-toggle-button"
               onClick={toggleMenu}
               whileTap={{ scale: 0.95 }}
               aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -239,7 +239,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-l-4 border-primary lg:hidden nav-panel overflow-y-auto z-[9999] opacity-100 visible"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-800 dark:bg-gray-900 shadow-2xl border-l-4 border-blue-600 dark:border-purple-600 lg:hidden nav-panel overflow-y-auto z-[9999] opacity-100 visible transition-colors duration-500"
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -248,30 +248,30 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200/70 bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700/70 dark:border-gray-700/70 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 backdrop-blur-sm transition-colors duration-500">
                   <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
                       <User className="h-5 w-5 text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-gray-900 text-lg truncate">
+                      <p className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">
                         {profile?.full_name || (
                           <span className="inline-flex items-center">
-                            <span className="h-5 w-24 bg-gray-200 rounded animate-pulse" />
+                            <span className="h-5 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                           </span>
                         )}
                       </p>
-                      <p className="text-sm text-gray-600 truncate max-w-[180px]">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 truncate max-w-[180px]">
                         {profile?.email || (
                           <span className="inline-flex items-center">
-                            <span className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                            <span className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                           </span>
                         )}
                       </p>
                     </div>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 smooth-transition focus:outline-none focus:ring-2 focus:ring-primary/50 touch-target"
+                    className="p-2 rounded-lg text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-800 smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -294,14 +294,14 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                         <Link 
                           to={item.href}
                           onClick={closeMenu}
-                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-white text-gray-800 border-2 border-gray-200 opacity-100 visible"
+                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-100 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-purple-500 hover:bg-blue-50 dark:bg-blue-950/30 dark:hover:bg-gray-700 opacity-100 visible transition-all duration-200"
                         >
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center space-x-3">
-                              <item.icon className="h-5 w-5 flex-shrink-0 text-gray-800" />
-                              <span className="mobile-nav-text text-gray-800 font-semibold">{item.label}</span>
+                              <item.icon className="h-5 w-5 flex-shrink-0 text-gray-800 dark:text-gray-200 dark:text-gray-100" />
+                              <span className="mobile-nav-text text-gray-800 dark:text-gray-200 dark:text-gray-100 font-semibold">{item.label}</span>
                             </div>
-                            <div className="w-2 h-2 rounded-full bg-primary"></div>
+                            <div className="w-2 h-2 rounded-full bg-blue-600 dark:bg-purple-600"></div>
                           </div>
                         </Link>
                       </motion.div>
@@ -309,7 +309,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                   </div>
 
                   {/* Fixed Sign Out Button */}
-                  <div className="p-6 border-t border-gray-200 bg-white backdrop-blur-sm">
+                  <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:bg-gray-900 backdrop-blur-sm transition-colors duration-500">
                     <motion.button 
                       onClick={() => {
                         closeMenu()
@@ -319,7 +319,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                       custom={navigationItems.length}
                       initial="closed"
                       animate="open"
-                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel logout-button"
+                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel logout-button"
                     >
                       <LogOut className="h-5 w-5" />
                       <span>Sign Out</span>

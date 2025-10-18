@@ -24,13 +24,13 @@ export interface PageHeaderProps {
 }
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
-  gradient: 'bg-gradient-to-r from-primary to-secondary text-white border-white/20 shadow-2xl',
+  gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-white/20 shadow-2xl',
   surface: 'bg-white text-gray-900 border border-gray-100 shadow-xl',
   subtle: 'bg-white/90 text-gray-900 border border-white/60 shadow-lg backdrop-blur-sm'
 }
 
 const statAccentStyles: Record<StatAccent, string> = {
-  primary: 'bg-primary/10 border-primary/20 text-primary-700',
+  primary: 'bg-blue-500/10 border-blue-600/20 text-blue-600-700',
   secondary: 'bg-secondary/10 border-secondary/20 text-secondary-700',
   success: 'bg-emerald-50 border-emerald-200 text-emerald-700',
   warning: 'bg-amber-50 border-amber-200 text-amber-700',
@@ -98,7 +98,7 @@ export function PageHeader({
       <div className={cn('relative flex flex-col gap-6 sm:flex-row sm:justify-between', alignmentStyles[align])}>
         <div className="space-y-4 sm:max-w-2xl">
           {eyebrow && (
-            <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-white/70' : 'text-primary')}>
+            <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-white/70' : 'text-blue-600')}>
               {eyebrow}
             </p>
           )}
@@ -107,7 +107,7 @@ export function PageHeader({
               <div
                 className={cn(
                   'flex h-14 w-14 items-center justify-center rounded-2xl border text-2xl shadow-inner',
-                  isGradient ? 'border-white/30 bg-white/15 text-white' : 'border-primary/10 bg-primary/5 text-primary'
+                  isGradient ? 'border-white/30 bg-white/15 text-white' : 'border-blue-600/10 bg-primary/5 text-blue-600'
                 )}
               >
                 {icon}

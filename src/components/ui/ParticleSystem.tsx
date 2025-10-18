@@ -30,22 +30,22 @@ export const ParticleSystem: React.FC = () => {
     const createParticle = (): Particle => ({
       x: Math.random() * canvas.width,
       y: canvas.height + 10,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: -Math.random() * 0.8 - 0.2,
-      size: Math.random() * 2 + 1,
-      opacity: Math.random() * 0.3 + 0.1,
-      color: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981'][Math.floor(Math.random() * 4)]
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: -Math.random() * 0.5 - 0.1,
+      size: Math.random() * 1.5 + 0.5,
+      opacity: Math.random() * 0.2 + 0.05,
+      color: ['#3b82f6', '#8b5cf6'][Math.floor(Math.random() * 2)]
     })
 
     const initParticles = () => {
-      particlesRef.current = Array.from({ length: 15 }, createParticle)
+      particlesRef.current = Array.from({ length: 20 }, createParticle)
     }
 
     const updateParticles = () => {
       particlesRef.current.forEach((particle, index) => {
         particle.x += particle.vx
         particle.y += particle.vy
-        particle.opacity -= 0.001
+        particle.opacity -= 0.0008
 
         if (particle.y < -10 || particle.opacity <= 0) {
           particlesRef.current[index] = createParticle()
