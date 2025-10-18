@@ -40,20 +40,20 @@ export function EnhancedInput({
       {label && (
         <label 
           htmlFor={props.id}
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           {label}
           {required ? (
             <span className="text-red-500 ml-1">*</span>
           ) : showOptional ? (
-            <span className="text-gray-500 ml-1 font-normal">(optional)</span>
+            <span className="text-gray-500 dark:text-gray-500 ml-1 font-normal">(optional)</span>
           ) : null}
         </label>
       )}
       
       <div className="relative">
         {leftIcon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
             {leftIcon}
           </div>
         )}
@@ -103,7 +103,7 @@ export function EnhancedInput({
       </div>
       
       {hint && !errorMessage && !success && (
-        <p className="text-xs text-gray-600">{hint}</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">{hint}</p>
       )}
       
       <FormError message={errorMessage} />
@@ -146,13 +146,13 @@ export function EnhancedTextarea({
         <div className="flex items-center justify-between">
           <label 
             htmlFor={props.id}
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             {label}
             {required ? (
               <span className="text-red-500 ml-1">*</span>
             ) : showOptional ? (
-              <span className="text-gray-500 ml-1 font-normal">(optional)</span>
+              <span className="text-gray-500 dark:text-gray-500 ml-1 font-normal">(optional)</span>
             ) : null}
           </label>
           
@@ -194,7 +194,7 @@ export function EnhancedTextarea({
       />
       
       {hint && !errorMessage && !success && (
-        <p className="text-xs text-gray-600">{hint}</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">{hint}</p>
       )}
       
       <FormError message={errorMessage} />
@@ -252,13 +252,13 @@ export function EnhancedSelect({
       {label && (
         <label 
           htmlFor={props.id}
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           {label}
           {required ? (
             <span className="text-red-500 ml-1">*</span>
           ) : showOptional ? (
-            <span className="text-gray-500 ml-1 font-normal">(optional)</span>
+            <span className="text-gray-500 dark:text-gray-500 ml-1 font-normal">(optional)</span>
           ) : null}
         </label>
       )}
@@ -308,7 +308,7 @@ export function EnhancedSelect({
       </select>
       
       {hint && !errorMessage && !success && (
-        <p className="text-xs text-gray-600">{hint}</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">{hint}</p>
       )}
       
       <FormError message={errorMessage} />
@@ -347,9 +347,9 @@ export function FormSection({
   return (
     <div className={cn('space-y-4', className)}>
       <div>
-        <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{title}</h3>
         {description && (
-          <p className="text-sm text-gray-600 mt-1">{description}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">{description}</p>
         )}
       </div>
       <div className="space-y-4">

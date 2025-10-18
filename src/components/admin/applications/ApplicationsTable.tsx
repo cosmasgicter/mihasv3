@@ -170,23 +170,23 @@ export function ApplicationsTable({
         <>
           {/* Select All Header */}
           {onSelectionChange && (
-            <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     checked={selectedIds.length === applications.length && applications.length > 0}
                     onChange={handleSelectAll}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'Select all'}
                   </span>
                 </div>
                 {selectedIds.length > 0 && (
                   <button
                     onClick={() => onSelectionChange([])}
-                    className="text-sm text-gray-500 hover:text-gray-700"
+                    className="text-sm text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300"
                   >
                     Clear selection
                   </button>
@@ -213,22 +213,22 @@ export function ApplicationsTable({
             ))}
           </div>
           
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-600">
-                Showing <span className="font-semibold text-gray-900">{loadedCount}</span>
+              <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                Showing <span className="font-semibold text-gray-900 dark:text-gray-100">{loadedCount}</span>
                 {totalCount > 0 && (
                   <>
                     {' '}of{' '}
-                    <span className="font-semibold text-gray-900">{totalCount}</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">{totalCount}</span>
                   </>
                 )}{' '}
                 applications
               </div>
               {totalCount > 0 && (
-                <div className="h-4 w-px bg-gray-300" />
+                <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
               )}
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 dark:text-gray-500">
                 {Math.round((loadedCount / Math.max(totalCount, 1)) * 100)}% loaded
               </div>
             </div>
@@ -245,7 +245,7 @@ export function ApplicationsTable({
               </button>
             ) : (
               totalCount > 0 && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
                   <CheckCircle className="h-4 w-4 text-green-500" />
                   All applications loaded
                 </div>
@@ -254,12 +254,12 @@ export function ApplicationsTable({
           </div>
         </>
       ) : (
-        <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-          <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <FileText className="h-8 w-8 text-gray-400" />
+        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+            <FileText className="h-8 w-8 text-gray-400 dark:text-gray-500" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
-          <p className="text-sm text-gray-500">Try adjusting your filters to see more results.</p>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No applications found</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-500">Try adjusting your filters to see more results.</p>
         </div>
       )}
     </div>
@@ -323,7 +323,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
             type="checkbox"
             checked={isSelected}
             onChange={(e) => onSelect(app.id, e.target.checked)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
           />
         </div>
       )}
@@ -331,10 +331,10 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <h3 className="font-semibold text-gray-900 truncate">{app.full_name}</h3>
+            <User className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{app.full_name}</h3>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
             <span className="font-mono">#{app.application_number}</span>
             <span className="text-gray-300">•</span>
             <Calendar className="h-3 w-3" />
@@ -346,26 +346,26 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
       {/* Contact Info */}
       <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Mail className="h-3 w-3 text-gray-400" />
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+          <Mail className="h-3 w-3 text-gray-400 dark:text-gray-500" />
           <span className="truncate">{app.email}</span>
         </div>
         {app.phone && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Phone className="h-3 w-3 text-gray-400" />
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+            <Phone className="h-3 w-3 text-gray-400 dark:text-gray-500" />
             <span>{app.phone}</span>
           </div>
         )}
       </div>
 
       {/* Program Info */}
-      <div className="bg-gray-50 rounded-lg p-3 mb-4">
+      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 mb-4">
         <div className="flex items-center gap-2 mb-1">
           <GraduationCap className="h-4 w-4 text-blue-500" />
-          <span className="font-medium text-gray-900 text-sm">{app.program}</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100 text-sm">{app.program}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Building className="h-3 w-3 text-gray-400" />
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+          <Building className="h-3 w-3 text-gray-400 dark:text-gray-500" />
           <span>{getInstitutionName(app.institution)}</span>
           <span className="text-gray-300">•</span>
           <span>{app.intake}</span>
@@ -375,18 +375,18 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       {/* Payment & Grades */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <div className="text-xs text-gray-500 mb-1">Payment Status</div>
+          <div className="text-xs text-gray-500 dark:text-gray-500 mb-1">Payment Status</div>
           {getPaymentBadge(app.payment_status)}
-          <div className="text-sm font-medium text-gray-900 mt-1">
+          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
             K{app.paid_amount || 0} / K{app.application_fee}
           </div>
         </div>
         
         {app.total_subjects > 0 && (
           <div>
-            <div className="text-xs text-gray-500 mb-1">Academic</div>
+            <div className="text-xs text-gray-500 dark:text-gray-500 mb-1">Academic</div>
             <div className="text-sm">
-              <span className="text-gray-700">{app.total_subjects} subjects</span>
+              <span className="text-gray-700 dark:text-gray-300">{app.total_subjects} subjects</span>
               {app.points > 0 && (
                 <div className={`font-medium ${getPointsColor(app.points)}`}>
                   Points: {app.points}
@@ -398,12 +398,12 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       </div>
 
       {app.grades_summary && (
-        <div className="mb-4 rounded-lg border border-gray-100 bg-gray-50 p-3">
-          <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">
+        <div className="mb-4 rounded-lg border border-gray-100 bg-gray-50 dark:bg-gray-900 p-3">
+          <div className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500 mb-2">
             Grades Summary
           </div>
           <div
-            className="prose prose-sm max-w-none text-gray-700 [&_p]:mb-2"
+            className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 [&_p]:mb-2"
             dangerouslySetInnerHTML={{ __html: sanitizedGradesSummary }}
           />
         </div>
@@ -411,9 +411,9 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
       {/* Documents */}
       {documentsCount > 0 && (
-        <div className="flex items-center gap-2 mb-4 p-2 bg-blue-50 rounded-lg">
+        <div className="flex items-center gap-2 mb-4 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
           <FileText className="h-4 w-4 text-blue-500" />
-          <span className="text-sm text-blue-700">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
+          <span className="text-sm text-blue-700 dark:text-blue-300">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
         </div>
       )}
 
@@ -444,7 +444,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                 href={app.result_slip_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2.5 rounded-lg transition-colors"
+                className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-2.5 rounded-lg transition-colors"
                 title="Result Slip"
               >
                 <FileText className="h-4 w-4" />
@@ -455,7 +455,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                 href={app.pop_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2.5 rounded-lg transition-colors"
+                className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-2.5 rounded-lg transition-colors"
                 title="Proof of Payment"
               >
                 <CreditCard className="h-4 w-4" />
@@ -467,8 +467,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
       {/* Loading Overlays */}
       {(updatingStatus || updatingPayment) && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800/80">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
             <LoadingSpinner size="sm" />
             <span>Updating...</span>
           </div>

@@ -115,13 +115,13 @@ export default function LandingPageNew() {
       icon: Users,
       title: "Career-Ready Training",
       description: "Learn from healthcare professionals actively working in Zambian hospitals and clinics. Get mentored by experts who understand the job market",
-      gradient: "from-primary to-primary/60"
+      gradient: "from-blue-600 to-blue-600/60"
     },
     {
       icon: Award,
       title: "Government Recognized Qualifications",
       description: "NMCZ, HPCZ & ECZ accredited programs accepted by employers across Zambia, SADC region, and internationally",
-      gradient: "from-secondary to-secondary/60"
+      gradient: "from-purple-600 to-purple-600/60"
     },
     {
       icon: BookOpen,
@@ -156,7 +156,7 @@ export default function LandingPageNew() {
   ]
 
   return (
-    <div className="page-container bg-white overflow-x-hidden">
+    <div className="page-container bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 transition-colors duration-500 overflow-x-hidden">
       {/* Enhanced Header */}
       <motion.header
         className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/20"
@@ -171,7 +171,7 @@ export default function LandingPageNew() {
 
       {!supabaseAvailable && supabaseStatusMessage && (
         <div className="mt-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto rounded-2xl border border-amber-200 bg-amber-50/95 p-4 shadow-sm">
+          <div className="max-w-4xl mx-auto rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30/95 p-4 shadow-sm">
             <div className="flex items-start gap-3 text-amber-900">
               <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
@@ -188,7 +188,7 @@ export default function LandingPageNew() {
       {/* Enhanced Hero Section */}
       <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Animated Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-accent opacity-95" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 opacity-95" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-black/10" />
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
@@ -231,7 +231,7 @@ export default function LandingPageNew() {
             className={`flex ${isMobile ? 'flex-col px-4' : 'flex-col sm:flex-row'} gap-4 sm:gap-6 justify-center items-center`}
           >
             <Link to="/auth/signup">
-              <Button variant="gradient" size="xl" magnetic glow>
+              <Button variant="gradient" size="xl">
                 <span className="mr-2">Start Your Application</span>
                 <ArrowRight className="w-5 h-5" />
               </Button>
@@ -239,7 +239,7 @@ export default function LandingPageNew() {
             <Button 
               variant="outline" 
               size="xl" 
-              className="border-2 border-white text-white hover:bg-white hover:text-primary font-semibold"
+              className="border-2 border-white text-white hover:bg-white dark:bg-gray-800 hover:text-blue-600 dark:text-blue-400 font-semibold"
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <span className="mr-2">Learn More</span>
@@ -255,9 +255,9 @@ export default function LandingPageNew() {
           transition={maybeMotion({ duration: 2, repeat: Infinity })}
           onClick={() => document.getElementById('stats')?.scrollIntoView({ behavior: 'smooth' })}
         >
-          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-gray-200 transition-colors">
+          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-gray-200 dark:border-gray-700 transition-colors">
             <motion.div
-              className="w-1 h-3 bg-white rounded-full mt-2"
+              className="w-1 h-3 bg-white dark:bg-gray-800 rounded-full mt-2"
               animate={maybeMotion({ y: [0, 12, 0] })}
               transition={maybeMotion({ duration: 2, repeat: Infinity })}
             />
@@ -266,7 +266,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Stats Section */}
-      <section id="stats" ref={statsBackgroundRef} className="py-20 bg-gray-50 relative">
+      <section id="stats" ref={statsBackgroundRef} className="py-20 bg-white dark:bg-gray-800 relative transition-colors duration-500">
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
             <FloatingElements
@@ -299,7 +299,7 @@ export default function LandingPageNew() {
                 >
                   {stat.number}
                 </motion.div>
-                <p className="text-sm sm:text-base text-gray-600 font-medium text-center">{stat.label}</p>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 dark:text-gray-500 font-medium text-center">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -307,7 +307,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Enhanced Features Section */}
-      <section id="features" className="py-20 bg-white relative">
+      <section id="features" className="py-20 bg-gray-50 dark:bg-gray-900 relative transition-colors duration-500">
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
             <GeometricPatterns />
@@ -324,7 +324,7 @@ export default function LandingPageNew() {
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold gradient-text mb-6 px-4">
               Why Choose MIHAS-KATC for Your Healthcare Career?
             </h2>
-            <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto font-medium px-4">
+            <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-medium px-4">
               Join 300+ successful graduates working across Zambia and internationally. Get job-ready with our accredited programs and industry partnerships
             </p>
           </motion.div>
@@ -347,18 +347,18 @@ export default function LandingPageNew() {
                   >
                     <feature.icon className="h-10 w-10 text-white" />
                   </motion.div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed font-medium">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
                     {feature.description}
                   </p>
                 </AnimatedCard>
               ) : (
-                <div key={index} className="bg-white rounded-lg shadow-lg p-6 text-center group">
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center group">
                   <div className={`bg-gradient-to-br ${feature.gradient} w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg`}>
                     <feature.icon className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed font-medium">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
                     {feature.description}
                   </p>
                 </div>
@@ -369,7 +369,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Accreditation Section */}
-      <section className="py-16 bg-white relative">
+      <section className="py-16 bg-white dark:bg-gray-800 relative transition-colors duration-500">
         <div className="content-wrapper">
           <motion.div
             className="text-center mb-12"
@@ -381,14 +381,14 @@ export default function LandingPageNew() {
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold gradient-text mb-4 px-4">
               Qualifications Recognized by Employers Across Zambia & Beyond
             </h2>
-            <p className="text-base sm:text-lg text-gray-700 px-4">
+            <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 px-4">
               Our graduates are qualified to work in hospitals, clinics, and health organizations throughout Zambia, SADC region, and internationally
             </p>
           </motion.div>
           
           <div className={`grid ${isMobile ? 'grid-cols-1 gap-6 px-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8'} items-stretch`}>
             <motion.div
-              className="bg-white rounded-lg shadow-lg p-6 text-center border border-gray-100 h-full flex flex-col justify-between"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center border border-gray-100 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -396,7 +396,7 @@ export default function LandingPageNew() {
               whileHover={maybeMotion({ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" })}
             >
               <div className="flex-1 flex flex-col items-center">
-                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 rounded-lg p-2">
+                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-2">
                   <OptimizedImage
                     src="/images/accreditation/GNCLogo.png"
                     alt="Nursing and Midwifery Council of Zambia (NMCZ) official accreditation logo"
@@ -404,18 +404,18 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">NMCZ Accredited</h3>
-                <p className="text-gray-600 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">NMCZ Accredited</h3>
+                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 text-xs sm:text-sm mb-3">
                   Nursing and Midwifery Council of Zambia
                 </p>
               </div>
-              <p className="text-xs text-gray-500 mt-auto">
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-auto">
                 Graduates qualified for nursing jobs in all Zambian hospitals and clinics
               </p>
             </motion.div>
             
             <motion.div
-              className="bg-white rounded-lg shadow-lg p-6 text-center border border-gray-100 h-full flex flex-col justify-between"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center border border-gray-100 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -423,7 +423,7 @@ export default function LandingPageNew() {
               whileHover={maybeMotion({ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" })}
             >
               <div className="flex-1 flex flex-col items-center">
-                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 rounded-lg p-2">
+                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-2">
                   <OptimizedImage
                     src="/images/accreditation/hpc_logobig.png"
                     alt="Health Professions Council of Zambia (HPCZ) official accreditation logo"
@@ -431,18 +431,18 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">HPCZ Accredited</h3>
-                <p className="text-gray-600 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">HPCZ Accredited</h3>
+                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 text-xs sm:text-sm mb-3">
                   Health Professions Council of Zambia
                 </p>
               </div>
-              <p className="text-xs text-gray-500 mt-auto">
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-auto">
                 Graduates eligible for clinical officer positions nationwide
               </p>
             </motion.div>
             
             <motion.div
-              className="bg-white rounded-lg shadow-lg p-6 text-center border border-gray-100 h-full flex flex-col justify-between"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center border border-gray-100 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -450,7 +450,7 @@ export default function LandingPageNew() {
               whileHover={maybeMotion({ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" })}
             >
               <div className="flex-1 flex flex-col items-center">
-                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 rounded-lg p-2">
+                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-2">
                   <OptimizedImage
                     src="/images/accreditation/eczlogo.png"
                     alt="Examinations Council of Zambia (ECZ) official certification logo"
@@ -458,18 +458,18 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">ECZ Recognized</h3>
-                <p className="text-gray-600 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">ECZ Recognized</h3>
+                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 text-xs sm:text-sm mb-3">
                   Examinations Council of Zambia
                 </p>
               </div>
-              <p className="text-xs text-gray-500 mt-auto">
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-auto">
                 Environmental health graduates work in government and private sectors
               </p>
             </motion.div>
             
             <motion.div
-              className="bg-white rounded-lg shadow-lg p-6 text-center border border-gray-100 h-full flex flex-col justify-between"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center border border-gray-100 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -477,7 +477,7 @@ export default function LandingPageNew() {
               whileHover={maybeMotion({ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" })}
             >
               <div className="flex-1 flex flex-col items-center">
-                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 rounded-lg p-2">
+                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-2">
                   <OptimizedImage
                     src="/images/accreditation/unza.jpg"
                     alt="University of Zambia (UNZA) official affiliation logo"
@@ -485,12 +485,12 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">UNZA Affiliated</h3>
-                <p className="text-gray-600 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">UNZA Affiliated</h3>
+                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 text-xs sm:text-sm mb-3">
                   University of Zambia
                 </p>
               </div>
-              <p className="text-xs text-gray-500 mt-auto">
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-auto">
                 University-level qualifications recognized by international employers
               </p>
             </motion.div>
@@ -499,7 +499,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Enhanced Programs Section */}
-      <section ref={programsBackgroundRef} className="py-20 bg-gray-50 relative">
+      <section ref={programsBackgroundRef} className="py-20 bg-white dark:bg-gray-800 relative transition-colors duration-500">
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
             <FloatingElements
@@ -519,7 +519,7 @@ export default function LandingPageNew() {
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold gradient-text mb-6 px-4">
               High-Demand Healthcare Jobs Training Programs
             </h2>
-            <p className="text-lg sm:text-xl text-gray-700 font-medium px-4">
+            <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 font-medium px-4">
               Three government-accredited programs with guaranteed job opportunities in Zambia's growing healthcare sector
             </p>
           </motion.div>
@@ -552,7 +552,7 @@ export default function LandingPageNew() {
                       </motion.picture>
                       <div className="absolute top-4 right-4 space-y-2">
                         <motion.div
-                          className="bg-gradient-to-r from-primary to-secondary text-white px-3 py-1 rounded-full text-xs font-semibold"
+                          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
                           whileHover={maybeMotion({ scale: 1.1 })}
                         >
                           {program.highlight}
@@ -578,14 +578,14 @@ export default function LandingPageNew() {
                           viewport={shouldReduceMotion ? undefined : { once: true }}
                           transition={maybeMotion({ delay: courseIndex * 0.1 })}
                         >
-                          <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                          <span className="text-sm sm:text-base text-gray-800 font-medium">{course}</span>
+                          <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                          <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">{course}</span>
                         </motion.div>
                       ))}
                     </div>
                 </AnimatedCard>
               ) : (
-                <div key={index} className="bg-white rounded-lg shadow-lg p-6 overflow-hidden">
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 overflow-hidden">
                   <div className="relative">
                     <picture className="w-full h-48 rounded-lg mb-6 overflow-hidden block">
                       <source srcSet={program.image} type="image/webp" />
@@ -599,7 +599,7 @@ export default function LandingPageNew() {
                       />
                     </picture>
                     <div className="absolute top-4 right-4 space-y-2">
-                      <div className="bg-gradient-to-r from-primary to-secondary text-white px-3 py-1 rounded-full text-xs font-semibold">
+                      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                         {program.highlight}
                       </div>
                       <div className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
@@ -613,8 +613,8 @@ export default function LandingPageNew() {
                   <div className="space-y-3">
                     {program.courses.map((course, courseIndex) => (
                       <div key={courseIndex} className="flex items-center space-x-3">
-                        <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                        <span className="text-sm sm:text-base text-gray-800 font-medium">{course}</span>
+                        <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                        <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">{course}</span>
                       </div>
                     ))}
                   </div>
@@ -627,7 +627,7 @@ export default function LandingPageNew() {
 
       {/* Enhanced CTA Section */}
       <section ref={ctaBackgroundRef} className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/20" />
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
@@ -665,7 +665,7 @@ export default function LandingPageNew() {
             whileTap={maybeMotion({ scale: 0.95 })}
           >
             <Link to="/auth/signup">
-              <Button variant="outline" size="xl" className="border-2 border-white text-white hover:bg-white hover:text-primary" magnetic>
+              <Button variant="outline" size="xl" className="border-2 border-white text-white hover:bg-white dark:bg-gray-800 hover:text-blue-600 dark:text-blue-400">
                 <span className="mr-2">Apply Now</span>
                 <ArrowRight className="w-6 h-6" />
               </Button>
@@ -698,7 +698,7 @@ export default function LandingPageNew() {
                 className="flex items-center space-x-2 mb-6"
                 whileHover={maybeMotion({ scale: 1.05 })}
               >
-                <GraduationCap className="h-8 w-8 text-primary" />
+                <GraduationCap className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 <span className="text-2xl font-bold gradient-text">MIHAS-KATC</span>
               </motion.div>
               <h3 className="text-xl font-semibold mb-4">Apply Today - Contact Us</h3>
@@ -728,7 +728,7 @@ export default function LandingPageNew() {
                     viewport={shouldReduceMotion ? undefined : { once: true }}
                     transition={maybeMotion({ delay: index * 0.1 })}
                   >
-                    <Link to={link.href} className="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+                    <Link to={link.href} className="text-gray-300 hover:text-blue-600 dark:text-blue-400 transition-colors duration-300 flex items-center group">
                       <ArrowRight className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       {link.name}
                     </Link>
@@ -744,7 +744,7 @@ export default function LandingPageNew() {
                   <motion.a
                     key={social}
                     href="#"
-                    className="text-gray-300 hover:text-primary transition-colors duration-300 px-4 py-2 rounded-lg hover:bg-primary/10"
+                    className="text-gray-300 hover:text-blue-600 dark:text-blue-400 transition-colors duration-300 px-4 py-2 rounded-lg hover:bg-blue-50 dark:bg-blue-950/300/10"
                     whileHover={maybeMotion({ scale: 1.1 })}
                     whileTap={maybeMotion({ scale: 0.9 })}
                     initial={maybeMotion({ opacity: 0, y: 20 })}
@@ -766,7 +766,7 @@ export default function LandingPageNew() {
             viewport={shouldReduceMotion ? undefined : { once: true }}
           >
             <p className="text-gray-300 mb-2">&copy; 2025 MIHAS-KATC. All rights reserved.</p>
-            <p className="text-gray-400">
+            <p className="text-gray-400 dark:text-gray-500">
               Developed with ❤️ by{' '}
               <motion.a
                 href="https://beanola.com"

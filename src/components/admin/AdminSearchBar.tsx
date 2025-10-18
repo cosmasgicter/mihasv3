@@ -105,7 +105,7 @@ export function AdminSearchBar() {
       case 'intake':
         return <Calendar className="h-4 w-4 text-orange-500" />
       default:
-        return <Search className="h-4 w-4 text-gray-500" />
+        return <Search className="h-4 w-4 text-gray-500 dark:text-gray-500" />
     }
   }
 
@@ -118,7 +118,7 @@ export function AdminSearchBar() {
   return (
     <div className="relative w-full max-w-md">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
         <input
           ref={inputRef}
           type="text"
@@ -128,7 +128,7 @@ export function AdminSearchBar() {
           onKeyDown={handleKeyDown}
           onFocus={() => query.length > 2 && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-          className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200"
+          className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-all duration-200"
         />
       </div>
 
@@ -138,7 +138,7 @@ export function AdminSearchBar() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-80 overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-80 overflow-y-auto"
           >
             <div className="p-2">
               {results.map((result, index) => (
@@ -175,7 +175,7 @@ export function AdminSearchBar() {
             </div>
             
             {results.length === 0 && query.length > 2 && (
-              <div className="p-6 text-center text-gray-500">
+              <div className="p-6 text-center text-gray-500 dark:text-gray-500">
                 <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No results found for "{query}"</p>
               </div>

@@ -5,6 +5,8 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AdminRoute } from '@/components/AdminRoute'
 import { ToastProvider } from '@/components/ui/Toast'
+import { ThemeProvider } from '@/components/theme/ThemeProvider'
+import { AppLayout } from '@/components/navigation/AppLayout'
 import { UserMenu } from '@/components/ui/UserMenu'
 import { NotificationBell } from '@/components/student/NotificationBell'
 import { SessionMonitor } from '@/components/auth/SessionMonitor'
@@ -72,29 +74,32 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ToastProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <AuthProvider>
+            <ToastProvider>
             <Router>
               <AnalyticsTracker>
                 <SessionMonitor />
                 <SimpleErrorBoundary>
-                  <div className="min-h-screen bg-gray-50">
-                  <Routes>
-                    {routes.map((route) => (
-                      <Route
-                        key={route.path}
-                        path={route.path}
-                        element={renderRoute(route)}
-                      />
-                    ))}
-                  </Routes>
-
+                  <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 transition-colors duration-500">
+                    <AppLayout>
+                      <Routes>
+                        {routes.map((route) => (
+                          <Route
+                            key={route.path}
+                            path={route.path}
+                            element={renderRoute(route)}
+                          />
+                        ))}
+                      </Routes>
+                    </AppLayout>
                   </div>
                 </SimpleErrorBoundary>
               </AnalyticsTracker>
             </Router>
-          </ToastProvider>
-        </AuthProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   )

@@ -98,7 +98,7 @@ function AnimatedCard({
         }}
       >
         <div
-          className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent rounded-xl"
+          className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-xl"
           style={{ padding: '2px', opacity: 0.4 }}
         >
           <div className={cn(
@@ -140,7 +140,7 @@ function AnimatedCard({
       }}
     >
       {/* Gradient border animation */}
-      <div className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-xl"
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-xl"
            style={{ padding: '2px' }}>
         <div className={cn(
           "h-full w-full rounded-xl",

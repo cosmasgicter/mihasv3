@@ -47,13 +47,13 @@ export function EligibilityChecker({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'eligible':
-        return <CheckCircle className="h-6 w-6 text-green-600" />
+        return <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
       case 'conditional':
-        return <AlertTriangle className="h-6 w-6 text-yellow-600" />
+        return <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
       case 'not_eligible':
-        return <XCircle className="h-6 w-6 text-red-600" />
+        return <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
       default:
-        return <AlertTriangle className="h-6 w-6 text-gray-600" />
+        return <AlertTriangle className="h-6 w-6 text-gray-600 dark:text-gray-400 dark:text-gray-500" />
     }
   }
 
@@ -104,13 +104,13 @@ export function EligibilityChecker({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-8 bg-gray-200 rounded mb-4"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
           <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
           </div>
         </div>
       </div>
@@ -119,9 +119,9 @@ export function EligibilityChecker({
 
   if (!assessment) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Eligibility Assessment</h3>
-        <p className="text-gray-600">Add subjects and grades to see eligibility status</p>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Eligibility Assessment</h3>
+        <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Add subjects and grades to see eligibility status</p>
       </div>
     )
   }
@@ -158,19 +158,19 @@ export function EligibilityChecker({
 
         {/* Score Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          <div className="bg-white bg-opacity-50 rounded-lg p-3">
+          <div className="bg-white dark:bg-gray-800 bg-opacity-50 rounded-lg p-3">
             <div className="text-sm font-medium opacity-75">Subject Count</div>
             <div className="text-lg font-bold">
               {Math.round(assessment.detailed_breakdown.subject_count_score)}%
             </div>
           </div>
-          <div className="bg-white bg-opacity-50 rounded-lg p-3">
+          <div className="bg-white dark:bg-gray-800 bg-opacity-50 rounded-lg p-3">
             <div className="text-sm font-medium opacity-75">Grade Average</div>
             <div className="text-lg font-bold">
               {Math.round(assessment.detailed_breakdown.grade_average_score)}%
             </div>
           </div>
-          <div className="bg-white bg-opacity-50 rounded-lg p-3">
+          <div className="bg-white dark:bg-gray-800 bg-opacity-50 rounded-lg p-3">
             <div className="text-sm font-medium opacity-75">Core Subjects</div>
             <div className="text-lg font-bold">
               {Math.round(assessment.detailed_breakdown.core_subjects_score)}%
@@ -181,8 +181,8 @@ export function EligibilityChecker({
 
       {/* Missing Requirements */}
       {assessment.missing_requirements.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
             <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
             Missing Requirements
           </h4>
@@ -206,16 +206,16 @@ export function EligibilityChecker({
 
       {/* Recommendations */}
       {assessment.recommendations.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
             <TrendingUp className="h-5 w-5 text-blue-500 mr-2" />
             Recommendations
           </h4>
           <ul className="space-y-2">
             {assessment.recommendations.map((rec: string, index: number) => (
               <li key={index} className="flex items-start space-x-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                <span className="text-gray-700">{rec}</span>
+                <div className="w-2 h-2 bg-blue-50 dark:bg-blue-950/300 rounded-full mt-2 flex-shrink-0"></div>
+                <span className="text-gray-700 dark:text-gray-300">{rec}</span>
               </li>
             ))}
           </ul>
@@ -223,8 +223,8 @@ export function EligibilityChecker({
       )}
 
       {/* Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h4 className="text-lg font-semibold text-gray-900 mb-4">Actions</h4>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Actions</h4>
         <div className="flex flex-wrap gap-3">
           <Button
             onClick={performEligibilityCheck}
@@ -259,18 +259,18 @@ export function EligibilityChecker({
       {/* Appeal Form Modal */}
       {showAppealForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
             <h3 className="text-lg font-semibold mb-4">Submit Eligibility Appeal</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Reason for Appeal
                 </label>
                 <textarea
                   value={appealReason}
                   onChange={(e) => setAppealReason(e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Explain why you believe the assessment should be reconsidered..."
                 />
               </div>

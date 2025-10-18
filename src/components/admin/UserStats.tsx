@@ -55,7 +55,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       case 'academic_head':
         return <Shield className="h-4 w-4 text-blue-500" />
       default:
-        return <User className="h-4 w-4 text-gray-500" />
+        return <User className="h-4 w-4 text-gray-500 dark:text-gray-500" />
     }
   }
 
@@ -82,11 +82,11 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
     return (
       <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 ${className}`}>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
-            <div className="h-3 bg-gray-200 rounded"></div>
-            <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-            <div className="h-3 bg-gray-200 rounded w-4/6"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-4/6"></div>
           </div>
         </div>
       </div>
@@ -135,31 +135,31 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       </div>
 
       {/* Role Distribution */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <Shield className="h-5 w-5 mr-2 text-gray-600" />
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+          <Shield className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400 dark:text-gray-500" />
           Role Distribution
         </h3>
         <div className="space-y-3">
           {Object.entries(stats.byRole)
             .sort(([, a], [, b]) => b - a)
             .map(([role, count]) => (
-              <div key={role} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50">
+              <div key={role} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 dark:bg-gray-900">
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(role)}
-                  <span className="font-medium text-gray-900">{getRoleLabel(role)}</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{getRoleLabel(role)}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getRoleColor(role)}`}>
                     {count} users
                   </span>
-                  <div className="w-20 bg-gray-200 rounded-full h-2">
+                  <div className="w-20 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
-                      className="bg-blue-500 h-2 rounded-full"
+                      className="bg-blue-50 dark:bg-blue-950/300 h-2 rounded-full"
                       style={{ width: `${(count / stats.total) * 100}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm text-gray-500 w-12 text-right">
+                  <span className="text-sm text-gray-500 dark:text-gray-500 w-12 text-right">
                     {Math.round((count / stats.total) * 100)}%
                   </span>
                 </div>
@@ -169,34 +169,34 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       </div>
 
       {/* Recent Users */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <Calendar className="h-5 w-5 mr-2 text-gray-600" />
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+          <Calendar className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400 dark:text-gray-500" />
           Recent Users
         </h3>
         <div className="space-y-3">
           {recentUsers.length > 0 ? (
             recentUsers.map((user) => (
-              <div key={user.user_id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50">
+              <div key={user.user_id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 dark:bg-gray-900">
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(user.role)}
                   <div>
-                    <p className="font-medium text-gray-900">{sanitizeForDisplay(user.full_name) || 'No name'}</p>
-                    <p className="text-sm text-gray-500">{sanitizeForDisplay(user.email)}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{sanitizeForDisplay(user.full_name) || 'No name'}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500">{sanitizeForDisplay(user.email)}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                     {getRoleLabel(user.role)}
                   </span>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                     {new Date(user.created_at).toLocaleDateString()}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-gray-500 text-center py-4">No recent users</p>
+            <p className="text-gray-500 dark:text-gray-500 text-center py-4">No recent users</p>
           )}
         </div>
       </div>

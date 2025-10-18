@@ -73,14 +73,14 @@ const ApplicationWizardContent = () => {
 
   if (authLoading || restoringDraft) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner />
-          <p className="mt-4 text-gray-600">
+          <p className="mt-4 text-gray-600 dark:text-gray-400 dark:text-gray-500">
             {authLoading ? 'Loading...' : 'Restoring your saved progress...'}
           </p>
           {restoringDraft && (
-            <p className="mt-2 text-sm text-blue-600">
+            <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">
               We found a saved draft of your application
             </p>
           )}
@@ -126,43 +126,43 @@ const ApplicationWizardContent = () => {
       <div className="w-full">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <Link to="/student/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4">
+          <Link to="/student/dashboard" className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:text-blue-300 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Application</h1>
-            <p className="text-gray-600">Complete the {totalSteps}-step application process</p>
-            <div className="mt-2 text-sm text-gray-600">Logged in as: {user.email}</div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Student Application</h1>
+            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Complete the {totalSteps}-step application process</p>
+            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Logged in as: {user.email}</div>
           </motion.div>
         </div>
 
         <div className="mb-6 lg:mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Step {currentStepConfig.id} of {totalSteps}: {currentStepConfig.progressTitle}
             </h2>
             <div className="flex items-center space-x-4">
               {isDraftSaving && (
-                <motion.div className="flex items-center space-x-2 text-sm text-blue-600" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <motion.div className="flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
                   <span>Auto-saving...</span>
                 </motion.div>
               )}
               {draftSaved && (
-                <motion.div className="flex items-center space-x-2 text-sm text-green-600" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
+                <motion.div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
                   <CheckCircle className="h-4 w-4" />
                   <span>Draft saved</span>
                 </motion.div>
               )}
-              <Button type="button" variant="ghost" size="sm" onClick={saveDraft} disabled={isDraftSaving} className="hover:bg-blue-50">
+              <Button type="button" variant="ghost" size="sm" onClick={saveDraft} disabled={isDraftSaving} className="hover:bg-blue-50 dark:bg-blue-950/30">
                 <Send className="h-4 w-4 mr-2" />
                 {saveNowLabel}
               </Button>
             </div>
           </div>
           <div className="relative">
-            <div className="absolute top-4 left-0 w-full h-0.5 bg-gray-200 hidden sm:block" />
+            <div className="absolute top-4 left-0 w-full h-0.5 bg-gray-200 dark:bg-gray-700 hidden sm:block" />
             <div className="flex items-center justify-between relative overflow-x-auto pb-2 sm:pb-0">
               {wizardSteps.map((step, index) => {
                 const Icon = step.icon
@@ -171,7 +171,7 @@ const ApplicationWizardContent = () => {
                 return (
                   <motion.div
                     key={step.id}
-                    className="flex flex-col items-center bg-gray-50 relative min-w-0 flex-shrink-0 px-2 sm:px-0"
+                    className="flex flex-col items-center bg-gray-50 dark:bg-gray-900 relative min-w-0 flex-shrink-0 px-2 sm:px-0"
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: step.id * 0.1 }}
@@ -200,7 +200,7 @@ const ApplicationWizardContent = () => {
         </div>
 
         {error && (
-          <motion.div className="rounded-md bg-red-50 border border-red-200 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div className="rounded-md bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-start">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -209,12 +209,12 @@ const ApplicationWizardContent = () => {
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <div className="text-sm text-red-700 mt-1">{error}</div>
+                <div className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</div>
                 <div className="mt-2">
                   <button
                     type="button"
                     onClick={() => setError('')}
-                    className="text-xs text-red-600 hover:text-red-500 underline"
+                    className="text-xs text-red-600 dark:text-red-400 hover:text-red-500 underline"
                   >
                     Dismiss
                   </button>

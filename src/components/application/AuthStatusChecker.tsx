@@ -120,7 +120,7 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
   }
 
   return (
-    <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg border">
+    <div className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border">
       {getStatusIcon()}
       <span className={`text-sm font-medium ${getStatusColor()}`}>
         {getStatusMessage()}

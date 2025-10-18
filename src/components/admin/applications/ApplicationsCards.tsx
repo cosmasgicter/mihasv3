@@ -41,11 +41,11 @@ const getStatusIcon = (status: string) => {
     case 'rejected':
       return <XCircle className="h-4 w-4 text-red-500" />
     case 'under_review':
-      return <Clock className="h-4 w-4 text-primary" />
+      return <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
     case 'submitted':
       return <AlertTriangle className="h-4 w-4 text-yellow-500" />
     case 'draft':
-      return <FileText className="h-4 w-4 text-gray-500" />
+      return <FileText className="h-4 w-4 text-gray-500 dark:text-gray-500" />
     default:
       return <Clock className="h-4 w-4 text-secondary" />
   }
@@ -93,7 +93,7 @@ export function ApplicationsCards({
                         type="checkbox"
                         checked={selectedApplications.includes(application.id)}
                         onChange={() => onToggleSelection(application.id)}
-                        className="h-5 w-5 mt-1 text-primary focus:ring-primary border-gray-300 rounded touch-target"
+                        className="h-5 w-5 mt-1 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded touch-target"
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">
@@ -136,7 +136,7 @@ export function ApplicationsCards({
                     </div>
                     
                     {/* Documents - Mobile Optimized */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
                       <div className="flex items-center space-x-2 text-xs sm:text-sm text-secondary">
                         <FileCheck className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>{(application.result_slip_url ? 1 : 0) + (application.extra_kyc_url ? 1 : 0) + (application.pop_url ? 1 : 0)} docs</span>
@@ -200,7 +200,7 @@ export function ApplicationsCards({
                             e.stopPropagation()
                             onUpdateStatus(application.id, 'under_review')
                           }}
-                          className="btn-responsive text-blue-600 border-blue-300 hover:bg-blue-50"
+                          className="btn-responsive text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
                         >
                           <Zap className="h-4 w-4 sm:mr-1" />
                           <span className="hidden sm:inline">Start Review</span>
@@ -218,7 +218,7 @@ export function ApplicationsCards({
                               e.stopPropagation()
                               onUpdateStatus(application.id, 'approved')
                             }}
-                            className="flex-1 text-green-600 border-green-300 hover:bg-green-50 btn-mobile"
+                            className="flex-1 text-green-600 dark:text-green-400 border-green-300 dark:border-green-700 hover:bg-green-50 dark:bg-green-950/30 btn-mobile"
                           >
                             <CheckCircle className="h-4 w-4 sm:mr-1" />
                             <span className="hidden sm:inline">Approve</span>
@@ -231,7 +231,7 @@ export function ApplicationsCards({
                               e.stopPropagation()
                               onUpdateStatus(application.id, 'rejected')
                             }}
-                            className="flex-1 text-red-600 border-red-300 hover:bg-red-50 btn-mobile"
+                            className="flex-1 text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30 btn-mobile"
                           >
                             <XCircle className="h-4 w-4 sm:mr-1" />
                             <span className="hidden sm:inline">Reject</span>

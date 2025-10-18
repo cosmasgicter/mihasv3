@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { AdminNavigation } from '@/components/ui/AdminNavigation'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
@@ -215,21 +214,20 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <AdminNavigation />
       
       <main className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold">📊 Analytics & Reporting</h1>
+              <h1 className="text-3xl font-bold"><BarChart3 className="w-5 h-5" /> Analytics & Reporting</h1>
               <p className="text-xl text-white/90 mt-2">Application statistics and trends analysis with full CRUD functionality</p>
             </div>
             <div className="flex items-center space-x-4">
               <Button
                 onClick={refreshData}
                 disabled={refreshing}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                className="bg-white/20 hover:bg-white dark:bg-gray-800/30 text-white border-white/30"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
                 Refresh
@@ -243,12 +241,12 @@ export default function Analytics() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8">
-          <div className="flex flex-wrap border-b border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 mb-8">
+          <div className="flex flex-wrap border-b border-gray-200 dark:border-gray-700">
             {[
-              { key: 'overview', label: '📊 Overview', icon: BarChart3 },
-              { key: 'applications', label: '📋 Applications', icon: FileText },
-              { key: 'programs', label: '🎓 Programs', icon: Users },
+              { key: 'overview', label: '<BarChart3 className="w-5 h-5" /> Overview', icon: BarChart3 },
+              { key: 'applications', label: '<FileText className="w-5 h-5" /> Applications', icon: FileText },
+              { key: 'programs', label: '<GraduationCap className="w-5 h-5" /> Programs', icon: Users },
               { key: 'eligibility', label: '✅ Eligibility', icon: CheckCircle },
               { key: 'reports', label: '📄 Reports', icon: Download }
             ].map((tab) => {
@@ -283,9 +281,9 @@ export default function Analytics() {
         </div>
 
         {/* Filters & Actions */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center">
               <Filter className="h-5 w-5 mr-2" />
               Filters & Actions
             </h3>
@@ -310,12 +308,12 @@ export default function Analytics() {
                 Generate Report
               </Button>
               {roleError && (
-                <p className="text-xs text-red-600 w-full">
+                <p className="text-xs text-red-600 dark:text-red-400 w-full">
                   Unable to verify analytics permissions. Please refresh and try again.
                 </p>
               )}
               {!roleError && !roleStatusLoading && !canManageReports && (
-                <p className="text-xs text-amber-600 w-full">
+                <p className="text-xs text-amber-600 dark:text-amber-400 w-full">
                   Report generation is limited to authorised admissions, registrar, finance or admin staff.
                 </p>
               )}
@@ -323,25 +321,25 @@ export default function Analytics() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
               <input
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
+                className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date</label>
               <input
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
+                className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
               />
             </div>
             <div>
-              <label htmlFor="quick_range" className="block text-sm font-medium text-gray-700 mb-2">Quick Range</label>
+              <label htmlFor="quick_range" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quick Range</label>
               <select
                 id="quick_range"
                 onChange={(e) => {
@@ -353,7 +351,7 @@ export default function Analytics() {
                     })
                   }
                 }}
-                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
+                className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
               >
                 <option value="">Select Range</option>
                 <option value="7">Last 7 days</option>
@@ -363,12 +361,12 @@ export default function Analytics() {
               </select>
             </div>
             <div>
-              <label htmlFor="export_format" className="block text-sm font-medium text-gray-700 mb-2">Export Format</label>
+              <label htmlFor="export_format" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Export Format</label>
               <select
                 id="export_format"
                 value={exportFormat}
                 onChange={(e) => setExportFormat(e.target.value as ReportFormat)}
-                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
+                className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
               >
                 <option value="pdf">PDF</option>
                 <option value="excel">Excel</option>
@@ -383,51 +381,51 @@ export default function Analytics() {
           <>
             {/* Key Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Total Applications</p>
-                    <p className="text-3xl font-bold text-gray-900">{totalApplications}</p>
-                    <p className="text-xs text-gray-500 mt-1">+12% from last month</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">Total Applications</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{totalApplications}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+12% from last month</p>
                   </div>
-                  <div className="p-3 bg-blue-100 rounded-2xl">
-                    <FileText className="h-8 w-8 text-blue-600" />
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl">
+                    <FileText className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Approval Rate</p>
-                    <p className="text-3xl font-bold text-green-600">{overallApprovalRate}%</p>
-                    <p className="text-xs text-gray-500 mt-1">+5% from last month</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">Approval Rate</p>
+                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">{overallApprovalRate}%</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+5% from last month</p>
                   </div>
-                  <div className="p-3 bg-green-100 rounded-2xl">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-2xl">
+                    <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Eligibility Success</p>
-                    <p className="text-3xl font-bold text-purple-600">{avgEligibilitySuccess}%</p>
-                    <p className="text-xs text-gray-500 mt-1">+8% from last month</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">Eligibility Success</p>
+                    <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{avgEligibilitySuccess}%</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+8% from last month</p>
                   </div>
-                  <div className="p-3 bg-purple-100 rounded-2xl">
-                    <TrendingUp className="h-8 w-8 text-purple-600" />
+                  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-2xl">
+                    <TrendingUp className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Active Users</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">Active Users</p>
                     <p className="text-3xl font-bold text-indigo-600">{uniqueUsers}</p>
-                    <p className="text-xs text-gray-500 mt-1">+15% from last month</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+15% from last month</p>
                   </div>
                   <div className="p-3 bg-indigo-100 rounded-2xl">
                     <Users className="h-8 w-8 text-indigo-600" />
@@ -437,10 +435,10 @@ export default function Analytics() {
             </div>
 
             {/* Program Analytics */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8 overflow-hidden">
-              <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                  🏆 Program Performance
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 mb-8 overflow-hidden">
+              <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+                  <Trophy className="w-5 h-5" /> Program Performance
                 </h3>
               </div>
               <div className="p-6">
@@ -448,41 +446,41 @@ export default function Analytics() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                          🎓 Program
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          <GraduationCap className="w-5 h-5" /> Program
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                          📋 Applications
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          <FileText className="w-5 h-5" /> Applications
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           ✅ Approval Rate
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           ⏱️ Avg Processing
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                       {programAnalytics.map((program, index) => (
-                        <tr key={index} className="hover:bg-blue-50 transition-colors">
+                        <tr key={index} className="hover:bg-blue-50 dark:bg-blue-950/30 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-gray-900">{sanitizeForDisplay(program.programName)}</div>
+                            <div className="font-semibold text-gray-900 dark:text-gray-100">{sanitizeForDisplay(program.programName)}</div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
                               {program.applicationsCount}
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-800">
                               {program.approvalRate}%
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800">
                               {program.averageProcessingDays} days
                             </span>
                           </td>
@@ -520,9 +518,9 @@ export default function Analytics() {
         )}
 
         {activeTab === 'applications' && (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-900">📋 Application Statistics</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100"><FileText className="w-5 h-5" /> Application Statistics</h3>
               <Button
                 onClick={() => {
                   setCreateType('application')
@@ -538,26 +536,26 @@ export default function Analytics() {
             <div className="p-6">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rejected</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Total</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Submitted</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Approved</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Rejected</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                     {applicationStats.map((stat, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <tr key={index} className="hover:bg-gray-50 dark:bg-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                           {new Date(stat.date).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.totalApplications}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.submittedApplications}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.approvedApplications}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.rejectedApplications}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{stat.totalApplications}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{stat.submittedApplications}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{stat.approvedApplications}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{stat.rejectedApplications}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
                             <Button
@@ -591,9 +589,9 @@ export default function Analytics() {
         )}
 
         {activeTab === 'eligibility' && (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-900">✅ Eligibility Analytics</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">✅ Eligibility Analytics</h3>
               <Button
                 onClick={() => {
                   setCreateType('eligibility')
@@ -609,24 +607,24 @@ export default function Analytics() {
             <div className="p-6">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Checks</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Passed</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Success Rate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Total Checks</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Passed</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Success Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                     {eligibilityAnalytics.map((analytics, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <tr key={index} className="hover:bg-gray-50 dark:bg-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                           {new Date(analytics.date).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{analytics.totalChecks}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{analytics.passedChecks}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{analytics.totalChecks}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{analytics.passedChecks}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             analytics.successRate >= 70 
                               ? 'bg-green-100 text-green-800'
@@ -670,9 +668,9 @@ export default function Analytics() {
         )}
 
         {activeTab === 'programs' && (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-900">🎓 Program Analytics</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100"><GraduationCap className="w-5 h-5" /> Program Analytics</h3>
               <Button
                 onClick={() => {
                   setCreateType('program')
@@ -688,26 +686,26 @@ export default function Analytics() {
             <div className="p-6">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applications</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approval Rate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion Rate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Processing (days)</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Program</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Applications</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Approval Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Completion Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Avg Processing (days)</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                     {programAnalytics.map((program, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <tr key={index} className="hover:bg-gray-50 dark:bg-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                           {sanitizeForDisplay(program.programName)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{program.applicationsCount}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{program.approvalRate}%</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{program.completionRate}%</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{program.averageProcessingDays}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{program.applicationsCount}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{program.approvalRate}%</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{program.completionRate}%</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{program.averageProcessingDays}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
                             <Button
@@ -742,29 +740,29 @@ export default function Analytics() {
 
         {activeTab === 'reports' && (
           !canManageReports ? (
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 text-center text-sm text-amber-700">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6 text-center text-sm text-amber-700 dark:text-amber-300">
               You do not have permission to view analytics reports.
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-                  <h3 className="text-xl font-bold text-gray-900">📄 Automated Reports</h3>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">📄 Automated Reports</h3>
                 </div>
                 <div className="p-6">
                   {automatedReports.length === 0 ? (
-                    <div className="text-center text-sm text-gray-500 py-6">
+                    <div className="text-center text-sm text-gray-500 dark:text-gray-500 py-6">
                       No automated reports available yet. Generate a report to populate this list.
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {automatedReports.map((report, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                        <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:bg-gray-900">
                           <div className="flex justify-between items-start">
                             <div>
-                              <h4 className="font-semibold text-gray-900">{sanitizeForDisplay(report.reportName)}</h4>
-                              <p className="text-sm text-gray-500">{sanitizeForDisplay(report.reportType)}</p>
-                              <p className="text-xs text-gray-400">{new Date(report.createdAt || '').toLocaleString()}</p>
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100">{sanitizeForDisplay(report.reportName)}</h4>
+                              <p className="text-sm text-gray-500 dark:text-gray-500">{sanitizeForDisplay(report.reportType)}</p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500">{new Date(report.createdAt || '').toLocaleString()}</p>
                             </div>
                             <div className="flex space-x-2">
                               <Button
@@ -815,51 +813,51 @@ export default function Analytics() {
           >
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date</label>
                 <input
                   type="date"
                   value={formData.date || ''}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                 />
               </div>
               
               {createType === 'application' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Applications</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Applications</label>
                     <input
                       type="number"
                       value={formData.totalApplications || ''}
                       onChange={(e) => setFormData({ ...formData, totalApplications: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Submitted Applications</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Submitted Applications</label>
                     <input
                       type="number"
                       value={formData.submittedApplications || ''}
                       onChange={(e) => setFormData({ ...formData, submittedApplications: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Approved Applications</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Approved Applications</label>
                     <input
                       type="number"
                       value={formData.approvedApplications || ''}
                       onChange={(e) => setFormData({ ...formData, approvedApplications: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Rejected Applications</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rejected Applications</label>
                     <input
                       type="number"
                       value={formData.rejectedApplications || ''}
                       onChange={(e) => setFormData({ ...formData, rejectedApplications: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                 </>
@@ -868,59 +866,59 @@ export default function Analytics() {
               {createType === 'program' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Program Name</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Program Name</label>
                     <input
                       type="text"
                       value={formData.programName || ''}
                       onChange={(e) => setFormData({ ...formData, programName: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Program ID (optional)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Program ID (optional)</label>
                     <input
                       type="text"
                       value={formData.programId || ''}
                       onChange={(e) => setFormData({ ...formData, programId: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Applications Count</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Applications Count</label>
                     <input
                       type="number"
                       value={formData.applicationsCount || ''}
                       onChange={(e) => setFormData({ ...formData, applicationsCount: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Approval Rate (%)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Approval Rate (%)</label>
                       <input
                         type="number"
                         value={formData.approvalRate || ''}
                         onChange={(e) => setFormData({ ...formData, approvalRate: parseFloat(e.target.value) })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Completion Rate (%)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Completion Rate (%)</label>
                       <input
                         type="number"
                         value={formData.completionRate || ''}
                         onChange={(e) => setFormData({ ...formData, completionRate: parseFloat(e.target.value) })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Average Processing Days</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Average Processing Days</label>
                     <input
                       type="number"
                       value={formData.averageProcessingDays || ''}
                       onChange={(e) => setFormData({ ...formData, averageProcessingDays: parseFloat(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                 </>
@@ -929,30 +927,30 @@ export default function Analytics() {
               {createType === 'eligibility' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Checks</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Checks</label>
                     <input
                       type="number"
                       value={formData.totalChecks || ''}
                       onChange={(e) => setFormData({ ...formData, totalChecks: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Passed Checks</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Passed Checks</label>
                     <input
                       type="number"
                       value={formData.passedChecks || ''}
                       onChange={(e) => setFormData({ ...formData, passedChecks: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Success Rate (%)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Success Rate (%)</label>
                     <input
                       type="number"
                       value={formData.successRate || ''}
                       onChange={(e) => setFormData({ ...formData, successRate: parseFloat(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                 </>
@@ -961,7 +959,7 @@ export default function Analytics() {
               <div className="flex justify-end space-x-2 pt-4">
                 <Button
                   onClick={() => setShowCreateDialog(false)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-700"
+                  className="bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 text-gray-700 dark:text-gray-300"
                 >
                   Cancel
                 </Button>
@@ -984,42 +982,42 @@ export default function Analytics() {
           >
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date</label>
                 <input
                   type="date"
                   value={formData.date || ''}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                 />
               </div>
               
               {selectedItem?.type === 'application' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Applications</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Applications</label>
                     <input
                       type="number"
                       value={formData.totalApplications || ''}
                       onChange={(e) => setFormData({ ...formData, totalApplications: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Approved Applications</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Approved Applications</label>
                     <input
                       type="number"
                       value={formData.approvedApplications || ''}
                       onChange={(e) => setFormData({ ...formData, approvedApplications: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Rejected Applications</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rejected Applications</label>
                     <input
                       type="number"
                       value={formData.rejectedApplications || ''}
                       onChange={(e) => setFormData({ ...formData, rejectedApplications: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                 </>
@@ -1028,59 +1026,59 @@ export default function Analytics() {
               {selectedItem?.type === 'program' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Program Name</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Program Name</label>
                     <input
                       type="text"
                       value={formData.programName || ''}
                       onChange={(e) => setFormData({ ...formData, programName: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Program ID</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Program ID</label>
                     <input
                       type="text"
                       value={formData.programId || ''}
                       onChange={(e) => setFormData({ ...formData, programId: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Applications Count</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Applications Count</label>
                     <input
                       type="number"
                       value={formData.applicationsCount || ''}
                       onChange={(e) => setFormData({ ...formData, applicationsCount: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Approval Rate (%)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Approval Rate (%)</label>
                       <input
                         type="number"
                         value={formData.approvalRate || ''}
                         onChange={(e) => setFormData({ ...formData, approvalRate: parseFloat(e.target.value) })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Completion Rate (%)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Completion Rate (%)</label>
                       <input
                         type="number"
                         value={formData.completionRate || ''}
                         onChange={(e) => setFormData({ ...formData, completionRate: parseFloat(e.target.value) })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Average Processing Days</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Average Processing Days</label>
                     <input
                       type="number"
                       value={formData.averageProcessingDays || ''}
                       onChange={(e) => setFormData({ ...formData, averageProcessingDays: parseFloat(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                 </>
@@ -1089,30 +1087,30 @@ export default function Analytics() {
               {selectedItem?.type === 'eligibility' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Checks</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Checks</label>
                     <input
                       type="number"
                       value={formData.totalChecks || ''}
                       onChange={(e) => setFormData({ ...formData, totalChecks: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Passed Checks</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Passed Checks</label>
                     <input
                       type="number"
                       value={formData.passedChecks || ''}
                       onChange={(e) => setFormData({ ...formData, passedChecks: parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Success Rate (%)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Success Rate (%)</label>
                     <input
                       type="number"
                       value={formData.successRate || ''}
                       onChange={(e) => setFormData({ ...formData, successRate: parseFloat(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2"
                     />
                   </div>
                 </>
@@ -1121,7 +1119,7 @@ export default function Analytics() {
               <div className="flex justify-end space-x-2 pt-4">
                 <Button
                   onClick={() => setShowEditDialog(false)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-700"
+                  className="bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 text-gray-700 dark:text-gray-300"
                 >
                   Cancel
                 </Button>
@@ -1143,13 +1141,13 @@ export default function Analytics() {
             onOpenChange={setShowDeleteDialog}
           >
             <div className="space-y-4">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
                 Are you sure you want to delete this {selectedItem?.type} record? This action cannot be undone.
               </p>
               <div className="flex justify-end space-x-2 pt-4">
                 <Button
                   onClick={() => setShowDeleteDialog(false)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-700"
+                  className="bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 text-gray-700 dark:text-gray-300"
                 >
                   Cancel
                 </Button>

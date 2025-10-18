@@ -8,8 +8,6 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { AuthenticatedNavigation } from '@/components/ui/AuthenticatedNavigation'
-import { PageLayout, PageContent } from '@/components/ui/PageLayout'
 import { ActiveSessions } from '@/components/ui/ActiveSessions'
 import { motion } from 'framer-motion'
 import { ArrowLeft, User, Mail, Phone, MapPin, Save, Shield } from 'lucide-react'
@@ -80,19 +78,18 @@ export default function StudentSettings() {
   }
 
   return (
-    <PageLayout background="gradient">
-      <AuthenticatedNavigation />
-      <PageContent className="py-4 sm:py-6 lg:py-8 safe-area-bottom" maxWidth="7xl">
+    
+        <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header - Mobile First */}
         <div className="mb-6 sm:mb-8">
-          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4 font-medium transition-colors">
+          <Link to="/student/dashboard" className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-600/80 mb-4 font-medium transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-6 sm:p-8 text-white shadow-xl"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl"
           >
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
               ⚙️ Profile Settings
@@ -107,11 +104,11 @@ export default function StudentSettings() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-red-50 border border-red-200 p-4 sm:p-6 mb-6 shadow-lg"
+            className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4 sm:p-6 mb-6 shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">😱</div>
-              <div className="text-red-700 font-medium">{error}</div>
+              <div className="text-red-700 dark:text-red-300 font-medium">{error}</div>
             </div>
           </motion.div>
         )}
@@ -120,11 +117,11 @@ export default function StudentSettings() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-green-50 border border-green-200 p-4 sm:p-6 mb-6 shadow-lg"
+            className="rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4 sm:p-6 mb-6 shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">✅</div>
-              <div className="text-green-700 font-medium">{success}</div>
+              <div className="text-green-700 dark:text-green-300 font-medium">{success}</div>
             </div>
           </motion.div>
         )}
@@ -135,14 +132,14 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <User className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                👤 Basic Information
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+                <User className="w-5 h-5" /> Basic Information
               </h2>
             </div>
             
@@ -157,19 +154,19 @@ export default function StudentSettings() {
               />
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-500" />
                   <input
                     type="email"
                     value={profile?.email || ''}
                     disabled
-                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
+                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 dark:text-gray-500 cursor-not-allowed"
                   />
                 </div>
-                <p className="mt-2 text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-lg inline-block">
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg inline-block">
                   🔒 Email cannot be changed
                 </p>
               </div>
@@ -194,19 +191,19 @@ export default function StudentSettings() {
               />
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Sex
                 </label>
                 <select
                   {...register('sex')}
-                  className="form-input-mobile w-full rounded-xl border-2 border-gray-200 bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  className="form-input-mobile w-full rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
                 >
                   <option value="">Select Sex</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
                 {errors.sex && (
-                  <p className="mt-2 text-sm text-red-600 bg-red-50 px-3 py-1 rounded-lg">{errors.sex.message}</p>
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 px-3 py-1 rounded-lg">{errors.sex.message}</p>
                 )}
               </div>
             </div>
@@ -217,13 +214,13 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <MapPin className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <MapPin className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
                 📍 Address Information
               </h2>
             </div>
@@ -241,17 +238,17 @@ export default function StudentSettings() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Address
                 </label>
                 <textarea
                   {...register('address')}
                   rows={4}
                   placeholder="House number, street, area"
-                  className="w-full rounded-xl border-2 border-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-700 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 resize-none"
                 />
                 {errors.address && (
-                  <p className="mt-2 text-sm text-red-600 bg-red-50 px-3 py-1 rounded-lg">{errors.address.message}</p>
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 px-3 py-1 rounded-lg">{errors.address.message}</p>
                 )}
               </div>
               
@@ -271,13 +268,13 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <Phone className="h-5 w-5 text-red-600" />
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                <Phone className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
                 👥 Next of Kin
               </h2>
             </div>
@@ -308,13 +305,13 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Shield className="h-5 w-5 text-purple-600" />
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
                 🔐 Security & Active Sessions
               </h2>
             </div>
@@ -341,14 +338,14 @@ export default function StudentSettings() {
             <Button 
               type="submit" 
               loading={loading}
-              className="btn-responsive bg-gradient-to-r from-primary to-secondary text-white font-semibold shadow-lg hover:shadow-xl"
+              className="btn-responsive bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl"
             >
               <Save className="h-4 w-4 mr-2" />
               {loading ? 'Saving...' : 'Save Changes'}
             </Button>
           </motion.div>
         </form>
-      </PageContent>
-    </PageLayout>
+      </div>
+    
   )
 }

@@ -119,7 +119,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
             }}
             style={{ willChange: 'transform' }}
           >
-            <GraduationCap className="h-8 w-8 text-primary" />
+            <GraduationCap className="h-8 w-8 text-blue-600 dark:text-blue-400" />
           </motion.div>
           <span className="text-xl font-bold text-high-contrast">MIHAS-KATC</span>
         </motion.div>
@@ -130,8 +130,8 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
             <Button
               variant="gradient"
               size="md"
-              magnetic
-              className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
+              
+              className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-blue-600 dark:text-blue-400 font-bold backdrop-blur-sm shadow-lg"
             >
               Track Application
             </Button>
@@ -142,14 +142,14 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 <Button
                   variant="gradient"
                   size="md"
-                  magnetic
-                  className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
+                  
+                  className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-blue-600 dark:text-blue-400 font-bold backdrop-blur-sm shadow-lg"
                 >
                   Sign In
                 </Button>
               </Link>
               <Link to="/auth/signup">
-                <Button variant="gradient" size="md" magnetic glow className="font-semibold">
+                <Button variant="gradient" size="md"   className="font-semibold">
                   Sign Up
                 </Button>
               </Link>
@@ -160,8 +160,8 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 <Button
                   variant="gradient"
                   size="md"
-                  magnetic
-                  glow
+                  
+                  
                   className="font-semibold"
                 >
                   <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -172,7 +172,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 variant="outline"
                 size="md"
                 onClick={handleSignOut}
-                className="border-white/70 text-white hover:bg-white/10"
+                className="border-white/70 text-white hover:bg-white dark:bg-gray-800/10"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
@@ -183,7 +183,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
         {/* Mobile Menu Button */}
         <motion.button
-          className="md:hidden p-3 rounded-xl text-white bg-gray-900/90 hover:bg-gray-800 backdrop-blur-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/60 shadow-lg hover:shadow-xl border-2 border-white/50 hover:border-white/70 min-h-[48px] min-w-[48px] z-[102] touch-target"
+          className="md:hidden p-3 rounded-xl text-white bg-gray-900/90 hover:bg-gray-800 backdrop-blur-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 shadow-lg hover:shadow-xl border-2 border-white/50 hover:border-white/70 min-h-[48px] min-w-[48px] z-[102] touch-target"
           onClick={toggleMenu}
           whileTap={{ scale: 0.95 }}
           aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -240,11 +240,11 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-white/20 bg-black/10 backdrop-blur-sm">
                   <div className="flex items-center space-x-3">
-                    <GraduationCap className="h-7 w-7 text-primary" />
+                    <GraduationCap className="h-7 w-7 text-blue-600 dark:text-blue-400" />
                     <span className="text-xl font-bold text-high-contrast">MIHAS-KATC</span>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 min-h-[44px] min-w-[44px] touch-target"
+                    className="p-2 rounded-lg text-white hover:bg-white dark:bg-gray-800/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 min-h-[44px] min-w-[44px] touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -270,7 +270,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                           className={cn(
                             'flex items-center px-4 py-4 rounded-xl text-white transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
                             item.variant === 'accent'
-                              ? 'bg-primary/30 hover:bg-primary/40'
+                              ? 'bg-blue-500/30 hover:bg-blue-500/40'
                               : 'hover:bg-white/10',
                             'bg-opacity-100 visible border border-white/10'
                           )}
@@ -294,7 +294,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                         custom={drawerItems.length}
                         initial="closed"
                         animate="open"
-                        className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target"
+                        className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target"
                       >
                         <LogOut className="h-5 w-5" />
                         <span>Sign Out</span>

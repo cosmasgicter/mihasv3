@@ -63,13 +63,18 @@ export const routes: RouteConfig[] = [
   { path: '/student/dashboard', element: StudentDashboard, guard: 'auth', lazy: true },
   { path: '/apply', element: ApplicationWizard, guard: 'auth', lazy: true },
   { path: '/student/application-wizard', element: ApplicationWizard, guard: 'auth', lazy: true },
+  { path: '/student/status', element: ApplicationStatus, guard: 'auth', lazy: true },
   { path: '/application/:id', element: ApplicationStatus, guard: 'auth', lazy: true },
   { path: '/student/application/:id', element: ApplicationDetail, guard: 'auth', lazy: true },
   { path: '/settings', element: StudentSettings, guard: 'auth', lazy: true },
+  { path: '/student/profile', element: StudentSettings, guard: 'auth', lazy: true },
+  { path: '/student/settings', element: StudentSettings, guard: 'auth', lazy: true },
   { path: '/student/notifications', element: StudentNotificationSettings, guard: 'auth', lazy: true },
   
   // Admin routes
   { path: '/admin', element: AdminDashboard, guard: 'admin', lazy: true },
+  { path: '/admin/dashboard', element: AdminDashboard, guard: 'admin', lazy: true },
+  { path: '/admin/profile', element: AdminSettings, guard: 'admin', lazy: true },
   { path: '/admin-test', element: AdminTest, guard: 'auth', lazy: true },
   { path: '/admin/applications', element: AdminApplications, guard: 'admin', lazy: true },
   { path: '/admin/applications-new', element: ApplicationsAdmin, guard: 'admin', lazy: true },

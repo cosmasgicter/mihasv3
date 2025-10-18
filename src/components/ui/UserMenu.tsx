@@ -31,21 +31,21 @@ export function UserMenu() {
       <Button
         variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 hover:bg-gray-50"
+        className="flex items-center space-x-2 hover:bg-gray-50 dark:bg-gray-900"
         data-testid="user-menu-trigger"
       >
         {user?.user_metadata?.avatar_url ? (
           <img
             src={user.user_metadata.avatar_url}
             alt="Profile"
-            className="w-8 h-8 rounded-full border border-gray-200"
+            className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700"
           />
         ) : (
-          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-50 dark:bg-blue-950/300 rounded-full flex items-center justify-center">
             <User className="w-4 h-4 text-white" />
           </div>
         )}
-        <span className="hidden md:block text-sm font-medium text-gray-700">
+        <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
           {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
         </span>
         <ChevronDown className={cn(
@@ -56,19 +56,19 @@ export function UserMenu() {
 
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-[9999]"
+          className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-[9999]"
           data-testid="user-menu-dropdown"
         >
           <div className="px-4 py-2 border-b border-gray-100">
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {user?.user_metadata?.full_name || 'User'}
             </p>
-            <p className="text-xs text-gray-600">{user?.email}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">{user?.email}</p>
           </div>
           
           <Link
             to="/profile"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900"
             onClick={() => setIsOpen(false)}
           >
             <User className="w-4 h-4 mr-3" />
@@ -77,7 +77,7 @@ export function UserMenu() {
           
           <Link
             to="/settings"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900"
             onClick={() => setIsOpen(false)}
           >
             <Settings className="w-4 h-4 mr-3" />
@@ -86,7 +86,7 @@ export function UserMenu() {
           
           <button
             onClick={handleSignOut}
-            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 !visible !flex"
+            className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30 !visible !flex"
             style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
           >
             <LogOut className="w-4 h-4 mr-3" />

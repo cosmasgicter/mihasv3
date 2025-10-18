@@ -86,7 +86,7 @@ export function FileUploadTest() {
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
+    <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
       <h2 className="text-lg font-semibold mb-4">File Upload Test</h2>
       
       <div className="mb-4">
@@ -120,8 +120,8 @@ export function FileUploadTest() {
         </label>
         
         {error && (
-          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center text-sm text-red-700">
+          <div className="mt-2 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+            <div className="flex items-center text-sm text-red-700 dark:text-red-300">
               <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -131,11 +131,11 @@ export function FileUploadTest() {
 
       {uploading && (
         <div className="mb-4">
-          <div className="flex justify-between text-sm text-gray-600 mb-1">
+          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">
             <span>Uploading...</span>
             <span>{progress}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div 
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -146,20 +146,20 @@ export function FileUploadTest() {
 
       {files.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Uploaded Files ({files.length})
           </h3>
           {files.map((file) => (
             <div 
               key={file.id} 
-              className="bg-green-50 border border-green-200 rounded-lg p-3"
+              className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                   <div>
                     <p className="text-sm font-medium text-green-800">{file.name}</p>
-                    <p className="text-xs text-green-600">{formatFileSize(file.size)}</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">{formatFileSize(file.size)}</p>
                   </div>
                 </div>
                 <Button
@@ -167,7 +167,7 @@ export function FileUploadTest() {
                   variant="ghost"
                   size="sm"
                   onClick={() => removeFile(file.id)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30"
                 >
                   <X className="h-4 w-4" />
                 </Button>

@@ -74,25 +74,25 @@ export default function AIInsights() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You don't have permission to access AI insights.</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">You don't have permission to access AI insights.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                <Brain className="h-8 w-8 mr-3 text-purple-600" />
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+                <Brain className="h-8 w-8 mr-3 text-purple-600 dark:text-purple-400" />
                 AI Insights & Automation
               </h1>
-              <p className="text-gray-600 mt-2">
+              <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-2">
                 Monitor AI performance, predictive analytics, and automation workflows
               </p>
             </div>
@@ -128,12 +128,12 @@ export default function AIInsights() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Brain className="h-6 w-6 text-blue-600" />
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Brain className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">AI Predictions</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalPredictions}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">AI Predictions</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalPredictions}</p>
                 </div>
               </div>
             </Card>
@@ -146,12 +146,12 @@ export default function AIInsights() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Zap className="h-6 w-6 text-purple-600" />
+                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Automation Runs</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.automationRuns}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Automation Runs</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.automationRuns}</p>
                 </div>
               </div>
             </Card>
@@ -164,12 +164,12 @@ export default function AIInsights() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <FileText className="h-6 w-6 text-green-600" />
+                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <FileText className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Notifications Sent</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.notificationsSent}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Notifications Sent</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.notificationsSent}</p>
                 </div>
               </div>
             </Card>
@@ -183,11 +183,11 @@ export default function AIInsights() {
             <Card className="p-6">
               <div className="flex items-center">
                 <div className="p-3 bg-yellow-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-yellow-600" />
+                  <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Avg Accuracy</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.avgAccuracy}%</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Avg Accuracy</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.avgAccuracy}%</p>
                 </div>
               </div>
             </Card>
@@ -196,7 +196,7 @@ export default function AIInsights() {
 
         {/* Tab Navigation */}
         <div className="mb-6">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-gray-200 dark:border-gray-700">
             <nav className="-mb-px flex space-x-8">
               {[
                 { id: 'dashboard', label: 'Predictive Dashboard', icon: Brain },
@@ -233,15 +233,15 @@ export default function AIInsights() {
             <div className="space-y-6">
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
-                  <Zap className="h-5 w-5 mr-2 text-purple-600" />
+                  <Zap className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
                   Workflow Automation Rules
                 </h3>
                 <div className="space-y-4">
                   {workflowAutomation.getRules().map((rule) => (
-                    <div key={rule.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div key={rule.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                       <div>
-                        <h4 className="font-medium text-gray-900">{rule.name}</h4>
-                        <p className="text-sm text-gray-600">Trigger: {rule.trigger}</p>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">{rule.name}</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Trigger: {rule.trigger}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${
@@ -277,12 +277,12 @@ export default function AIInsights() {
             <div className="space-y-6">
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
-                  <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                  <FileText className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
                   Notification System Status
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Channel Status</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Channel Status</h4>
                     <div className="space-y-2">
                       {[
                         { name: 'Email', status: 'active', count: 45 },
@@ -290,10 +290,10 @@ export default function AIInsights() {
                         { name: 'SMS', status: 'inactive', count: 0 },
                         { name: 'WhatsApp', status: 'inactive', count: 0 }
                       ].map((channel) => (
-                        <div key={channel.name} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <div key={channel.name} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded">
                           <span className="font-medium">{channel.name}</span>
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-600">{channel.count} sent</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{channel.count} sent</span>
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               channel.status === 'active' 
                                 ? 'bg-green-100 text-green-800' 
@@ -307,7 +307,7 @@ export default function AIInsights() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Recent Activity</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Recent Activity</h4>
                     <div className="space-y-2">
                       {[
                         { type: 'Application Submitted', time: '2 minutes ago', status: 'sent' },
@@ -315,12 +315,12 @@ export default function AIInsights() {
                         { type: 'Status Update', time: '1 hour ago', status: 'sent' },
                         { type: 'Application Approved', time: '2 hours ago', status: 'sent' }
                       ].map((activity, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded">
                           <div>
                             <span className="font-medium text-sm">{activity.type}</span>
-                            <p className="text-xs text-gray-600">{activity.time}</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">{activity.time}</p>
                           </div>
-                          <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                          <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-800 rounded-full">
                             {activity.status}
                           </span>
                         </div>

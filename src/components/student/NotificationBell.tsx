@@ -66,15 +66,15 @@ export function NotificationBell() {
         variant="ghost"
         size="sm"
         onClick={() => setShowPanel(!showPanel)}
-        className="relative hover:bg-blue-50 flex items-center justify-center"
+        className="relative hover:bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center"
         data-testid="notification-bell"
       >
-        <Bell className="h-5 w-5 text-gray-600" />
+        <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400 dark:text-gray-500" />
         {unreadCount > 0 && (
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold"
+            className="absolute -top-1 -right-1 bg-red-50 dark:bg-red-950/300 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold"
             data-testid="unread-count"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -96,15 +96,15 @@ export function NotificationBell() {
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-[9999] max-h-[80vh] flex flex-col"
+              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[9999] max-h-[80vh] flex flex-col"
               data-testid="notifications-panel"
             >
               {/* Header */}
-              <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-gray-900">🔔 Notifications</h3>
-                    <p className="text-xs text-gray-600">
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100"><Bell className="w-5 h-5" /> Notifications</h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">
                       {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up!'}
                     </p>
                   </div>
@@ -114,7 +114,7 @@ export function NotificationBell() {
                         variant="ghost"
                         size="sm"
                         onClick={markAllAsRead}
-                        className="text-xs text-blue-600 hover:bg-blue-100"
+                        className="text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:bg-blue-900/30"
                         data-testid="mark-all-read"
                       >
                         Mark all read
@@ -137,10 +137,10 @@ export function NotificationBell() {
                 {loading ? (
                   <div className="p-6 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="text-gray-500 text-sm mt-2">Loading notifications...</p>
+                    <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Loading notifications...</p>
                   </div>
                 ) : notifications.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
+                  <div className="p-8 text-center text-gray-500 dark:text-gray-500">
                     <Bell className="h-12 w-12 mx-auto mb-3 opacity-30" />
                     <p className="font-medium">No notifications yet</p>
                     <p className="text-xs mt-1">We'll notify you about important updates</p>
@@ -173,11 +173,11 @@ export function NotificationBell() {
                                   {sanitizeText(notification.content)}
                                 </p>
                                 <div className="flex items-center justify-between mt-2">
-                                  <span className="text-xs text-gray-500">
+                                  <span className="text-xs text-gray-500 dark:text-gray-500">
                                     {formatDate(notification.created_at)}
                                   </span>
                                   {!notification.read && (
-                                    <span className="inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
+                                    <span className="inline-flex h-2 w-2 rounded-full bg-blue-50 dark:bg-blue-950/300"></span>
                                   )}
                                 </div>
                               </div>
@@ -192,7 +192,7 @@ export function NotificationBell() {
                                     console.error('Failed to delete notification')
                                   }
                                 }}
-                                className="p-1 h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:bg-red-100 hover:text-red-600 focus:bg-red-100 focus:text-red-600"
+                                className="p-1 h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:bg-red-100 dark:bg-red-900/30 hover:text-red-600 dark:text-red-400 focus:bg-red-100 focus:text-red-600"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -207,9 +207,9 @@ export function NotificationBell() {
 
               {/* Footer */}
               {notifications.length > 0 && (
-                <div className="p-3 border-t border-gray-200 bg-gray-50">
-                  <p className="text-xs text-gray-500 text-center">
-                    💡 Click notifications to mark as read
+                <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                  <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
+                    <Lightbulb className="w-5 h-5" /> Click notifications to mark as read
                   </p>
                 </div>
               )}

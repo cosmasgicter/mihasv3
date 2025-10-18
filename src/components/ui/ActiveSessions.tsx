@@ -74,10 +74,10 @@ export function ActiveSessions() {
     return (
       <Card className="p-4">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
-            <div className="h-3 bg-gray-200 rounded"></div>
-            <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
           </div>
         </div>
       </Card>
@@ -89,7 +89,7 @@ export function ActiveSessions() {
       <h3 className="text-lg font-semibold mb-4">Active Sessions</h3>
       
       {sessions.length === 0 ? (
-        <p className="text-gray-500">No active sessions found.</p>
+        <p className="text-gray-500 dark:text-gray-500">No active sessions found.</p>
       ) : (
         <div className="space-y-3">
           {sessions.map((session) => {
@@ -112,13 +112,13 @@ export function ActiveSessions() {
                       <p className="font-medium text-sm">
                         {browserInfo}
                         {isCurrentDevice && (
-                          <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                          <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 text-xs rounded-full">
                             Current Device
                           </span>
                         )}
                       </p>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
                       {screenInfo && `${screenInfo} • `}
                       Last active {formatDistanceToNow(new Date(session.last_activity), { addSuffix: true })}
                     </p>
@@ -131,7 +131,7 @@ export function ActiveSessions() {
                     size="sm"
                     onClick={() => terminateSession(session.device_id)}
                     disabled={terminating === session.device_id}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30"
                   >
                     {terminating === session.device_id ? 'Terminating...' : 'Terminate'}
                   </Button>

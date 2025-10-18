@@ -95,8 +95,8 @@ export default function ForgotPasswordPage() {
         />
 
         {error && (
-          <div className="rounded-xl border border-red-200/70 bg-red-50/80 p-4 text-left shadow-sm">
-            <div className="text-sm font-medium text-red-700">{error}</div>
+          <div className="rounded-xl border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/30/80 p-4 text-left shadow-sm">
+            <div className="text-sm font-medium text-red-700 dark:text-red-300">{error}</div>
           </div>
         )}
 
@@ -107,7 +107,7 @@ export default function ForgotPasswordPage() {
         )}
 
         {Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY) && (
-          <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
+          <div className="rounded-xl border border-blue-600/10 bg-primary/5 p-4">
             <Turnstile
               key={turnstileKey}
               siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}

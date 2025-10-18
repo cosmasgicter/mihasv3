@@ -38,7 +38,7 @@ export function DraftWarningBanner({
       'flex items-start space-x-3',
       className
     )}>
-      <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+      <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
       
       <div className="flex-1 min-w-0">
         <h3 className="text-sm font-medium text-yellow-800">
@@ -156,13 +156,13 @@ export function SessionTimeoutWarning({
       className
     )}>
       <div className="flex items-start space-x-3">
-        <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
         
         <div className="flex-1">
           <h3 className="text-sm font-medium text-red-800">
             Session Expiring
           </h3>
-          <p className="text-sm text-red-700 mt-1">
+          <p className="text-sm text-red-700 dark:text-red-300 mt-1">
             Your session will expire in {formatTimeLeft()}. 
             Any unsaved changes will be lost.
           </p>
@@ -203,13 +203,13 @@ export function FormRecoveryBanner({
       'flex items-start space-x-3',
       className
     )}>
-      <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+      <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
       
       <div className="flex-1 min-w-0">
         <h3 className="text-sm font-medium text-red-800">
           Form Submission Failed
         </h3>
-        <p className="text-sm text-red-700 mt-1">
+        <p className="text-sm text-red-700 dark:text-red-300 mt-1">
           {errorMessage} Your data has been saved locally and can be recovered.
         </p>
         

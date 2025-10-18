@@ -30,7 +30,7 @@ export function StorageExample() {
   }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow">
+    <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-4">Storage Upload Example</h3>
       
       <div className="space-y-4">
@@ -43,12 +43,12 @@ export function StorageExample() {
             onChange={handleFileUpload}
             disabled={uploading}
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="block w-full text-sm text-gray-500 dark:text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:bg-blue-950/30 file:text-blue-700 dark:text-blue-300 hover:file:bg-blue-100 dark:bg-blue-900/30"
           />
         </div>
 
         {uploading && (
-          <div className="text-blue-600">
+          <div className="text-blue-600 dark:text-blue-400">
             Uploading...
           </div>
         )}
@@ -61,7 +61,7 @@ export function StorageExample() {
           </div>
         )}
 
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
           <p><strong>Available buckets:</strong></p>
           <ul className="list-disc list-inside mt-1">
             <li>documents (public) - for general documents</li>

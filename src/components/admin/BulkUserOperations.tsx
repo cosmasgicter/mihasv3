@@ -71,14 +71,14 @@ export function BulkUserOperations({
   return (
     <div className="space-y-4">
       {/* Selection Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-3">
           <button
             onClick={handleSelectAll}
-            className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+            className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:text-gray-100"
           >
             {selectedUsers.length === users.length ? (
-              <CheckSquare className="h-4 w-4 text-blue-600" />
+              <CheckSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             ) : (
               <Square className="h-4 w-4" />
             )}
@@ -87,7 +87,7 @@ export function BulkUserOperations({
             </span>
           </button>
           {selectedUsers.length > 0 && (
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
               {selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected
             </span>
           )}
@@ -99,7 +99,7 @@ export function BulkUserOperations({
               variant="outline"
               size="sm"
               onClick={() => setShowRoleDialog(true)}
-              className="text-blue-600 border-blue-300 hover:bg-blue-50"
+              className="text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
             >
               <Shield className="h-4 w-4 mr-1" />
               Update Roles
@@ -109,7 +109,7 @@ export function BulkUserOperations({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowDeleteDialog(true)}
-                className="text-red-600 border-red-300 hover:bg-red-50"
+                className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
                 Delete Users
@@ -121,27 +121,27 @@ export function BulkUserOperations({
 
       {/* User Selection List */}
       {selectedUsers.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center">
             <Users className="h-4 w-4 mr-2" />
             Selected Users ({selectedUsers.length})
           </h4>
           <div className="space-y-2 max-h-40 overflow-y-auto">
             {selectedUserDetails.map(user => (
-              <div key={user.user_id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <div key={user.user_id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded">
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => handleUserSelect(user.user_id)}
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                   >
                     <CheckSquare className="h-4 w-4" />
                   </button>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
-                    <p className="text-xs text-gray-500">{user.email?.replace(/[<>"'&]/g, '')}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">{user.email?.replace(/[<>"'&]/g, '')}</p>
                   </div>
                 </div>
-                <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded">
+                <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">
                   {user.role.replace('_', ' ').toUpperCase()}
                 </span>
               </div>
@@ -155,22 +155,22 @@ export function BulkUserOperations({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-blue-600" />
+              <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <span>Update User Roles</span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
               Update the role for {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}:
             </p>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 New Role
               </label>
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {AVAILABLE_ROLES.map(role => (
                   <option key={role.value} value={role.value}>
@@ -179,8 +179,8 @@ export function BulkUserOperations({
                 ))}
               </select>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-blue-700">
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
                 ℹ️ This will update the role for all selected users. This action cannot be undone.
               </p>
             </div>
@@ -208,19 +208,19 @@ export function BulkUserOperations({
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2 text-red-600">
+            <DialogTitle className="flex items-center space-x-2 text-red-600 dark:text-red-400">
               <Trash2 className="h-5 w-5" />
               <span>Delete Users</span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
               Are you sure you want to delete {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}?
             </p>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
               <div className="flex items-start space-x-2">
-                <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5" />
-                <div className="text-sm text-red-700">
+                <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5" />
+                <div className="text-sm text-red-700 dark:text-red-300">
                   <p className="font-medium">This action cannot be undone!</p>
                   <p>All user data and associated records will be permanently deleted.</p>
                 </div>
@@ -252,25 +252,25 @@ export function BulkUserOperations({
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-blue-600" />
+                <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <span>Operation Complete</span>
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">{operationResult.success}</p>
-                  <p className="text-sm text-green-700">Successful</p>
+                <div className="text-center p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{operationResult.success}</p>
+                  <p className="text-sm text-green-700 dark:text-green-300">Successful</p>
                 </div>
-                <div className="text-center p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-2xl font-bold text-red-600">{operationResult.failed}</p>
-                  <p className="text-sm text-red-700">Failed</p>
+                <div className="text-center p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{operationResult.failed}</p>
+                  <p className="text-sm text-red-700 dark:text-red-300">Failed</p>
                 </div>
               </div>
               {operationResult.errors.length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-sm font-medium text-red-700 mb-2">Errors:</p>
-                  <ul className="text-xs text-red-600 space-y-1">
+                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                  <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-2">Errors:</p>
+                  <ul className="text-xs text-red-600 dark:text-red-400 space-y-1">
                     {operationResult.errors.map((error: string, index: number) => (
                       <li key={index}>• {error?.replace(/[<>"'&]/g, '')}</li>
                     ))}

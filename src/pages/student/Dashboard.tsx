@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import type { Application, Intake } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
-import { AuthenticatedNavigation } from '@/components/ui/AuthenticatedNavigation'
 import { ContinueApplication } from '@/components/application/ContinueApplication'
 import { formatDate, getStatusColor } from '@/lib/utils'
 import { draftManager } from '@/lib/draftManager'
@@ -18,7 +17,6 @@ import { catalogService } from '@/services/catalog'
 import { StudentDashboardSkeleton } from '@/components/student/StudentDashboardSkeleton'
 import { User, FileText, Clock, CheckCircle, XCircle, Plus, X, RefreshCw } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { PageLayout, PageContent } from '@/components/ui/PageLayout'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { toast } from '@/lib/toast'
@@ -182,7 +180,7 @@ export default function StudentDashboard() {
       case 'rejected':
         return <XCircle className="h-5 w-5 text-red-500" />
       case 'under_review':
-        return <Clock className="h-5 w-5 text-primary" />
+        return <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
       default:
         return <Clock className="h-5 w-5 text-yellow-500" />
     }
@@ -227,9 +225,7 @@ export default function StudentDashboard() {
   const totalDraftCount = draftApplications.length + (hasLocalDraftOnly ? 1 : 0)
 
   return (
-    <PageLayout background="gradient">
-      <AuthenticatedNavigation />
-      <PageContent className="safe-area-bottom py-4 sm:py-6 lg:py-8">
+    <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {isInitialLoading ? (
           <StudentDashboardSkeleton />
         ) : (
@@ -241,11 +237,11 @@ export default function StudentDashboard() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="rounded-full bg-white/80 px-6 py-3 shadow-lg"
+                  className="rounded-full bg-white dark:bg-gray-800/80 px-6 py-3 shadow-lg"
                 >
-                  <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10">
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-blue-50 dark:bg-blue-950/300/10">
                     <motion.div
-                      className="h-full w-1/3 rounded-full bg-gradient-to-r from-primary via-secondary to-primary"
+                      className="h-full w-1/3 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800"
                       animate={{ x: ['-100%', '100%'] }}
                       transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
                     />
@@ -258,7 +254,7 @@ export default function StudentDashboard() {
             <PageHeader
               variant="gradient"
               icon={<User className="h-6 w-6" />}
-              title={`🎓 Welcome back, ${firstName}!`}
+              title={`Welcome back, ${firstName}`}
               description="Track your applications, manage drafts, and keep your profile information up to date."
               stats={[
                 {
@@ -295,17 +291,17 @@ export default function StudentDashboard() {
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border border-red-200/70 bg-red-50/90 px-6 py-5 text-red-700 shadow-lg"
+                className="rounded-2xl border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/30/90 px-6 py-5 text-red-700 dark:text-red-300 shadow-lg"
               >
                 <div className="flex items-start gap-3">
                   <XCircle className="h-6 w-6 flex-shrink-0" />
                   <div className="flex-1">
                     <p className="font-semibold">Dashboard Error</p>
-                    <p className="text-sm text-red-600/80">{error}</p>
+                    <p className="text-sm text-red-600 dark:text-red-400/80">{error}</p>
                   </div>
                   <button
                     onClick={() => setError('')}
-                    className="flex-shrink-0 p-1 rounded-md hover:bg-red-100 transition-colors"
+                    className="flex-shrink-0 p-1 rounded-md hover:bg-red-100 dark:bg-red-900/30 transition-colors"
                     aria-label="Dismiss error"
                   >
                     <X className="h-5 w-5" />
@@ -327,15 +323,15 @@ export default function StudentDashboard() {
               >
                 {submittedApplications.length === 0 && draftApplications.length === 0 && !hasLocalDraftOnly ? (
                   <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-                    <div className="text-6xl">📋</div>
+                    <div className="text-gray-400 dark:text-gray-500"><FileText className="w-16 h-16" /></div>
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-semibold text-gray-900">No applications yet</h3>
-                      <p className="text-gray-600">
+                      <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">No applications yet</h3>
+                      <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
                         Start your journey by submitting your first application. We'll guide you every step of the way.
                       </p>
                     </div>
                     <Link to="/student/application-wizard">
-                      <Button className="bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:from-primary/90 hover:to-secondary/90">
+                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700">
                         <Plus className="mr-2 h-5 w-5" />
                         New Application
                       </Button>
@@ -349,27 +345,27 @@ export default function StudentDashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="px-6 py-5 transition-colors hover:bg-amber-50/60"
+                        className="px-6 py-5 transition-colors hover:bg-amber-50 dark:bg-amber-950/30/60"
                       >
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
-                              <Clock className="h-5 w-5 text-amber-600" />
-                              <h4 className="text-base font-semibold text-gray-900">Draft application #{application.application_number}</h4>
-                              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Draft</span>
+                              <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">Draft application #{application.application_number}</h4>
+                              <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Draft</span>
                             </div>
-                            <dl className="grid gap-2 text-sm text-gray-700 sm:grid-cols-2">
+                            <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
                               <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500">Program:</dt>
-                                <dd className="text-gray-900">{application.program}</dd>
+                                <dt className="font-medium text-gray-500 dark:text-gray-500">Program:</dt>
+                                <dd className="text-gray-900 dark:text-gray-100">{application.program}</dd>
                               </div>
                               <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500">Intake:</dt>
-                                <dd className="text-gray-900">{application.intake}</dd>
+                                <dt className="font-medium text-gray-500 dark:text-gray-500">Intake:</dt>
+                                <dd className="text-gray-900 dark:text-gray-100">{application.intake}</dd>
                               </div>
                               <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500">Created:</dt>
-                                <dd className="text-gray-900">{formatDate(application.created_at)}</dd>
+                                <dt className="font-medium text-gray-500 dark:text-gray-500">Created:</dt>
+                                <dd className="text-gray-900 dark:text-gray-100">{formatDate(application.created_at)}</dd>
                               </div>
                             </dl>
                           </div>
@@ -378,7 +374,7 @@ export default function StudentDashboard() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-100"
+                                className="w-full sm:w-auto border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:bg-amber-900/30"
                               >
                                 Continue draft
                               </Button>
@@ -386,7 +382,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-red-200 text-red-600 hover:bg-red-50"
+                              className="w-full sm:w-auto border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30"
                               onClick={async () => {
                                 if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
                                   return
@@ -422,14 +418,14 @@ export default function StudentDashboard() {
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                           <div className="space-y-1">
                             <div className="flex items-center gap-3">
-                              <Clock className="h-5 w-5 text-amber-600" />
-                              <h4 className="text-base font-semibold text-gray-900">Local draft in progress</h4>
-                              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Draft</span>
+                              <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">Local draft in progress</h4>
+                              <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Draft</span>
                             </div>
-                            <p className="text-sm text-gray-600">Progress: {getDraftProgress()}</p>
-                            <p className="text-sm text-gray-600">Last saved: {getDraftTimestamp()}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Progress: {getDraftProgress()}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Last saved: {getDraftTimestamp()}</p>
                             {draftData?.formData?.program && (
-                              <p className="text-sm text-gray-600">Program: {draftData.formData.program}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Program: {draftData.formData.program}</p>
                             )}
                           </div>
                           <div className="flex flex-col gap-2 sm:flex-row">
@@ -437,7 +433,7 @@ export default function StudentDashboard() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-100"
+                                className="w-full sm:w-auto border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:bg-amber-900/30"
                               >
                                 Continue draft
                               </Button>
@@ -445,7 +441,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-red-200 text-red-600 hover:bg-red-50"
+                              className="w-full sm:w-auto border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30"
                               onClick={async () => {
                                 if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
                                   return
@@ -481,29 +477,29 @@ export default function StudentDashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 + index * 0.05 }}
-                        className="px-6 py-5 transition-colors hover:bg-blue-50/60"
+                        className="px-6 py-5 transition-colors hover:bg-blue-50 dark:bg-blue-950/30/60"
                       >
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                           <div className="space-y-2">
                             <div className="flex items-center gap-3">
                               {getStatusIcon(application.status)}
-                              <h4 className="text-base font-semibold text-gray-900">{getProgramName(application.program)}</h4>
+                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">{getProgramName(application.program)}</h4>
                               <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(application.status)}`}>
                                 {application.status.replace('_', ' ').toUpperCase()}
                               </span>
                             </div>
-                            <dl className="grid gap-2 text-sm text-gray-700 sm:grid-cols-2">
+                            <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
                               <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500">Application:</dt>
-                                <dd className="text-gray-900">#{application.application_number}</dd>
+                                <dt className="font-medium text-gray-500 dark:text-gray-500">Application:</dt>
+                                <dd className="text-gray-900 dark:text-gray-100">#{application.application_number}</dd>
                               </div>
                               <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500">Intake:</dt>
-                                <dd className="text-gray-900">{getIntakeName(application.intake)}</dd>
+                                <dt className="font-medium text-gray-500 dark:text-gray-500">Intake:</dt>
+                                <dd className="text-gray-900 dark:text-gray-100">{getIntakeName(application.intake)}</dd>
                               </div>
                               <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500">Submitted:</dt>
-                                <dd className="text-gray-900">{formatDate(application.submitted_at)}</dd>
+                                <dt className="font-medium text-gray-500 dark:text-gray-500">Submitted:</dt>
+                                <dd className="text-gray-900 dark:text-gray-100">{formatDate(application.submitted_at)}</dd>
                               </div>
                             </dl>
                           </div>
@@ -511,7 +507,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white"
+                              className="w-full sm:w-auto border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white"
                             >
                               View Details
                             </Button>
@@ -530,25 +526,25 @@ export default function StudentDashboard() {
                   icon={<User className="h-5 w-5" />}
                 >
                   <div className="grid gap-3">
-                    <div className="rounded-xl bg-gray-50 px-4 py-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Full name</p>
-                      <p className="text-sm font-semibold text-gray-900">
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Full name</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                         {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-gray-50 px-4 py-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</p>
-                      <p className="text-sm font-semibold text-gray-900 truncate">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Email</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
                     </div>
-                    <div className="rounded-xl bg-gray-50 px-4 py-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Phone</p>
-                      <p className="text-sm font-semibold text-gray-900">
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Phone</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                         {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-gray-50 px-4 py-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Residence</p>
-                      <p className="text-sm font-semibold text-gray-900">
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Residence</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                         {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}
                       </p>
                     </div>
@@ -557,7 +553,7 @@ export default function StudentDashboard() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="mt-4 w-full border-primary text-primary hover:bg-primary hover:text-white"
+                      className="mt-4 w-full border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white"
                     >
                       Update profile
                     </Button>
@@ -576,14 +572,14 @@ export default function StudentDashboard() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 * index }}
-                        className="rounded-xl border border-red-200 bg-red-50 px-4 py-3"
+                        className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3"
                       >
-                        <p className="text-sm font-semibold text-gray-900">{intake.name}</p>
-                        <p className="text-xs font-semibold text-red-600">Deadline: {formatDate(intake.application_deadline)}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{intake.name}</p>
+                        <p className="text-xs font-semibold text-red-600 dark:text-red-400">Deadline: {formatDate(intake.application_deadline)}</p>
                       </motion.div>
                     ))}
                     {intakes.length === 0 && (
-                      <p className="rounded-xl bg-gray-50 px-4 py-4 text-center text-sm text-gray-500">
+                      <p className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-500">
                         No upcoming deadlines yet. Check back soon.
                       </p>
                     )}
@@ -601,7 +597,7 @@ export default function StudentDashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full justify-start border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                          className="w-full justify-start border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:bg-amber-900/30"
                         >
                           <FileText className="mr-2 h-4 w-4" />
                           Continue draft
@@ -612,7 +608,7 @@ export default function StudentDashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full justify-start border-primary bg-gradient-to-r from-primary to-secondary text-white hover:from-primary/90 hover:to-secondary/90"
+                          className="w-full justify-start border-blue-600 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
                         >
                           <Plus className="mr-2 h-4 w-4" />
                           Start new application
@@ -623,7 +619,7 @@ export default function StudentDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full justify-start border-red-200 text-red-600 hover:bg-red-50"
+                        className="w-full justify-start border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30"
                         disabled={isClearingAllDrafts}
                         onClick={async () => {
                           if (!confirm('Are you sure you want to clear all drafts? This action cannot be undone.')) {
@@ -672,7 +668,7 @@ export default function StudentDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full justify-start border-gray-200 text-gray-700 hover:bg-gray-50"
+                        className="w-full justify-start border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900"
                       >
                         <User className="mr-2 h-4 w-4" />
                         Profile settings
@@ -684,7 +680,6 @@ export default function StudentDashboard() {
             </div>
           </div>
         )}
-      </PageContent>
-    </PageLayout>
+    </div>
   )
 }

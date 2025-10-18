@@ -9,7 +9,7 @@ interface StepNavigationProps {
 
 export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClick }: StepNavigationProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-8">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-secondary">
           Step {currentStep} of {totalSteps}: {stepTitles[currentStep - 1]}
@@ -19,9 +19,9 @@ export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClic
         </div>
       </div>
       
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-6">
         <div 
-          className="bg-gradient-to-r from-primary to-secondary h-2 rounded-full transition-all duration-500 ease-out"
+          className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500 ease-out"
           style={{ width: `${(currentStep / totalSteps) * 100}%` }}
         />
       </div>
@@ -44,7 +44,7 @@ export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClic
                 {isCompleted ? '✓' : stepNumber}
               </div>
               <span className={`text-xs mt-1 text-center ${
-                isActive ? 'text-primary font-medium' : 'text-gray-500'
+                isActive ? 'text-blue-600 font-medium' : 'text-gray-500'
               }`}>
                 {title}
               </span>

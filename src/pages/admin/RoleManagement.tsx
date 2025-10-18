@@ -56,46 +56,46 @@ export default function RoleManagement() {
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Role Management</h1>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-gray-900">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profile Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Auth Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">User</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Profile Role</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Auth Role</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
             {users?.map((user: any) => {
               const authRole = user.user_roles?.[0]?.role
               const synced = user.role === authRole
               
               return (
                 <tr key={user.user_id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                     {user.full_name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                     {user.email}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{user.role}</span>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">{user.role}</span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     {authRole ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded">{authRole}</span>
+                      <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 rounded">{authRole}</span>
                     ) : (
-                      <span className="text-gray-400">None</span>
+                      <span className="text-gray-400 dark:text-gray-500">None</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {synced ? (
-                      <span className="text-green-600">✓ Synced</span>
+                      <span className="text-green-600 dark:text-green-400">✓ Synced</span>
                     ) : (
-                      <span className="text-red-600">⚠ Mismatch</span>
+                      <span className="text-red-600 dark:text-red-400">⚠ Mismatch</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -114,13 +114,13 @@ export default function RoleManagement() {
                         <button
                           onClick={() => updateRoleMutation.mutate({ userId: user.user_id, role: newRole })}
                           disabled={!newRole}
-                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                          className="px-3 py-1 bg-blue-50 dark:bg-blue-950/300 text-white rounded hover:bg-blue-600 disabled:opacity-50"
                         >
                           Save
                         </button>
                         <button
                           onClick={() => setSelectedUser(null)}
-                          className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                          className="px-3 py-1 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-400"
                         >
                           Cancel
                         </button>
@@ -131,7 +131,7 @@ export default function RoleManagement() {
                           setSelectedUser(user.user_id)
                           setNewRole(user.role)
                         }}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                       >
                         Edit Role
                       </button>

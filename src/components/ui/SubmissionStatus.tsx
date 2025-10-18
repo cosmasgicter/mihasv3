@@ -26,7 +26,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
       case 'failed':
         return <AlertCircle className="h-5 w-5 text-red-500" />
       default:
-        return <Clock className="h-5 w-5 text-gray-500" />
+        return <Clock className="h-5 w-5 text-gray-500 dark:text-gray-500" />
     }
   }
 
@@ -53,11 +53,11 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
         <div className="flex items-center space-x-3">
           {getStatusIcon()}
           <div>
-            <p className="font-medium text-gray-900">{status.message}</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">{status.message}</p>
             {status.step && (
-              <p className="text-sm text-gray-600">Step: {status.step}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Step: {status.step}</p>
             )}
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-500">
               {new Date(status.timestamp).toLocaleString()}
             </p>
           </div>
@@ -75,7 +75,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
           {(status.status === 'processing' || status.status === 'retry') && onCancel && (
             <button
               onClick={onCancel}
-              className="p-1 text-gray-400 hover:text-gray-600"
+              className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500"
             >
               <X className="h-4 w-4" />
             </button>

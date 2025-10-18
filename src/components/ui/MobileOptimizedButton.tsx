@@ -247,12 +247,12 @@ export function QuickActionButton({
       <div className="relative">
         {icon}
         {count !== undefined && count > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="absolute -top-2 -right-2 bg-red-50 dark:bg-red-950/300 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {count > 99 ? '99+' : count}
           </span>
         )}
       </div>
-      <span className="text-xs font-medium text-gray-600 mt-1 text-center">
+      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1 text-center">
         {label}
       </span>
     </button>

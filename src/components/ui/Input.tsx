@@ -1,70 +1,72 @@
-import React, { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import React from 'react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
-  helperText?: string
+  icon?: React.ReactNode
 }
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, error, helperText, ...props }, ref) => {
-    const [showPassword, setShowPassword] = useState(false)
-    const isPassword = type === 'password'
-    const inputType = isPassword ? (showPassword ? 'text' : 'password') : type
-    
-    const id = React.useMemo(() => {
-      return props.id || props.name || `input-${Math.random().toString(36).substr(2, 9)}`
-    }, [props.id, props.name])
-    
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, label, error, icon, type = 'text', ...props }, ref) => {
+    const [isFocused, setIsFocused] = React.useState(false)
+
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={id} className="block text-sm font-medium text-secondary mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {label}
-            {props.required && <span className="text-red-500 ml-1">*</span>}
           </label>
         )}
         <div className="relative">
+          {icon && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 dark:text-gray-500">
+              {icon}
+            </div>
+          )}
           <input
-            type={inputType}
-            id={id}
+            type={type}
             className={cn(
-              'flex h-10 w-full rounded-md border border-secondary bg-white px-3 py-2 text-sm placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:cursor-not-allowed disabled:opacity-50',
-              error && 'border-red-500 focus:ring-red-500 focus:border-red-500',
-              isPassword && 'pr-10',
+              'w-full h-10 px-3 rounded-lg',
+              'bg-white dark:bg-gray-800',
+              'border border-gray-300 dark:border-gray-600',
+              'text-gray-900 dark:text-gray-100',
+              'placeholder:text-gray-400 dark:placeholder:text-gray-500',
+              'focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent',
+              'transition-all duration-200',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
+              error && 'border-red-500 dark:border-red-400 focus:ring-red-500 dark:focus:ring-red-400',
+              icon && 'pl-10',
               className
             )}
             ref={ref}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             {...props}
-            readOnly={false}
-            disabled={props.disabled || false}
           />
-          {isPassword && (
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </button>
+          {isFocused && (
+            <motion.div
+              className="absolute inset-0 rounded-lg border-2 border-blue-500 dark:border-blue-400 pointer-events-none"
+              layoutId="input-focus"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
           )}
         </div>
         {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
-        )}
-        {helperText && !error && (
-          <p className="mt-1 text-sm text-secondary">{helperText}</p>
+          <motion.p
+            className="mt-1.5 text-sm text-red-600 dark:text-red-400"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {error}
+          </motion.p>
         )}
       </div>
     )
   }
 )
-Input.displayName = 'Input'
 
-export { Input }
+Input.displayName = 'Input'
