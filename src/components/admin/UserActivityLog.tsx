@@ -34,7 +34,7 @@ const ACTION_ICONS: Record<string, React.ReactNode> = {
   'user.permissions_updated': <Shield className="h-4 w-4 text-orange-600" />,
   'user.login': <User className="h-4 w-4 text-green-500" />,
   'user.logout': <User className="h-4 w-4 text-gray-500 dark:text-gray-500" />,
-  'user.password_changed': <Shield className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />,
+  'user.password_changed': <Shield className="h-4 w-4 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />,
 }
 
 const ACTION_LABELS: Record<string, string> = {
@@ -194,22 +194,22 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
           ) : filteredActivities.length === 0 ? (
             <div className="text-center py-8">
               <Clock className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No Activity Found</h3>
-              <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Activity Found</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 {filter || dateFilter ? 'No activities match your filters.' : 'No activity recorded for this user.'}
               </p>
             </div>
           ) : (
             <div className="space-y-4 p-4">
               {filteredActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg hover:shadow-sm transition-shadow">
+                <div key={activity.id} className="flex items-start space-x-4 p-4 bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-sm transition-shadow">
                   <div className="flex-shrink-0 mt-1">
                     {ACTION_ICONS[activity.action] || <Eye className="h-4 w-4 text-gray-500 dark:text-gray-500" />}
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {ACTION_LABELS[activity.action] || activity.action}
                       </h4>
                       <time className="text-xs text-gray-500 dark:text-gray-500">
@@ -217,7 +217,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                       </time>
                     </div>
                     
-                    <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       {formatActivityDetails(activity)}
                     </p>
                     
@@ -240,8 +240,8 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
           )}
         </div>
 
-        <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700 dark:border-gray-300">
-          <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+        <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             {filteredActivities.length} of {activities.length} activities
           </div>
           <Button onClick={onClose} className="bg-blue-600 hover:bg-blue-700 text-white">

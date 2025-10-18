@@ -74,8 +74,8 @@ export default function AIInsights() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">You don't have permission to access AI insights.</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">You don't have permission to access AI insights.</p>
         </div>
       </div>
     )
@@ -88,11 +88,11 @@ export default function AIInsights() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 flex items-center">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
                 <Brain className="h-8 w-8 mr-3 text-purple-600 dark:text-purple-400" />
                 AI Insights & Automation
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-2">
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
                 Monitor AI performance, predictive analytics, and automation workflows
               </p>
             </div>
@@ -132,8 +132,8 @@ export default function AIInsights() {
                   <Brain className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">AI Predictions</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.totalPredictions}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">AI Predictions</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalPredictions}</p>
                 </div>
               </div>
             </Card>
@@ -150,8 +150,8 @@ export default function AIInsights() {
                   <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Automation Runs</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.automationRuns}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Automation Runs</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.automationRuns}</p>
                 </div>
               </div>
             </Card>
@@ -168,8 +168,8 @@ export default function AIInsights() {
                   <FileText className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Notifications Sent</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.notificationsSent}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Notifications Sent</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.notificationsSent}</p>
                 </div>
               </div>
             </Card>
@@ -183,11 +183,11 @@ export default function AIInsights() {
             <Card className="p-6">
               <div className="flex items-center">
                 <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                  <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Avg Accuracy</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.avgAccuracy}%</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Accuracy</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.avgAccuracy}%</p>
                 </div>
               </div>
             </Card>
@@ -196,7 +196,7 @@ export default function AIInsights() {
 
         {/* Tab Navigation */}
         <div className="mb-6">
-          <div className="border-b border-gray-200 dark:border-gray-700 dark:border-gray-300">
+          <div className="border-b border-gray-200 dark:border-gray-700">
             <nav className="-mb-px flex space-x-8">
               {[
                 { id: 'dashboard', label: 'Predictive Dashboard', icon: Brain },
@@ -209,7 +209,7 @@ export default function AIInsights() {
                   className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-purple-500 text-purple-600'
-                      : 'border-transparent text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:text-gray-600 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
                   }`}
                 >
                   <tab.icon className="h-4 w-4 mr-2" />
@@ -240,8 +240,8 @@ export default function AIInsights() {
                   {workflowAutomation.getRules().map((rule) => (
                     <div key={rule.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{rule.name}</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Trigger: {rule.trigger}</p>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">{rule.name}</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Trigger: {rule.trigger}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${
@@ -282,7 +282,7 @@ export default function AIInsights() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3">Channel Status</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Channel Status</h4>
                     <div className="space-y-2">
                       {[
                         { name: 'Email', status: 'active', count: 45 },
@@ -293,11 +293,11 @@ export default function AIInsights() {
                         <div key={channel.name} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded">
                           <span className="font-medium">{channel.name}</span>
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{channel.count} sent</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{channel.count} sent</span>
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               channel.status === 'active' 
                                 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
-                                : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+                                : 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
                             }`}>
                               {channel.status}
                             </span>
@@ -307,7 +307,7 @@ export default function AIInsights() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3">Recent Activity</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Recent Activity</h4>
                     <div className="space-y-2">
                       {[
                         { type: 'Application Submitted', time: '2 minutes ago', status: 'sent' },
@@ -318,7 +318,7 @@ export default function AIInsights() {
                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded">
                           <div>
                             <span className="font-medium text-sm">{activity.type}</span>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">{activity.time}</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">{activity.time}</p>
                           </div>
                           <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-full">
                             {activity.status}

@@ -32,9 +32,9 @@ export function Button({
   
   const variantClasses = {
     primary: 'bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/50 dark:hover:shadow-blue-400/30',
-    secondary: 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 dark:text-gray-900 border border-gray-200 dark:border-gray-700 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700',
+    secondary: 'bg-white dark:bg-gray-800 dark:bg-gray-200 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700',
     outline: 'border-2 border-blue-600 dark:border-blue-400 bg-transparent text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950',
-    ghost: 'text-gray-700 dark:text-gray-300 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800',
+    ghost: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-200',
     danger: 'bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/50'
   }
   

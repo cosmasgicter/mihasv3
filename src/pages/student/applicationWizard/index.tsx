@@ -76,7 +76,7 @@ const ApplicationWizardContent = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner />
-          <p className="mt-4 text-gray-600 dark:text-gray-400 dark:text-gray-500">
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
             {authLoading ? 'Loading...' : 'Restoring your saved progress...'}
           </p>
           {restoringDraft && (
@@ -131,15 +131,15 @@ const ApplicationWizardContent = () => {
             Back to Dashboard
           </Link>
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Student Application</h1>
-            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Complete the {totalSteps}-step application process</p>
-            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Logged in as: {user.email}</div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Student Application</h1>
+            <p className="text-gray-600 dark:text-gray-400">Complete the {totalSteps}-step application process</p>
+            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">Logged in as: {user.email}</div>
           </motion.div>
         </div>
 
         <div className="mb-6 lg:mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Step {currentStepConfig.id} of {totalSteps}: {currentStepConfig.progressTitle}
             </h2>
             <div className="flex items-center space-x-4">
@@ -182,7 +182,7 @@ const ApplicationWizardContent = () => {
                           ? 'bg-green-500 border-green-500 text-white shadow-lg'
                           : isActive
                           ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-110'
-                          : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 dark:border-gray-400 text-gray-400 dark:text-gray-500'
+                          : 'bg-white dark:bg-gray-800 dark:bg-gray-200 border-gray-300 dark:border-gray-600 dark:border-gray-400 text-gray-400 dark:text-gray-500'
                       }`}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}

@@ -59,18 +59,18 @@ export function ApplicationStatus({
       case 'draft':
         return {
           icon: FileText,
-          color: 'text-gray-600 dark:text-gray-400 dark:text-gray-500',
+          color: 'text-gray-600 dark:text-gray-400',
           bg: 'bg-gray-50 dark:bg-gray-900',
-          border: 'border-gray-200 dark:border-gray-700 dark:border-gray-300',
+          border: 'border-gray-200 dark:border-gray-700',
           label: 'Draft',
           description: 'Application not yet submitted'
         }
       default:
         return {
           icon: Clock,
-          color: 'text-gray-600 dark:text-gray-400 dark:text-gray-500',
+          color: 'text-gray-600 dark:text-gray-400',
           bg: 'bg-gray-50 dark:bg-gray-900',
-          border: 'border-gray-200 dark:border-gray-700 dark:border-gray-300',
+          border: 'border-gray-200 dark:border-gray-700',
           label: 'Unknown',
           description: 'Status unknown'
         }
@@ -153,7 +153,7 @@ export function ApplicationStatus({
           <h3 className={`text-lg font-semibold ${statusConfig.color}`}>
             {statusConfig.label}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             {statusConfig.description}
           </p>
           
@@ -209,9 +209,9 @@ export function ApplicationStatusBadge({
       case 'submitted':
         return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
       case 'draft':
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+        return 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
       default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+        return 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
     }
   }
 

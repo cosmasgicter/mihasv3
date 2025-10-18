@@ -48,7 +48,7 @@ export function Select({
   return (
     <div className={cn('w-full', className)} ref={selectRef}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1.5">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           {label}
         </label>
       )}
@@ -60,9 +60,9 @@ export function Select({
           disabled={disabled}
           className={cn(
             'w-full h-10 px-3 rounded-lg flex items-center justify-between',
-            'bg-white dark:bg-gray-800',
+            'bg-white dark:bg-gray-800 dark:bg-gray-200',
             'border border-gray-300 dark:border-gray-600 dark:border-gray-400',
-            'text-gray-900 dark:text-gray-100 dark:text-gray-900',
+            'text-gray-900 dark:text-gray-100',
             'focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent',
             'transition-all duration-200',
             'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -77,14 +77,14 @@ export function Select({
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500" />
+            <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-500 dark:text-gray-400" />
           </motion.div>
         </button>
 
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg shadow-lg overflow-hidden"
+              className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}

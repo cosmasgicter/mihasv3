@@ -201,7 +201,7 @@ export default function AdminPrograms() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
           {/* Header - Mobile First */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -219,7 +219,7 @@ export default function AdminPrograms() {
               </div>
               <Button 
                 onClick={openCreate}
-                className="bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:bg-gray-800 font-semibold shadow-lg"
+                className="bg-white dark:bg-gray-800 dark:bg-gray-200 text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 font-semibold shadow-lg"
               >
                 <Plus className="h-4 w-4 mr-2" /> Add Program
               </Button>
@@ -233,7 +233,7 @@ export default function AdminPrograms() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 dark:text-gray-500">Loading programs...</p>
+                  <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">Loading programs...</p>
                 </div>
               </div>
             ) : error ? (
@@ -251,8 +251,8 @@ export default function AdminPrograms() {
             ) : programs.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-8xl mb-6"><GraduationCap className="w-5 h-5" /></div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No Programs Yet</h3>
-                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-6 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Programs Yet</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
                   Start by creating your first academic program. Programs define the courses and duration for student applications.
                 </p>
                 <Button onClick={openCreate} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
@@ -265,11 +265,11 @@ export default function AdminPrograms() {
                 {/* Mobile Cards View */}
                 <div className="block sm:hidden space-y-4">
                   {programs.map((program) => (
-                    <div key={program.id} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 dark:border-gray-300">
+                    <div key={program.id} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 dark:text-gray-900">{program.name}</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">
+                          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{program.name}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                             Duration: {program.duration_years} year{program.duration_years !== 1 ? 's' : ''}
                           </p>
                           <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mt-1">
@@ -309,28 +309,28 @@ export default function AdminPrograms() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           <GraduationCap className="w-5 h-5" /> Program Name
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           🏫 Institution
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           🕰️ Duration
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           <FileEdit className="w-5 h-5" /> Description
                         </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           ⚙️ Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-200 divide-y divide-gray-200">
                       {programs.map((program) => (
                         <tr key={program.id} className="hover:bg-blue-50 dark:bg-blue-950/30 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{program.name}</div>
+                            <div className="font-semibold text-gray-900 dark:text-gray-100">{program.name}</div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
@@ -343,7 +343,7 @@ export default function AdminPrograms() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 max-w-xs truncate">
+                            <div className="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
                               {program.description || 'No description provided'}
                             </div>
                           </td>
@@ -388,7 +388,7 @@ export default function AdminPrograms() {
           <div className="space-y-4 py-4">
             <Input label="Name" name="name" value={form.name} onChange={handleChange} required />
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">Institution</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Institution</label>
               <select
                 name="institution_id"
                 value={form.institution_id}
@@ -424,7 +424,7 @@ export default function AdminPrograms() {
           <div className="space-y-4 py-4">
             <Input label="Name" name="name" value={form.name} onChange={handleChange} required />
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">Institution</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Institution</label>
               <select
                 name="institution_id"
                 value={form.institution_id}

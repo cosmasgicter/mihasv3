@@ -9,7 +9,7 @@ interface StepNavigationProps {
 
 export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClick }: StepNavigationProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow p-6 mb-8">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-secondary">
           Step {currentStep} of {totalSteps}: {stepTitles[currentStep - 1]}
@@ -39,7 +39,7 @@ export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClic
                   ? 'bg-green-500 text-white' 
                   : isActive 
                   ? 'bg-primary text-white' 
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 dark:text-gray-500'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
               }`}>
                 {isCompleted ? '✓' : stepNumber}
               </div>

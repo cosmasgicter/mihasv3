@@ -638,7 +638,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 dark:border-gray-300 flex flex-col overflow-hidden"
+            className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
@@ -666,7 +666,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-blue-600 dark:text-blue-400" />
-                  <span className="ml-2 text-gray-600 dark:text-gray-400 dark:text-gray-500">Loading conversation...</span>
+                  <span className="ml-2 text-gray-600 dark:text-gray-400">Loading conversation...</span>
                 </div>
               ) : (
                 messages.map((message) => (
@@ -679,7 +679,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                     <div className={`max-w-[85%] rounded-2xl p-3 ${
                       message.type === 'user'
                         ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+                        : 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
                     }`}>
                       <div className="flex items-start space-x-2">
                         {message.type === 'assistant' && (
@@ -714,7 +714,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                   animate={{ opacity: 1, y: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-3 max-w-[85%]">
+                  <div className="bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 rounded-2xl p-3 max-w-[85%]">
                     <div className="flex items-center space-x-2">
                       <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       <div className="flex space-x-1">
@@ -731,7 +731,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gray-50 dark:bg-gray-900">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
               <div className="flex space-x-2">
                 <input
                   type="text"
@@ -740,7 +740,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                   onKeyPress={handleKeyPress}
                   placeholder={isTyping ? 'AI is thinking...' : 'Ask me anything about your application...'}
                   disabled={isTyping || isLoading}
-                  className="flex-1 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800 disabled:cursor-not-allowed"
+                  className="flex-1 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 disabled:cursor-not-allowed"
                 />
                 <Button
                   onClick={handleSendMessage}

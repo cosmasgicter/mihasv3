@@ -38,7 +38,7 @@ export function DraftWarningBanner({
       'flex items-start space-x-3',
       className
     )}>
-      <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+      <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
       
       <div className="flex-1 min-w-0">
         <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">

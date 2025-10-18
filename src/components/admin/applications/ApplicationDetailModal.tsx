@@ -171,10 +171,10 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
           const isBestFive = normalized !== null && bestFiveSubjectIds.has(grade.subject_id)
           return (
             <div key={index} className={`flex justify-between items-center p-3 border rounded-lg ${
-              isBestFive ? 'bg-green-50 border-green-200' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 dark:border-gray-300'
+              isBestFive ? 'bg-green-50 border-green-200' : 'bg-white dark:bg-gray-800 dark:bg-gray-200 border-gray-200 dark:border-gray-700'
             }`}>
               <div>
-                <span className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{grade.subject_name}</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">{grade.subject_name}</span>
                 {isBestFive && <span className="ml-2 text-xs text-green-600 dark:text-green-400 font-medium">BEST 5</span>}
               </div>
               <span className={`px-3 py-1 rounded-full text-sm font-bold ${
@@ -214,7 +214,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
   return (
     <div className="space-y-3">
       {history.map((item) => (
-        <div key={item.id} className="flex gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg">
+        <div key={item.id} className="flex gap-4 p-4 bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg">
           <div className="flex-shrink-0">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
               item.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30' :
@@ -224,24 +224,24 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
             }`}>
               {item.status === 'approved' ? <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" /> :
                item.status === 'rejected' ? <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" /> :
-               item.status === 'under_review' ? <Eye className="h-4 w-4 text-yellow-600 dark:text-yellow-400" /> :
+               item.status === 'under_review' ? <Eye className="h-4 w-4 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" /> :
                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
             </div>
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
-              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 capitalize">
+              <p className="font-medium text-gray-900 dark:text-gray-100 capitalize">
                 {item.status.replace('_', ' ')}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-500">
                 {formatDate(item.created_at)}
               </p>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
               Changed by {item.changed_by_profile?.full_name || item.changed_by_profile?.email || 'System'}
             </p>
             {item.notes && (
-              <p className="text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 p-2 rounded">
+              <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 p-2 rounded">
                 {item.notes}
               </p>
             )}
@@ -313,7 +313,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
   return (
     <div className="space-y-3">
       {allDocuments.map((doc) => (
-        <div key={doc.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-lg">
+        <div key={doc.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
               doc.verification_status === 'verified' ? 'bg-green-100 dark:bg-green-900/30' :
@@ -327,7 +327,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
               }`} />
             </div>
             <div>
-              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{doc.document_name}</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">{doc.document_name}</p>
               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
                 <span className={`px-2 py-1 rounded-full ${
                   doc.verification_status === 'verified' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
@@ -346,7 +346,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
                 )}
               </div>
               {doc.verification_notes && (
-                <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">{doc.verification_notes}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{doc.verification_notes}</p>
               )}
             </div>
           </div>
@@ -648,9 +648,9 @@ export function ApplicationDetailModal({
     switch (status) {
       case 'approved': return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
       case 'rejected': return <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-      case 'under_review': return <Eye className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+      case 'under_review': return <Eye className="h-5 w-5 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
       case 'submitted': return <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-      default: return <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400 dark:text-gray-500" />
+      default: return <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
     }
   }
 
@@ -658,7 +658,7 @@ export function ApplicationDetailModal({
     switch (status) {
       case 'verified': return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
       case 'rejected': return <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-      default: return <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+      default: return <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
     }
   }
 
@@ -694,19 +694,19 @@ export function ApplicationDetailModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
                 <User className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {application.full_name}
                 </h2>
-                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                   <span className="font-mono">#{application.application_number}</span>
                   <span className="text-gray-400 dark:text-gray-500">•</span>
                   <div className="flex items-center gap-1">
@@ -728,7 +728,7 @@ export function ApplicationDetailModal({
         </div>
 
         {/* Tabs */}
-        <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-white dark:bg-gray-800">
+        <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:bg-gray-200">
           <div className="flex px-6">
             {tabs.map((tab) => {
               const Icon = tab.icon
@@ -739,7 +739,7 @@ export function ApplicationDetailModal({
                   className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.id
                       ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:text-gray-600 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -756,7 +756,7 @@ export function ApplicationDetailModal({
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <LoadingSpinner size="lg" className="mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Loading application details...</p>
+                  <p className="text-gray-600 dark:text-gray-400">Loading application details...</p>
                 </div>
               </div>
             ) : (
@@ -769,7 +769,7 @@ export function ApplicationDetailModal({
                         <div className="flex items-center gap-3">
                           {getStatusIcon(application.status)}
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">Application Status</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Application Status</p>
                             <p className="text-lg font-bold text-blue-900 dark:text-blue-100 dark:text-blue-900 capitalize">
                               {application.status.replace('_', ' ')}
                             </p>
@@ -781,7 +781,7 @@ export function ApplicationDetailModal({
                         <div className="flex items-center gap-3">
                           {getPaymentIcon(application.payment_status || 'pending')}
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">Payment Status</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Payment Status</p>
                             <p className="text-lg font-bold text-green-900 dark:text-green-100 capitalize">
                               {(application.payment_status || 'pending').replace('_', ' ')}
                             </p>
@@ -793,7 +793,7 @@ export function ApplicationDetailModal({
                         <div className="flex items-center gap-3">
                           <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">Submitted</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Submitted</p>
                             <p className="text-lg font-bold text-purple-900 dark:text-purple-100">
                               {formatDate(application.submitted_at || application.created_at)}
                             </p>
@@ -803,17 +803,17 @@ export function ApplicationDetailModal({
                     </div>
 
                     {hasActiveInterview && (
-                      <div className="bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-800 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 border border-blue-100 dark:border-blue-800 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex items-center gap-3">
                           <Calendar className="h-10 w-10 text-blue-500 dark:text-blue-400" />
                           <div>
                             <p className="text-sm text-gray-500 dark:text-gray-500">Upcoming interview</p>
-                            <p className="text-base font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                            <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
                               {formatInterviewDateTime(currentInterview?.scheduled_at)}
                             </p>
                           </div>
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
                           <p className="font-medium text-gray-800 dark:text-gray-200 dark:text-gray-700">
                             Mode: {formatInterviewModeLabel(currentInterview?.mode)}
                           </p>
@@ -823,8 +823,8 @@ export function ApplicationDetailModal({
                     )}
 
                     {/* Personal Information */}
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                         <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         Personal Information
                       </h3>
@@ -834,21 +834,21 @@ export function ApplicationDetailModal({
                             <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
                               <p className="text-sm text-gray-500 dark:text-gray-500">Email</p>
-                              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.email}</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.email}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
                               <p className="text-sm text-gray-500 dark:text-gray-500">Phone</p>
-                              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.phone || 'Not provided'}</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.phone || 'Not provided'}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
                               <p className="text-sm text-gray-500 dark:text-gray-500">Date of Birth</p>
-                              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.date_of_birth || 'Not provided'}</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.date_of_birth || 'Not provided'}</p>
                             </div>
                           </div>
                         </div>
@@ -857,21 +857,21 @@ export function ApplicationDetailModal({
                             <MapPin className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
                               <p className="text-sm text-gray-500 dark:text-gray-500">Residence</p>
-                              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.residence_town || 'Not provided'}</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.residence_town || 'Not provided'}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <Users className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
                               <p className="text-sm text-gray-500 dark:text-gray-500">Next of Kin</p>
-                              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.next_of_kin_name || 'Not provided'}</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.next_of_kin_name || 'Not provided'}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <FileText className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             <div>
                               <p className="text-sm text-gray-500 dark:text-gray-500">NRC Number</p>
-                              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.nrc_number || 'Not provided'}</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{application.nrc_number || 'Not provided'}</p>
                             </div>
                           </div>
                         </div>
@@ -879,8 +879,8 @@ export function ApplicationDetailModal({
                     </div>
 
                     {/* Program Information */}
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                         <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         Program Information
                       </h3>
@@ -889,29 +889,29 @@ export function ApplicationDetailModal({
                           <GraduationCap className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                           <div>
                             <p className="text-sm text-gray-500 dark:text-gray-500">Program</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.program}</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{application.program}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <Building className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                           <div>
                             <p className="text-sm text-gray-500 dark:text-gray-500">Institution</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{getInstitutionName(application.institution)}</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{getInstitutionName(application.institution)}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                           <div>
                             <p className="text-sm text-gray-500 dark:text-gray-500">Intake</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.intake}</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{application.intake}</p>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Payment Information */}
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                         <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         Payment Information
                       </h3>
@@ -919,7 +919,7 @@ export function ApplicationDetailModal({
                         <div className="space-y-4">
                           <div>
                             <p className="text-sm text-gray-500 dark:text-gray-500 mb-1">Payment Method</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.payment_method || 'Not specified'}</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{application.payment_method || 'Not specified'}</p>
                           </div>
                           <div>
                             <p className="text-sm text-gray-500 dark:text-gray-500 mb-1">Amount Paid</p>
@@ -929,7 +929,7 @@ export function ApplicationDetailModal({
                           </div>
                           <div>
                             <p className="text-sm text-gray-500 dark:text-gray-500 mb-1">Payer Name</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{application.payer_name || 'Not provided'}</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{application.payer_name || 'Not provided'}</p>
                           </div>
                         </div>
                         {application.payment_verified_at && (
@@ -991,8 +991,8 @@ export function ApplicationDetailModal({
 
                 {activeTab === 'interview' && (
                   <div className="space-y-6">
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                         <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         Interview Overview
                       </h3>
@@ -1002,7 +1002,7 @@ export function ApplicationDetailModal({
                             <Clock className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                             <div>
                               <p className="text-sm text-gray-500 dark:text-gray-500">Scheduled for</p>
-                              <p className="text-base font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                              <p className="text-base font-medium text-gray-900 dark:text-gray-100">
                                 {formatInterviewDateTime(currentInterview?.scheduled_at)}
                               </p>
                             </div>
@@ -1023,14 +1023,14 @@ export function ApplicationDetailModal({
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">Location / Link</p>
-                              <p className="text-base text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Location / Link</p>
+                              <p className="text-base text-gray-900 dark:text-gray-100">
                                 {currentInterview?.location || 'Not provided'}
                               </p>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">Notes</p>
-                              <p className="text-base text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Notes</p>
+                              <p className="text-base text-gray-900 dark:text-gray-100">
                                 {currentInterview?.notes || 'No additional notes recorded.'}
                               </p>
                             </div>
@@ -1039,7 +1039,7 @@ export function ApplicationDetailModal({
                       ) : (
                         <div className="text-center py-8">
                           <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-                          <p className="text-base font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">No interview scheduled yet</p>
+                          <p className="text-base font-medium text-gray-700 dark:text-gray-300 mb-1">No interview scheduled yet</p>
                           <p className="text-sm text-gray-500 dark:text-gray-500">
                             Use the form below to schedule and notify the applicant about their interview.
                           </p>
@@ -1047,8 +1047,8 @@ export function ApplicationDetailModal({
                       )}
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:border-gray-300 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                         <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         Manage Interview Schedule
                       </h3>
@@ -1068,7 +1068,7 @@ export function ApplicationDetailModal({
                       <form onSubmit={event => { void handleInterviewSubmit(event) }} className="space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1" htmlFor="interview-scheduled-at">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="interview-scheduled-at">
                               Interview date &amp; time
                             </label>
                             <input
@@ -1081,7 +1081,7 @@ export function ApplicationDetailModal({
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1" htmlFor="interview-mode">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="interview-mode">
                               Interview mode
                             </label>
                             <select
@@ -1098,7 +1098,7 @@ export function ApplicationDetailModal({
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1" htmlFor="interview-location">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="interview-location">
                             Location / meeting link
                           </label>
                           <input
@@ -1112,7 +1112,7 @@ export function ApplicationDetailModal({
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1" htmlFor="interview-notes">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="interview-notes">
                             Notes for applicant
                           </label>
                           <textarea
@@ -1175,7 +1175,7 @@ export function ApplicationDetailModal({
           </div>
         </div>
         {/* Footer Actions */}
-        <div className="flex-shrink-0 p-6 border-t border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gray-50 dark:bg-gray-900">
+        <div className="flex-shrink-0 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
             <div className="flex flex-wrap gap-2">
               <Button

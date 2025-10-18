@@ -211,7 +211,7 @@ export function EnhancedFileUpload({
             : 'border-gray-300 dark:border-gray-600 dark:border-gray-400',
           disabled || !isOnline
             ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900'
-            : 'hover:border-gray-400 dark:border-gray-500 dark:border-gray-500',
+            : 'hover:border-gray-400 dark:border-gray-500',
           // Mobile optimizations
           'touch-manipulation'
         )}
@@ -225,13 +225,13 @@ export function EnhancedFileUpload({
           )} />
           
           <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {isDragActive || dzIsDragActive
                 ? 'Drop files here'
                 : 'Drop files here or click to browse'
               }
             </p>
-            <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               {accept.join(', ')} up to {formatFileSize(maxSize)}
               {autoCompress && ' (Images will be compressed)'}
             </p>
@@ -241,7 +241,7 @@ export function EnhancedFileUpload({
               </p>
             )}
             {isSlowConnection && (
-              <p className="text-xs text-yellow-600 dark:text-yellow-400">
+              <p className="text-xs text-yellow-600 dark:text-yellow-400 dark:text-yellow-500">
                 Slow connection detected - uploads may take longer
               </p>
             )}
@@ -252,7 +252,7 @@ export function EnhancedFileUpload({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
+          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
             Files ({files.length}/{maxFiles})
           </h4>
           
@@ -270,7 +270,7 @@ export function EnhancedFileUpload({
                 {/* File Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {fileWithProgress.file.name}
                     </p>
                     <div className="flex items-center space-x-2">
@@ -286,7 +286,7 @@ export function EnhancedFileUpload({
                   </div>
                   
                   <div className="mt-1 space-y-1">
-                    <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                    <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
                       <span>
                         {formatFileSize(fileWithProgress.file.size)}
                         {fileWithProgress.compressed && fileWithProgress.originalSize && (
@@ -357,7 +357,7 @@ export function ImagePreview({ file, className }: { file: File, className?: stri
   if (!preview) return null
 
   return (
-    <div className={cn('aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden', className)}>
+    <div className={cn('aspect-square bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 rounded-lg overflow-hidden', className)}>
       <img
         src={preview}
         alt={file.name}

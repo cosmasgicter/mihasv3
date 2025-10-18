@@ -5,7 +5,6 @@ import { format } from 'date-fns'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { notificationService } from '@/services/notifications'
-import { userConsentService, type UserConsentRecord } from '@/services/consents'
 import { ArrowLeft, MessageCircle, MessageSquare } from 'lucide-react'
 
 type ChannelKey = 'sms' | 'whatsapp'
@@ -90,9 +89,7 @@ export default function NotificationSettings() {
   const [savingChannel, setSavingChannel] = useState<ChannelKey | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [generalConsents, setGeneralConsents] = useState<Record<string, UserConsentRecord>>({})
-  const [loadingConsents, setLoadingConsents] = useState(true)
-  const [updatingConsent, setUpdatingConsent] = useState<string | null>(null)
+
 
   const fetchPreferences = useCallback(async () => {
     try {
@@ -109,30 +106,13 @@ export default function NotificationSettings() {
     }
   }, [])
 
-  const fetchConsents = useCallback(async () => {
-    try {
-      setLoadingConsents(true)
-      const response = await userConsentService.list()
-      const mapping: Record<string, UserConsentRecord> = {}
-      response.consents.forEach(consent => {
-        mapping[consent.consentType] = consent
-      })
-      setGeneralConsents(mapping)
-    } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'Failed to load consent history'
-      setError(message)
-    } finally {
-      setLoadingConsents(false)
-    }
-  }, [])
+
 
   useEffect(() => {
     void fetchPreferences()
   }, [fetchPreferences])
 
-  useEffect(() => {
-    void fetchConsents()
-  }, [fetchConsents])
+
 
   const hasPhoneNumber = Boolean(preferences?.phone)
 
@@ -163,19 +143,7 @@ export default function NotificationSettings() {
     ]
   )
 
-  const generalConsentDetails = useMemo(
-    () => ({
-      outreach: {
-        label: 'Outreach & communications',
-        description: 'Allows MIHAS to contact you about your application, offers, and important reminders.'
-      },
-      analytics: {
-        label: 'Analytics & product improvements',
-        description: 'Allows MIHAS to analyze usage patterns to improve student services.'
-      }
-    }),
-    []
-  )
+
 
   const handleConsentChange = async (channel: ChannelKey, enable: boolean) => {
     if (!preferences) {
@@ -209,88 +177,7 @@ export default function NotificationSettings() {
     }
   }
 
-  const isGeneralConsentActive = (consentType: keyof typeof generalConsentDetails) =>
-    Boolean(generalConsents[consentType]?.active)
 
-  const handleGeneralConsentUpdate = async (
-    consentType: keyof typeof generalConsentDetails,
-    enable: boolean
-  ) => {
-    setUpdatingConsent(consentType)
-    setError(null)
-    setSuccess(null)
-
-    try {
-      const action = enable ? 'grant' : 'revoke'
-      await userConsentService.update(consentType, action, { source: 'student_settings_page' })
-      await fetchConsents()
-      const detail = generalConsentDetails[consentType]
-      setSuccess(
-        enable
-          ? `${detail.label} enabled.`
-          : `${detail.label} disabled.`
-      )
-    } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'Failed to update consent'
-      setError(message)
-    } finally {
-      setUpdatingConsent(null)
-    }
-  }
-
-  const renderGeneralConsentCard = (consentType: keyof typeof generalConsentDetails) => {
-    const detail = generalConsentDetails[consentType]
-    const record = generalConsents[consentType]
-    const isActive = isGeneralConsentActive(consentType)
-    const buttonLabel = isActive ? 'Opt Out' : 'Opt In'
-
-    return (
-      <motion.div
-        key={consentType}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: consentType === 'outreach' ? 0.05 : 0.15 }}
-        className="rounded-2xl border border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-white dark:bg-gray-800 p-5 shadow-sm"
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{detail.label}</h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{detail.description}</p>
-          </div>
-          <span
-            className={`px-3 py-1 text-xs font-semibold rounded-full ${
-              isActive
-                ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700 dark:border-gray-300'
-            }`}
-          >
-            {isActive ? 'Active' : 'Inactive'}
-          </span>
-        </div>
-
-        <div className="mt-4 space-y-1 text-xs text-gray-500 dark:text-gray-500">
-          <p>
-            Last granted: {record?.grantedAt ? formatTimestamp(record.grantedAt) ?? record.grantedAt : '—'}
-          </p>
-          <p>
-            Last revoked: {record?.revokedAt ? formatTimestamp(record.revokedAt) ?? record.revokedAt : '—'}
-          </p>
-        </div>
-
-        <div className="mt-4 flex justify-end">
-          <Button
-            type="button"
-            variant={isActive ? 'outline' : 'primary'}
-            loading={updatingConsent === consentType}
-            disabled={updatingConsent === consentType}
-            onClick={() => handleGeneralConsentUpdate(consentType, !isActive)}
-          >
-            {updatingConsent === consentType ? 'Saving…' : buttonLabel}
-          </Button>
-        </div>
-      </motion.div>
-    )
-  }
 
   const renderChannelCard = (channel: ChannelKey) => {
     const details = CHANNEL_DETAILS[channel]
@@ -306,7 +193,7 @@ export default function NotificationSettings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: channel === 'sms' ? 0.1 : 0.2 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 space-y-4"
+        className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 space-y-4"
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -314,20 +201,20 @@ export default function NotificationSettings() {
               <details.Icon className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{details.title}</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{details.description} <span className="text-green-600 dark:text-green-400 font-medium">(Enabled by default)</span></p>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{details.title}</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{details.description} <span className="text-green-600 dark:text-green-400 font-medium">(Enabled by default)</span></p>
             </div>
           </div>
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700 dark:border-gray-300'
+              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700'
             }`}
           >
             {optedIn ? 'Enabled' : 'Disabled'}
           </span>
         </div>
 
-        <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">
+        <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
           {optedIn && summary.optInAt && (
             <p>
               <span className="font-semibold">Opted in:</span> {summary.optInAt}
@@ -343,7 +230,7 @@ export default function NotificationSettings() {
           )}
 
           {!optedIn && !summary.optOutAt && (
-            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">This channel is enabled by default. You can opt out if you prefer.</p>
+            <p className="text-gray-600 dark:text-gray-400">This channel is enabled by default. You can opt out if you prefer.</p>
           )}
 
           {disableGrant && (
@@ -359,13 +246,13 @@ export default function NotificationSettings() {
 
           <div className="flex flex-col gap-2 text-xs text-gray-500 dark:text-gray-500">
             <span className="uppercase tracking-wide text-gray-400 dark:text-gray-500 font-semibold">Current contact</span>
-            <span className="text-sm text-gray-700 dark:text-gray-300 dark:text-gray-600">{preferences?.phone || 'No phone number on file'}</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">{preferences?.phone || 'No phone number on file'}</span>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
           <div className="text-xs text-gray-500 dark:text-gray-500">
-            Priority: <span className="font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600">{entry.priority}</span>
+            Priority: <span className="font-medium text-gray-700 dark:text-gray-300">{entry.priority}</span>
           </div>
           <Button
             type="button"
@@ -438,23 +325,6 @@ export default function NotificationSettings() {
           </div>
         ) : (
           <div className="space-y-6">
-            <section className="rounded-2xl border border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-white dark:bg-gray-800 p-6 shadow-sm">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Data usage preferences</h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
-                    All data usage is enabled by default to provide you the best service. You can opt out of any you prefer not to have.
-                  </p>
-                </div>
-                {loadingConsents && <LoadingSpinner size="sm" />}
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                {(Object.keys(generalConsentDetails) as Array<keyof typeof generalConsentDetails>).map(consentType =>
-                  renderGeneralConsentCard(consentType)
-                )}
-              </div>
-            </section>
-
             <section className="grid gap-6 lg:grid-cols-2">
               {(['sms', 'whatsapp'] as ChannelKey[]).map(channel => renderChannelCard(channel))}
             </section>

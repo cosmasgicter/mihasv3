@@ -102,7 +102,7 @@ export function ActiveSessions() {
               <div
                 key={session.id}
                 className={`flex items-center justify-between p-3 rounded-lg border ${
-                  isCurrentDevice ? 'bg-green-50 border-green-200' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 dark:border-gray-300'
+                  isCurrentDevice ? 'bg-green-50 border-green-200' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <div className="flex items-center space-x-3">

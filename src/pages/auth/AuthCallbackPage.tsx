@@ -65,7 +65,7 @@ export default function AuthCallbackPage() {
       <div className="page-container bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12">
         <div className="content-wrapper">
           <div className="mx-auto w-full max-w-md">
-          <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
                 <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -87,7 +87,7 @@ export default function AuthCallbackPage() {
     <div className="page-container bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12">
       <div className="content-wrapper">
         <div className="mx-auto w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="text-center">
             <LoadingSpinner size="lg" className="mx-auto mb-4" />
             <h3 className="text-lg font-medium text-secondary mb-2">Completing Authentication</h3>

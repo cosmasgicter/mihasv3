@@ -57,7 +57,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
     const styles = {
       mandatory: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200',
       recommended: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-200',
-      optional: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700 border-gray-200 dark:border-gray-700 dark:border-gray-300'
+      optional: 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700 border-gray-200 dark:border-gray-700'
     }
     
     return (
@@ -84,7 +84,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
   return (
     <div className="space-y-4">
       {/* Search and Filter Controls */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border">
+      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 p-4 rounded-lg shadow-sm border">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -112,7 +112,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
         {showFilters && (
           <div className="mt-4 pt-4 border-t grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Regulatory Body
               </label>
               <select
@@ -128,7 +128,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Program Code
               </label>
               <select
@@ -145,7 +145,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Compliance Level
               </label>
               <select
@@ -164,7 +164,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
       </div>
 
       {/* Results Summary */}
-      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
         <span>
           Showing {filteredGuidelines.length} guidelines
           {searchQuery && ` for "${searchQuery}"`}
@@ -185,7 +185,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
       </div>
 
       {/* Guidelines Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow overflow-hidden">
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -225,7 +225,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-200 divide-y divide-gray-200">
                 {filteredGuidelines.map((guideline) => (
                   <tr key={guideline.id} className="hover:bg-gray-50 dark:bg-gray-900">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -233,7 +233,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {guideline.program_name}
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-500">
@@ -242,7 +242,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 dark:text-gray-100 dark:text-gray-900 max-w-md">
+                      <div className="text-sm text-gray-900 dark:text-gray-100 max-w-md">
                         {guideline.requirement_text}
                       </div>
                     </td>
@@ -261,7 +261,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                         guideline.verification_required
                           ? 'bg-orange-100 text-orange-800'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+                          : 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
                       }`}>
                         {guideline.verification_required ? 'Required' : 'Not Required'}
                       </span>

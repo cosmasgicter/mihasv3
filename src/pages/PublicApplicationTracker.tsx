@@ -590,7 +590,7 @@ export default function PublicApplicationTracker() {
                         onPaste={handlePaste}
                         onKeyPress={handleKeyPress}
                         placeholder="Enter application number..."
-                        className="form-input-mobile w-full text-base sm:text-xl py-4 sm:py-6 pl-12 sm:pl-16 pr-4 sm:pr-6 border-3 border-gray-200 dark:border-gray-700 dark:border-gray-300 focus:border-blue-600 rounded-2xl shadow-lg font-medium"
+                        className="form-input-mobile w-full text-base sm:text-xl py-4 sm:py-6 pl-12 sm:pl-16 pr-4 sm:pr-6 border-3 border-gray-200 dark:border-gray-700 focus:border-blue-600 rounded-2xl shadow-lg font-medium"
                       />
                     </motion.div>
                   </div>
@@ -680,12 +680,12 @@ export default function PublicApplicationTracker() {
                     <motion.div
                       animate={maybeMotion({ x: [0, 100, 0], y: [0, -50, 0] })}
                       transition={maybeMotion({ duration: 10, repeat: Infinity })}
-                      className="absolute top-0 left-0 w-32 h-32 bg-white dark:bg-gray-800 rounded-full"
+                      className="absolute top-0 left-0 w-32 h-32 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-full"
                     />
                     <motion.div
                       animate={maybeMotion({ x: [100, 0, 100], y: [0, 50, 0] })}
                       transition={maybeMotion({ duration: 15, repeat: Infinity })}
-                      className="absolute bottom-0 right-0 w-24 h-24 bg-white dark:bg-gray-800 rounded-full"
+                      className="absolute bottom-0 right-0 w-24 h-24 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-full"
                     />
                   </div>
                   
@@ -1250,7 +1250,7 @@ export default function PublicApplicationTracker() {
                 initial={maybeMotion({ scale: 0.8, opacity: 0 })}
                 animate={maybeMotion({ scale: 1, opacity: 1 })}
                 exit={maybeMotion({ scale: 0.8, opacity: 0 })}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full"
+                className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl p-8 max-w-md w-full"
                 onClick={(e) => e.stopPropagation()}
               >
                 <h3 className="text-2xl font-bold text-secondary mb-6 text-center">

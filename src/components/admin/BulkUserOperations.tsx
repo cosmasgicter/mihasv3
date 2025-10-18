@@ -71,11 +71,11 @@ export function BulkUserOperations({
   return (
     <div className="space-y-4">
       {/* Selection Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-3">
           <button
             onClick={handleSelectAll}
-            className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 hover:text-gray-900 dark:text-gray-100 dark:text-gray-900"
+            className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:text-gray-100"
           >
             {selectedUsers.length === users.length ? (
               <CheckSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -87,7 +87,7 @@ export function BulkUserOperations({
             </span>
           </button>
           {selectedUsers.length > 0 && (
-            <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
               {selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected
             </span>
           )}
@@ -121,8 +121,8 @@ export function BulkUserOperations({
 
       {/* User Selection List */}
       {selectedUsers.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-4">
-          <h4 className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-3 flex items-center">
+        <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center">
             <Users className="h-4 w-4 mr-2" />
             Selected Users ({selectedUsers.length})
           </h4>
@@ -137,11 +137,11 @@ export function BulkUserOperations({
                     <CheckSquare className="h-4 w-4" />
                   </button>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">{user.email?.replace(/[<>"'&]/g, '')}</p>
                   </div>
                 </div>
-                <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 dark:text-gray-600 rounded">
+                <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">
                   {user.role.replace('_', ' ').toUpperCase()}
                 </span>
               </div>
@@ -160,11 +160,11 @@ export function BulkUserOperations({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
+            <p className="text-gray-600 dark:text-gray-400">
               Update the role for {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}:
             </p>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 New Role
               </label>
               <select
@@ -214,7 +214,7 @@ export function BulkUserOperations({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">
+            <p className="text-gray-600 dark:text-gray-400">
               Are you sure you want to delete {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}?
             </p>
             <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">

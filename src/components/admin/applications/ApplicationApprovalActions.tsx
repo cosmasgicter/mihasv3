@@ -67,7 +67,7 @@ export function ApplicationApprovalActions({
     <div className="space-y-3">
       {/* Application Status Controls */}
       <div>
-        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1 block">
+        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">
           Application Status
         </label>
         <div className="flex gap-1">
@@ -147,7 +147,7 @@ export function ApplicationApprovalActions({
 
       {/* Payment Status Controls */}
       <div>
-        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1 block">
+        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">
           Payment Status
         </label>
         <div className="flex gap-1">

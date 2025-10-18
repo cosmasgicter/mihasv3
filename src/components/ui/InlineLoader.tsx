@@ -26,8 +26,8 @@ export function InlineLoader({
 
   const baseClasses = {
     default: 'flex items-center justify-center space-x-3',
-    minimal: 'flex items-center space-x-2 text-gray-600 dark:text-gray-400 dark:text-gray-500',
-    card: 'flex items-center justify-center space-x-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6'
+    minimal: 'flex items-center space-x-2 text-gray-600 dark:text-gray-400',
+    card: 'flex items-center justify-center space-x-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6'
   }
 
   return (
@@ -45,7 +45,7 @@ export function InlineLoader({
       )}
       <span className={cn(
         'font-medium',
-        variant === 'minimal' ? 'text-gray-600 dark:text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300 dark:text-gray-600'
+        variant === 'minimal' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'
       )}>
         {message}
       </span>

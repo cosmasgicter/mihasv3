@@ -223,8 +223,8 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Authentication Required</h2>
-          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-4">Please sign in to access the admin dashboard.</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Authentication Required</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Please sign in to access the admin dashboard.</p>
           <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
         </div>
       </div>
@@ -235,8 +235,8 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Profile Loading</h2>
-          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-4">Setting up your profile...</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Profile Loading</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Setting up your profile...</p>
           <LoadingSpinner size="lg" />
         </div>
       </div>
@@ -372,7 +372,7 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 dark:border-gray-300 relative overflow-hidden"
+            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-bl-full"></div>
             <div className="relative z-10">
@@ -381,11 +381,11 @@ export default function AdminDashboard() {
                   <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.todayApplications}</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.todayApplications}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-500">Today</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">New Applications</div>
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">New Applications</div>
               {stats.todayApplications > 0 && (
                 <div className="flex items-center mt-2 text-xs">
                   <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
@@ -401,20 +401,20 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 dark:border-gray-300 relative overflow-hidden"
+            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-orange-600/20 rounded-bl-full"></div>
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl">
-                  <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                  <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.pendingApplications}</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.pendingApplications}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-500">Pending</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Awaiting Review</div>
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Awaiting Review</div>
               {stats.pendingApplications > 0 && (
                 <Link to="/admin/applications?status=submitted" className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2 block">
                   Review now →
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 dark:border-gray-300 relative overflow-hidden"
+            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/20 rounded-bl-full"></div>
             <div className="relative z-10">
@@ -438,11 +438,11 @@ export default function AdminDashboard() {
                   <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.avgProcessingTime}</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.avgProcessingTime}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-500">Days</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Avg Processing</div>
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Processing</div>
               <div className="flex items-center mt-2 text-xs">
                 <ArrowDown className="h-3 w-3 text-green-500 mr-1" />
                 <span className="text-green-600 dark:text-green-400">Improved by 15%</span>
@@ -456,7 +456,7 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 dark:border-gray-300 relative overflow-hidden"
+            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-green-600/20 rounded-bl-full"></div>
             <div className="relative z-10">
@@ -465,7 +465,7 @@ export default function AdminDashboard() {
                   <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     {stats.approvedApplications + stats.rejectedApplications > 0 
                       ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                       : 0}%
@@ -473,7 +473,7 @@ export default function AdminDashboard() {
                   <div className="text-xs text-gray-500 dark:text-gray-500">Rate</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Approval Rate</div>
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Approval Rate</div>
               <div className="flex items-center mt-2 text-xs">
                 <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
                 <span className="text-green-600 dark:text-green-400">Stable performance</span>
@@ -517,10 +517,10 @@ export default function AdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="mt-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 dark:border-gray-300"
+          className="mt-8 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 flex items-center gap-2">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               Weekly Overview
             </h3>
@@ -530,11 +530,11 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.weekApplications}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Applications This Week</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Applications This Week</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.avgProcessingTime}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Avg Processing Days</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Avg Processing Days</div>
                 <div className="text-xs text-green-600 dark:text-green-400 mt-1">-12% improvement</div>
               </div>
               <div className="text-center">
@@ -543,7 +543,7 @@ export default function AdminDashboard() {
                     ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                     : 0}%
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Success Rate</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Success Rate</div>
                 <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">Stable performance</div>
               </div>
             </div>

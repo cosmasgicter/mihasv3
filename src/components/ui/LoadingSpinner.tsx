@@ -25,8 +25,8 @@ export function LoadingSpinner({
   }
 
   const colorClasses = {
-    primary: 'border-gray-200 dark:border-gray-700 dark:border-gray-300 border-t-primary',
-    secondary: 'border-gray-200 dark:border-gray-700 dark:border-gray-300 border-t-secondary', 
+    primary: 'border-gray-200 dark:border-gray-700 border-t-primary',
+    secondary: 'border-gray-200 dark:border-gray-700 border-t-secondary', 
     white: 'border-white/20 border-t-white'
   }
 
@@ -56,7 +56,7 @@ export function LoadingSpinner({
       {message && (
         <motion.p 
           className={cn(
-            'text-gray-600 dark:text-gray-400 dark:text-gray-500 font-medium text-center',
+            'text-gray-600 dark:text-gray-400 font-medium text-center',
             textSizeClasses[size]
           )}
           initial={{ opacity: 0 }}

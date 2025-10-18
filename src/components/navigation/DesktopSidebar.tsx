@@ -15,7 +15,7 @@ export function DesktopSidebar() {
   const studentLinks = [
     { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/apply', icon: FileText, label: 'Application' },
-    { to: '/student/status', icon: Bell, label: 'Status' },
+    { to: '/student/notifications', icon: Bell, label: 'Notifications' },
     { to: '/student/profile', icon: User, label: 'Profile' },
   ]
 
@@ -31,10 +31,10 @@ export function DesktopSidebar() {
   return (
     <motion.aside
       animate={{ width: collapsed ? 80 : 256 }}
-      className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-white dark:bg-gray-800/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200 dark:border-gray-700 dark:border-gray-800 shadow-xl z-40"
+      className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-white dark:bg-gray-800/80 backdrop-blur-xl border-r border-gray-200 dark:border-gray-700 shadow-xl z-40"
       transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
     >
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-800">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         <AnimatePresence mode="wait">
           {!collapsed && (
             <motion.h1
@@ -49,7 +49,7 @@ export function DesktopSidebar() {
         </AnimatePresence>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
+          className="p-2 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-800 dark:bg-gray-200 transition-colors"
         >
           {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
         </button>
@@ -75,7 +75,7 @@ export function DesktopSidebar() {
                 className={`h-5 w-5 transition-all duration-300 relative z-10 ${
                   isActive
                     ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 dark:text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                    : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300'
                 }`}
               />
               <AnimatePresence mode="wait">
@@ -87,7 +87,7 @@ export function DesktopSidebar() {
                     className={`text-sm font-medium transition-colors relative z-10 ${
                       isActive
                         ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-gray-700 dark:text-gray-300 dark:text-gray-600 group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                        : 'text-gray-700 dark:text-gray-300 group-hover:text-blue-500 dark:group-hover:text-blue-300'
                     }`}
                   >
                     {label}
@@ -99,7 +99,7 @@ export function DesktopSidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 dark:border-gray-800">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <div className={`flex ${collapsed ? 'justify-center' : 'justify-end'}`}>
           <ThemeToggle />
         </div>

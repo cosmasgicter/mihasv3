@@ -95,11 +95,11 @@ export function RealTimeNotifications() {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 dark:border-gray-300 z-50"
+            className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50"
           >
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">Notifications</h3>
+                <h3 className="font-bold text-gray-900 dark:text-gray-100">Notifications</h3>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -132,10 +132,10 @@ export function RealTimeNotifications() {
                       <div className="flex items-start space-x-3">
                         {getIcon(notification.type)}
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 text-sm">
+                          <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                             {notification.title}
                           </p>
-                          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 text-xs mt-1">
+                          <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">
                             {notification.message}
                           </p>
                           <div className="flex items-center justify-between mt-2">
@@ -163,7 +163,7 @@ export function RealTimeNotifications() {
             </div>
 
             {notifications.length > 0 && (
-              <div className="p-3 border-t border-gray-200 dark:border-gray-700 dark:border-gray-300">
+              <div className="p-3 border-t border-gray-200 dark:border-gray-700">
                 <Button
                   variant="ghost"
                   size="sm"

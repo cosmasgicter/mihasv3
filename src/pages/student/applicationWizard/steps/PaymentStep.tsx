@@ -42,10 +42,10 @@ const PaymentStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
       data-testid="payment-step"
     >
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{title}</h2>
 
       <div className="space-y-6">
         <motion.div
@@ -67,8 +67,8 @@ const PaymentStep = ({
             <p className="text-blue-700 dark:text-blue-300">
               <strong>Payment Target:</strong> {paymentTarget}
             </p>
-            <div className="bg-white dark:bg-gray-800 rounded-md p-3 mt-3">
-              <p className="text-gray-700 dark:text-gray-300 dark:text-gray-600 font-medium mb-2">Available Payment Methods:</p>
+            <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-md p-3 mt-3">
+              <p className="text-gray-700 dark:text-gray-300 font-medium mb-2">Available Payment Methods:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="flex items-center text-green-600 dark:text-green-400">
                   <span className="w-2 h-2 bg-green-50 dark:bg-green-950/300 rounded-full mr-2"></span>
@@ -100,13 +100,13 @@ const PaymentStep = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="payment_method" className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-1">
+            <label htmlFor="payment_method" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Payment Method <span className="text-red-500">*</span>
             </label>
             <select
               {...register('payment_method')}
               id="payment_method"
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               defaultValue="MTN Money"
             >
               <option value="MTN Money">MTN Money</option>
@@ -161,7 +161,7 @@ const PaymentStep = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Proof of Payment <span className="text-red-500">*</span>
           </label>
           <div className="relative">
@@ -179,7 +179,7 @@ const PaymentStep = ({
             )}
             {uploadProgress.proof_of_payment !== undefined && (
               <div className="mt-2">
-                <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-1">
+                <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
                   <span>Uploading...</span>
                   <span>{uploadProgress.proof_of_payment}%</span>
                 </div>

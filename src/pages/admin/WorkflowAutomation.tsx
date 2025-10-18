@@ -87,7 +87,7 @@ export default function WorkflowAutomation() {
   }
 
   const getRuleStatusColor = (rule: WorkflowRule) => {
-    if (!rule.enabled) return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+    if (!rule.enabled) return 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
     return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
   }
 
@@ -111,8 +111,8 @@ export default function WorkflowAutomation() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">You don't have permission to access workflow automation.</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">You don't have permission to access workflow automation.</p>
         </div>
       </div>
     )
@@ -123,7 +123,7 @@ export default function WorkflowAutomation() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Loading workflow automation...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading workflow automation...</p>
         </div>
       </div>
     )
@@ -136,11 +136,11 @@ export default function WorkflowAutomation() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 flex items-center">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
                 <Zap className="h-8 w-8 mr-3 text-purple-600 dark:text-purple-400" />
                 Workflow Automation
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-2">
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
                 Manage automated workflows and business rules
               </p>
             </div>
@@ -169,8 +169,8 @@ export default function WorkflowAutomation() {
                   <Settings className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Total Rules</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.totalRules}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Rules</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalRules}</p>
                 </div>
               </div>
             </Card>
@@ -187,8 +187,8 @@ export default function WorkflowAutomation() {
                   <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Active Rules</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.activeRules}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Rules</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.activeRules}</p>
                 </div>
               </div>
             </Card>
@@ -205,8 +205,8 @@ export default function WorkflowAutomation() {
                   <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Executions (7 days)</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.executionsToday}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Executions (7 days)</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.executionsToday}</p>
                 </div>
               </div>
             </Card>
@@ -220,11 +220,11 @@ export default function WorkflowAutomation() {
             <Card className="p-6">
               <div className="flex items-center">
                 <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                  <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500">Success Rate</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900">{stats.successRate}%</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Success Rate</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.successRate}%</p>
                 </div>
               </div>
             </Card>
@@ -234,7 +234,7 @@ export default function WorkflowAutomation() {
         {/* Workflow Rules */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">Automation Rules</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Automation Rules</h2>
             <div className="text-sm text-gray-500 dark:text-gray-500">
               {stats.activeRules} of {stats.totalRules} rules active
             </div>
@@ -250,23 +250,23 @@ export default function WorkflowAutomation() {
                 className={`p-6 rounded-lg border-2 transition-all duration-200 ${
                   rule.enabled 
                     ? 'border-green-200 bg-green-50' 
-                    : 'border-gray-200 dark:border-gray-700 dark:border-gray-300 bg-gray-50 dark:bg-gray-900'
+                    : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="text-2xl">{getRuleIcon(rule.trigger)}</div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{rule.name}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{rule.name}</h3>
                       <div className="flex items-center space-x-4 mt-1">
-                        <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
                           Trigger: <span className="font-medium">{rule.trigger.replace('_', ' ')}</span>
                         </span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
                           Actions: <span className="font-medium">{rule.actions.length}</span>
                         </span>
                         {rule.priority && (
-                          <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
                             Priority: <span className="font-medium">{rule.priority}</span>
                           </span>
                         )}
@@ -303,13 +303,13 @@ export default function WorkflowAutomation() {
                 </div>
 
                 {/* Rule Details */}
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 dark:border-gray-300">
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">Conditions</h4>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Conditions</h4>
                       <div className="space-y-1">
                         {Object.entries(rule.conditions).map(([key, value]) => (
-                          <div key={key} className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                          <div key={key} className="text-sm text-gray-600 dark:text-gray-400">
                             <span className="font-medium">{key.replace(/([A-Z])/g, ' $1').toLowerCase()}:</span>{' '}
                             {typeof value === 'object' && value.operator 
                               ? `${value.operator} ${value.value}`
@@ -321,10 +321,10 @@ export default function WorkflowAutomation() {
                     </div>
                     
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-600 mb-2">Actions</h4>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Actions</h4>
                       <div className="space-y-1">
                         {rule.actions.map((action, actionIndex) => (
-                          <div key={actionIndex} className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                          <div key={actionIndex} className="text-sm text-gray-600 dark:text-gray-400">
                             <span className="font-medium">{action.type.replace('_', ' ')}:</span>{' '}
                             {action.parameters.reason || action.parameters.type || 'Execute action'}
                           </div>
@@ -340,8 +340,8 @@ export default function WorkflowAutomation() {
           {rules.length === 0 && (
             <div className="text-center py-12">
               <Zap className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No Workflow Rules</h3>
-              <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">No automation rules are currently configured.</p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Workflow Rules</h3>
+              <p className="text-gray-600 dark:text-gray-400">No automation rules are currently configured.</p>
             </div>
           )}
         </Card>
@@ -349,7 +349,7 @@ export default function WorkflowAutomation() {
         {/* Quick Actions */}
         <div className="mt-8">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Quick Actions</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button
                 onClick={() => alert('Feature coming soon: Create custom workflow rule')}
@@ -359,7 +359,7 @@ export default function WorkflowAutomation() {
                 <Settings className="h-5 w-5" />
                 <div className="text-left">
                   <div className="font-medium">Create Rule</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Add custom automation</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Add custom automation</div>
                 </div>
               </Button>
               
@@ -371,7 +371,7 @@ export default function WorkflowAutomation() {
                 <TrendingUp className="h-5 w-5" />
                 <div className="text-left">
                   <div className="font-medium">Export Config</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Download settings</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Download settings</div>
                 </div>
               </Button>
               
@@ -383,7 +383,7 @@ export default function WorkflowAutomation() {
                 <Clock className="h-5 w-5" />
                 <div className="text-left">
                   <div className="font-medium">View Analytics</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Detailed reports</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Detailed reports</div>
                 </div>
               </Button>
             </div>

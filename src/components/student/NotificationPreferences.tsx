@@ -83,19 +83,19 @@ export function NotificationPreferences() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">Notification Preferences</h2>
-        <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Choose how you want to receive notifications</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Notification Preferences</h2>
+        <p className="text-gray-600 dark:text-gray-400">Choose how you want to receive notifications</p>
       </div>
 
       {/* Channels */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Notification Channels</h3>
+      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Notification Channels</h3>
         
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800">
+        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
           <div className="flex items-center gap-3">
             <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             <div>
-              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">Email Notifications</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Email Notifications</p>
               <p className="text-sm text-gray-500 dark:text-gray-500">Receive updates via email</p>
             </div>
           </div>
@@ -107,11 +107,11 @@ export function NotificationPreferences() {
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800">
+        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
           <div className="flex items-center gap-3">
             <MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
             <div>
-              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">SMS Notifications</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">SMS Notifications</p>
               <p className="text-sm text-gray-500 dark:text-gray-500">Receive updates via SMS</p>
             </div>
           </div>
@@ -123,11 +123,11 @@ export function NotificationPreferences() {
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800">
+        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             <div>
-              <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">Push Notifications</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Push Notifications</p>
               <p className="text-sm text-gray-500 dark:text-gray-500">Receive in-app notifications</p>
             </div>
           </div>
@@ -141,12 +141,12 @@ export function NotificationPreferences() {
       </div>
 
       {/* Types */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-300 p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-4">Notification Types</h3>
+      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Notification Types</h3>
         
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800">
+        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
           <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">Application Updates</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">Application Updates</p>
             <p className="text-sm text-gray-500 dark:text-gray-500">Status changes and decisions</p>
           </div>
           <input
@@ -160,9 +160,9 @@ export function NotificationPreferences() {
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800">
+        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
           <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">Interview Schedules</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">Interview Schedules</p>
             <p className="text-sm text-gray-500 dark:text-gray-500">Interview invitations and reminders</p>
           </div>
           <input
@@ -176,9 +176,9 @@ export function NotificationPreferences() {
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800">
+        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
           <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900">Document Ready</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">Document Ready</p>
             <p className="text-sm text-gray-500 dark:text-gray-500">Acceptance letters and receipts</p>
           </div>
           <input

@@ -16,7 +16,7 @@ const defaultHero = (
   <div className="mx-auto max-w-xl text-center lg:mx-0 lg:text-left">
     <div className="rounded-3xl bg-gradient-to-br from-blue-600/90 via-purple-600/90 to-blue-800/90 p-8 text-white shadow-2xl backdrop-blur-sm">
       <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white dark:bg-gray-800/20 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white backdrop-blur">
-        <span className="h-2 w-2 rounded-full bg-white dark:bg-gray-800" aria-hidden />
+        <span className="h-2 w-2 rounded-full bg-white dark:bg-gray-800 dark:bg-gray-200" aria-hidden />
         MIHAS Student Portal
       </span>
       <div className="mt-6 space-y-4">

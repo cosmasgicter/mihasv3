@@ -214,7 +214,7 @@ export default function AdminIntakes() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
           {/* Header - Mobile First */}
           <div className="bg-gradient-to-r from-secondary to-primary p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -232,7 +232,7 @@ export default function AdminIntakes() {
               </div>
               <Button 
                 onClick={openCreate}
-                className="bg-white dark:bg-gray-800 text-secondary hover:bg-gray-100 dark:bg-gray-800 font-semibold shadow-lg"
+                className="bg-white dark:bg-gray-800 dark:bg-gray-200 text-secondary hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 font-semibold shadow-lg"
               >
                 <Plus className="h-4 w-4 mr-2" /> Add Intake
               </Button>
@@ -246,7 +246,7 @@ export default function AdminIntakes() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 dark:text-gray-500">Loading intakes...</p>
+                  <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">Loading intakes...</p>
                 </div>
               </div>
             ) : error ? (
@@ -264,8 +264,8 @@ export default function AdminIntakes() {
             ) : intakes.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-8xl mb-6"><Calendar className="w-5 h-5" /></div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-2">No Intakes Yet</h3>
-                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-6 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Intakes Yet</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
                   Create admission intakes to define application periods, deadlines, and capacity for student enrollment.
                 </p>
                 <Button onClick={openCreate} className="bg-gradient-to-r from-secondary to-primary text-white font-semibold">
@@ -278,11 +278,11 @@ export default function AdminIntakes() {
                 {/* Mobile Cards View */}
                 <div className="block lg:hidden space-y-4">
                   {intakes.map((intake) => (
-                    <div key={intake.id} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 dark:border-gray-300">
+                    <div key={intake.id} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 dark:text-gray-900">{intake.name}</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">Year: {intake.year}</p>
+                          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{intake.name}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Year: {intake.year}</p>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                           intake.available_spots > 0 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
@@ -335,47 +335,47 @@ export default function AdminIntakes() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gradient-to-r from-gray-50 to-purple-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           <Calendar className="w-5 h-5" /> Name
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           📆 Year
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           🟢 Start
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           🔴 End
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           ⏰ Deadline
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           <BarChart3 className="w-5 h-5" /> Capacity
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           <Target className="w-5 h-5" /> Available
                         </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 dark:text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           ⚙️ Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-200 divide-y divide-gray-200">
                       {intakes.map((intake) => (
                         <tr key={intake.id} className="hover:bg-purple-50 dark:bg-purple-950/30 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900">{intake.name}</div>
+                            <div className="font-semibold text-gray-900 dark:text-gray-100">{intake.name}</div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800">
                               {intake.year}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                             {formatDate(intake.start_date)}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                             {formatDate(intake.end_date)}
                           </td>
                           <td className="px-6 py-4">

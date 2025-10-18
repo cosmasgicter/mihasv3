@@ -9,9 +9,9 @@ type CardProps = React.HTMLAttributes<HTMLDivElement> & {
 
 export function Card({ className, hover = false, gradient = false, ...props }: CardProps) {
   const baseClasses = cn(
-    "rounded-lg bg-white dark:bg-gray-800 shadow-sm transition-all duration-200",
+    "rounded-lg bg-white dark:bg-gray-800 dark:bg-gray-200 shadow-sm transition-all duration-200",
     gradient && "border border-transparent bg-gradient-to-br from-white via-white to-blue-50 dark:from-gray-800 dark:via-gray-800 dark:to-blue-950",
-    !gradient && "border border-gray-200 dark:border-gray-700 dark:border-gray-300",
+    !gradient && "border border-gray-200 dark:border-gray-700",
     hover && "hover:shadow-lg hover:shadow-blue-500/10 dark:hover:shadow-blue-400/10",
     className
   )
@@ -43,7 +43,7 @@ export function CardTitle({ className, ...props }: CardTitleProps) {
   return (
     <h3
       className={cn(
-        "text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-900",
+        "text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100",
         className
       )}
       {...props}
@@ -56,7 +56,7 @@ type CardDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
 export function CardDescription({ className, ...props }: CardDescriptionProps) {
   return (
     <p
-      className={cn("text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500", className)}
+      className={cn("text-sm text-gray-600 dark:text-gray-400", className)}
       {...props}
     />
   )

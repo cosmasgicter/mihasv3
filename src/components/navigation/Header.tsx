@@ -18,7 +18,7 @@ export function Header() {
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 md:left-64 z-30 bg-white dark:bg-gray-800/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 dark:border-gray-800 shadow-sm"
+      className="fixed top-0 left-0 right-0 md:left-64 z-30 bg-white dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm"
     >
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center gap-4">

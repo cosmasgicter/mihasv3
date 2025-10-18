@@ -39,9 +39,9 @@ export default function EmailNotifications() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 dark:border-gray-300">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 flex items-center">
+    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center">
           <Mail className="h-5 w-5 mr-2" />
           Email Notifications
         </h3>
@@ -64,11 +64,11 @@ export default function EmailNotifications() {
                     </span>
                   </div>
                   
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-900 mb-1">
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
                     {sanitizeForDisplay(notification.subject)}
                   </h4>
                   
-                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mb-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                     To: {sanitizeForDisplay(notification.recipient_email)}
                   </p>
                   
