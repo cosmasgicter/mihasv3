@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
+import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 export function useApplicationActions() {
   const [updating, setUpdating] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const queryClient = useQueryClient()
+  const confirmDialog = useConfirmDialog()
 
   const updateStatus = async (applicationId: string, newStatus: string, feedback?: string) => {
     try {
@@ -23,9 +25,13 @@ export function useApplicationActions() {
   }
 
   const deleteApplication = async (applicationId: string) => {
-    if (!confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
-      return
-    }
+    const confirmed = await confirmDialog.confirm({
+      title: 'Delete Application',
+      message: 'This application will be permanently deleted.',
+      confirmText: 'Delete',
+      variant: 'danger'
+    })
+    if (!confirmed) return
     
     try {
       setUpdating(applicationId)
@@ -80,6 +86,7 @@ export function useApplicationActions() {
     updateStatus,
     deleteApplication,
     sendNotification,
-    submitFeedback
+    submitFeedback,
+    confirmDialog
   }
 }

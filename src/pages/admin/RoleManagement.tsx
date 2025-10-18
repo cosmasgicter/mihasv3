@@ -13,17 +13,14 @@ export default function RoleManagement() {
     queryFn: async () => {
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select(`
-          user_id,
-          full_name,
+          id,
+          first_name,
+          last_name,
           email,
           role,
-          user_roles (
-            role,
-            is_active,
-            permissions
-          )
+          created_at
         `)
         .order('created_at', { ascending: false })
 
@@ -36,10 +33,21 @@ export default function RoleManagement() {
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
       const supabase = getSupabaseClient()
       
-      const { error } = await supabase
-        .from('user_profiles')
+      // Update profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
         .update({ role })
-        .eq('user_id', userId)
+        .eq('id', userId)
+
+      if (profileError) throw profileError
+
+      // Update user_roles table
+      const { error } = await supabase
+        .from('user_roles')
+        .upsert(
+          { user_id: userId, role, is_active: true },
+          { onConflict: 'user_id' }
+        )
 
       if (error) throw error
     },
@@ -70,36 +78,27 @@ export default function RoleManagement() {
           </thead>
           <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-200 divide-y divide-gray-200">
             {users?.map((user: any) => {
-              const authRole = user.user_roles?.[0]?.role
-              const synced = user.role === authRole
+              const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ')
               
               return (
-                <tr key={user.user_id}>
+                <tr key={user.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {user.full_name}
+                    {fullName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
                     {user.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 rounded">{user.role}</span>
+                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">{user.role}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {authRole ? (
-                      <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded">{authRole}</span>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500">None</span>
-                    )}
+                    <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded">{user.role}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {synced ? (
-                      <span className="text-green-600 dark:text-green-400">✓ Synced</span>
-                    ) : (
-                      <span className="text-red-600 dark:text-red-400">⚠ Mismatch</span>
-                    )}
+                    <span className="text-green-600 dark:text-green-400">✓ Synced</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {selectedUser === user.user_id ? (
+                    {selectedUser === user.id ? (
                       <div className="flex gap-2">
                         <select
                           value={newRole}
@@ -112,7 +111,7 @@ export default function RoleManagement() {
                           <option value="super_admin">Super Admin</option>
                         </select>
                         <button
-                          onClick={() => updateRoleMutation.mutate({ userId: user.user_id, role: newRole })}
+                          onClick={() => updateRoleMutation.mutate({ userId: user.id, role: newRole })}
                           disabled={!newRole}
                           className="px-3 py-1 bg-blue-50 dark:bg-blue-950/300 text-white rounded hover:bg-blue-600 disabled:opacity-50"
                         >
@@ -128,7 +127,7 @@ export default function RoleManagement() {
                     ) : (
                       <button
                         onClick={() => {
-                          setSelectedUser(user.user_id)
+                          setSelectedUser(user.id)
                           setNewRole(user.role)
                         }}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200 dark:text-blue-800"

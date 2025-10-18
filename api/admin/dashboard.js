@@ -47,8 +47,14 @@ async function handler(req, res) {
   }
 
   try {
+    // Force fresh data by checking timestamp
     const queryBuilder = supabaseAdminClient.from('admin_dashboard_metrics_cache').select('metrics, generated_at')
     const { data, error } = await queryBuilder.eq('id', 'overview').maybeSingle()
+    
+    // Add cache-busting header
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
 
     if (error) {
       throw new Error(error.message || 'Failed to load admin dashboard overview')

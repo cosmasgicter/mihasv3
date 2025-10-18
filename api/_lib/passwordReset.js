@@ -86,48 +86,64 @@ function escapeHtml(value) {
 }
 
 function buildPasswordResetEmail({ actionLink, appName, supportEmail }) {
+  const COLORS = {
+    primaryBlue: '#0ea5e9',
+    darkGray: '#111827',
+    mediumGray: '#4b5563',
+    lightGray: '#f9fafb',
+    white: '#ffffff'
+  };
+  
   const escapedLink = escapeHtml(actionLink)
-  const fallbackLink = escapedLink
   const safeAppName = escapeHtml(appName || 'MIHAS Admissions Portal')
   const safeSupportEmail = escapeHtml(supportEmail || 'support@mihas.edu.zm')
 
   return `<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Reset your password</title>
-    <style>
-      body { margin: 0; padding: 0; background-color: #f5f6f9; font-family: 'Helvetica Neue', Arial, sans-serif; color: #111827; }
-      .container { max-width: 600px; margin: 0 auto; padding: 32px 24px; }
-      .card { background: #ffffff; border-radius: 16px; box-shadow: 0 12px 45px rgba(15, 23, 42, 0.12); overflow: hidden; }
-      .card-body { padding: 36px 40px; }
-      h1 { font-size: 24px; margin: 0 0 16px; color: #0f172a; }
-      p { font-size: 15px; line-height: 1.7; color: #334155; margin: 0 0 16px; }
-      .button { display: inline-block; margin-top: 20px; padding: 14px 32px; border-radius: 9999px; background: linear-gradient(135deg, #0ea5e9, #2563eb); color: #ffffff; font-weight: 600; text-decoration: none; }
-      .footer { padding: 20px 32px; background-color: #f8fafc; color: #64748b; font-size: 12px; text-align: center; }
-      .link { color: #2563eb; word-break: break-all; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="card">
-        <div class="card-body">
-          <h1>Reset your password</h1>
-          <p>Hello,</p>
-          <p>We received a request to reset the password for your ${safeAppName} account. If you made this request, please choose a new password by selecting the button below.</p>
-          <p><a class="button" href="${escapedLink}">Choose a new password</a></p>
-          <p>If the button above does not work, copy and paste this link into your browser:</p>
-          <p class="link">${fallbackLink}</p>
-          <p>This link will expire shortly for security reasons. If you did not request a password reset, no further action is required.</p>
-        </div>
-        <div class="footer">
-          Need help? Contact us at ${safeSupportEmail}.<br />
-          &copy; ${new Date().getFullYear()} ${safeAppName}. All rights reserved.
-        </div>
-      </div>
-    </div>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reset Your Password</title>
+</head>
+<body style="margin:0;padding:0;background-color:${COLORS.lightGray};font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.lightGray};padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:${COLORS.white};border-radius:12px;overflow:hidden;box-shadow:0 10px 40px rgba(15,23,42,0.08);">
+          <tr>
+            <td style="background:${COLORS.primaryBlue};padding:24px 40px;text-align:center;">
+              <h1 style="margin:0;color:${COLORS.white};font-size:24px;font-weight:600;">MIHAS</h1>
+              <p style="margin:4px 0 0;color:${COLORS.white};font-size:14px;opacity:0.9;">Medical Institute of Health and Allied Sciences</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px 40px;">
+              <h2 style="font-size:20px;margin:0 0 16px;color:${COLORS.darkGray};">Reset Your Password</h2>
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${COLORS.mediumGray};">
+                We received a request to reset the password for your ${safeAppName} account. If you made this request, please choose a new password by selecting the button below.
+              </p>
+              <a href="${escapedLink}" style="display:inline-block;padding:14px 28px;background-color:${COLORS.primaryBlue};color:${COLORS.white};font-weight:600;border-radius:9999px;text-decoration:none;margin:16px 0;">Choose a New Password</a>
+              <p style="margin:16px 0 0;font-size:14px;line-height:1.6;color:${COLORS.mediumGray};">
+                If the button above does not work, copy and paste this link into your browser:<br>
+                <span style="color:${COLORS.primaryBlue};word-break:break-all;">${escapedLink}</span>
+              </p>
+              <p style="margin:16px 0 0;font-size:14px;line-height:1.6;color:${COLORS.mediumGray};">
+                This link will expire shortly for security reasons. If you did not request a password reset, no further action is required.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 40px;background-color:${COLORS.lightGray};color:${COLORS.mediumGray};font-size:12px;text-align:center;">
+              Need help? Contact us at ${safeSupportEmail}.<br>
+              © ${new Date().getFullYear()} ${safeAppName}. All rights reserved.<br>
+              <a href="https://mihas.edu.zm" style="color:${COLORS.primaryBlue};text-decoration:none;">mihas.edu.zm</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
 </html>`
 }
 

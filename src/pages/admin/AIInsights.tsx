@@ -41,14 +41,24 @@ export default function AIInsights() {
     try {
       setLoading(true)
       
-      // Load AI statistics
-      const workflowStats = await workflowAutomation.getWorkflowStats()
+      const { supabase } = await import('@/lib/supabase')
+      
+      const [predictionsResult, workflowsResult, notificationsResult, accuracyResult] = await Promise.all([
+        supabase.from('prediction_results').select('*', { count: 'exact', head: true }),
+        supabase.from('workflow_execution_logs').select('*', { count: 'exact', head: true }),
+        supabase.from('notification_logs').select('*', { count: 'exact', head: true }),
+        supabase.from('prediction_results').select('accuracy')
+      ])
+      
+      const avgAccuracy = accuracyResult.data && accuracyResult.data.length > 0
+        ? accuracyResult.data.reduce((sum, r) => sum + (r.accuracy || 0), 0) / accuracyResult.data.length
+        : 0
       
       setStats({
-        totalPredictions: 156, // Mock data - in production, get from prediction_results table
-        automationRuns: workflowStats.totalExecutions,
-        notificationsSent: 89, // Mock data - in production, get from notification_logs table
-        avgAccuracy: 87.5 // Mock data - calculate from actual predictions
+        totalPredictions: predictionsResult.count || 0,
+        automationRuns: workflowsResult.count || 0,
+        notificationsSent: notificationsResult.count || 0,
+        avgAccuracy: parseFloat(avgAccuracy.toFixed(1))
       })
     } catch (error) {
       console.error('Failed to load AI stats:', error)

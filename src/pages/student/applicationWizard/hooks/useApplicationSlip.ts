@@ -144,7 +144,7 @@ export function useApplicationSlip({
       cancelled = true
       setPersistingSlip(false)
     }
-  }, [success, slipPayload, toast, createApplicationSlip])
+  }, [success, slipPayload, toast])
 
   const triggerDownload = useCallback((url: string, filename: string) => {
     const link = document.createElement('a')

@@ -6,7 +6,7 @@ import { AnalyticsService, ApplicationStats, ProgramAnalytics, EligibilityAnalyt
 import { ReportsGenerator } from '@/components/admin/ReportsGenerator'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { exportReport, ReportExportData, ReportFormat } from '@/lib/reportExports'
-import { TrendingUp, Users, FileText, CheckCircle, Download, Plus, Edit, Trash2, RefreshCw, Eye, Filter, BarChart3 } from 'lucide-react'
+import { TrendingUp, Users, FileText, CheckCircle, Download, Plus, Edit, Trash2, RefreshCw, Eye, Filter, BarChart3, Trophy, GraduationCap } from 'lucide-react'
 import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { isReportManagerRole } from '@/lib/auth/roles'
 import { useToast } from '@/components/ui/Toast'
@@ -64,7 +64,11 @@ export default function Analytics() {
   const loadAnalytics = async () => {
     try {
       setLoading(true)
+      console.log('Loading analytics for date range:', dateRange.start, 'to', dateRange.end)
       const summary = await AnalyticsService.getAnalyticsSummary(dateRange.start, dateRange.end)
+      console.log('Analytics summary:', summary)
+      console.log('Application stats array:', summary.applicationStats)
+      console.log('Program analytics array:', summary.programAnalytics)
       
       setApplicationStats(summary.applicationStats)
       setProgramAnalytics(summary.programAnalytics)
@@ -244,11 +248,11 @@ export default function Analytics() {
         <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 mb-8">
           <div className="flex flex-wrap border-b border-gray-200 dark:border-gray-700">
             {[
-              { key: 'overview', label: '<BarChart3 className="w-5 h-5" /> Overview', icon: BarChart3 },
-              { key: 'applications', label: '<FileText className="w-5 h-5" /> Applications', icon: FileText },
-              { key: 'programs', label: '<GraduationCap className="w-5 h-5" /> Programs', icon: Users },
-              { key: 'eligibility', label: '✅ Eligibility', icon: CheckCircle },
-              { key: 'reports', label: '📄 Reports', icon: Download }
+              { key: 'overview', label: 'Overview', icon: BarChart3 },
+              { key: 'applications', label: 'Applications', icon: FileText },
+              { key: 'programs', label: 'Programs', icon: GraduationCap },
+              { key: 'eligibility', label: 'Eligibility', icon: CheckCircle },
+              { key: 'reports', label: 'Reports', icon: Download }
             ].map((tab) => {
               const Icon = tab.icon
               const isReportsTab = tab.key === 'reports'

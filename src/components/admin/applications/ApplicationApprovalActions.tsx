@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 interface ApplicationApprovalActionsProps {
   applicationId: string
@@ -21,21 +23,30 @@ export function ApplicationApprovalActions({
 }: ApplicationApprovalActionsProps) {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [updatingPayment, setUpdatingPayment] = useState(false)
+  const confirmDialog = useConfirmDialog()
 
   const handleStatusUpdate = async (newStatus: string) => {
     if (updatingStatus || disabled) return
     
     // Confirm critical actions
     if (newStatus === 'rejected') {
-      if (!confirm('Are you sure you want to reject this application? This action cannot be undone.')) {
-        return
-      }
+      const confirmed = await confirmDialog.confirm({
+        title: 'Reject Application',
+        message: 'This application will be rejected.',
+        confirmText: 'Reject',
+        variant: 'danger'
+      })
+      if (!confirmed) return
     }
     
     if (newStatus === 'approved') {
-      if (!confirm('Are you sure you want to approve this application? The applicant will be notified.')) {
-        return
-      }
+      const confirmed = await confirmDialog.confirm({
+        title: 'Approve Application',
+        message: 'The applicant will be notified of approval.',
+        confirmText: 'Approve',
+        variant: 'info'
+      })
+      if (!confirmed) return
     }
     
     try {
@@ -207,6 +218,16 @@ export function ApplicationApprovalActions({
           )}
         </div>
       </div>
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={confirmDialog.handleCancel}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </div>
   )
 }

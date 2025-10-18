@@ -93,7 +93,7 @@ export function Toast({ id, type, title, message, duration = 5000, onClose }: To
 export function ToastContainer({ toasts }: { toasts: ToastProps[] }) {
   return (
     <div 
-      className="fixed top-4 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none"
+      className="fixed top-20 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none"
     >
       <AnimatePresence>
         {toasts.map((toast) => (
