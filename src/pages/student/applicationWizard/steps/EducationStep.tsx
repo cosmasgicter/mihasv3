@@ -1,9 +1,10 @@
 import type { ChangeEvent } from 'react'
 
 import { motion } from 'framer-motion'
-import { AlertTriangle, CheckCircle, X } from 'lucide-react'
+import { CheckCircle, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
+import { EligibilityNotification } from '@/components/application/EligibilityNotification'
 
 import type { EligibilityResult } from '@/lib/eligibility'
 
@@ -76,59 +77,12 @@ const EducationStep = ({
           </div>
 
           {eligibilityCheck && selectedGrades.length >= 5 && (
-            <motion.div
-              className={`mb-4 p-4 rounded-lg border ${
-                eligibilityCheck.eligible ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
-              }`}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <div className="flex items-center mb-2">
-                {eligibilityCheck.eligible ? (
-                  <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
-                ) : (
-                  <AlertTriangle className="h-5 w-5 mr-2 text-yellow-600" />
-                )}
-                <span
-                  className={`font-medium ${eligibilityCheck.eligible ? 'text-green-800' : 'text-yellow-800'}`}
-                >
-                  {eligibilityCheck.eligible
-                    ? `✓ Meets Basic Requirements for ${selectedProgram}`
-                    : `⚠ Advisory for ${selectedProgram}`}
-                </span>
-                {eligibilityCheck.score && (
-                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                    Score: {eligibilityCheck.score}%
-                  </span>
-                )}
-              </div>
-              <p
-                className={`text-sm mb-2 ${eligibilityCheck.eligible ? 'text-green-700' : 'text-yellow-700'}`}
-              >
-                {eligibilityCheck.message}
-              </p>
-              {!eligibilityCheck.eligible && (
-                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                  <p className="text-xs text-blue-800 font-medium">
-                    ℹ️ You can still proceed with your application. Please consult with the institution for guidance on
-                    requirements.
-                  </p>
-                </div>
-              )}
-              {eligibilityCheck.recommendations && eligibilityCheck.recommendations.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-xs font-medium text-gray-600 mb-1">Recommendations:</p>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    {eligibilityCheck.recommendations.map((rec, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="mr-1">•</span>
-                        <span>{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </motion.div>
+            <div className="mb-4">
+              <EligibilityNotification 
+                eligibility={eligibilityCheck} 
+                programName={selectedProgram}
+              />
+            </div>
           )}
 
           {selectedProgram && recommendedSubjects.length > 0 && (
