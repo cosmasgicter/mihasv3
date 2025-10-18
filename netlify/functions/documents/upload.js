@@ -262,7 +262,7 @@ async function handler(req, res) {
     }
 
     const { data: application, error: applicationError } = await supabaseAdminClient
-      .from('applications_new')
+      .from('applications')
       .select('id, user_id')
       .eq('id', applicationId)
       .maybeSingle()

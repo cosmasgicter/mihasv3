@@ -89,7 +89,7 @@ async function testGetAllApplications() {
   
   try {
     const { data, error } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select(`
         *,
         profiles(full_name, email),
@@ -130,7 +130,7 @@ async function testGetApplicationDetails() {
   
   try {
     const { data, error } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select(`
         *,
         profiles(full_name, email),
@@ -165,14 +165,14 @@ async function testApprovalWorkflow() {
   try {
     // Store original status
     const { data: originalData } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select('status, reviewed_by, reviewed_at, admin_notes')
       .eq('id', testApplicationId)
       .single()
     
     // Test 1: Approve Application
     const { error: approveError } = await supabase
-      .from('applications_new')
+      .from('applications')
       .update({
         status: 'approved',
         reviewed_by: ADMIN_EMAIL,
@@ -190,7 +190,7 @@ async function testApprovalWorkflow() {
     
     // Test 2: Verify status change
     const { data: verifyData, error: verifyError } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select('status, reviewed_by, reviewed_at, admin_notes')
       .eq('id', testApplicationId)
       .single()
@@ -209,7 +209,7 @@ async function testApprovalWorkflow() {
     
     // Test 3: Reject Application
     const { error: rejectError } = await supabase
-      .from('applications_new')
+      .from('applications')
       .update({
         status: 'rejected',
         reviewed_by: ADMIN_EMAIL,
@@ -227,7 +227,7 @@ async function testApprovalWorkflow() {
     
     // Test 4: Revert to original status
     const { error: revertError } = await supabase
-      .from('applications_new')
+      .from('applications')
       .update({
         status: originalData.status,
         reviewed_by: originalData.reviewed_by,
@@ -256,7 +256,7 @@ async function testAdminStatistics() {
   
   try {
     const { data, error } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select('status')
     
     if (error) {
@@ -406,7 +406,7 @@ async function testBulkOperations() {
   
   try {
     const { data, error } = await supabase
-      .from('applications_new')
+      .from('applications')
       .select('id, status, profiles(full_name)')
       .limit(5)
     

@@ -12,6 +12,19 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { useToast } from '@/components/ui/Toast'
 import { createApplicationSlip } from '@/lib/slipService'
+
+// Institution code to name mapping
+const INSTITUTION_NAMES: Record<string, string> = {
+  'KATC': 'Kalulushi Training Centre',
+  'katc': 'Kalulushi Training Centre',
+  'MIHAS': 'Mukuba Institute of Health and Allied Sciences',
+  'mihas': 'Mukuba Institute of Health and Allied Sciences'
+}
+
+const getInstitutionName = (code?: string | null) => {
+  if (!code) return 'Not specified'
+  return INSTITUTION_NAMES[code] || code
+}
 import {
   Search,
   CheckCircle,
@@ -944,7 +957,7 @@ export default function PublicApplicationTracker() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-secondary text-sm sm:text-base lg:text-lg">Institution</p>
-                              <p className="text-secondary text-base sm:text-lg lg:text-xl break-words">{displayValue(application.institution, 'Not specified')}</p>
+                              <p className="text-secondary text-base sm:text-lg lg:text-xl break-words">{getInstitutionName(application.institution)}</p>
                             </div>
                           </div>
                         </AnimatedCard>

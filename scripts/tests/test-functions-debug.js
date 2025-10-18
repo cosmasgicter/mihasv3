@@ -6,7 +6,7 @@ const testEndpoints = [
     name: 'Database Connection',
     test: async () => {
       const { data, error } = await supabaseAdminClient
-        .from('applications_new')
+        .from('applications')
         .select('count')
         .limit(1)
       return { success: !error, error: error?.message, data }
@@ -72,7 +72,7 @@ const testEndpoints = [
   {
     name: 'Supabase Tables Check',
     test: async () => {
-      const tables = ['applications_new', 'user_roles', 'profiles']
+      const tables = ['applications', 'user_roles', 'profiles']
       const results = {}
       
       for (const table of tables) {

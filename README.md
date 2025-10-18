@@ -9,7 +9,8 @@ MIHAS (Medical Institute of Health and Allied Sciences) Application System V3 - 
 ```
 mihasv3/
 ├── src/                          # Source code
-├── api-functions/                # Netlify serverless functions
+├── api/                          # API source (organized by feature)
+├── api-functions/                # Serverless functions (flat, deployment-ready)
 ├── docs/                         # Documentation
 │   ├── reports/                  # Analysis and audit reports
 │   ├── guides/                   # User guides and manuals
@@ -19,8 +20,8 @@ mihasv3/
 │   ├── setup/                    # Setup and deployment scripts
 │   └── deployment/               # Deployment utilities
 ├── archive/                      # Archived files
+├── API_STRUCTURE_GUIDE.md        # API development standards ⭐
 ├── COMPLETE_SOURCE_CODE_FINAL.md # Complete source code (2.6MB)
-├── COMPLETE_SOURCE_CODE_FINAL.txt # Complete source code (TXT format)
 ├── package.json                  # Dependencies
 ├── netlify.toml                  # Netlify configuration
 └── README.md                     # This file
@@ -47,6 +48,7 @@ npm run test:unit
 
 ## 📖 Documentation
 
+- **API Structure Guide**: `API_STRUCTURE_GUIDE.md` ⭐ **READ THIS FIRST**
 - **Complete Source Code**: `COMPLETE_SOURCE_CODE_FINAL.md` (2.6MB, 457 files)
 - **User Guides**: `docs/guides/`
 - **Technical Reports**: `docs/reports/`
@@ -76,7 +78,7 @@ npm run test:unit
 - **Database Tables**: 86
 - **Source Files**: 457
 - **Lines of Code**: ~56,000
-- **API Functions**: 136
+- **API Functions**: 47 (all in `api-functions/`)
 - **React Components**: 120+
 - **Custom Hooks**: 38
 

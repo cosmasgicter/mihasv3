@@ -78,10 +78,6 @@ export function EnhancedDashboard({
               </div>
             </div>
             <div className="text-sm font-medium text-gray-600">New Applications</div>
-            <div className="flex items-center mt-2 text-xs">
-              <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
-              <span className="text-green-600">+{Math.floor(Math.random() * 20)}% from yesterday</span>
-            </div>
           </div>
         </motion.div>
 

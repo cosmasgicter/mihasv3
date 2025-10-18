@@ -1,84 +1,87 @@
-import { supabase } from './supabase'
-import { sanitizeEmail, sanitizeText, sanitizeForLog } from './sanitize'
-import { EMAIL_TEMPLATES } from './emailTemplates'
-import type { EmailNotificationData } from '@/types/notifications'
+// Minimal email service
+export const emailService = {
+  async sendNotificationEmail(to: string, title: string, message: string) {
+    return fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to,
+        subject: title,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">${title}</h2>
+            <p style="color: #374151; line-height: 1.6;">${message}</p>
+            <hr style="border: 1px solid #e5e7eb; margin: 20px 0;">
+            <p style="color: #6b7280; font-size: 12px;">
+              MIHAS Application System - Do not reply to this email
+            </p>
+          </div>
+        `,
+        type: 'notification',
+        metadata: { title }
+      })
+    })
+  },
 
-export class EmailService {
-  private static sanitizeHtmlContent(content: string): string {
-    if (!content) return ''
-    // Remove all HTML tags and dangerous characters
-    return content
-      .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/javascript:/gi, '') // Remove javascript: URLs
-      .replace(/on\w+\s*=/gi, '') // Remove event handlers
-      .replace(/[<>"'`]/g, '') // Remove dangerous characters
-      .trim()
-  }
+  async sendAcceptanceLetter(to: string, applicationNumber: string, pdfUrl: string) {
+    return fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to,
+        subject: `Acceptance Letter - ${applicationNumber}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #10b981;">Congratulations! 🎉</h2>
+            <p>Your application <strong>${applicationNumber}</strong> has been approved.</p>
+            <p>Please find your acceptance letter attached or download it here:</p>
+            <a href="${pdfUrl}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+              Download Acceptance Letter
+            </a>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
+              Next steps will be communicated to you shortly.
+            </p>
+          </div>
+        `,
+        type: 'acceptance_letter',
+        metadata: { applicationNumber }
+      })
+    })
+  },
 
-  static async queueEmailNotification(data: EmailNotificationData): Promise<boolean> {
-    const sanitizedEmail = sanitizeEmail(data.recipientEmail)
-    if (!sanitizedEmail || !data.applicationId || !data.subject || !data.body) {
-      console.error('Invalid email notification data')
-      return false
-    }
+  async sendInterviewSchedule(to: string, applicationNumber: string, scheduledAt: string, mode: string, location?: string) {
+    const date = new Date(scheduledAt).toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
 
-    try {
-      const { error } = await supabase
-        .from('email_notifications')
-        .insert({
-          application_id: data.applicationId,
-          recipient_email: sanitizedEmail,
-          subject: sanitizeText(data.subject),
-          body: this.sanitizeHtmlContent(data.body).substring(0, 5000),
-          status: 'pending'
-        })
-
-      if (error) {
-        console.error('Failed to queue email notification:', { error: sanitizeForLog(error.message) })
-        return false
-      }
-
-      return true
-    } catch (error) {
-      console.error('Error queueing email notification:', { error: sanitizeForLog(String(error)) })
-      return false
-    }
-  }
-
-  static async sendApplicationStatusEmail(
-    applicationId: string,
-    userEmail: string,
-    status: string,
-    applicationNumber: string,
-    program: string,
-    userName: string
-  ): Promise<boolean> {
-    if (!applicationId || !userEmail || !status || !applicationNumber || !program || !userName) {
-      console.error('Missing required parameters for email notification')
-      return false
-    }
-
-    const sanitizedEmail = sanitizeEmail(userEmail)
-    if (!sanitizedEmail) {
-      console.error('Invalid email address format')
-      return false
-    }
-
-    const template = EMAIL_TEMPLATES[status as keyof typeof EMAIL_TEMPLATES]
-    if (!template) {
-      console.error('Invalid email template status:', { status: sanitizeForLog(status) })
-      return false
-    }
-
-    const sanitizedUserName = sanitizeText(userName)
-    const sanitizedProgram = sanitizeText(program)
-    const sanitizedAppNumber = sanitizeText(applicationNumber)
-
-    return this.queueEmailNotification({
-      applicationId,
-      recipientEmail: sanitizedEmail,
-      subject: this.sanitizeHtmlContent(template.subject(sanitizedProgram)),
-      body: this.sanitizeHtmlContent(template.body(sanitizedUserName, sanitizedProgram, sanitizedAppNumber))
+    return fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to,
+        subject: `Interview Scheduled - ${applicationNumber}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Interview Scheduled 📅</h2>
+            <p>Your interview for application <strong>${applicationNumber}</strong> has been scheduled.</p>
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 5px 0;"><strong>Date & Time:</strong> ${date}</p>
+              <p style="margin: 5px 0;"><strong>Mode:</strong> ${mode}</p>
+              ${location ? `<p style="margin: 5px 0;"><strong>Location:</strong> ${location}</p>` : ''}
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">
+              Please arrive 10 minutes early. Bring your ID and any required documents.
+            </p>
+          </div>
+        `,
+        type: 'interview_schedule',
+        metadata: { applicationNumber, scheduledAt, mode }
+      })
     })
   }
 }

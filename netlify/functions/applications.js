@@ -20,7 +20,7 @@ export const handler = async (request, context) => {
     const to = from + pageSize - 1
 
     const { data, error, count } = await supabaseAdminClient
-      .from('applications_new')
+      .from('applications')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(from, to)

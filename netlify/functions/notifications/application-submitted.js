@@ -59,7 +59,7 @@ async function handler(req, res) {
 
   try {
     const { data: application, error: appError } = await supabaseAdminClient
-      .from('applications_new')
+      .from('applications')
       .select('*')
       .eq('id', applicationId)
       .eq('user_id', userId)

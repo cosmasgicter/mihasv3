@@ -152,13 +152,12 @@ async function fetchApplicationDetails(id, includeParam) {
 
   const result = { ...application }
 
-  if (!includeParam) {
-    return result
-  }
-
-  const includes = Array.isArray(includeParam)
-    ? includeParam
-    : String(includeParam).split(',').map(value => value.trim()).filter(Boolean)
+  // Always fetch grades, documents, and statusHistory for admin views
+  const includes = includeParam 
+    ? (Array.isArray(includeParam)
+        ? includeParam
+        : String(includeParam).split(',').map(value => value.trim()).filter(Boolean))
+    : ['grades', 'documents', 'statusHistory']
 
   if (includes.includes('grades')) {
     const { data: grades, error: gradesError } = await supabase
@@ -230,8 +229,24 @@ async function handleStatusUpdate(req, res, id, body) {
   }
 
   try {
+    // Get old data for diff
+    const oldData = await fetchApplication(id)
+    
     await updateStatusForApplications([id], newStatus)
-    await insertStatusHistoryEntries([id], newStatus, authContext.user.id, body.notes)
+    
+    // Track changes
+    const changes = { status: { old: oldData.status, new: newStatus } }
+    
+    await supabase.from('application_status_history').insert({
+      application_id: id,
+      status: newStatus,
+      changed_by: authContext.user.id,
+      notes: body.notes,
+      changes,
+      ip_address: req.headers['x-forwarded-for'] || req.connection?.remoteAddress,
+      user_agent: req.headers['user-agent']
+    })
+    
     const updated = await fetchApplication(id)
     return res.status(200).json({ success: true, data: updated })
   } catch (updateError) {
@@ -401,6 +416,17 @@ async function handleSendNotification(req, res, id, body) {
       return res.status(400).json({ error: notificationError.message })
     }
 
+    // Send email notification
+    if (application.email) {
+      await supabase.from('email_notifications').insert({
+        recipient: application.email,
+        subject: title,
+        body: message,
+        type: 'notification',
+        status: 'pending'
+      })
+    }
+
     return res.status(200).json({ success: true })
   } catch (notificationError) {
     return res.status(400).json({ error: notificationError.message })
@@ -487,12 +513,8 @@ function extractScheduleMetadata(isoString) {
     throw new Error('Invalid scheduledAt value')
   }
 
-  const iso = date.toISOString()
-  const [datePart, timePart] = iso.split('T')
   return {
-    scheduled_at: iso,
-    interview_date: datePart,
-    interview_time: timePart ? timePart.slice(0, 5) : null
+    scheduled_at: date.toISOString()
   }
 }
 
@@ -562,6 +584,19 @@ async function handleInterviewMutation(req, res, id, action, body) {
           throw new Error(insertError.message)
         }
         response = data
+      }
+
+      // Send email notification for interview
+      const application = await fetchApplication(id)
+      if (application.email) {
+        await supabase.from('email_notifications').insert({
+          recipient: application.email,
+          subject: `Interview Scheduled - ${application.application_number}`,
+          body: `Your interview has been scheduled for ${schedule.scheduled_at}. Mode: ${body.mode}. ${body.location ? 'Location: ' + body.location : ''}`,
+          type: 'interview_schedule',
+          status: 'pending',
+          metadata: { applicationId: id, interviewId: response.id }
+        })
       }
 
       return res.status(200).json({ success: true, interview: response })
@@ -658,7 +693,16 @@ async function handler(req, res) {
         return res.status(404).json({ error: 'Application not found' })
       }
 
-      return res.status(200).json({ success: true, data })
+      // ALWAYS return grades, documents, statusHistory at root level
+      return res.status(200).json({
+        success: true,
+        data: data,
+        application: data,
+        grades: data.grades || [],
+        documents: data.documents || [],
+        statusHistory: data.statusHistory || [],
+        interview: data.interview || null
+      })
     }
 
     if (req.method === 'PUT') {

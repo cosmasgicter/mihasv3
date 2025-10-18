@@ -419,8 +419,6 @@ export interface ApplicationInterview {
   id: string
   application_id: string
   scheduled_at: string
-  interview_date: string
-  interview_time: string
   mode: 'in_person' | 'virtual' | 'phone'
   location?: string | null
   status: 'scheduled' | 'rescheduled' | 'completed' | 'cancelled'
@@ -438,6 +436,7 @@ export interface ApplicationWithDetails extends Application {
   interview?: ApplicationInterview | null
 }
 
+// Legacy type alias - use Subject instead
 export interface Grade12Subject {
   id: string
   name: string
@@ -445,6 +444,9 @@ export interface Grade12Subject {
   is_active: boolean
   created_at: string
 }
+
+// Preferred: Use Subject type
+export type Subject = Grade12Subject
 
 export interface ApplicationGrade {
   id: string

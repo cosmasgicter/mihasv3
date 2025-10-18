@@ -50,7 +50,7 @@ if (process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     )
     
     const { data, error } = await client
-      .from('applications_new')
+      .from('applications')
       .select('count')
       .limit(1)
     

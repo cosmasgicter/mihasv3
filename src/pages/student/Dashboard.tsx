@@ -36,10 +36,18 @@ export default function StudentDashboard() {
   const [isDeletingDraft, setIsDeletingDraft] = useState(false)
   const [isClearingAllDrafts, setIsClearingAllDrafts] = useState(false)
   const hasLoadedRef = useRef(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (user) {
       loadDashboardData()
+    }
+
+    // Cleanup function to abort pending requests
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
     }
   }, [user, profile])
 
@@ -83,6 +91,15 @@ export default function StudentDashboard() {
   const loadDashboardData = async () => {
     const isInitialLoad = !hasLoadedRef.current
 
+    // Cancel any pending requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController()
+    const signal = abortControllerRef.current.signal
+
     try {
       if (isInitialLoad) {
         setIsInitialLoading(true)
@@ -114,6 +131,9 @@ export default function StudentDashboard() {
         mine: true
       })
 
+      // Check if request was aborted
+      if (signal.aborted) return
+
       if (draftResponse?.applications && draftResponse.applications.length > 0) {
         setHasDraft(true)
         setDraftData(draftResponse.applications[0])
@@ -127,12 +147,22 @@ export default function StudentDashboard() {
         mine: true
       })
 
+      // Check if request was aborted
+      if (signal.aborted) return
+
       setApplications((applicationsResponse?.applications || []) as Application[])
 
       const intakesResponse = await catalogService.getIntakes()
 
+      // Check if request was aborted
+      if (signal.aborted) return
+
       setIntakes((intakesResponse.intakes || []) as Intake[])
     } catch (error) {
+      // Ignore abort errors
+      if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted'))) {
+        return
+      }
       console.error('Error loading dashboard data:', sanitizeForLog(error))
       setError(error instanceof Error ? sanitizeForLog(error.message) : 'Failed to load dashboard data')
     } finally {

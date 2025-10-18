@@ -13,19 +13,19 @@ async function fixDatabaseSchema() {
   const fixes = [
     {
       name: 'Add additional_subjects column',
-      sql: 'ALTER TABLE applications_new ADD COLUMN IF NOT EXISTS additional_subjects JSONB;'
+      sql: 'ALTER TABLE applications ADD COLUMN IF NOT EXISTS additional_subjects JSONB;'
     },
     {
       name: 'Add address_line_1 column', 
-      sql: 'ALTER TABLE applications_new ADD COLUMN IF NOT EXISTS address_line_1 VARCHAR(255);'
+      sql: 'ALTER TABLE applications ADD COLUMN IF NOT EXISTS address_line_1 VARCHAR(255);'
     },
     {
       name: 'Add address_line_2 column',
-      sql: 'ALTER TABLE applications_new ADD COLUMN IF NOT EXISTS address_line_2 VARCHAR(255);'
+      sql: 'ALTER TABLE applications ADD COLUMN IF NOT EXISTS address_line_2 VARCHAR(255);'
     },
     {
       name: 'Add postal_code column',
-      sql: 'ALTER TABLE applications_new ADD COLUMN IF NOT EXISTS postal_code VARCHAR(20);'
+      sql: 'ALTER TABLE applications ADD COLUMN IF NOT EXISTS postal_code VARCHAR(20);'
     },
     {
       name: 'Create application number function',

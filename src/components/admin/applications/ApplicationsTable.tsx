@@ -4,6 +4,19 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Eye, FileText, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building } from 'lucide-react'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 
+// Institution code to name mapping
+const INSTITUTION_NAMES: Record<string, string> = {
+  'KATC': 'Kalulushi Training Centre',
+  'katc': 'Kalulushi Training Centre',
+  'MIHAS': 'Mukuba Institute of Health and Allied Sciences',
+  'mihas': 'Mukuba Institute of Health and Allied Sciences'
+}
+
+const getInstitutionName = (code?: string) => {
+  if (!code) return 'Not specified'
+  return INSTITUTION_NAMES[code] || code
+}
+
 interface ApplicationSummary {
   id: string
   application_number: string
@@ -353,7 +366,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Building className="h-3 w-3 text-gray-400" />
-          <span>{app.institution}</span>
+          <span>{getInstitutionName(app.institution)}</span>
           <span className="text-gray-300">•</span>
           <span>{app.intake}</span>
         </div>

@@ -230,10 +230,12 @@ export async function fetchWithCache<T>(
       const trackedError = error as Error & { __apiCacheNotified?: boolean }
       lastError = trackedError
       
-      // Skip logging for AbortError (React Strict Mode double-mount in dev)
+      // Check if this is an abort error
       const isAbortError = lastError.name === 'AbortError' || 
-        (error instanceof Error && error.message?.includes('aborted'))
+        (error instanceof Error && error.message?.includes('aborted')) ||
+        (error instanceof DOMException && error.name === 'AbortError')
       
+      // Don't log or notify for abort errors (normal cancellation)
       if (!isAbortError && !trackedError.__apiCacheNotified) {
         onError?.(trackedError, Date.now() - attemptStart)
         trackedError.__apiCacheNotified = true
@@ -242,12 +244,18 @@ export async function fetchWithCache<T>(
       // Don't retry on certain errors
       if (
         error instanceof TypeError || // Network error
-        lastError.name === 'AbortError' || // Timeout or user abort
+        isAbortError || // Timeout or user abort
         (error as any).status === 401 || // Unauthorized
         (error as any).status === 403 || // Forbidden
         (error as any).status === 404 // Not found
       ) {
         clearTimeout(timeoutId)
+        // For abort errors, throw a more specific error
+        if (isAbortError) {
+          const abortError = new Error('Request was cancelled')
+          abortError.name = 'AbortError'
+          throw abortError
+        }
         throw lastError
       }
 

@@ -298,20 +298,34 @@ class ApiClient {
 
       return payload
     } catch (error) {
-      const duration = Date.now() - start
-      monitoring.trackApiCall(service, endpoint, duration, false, { method })
-      const errorPayload = error instanceof Error ? error : { message: 'Unknown error' }
-      const statusCode = typeof (error as any)?.status === 'number' ? (error as any).status : undefined
-      monitoring.logError(
-        service,
-        errorPayload,
-        {
-          endpoint,
-          method,
-          ...(statusCode ? { statusCode } : {})
-        }
-      )
-      monitoring.queueFlush(true)
+      // Check if this is an abort error (request cancelled)
+      const isAbortError = error instanceof Error && 
+        (error.name === 'AbortError' || 
+         error.message?.includes('aborted') ||
+         error.message?.includes('cancelled'))
+      
+      // Don't log or track abort errors (normal cancellation)
+      if (!isAbortError) {
+        const duration = Date.now() - start
+        monitoring.trackApiCall(service, endpoint, duration, false, { method })
+        const errorPayload = error instanceof Error ? error : { message: 'Unknown error' }
+        const statusCode = typeof (error as any)?.status === 'number' ? (error as any).status : undefined
+        monitoring.logError(
+          service,
+          errorPayload,
+          {
+            endpoint,
+            method,
+            ...(statusCode ? { statusCode } : {})
+          }
+        )
+        monitoring.queueFlush(true)
+      }
+      
+      // For abort errors, just rethrow without enhancement
+      if (isAbortError) {
+        throw error
+      }
       
       // Handle authentication errors specifically
       if (error instanceof Error && error.message.includes('401')) {

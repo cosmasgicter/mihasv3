@@ -6,6 +6,19 @@ import { Button } from '@/components/ui/Button'
 
 import type { SubmittedApplicationSummary } from '../hooks/useApplicationSlip'
 
+// Institution code to name mapping
+const INSTITUTION_NAMES: Record<string, string> = {
+  'KATC': 'Kalulushi Training Centre',
+  'katc': 'Kalulushi Training Centre',
+  'MIHAS': 'Mukuba Institute of Health and Allied Sciences',
+  'mihas': 'Mukuba Institute of Health and Allied Sciences'
+}
+
+const getInstitutionName = (code?: string) => {
+  if (!code) return 'Not specified'
+  return INSTITUTION_NAMES[code] || code
+}
+
 interface SubmissionSuccessProps {
   submittedApplication: SubmittedApplicationSummary
   persistingSlip: boolean
@@ -94,7 +107,7 @@ const SubmissionSuccess = ({
             </div>
             <div className="flex justify-between">
               <span className="text-green-700">Institution:</span>
-              <span className="font-semibold text-green-900">{submittedApplication.institution}</span>
+              <span className="font-semibold text-green-900">{getInstitutionName(submittedApplication.institution)}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <span className="text-green-700 flex items-center justify-between sm:justify-start">

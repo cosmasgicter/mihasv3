@@ -6,6 +6,19 @@ import { EnhancedInput, EnhancedSelect } from '../ui/EnhancedFormComponents'
 import { SkeletonTable } from '../ui/EnhancedLoadingSpinner'
 import { BulkOperations } from './BulkOperations'
 
+// Institution code to name mapping
+const INSTITUTION_NAMES: Record<string, string> = {
+  'KATC': 'Kalulushi Training Centre',
+  'katc': 'Kalulushi Training Centre',
+  'MIHAS': 'Mukuba Institute of Health and Allied Sciences',
+  'mihas': 'Mukuba Institute of Health and Allied Sciences'
+}
+
+const getInstitutionName = (code?: string) => {
+  if (!code) return 'Not specified'
+  return INSTITUTION_NAMES[code] || code
+}
+
 export interface Application {
   id: string
   fullName: string
@@ -496,7 +509,7 @@ export function EnhancedApplicationsTable({
                     <div className="text-sm text-gray-900">
                       {application.program.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </div>
-                    <div className="text-sm text-gray-500">{application.institution}</div>
+                    <div className="text-sm text-gray-500">{getInstitutionName(application.institution)}</div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
