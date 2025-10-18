@@ -155,7 +155,7 @@ export default function Applications() {
     updatePaymentStatus
   } = useApplicationsData(filters)
 
-  const { showError, showSuccess, showInfo } = useToast()
+  const { success: showSuccess, error: showError, info: showInfo } = useToast()
   const [exportingFormat, setExportingFormat] = useState<'csv' | 'excel' | 'pdf' | null>(null)
   const [selectedApplication, setSelectedApplication] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)

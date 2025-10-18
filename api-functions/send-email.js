@@ -1,5 +1,5 @@
 // Minimal email sending function using Netlify
-import { supabaseAdminClient } from '../../api/_lib/supabaseClient.js'
+import { supabaseAdminClient } from '../api/_lib/supabaseClient.js'
 
 const supabase = supabaseAdminClient
 

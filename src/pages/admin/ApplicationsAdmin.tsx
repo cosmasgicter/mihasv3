@@ -1,13 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { useBulkOperations } from '@/hooks/useBulkOperations'
 import { exportToCSV, exportToExcel } from '@/lib/exportUtils'
-import { sanitizeHtml } from '@/lib/sanitizer'
 import { Eye, Download, Filter, Search, Mail, CheckSquare, Square } from 'lucide-react'
 import { ApplicationsSkeleton } from '@/components/admin/applications'
+import { ApplicationDetailModal } from '@/components/admin/applications/ApplicationDetailModal'
 import { useApplicationsData } from '@/hooks/admin'
+import { applicationService } from '@/services/applications'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 interface ApplicationSummary {
   id: string
@@ -44,7 +46,7 @@ interface ApplicationSummary {
   days_since_submission: number
 }
 
-export default function ApplicationsAdmin() {
+function ApplicationsAdminContent() {
   const {
     applications,
     isInitialLoading,
@@ -65,27 +67,32 @@ export default function ApplicationsAdmin() {
   const [programFilter, setProgramFilter] = useState('')
   const [institutionFilter, setInstitutionFilter] = useState('')
   const [selectedApplications, setSelectedApplications] = useState<string[]>([])
-  const [ageFilter, setAgeFilter] = useState('')
-  const [gradeFilter, setGradeFilter] = useState('')
-  const [dateRangeFilter, setDateRangeFilter] = useState({ start: '', end: '' })
+  const [selectedApp, setSelectedApp] = useState<ApplicationSummary | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
 
   const { bulkUpdateStatus, bulkUpdatePaymentStatus } = useBulkOperations()
 
   const handleStatusUpdate = async (applicationId: string, newStatus: string) => {
     try {
       setOperationError('')
+      setUpdating(applicationId)
       await updateApplicationStatus(applicationId, newStatus)
     } catch (err: any) {
       setOperationError(err.message || 'Failed to update application status.')
+    } finally {
+      setUpdating(null)
     }
   }
 
   const handlePaymentStatusUpdate = async (applicationId: string, newPaymentStatus: string) => {
     try {
       setOperationError('')
+      setUpdatingPayment(applicationId)
       await updateApplicationPaymentStatus(applicationId, newPaymentStatus)
     } catch (err: any) {
       setOperationError(err.message || 'Failed to update payment status.')
+    } finally {
+      setUpdatingPayment(null)
     }
   }
 
@@ -132,25 +139,33 @@ export default function ApplicationsAdmin() {
   }
 
   const handleExport = async (format: 'csv' | 'excel') => {
-    const dataToExport = filteredApplications.map(app => ({
-      ...app,
-      submitted_at: app.submitted_at || app.created_at,
-      paid_amount: app.paid_amount || 0,
-      points: app.points || 0,
-      age: app.age || 0,
-      days_since_submission: app.days_since_submission || 0
-    }))
+    try {
+      setOperationError('')
+      const dataToExport = filteredApplications.map(app => ({
+        ...app,
+        submitted_at: app.submitted_at || app.created_at,
+        paid_amount: app.paid_amount || 0,
+        points: app.points || 0,
+        age: app.age || 0,
+        days_since_submission: app.days_since_submission || 0
+      }))
 
-    const filenameBase = `applications_${new Date().toISOString().split('T')[0]}`
+      const filenameBase = `applications_${new Date().toISOString().split('T')[0]}`
 
-    if (format === 'csv') {
-      await exportToCSV(dataToExport, `${filenameBase}.csv`)
-    } else {
-      await exportToExcel(dataToExport, `${filenameBase}.xlsx`)
+      if (format === 'csv') {
+        await exportToCSV(dataToExport, `${filenameBase}.csv`)
+      } else {
+        await exportToExcel(dataToExport, `${filenameBase}.xlsx`)
+      }
+    } catch (err: any) {
+      setOperationError(err.message || `Failed to export ${format.toUpperCase()}`)
     }
   }
 
-  const filteredApplications = applications.filter(app => {
+  const [updating, setUpdating] = useState<string | null>(null)
+  const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
+
+  const filteredApplications = useMemo(() => applications.filter(app => {
     const matchesSearch = !searchTerm || 
       app.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -162,7 +177,7 @@ export default function ApplicationsAdmin() {
     const matchesInstitution = !institutionFilter || app.institution === institutionFilter
 
     return matchesSearch && matchesStatus && matchesPayment && matchesProgram && matchesInstitution
-  })
+  }), [applications, searchTerm, statusFilter, paymentFilter, programFilter, institutionFilter])
 
   const getStatusBadge = (status: string) => {
     const colors = {
@@ -214,6 +229,70 @@ export default function ApplicationsAdmin() {
           <ApplicationsSkeleton />
         ) : (
           <>
+            {/* Actions Bar */}
+            <div className="bg-white rounded-lg shadow p-4 mb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleExport('csv')}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Export CSV
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleExport('excel')}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Export Excel
+                  </Button>
+                </div>
+                
+                {selectedApplications.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm text-gray-600">
+                      {selectedApplications.length} selected
+                    </span>
+                    <div className="h-4 w-px bg-gray-300" />
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          handleBulkStatusUpdate(e.target.value)
+                          e.target.value = ''
+                        }
+                      }}
+                      aria-label="Bulk status update"
+                      className="text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    >
+                      <option value="">Bulk Status Update</option>
+                      <option value="under_review">Under Review</option>
+                      <option value="approved">Approve</option>
+                      <option value="rejected">Reject</option>
+                    </select>
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          handleBulkPaymentUpdate(e.target.value)
+                          e.target.value = ''
+                        }
+                      }}
+                      aria-label="Bulk payment update"
+                      className="text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    >
+                      <option value="">Bulk Payment Update</option>
+                      <option value="verified">Verify</option>
+                      <option value="rejected">Reject</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Filters */}
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
@@ -224,6 +303,7 @@ export default function ApplicationsAdmin() {
                       placeholder="Search by name, email, or application number..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                      aria-label="Search applications"
                       className="pl-10"
                     />
                   </div>
@@ -233,6 +313,7 @@ export default function ApplicationsAdmin() {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
+                    aria-label="Filter by status"
                     className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Statuses</option>
@@ -248,6 +329,7 @@ export default function ApplicationsAdmin() {
                   <select
                     value={paymentFilter}
                     onChange={(e) => setPaymentFilter(e.target.value)}
+                    aria-label="Filter by payment status"
                     className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Payments</option>
@@ -261,6 +343,7 @@ export default function ApplicationsAdmin() {
                   <select
                     value={programFilter}
                     onChange={(e) => setProgramFilter(e.target.value)}
+                    aria-label="Filter by program"
                     className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Programs</option>
@@ -274,11 +357,12 @@ export default function ApplicationsAdmin() {
                   <select
                     value={institutionFilter}
                     onChange={(e) => setInstitutionFilter(e.target.value)}
+                    aria-label="Filter by institution"
                     className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Institutions</option>
-                    <option value="Kalulushi Training Centre">Kalulushi Training Centre</option>
-                    <option value="Mukuba Institute of Health and Allied Sciences">Mukuba Institute of Health and Allied Sciences</option>
+                    <option value="KATC">Kalulushi Training Centre</option>
+                    <option value="MIHAS">Mukuba Institute of Health and Allied Sciences</option>
                   </select>
                 </div>
               </div>
@@ -297,6 +381,19 @@ export default function ApplicationsAdmin() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-6 py-3 text-left">
+                        <button
+                          onClick={selectAll}
+                          aria-label={selectedApplications.length === filteredApplications.length && filteredApplications.length > 0 ? 'Deselect all applications' : 'Select all applications'}
+                          className="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
+                        >
+                          {selectedApplications.length === filteredApplications.length && filteredApplications.length > 0 ? (
+                            <CheckSquare className="h-4 w-4" />
+                          ) : (
+                            <Square className="h-4 w-4" />
+                          )}
+                        </button>
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Application
                       </th>
@@ -323,6 +420,19 @@ export default function ApplicationsAdmin() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredApplications.map((app) => (
                       <tr key={app.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => toggleSelection(app.id)}
+                            aria-label={selectedApplications.includes(app.id) ? `Deselect ${app.full_name}` : `Select ${app.full_name}`}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            {selectedApplications.includes(app.id) ? (
+                              <CheckSquare className="h-5 w-5 text-blue-600" />
+                            ) : (
+                              <Square className="h-5 w-5" />
+                            )}
+                          </button>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
                             {app.application_number}
@@ -353,17 +463,26 @@ export default function ApplicationsAdmin() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="space-y-2">
                             {getStatusBadge(app.status)}
-                            <select
-                              value={app.status}
-                              onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
-                              className="block w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            >
-                              <option value="draft">Draft</option>
-                              <option value="submitted">Submitted</option>
-                              <option value="under_review">Under Review</option>
-                              <option value="approved">Approved</option>
-                              <option value="rejected">Rejected</option>
-                            </select>
+                            <div className="relative">
+                              <select
+                                value={app.status}
+                                onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
+                                disabled={updating === app.id}
+                                aria-label={`Update status for ${app.full_name}`}
+                                className="block w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                              >
+                                <option value="draft">Draft</option>
+                                <option value="submitted">Submitted</option>
+                                <option value="under_review">Under Review</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                              </select>
+                              {updating === app.id && (
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                                  <LoadingSpinner size="sm" />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -372,15 +491,24 @@ export default function ApplicationsAdmin() {
                             <div className="text-xs text-gray-500">
                               K{app.paid_amount || 0} / K{app.application_fee}
                             </div>
-                            <select
-                              value={app.payment_status}
-                              onChange={(e) => handlePaymentStatusUpdate(app.id, e.target.value)}
-                              className="block w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            >
-                              <option value="pending_review">Pending Review</option>
-                              <option value="verified">Verified</option>
-                              <option value="rejected">Rejected</option>
-                            </select>
+                            <div className="relative">
+                              <select
+                                value={app.payment_status}
+                                onChange={(e) => handlePaymentStatusUpdate(app.id, e.target.value)}
+                                disabled={updatingPayment === app.id}
+                                aria-label={`Update payment status for ${app.full_name}`}
+                                className="block w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                              >
+                                <option value="pending_review">Pending Review</option>
+                                <option value="verified">Verified</option>
+                                <option value="rejected">Rejected</option>
+                              </select>
+                              {updatingPayment === app.id && (
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                                  <LoadingSpinner size="sm" />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -388,44 +516,25 @@ export default function ApplicationsAdmin() {
                             {app.total_subjects} subjects
                           </div>
                           {app.grades_summary && (
-                            <div className="text-xs text-gray-500 max-w-xs truncate" title={sanitizeHtml(app.grades_summary)}>
-                              {sanitizeHtml(app.grades_summary)}
+                            <div className="text-xs text-gray-500 max-w-xs truncate" title={app.grades_summary}>
+                              {app.grades_summary}
                             </div>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-y-1">
-                          <div className="flex flex-col space-y-1">
-                            {app.result_slip_url && (
-                              <a
-                                href={app.result_slip_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-900 text-xs"
-                              >
-                                Result Slip
-                              </a>
-                            )}
-                            {app.extra_kyc_url && (
-                              <a
-                                href={app.extra_kyc_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-900 text-xs"
-                              >
-                                Extra KYC
-                              </a>
-                            )}
-                            {app.pop_url && (
-                              <a
-                                href={app.pop_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-900 text-xs"
-                              >
-                                Proof of Payment
-                              </a>
-                            )}
-                          </div>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedApp(app)
+                              setShowDetailModal(true)
+                            }}
+                            aria-label={`View details for ${app.full_name}`}
+                            className="flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            View Details
+                          </Button>
                         </td>
                   </tr>
                 ))}
@@ -507,6 +616,41 @@ export default function ApplicationsAdmin() {
           </>
         )}
       </div>
+
+      <ApplicationDetailModal
+        application={selectedApp as any}
+        show={showDetailModal}
+        updating={updating}
+        onClose={() => {
+          setShowDetailModal(false)
+          setSelectedApp(null)
+        }}
+        onSendNotification={() => {}}
+        onViewDocuments={() => {}}
+        onViewHistory={() => {}}
+        onUpdateStatus={async (id, status) => {
+          setUpdating(id)
+          await handleStatusUpdate(id, status)
+          setUpdating(null)
+          await loadApplications()
+        }}
+        onGenerateAcceptanceLetter={async () => {
+          if (!selectedApp) return
+          await applicationService.generateAcceptanceLetter(selectedApp.id)
+        }}
+        onGenerateFinanceReceipt={async () => {
+          if (!selectedApp) return
+          await applicationService.generateFinanceReceipt(selectedApp.id)
+        }}
+      />
     </div>
+  )
+}
+
+export default function ApplicationsAdmin() {
+  return (
+    <ErrorBoundary>
+      <ApplicationsAdminContent />
+    </ErrorBoundary>
   )
 }

@@ -338,7 +338,7 @@ export default function AuditTrailPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
-  const { showError, showSuccess, showInfo } = useToast()
+  const { error: showError, success: showSuccess, info: showInfo } = useToast()
 
   const loadAuditEntries = useCallback(async () => {
     setLoading(true)

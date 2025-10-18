@@ -21,7 +21,7 @@ export default function AIInsights() {
   const { profile } = useProfileQuery()
   const { isAdmin: hasAdminRole } = useRoleQuery()
   const isAdmin = hasAdminRole || isAdminRole(profile?.role)
-  const { showSuccess, showError } = useToast()
+  const { success: showSuccess, error: showError } = useToast()
   const [stats, setStats] = useState<AIInsightsStats>({
     totalPredictions: 0,
     automationRuns: 0,

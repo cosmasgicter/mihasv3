@@ -285,9 +285,10 @@ export function withNetlifyHandler(expressHandler) {
   }
 
   const netlifyHandler = async function netlifyWrapper(event, context) {
+    let req, res
     try {
-      const req = await createRequest(event, context)
-      const res = createResponse()
+      req = await createRequest(event, context)
+      res = createResponse()
       
       // Handle preflight
       if (req.method === 'OPTIONS') {
@@ -298,9 +299,17 @@ export function withNetlifyHandler(expressHandler) {
       }
       
       // Call the express handler
-      await expressHandler(req, res)
+      const result = await expressHandler(req, res)
       
-      // Always finalize from res object
+      // If handler returned a response directly, use it
+      if (result && typeof result === 'object' && 'statusCode' in result) {
+        return new Response(result.body || '', {
+          status: result.statusCode || 200,
+          headers: { ...CORS_HEADERS, ...result.headers }
+        })
+      }
+      
+      // Otherwise finalize from res object
       const response = res._finalize()
       return new Response(response.body, {
         status: response.statusCode,
@@ -308,7 +317,9 @@ export function withNetlifyHandler(expressHandler) {
       })
     } catch (error) {
       console.error('Netlify handler error:', error)
-      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      console.error('Error stack:', error.stack)
+      console.error('Request:', req ? { method: req.method, url: req.url } : 'undefined')
+      return new Response(JSON.stringify({ error: 'Internal server error', message: error.message }), {
         status: 500,
         headers: {
           'Content-Type': 'application/json',

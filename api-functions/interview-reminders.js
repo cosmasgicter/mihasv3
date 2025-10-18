@@ -1,5 +1,5 @@
 // Scheduled function to send interview reminders
-import { supabaseAdminClient } from '../../api/_lib/supabaseClient.js'
+import { supabaseAdminClient } from '../api/_lib/supabaseClient.js'
 
 const supabase = supabaseAdminClient
 
