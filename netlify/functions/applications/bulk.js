@@ -107,7 +107,7 @@ async function bulkUpdateStatus(res, userId, applicationIds, status) {
   }
 
   const { error } = await supabaseAdminClient
-    .from('applications_new')
+    .from('applications')
     .update(updateData)
     .in('id', applicationIds)
 
@@ -134,7 +134,7 @@ async function bulkUpdatePaymentStatus(res, applicationIds, paymentStatus) {
   }
 
   const { error } = await supabaseAdminClient
-    .from('applications_new')
+    .from('applications')
     .update({ payment_status: paymentStatus, updated_at: new Date().toISOString() })
     .in('id', applicationIds)
 
@@ -147,7 +147,7 @@ async function bulkUpdatePaymentStatus(res, applicationIds, paymentStatus) {
 
 async function bulkDeleteApplications(res, applicationIds) {
   const { error } = await supabaseAdminClient
-    .from('applications_new')
+    .from('applications')
     .update({ status: 'deleted', updated_at: new Date().toISOString() })
     .in('id', applicationIds)
 
@@ -164,7 +164,7 @@ async function bulkSendNotifications(res, applicationIds, notification) {
   }
 
   const { data: applications, error: fetchError } = await supabaseAdminClient
-    .from('applications_new')
+    .from('applications')
     .select('id, user_id, full_name, email, application_number')
     .in('id', applicationIds)
 

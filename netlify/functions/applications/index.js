@@ -149,7 +149,7 @@ async function handler(req, res) {
 
       let query = applyFilters(
         dependencies.supabaseClient
-          .from('applications_new')
+          .from('applications')
           .select('*', { count: 'exact' }),
         filterOptions
       )
@@ -169,7 +169,7 @@ async function handler(req, res) {
       if (parseBoolean(includeStats)) {
         const baseCountQuery = applyFilters(
           dependencies.supabaseClient
-            .from('applications_new')
+            .from('applications')
             .select('id', { count: 'exact', head: true }),
           filterOptions,
           { includeStatus: false }
@@ -186,7 +186,7 @@ async function handler(req, res) {
         for (const statusValue of APPLICATION_STATUSES) {
           const statusQuery = applyFilters(
             dependencies.supabaseClient
-              .from('applications_new')
+              .from('applications')
               .select('id', { count: 'exact', head: true })
               .eq('status', statusValue),
             filterOptions,
@@ -246,7 +246,7 @@ async function handler(req, res) {
       }
 
       const { data, error } = await dependencies.supabaseClient
-        .from('applications_new')
+        .from('applications')
         .insert(applicationData)
         .select()
         .single()
@@ -280,7 +280,7 @@ async function handler(req, res) {
       }
 
       const { data, error } = await dependencies.supabaseClient
-        .from('applications_new')
+        .from('applications')
         .insert({
           ...body,
           user_id: authContext.user.id

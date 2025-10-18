@@ -42,7 +42,7 @@ async function handler(req, res) {
   }
 
   const { data, error } = await supabaseAdminClient
-    .from('grade12_subjects')
+    .from('subjects')
     .select('*')
     .eq('is_active', true)
     .order('name')

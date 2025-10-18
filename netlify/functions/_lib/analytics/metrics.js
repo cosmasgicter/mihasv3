@@ -58,7 +58,7 @@ async function handleMetricsRequest(req, res) {
   try {
     const buildCountQuery = status => {
       let query = supabaseAdminClient
-        .from('applications_new')
+        .from('applications')
         .select('id', { count: 'exact', head: true })
         .in('user_id', consentingUserIds)
 
@@ -70,7 +70,7 @@ async function handleMetricsRequest(req, res) {
       buildCountQuery('submitted'),
       buildCountQuery('approved'),
       supabaseAdminClient
-        .from('applications_new')
+        .from('applications')
         .select('created_at, status, program')
         .in('user_id', consentingUserIds)
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
@@ -90,7 +90,7 @@ async function handleMetricsRequest(req, res) {
       actorId: authContext.user.id,
       actorEmail: authContext.user.email || null,
       actorRoles: authContext.roles,
-      targetTable: 'applications_new',
+      targetTable: 'applications',
       metadata: {
         consentingUsers: consentingUserIds.length,
         totalApplications: payload.totalApplications

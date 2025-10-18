@@ -7,6 +7,19 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import type { ApplicationInterview } from '@/lib/supabase'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 
+// Institution code to name mapping
+const INSTITUTION_NAMES: Record<string, string> = {
+  'KATC': 'Kalulushi Training Centre',
+  'katc': 'Kalulushi Training Centre',
+  'MIHAS': 'Mukuba Institute of Health and Allied Sciences',
+  'mihas': 'Mukuba Institute of Health and Allied Sciences'
+}
+
+const getInstitutionName = (code?: string) => {
+  if (!code) return 'Not specified'
+  return INSTITUTION_NAMES[code] || code
+}
+
 interface ApplicationWithDetails {
   id: string
   application_number: string
@@ -429,13 +442,14 @@ export function ApplicationDetailModal({
       })
       
       // Handle the API response structure
+      // API returns: { success, data, application, grades, documents, statusHistory, interview }
       const data = response?.data || response
       setApplicationData({
         application: data,
-        grades: data?.grades || [],
-        statusHistory: data?.statusHistory || [],
-        documents: data?.documents || [],
-        interview: data?.interview || null
+        grades: response?.grades || data?.grades || [],
+        statusHistory: response?.statusHistory || data?.statusHistory || [],
+        documents: response?.documents || data?.documents || [],
+        interview: response?.interview || data?.interview || null
       })
     } catch (error) {
       console.error('Failed to load application details:', error)
@@ -879,7 +893,7 @@ export function ApplicationDetailModal({
                           <Building className="h-4 w-4 text-gray-400" />
                           <div>
                             <p className="text-sm text-gray-500">Institution</p>
-                            <p className="font-medium text-gray-900">{application.institution}</p>
+                            <p className="font-medium text-gray-900">{getInstitutionName(application.institution)}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">

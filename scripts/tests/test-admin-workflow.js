@@ -109,7 +109,7 @@ async function testGetAllApplications() {
   console.log('\n📋 Testing Get All Applications...')
   
   try {
-    const { response, data } = await makeRequest('/rest/v1/applications_new?select=*,profiles(full_name,email),programs(name),intakes(name)', {
+    const { response, data } = await makeRequest('/rest/v1/applications?select=*,profiles(full_name,email),programs(name),intakes(name)', {
       method: 'GET'
     })
     
@@ -144,7 +144,7 @@ async function testGetApplicationDetails() {
   console.log('\n📄 Testing Get Application Details...')
   
   try {
-    const { response, data } = await makeRequest(`/rest/v1/applications_new?id=eq.${testApplicationId}&select=*,profiles(full_name,email),programs(name),intakes(name)`, {
+    const { response, data } = await makeRequest(`/rest/v1/applications?id=eq.${testApplicationId}&select=*,profiles(full_name,email),programs(name),intakes(name)`, {
       method: 'GET'
     })
     
@@ -173,7 +173,7 @@ async function testApprovalWorkflow() {
   
   try {
     // Test 1: Approve Application
-    const { response: approveResponse, data: approveData } = await makeRequest(`/rest/v1/applications_new?id=eq.${testApplicationId}`, {
+    const { response: approveResponse, data: approveData } = await makeRequest(`/rest/v1/applications?id=eq.${testApplicationId}`, {
       method: 'PATCH',
       body: JSON.stringify({
         status: 'approved',
@@ -187,7 +187,7 @@ async function testApprovalWorkflow() {
       logTest('Approve Application', true, 'Application status updated to approved')
       
       // Test 2: Verify status change
-      const { response: verifyResponse, data: verifyData } = await makeRequest(`/rest/v1/applications_new?id=eq.${testApplicationId}&select=status,reviewed_by,reviewed_at,admin_notes`, {
+      const { response: verifyResponse, data: verifyData } = await makeRequest(`/rest/v1/applications?id=eq.${testApplicationId}&select=status,reviewed_by,reviewed_at,admin_notes`, {
         method: 'GET'
       })
       
@@ -195,7 +195,7 @@ async function testApprovalWorkflow() {
         logTest('Verify Approval Status', true, 'Status change confirmed')
         
         // Test 3: Reject Application (reverse test)
-        const { response: rejectResponse } = await makeRequest(`/rest/v1/applications_new?id=eq.${testApplicationId}`, {
+        const { response: rejectResponse } = await makeRequest(`/rest/v1/applications?id=eq.${testApplicationId}`, {
           method: 'PATCH',
           body: JSON.stringify({
             status: 'rejected',
@@ -209,7 +209,7 @@ async function testApprovalWorkflow() {
           logTest('Reject Application', true, 'Application status updated to rejected')
           
           // Revert to original status
-          await makeRequest(`/rest/v1/applications_new?id=eq.${testApplicationId}`, {
+          await makeRequest(`/rest/v1/applications?id=eq.${testApplicationId}`, {
             method: 'PATCH',
             body: JSON.stringify({
               status: 'pending',
@@ -245,7 +245,7 @@ async function testAdminStatistics() {
   
   try {
     // Get application counts by status
-    const { response, data } = await makeRequest('/rest/v1/applications_new?select=status', {
+    const { response, data } = await makeRequest('/rest/v1/applications?select=status', {
       method: 'GET'
     })
     
@@ -423,7 +423,7 @@ async function testBulkOperations() {
   
   try {
     // Get multiple applications for bulk test
-    const { response, data } = await makeRequest('/rest/v1/applications_new?select=id,status&limit=5', {
+    const { response, data } = await makeRequest('/rest/v1/applications?select=id,status&limit=5', {
       method: 'GET'
     })
     
@@ -434,7 +434,7 @@ async function testBulkOperations() {
       const applicationIds = data.map(app => app.id)
       const bulkQuery = applicationIds.map(id => `id.eq.${id}`).join(',')
       
-      const { response: bulkResponse, data: bulkData } = await makeRequest(`/rest/v1/applications_new?or=(${bulkQuery})&select=id,status,profiles(full_name)`, {
+      const { response: bulkResponse, data: bulkData } = await makeRequest(`/rest/v1/applications?or=(${bulkQuery})&select=id,status,profiles(full_name)`, {
         method: 'GET'
       })
       

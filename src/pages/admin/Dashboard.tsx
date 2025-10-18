@@ -360,18 +360,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Debug info in development */}
-        {import.meta.env.DEV && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="rounded-xl bg-blue-50 border border-blue-200 p-4 mb-6"
-          >
-            <div className="text-xs sm:text-sm text-blue-700">
-              <strong>Debug:</strong> User: {user?.email}, Role: {profile?.role}, Profile ID: {profile?.id}
-            </div>
-          </motion.div>
-        )}
+
 
         {/* Enhanced Stats Grid */}
         <motion.div 
@@ -399,10 +388,12 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div className="text-sm font-medium text-gray-600">New Applications</div>
-              <div className="flex items-center mt-2 text-xs">
-                <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
-                <span className="text-green-600">+{Math.floor(Math.random() * 20)}% from yesterday</span>
-              </div>
+              {stats.todayApplications > 0 && (
+                <div className="flex items-center mt-2 text-xs">
+                  <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
+                  <span className="text-green-600">Today</span>
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -541,7 +532,6 @@ export default function AdminDashboard() {
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">{stats.weekApplications}</div>
                 <div className="text-sm text-gray-600">Applications This Week</div>
-                <div className="text-xs text-green-600 mt-1">+{Math.floor(Math.random() * 15)}% from last week</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">{stats.avgProcessingTime}</div>
