@@ -19,6 +19,7 @@ import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { sanitizeForLog } from '@/lib/security'
 import { getSessionToken } from '@/lib/sessionUtils'
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/utils/logger'
 import { safeJsonParse } from '@/lib/utils'
 import { isDraftDeleted, clearDraftDeletedFlag } from '@/lib/draftCleanup'
 
@@ -472,7 +473,7 @@ const useWizardController = (): UseWizardControllerResult => {
         // Check database drafts as final fallback
         if (draftApplications?.applications && draftApplications.applications.length > 0) {
           const app = draftApplications.applications[0]
-          console.log('[Draft] Restoring from database:', app.id)
+          logger.info('[Draft] Restoring from database:', app.id)
           
           // CRITICAL: Set application ID FIRST
           setApplicationId(app.id)
@@ -988,7 +989,7 @@ const useWizardController = (): UseWizardControllerResult => {
   }, [currentStepIndex, goToStep, saveDraft])
 
   const handleSubmitApplication = useCallback(async (data: WizardFormData) => {
-    console.log('[handleSubmitApplication] Starting submission...')
+    logger.info('[handleSubmitApplication] Starting submission...')
     if (!confirmSubmission) {
       const errorMessage = 'Please confirm that all information is accurate before submitting'
       setError('')
@@ -1012,19 +1013,19 @@ const useWizardController = (): UseWizardControllerResult => {
       setLoading(true)
       setError('')
       
-      console.log('[handleSubmitApplication] Verifying authentication...')
+      logger.info('[handleSubmitApplication] Verifying authentication...')
       // Verify authentication first
       const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
       if (authError || !currentUser) {
         throw new Error('Please sign in again to submit your application')
       }
 
-      console.log('[handleSubmitApplication] Uploading proof of payment...')
+      logger.info('[handleSubmitApplication] Uploading proof of payment...')
       // Upload proof of payment first
       let popUrl: string
       try {
         popUrl = await startUpload(popFile, 'proof_of_payment')
-        console.log('[handleSubmitApplication] Upload successful:', popUrl)
+        logger.info('[handleSubmitApplication] Upload successful:', popUrl)
         if (!popUrl) {
           throw new Error('Upload returned empty URL')
         }
@@ -1099,7 +1100,7 @@ const useWizardController = (): UseWizardControllerResult => {
       } catch (cleanupError) {
       }
 
-      console.log('[handleSubmitApplication] Submission successful!')
+      logger.info('[handleSubmitApplication] Submission successful!')
       toast.success('Application submitted successfully!')
       setSuccess(true)
     } catch (error) {

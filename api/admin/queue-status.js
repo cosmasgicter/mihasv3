@@ -1,0 +1,34 @@
+import { createClient } from '@supabase/supabase-js'
+import { withNetlifyHandler } from '../_lib/netlifyHandler.js'
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
+
+async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*")
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  if (req.method === "OPTIONS") return res.status(200).end()
+  const { data } = await supabase
+    .from('email_notifications')
+    .select('status, retry_count, error_message, created_at')
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  const stats = data?.reduce((acc, row) => {
+    acc[row.status] = (acc[row.status] || 0) + 1
+    return acc
+  }, {}) || {}
+
+  const failures = data?.filter(row => row.status === 'failed').slice(0, 5) || []
+
+  res.json({ stats, failures, total: data?.length || 0 })
+}
+
+const netlifyHandler = withNetlifyHandler(handler)
+
+export { handler as expressHandler }
+export { netlifyHandler as handler }
+export default netlifyHandler

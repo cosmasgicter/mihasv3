@@ -10,30 +10,27 @@ export class AdminNotificationService {
     adminUserId: string
   ): Promise<NotificationResult> {
     try {
-      // Parallel queries for better performance
-      const [applicationResult, userResult] = await Promise.all([
-        supabase
-          .from('applications')
-          .select('*')
-          .eq('id', applicationId)
-          .single(),
-        supabase
-          .from('user_profiles')
-          .select('full_name, email')
-          .eq('user_id', applicationId)
-          .single()
-      ])
+      // Fetch application first
+      const { data: application, error: applicationError } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('id', applicationId)
+        .single()
 
-      if (applicationResult.error || !applicationResult.data) {
+      if (applicationError || !application) {
         return { success: false, error: 'Application not found' }
       }
 
-      if (userResult.error || !userResult.data) {
+      // Then fetch user by application.user_id
+      const { data: user, error: userError } = await supabase
+        .from('user_profiles')
+        .select('full_name, email')
+        .eq('user_id', application.user_id)
+        .single()
+
+      if (userError || !user) {
         return { success: false, error: 'User not found' }
       }
-
-      const application = applicationResult.data
-      const user = userResult.data
 
       // Update application status (this will trigger the database trigger)
       const { error: updateError } = await supabase
