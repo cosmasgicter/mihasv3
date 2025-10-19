@@ -207,7 +207,7 @@ export default function ApplicationStatus() {
           <PageHeader
             icon={<FileText className="h-6 w-6" />}
             title={`Application #${application.application_number}`}
-            description={`${application.program} • Submitted on ${formatDate(application.submitted_at)}`}
+            description={`${application.program.length > 40 ? application.program.substring(0, 40) + '...' : application.program} • Submitted on ${formatDate(application.submitted_at)}`}
             stats={[
               {
                 label: 'Current status',
@@ -310,7 +310,7 @@ export default function ApplicationStatus() {
                     <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">Full name:</span>
-                        <span className="font-semibold">{application.full_name}</span>
+                        <span className="font-semibold break-words">{application.full_name}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">Date of birth:</span>
@@ -335,11 +335,11 @@ export default function ApplicationStatus() {
                     <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">Residence:</span>
-                        <span className="font-semibold">{application.residence_town}</span>
+                        <span className="font-semibold break-words">{application.residence_town}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">NRC:</span>
-                        <span className="font-semibold">{application.nrc_number || 'Not provided'}</span>
+                        <span className="font-semibold break-all">{application.nrc_number || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">Guardian:</span>
@@ -486,7 +486,7 @@ export default function ApplicationStatus() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Program</span>
-                    <span className="font-semibold text-right">{application.program}</span>
+                    <span className="font-semibold break-words">{application.program}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Intake</span>
