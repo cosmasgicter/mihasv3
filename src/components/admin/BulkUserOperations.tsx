@@ -138,7 +138,7 @@ export function BulkUserOperations({
                   </button>
                   <div>
                     <p className="text-sm font-medium text-foreground">{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500">{user.email?.replace(/[<>"'&]/g, '')}</p>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">{user.email?.replace(/[<>"'&]/g, '')}</p>
                   </div>
                 </div>
                 <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-foreground rounded">

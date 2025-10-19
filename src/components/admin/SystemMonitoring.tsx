@@ -229,7 +229,7 @@ export function SystemMonitoring() {
           <button
             onClick={refreshMetrics}
             disabled={refreshing}
-            className="p-2 text-gray-500 dark:text-gray-500 hover:text-foreground transition-colors"
+            className="p-2 text-muted-foreground dark:text-muted-foreground hover:text-foreground transition-colors"
           >
             <Activity className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
           </button>

@@ -218,14 +218,14 @@ export default function NotificationSettings() {
           {optedIn && summary.optInAt && (
             <p>
               <span className="font-semibold">Opted in:</span> {summary.optInAt}
-              {summary.source && <span className="text-gray-500 dark:text-gray-500"> · via {summary.source}</span>}
+              {summary.source && <span className="text-muted-foreground dark:text-muted-foreground"> · via {summary.source}</span>}
             </p>
           )}
 
           {!optedIn && summary.optOutAt && (
             <p>
               <span className="font-semibold">Consent revoked:</span> {summary.optOutAt}
-              {summary.optOutReason && <span className="text-gray-500 dark:text-gray-500"> · {summary.optOutReason}</span>}
+              {summary.optOutReason && <span className="text-muted-foreground dark:text-muted-foreground"> · {summary.optOutReason}</span>}
             </p>
           )}
 
@@ -244,14 +244,14 @@ export default function NotificationSettings() {
             </div>
           )}
 
-          <div className="flex flex-col gap-2 text-xs text-gray-500 dark:text-gray-500">
+          <div className="flex flex-col gap-2 text-xs text-muted-foreground dark:text-muted-foreground">
             <span className="uppercase tracking-wide text-muted-foreground font-semibold">Current contact</span>
             <span className="text-sm text-foreground">{preferences?.phone || 'No phone number on file'}</span>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
-          <div className="text-xs text-gray-500 dark:text-gray-500">
+          <div className="text-xs text-muted-foreground dark:text-muted-foreground">
             Priority: <span className="font-medium text-foreground">{entry.priority}</span>
           </div>
           <Button

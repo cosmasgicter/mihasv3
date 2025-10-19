@@ -45,7 +45,7 @@ const getStatusIcon = (status: string) => {
     case 'submitted':
       return <AlertTriangle className="h-4 w-4 text-yellow-500" />
     case 'draft':
-      return <FileText className="h-4 w-4 text-gray-500 dark:text-gray-500" />
+      return <FileText className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
     default:
       return <Clock className="h-4 w-4 text-secondary" />
   }

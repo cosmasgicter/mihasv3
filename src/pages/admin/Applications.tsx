@@ -434,7 +434,7 @@ export default function Applications() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-foreground">Applications</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-500">{stats.total} total applications</p>
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground">{stats.total} total applications</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -469,7 +469,7 @@ export default function Applications() {
                 <Clock className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-500">Today</p>
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground">Today</p>
                 <p className="text-lg font-bold text-foreground">{stats.todaySubmissions}</p>
               </div>
             </div>
@@ -480,7 +480,7 @@ export default function Applications() {
                 <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-500">Pending</p>
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground">Pending</p>
                 <p className="text-lg font-bold text-foreground">{stats.pendingReview}</p>
               </div>
             </div>
@@ -491,7 +491,7 @@ export default function Applications() {
                 <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-500">Approved</p>
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground">Approved</p>
                 <p className="text-lg font-bold text-foreground">{stats.approved}</p>
               </div>
             </div>
@@ -502,7 +502,7 @@ export default function Applications() {
                 <XCircle className="h-4 w-4 text-destructive" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-500">Rejected</p>
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground">Rejected</p>
                 <p className="text-lg font-bold text-foreground">{stats.rejected}</p>
               </div>
             </div>

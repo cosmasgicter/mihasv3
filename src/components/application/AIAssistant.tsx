@@ -724,7 +724,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-500">AI is thinking...</span>
+                      <span className="text-xs text-muted-foreground dark:text-muted-foreground">AI is thinking...</span>
                     </div>
                   </div>
                 </motion.div>
@@ -758,7 +758,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                 </Button>
               </div>
               {currentStep && (
-                <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 text-center">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-2 text-center">
                   <Lightbulb className="w-5 h-5" /> Currently on Step {currentStep} - I can help with this step specifically
                 </p>
               )}

@@ -281,7 +281,7 @@ export default function ApplicationStatus() {
                         className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full shadow-lg ${
                           step.completed
                             ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
-                            : 'bg-accent dark:bg-gray-200 text-gray-500 dark:text-gray-500'
+                            : 'bg-accent dark:bg-gray-200 text-muted-foreground dark:text-muted-foreground'
                         }`}
                       >
                         {step.completed ? <CheckCircle className="h-5 w-5" /> : getStatusIcon(step.status)}
@@ -291,7 +291,7 @@ export default function ApplicationStatus() {
                           {step.description}
                         </p>
                         {step.date && (
-                          <p className="text-sm text-gray-500 dark:text-gray-500">{formatDate(step.date)}</p>
+                          <p className="text-sm text-muted-foreground dark:text-muted-foreground">{formatDate(step.date)}</p>
                         )}
                       </div>
                     </motion.div>
@@ -465,7 +465,7 @@ export default function ApplicationStatus() {
                   )}
 
                   {!application.result_slip_url && !application.extra_kyc_url && !application.pop_url && (
-                    <p className="rounded-xl bg-muted px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-500">
+                    <p className="rounded-xl bg-muted px-4 py-6 text-center text-sm text-muted-foreground dark:text-muted-foreground">
                       No supporting documents uploaded.
                     </p>
                   )}

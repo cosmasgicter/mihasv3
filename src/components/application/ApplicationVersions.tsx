@@ -133,7 +133,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 </div>
               ) : versions.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-500">
+                <div className="text-center py-8 text-muted-foreground dark:text-muted-foreground">
                   <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">No versions found</p>
                 </div>
@@ -153,7 +153,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                         <span className="font-medium text-sm">
                           Version {version.version_number}
                         </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-500">
+                        <span className="text-xs text-muted-foreground dark:text-muted-foreground">
                           {formatDate(version.created_at)}
                         </span>
                       </div>
@@ -175,7 +175,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                       
                       <div className="flex items-center mt-2 space-x-1">
                         <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-gray-500 dark:text-gray-500">
+                        <span className="text-xs text-muted-foreground dark:text-muted-foreground">
                           {new Date(version.created_at).toLocaleTimeString()}
                         </span>
                       </div>
@@ -260,7 +260,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-500">
+              <div className="flex items-center justify-center h-full text-muted-foreground dark:text-muted-foreground">
                 <div className="text-center">
                   <Eye className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">Select a version to view details</p>

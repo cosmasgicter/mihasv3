@@ -351,10 +351,10 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-accent dark:bg-gray-200">
                         <tr>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Name</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Email</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Phone</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Role</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">Name</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">Email</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">Phone</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">Role</th>
                         </tr>
                       </thead>
                       <tbody className="bg-card divide-y divide-gray-200">

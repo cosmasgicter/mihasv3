@@ -272,7 +272,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
               ))}
             </div>
           ) : isAnalyticsError || dailyCounts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-sm text-gray-500 dark:text-gray-500">
+            <div className="flex flex-col items-center justify-center py-10 text-sm text-muted-foreground dark:text-muted-foreground">
               <XCircle className="h-6 w-6 text-red-400 mb-2" />
               <p>{fallbackMessage}</p>
             </div>
@@ -284,7 +284,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
 
                   return (
                     <div key={day.date} className="text-center">
-                      <div className="text-xs text-gray-500 dark:text-gray-500 mb-2">{day.label}</div>
+                      <div className="text-xs text-muted-foreground dark:text-muted-foreground mb-2">{day.label}</div>
                       <motion.div
                         className="bg-gradient-to-t from-blue-600 to-purple-600 rounded-lg mx-auto"
                         style={{ width: '100%' }}

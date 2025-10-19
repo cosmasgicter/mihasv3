@@ -191,7 +191,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
               >
                 <div>
                   <p className="font-medium text-foreground">{subject.name}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500">{subject.code} • {subject.category}</p>
+                  <p className="text-sm text-muted-foreground dark:text-muted-foreground">{subject.code} • {subject.category}</p>
                 </div>
                 <Plus className="h-4 w-4 text-muted-foreground" />
               </button>
@@ -199,7 +199,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           </div>
           
           {filteredSubjects.length === 0 && (
-            <p className="text-center text-gray-500 dark:text-gray-500 py-4">
+            <p className="text-center text-muted-foreground dark:text-muted-foreground py-4">
               {searchTerm ? 'No subjects found matching your search.' : 'All available subjects have been added.'}
             </p>
           )}
@@ -266,7 +266,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           {/* Show add button if no subjects selected */}
           {selectedSubjects.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-500 dark:text-gray-500 mb-4">No subjects selected yet</p>
+              <p className="text-muted-foreground dark:text-muted-foreground mb-4">No subjects selected yet</p>
               <AddSubjectButton 
                 onClick={() => setShowAddForm(!showAddForm)}
                 isOpen={showAddForm}
@@ -357,7 +357,7 @@ function SubjectCard({
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className="font-medium text-foreground">{subject.name}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">{subject.code}</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">{subject.code}</p>
             </div>
             <button
               type="button"

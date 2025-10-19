@@ -268,7 +268,7 @@ export default function Analytics() {
                       ? 'border-green-500 text-green-600 bg-green-50'
                       : disabled
                         ? 'border-transparent text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                        : 'border-transparent text-gray-500 dark:text-gray-500 hover:text-foreground hover:border-input dark:border-gray-400'
+                        : 'border-transparent text-muted-foreground dark:text-muted-foreground hover:text-foreground hover:border-input dark:border-gray-400'
                   }`}
                 >
                   <Icon className="h-4 w-4 mr-2" />
@@ -386,7 +386,7 @@ export default function Analytics() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">Total Applications</p>
                     <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">{totalApplications}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+12% from last month</p>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">+12% from last month</p>
                   </div>
                   <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl">
                     <FileText className="h-8 w-8 text-primary" />
@@ -399,7 +399,7 @@ export default function Analytics() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">Approval Rate</p>
                     <p className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 break-words">{overallApprovalRate}%</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+5% from last month</p>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">+5% from last month</p>
                   </div>
                   <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-2xl">
                     <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
@@ -412,7 +412,7 @@ export default function Analytics() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">Eligibility Success</p>
                     <p className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400 break-words">{avgEligibilitySuccess}%</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+8% from last month</p>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">+8% from last month</p>
                   </div>
                   <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-2xl">
                     <TrendingUp className="h-8 w-8 text-purple-600 dark:text-purple-400" />
@@ -425,7 +425,7 @@ export default function Analytics() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">Active Users</p>
                     <p className="text-2xl sm:text-3xl font-bold text-indigo-600 break-words">{uniqueUsers}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+15% from last month</p>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">+15% from last month</p>
                   </div>
                   <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl">
                     <Users className="h-8 w-8 text-indigo-600" />
@@ -538,12 +538,12 @@ export default function Analytics() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-muted">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Total</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Submitted</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Approved</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Rejected</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Total</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Submitted</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Approved</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Rejected</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-card divide-y divide-gray-200">
@@ -552,10 +552,10 @@ export default function Analytics() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {new Date(stat.date).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{stat.totalApplications}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{stat.submittedApplications}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{stat.approvedApplications}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{stat.rejectedApplications}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{stat.totalApplications}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{stat.submittedApplications}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{stat.approvedApplications}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{stat.rejectedApplications}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
                             <Button
@@ -609,11 +609,11 @@ export default function Analytics() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-muted">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Total Checks</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Passed</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Success Rate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Total Checks</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Passed</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Success Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-card divide-y divide-gray-200">
@@ -622,9 +622,9 @@ export default function Analytics() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {new Date(analytics.date).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{analytics.totalChecks}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{analytics.passedChecks}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{analytics.totalChecks}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{analytics.passedChecks}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             analytics.successRate >= 70 
                               ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
@@ -688,12 +688,12 @@ export default function Analytics() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-muted">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Program</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Applications</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Approval Rate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Completion Rate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Avg Processing (days)</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Program</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Applications</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Approval Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Completion Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Avg Processing (days)</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-card divide-y divide-gray-200">
@@ -702,10 +702,10 @@ export default function Analytics() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {sanitizeForDisplay(program.programName)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{program.applicationsCount}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{program.approvalRate}%</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{program.completionRate}%</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">{program.averageProcessingDays}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{program.applicationsCount}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{program.approvalRate}%</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{program.completionRate}%</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{program.averageProcessingDays}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
                             <Button
@@ -751,7 +751,7 @@ export default function Analytics() {
                 </div>
                 <div className="p-6">
                   {automatedReports.length === 0 ? (
-                    <div className="text-center text-sm text-gray-500 dark:text-gray-500 py-6">
+                    <div className="text-center text-sm text-muted-foreground dark:text-muted-foreground py-6">
                       No automated reports available yet. Generate a report to populate this list.
                     </div>
                   ) : (
@@ -761,7 +761,7 @@ export default function Analytics() {
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="font-semibold text-foreground">{sanitizeForDisplay(report.reportName)}</h4>
-                              <p className="text-sm text-gray-500 dark:text-gray-500">{sanitizeForDisplay(report.reportType)}</p>
+                              <p className="text-sm text-muted-foreground dark:text-muted-foreground">{sanitizeForDisplay(report.reportType)}</p>
                               <p className="text-xs text-muted-foreground">{new Date(report.createdAt || '').toLocaleString()}</p>
                             </div>
                             <div className="flex space-x-2">

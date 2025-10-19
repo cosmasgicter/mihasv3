@@ -272,7 +272,7 @@ export function EligibilityDashboard() {
             <div className="ml-4">
               <p className="text-sm font-medium text-muted-foreground">Eligible</p>
               <p className="text-2xl font-bold text-foreground">{metrics.eligibleCount}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-500">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                 {metrics.totalApplications > 0 ? Math.round((metrics.eligibleCount / metrics.totalApplications) * 100) : 0}%
               </p>
             </div>
@@ -357,22 +357,22 @@ export function EligibilityDashboard() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                     Program
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                     Total
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                     Eligible
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                     Conditional
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                     Not Eligible
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                     Success Rate
                   </th>
                 </tr>
@@ -383,7 +383,7 @@ export function EligibilityDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       {program.program}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
                       {program.total}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400">
@@ -415,7 +415,7 @@ export function EligibilityDashboard() {
               <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">{req.requirement}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500">{req.count} applications affected</p>
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground">{req.count} applications affected</p>
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-medium text-foreground">

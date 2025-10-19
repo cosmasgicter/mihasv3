@@ -646,7 +646,7 @@ export default function AdminSettings() {
                               <div className="text-lg font-bold text-foreground mb-1">
                                 {formatValue(setting.setting_value, setting.setting_type)}
                               </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-500">{setting.description || 'No description'}</p>
+                              <p className="text-xs text-muted-foreground dark:text-muted-foreground">{setting.description || 'No description'}</p>
                             </div>
                             <div className="flex gap-2">
                               <Button
@@ -678,22 +678,22 @@ export default function AdminSettings() {
                       <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-muted">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                             Setting Key
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                             Value
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                             Type
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                             Visibility
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                             Description
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -759,7 +759,7 @@ export default function AdminSettings() {
                                   placeholder="Description"
                                 />
                               ) : (
-                                <span className="text-sm text-gray-500 dark:text-gray-500 break-words">
+                                <span className="text-sm text-muted-foreground dark:text-muted-foreground break-words">
                                   {setting.description || 'No description'}
                                 </span>
                               )}
@@ -814,7 +814,7 @@ export default function AdminSettings() {
                     <div className="text-center py-12">
                       <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-foreground mb-2">No settings found</h3>
-                      <p className="text-gray-500 dark:text-gray-500 mb-4">
+                      <p className="text-muted-foreground dark:text-muted-foreground mb-4">
                         {searchTerm ? 'No settings match your search criteria.' : 'No settings configured yet.'}
                       </p>
                       {!searchTerm && (

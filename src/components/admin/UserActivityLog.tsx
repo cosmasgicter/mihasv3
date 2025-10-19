@@ -33,7 +33,7 @@ const ACTION_ICONS: Record<string, React.ReactNode> = {
   'user.role_changed': <Shield className="h-4 w-4 text-purple-600 dark:text-purple-400" />,
   'user.permissions_updated': <Shield className="h-4 w-4 text-orange-600" />,
   'user.login': <User className="h-4 w-4 text-green-500" />,
-  'user.logout': <User className="h-4 w-4 text-gray-500 dark:text-gray-500" />,
+  'user.logout': <User className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />,
   'user.password_changed': <Shield className="h-4 w-4 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />,
 }
 
@@ -204,7 +204,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
               {filteredActivities.map((activity) => (
                 <div key={activity.id} className="flex items-start space-x-4 p-4 bg-card border border-border rounded-lg hover:shadow-sm transition-shadow">
                   <div className="flex-shrink-0 mt-1">
-                    {ACTION_ICONS[activity.action] || <Eye className="h-4 w-4 text-gray-500 dark:text-gray-500" />}
+                    {ACTION_ICONS[activity.action] || <Eye className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />}
                   </div>
                   
                   <div className="flex-1 min-w-0">
@@ -212,7 +212,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                       <h4 className="text-sm font-medium text-foreground">
                         {ACTION_LABELS[activity.action] || activity.action}
                       </h4>
-                      <time className="text-xs text-gray-500 dark:text-gray-500">
+                      <time className="text-xs text-muted-foreground dark:text-muted-foreground">
                         {new Date(activity.created_at).toLocaleString()}
                       </time>
                     </div>
@@ -222,14 +222,14 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                     </p>
                     
                     {activity.performed_by_name && (
-                      <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-500">
+                      <div className="flex items-center space-x-2 text-xs text-muted-foreground dark:text-muted-foreground">
                         <User className="h-3 w-3" />
                         <span>Performed by: {activity.performed_by_name}</span>
                       </div>
                     )}
                     
                     {activity.details.ip_address && (
-                      <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                         IP: {activity.details.ip_address}
                       </div>
                     )}

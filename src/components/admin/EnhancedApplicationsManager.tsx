@@ -128,7 +128,7 @@ export function EnhancedApplicationsManager({
       case 'submitted':
         return <Zap className="h-4 w-4 text-yellow-500" />
       default:
-        return <Clock className="h-4 w-4 text-gray-500 dark:text-gray-500" />
+        return <Clock className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
     }
   }
 
@@ -362,7 +362,7 @@ export function EnhancedApplicationsManager({
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-lg text-foreground truncate">{application.full_name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-500 font-mono">#{application.application_number}</p>
+                      <p className="text-sm text-muted-foreground dark:text-muted-foreground font-mono">#{application.application_number}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -488,7 +488,7 @@ export function EnhancedApplicationsManager({
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-bold text-foreground">{application.full_name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-500">{application.email}</div>
+                        <div className="text-sm text-muted-foreground dark:text-muted-foreground">{application.email}</div>
                         <div className="text-xs text-muted-foreground font-mono">#{application.application_number}</div>
                       </div>
                     </td>
@@ -503,7 +503,7 @@ export function EnhancedApplicationsManager({
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-500">
+                    <td className="px-6 py-4 text-sm text-muted-foreground dark:text-muted-foreground">
                       {new Date(application.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">

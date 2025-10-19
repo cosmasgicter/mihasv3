@@ -49,7 +49,7 @@ export default function EmailNotifications() {
       
       <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="px-6 py-8 text-center text-gray-500 dark:text-gray-500">
+          <div className="px-6 py-8 text-center text-muted-foreground dark:text-muted-foreground">
             No email notifications found
           </div>
         ) : (
@@ -72,7 +72,7 @@ export default function EmailNotifications() {
                     To: {sanitizeForDisplay(notification.recipient_email)}
                   </p>
                   
-                  <p className="text-xs text-gray-500 dark:text-gray-500 mb-2">
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground mb-2">
                     {sanitizeForDisplay(notification.body)}
                   </p>
                   

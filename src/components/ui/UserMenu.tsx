@@ -49,7 +49,7 @@ export function UserMenu() {
           {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
         </span>
         <ChevronDown className={cn(
-          "w-4 h-4 text-gray-500 dark:text-gray-500 transition-transform",
+          "w-4 h-4 text-muted-foreground dark:text-muted-foreground transition-transform",
           isOpen && "rotate-180"
         )} />
       </Button>

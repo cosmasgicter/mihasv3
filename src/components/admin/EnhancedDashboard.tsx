@@ -52,7 +52,7 @@ export function EnhancedDashboard({
   if (!metrics) {
     return (
       <div className="bg-card rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800">
-        <p className="text-sm text-gray-500 dark:text-gray-500">Dashboard metrics are not available right now.</p>
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Dashboard metrics are not available right now.</p>
       </div>
     )
   }
@@ -74,7 +74,7 @@ export function EnhancedDashboard({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">{metrics.todayApplications}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Today</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Today</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">New Applications</div>
@@ -95,7 +95,7 @@ export function EnhancedDashboard({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">{metrics.pendingApplications}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Pending</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Pending</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">Awaiting Review</div>
@@ -119,7 +119,7 @@ export function EnhancedDashboard({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">{metrics.approvalRate}%</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Rate</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Rate</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">Approval Rate</div>
@@ -144,7 +144,7 @@ export function EnhancedDashboard({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">{metrics.avgProcessingTime}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Days</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Days</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
@@ -193,11 +193,11 @@ export function EnhancedDashboard({
                 }`}></div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{activity.message}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500">{new Date(activity.timestamp).toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground">{new Date(activity.timestamp).toLocaleString()}</p>
                 </div>
               </motion.div>
             )) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-500">
+              <div className="text-center py-8 text-muted-foreground dark:text-muted-foreground">
                 <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No recent activity</p>
               </div>

@@ -267,7 +267,7 @@ export function PredictiveDashboard() {
           <p className="text-muted-foreground">
             Real-time insights and automation analytics
             {lastUpdated && (
-              <span className="ml-2 text-sm text-gray-500 dark:text-gray-500">
+              <span className="ml-2 text-sm text-muted-foreground dark:text-muted-foreground">
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
@@ -361,7 +361,7 @@ export function PredictiveDashboard() {
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-gray-500 dark:text-gray-500">No peak times identified</span>
+                    <span className="text-xs text-muted-foreground dark:text-muted-foreground">No peak times identified</span>
                   )}
                 </div>
               </div>
@@ -429,7 +429,7 @@ export function PredictiveDashboard() {
                     </span>
                   </div>
                   <div className="pt-2 border-t">
-                    <span className="text-xs text-gray-500 dark:text-gray-500">Most Active Rules</span>
+                    <span className="text-xs text-muted-foreground dark:text-muted-foreground">Most Active Rules</span>
                     <div className="mt-1 space-y-1">
                       {Object.entries(metrics.workflowStats.ruleStats)
                         .sort(([,a], [,b]) => (b as number) - (a as number))
@@ -445,7 +445,7 @@ export function PredictiveDashboard() {
                   </div>
                 </>
               ) : (
-                <div className="text-sm text-gray-500 dark:text-gray-500">Loading workflow statistics...</div>
+                <div className="text-sm text-muted-foreground dark:text-muted-foreground">Loading workflow statistics...</div>
               )}
             </div>
           </Card>
@@ -462,7 +462,7 @@ export function PredictiveDashboard() {
           <div className="flex items-center mb-6">
             <Brain className="h-6 w-6 mr-2 text-purple-600 dark:text-purple-400" />
             <h3 className="text-lg font-semibold">AI Recommendations</h3>
-            <span className="ml-auto text-xs text-gray-500 dark:text-gray-500 bg-accent dark:bg-gray-200 px-2 py-1 rounded">
+            <span className="ml-auto text-xs text-muted-foreground dark:text-muted-foreground bg-accent dark:bg-gray-200 px-2 py-1 rounded">
               Updated {refreshing ? 'now' : 'recently'}
             </span>
           </div>

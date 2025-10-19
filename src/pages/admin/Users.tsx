@@ -232,7 +232,7 @@ export default function AdminUsers() {
       case 'academic_head':
         return <Shield className="h-4 w-4 text-blue-500 dark:text-blue-400" />
       default:
-        return <User className="h-4 w-4 text-gray-500 dark:text-gray-500" />
+        return <User className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
     }
   }
 
@@ -429,7 +429,7 @@ export default function AdminUsers() {
                           </h3>
                           <p className="text-sm text-muted-foreground">{sanitizeForDisplay(user.email)}</p>
                           {user.phone && (
-                            <p className="text-sm text-gray-500 dark:text-gray-500">{sanitizeForDisplay(user.phone)}</p>
+                            <p className="text-sm text-muted-foreground dark:text-muted-foreground">{sanitizeForDisplay(user.phone)}</p>
                           )}
                           <p className="text-xs text-muted-foreground mt-1">
                             ID: {user.user_id.slice(0, 8)}...
@@ -443,7 +443,7 @@ export default function AdminUsers() {
                       </div>
                       
                       <div className="flex items-center justify-between pt-3 border-t border-border">
-                        <div className="text-xs text-gray-500 dark:text-gray-500">
+                        <div className="text-xs text-muted-foreground dark:text-muted-foreground">
                           Joined: {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -545,7 +545,7 @@ export default function AdminUsers() {
                                 <div className="text-sm font-semibold text-foreground">
                                   {sanitizeForDisplay(user.full_name) || 'No name provided'}
                                 </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-500 font-mono">
+                                <div className="text-xs text-muted-foreground dark:text-muted-foreground font-mono">
                                   ID: {user.user_id.slice(0, 8)}...
                                 </div>
                               </div>
@@ -554,7 +554,7 @@ export default function AdminUsers() {
                           <td className="px-6 py-4">
                             <div className="text-sm text-foreground">{sanitizeForDisplay(user.email)}</div>
                             {user.phone && (
-                              <div className="text-sm text-gray-500 dark:text-gray-500">{sanitizeForDisplay(user.phone)}</div>
+                              <div className="text-sm text-muted-foreground dark:text-muted-foreground">{sanitizeForDisplay(user.phone)}</div>
                             )}
                           </td>
                           <td className="px-6 py-4">
@@ -758,7 +758,7 @@ export default function AdminUsers() {
                 ))}
               </select>
               {selectedUser?.role === 'super_admin' && (
-                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Super admin role cannot be changed</p>
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">Super admin role cannot be changed</p>
               )}
             </div>
           </div>

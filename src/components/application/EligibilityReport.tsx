@@ -241,7 +241,7 @@ For appeals or queries, please contact the admissions office.
                       }`}>
                         {req.severity}
                       </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-500 uppercase">{req.type}</span>
+                      <span className="text-xs text-muted-foreground dark:text-muted-foreground uppercase">{req.type}</span>
                     </div>
                     <div className="font-medium text-foreground mb-1">{req.description}</div>
                     <div className="text-sm text-foreground">{req.suggestion}</div>
@@ -294,7 +294,7 @@ For appeals or queries, please contact the admissions office.
           </ul>
           
           <div className="mt-4 pt-4 border-t border-border">
-            <p className="text-xs text-gray-500 dark:text-gray-500">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               This report was generated automatically by the Eligibility Assessment System on {new Date().toLocaleString()}.
               Report ID: {assessment.id}
             </p>

@@ -219,7 +219,7 @@ export default function AIInsights() {
                   className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-purple-500 text-purple-600'
-                      : 'border-transparent text-gray-500 dark:text-gray-500 hover:text-foreground hover:border-input dark:border-gray-400'
+                      : 'border-transparent text-muted-foreground dark:text-muted-foreground hover:text-foreground hover:border-input dark:border-gray-400'
                   }`}
                 >
                   <tab.icon className="h-4 w-4 mr-2" />

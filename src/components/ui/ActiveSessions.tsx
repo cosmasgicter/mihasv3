@@ -106,8 +106,8 @@ export function ActiveSessions() {
       
       {sessions.length === 0 ? (
         <div className="text-center py-4">
-          <p className="text-gray-500 dark:text-gray-500 mb-2">Session tracking is not enabled yet.</p>
-          <p className="text-sm text-gray-400">Your current session is active and secure.</p>
+          <p className="text-muted-foreground dark:text-muted-foreground mb-2">Session tracking is not enabled yet.</p>
+          <p className="text-sm text-muted-foreground">Your current session is active and secure.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -137,7 +137,7 @@ export function ActiveSessions() {
                         )}
                       </p>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                       {screenInfo && `${screenInfo} • `}
                       Last active {formatDistanceToNow(new Date(session.last_activity), { addSuffix: true })}
                     </p>

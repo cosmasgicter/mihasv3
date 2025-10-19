@@ -168,7 +168,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                     <Icon className="h-4 w-4 mr-3" />
                     <div className="text-left">
                       <div className="font-medium">{action.title}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-500">{action.description}</div>
+                      <div className="text-xs text-muted-foreground dark:text-muted-foreground">{action.description}</div>
                     </div>
                   </Button>
                 </motion.div>
@@ -194,7 +194,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
               <Download className="h-4 w-4 mr-3" />
               <div className="text-left">
                 <div className="font-medium">Export Data</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Download reports</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Download reports</div>
               </div>
             </Button>
           </motion.div>
