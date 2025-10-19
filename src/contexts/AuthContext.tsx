@@ -33,22 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updatePassword,
   } = useSessionListener()
 
-  // Query the profiles table for role
-  const { data: profileRole } = useQuery({
-    queryKey: ['profile-role', user?.id],
-    enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000,
-    queryFn: async () => {
-      if (!user?.id) return null
-      const supabase = getSupabaseClient()
-      const { data } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-      return data?.role || null
-    }
-  })
+  // Get role from user metadata (set by backend)
+  const profileRole = user?.user_metadata?.role || user?.app_metadata?.role || null
 
   const isAdmin = useMemo(() => {
     // Hardcoded super admin
