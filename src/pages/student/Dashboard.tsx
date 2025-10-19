@@ -329,7 +329,7 @@ export default function StudentDashboard() {
                   <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
                     <div className="text-gray-400 dark:text-gray-500"><FileText className="w-16 h-16" /></div>
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">No applications yet</h3>
+                      <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100">No applications yet</h3>
                       <p className="text-gray-600 dark:text-gray-400">
                         Start your journey by submitting your first application. We'll guide you every step of the way.
                       </p>
@@ -355,17 +355,17 @@ export default function StudentDashboard() {
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">Draft application #{application.application_number}</h4>
+                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 break-all">Draft application #{application.application_number}</h4>
                               <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Draft</span>
                             </div>
                             <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Program:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">{application.program}</dd>
+                                <dd className="text-gray-900 dark:text-gray-100 break-words">{application.program}</dd>
                               </div>
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Intake:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">{application.intake}</dd>
+                                <dd className="text-gray-900 dark:text-gray-100 break-words">{application.intake}</dd>
                               </div>
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Created:</dt>
@@ -427,13 +427,13 @@ export default function StudentDashboard() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">Local draft in progress</h4>
+                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">Local draft in progress</h4>
                               <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Draft</span>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400">Progress: {getDraftProgress()}</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">Last saved: {getDraftTimestamp()}</p>
                             {draftData?.formData?.program && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Program: {draftData.formData.program}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 break-words">Program: {draftData.formData.program}</p>
                             )}
                           </div>
                           <div className="flex flex-col gap-2 sm:flex-row">
