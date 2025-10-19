@@ -105,7 +105,10 @@ export function ActiveSessions() {
       <h3 className="text-lg font-semibold mb-4">Active Sessions</h3>
       
       {sessions.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-500">No active sessions found.</p>
+        <div className="text-center py-4">
+          <p className="text-gray-500 dark:text-gray-500 mb-2">Session tracking is not enabled yet.</p>
+          <p className="text-sm text-gray-400">Your current session is active and secure.</p>
+        </div>
       ) : (
         <div className="space-y-3">
           {sessions.map((session) => {
