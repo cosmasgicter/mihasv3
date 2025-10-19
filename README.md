@@ -1,4 +1,4 @@
-# MIHAS V3 - Application System
+# MIHAS - Application System
 
 ## 🎯 Project Overview
 
@@ -40,7 +40,7 @@ npm run dev
 npm run build:prod
 ```
 
-### Testing
+### Testingg
 ```bash
 npm run test
 npm run test:unit
