@@ -17,6 +17,7 @@ import { FancyPreloader } from '@/components/ui/FancyPreloader'
 import { routes, type RouteConfig } from '@/routes/config'
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { ParticleBackground } from '@/components/theme/ParticleBackground'
 
 
 
@@ -64,10 +65,15 @@ const renderRoute = (route: RouteConfig) => {
 
 function App() {
   const [isLoading, setIsLoading] = useState(true)
+  const [showParticles, setShowParticles] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2000)
-    return () => clearTimeout(timer)
+    const particleTimer = setTimeout(() => setShowParticles(true), 1000)
+    return () => {
+      clearTimeout(timer)
+      clearTimeout(particleTimer)
+    }
   }, [])
 
   if (isLoading) {
@@ -78,6 +84,7 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          {showParticles && <ParticleBackground />}
           <AuthProvider>
             <ToastProvider>
             <Router>
