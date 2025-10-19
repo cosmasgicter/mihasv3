@@ -22,8 +22,6 @@
     "build:analyze": "tsc -p tsconfig.build.json && vite build --mode production && npx vite-bundle-analyzer dist/stats.html",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "deploy": "netlify deploy",
-    "deploy:prod": "netlify deploy --prod",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
