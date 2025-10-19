@@ -133,13 +133,13 @@ const ApplicationWizardContent = () => {
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 break-words">Student Application</h1>
             <p className="text-gray-600 dark:text-gray-400">Complete the {totalSteps}-step application process</p>
-            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">Logged in as: {user.email}</div>
+            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 break-all">Logged in as: {user.email}</div>
           </motion.div>
         </div>
 
         <div className="mb-6 lg:mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 break-words">
               Step {currentStepConfig.id} of {totalSteps}: {currentStepConfig.progressTitle}
             </h2>
             <div className="flex items-center space-x-4">
@@ -189,7 +189,7 @@ const ApplicationWizardContent = () => {
                     >
                       {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                     </motion.div>
-                    <div className={`mt-2 text-xs font-medium text-center whitespace-nowrap ${isActive ? 'text-blue-600' : 'text-gray-500 dark:text-gray-500'}`}>
+                    <div className={`mt-2 text-xs font-medium text-center truncate max-w-[80px] ${isActive ? 'text-blue-600' : 'text-gray-500 dark:text-gray-500'}`}>
                       {step.title}
                     </div>
                   </motion.div>
