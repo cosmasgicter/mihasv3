@@ -172,7 +172,7 @@ export async function syncGradesWithRecovery(
 ): Promise<any> {
   const connectionManager = ConnectionManager.getInstance()
   
-  return connectionManager.makeRequest(`/api/applications/${applicationId}`, {
+  return connectionManager.makeRequest(`/applications/${applicationId}`, {
     method: 'PATCH',
     body: JSON.stringify({ action: 'sync_grades', grades }),
     retryKey: `sync_grades_${applicationId}`

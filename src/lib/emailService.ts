@@ -1,7 +1,7 @@
 // Minimal email service
 export const emailService = {
   async sendNotificationEmail(to: string, title: string, message: string) {
-    return fetch('/.netlify/functions/send-email', {
+    return fetch('/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -24,7 +24,7 @@ export const emailService = {
   },
 
   async sendAcceptanceLetter(to: string, applicationNumber: string, pdfUrl: string) {
-    return fetch('/.netlify/functions/send-email', {
+    return fetch('/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -59,7 +59,7 @@ export const emailService = {
       minute: '2-digit'
     })
 
-    return fetch('/.netlify/functions/send-email', {
+    return fetch('/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

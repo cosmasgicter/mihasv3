@@ -49,8 +49,8 @@ describe('MonitoringService telemetry pipeline', () => {
   it('batches API telemetry and flushes through the sink', async () => {
     const { service, sink } = createService({ flushIntervalMs: 5, maxBatchSize: 10 })
 
-    service.trackApiCall('applications', '/api/applications', 120, true, { statusCode: 200 })
-    service.trackApiCall('applications', '/api/applications', 80, false, { statusCode: 500 })
+    service.trackApiCall('applications', '/applications', 120, true, { statusCode: 200 })
+    service.trackApiCall('applications', '/applications', 80, false, { statusCode: 500 })
 
     expect(sink.persistCalls).toBe(0)
 
@@ -60,7 +60,7 @@ describe('MonitoringService telemetry pipeline', () => {
     expect(sink.lastBatch).toHaveLength(2)
 
     const metrics = service.getMetrics()
-    const key = 'applications:/api/applications'
+    const key = 'applications:/applications'
     expect(metrics[key].calls).toBe(2)
     expect(metrics[key].errors).toBe(1)
     expect(metrics[key].statusCodes).toContain(500)
@@ -72,7 +72,7 @@ describe('MonitoringService telemetry pipeline', () => {
 
     const persistSpy = vi.spyOn(sink, 'persist')
 
-    service.trackApiCall('catalog', '/api/catalog', 95, true)
+    service.trackApiCall('catalog', '/catalog', 95, true)
     service.queueFlush()
 
     expect(persistSpy).not.toHaveBeenCalled()
@@ -91,8 +91,8 @@ describe('MonitoringService telemetry pipeline', () => {
     services.push(first)
     sinks.push(sink)
 
-    first.trackApiCall('admin', '/api/admin', 200, true)
-    first.trackApiCall('admin', '/api/admin', 220, false)
+    first.trackApiCall('admin', '/admin', 200, true)
+    first.trackApiCall('admin', '/admin', 220, false)
     await first.flush()
 
     const second = new MonitoringService({ sink, flushIntervalMs: 5, getAccessToken: async () => null })
@@ -101,7 +101,7 @@ describe('MonitoringService telemetry pipeline', () => {
     const result: TelemetryQueryResult = await second.getTelemetrySummary({ service: 'admin' })
 
     expect(result.summary).not.toHaveLength(0)
-    const summary = result.summary.find(item => item.endpoint === '/api/admin')
+    const summary = result.summary.find(item => item.endpoint === '/admin')
     expect(summary?.totalCalls).toBe(2)
     expect(summary?.errorRate).toBeCloseTo(0.5)
     expect(summary?.avgDuration).toBeGreaterThan(0)

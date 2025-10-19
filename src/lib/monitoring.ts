@@ -207,7 +207,7 @@ class HttpTelemetrySink implements TelemetrySink {
 
     try {
       const payload = { events }
-      const response = await fetch(`${this.baseUrl}/api/analytics/telemetry`, {
+      const response = await fetch(`${this.baseUrl}/analytics/telemetry`, {
         method: 'POST',
         headers: await this.buildHeaders(),
         body: JSON.stringify(payload),
@@ -242,7 +242,7 @@ class HttpTelemetrySink implements TelemetrySink {
     if (query.windowMinutes) params.set('windowMinutes', String(query.windowMinutes))
 
     const queryString = params.toString()
-    const url = `${this.baseUrl}/api/analytics/telemetry${queryString ? `?${queryString}` : ''}`
+    const url = `${this.baseUrl}/analytics/telemetry${queryString ? `?${queryString}` : ''}`
     const response = await fetch(url, {
       method: 'GET',
       headers: await this.buildHeaders()

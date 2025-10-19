@@ -48,18 +48,18 @@ export class MCPService {
   }
 
   static async query(sql: string, params?: any[]) {
-    return this.makeRequest('/api/mcp/query', {
+    return this.makeRequest('/mcp/query', {
       method: 'POST',
       body: JSON.stringify({ sql, params }),
     })
   }
 
   static async getSchema() {
-    return this.makeRequest('/api/mcp/schema')
+    return this.makeRequest('/mcp/schema')
   }
 
   static async getTableInfo(tableName: string) {
     const queryParam = encodeURIComponent(tableName)
-    return this.makeRequest(`/api/mcp/schema?table=${queryParam}`)
+    return this.makeRequest(`/mcp/schema?table=${queryParam}`)
   }
 }

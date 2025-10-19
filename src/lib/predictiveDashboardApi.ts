@@ -44,7 +44,7 @@ export async function fetchPredictiveDashboardMetrics(): Promise<PredictiveDashb
     }
 
     const apiBase = import.meta.env.VITE_API_BASE_URL || ''
-    const response = await fetch(`${apiBase}/api/analytics/predictive-dashboard`, {
+    const response = await fetch(`${apiBase}/analytics/predictive-dashboard`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`
       }

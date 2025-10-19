@@ -16,12 +16,12 @@ export type DispatchPushPayload = {
 
 export const pushSubscriptionsService = {
   save: (payload: PushSubscriptionPayload) =>
-    apiClient.request('/api/push-subscriptions', {
+    apiClient.request('/push-subscriptions', {
       method: 'POST',
       body: JSON.stringify(payload)
     }),
   dispatch: (payload: DispatchPushPayload) =>
-    apiClient.request('/api/push-subscriptions/dispatch', {
+    apiClient.request('/push-subscriptions/dispatch', {
       method: 'POST',
       body: JSON.stringify(payload)
     })

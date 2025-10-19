@@ -1,5 +1,5 @@
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || 'sk-or-v1-your-free-key'
-const API_URL = 'https://openrouter.ai/api/v1/chat/completions'
+const API_URL = 'https://openrouter.ai/v1/chat/completions'
 
 export async function analyzeDocumentWithAI(ocrText: string, documentType: string) {
   try {

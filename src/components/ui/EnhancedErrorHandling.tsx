@@ -333,7 +333,7 @@ export class EnhancedErrorBoundary extends React.Component<
     if (typeof window !== 'undefined') {
       try {
         // Send error to logging service
-        fetch('/api/log-error', {
+        fetch('/log-error', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

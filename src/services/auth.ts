@@ -14,17 +14,17 @@ interface LoginData {
 
 export const authService = {
   register: (data: RegisterData) =>
-    apiClient.request('/api/auth/register', {
+    apiClient.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
   login: (data: LoginData) =>
-    apiClient.request('/api/auth/login', {
+    apiClient.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
   signin: (data: LoginData) =>
-    apiClient.request('/api/auth/signin', {
+    apiClient.request('/auth/signin', {
       method: 'POST',
       body: JSON.stringify(data)
     })

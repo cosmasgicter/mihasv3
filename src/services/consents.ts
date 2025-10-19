@@ -23,11 +23,11 @@ export type ConsentAction = 'grant' | 'revoke' | 'opt_in' | 'opt_out'
 
 export const userConsentService = {
   list: (): Promise<UserConsentResponse> =>
-    apiClient.request('/api/user-consents', {
+    apiClient.request('/user-consents', {
       method: 'GET'
     }),
   update: (consentType: string, action: ConsentAction, body?: { source?: string; notes?: string }) =>
-    apiClient.request('/api/user-consents', {
+    apiClient.request('/user-consents', {
       method: 'POST',
       body: JSON.stringify({ consentType, action, ...body })
     })

@@ -65,7 +65,7 @@ export const adminAuditService = {
   async list(params: AuditLogFilters = {}): Promise<AuditLogResponse> {
     try {
       const query = buildQuery(params)
-      const url = `/api/admin/audit-log${query}`
+      const url = `/admin/audit-log${query}`
       const response = await apiClient.request<AuditLogResponse>(url, {
         method: 'GET'
       })
@@ -78,7 +78,7 @@ export const adminAuditService = {
 
   async getStats(): Promise<AuditStats> {
     try {
-      const response = await apiClient.request<AuditStats>('/api/admin/audit-log/stats', {
+      const response = await apiClient.request<AuditStats>('/admin/audit-log/stats', {
         method: 'GET'
       })
       return response || {
@@ -103,7 +103,7 @@ export const adminAuditService = {
   async export(params: AuditLogFilters = {}): Promise<Blob> {
     try {
       const query = buildQuery(params)
-      const url = `/api/admin/audit-log/export${query}`
+      const url = `/admin/audit-log/export${query}`
       const response = await fetch(url, {
         method: 'GET',
         headers: {

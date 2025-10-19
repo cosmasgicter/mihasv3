@@ -82,7 +82,7 @@ export class AnalyticsService {
     }
 
     try {
-      const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}/role`, {
+      const response = await fetch(`/admin/users/${encodeURIComponent(userId)}/role`, {
         headers: {
           Authorization: `Bearer ${session.access_token}`
         }
