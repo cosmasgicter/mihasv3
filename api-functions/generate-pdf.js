@@ -1,5 +1,6 @@
 import { supabaseAdminClient } from '../api/_lib/supabaseClient.js'
 import { generateAcceptanceLetter, generatePaymentReceipt } from '../api/_lib/pdfTemplates.js'
+import { logger } from './utils/logger.js'
 
 const supabase = supabaseAdminClient
 
@@ -80,7 +81,7 @@ export async function handler(event) {
       })
     }
   } catch (error) {
-    console.error('PDF generation error:', error)
+    logger.error('PDF generation error:', error)
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })

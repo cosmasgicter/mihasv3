@@ -616,7 +616,8 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
       {/* Floating Assistant Button */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ${isOpen ? 'hidden' : 'block'}`}
+        className={`fixed bottom-6 md:bottom-6 right-6 z-[70] bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ${isOpen ? 'hidden' : 'block'}`}
+        style={{ bottom: 'calc(env(safe-area-inset-bottom) + 5rem)' }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         initial={{ scale: 0 }}
@@ -638,7 +639,8 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden"
+            className="fixed bottom-6 md:bottom-6 right-4 md:right-6 z-[70] w-[calc(100vw-2rem)] md:w-96 max-w-md h-[500px] bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden"
+            style={{ bottom: 'calc(env(safe-area-inset-bottom) + 5rem)' }}
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">

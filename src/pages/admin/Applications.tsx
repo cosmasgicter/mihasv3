@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { supabase } from '@/lib/supabase'
 import { applicationService } from '@/services/applications'
+import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
 import {
   exportToCSV,
   exportToExcel,
@@ -607,6 +608,15 @@ export default function Applications() {
 
         {isInitialLoading ? (
           <ApplicationsSkeleton />
+        ) : applications.length > 100 ? (
+          <VirtualizedApplicationsGrid
+            applications={applications}
+            renderCard={(app) => (
+              <div className="h-full">
+                {/* Card content rendered via ApplicationsTable */}
+              </div>
+            )}
+          />
         ) : (
           <ApplicationsTable
             applications={applications}

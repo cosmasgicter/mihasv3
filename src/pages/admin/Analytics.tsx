@@ -64,11 +64,7 @@ export default function Analytics() {
   const loadAnalytics = async () => {
     try {
       setLoading(true)
-      console.log('Loading analytics for date range:', dateRange.start, 'to', dateRange.end)
       const summary = await AnalyticsService.getAnalyticsSummary(dateRange.start, dateRange.end)
-      console.log('Analytics summary:', summary)
-      console.log('Application stats array:', summary.applicationStats)
-      console.log('Program analytics array:', summary.programAnalytics)
       
       setApplicationStats(summary.applicationStats)
       setProgramAnalytics(summary.programAnalytics)

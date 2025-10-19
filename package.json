@@ -91,6 +91,7 @@
     "@supabase/supabase-js": "^2.48.1",
     "@tailwindcss/forms": "^0.5.10",
     "@tanstack/react-query": "^5.62.7",
+    "@tanstack/react-virtual": "^3.13.12",
     "@testmonitor/playwright-reporter": "^1.0.0",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.9.1",
@@ -154,6 +155,7 @@
     "globals": "^15.12.0",
     "jsdom": "^25.0.1",
     "netlify-cli": "^23.7.3",
+    "sharp": "^0.34.4",
     "terser": "^5.37.0",
     "typescript-eslint": "^8.18.1",
     "vitest": "^3.2.4"

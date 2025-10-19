@@ -30,10 +30,8 @@ export const secureLog = (level: 'info' | 'warn' | 'error', message: string, dat
   
   switch (level) {
     case 'info':
-      console.info(sanitizedMessage, sanitizedData)
       break
     case 'warn':
-      console.warn(sanitizedMessage, sanitizedData)
       break
     case 'error':
       console.error(sanitizedMessage, sanitizedData)
