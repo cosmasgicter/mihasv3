@@ -2,6 +2,16 @@ name = "mihas"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "dist"
 
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
 [vars]
 # Supabase
 VITE_SUPABASE_URL = "https://mylgegkqoddcrxtwcclb.supabase.co"
