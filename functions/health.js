@@ -1,4 +1,10 @@
-// Auto-generated function entry point for api/health/index.js
-import handler from '../api/health/index.js'
-export { handler }
-export default handler
+export async function onRequestGet() {
+  return new Response(JSON.stringify({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    platform: 'cloudflare-pages'
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
