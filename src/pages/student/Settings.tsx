@@ -171,7 +171,7 @@ export default function StudentSettings() {
                     type="email"
                     value={profile?.email || ''}
                     disabled
-                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-muted-foreground cursor-not-allowed"
+                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-muted-foreground cursor-not-allowed truncate"
                   />
                 </div>
                 <p className="mt-2 text-xs text-gray-500 dark:text-gray-500 bg-accent dark:bg-gray-200 px-3 py-1 rounded-lg inline-block">
