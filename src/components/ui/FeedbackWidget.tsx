@@ -65,7 +65,7 @@ export function FeedbackWidget() {
 
  {submitted ? (
  <div className="text-center py-4">
- <p className="text-green-600 dark:text-green-400">Thank you for your feedback!</p>
+ <p className="text-accent">Thank you for your feedback!</p>
  </div>
  ) : (
  <form onSubmit={handleSubmit} className="space-y-4">
@@ -91,7 +91,7 @@ export function FeedbackWidget() {
  key={star}
  type="button"
  onClick={() => setFeedback(prev => ({ ...prev, rating: star }))}
- className={`p-1 ${star <= (feedback.rating || 0) ? 'text-yellow-400 dark:text-yellow-500' : 'text-foreground dark:text-muted-foreground'}`}
+ className={`p-1 ${star <= (feedback.rating || 0) ? 'text-yellow-400 dark:text-yellow-500' : 'text-foreground'}`}
  >
  <Star className="h-4 w-4 fill-current" />
  </button>

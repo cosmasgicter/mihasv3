@@ -72,7 +72,7 @@ export default function ApplicationDetail() {
       case 'rejected':
         return <XCircle className="h-6 w-6 text-red-500" />
       case 'under_review':
-        return <Clock className="h-6 w-6 text-blue-500 dark:text-blue-400" />
+        return <Clock className="h-6 w-6 text-primary" />
       default:
         return <AlertCircle className="h-6 w-6 text-yellow-500" />
     }
@@ -152,7 +152,7 @@ export default function ApplicationDetail() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 mb-8"
+          className="bg-card rounded-2xl shadow-lg border border-border p-6 mb-8"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
@@ -172,7 +172,7 @@ export default function ApplicationDetail() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
               <User className="h-5 w-5 mr-2 text-primary" />
@@ -180,25 +180,25 @@ export default function ApplicationDetail() {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Full Name</label>
+                <label className="text-sm font-medium text-muted-foreground">Full Name</label>
                 <p className="text-foreground font-medium break-words">{application.full_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Email</label>
+                <label className="text-sm font-medium text-muted-foreground">Email</label>
                 <p className="text-foreground font-medium flex items-center">
                   <Mail className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
                   <span className="break-all">{application.email}</span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Phone</label>
+                <label className="text-sm font-medium text-muted-foreground">Phone</label>
                 <p className="text-foreground font-medium flex items-center">
                   <Phone className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
                   <span className="break-all">{application.phone}</span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Nationality</label>
+                <label className="text-sm font-medium text-muted-foreground">Nationality</label>
                 <p className="text-foreground font-medium flex items-center">
                   <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                   {application.nationality || 'Zambian'}
@@ -212,7 +212,7 @@ export default function ApplicationDetail() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
               <GraduationCap className="h-5 w-5 mr-2 text-primary" />
@@ -220,11 +220,11 @@ export default function ApplicationDetail() {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Program</label>
+                <label className="text-sm font-medium text-muted-foreground">Program</label>
                 <p className="text-foreground font-medium break-words">{application.program}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Institution</label>
+                <label className="text-sm font-medium text-muted-foreground">Institution</label>
                 <p className="text-foreground font-medium break-words">
                   {application.institution === 'KATC' ? 'Kalulushi Training Centre' : 
                    application.institution === 'MIHAS' ? 'Mukuba Institute of Health and Allied Sciences' : 
@@ -232,11 +232,11 @@ export default function ApplicationDetail() {
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Intake</label>
+                <label className="text-sm font-medium text-muted-foreground">Intake</label>
                 <p className="text-foreground font-medium break-words">{application.intake}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Application Fee</label>
+                <label className="text-sm font-medium text-muted-foreground">Application Fee</label>
                 <p className="text-foreground font-medium">ZMW {application.application_fee}</p>
               </div>
             </div>
@@ -247,7 +247,7 @@ export default function ApplicationDetail() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-primary" />
@@ -255,27 +255,27 @@ export default function ApplicationDetail() {
             </h3>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-50 dark:bg-green-950/300 rounded-full"></div>
+                <div className="w-2 h-2 bg-accent/10/300 rounded-full"></div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Application Created</p>
-                  <p className="text-xs text-muted-foreground dark:text-muted-foreground">{formatDate(application.created_at)}</p>
+                  <p className="text-xs text-muted-foreground">{formatDate(application.created_at)}</p>
                 </div>
               </div>
               {application.submitted_at && (
                 <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-50 dark:bg-blue-950/300 rounded-full"></div>
+                  <div className="w-2 h-2 bg-primary/5/300 rounded-full"></div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Application Submitted</p>
-                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">{formatDate(application.submitted_at)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(application.submitted_at)}</p>
                   </div>
                 </div>
               )}
               {application.review_started_at && (
                 <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-yellow-50 dark:bg-yellow-950/300 rounded-full"></div>
+                  <div className="w-2 h-2 bg-accent/5/300 rounded-full"></div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Review Started</p>
-                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">{formatDate(application.review_started_at)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(application.review_started_at)}</p>
                   </div>
                 </div>
               )}
@@ -286,7 +286,7 @@ export default function ApplicationDetail() {
                   }`}></div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Decision Made</p>
-                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">{formatDate(application.decision_date)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(application.decision_date)}</p>
                   </div>
                 </div>
               )}
@@ -298,7 +298,7 @@ export default function ApplicationDetail() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
               <CreditCard className="h-5 w-5 mr-2 text-primary" />
@@ -306,7 +306,7 @@ export default function ApplicationDetail() {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Payment Status</label>
+                <label className="text-sm font-medium text-muted-foreground">Payment Status</label>
                 <p className={`font-medium ${
                   application.payment_status === 'verified' ? 'text-green-600' : 
                   application.payment_status === 'pending' ? 'text-yellow-600' : 'text-red-600'
@@ -316,12 +316,12 @@ export default function ApplicationDetail() {
               </div>
               {application.payment_verified_at && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Verified Date</label>
+                  <label className="text-sm font-medium text-muted-foreground">Verified Date</label>
                   <p className="text-foreground font-medium">{formatDate(application.payment_verified_at)}</p>
                 </div>
               )}
               <div>
-                <label className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">Tracking Code</label>
+                <label className="text-sm font-medium text-muted-foreground">Tracking Code</label>
                 <p className="text-foreground font-medium font-mono break-all">{application.public_tracking_code}</p>
               </div>
             </div>

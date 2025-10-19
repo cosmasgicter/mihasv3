@@ -139,12 +139,12 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
         </DialogHeader>
         
         <div className="space-y-6">
-          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
               <Shield className="h-4 w-4 text-primary" />
-              <span className="font-medium text-blue-900 dark:text-blue-100 dark:text-blue-900">Current Role: {user.role.replace('_', ' ').toUpperCase()}</span>
+              <span className="font-medium text-primary-foreground">Current Role: {user.role.replace('_', ' ').toUpperCase()}</span>
             </div>
-            <p className="text-sm text-blue-700 dark:text-blue-300">
+            <p className="text-sm text-primary">
               Customize permissions for this user. Changes will override default role permissions.
             </p>
           </div>
@@ -164,7 +164,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-foreground flex items-center space-x-2">
                     <span>{category}</span>
-                    <span className="text-sm text-muted-foreground dark:text-muted-foreground">({selectedInCategory}/{categoryPermissions.length})</span>
+                    <span className="text-sm text-muted-foreground">({selectedInCategory}/{categoryPermissions.length})</span>
                   </h3>
                   <Button
                     variant="outline"
@@ -194,7 +194,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                         selectedPermissions.includes(permission.id)
                           ? 'border-blue-300 dark:border-blue-700 bg-blue-50'
-                          : 'border-border hover:border-input dark:border-gray-400'
+                          : 'border-border hover:border-input'
                       }`}
                       onClick={() => handlePermissionToggle(permission.id)}
                     >
@@ -207,7 +207,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2">
                             <h4 className={`font-medium text-sm ${
-                              selectedPermissions.includes(permission.id) ? 'text-blue-900 dark:text-blue-100 dark:text-blue-900' : 'text-foreground'
+                              selectedPermissions.includes(permission.id) ? 'text-primary-foreground' : 'text-foreground'
                             }`}>
                               {permission.name}
                             </h4>
@@ -216,7 +216,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                             )}
                           </div>
                           <p className={`text-xs mt-1 ${
-                            selectedPermissions.includes(permission.id) ? 'text-blue-700 dark:text-blue-300' : 'text-muted-foreground'
+                            selectedPermissions.includes(permission.id) ? 'text-primary' : 'text-muted-foreground'
                           }`}>
                             {permission.description}
                           </p>

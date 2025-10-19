@@ -123,7 +123,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         onClick={handleEmailRequest}
         disabled={isEmailing || emailSent || authUnavailable}
         variant="outline"
-        className="flex items-center justify-center space-x-2 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-50 dark:bg-green-950/30 hover:border-green-400 transition-all duration-200"
+        className="flex items-center justify-center space-x-2 border-green-300 dark:border-green-700 text-accent hover:bg-accent/10/30 hover:border-green-400 transition-all duration-200"
       >
         {isEmailing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -140,14 +140,14 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="text-sm text-green-600 dark:text-green-400 font-medium"
+          className="text-sm text-accent font-medium"
         >
           ✓ Application slip will be sent to your email shortly
         </motion.div>
       )}
 
       {authUnavailable && (
-        <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+        <p className="text-sm text-accent font-medium">
           {SUPABASE_MISSING_CONFIG_MESSAGE}
         </p>
       )}

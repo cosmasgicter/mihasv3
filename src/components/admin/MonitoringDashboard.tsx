@@ -7,15 +7,15 @@ export function MonitoringDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-card p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-2">System Status</h3>
-          <p className="text-green-600 dark:text-green-400">All systems operational</p>
+          <p className="text-accent">All systems operational</p>
         </div>
         <div className="bg-card p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-2">Database</h3>
-          <p className="text-green-600 dark:text-green-400">Connected</p>
+          <p className="text-accent">Connected</p>
         </div>
         <div className="bg-card p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-2">Storage</h3>
-          <p className="text-green-600 dark:text-green-400">Available</p>
+          <p className="text-accent">Available</p>
         </div>
       </div>
     </div>

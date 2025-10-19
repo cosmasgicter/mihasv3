@@ -613,7 +613,7 @@ export default function PublicApplicationTracker() {
                       initial={maybeMotion({ opacity: 0, y: 20 })}
                       animate={maybeMotion({ opacity: 1, y: 0 })}
                       exit={maybeMotion({ opacity: 0, y: -20 })}
-                      className="mt-8 rounded-2xl bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 dark:border-red-800 p-8 shadow-lg"
+                      className="mt-8 rounded-2xl bg-gradient-to-r from-red-50 to-pink-50 border-2 border-destructive/30 p-8 shadow-lg"
                     >
                       <div className="flex items-center space-x-4">
                         <div className="text-4xl">⚠️</div>
@@ -630,7 +630,7 @@ export default function PublicApplicationTracker() {
                   initial={maybeMotion({ opacity: 0, y: 20 })}
                   animate={maybeMotion({ opacity: 1, y: 0 })}
                   transition={maybeMotion({ delay: 0.7 })}
-                  className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-blue-800"
+                  className="bg-primary/5/30 rounded-xl p-4 sm:p-6 border border-primary/30"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">📧</div>
                   <h3 className="font-bold text-secondary mb-2 text-sm sm:text-base">Check Your Email</h3>
@@ -641,7 +641,7 @@ export default function PublicApplicationTracker() {
                   initial={maybeMotion({ opacity: 0, y: 20 })}
                   animate={maybeMotion({ opacity: 1, y: 0 })}
                   transition={maybeMotion({ delay: 0.8 })}
-                  className="bg-green-50 dark:bg-green-950/30 rounded-xl p-4 sm:p-6 border border-green-200 dark:border-green-800"
+                  className="bg-accent/10/30 rounded-xl p-4 sm:p-6 border border-accent/30"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">🔢</div>
                   <h3 className="font-bold text-secondary mb-2 text-sm sm:text-base">Format Example</h3>
@@ -652,7 +652,7 @@ export default function PublicApplicationTracker() {
                   initial={maybeMotion({ opacity: 0, y: 20 })}
                   animate={maybeMotion({ opacity: 1, y: 0 })}
                   transition={maybeMotion({ delay: 0.9 })}
-                  className="bg-purple-50 dark:bg-purple-950/30 rounded-xl p-4 sm:p-6 border border-purple-200 dark:border-purple-800 sm:col-span-2 lg:col-span-1"
+                  className="bg-secondary/5/30 rounded-xl p-4 sm:p-6 border border-purple-200 dark:border-purple-800 sm:col-span-2 lg:col-span-1"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3"><Zap className="w-5 h-5" /></div>
                   <h3 className="font-bold text-secondary mb-2 text-sm sm:text-base">Instant Results</h3>
@@ -743,7 +743,7 @@ export default function PublicApplicationTracker() {
                           initial={maybeMotion({ scale: 0 })}
                           animate={maybeMotion({ scale: 1 })}
                           transition={maybeMotion({ delay: 0.5, type: "spring" })}
-                          className="inline-block bg-white/10 dark:bg-gray-800/25 backdrop-blur-sm px-4 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-gray-900 dark:text-white font-black text-base sm:text-2xl border-2 border-white/30 shadow-lg"
+                          className="inline-block bg-white/10/25 backdrop-blur-sm px-4 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-foreground font-black text-base sm:text-2xl border-2 border-white/30 shadow-lg"
                         >
                           {application.status.replace('_', ' ').toUpperCase()}
                         </motion.span>
@@ -758,7 +758,7 @@ export default function PublicApplicationTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => setShowShareModal(true)}
-                            className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30 btn-mobile touch-target"
                           >
                             <Share2 className="h-4 w-4 mr-2" />
                             Share
@@ -767,7 +767,7 @@ export default function PublicApplicationTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => copyToClipboard(application.application_number)}
-                            className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30 btn-mobile touch-target"
                           >
                             <Copy className="h-4 w-4 mr-2" />
                             {copied ? 'Copied!' : 'Copy #'}
@@ -779,7 +779,7 @@ export default function PublicApplicationTracker() {
                             size="sm"
                             onClick={handleDownloadSlip}
                             loading={slipLoading}
-                            className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30 btn-mobile touch-target"
                           >
                             <Download className="h-4 w-4 mr-2" />
                             Download Slip
@@ -789,7 +789,7 @@ export default function PublicApplicationTracker() {
                             size="sm"
                             onClick={handleEmailSlip}
                             loading={emailLoading}
-                            className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30 btn-mobile touch-target"
+                            className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30 btn-mobile touch-target"
                           >
                             <Mail className="h-4 w-4 mr-2" />
                             Email Me the Slip
@@ -819,7 +819,7 @@ export default function PublicApplicationTracker() {
                           application.status === 'approved' 
                             ? 'from-green-50 via-emerald-50 to-teal-50 border-green-300'
                             : application.status === 'rejected'
-                            ? 'from-red-50 via-pink-50 to-rose-50 border-red-300 dark:border-red-700'
+                            ? 'from-red-50 via-pink-50 to-rose-50 border-destructive/30'
                             : application.status === 'under_review'
                             ? 'from-blue-50 via-indigo-50 to-purple-50 border-blue-300 dark:border-blue-700'
                             : 'from-yellow-50 via-orange-50 to-amber-50 border-yellow-300'
@@ -857,17 +857,17 @@ export default function PublicApplicationTracker() {
                             transition={maybeMotion({ delay: 0.7 })}
                             className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-2 border-green-300 dark:border-green-700 rounded-2xl space-responsive shadow-2xl"
                           >
-                            <h5 className="font-black text-green-900 dark:text-green-100 mb-4 sm:mb-6 text-lg sm:text-xl lg:text-2xl flex items-center space-x-2 sm:space-x-3">
+                            <h5 className="font-black text-accent-foreground mb-4 sm:mb-6 text-lg sm:text-xl lg:text-2xl flex items-center space-x-2 sm:space-x-3">
                               <span className="text-xl sm:text-2xl">💬</span>
                               <span>Message from Admissions</span>
                             </h5>
                             <div className="bg-card/70 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
-                              <p className="text-green-800 dark:text-green-200 text-base sm:text-lg lg:text-xl leading-relaxed font-medium">
+                              <p className="text-accent-foreground text-base sm:text-lg lg:text-xl leading-relaxed font-medium">
                                 {application.admin_feedback}
                               </p>
                             </div>
                             {application.admin_feedback_date && (
-                              <p className="text-green-600 dark:text-green-400 font-bold text-sm sm:text-base lg:text-lg flex items-center space-x-2">
+                              <p className="text-accent font-bold text-sm sm:text-base lg:text-lg flex items-center space-x-2">
                                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                                 <span>Provided on {formatDate(application.admin_feedback_date)}</span>
                               </p>
@@ -890,9 +890,9 @@ export default function PublicApplicationTracker() {
                       </h4>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <AnimatedCard className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 dark:border-blue-800" hover3d>
+                        <AnimatedCard className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-primary/30" hover3d>
                           <div className="flex items-center space-x-3 sm:space-x-4">
-                            <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-950/300 rounded-lg sm:rounded-xl flex-shrink-0">
+                            <div className="p-2 sm:p-3 bg-primary/5/300 rounded-lg sm:rounded-xl flex-shrink-0">
                               <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -916,7 +916,7 @@ export default function PublicApplicationTracker() {
 
                         <AnimatedCard className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 dark:border-purple-800" hover3d delay={0.1}>
                           <div className="flex items-center space-x-3 sm:space-x-4">
-                            <div className="p-2 sm:p-3 bg-purple-50 dark:bg-purple-950/300 rounded-lg sm:rounded-xl flex-shrink-0">
+                            <div className="p-2 sm:p-3 bg-secondary/5/300 rounded-lg sm:rounded-xl flex-shrink-0">
                               <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -926,9 +926,9 @@ export default function PublicApplicationTracker() {
                           </div>
                         </AnimatedCard>
 
-                        <AnimatedCard className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 dark:border-green-800" hover3d delay={0.15}>
+                        <AnimatedCard className="bg-gradient-to-r from-green-50 to-emerald-50 border border-accent/30" hover3d delay={0.15}>
                           <div className="flex items-center space-x-3 sm:space-x-4">
-                            <div className="p-2 sm:p-3 bg-green-50 dark:bg-green-950/300 rounded-lg sm:rounded-xl flex-shrink-0">
+                            <div className="p-2 sm:p-3 bg-accent/10/300 rounded-lg sm:rounded-xl flex-shrink-0">
                               <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1007,7 +1007,7 @@ export default function PublicApplicationTracker() {
                 </div>
 
                 {/* Enhanced Action Buttons */}
-                <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border-t-2 border-blue-200 dark:border-blue-800">
+                <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border-t-2 border-primary/30">
                   <div className="p-10">
                     <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
                       <motion.div
@@ -1144,7 +1144,7 @@ export default function PublicApplicationTracker() {
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-              <AnimatedCard className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 dark:border-blue-800" hover3d>
+              <AnimatedCard className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-primary/30" hover3d>
                 <div className="text-center space-y-4">
                   <div className="text-5xl">📍</div>
                   <h4 className="font-black text-secondary text-2xl">
@@ -1152,22 +1152,22 @@ export default function PublicApplicationTracker() {
                   </h4>
                   <ul className="text-secondary space-y-3 text-lg text-left">
                     <li className="flex items-start space-x-3">
-                      <span className="text-blue-500 dark:text-blue-400 font-bold">•</span>
+                      <span className="text-primary font-bold">•</span>
                       <span>Check your email confirmation after submitting</span>
                     </li>
                     <li className="flex items-start space-x-3">
-                      <span className="text-blue-500 dark:text-blue-400 font-bold">•</span>
-                      <span>Look for format: <code className="bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded font-mono">MIHAS123456</code></span>
+                      <span className="text-primary font-bold">•</span>
+                      <span>Look for format: <code className="bg-primary/10 px-2 py-1 rounded font-mono">MIHAS123456</code></span>
                     </li>
                     <li className="flex items-start space-x-3">
-                      <span className="text-blue-500 dark:text-blue-400 font-bold">•</span>
+                      <span className="text-primary font-bold">•</span>
                       <span>Contact admissions if you can't find it</span>
                     </li>
                   </ul>
                 </div>
               </AnimatedCard>
               
-              <AnimatedCard className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 dark:border-green-800" hover3d delay={0.1}>
+              <AnimatedCard className="bg-gradient-to-br from-green-50 to-emerald-50 border border-accent/30" hover3d delay={0.1}>
                 <div className="text-center space-y-4">
                   <div className="text-5xl"><BarChart3 className="w-5 h-5" /></div>
                   <h4 className="font-black text-secondary text-2xl">
@@ -1206,7 +1206,7 @@ export default function PublicApplicationTracker() {
             <AnimatedCard className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-purple-200 dark:border-purple-800" delay={0.2}>
               <div className="text-center space-y-6">
                 <div className="flex items-center justify-center space-x-4">
-                  <Phone className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                  <Phone className="h-8 w-8 text-secondary" />
                   <Mail className="h-8 w-8 text-primary" />
                   <MapPin className="h-8 w-8 text-indigo-600" />
                 </div>

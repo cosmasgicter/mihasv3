@@ -86,7 +86,7 @@ export function ApplicationApprovalActions({
             <button
               onClick={() => handleStatusUpdate('under_review')}
               disabled={updatingStatus || disabled}
-              className="flex-1 bg-blue-50 dark:bg-blue-950/300 hover:bg-blue-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+              className="flex-1 bg-primary/5/300 hover:bg-blue-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
             >
               {updatingStatus ? (
                 <LoadingSpinner size="sm" />
@@ -104,7 +104,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('approved')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-green-50 dark:bg-green-950/300 hover:bg-green-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-accent/10/300 hover:bg-green-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingStatus ? (
                   <LoadingSpinner size="sm" />
@@ -118,7 +118,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('rejected')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-red-50 dark:bg-red-950/300 hover:bg-red-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-destructive/5/300 hover:bg-red-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingStatus ? (
                   <LoadingSpinner size="sm" />
@@ -136,8 +136,8 @@ export function ApplicationApprovalActions({
             <div className="flex-1 text-center py-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 currentStatus === 'approved' 
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
-                  : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                  ? 'bg-accent/10 text-accent-foreground' 
+                  : 'bg-destructive/10 text-destructive-foreground'
               }`}>
                 {currentStatus === 'approved' ? (
                   <>
@@ -167,7 +167,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handlePaymentUpdate('verified')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-green-50 dark:bg-green-950/300 hover:bg-green-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-accent/10/300 hover:bg-green-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingPayment ? (
                   <LoadingSpinner size="sm" />
@@ -181,7 +181,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handlePaymentUpdate('rejected')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-red-50 dark:bg-red-950/300 hover:bg-red-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-destructive/5/300 hover:bg-red-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingPayment ? (
                   <LoadingSpinner size="sm" />
@@ -199,8 +199,8 @@ export function ApplicationApprovalActions({
             <div className="flex-1 text-center py-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 currentPaymentStatus === 'verified' 
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
-                  : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                  ? 'bg-accent/10 text-accent-foreground' 
+                  : 'bg-destructive/10 text-destructive-foreground'
               }`}>
                 {currentPaymentStatus === 'verified' ? (
                   <>

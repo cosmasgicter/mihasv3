@@ -214,13 +214,13 @@ export default function AdminIntakes() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="bg-card rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
           {/* Header - Mobile First */}
           <div className="bg-gradient-to-r from-secondary to-primary p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                 <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/90/30 border-white/30">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
@@ -250,13 +250,13 @@ export default function AdminIntakes() {
                 </div>
               </div>
             ) : error ? (
-              <div className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-6 text-center">
+              <div className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-6 text-center">
                 <div className="text-6xl mb-4">😱</div>
                 <p className="text-destructive font-medium text-lg">{error}</p>
                 <Button 
                   onClick={loadIntakes} 
                   variant="outline" 
-                  className="mt-4 text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                  className="mt-4 text-destructive border-destructive/30 hover:bg-destructive/5/30"
                 >
                   Try Again
                 </Button>
@@ -285,7 +285,7 @@ export default function AdminIntakes() {
                           <p className="text-sm text-muted-foreground">Year: {intake.year}</p>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          intake.available_spots > 0 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                          intake.available_spots > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
                         }`}>
                           {intake.available_spots}/{intake.total_capacity} spots
                         </span>
@@ -293,15 +293,15 @@ export default function AdminIntakes() {
                       
                       <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
                         <div>
-                          <span className="text-muted-foreground dark:text-muted-foreground">Start:</span>
+                          <span className="text-muted-foreground">Start:</span>
                           <div className="font-medium">{formatDate(intake.start_date)}</div>
                         </div>
                         <div>
-                          <span className="text-muted-foreground dark:text-muted-foreground">End:</span>
+                          <span className="text-muted-foreground">End:</span>
                           <div className="font-medium">{formatDate(intake.end_date)}</div>
                         </div>
                         <div className="col-span-2">
-                          <span className="text-muted-foreground dark:text-muted-foreground">Application Deadline:</span>
+                          <span className="text-muted-foreground">Application Deadline:</span>
                           <div className="font-medium text-destructive">{formatDate(intake.application_deadline)}</div>
                         </div>
                       </div>
@@ -311,7 +311,7 @@ export default function AdminIntakes() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openEdit(intake)}
-                          className="flex-1 text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+                          className="flex-1 text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
                         >
                           <Pencil className="h-4 w-4 mr-1" />
                           Edit
@@ -320,7 +320,7 @@ export default function AdminIntakes() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openDelete(intake)}
-                          className="flex-1 text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                          className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5/30"
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           Delete
@@ -363,12 +363,12 @@ export default function AdminIntakes() {
                     </thead>
                     <tbody className="bg-card divide-y divide-gray-200">
                       {intakes.map((intake) => (
-                        <tr key={intake.id} className="hover:bg-purple-50 dark:bg-purple-950/30 transition-colors">
+                        <tr key={intake.id} className="hover:bg-secondary/5/30 transition-colors">
                           <td className="px-6 py-4">
                             <div className="font-semibold text-foreground">{intake.name}</div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-secondary/10 text-purple-800">
                               {intake.year}
                             </span>
                           </td>
@@ -384,13 +384,13 @@ export default function AdminIntakes() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary-foreground">
                               {intake.total_capacity}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              intake.available_spots > 0 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                              intake.available_spots > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
                             }`}>
                               {intake.available_spots}
                             </span>
@@ -401,7 +401,7 @@ export default function AdminIntakes() {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openEdit(intake)}
-                                className="text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+                                className="text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -409,7 +409,7 @@ export default function AdminIntakes() {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openDelete(intake)}
-                                className="text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                                className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

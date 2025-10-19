@@ -87,8 +87,8 @@ export default function WorkflowAutomation() {
   }
 
   const getRuleStatusColor = (rule: WorkflowRule) => {
-    if (!rule.enabled) return 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
-    return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+    if (!rule.enabled) return 'bg-accent dark:bg-gray-200 text-foreground'
+    return 'bg-accent/10 text-accent-foreground'
   }
 
   const getRuleIcon = (trigger: string) => {
@@ -137,7 +137,7 @@ export default function WorkflowAutomation() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center">
-                <Zap className="h-8 w-8 mr-3 text-purple-600 dark:text-purple-400" />
+                <Zap className="h-8 w-8 mr-3 text-secondary" />
                 Workflow Automation
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -165,7 +165,7 @@ export default function WorkflowAutomation() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <div className="p-3 bg-primary/10 rounded-lg">
                   <Settings className="h-6 w-6 text-primary" />
                 </div>
                 <div className="ml-4">
@@ -183,8 +183,8 @@ export default function WorkflowAutomation() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <div className="p-3 bg-accent/10 rounded-lg">
+                  <CheckCircle className="h-6 w-6 text-accent" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Active Rules</p>
@@ -201,8 +201,8 @@ export default function WorkflowAutomation() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                  <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                <div className="p-3 bg-secondary/10 rounded-lg">
+                  <Clock className="h-6 w-6 text-secondary" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Executions (7 days)</p>
@@ -219,8 +219,8 @@ export default function WorkflowAutomation() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+                <div className="p-3 bg-accent/10 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-accent" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
@@ -235,7 +235,7 @@ export default function WorkflowAutomation() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-foreground">Automation Rules</h2>
-            <div className="text-sm text-muted-foreground dark:text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               {stats.activeRules} of {stats.totalRules} rules active
             </div>
           </div>

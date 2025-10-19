@@ -178,7 +178,7 @@ export function ApplicationsFilters({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-6"
+            className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-primary/30 rounded-xl p-6"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-secondary"><Target className="w-5 h-5" /> Advanced Filters</h3>
@@ -201,14 +201,14 @@ export function ApplicationsFilters({
                     type="date"
                     value={dateRange.start}
                     onChange={(e) => onDateRangeChange({...dateRange, start: e.target.value})}
-                    className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-input rounded-lg text-sm"
                     placeholder="Start date"
                   />
                   <input
                     type="date"
                     value={dateRange.end}
                     onChange={(e) => onDateRangeChange({...dateRange, end: e.target.value})}
-                    className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-input rounded-lg text-sm"
                     placeholder="End date"
                   />
                 </div>
@@ -220,7 +220,7 @@ export function ApplicationsFilters({
                 <select
                   value={programFilter}
                   onChange={(e) => onProgramFilterChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg text-sm"
+                  className="w-full px-3 py-2 border border-input rounded-lg text-sm"
                 >
                   <option value="all">All Programs</option>
                   <option value="Clinical Medicine">Clinical Medicine</option>
@@ -235,7 +235,7 @@ export function ApplicationsFilters({
                 <select
                   value={institutionFilter}
                   onChange={(e) => onInstitutionFilterChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg text-sm"
+                  className="w-full px-3 py-2 border border-input rounded-lg text-sm"
                 >
                   <option value="all">All Institutions</option>
                   <option value="Kalulushi Training Centre">Kalulushi Training Centre</option>
@@ -249,7 +249,7 @@ export function ApplicationsFilters({
                 <select
                   value={paymentStatusFilter}
                   onChange={(e) => onPaymentStatusFilterChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg text-sm"
+                  className="w-full px-3 py-2 border border-input rounded-lg text-sm"
                 >
                   <option value="all">All Payment Status</option>
                   <option value="pending_review">Pending Review</option>

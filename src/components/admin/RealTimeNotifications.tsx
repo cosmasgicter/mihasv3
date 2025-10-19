@@ -54,7 +54,7 @@ export function RealTimeNotifications() {
       case 'error':
         return <X className="h-5 w-5 text-red-500" />
       default:
-        return <Info className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+        return <Info className="h-5 w-5 text-primary" />
     }
   }
 
@@ -82,7 +82,7 @@ export function RealTimeNotifications() {
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-50 dark:bg-red-950/300 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-destructive/5/300 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
             {unreadCount}
           </span>
         )}
@@ -112,7 +112,7 @@ export function RealTimeNotifications() {
 
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="p-6 text-center text-muted-foreground dark:text-muted-foreground">
+                <div className="p-6 text-center text-muted-foreground">
                   <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>No notifications</p>
                 </div>
@@ -139,7 +139,7 @@ export function RealTimeNotifications() {
                             {notification.message}
                           </p>
                           <div className="flex items-center justify-between mt-2">
-                            <span className="text-xs text-muted-foreground dark:text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">
                               {notification.timestamp.toLocaleTimeString()}
                             </span>
                             <Button

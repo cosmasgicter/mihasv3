@@ -42,48 +42,48 @@ const PaymentStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100"
       data-testid="payment-step"
     >
       <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-6">
         <motion.div
-          className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+          className="bg-gradient-to-r from-blue-50 to-green-50 border border-primary/30 rounded-lg p-4"
           initial={{ scale: 0.95 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.2 }}
         >
           <div className="flex items-center mb-3">
             <CreditCard className="h-5 w-5 text-primary mr-2" />
-            <h3 className="text-md font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
+            <h3 className="text-md font-medium text-primary-foreground">
               Payment Required - Multiple Options Available
             </h3>
           </div>
           <div className="space-y-2 text-sm">
-            <p className="text-blue-700 dark:text-blue-300">
+            <p className="text-primary">
               <strong>Application Fee:</strong> K153.00
             </p>
-            <p className="text-blue-700 dark:text-blue-300">
+            <p className="text-primary">
               <strong>Payment Target:</strong> {paymentTarget}
             </p>
             <div className="bg-card rounded-md p-3 mt-3">
               <p className="text-foreground font-medium mb-2">Available Payment Methods:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center text-green-600 dark:text-green-400">
-                  <span className="w-2 h-2 bg-green-50 dark:bg-green-950/300 rounded-full mr-2"></span>
+                <div className="flex items-center text-accent">
+                  <span className="w-2 h-2 bg-accent/10/300 rounded-full mr-2"></span>
                   MTN Money
                 </div>
                 <div className="flex items-center text-destructive">
-                  <span className="w-2 h-2 bg-red-50 dark:bg-red-950/300 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-destructive/5/300 rounded-full mr-2"></span>
                   Airtel Money (Cross Network)
                 </div>
                 <div className="flex items-center text-primary">
-                  <span className="w-2 h-2 bg-blue-50 dark:bg-blue-950/300 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-primary/5/300 rounded-full mr-2"></span>
                   Zamtel Money (Cross Network)
                 </div>
-                <div className="flex items-center text-purple-600 dark:text-purple-400">
-                  <span className="w-2 h-2 bg-purple-50 dark:bg-purple-950/300 rounded-full mr-2"></span>
+                <div className="flex items-center text-secondary">
+                  <span className="w-2 h-2 bg-secondary/5/300 rounded-full mr-2"></span>
                   Ewallet
                 </div>
                 <div className="flex items-center text-orange-600">
@@ -92,9 +92,9 @@ const PaymentStep = ({
                 </div>
               </div>
             </div>
-            <p className="text-green-700 dark:text-green-300 font-medium">✓ Secure payment processing</p>
-            <p className="text-green-700 dark:text-green-300 font-medium">✓ Instant payment verification</p>
-            <p className="text-green-700 dark:text-green-300 font-medium">✓ Automated receipt generation</p>
+            <p className="text-accent font-medium">✓ Secure payment processing</p>
+            <p className="text-accent font-medium">✓ Instant payment verification</p>
+            <p className="text-accent font-medium">✓ Automated receipt generation</p>
           </div>
         </motion.div>
 
@@ -106,7 +106,7 @@ const PaymentStep = ({
             <select
               {...register('payment_method')}
               id="payment_method"
-              className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               defaultValue="MTN Money"
             >
               <option value="MTN Money">MTN Money</option>
@@ -169,10 +169,10 @@ const PaymentStep = ({
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={handleProofOfPaymentUpload}
-              className="w-full text-sm text-muted-foreground dark:text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:bg-blue-950/30 file:text-blue-700 dark:text-blue-300 hover:file:bg-blue-100 dark:bg-blue-900/30"
+              className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
             />
             {proofOfPaymentFile && (
-              <div className="mt-2 flex items-center text-sm text-green-600 dark:text-green-400">
+              <div className="mt-2 flex items-center text-sm text-accent">
                 <CheckCircle className="h-4 w-4 mr-1" />
                 {proofOfPaymentFile.name}
               </div>
@@ -195,7 +195,7 @@ const PaymentStep = ({
             )}
             {uploadedFiles.proof_of_payment && (
               <motion.div
-                className="mt-2 flex items-center text-sm text-green-600 dark:text-green-400"
+                className="mt-2 flex items-center text-sm text-accent"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >

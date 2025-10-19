@@ -34,7 +34,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
           {selectedIds.length} selected
         </span>
         
-        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 dark:bg-gray-400" />
+        <div className="h-4 w-px bg-muted" />
         
         <div className="flex gap-2">
           <Button
@@ -42,7 +42,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
             variant="outline"
             onClick={() => handleAction('approve')}
             loading={loading === 'approve'}
-            className="text-green-600 dark:text-green-400 border-green-300 dark:border-green-700 hover:bg-green-50 dark:bg-green-950/30"
+            className="text-accent border-green-300 dark:border-green-700 hover:bg-accent/10/30"
           >
             <CheckCircle className="h-4 w-4 mr-1" />
             Approve
@@ -53,7 +53,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
             variant="outline"
             onClick={() => handleAction('reject')}
             loading={loading === 'reject'}
-            className="text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+            className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
           >
             <XCircle className="h-4 w-4 mr-1" />
             Reject
@@ -64,20 +64,20 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
             variant="outline"
             onClick={() => handleAction('review')}
             loading={loading === 'review'}
-            className="text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+            className="text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
           >
             <Clock className="h-4 w-4 mr-1" />
             Review
           </Button>
         </div>
         
-        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 dark:bg-gray-400" />
+        <div className="h-4 w-px bg-muted" />
         
         <Button
           size="sm"
           variant="ghost"
           onClick={onClearSelection}
-          className="text-muted-foreground dark:text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground"
         >
           Clear
         </Button>

@@ -102,11 +102,11 @@ export function ApplicationsTable({
 
  const getStatusBadge = useCallback((status: string) => {
  const statusConfig = {
- draft: { color: 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700', icon: Clock },
- submitted: { color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800', icon: AlertTriangle },
- under_review: { color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200', icon: Eye },
- approved: { color: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200', icon: CheckCircle },
- rejected: { color: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200', icon: XCircle }
+ draft: { color: 'bg-accent dark:bg-gray-200 text-foreground', icon: Clock },
+ submitted: { color: 'bg-primary/10 text-primary-foreground', icon: AlertTriangle },
+ under_review: { color: 'bg-accent/10 text-accent-foreground', icon: Eye },
+ approved: { color: 'bg-accent/10 text-accent-foreground', icon: CheckCircle },
+ rejected: { color: 'bg-destructive/10 text-destructive-foreground', icon: XCircle }
  }
 
  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft
@@ -122,9 +122,9 @@ export function ApplicationsTable({
 
  const getPaymentBadge = useCallback((paymentStatus: string) => {
  const paymentConfig = {
- pending_review: { color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200', icon: Clock },
- verified: { color: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200', icon: CheckCircle },
- rejected: { color: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200', icon: XCircle }
+ pending_review: { color: 'bg-accent/10 text-accent-foreground', icon: Clock },
+ verified: { color: 'bg-accent/10 text-accent-foreground', icon: CheckCircle },
+ rejected: { color: 'bg-destructive/10 text-destructive-foreground', icon: XCircle }
  }
 
  const config = paymentConfig[paymentStatus as keyof typeof paymentConfig] || paymentConfig.pending_review
@@ -177,7 +177,7 @@ export function ApplicationsTable({
  type="checkbox"
  checked={selectedIds.length === applications.length && applications.length > 0}
  onChange={handleSelectAll}
- className="h-4 w-4 text-primary focus:ring-blue-500 border-input dark:border-gray-400 rounded"
+ className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
  />
  <span className="text-sm font-medium text-foreground">
  {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'Select all'}
@@ -186,7 +186,7 @@ export function ApplicationsTable({
  {selectedIds.length > 0 && (
  <button
  onClick={() => onSelectionChange([])}
- className="text-sm text-muted-foreground dark:text-muted-foreground hover:text-foreground"
+ className="text-sm text-muted-foreground hover:text-foreground"
  >
  Clear selection
  </button>
@@ -226,9 +226,9 @@ export function ApplicationsTable({
  applications
  </div>
  {totalCount > 0 && (
- <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 dark:bg-gray-400" />
+ <div className="h-4 w-px bg-muted" />
  )}
- <div className="text-xs text-muted-foreground dark:text-muted-foreground">
+ <div className="text-xs text-muted-foreground">
  {Math.round((loadedCount / Math.max(totalCount, 1)) * 100)}% loaded
  </div>
  </div>
@@ -245,7 +245,7 @@ export function ApplicationsTable({
  </button>
  ) : (
  totalCount > 0 && (
- <div className="flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground">
+ <div className="flex items-center gap-2 text-sm text-muted-foreground">
  <CheckCircle className="h-4 w-4 text-green-500" />
  All applications loaded
  </div>
@@ -259,7 +259,7 @@ export function ApplicationsTable({
  <FileText className="h-8 w-8 text-muted-foreground" />
  </div>
  <h3 className="text-lg font-medium text-foreground mb-2">No applications found</h3>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Try adjusting your filters to see more results.</p>
+ <p className="text-sm text-muted-foreground">Try adjusting your filters to see more results.</p>
  </div>
  )}
  </div>
@@ -314,7 +314,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
  return (
  <div className={`relative bg-card rounded-xl border p-6 hover:shadow-lg transition-all duration-200 group ${
- isSelected ? 'border-blue-500 bg-blue-50' : 'border-border hover:border-input dark:border-gray-400'
+ isSelected ? 'border-blue-500 bg-blue-50' : 'border-border hover:border-input'
  }`}>
  {/* Selection Checkbox */}
  {onSelect && (
@@ -323,7 +323,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  type="checkbox"
  checked={isSelected}
  onChange={(e) => onSelect(app.id, e.target.checked)}
- className="h-4 w-4 text-primary focus:ring-blue-500 border-input dark:border-gray-400 rounded"
+ className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
  />
  </div>
  )}
@@ -334,9 +334,9 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
  <h3 className="font-semibold text-foreground truncate">{app.full_name}</h3>
  </div>
- <div className="flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground">
+ <div className="flex items-center gap-2 text-sm text-muted-foreground">
  <span className="font-mono">#{app.application_number}</span>
- <span className="text-foreground dark:text-muted-foreground">•</span>
+ <span className="text-foreground">•</span>
  <Calendar className="h-3 w-3" />
  <span>{formatDate(app.submitted_at || app.created_at)}</span>
  </div>
@@ -361,13 +361,13 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  {/* Program Info */}
  <div className="bg-muted rounded-lg p-3 mb-4">
  <div className="flex items-center gap-2 mb-1">
- <GraduationCap className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+ <GraduationCap className="h-4 w-4 text-primary" />
  <span className="font-medium text-foreground text-sm">{app.program}</span>
  </div>
  <div className="flex items-center gap-2 text-sm text-muted-foreground">
  <Building className="h-3 w-3 text-muted-foreground" />
  <span>{getInstitutionName(app.institution)}</span>
- <span className="text-foreground dark:text-muted-foreground">•</span>
+ <span className="text-foreground">•</span>
  <span>{app.intake}</span>
  </div>
  </div>
@@ -375,7 +375,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  {/* Payment & Grades */}
  <div className="grid grid-cols-2 gap-4 mb-4">
  <div>
- <div className="text-xs text-muted-foreground dark:text-muted-foreground mb-1">Payment Status</div>
+ <div className="text-xs text-muted-foreground mb-1">Payment Status</div>
  {getPaymentBadge(app.payment_status)}
  <div className="text-sm font-medium text-foreground mt-1">
  K{app.paid_amount || 0} / K{app.application_fee}
@@ -384,7 +384,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  
  {app.total_subjects > 0 && (
  <div>
- <div className="text-xs text-muted-foreground dark:text-muted-foreground mb-1">Academic</div>
+ <div className="text-xs text-muted-foreground mb-1">Academic</div>
  <div className="text-sm">
  <span className="text-foreground">{app.total_subjects} subjects</span>
  {app.points > 0 && (
@@ -398,8 +398,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  </div>
 
  {app.grades_summary && (
- <div className="mb-4 rounded-lg border border-gray-100 dark:border-gray-800 bg-muted p-3">
- <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground dark:text-muted-foreground mb-2">
+ <div className="mb-4 rounded-lg border border-border bg-muted p-3">
+ <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
  Grades Summary
  </div>
  <div
@@ -411,9 +411,9 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
  {/* Documents */}
  {documentsCount > 0 && (
- <div className="flex items-center gap-2 mb-4 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
- <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400" />
- <span className="text-sm text-blue-700 dark:text-blue-300">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
+ <div className="flex items-center gap-2 mb-4 p-2 bg-primary/5/30 rounded-lg">
+ <FileText className="h-4 w-4 text-primary" />
+ <span className="text-sm text-primary">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
  </div>
  )}
 
@@ -428,7 +428,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  />
 
  {/* Actions */}
- <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+ <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
  <button
  onClick={() => onViewDetails(app.id)}
  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm py-2.5 px-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center justify-center gap-2 group-hover:shadow-md"

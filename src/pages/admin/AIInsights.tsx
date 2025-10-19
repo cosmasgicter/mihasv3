@@ -99,7 +99,7 @@ export default function AIInsights() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center">
-                <Brain className="h-8 w-8 mr-3 text-purple-600 dark:text-purple-400" />
+                <Brain className="h-8 w-8 mr-3 text-secondary" />
                 AI Insights & Automation
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -138,7 +138,7 @@ export default function AIInsights() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <div className="p-3 bg-primary/10 rounded-lg">
                   <Brain className="h-6 w-6 text-primary" />
                 </div>
                 <div className="ml-4">
@@ -156,8 +156,8 @@ export default function AIInsights() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                  <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                <div className="p-3 bg-secondary/10 rounded-lg">
+                  <Zap className="h-6 w-6 text-secondary" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Automation Runs</p>
@@ -174,8 +174,8 @@ export default function AIInsights() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <FileText className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <div className="p-3 bg-accent/10 rounded-lg">
+                  <FileText className="h-6 w-6 text-accent" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Notifications Sent</p>
@@ -192,8 +192,8 @@ export default function AIInsights() {
           >
             <Card className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+                <div className="p-3 bg-accent/10 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-accent" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Avg Accuracy</p>
@@ -219,7 +219,7 @@ export default function AIInsights() {
                   className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-purple-500 text-purple-600'
-                      : 'border-transparent text-muted-foreground dark:text-muted-foreground hover:text-foreground hover:border-input dark:border-gray-400'
+                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-input'
                   }`}
                 >
                   <tab.icon className="h-4 w-4 mr-2" />
@@ -243,7 +243,7 @@ export default function AIInsights() {
             <div className="space-y-6">
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
-                  <Zap className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
+                  <Zap className="h-5 w-5 mr-2 text-secondary" />
                   Workflow Automation Rules
                 </h3>
                 <div className="space-y-4">
@@ -256,8 +256,8 @@ export default function AIInsights() {
                       <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${
                           rule.enabled 
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
-                            : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                            ? 'bg-accent/10 text-accent-foreground' 
+                            : 'bg-destructive/10 text-destructive-foreground'
                         }`}>
                           {rule.enabled ? 'Enabled' : 'Disabled'}
                         </span>
@@ -306,8 +306,8 @@ export default function AIInsights() {
                             <span className="text-sm text-muted-foreground">{channel.count} sent</span>
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               channel.status === 'active' 
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
-                                : 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+                                ? 'bg-accent/10 text-accent-foreground' 
+                                : 'bg-accent dark:bg-gray-200 text-foreground'
                             }`}>
                               {channel.status}
                             </span>
@@ -330,7 +330,7 @@ export default function AIInsights() {
                             <span className="font-medium text-sm">{activity.type}</span>
                             <p className="text-xs text-muted-foreground">{activity.time}</p>
                           </div>
-                          <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-full">
+                          <span className="px-2 py-1 text-xs bg-accent/10 text-accent-foreground rounded-full">
                             {activity.status}
                           </span>
                         </div>

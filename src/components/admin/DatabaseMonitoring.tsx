@@ -151,7 +151,7 @@ export default function DatabaseMonitoring() {
       case 'critical':
         return <AlertTriangle className="w-5 h-5 text-red-500" />
       default:
-        return <Database className="w-5 h-5 text-muted-foreground dark:text-muted-foreground" />
+        return <Database className="w-5 h-5 text-muted-foreground" />
     }
   }
 
@@ -212,7 +212,7 @@ export default function DatabaseMonitoring() {
       </div>
 
       {errorState.hasError && (
-        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-4">
           <div className="flex items-center">
             <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
             <span className="text-red-700 dark:text-red-300">
@@ -253,22 +253,22 @@ export default function DatabaseMonitoring() {
         </h2>
         
         {errorStats.length === 0 ? (
-          <p className="text-muted-foreground dark:text-muted-foreground">No errors recorded in the last 24 hours</p>
+          <p className="text-muted-foreground">No errors recorded in the last 24 hours</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Error Code
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Count
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Last Occurrence
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Recovery Rate
                   </th>
                 </tr>
@@ -279,13 +279,13 @@ export default function DatabaseMonitoring() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       {stat.error_code}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {stat.error_count}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {new Date(stat.last_occurrence).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {stat.recovery_rate ? `${stat.recovery_rate}%` : 'N/A'}
                     </td>
                   </tr>

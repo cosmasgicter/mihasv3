@@ -106,7 +106,7 @@ export function BulkOperations({
 
   return (
     <>
-      <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+      <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-4">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
             <Users className="w-5 h-5 text-primary mt-1" />
@@ -115,10 +115,10 @@ export function BulkOperations({
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
+                <h3 className="text-sm font-medium text-primary-foreground">
                   Bulk Actions
                 </h3>
-                <p className="text-sm text-blue-700 dark:text-blue-300">
+                <p className="text-sm text-primary">
                   {selectedCount} application{selectedCount !== 1 ? 's' : ''} selected
                 </p>
               </div>
@@ -137,7 +137,7 @@ export function BulkOperations({
               {/* Status Update */}
               {onStatusUpdate && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
+                  <label className="text-sm font-medium text-primary-foreground">
                     Update Status
                   </label>
                   <div className="flex space-x-2">
@@ -165,7 +165,7 @@ export function BulkOperations({
               {/* Payment Update */}
               {onPaymentUpdate && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
+                  <label className="text-sm font-medium text-primary-foreground">
                     Update Payment
                   </label>
                   <div className="flex space-x-2">
@@ -193,7 +193,7 @@ export function BulkOperations({
               {/* Send Email */}
               {onSendEmail && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
+                  <label className="text-sm font-medium text-primary-foreground">
                     Send Notifications
                   </label>
                   <MobileOptimizedButton
@@ -211,7 +211,7 @@ export function BulkOperations({
               
               {/* Additional Actions Slot */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800">
+                <label className="text-sm font-medium text-primary-foreground">
                   Quick Actions
                 </label>
                 <div className="space-y-2">
@@ -248,7 +248,7 @@ export function BulkOperations({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-card rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center space-x-3 mb-4">
-              <AlertCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+              <AlertCircle className="w-6 h-6 text-accent" />
               <h3 className="text-lg font-medium text-foreground">
                 Confirm Bulk Action
               </h3>

@@ -434,7 +434,7 @@ export default function Applications() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-foreground">Applications</h1>
-              <p className="text-xs text-muted-foreground dark:text-muted-foreground">{stats.total} total applications</p>
+              <p className="text-xs text-muted-foreground">{stats.total} total applications</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -463,46 +463,46 @@ export default function Applications() {
         
         {/* Quick Stats Cards - Mobile First */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <div className="p-2 bg-primary/10 rounded-lg">
                 <Clock className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground dark:text-muted-foreground">Today</p>
+                <p className="text-xs text-muted-foreground">Today</p>
                 <p className="text-lg font-bold text-foreground">{stats.todaySubmissions}</p>
               </div>
             </div>
           </div>
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+              <div className="p-2 bg-accent/10 rounded-lg">
+                <AlertCircle className="h-4 w-4 text-accent" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground dark:text-muted-foreground">Pending</p>
+                <p className="text-xs text-muted-foreground">Pending</p>
                 <p className="text-lg font-bold text-foreground">{stats.pendingReview}</p>
               </div>
             </div>
           </div>
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <div className="p-2 bg-accent/10 rounded-lg">
+                <CheckCircle className="h-4 w-4 text-accent" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground dark:text-muted-foreground">Approved</p>
+                <p className="text-xs text-muted-foreground">Approved</p>
                 <p className="text-lg font-bold text-foreground">{stats.approved}</p>
               </div>
             </div>
           </div>
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+              <div className="p-2 bg-destructive/10 rounded-lg">
                 <XCircle className="h-4 w-4 text-destructive" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground dark:text-muted-foreground">Rejected</p>
+                <p className="text-xs text-muted-foreground">Rejected</p>
                 <p className="text-lg font-bold text-foreground">{stats.rejected}</p>
               </div>
             </div>
@@ -510,7 +510,7 @@ export default function Applications() {
         </div>
 
         {/* Mobile Export Actions */}
-        <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
+        <div className="bg-card rounded-xl p-4 shadow-sm border border-border mb-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-foreground">Export Data</h3>
             <Download className="h-4 w-4 text-muted-foreground" />
@@ -554,7 +554,7 @@ export default function Applications() {
 
         {/* Mobile Filters Panel */}
         {showFilters && (
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-6 sm:hidden">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-border mb-6 sm:hidden">
             <FiltersPanel
               searchTerm={filters.searchTerm}
               statusFilter={filters.statusFilter}
@@ -567,7 +567,7 @@ export default function Applications() {
         )}
 
         {/* Desktop Filters */}
-        <div className="hidden sm:block bg-card rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
+        <div className="hidden sm:block bg-card rounded-xl p-4 shadow-sm border border-border mb-6">
           <FiltersPanel
             searchTerm={filters.searchTerm}
             statusFilter={filters.statusFilter}
@@ -579,18 +579,18 @@ export default function Applications() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 mb-6">
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5/30 p-4 mb-6">
             <div className="flex items-center gap-3">
               <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
               <div>
-                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error Loading Applications</h3>
+                <h3 className="text-sm font-medium text-destructive-foreground">Error Loading Applications</h3>
                 <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
-                className="ml-auto text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/5/30"
               >
                 <RefreshCw className="h-4 w-4 mr-1" />
                 Retry
@@ -600,7 +600,7 @@ export default function Applications() {
         )}
 
         {isRefreshing && (
-          <div className="flex items-center gap-2 rounded-xl bg-blue-50 dark:bg-blue-950/30 px-4 py-3 text-sm text-primary mb-6">
+          <div className="flex items-center gap-2 rounded-xl bg-primary/5/30 px-4 py-3 text-sm text-primary mb-6">
             <LoadingSpinner size="sm" />
             <span>Refreshing latest applications…</span>
           </div>

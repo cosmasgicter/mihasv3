@@ -72,10 +72,10 @@ export function MaintenancePanel() {
 
   const getStatusColor = (status: MaintenanceTask['status']) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
-      case 'failed': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
-      case 'running': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800'
-      default: return 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+      case 'completed': return 'bg-accent/10 text-accent-foreground'
+      case 'failed': return 'bg-destructive/10 text-destructive-foreground'
+      case 'running': return 'bg-primary/10 text-primary-foreground'
+      default: return 'bg-accent dark:bg-gray-200 text-foreground'
     }
   }
 
@@ -93,7 +93,7 @@ export function MaintenancePanel() {
 
       {/* Update Notification */}
       {updateInfo && (
-        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
+        <Card className="border-primary/30 bg-primary/5/30">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Download className="h-5 w-5 text-primary" />
@@ -137,7 +137,7 @@ export function MaintenancePanel() {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
-                  <div className="flex items-center space-x-4 text-xs text-muted-foreground dark:text-muted-foreground">
+                  <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                     <span>Schedule: {task.schedule}</span>
                     <span>Next: {task.nextRun.toLocaleString()}</span>
                     {task.lastRun && (
@@ -174,20 +174,20 @@ export function MaintenancePanel() {
         <CardContent>
           <div className="space-y-2">
             {logs.length === 0 ? (
-              <p className="text-muted-foreground dark:text-muted-foreground text-center py-4">No maintenance logs</p>
+              <p className="text-muted-foreground text-center py-4">No maintenance logs</p>
             ) : (
               logs.map((log, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border rounded">
                   <div>
                     <span className="font-medium">{log.task_name}</span>
-                    <div className="text-sm text-muted-foreground dark:text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                       {new Date(log.executed_at).toLocaleString()} • {log.duration}ms
                     </div>
                     {log.error_message && (
                       <div className="text-sm text-destructive mt-1">{log.error_message}</div>
                     )}
                   </div>
-                  <Badge className={log.success ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'}>
+                  <Badge className={log.success ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'}>
                     {log.success ? 'Success' : 'Failed'}
                   </Badge>
                 </div>

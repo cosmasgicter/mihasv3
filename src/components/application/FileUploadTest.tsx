@@ -101,7 +101,7 @@ export function FileUploadTest() {
           <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
             uploading 
               ? 'border-border bg-muted cursor-not-allowed' 
-              : 'border-input dark:border-gray-400 hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
+              : 'border-input hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
           }`}>
             <Upload className={`h-8 w-8 mx-auto mb-2 ${
               uploading ? 'text-muted-foreground' : 'text-muted-foreground'
@@ -112,7 +112,7 @@ export function FileUploadTest() {
               {uploading ? 'Uploading...' : 'Click to upload file'}
             </p>
             <p className={`text-xs ${
-              uploading ? 'text-muted-foreground' : 'text-muted-foreground dark:text-muted-foreground'
+              uploading ? 'text-muted-foreground' : 'text-muted-foreground'
             }`}>
               PDF, JPG, JPEG, PNG up to 10MB
             </p>
@@ -120,7 +120,7 @@ export function FileUploadTest() {
         </label>
         
         {error && (
-          <div className="mt-2 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="mt-2 p-3 bg-destructive/5/30 border border-destructive/30 rounded-lg">
             <div className="flex items-center text-sm text-red-700 dark:text-red-300">
               <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>{error}</span>
@@ -152,14 +152,14 @@ export function FileUploadTest() {
           {files.map((file) => (
             <div 
               key={file.id} 
-              className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3"
+              className="bg-accent/10/30 border border-accent/30 rounded-lg p-3"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <CheckCircle className="h-5 w-5 text-accent" />
                   <div>
-                    <p className="text-sm font-medium text-green-800 dark:text-green-200">{file.name}</p>
-                    <p className="text-xs text-green-600 dark:text-green-400">{formatFileSize(file.size)}</p>
+                    <p className="text-sm font-medium text-accent-foreground">{file.name}</p>
+                    <p className="text-xs text-accent">{formatFileSize(file.size)}</p>
                   </div>
                 </div>
                 <Button
@@ -167,7 +167,7 @@ export function FileUploadTest() {
                   variant="ghost"
                   size="sm"
                   onClick={() => removeFile(file.id)}
-                  className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30"
+                  className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-destructive/5/30"
                 >
                   <X className="h-4 w-4" />
                 </Button>

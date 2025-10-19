@@ -626,7 +626,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
       >
         <MessageCircle className="h-6 w-6" />
         {hasUnreadSuggestions && (
-          <div className="absolute -top-2 -right-2 bg-red-50 dark:bg-red-950/300 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+          <div className="absolute -top-2 -right-2 bg-destructive/5/300 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
             !
           </div>
         )}
@@ -657,7 +657,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 p-1 rounded transition-colors"
+                className="text-white hover:bg-white/90/30 p-1 rounded transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -681,7 +681,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                     <div className={`max-w-[85%] rounded-2xl p-3 ${
                       message.type === 'user'
                         ? 'bg-blue-600 text-white'
-                        : 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+                        : 'bg-accent dark:bg-gray-200 text-foreground'
                     }`}>
                       <div className="flex items-start space-x-2">
                         {message.type === 'assistant' && (
@@ -696,7 +696,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                                 <button
                                   key={idx}
                                   onClick={() => handleSuggestionClick(suggestion)}
-                                  className="block w-full text-left text-xs bg-card/20 hover:bg-white/90 dark:hover:bg-gray-800/30 rounded-lg p-2 transition-colors border border-white/10"
+                                  className="block w-full text-left text-xs bg-card/20 hover:bg-white/90/30 rounded-lg p-2 transition-colors border border-white/10"
                                 >
                                   {suggestion}
                                 </button>
@@ -724,7 +724,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
-                      <span className="text-xs text-muted-foreground dark:text-muted-foreground">AI is thinking...</span>
+                      <span className="text-xs text-muted-foreground">AI is thinking...</span>
                     </div>
                   </div>
                 </motion.div>
@@ -742,7 +742,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                   onKeyPress={handleKeyPress}
                   placeholder={isTyping ? 'AI is thinking...' : 'Ask me anything about your application...'}
                   disabled={isTyping || isLoading}
-                  className="flex-1 border border-input dark:border-gray-400 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-accent dark:bg-gray-200 disabled:cursor-not-allowed"
+                  className="flex-1 border border-input rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-accent dark:bg-gray-200 disabled:cursor-not-allowed"
                 />
                 <Button
                   onClick={handleSendMessage}
@@ -758,7 +758,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                 </Button>
               </div>
               {currentStep && (
-                <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-2 text-center">
+                <p className="text-xs text-muted-foreground mt-2 text-center">
                   <Lightbulb className="w-5 h-5" /> Currently on Step {currentStep} - I can help with this step specifically
                 </p>
               )}

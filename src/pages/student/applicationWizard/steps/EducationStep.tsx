@@ -54,7 +54,7 @@ const EducationStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100"
       data-testid="education-step"
     >
       <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
@@ -87,16 +87,16 @@ const EducationStep = ({
 
           {selectedProgram && recommendedSubjects.length > 0 && (
             <motion.div
-              className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg"
+              className="mb-4 p-3 bg-primary/5/30 border border-primary/30 rounded-lg"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800 mb-2">
+              <h4 className="text-sm font-medium text-primary-foreground mb-2">
                 Recommended subjects for {selectedProgram}:
               </h4>
               <div className="flex flex-wrap gap-1">
                 {recommendedSubjects.map((subject, index) => (
-                  <span key={index} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded">
+                  <span key={index} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
                     {subject}
                   </span>
                 ))}
@@ -105,7 +105,7 @@ const EducationStep = ({
           )}
 
           {selectedGrades.length > 0 && (
-            <div className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wide">
+            <div className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
               <div className="col-span-8">Subject</div>
               <div className="col-span-2">Grade</div>
               <div className="col-span-2">Action</div>
@@ -128,7 +128,7 @@ const EducationStep = ({
                     <select
                       value={grade.subject_id}
                       onChange={event => updateGrade(index, 'subject_id', event.target.value)}
-                      className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       disabled={subjects.length === 0}
                     >
                       <option value="">{subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}</option>
@@ -148,7 +148,7 @@ const EducationStep = ({
                     <select
                       value={grade.grade}
                       onChange={event => updateGrade(index, 'grade', parseInt(event.target.value))}
-                      className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value={1}>1 (A+)</option>
                       <option value={2}>2 (A)</option>
@@ -206,11 +206,11 @@ const EducationStep = ({
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleResultSlipUpload}
-                className="w-full text-sm text-muted-foreground dark:text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:bg-blue-950/30 file:text-blue-700 dark:text-blue-300 hover:file:bg-blue-100 dark:bg-blue-900/30"
+                className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
               />
 
               {resultSlipFile && (
-                <div className="mt-2 flex items-center text-sm text-green-600 dark:text-green-400">
+                <div className="mt-2 flex items-center text-sm text-accent">
                   <CheckCircle className="h-4 w-4 mr-1" />
                   {resultSlipFile.name}
                 </div>
@@ -233,7 +233,7 @@ const EducationStep = ({
               )}
               {uploadedFiles.result_slip && (
                 <motion.div
-                  className="mt-2 flex items-center text-sm text-green-600 dark:text-green-400"
+                  className="mt-2 flex items-center text-sm text-accent"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
@@ -253,10 +253,10 @@ const EducationStep = ({
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleExtraKycUpload}
-                className="w-full text-sm text-muted-foreground dark:text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:bg-blue-950/30 file:text-blue-700 dark:text-blue-300 hover:file:bg-blue-100 dark:bg-blue-900/30"
+                className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
               />
               {extraKycFile && (
-                <div className="mt-2 flex items-center text-sm text-green-600 dark:text-green-400">
+                <div className="mt-2 flex items-center text-sm text-accent">
                   <CheckCircle className="h-4 w-4 mr-1" />
                   {extraKycFile.name}
                 </div>
@@ -279,7 +279,7 @@ const EducationStep = ({
               )}
               {uploadedFiles.extra_kyc && (
                 <motion.div
-                  className="mt-2 flex items-center text-sm text-green-600 dark:text-green-400"
+                  className="mt-2 flex items-center text-sm text-accent"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >

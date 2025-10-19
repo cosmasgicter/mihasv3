@@ -106,7 +106,7 @@ export function ActiveSessions() {
       
       {sessions.length === 0 ? (
         <div className="text-center py-4">
-          <p className="text-muted-foreground dark:text-muted-foreground mb-2">Session tracking is not enabled yet.</p>
+          <p className="text-muted-foreground mb-2">Session tracking is not enabled yet.</p>
           <p className="text-sm text-muted-foreground">Your current session is active and secure.</p>
         </div>
       ) : (
@@ -131,13 +131,13 @@ export function ActiveSessions() {
                       <p className="font-medium text-sm">
                         {browserInfo}
                         {isCurrentDevice && (
-                          <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-xs rounded-full">
+                          <span className="ml-2 px-2 py-1 bg-accent/10 text-accent-foreground text-xs rounded-full">
                             Current Device
                           </span>
                         )}
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {screenInfo && `${screenInfo} • `}
                       Last active {formatDistanceToNow(new Date(session.last_activity), { addSuffix: true })}
                     </p>
@@ -150,7 +150,7 @@ export function ActiveSessions() {
                     size="sm"
                     onClick={() => terminateSession(session.device_id)}
                     disabled={terminating === session.device_id}
-                    className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30"
+                    className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-destructive/5/30"
                   >
                     {terminating === session.device_id ? 'Terminating...' : 'Terminate'}
                   </Button>

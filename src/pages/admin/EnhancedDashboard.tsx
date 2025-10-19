@@ -142,7 +142,7 @@ export default function EnhancedAdminDashboard() {
                       size="sm"
                       onClick={refreshDashboard}
                       loading={isFetching}
-                      className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30"
+                      className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30"
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Refresh
@@ -152,7 +152,7 @@ export default function EnhancedAdminDashboard() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsFullscreen(!isFullscreen)}
-                      className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30"
+                      className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30"
                     >
                       {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </Button>
@@ -169,7 +169,7 @@ export default function EnhancedAdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <div className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-2">
+          <div className="bg-card rounded-xl shadow-lg border border-border p-2">
             <div className="flex space-x-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon
@@ -203,12 +203,12 @@ export default function EnhancedAdminDashboard() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Bell className="h-5 w-5 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+                  <Bell className="h-5 w-5 text-accent" />
                   <div>
-                    <p className="font-semibold text-yellow-800 dark:text-yellow-200">
+                    <p className="font-semibold text-accent-foreground">
                       {stats.pendingApplications} applications need your attention
                     </p>
-                    <p className="text-sm text-yellow-600 dark:text-yellow-400 dark:text-yellow-500">
+                    <p className="text-sm text-accent">
                       Review pending applications to keep the process moving smoothly
                     </p>
                   </div>
@@ -218,7 +218,7 @@ export default function EnhancedAdminDashboard() {
                     variant="outline"
                     size="sm"
                     onClick={() => window.location.href = '/admin/applications?status=submitted'}
-                    className="text-yellow-700 border-yellow-300 hover:bg-yellow-100 dark:bg-yellow-900/30"
+                    className="text-yellow-700 border-yellow-300 hover:bg-accent/10"
                   >
                     Review Now
                   </Button>
@@ -297,7 +297,7 @@ export default function EnhancedAdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="mt-8 bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+          className="mt-8 bg-card rounded-xl shadow-lg border border-border p-6"
         >
           <h3 className="text-lg font-bold text-foreground mb-4"><TrendingUp className="w-5 h-5" /> Quick Insights</h3>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
@@ -310,11 +310,11 @@ export default function EnhancedAdminDashboard() {
               <div className="text-sm text-muted-foreground">Approval Rate</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.avgProcessingTime} days</div>
+              <div className="text-2xl font-bold text-accent">{stats.avgProcessingTime} days</div>
               <div className="text-sm text-muted-foreground">Avg Processing</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.activeIntakes}</div>
+              <div className="text-2xl font-bold text-secondary">{stats.activeIntakes}</div>
               <div className="text-sm text-muted-foreground">Active Intakes</div>
             </div>
             <div className="text-center">

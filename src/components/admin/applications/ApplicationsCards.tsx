@@ -45,7 +45,7 @@ const getStatusIcon = (status: string) => {
     case 'submitted':
       return <AlertTriangle className="h-4 w-4 text-yellow-500" />
     case 'draft':
-      return <FileText className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
+      return <FileText className="h-4 w-4 text-muted-foreground" />
     default:
       return <Clock className="h-4 w-4 text-secondary" />
   }
@@ -93,7 +93,7 @@ export function ApplicationsCards({
                         type="checkbox"
                         checked={selectedApplications.includes(application.id)}
                         onChange={() => onToggleSelection(application.id)}
-                        className="h-5 w-5 mt-1 text-primary focus:ring-blue-500 border-input dark:border-gray-400 rounded touch-target"
+                        className="h-5 w-5 mt-1 text-primary focus:ring-blue-500 border-input rounded touch-target"
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">
@@ -200,7 +200,7 @@ export function ApplicationsCards({
                             e.stopPropagation()
                             onUpdateStatus(application.id, 'under_review')
                           }}
-                          className="btn-responsive text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+                          className="btn-responsive text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
                         >
                           <Zap className="h-4 w-4 sm:mr-1" />
                           <span className="hidden sm:inline">Start Review</span>
@@ -218,7 +218,7 @@ export function ApplicationsCards({
                               e.stopPropagation()
                               onUpdateStatus(application.id, 'approved')
                             }}
-                            className="flex-1 text-green-600 dark:text-green-400 border-green-300 dark:border-green-700 hover:bg-green-50 dark:bg-green-950/30 btn-mobile"
+                            className="flex-1 text-accent border-green-300 dark:border-green-700 hover:bg-accent/10/30 btn-mobile"
                           >
                             <CheckCircle className="h-4 w-4 sm:mr-1" />
                             <span className="hidden sm:inline">Approve</span>
@@ -231,7 +231,7 @@ export function ApplicationsCards({
                               e.stopPropagation()
                               onUpdateStatus(application.id, 'rejected')
                             }}
-                            className="flex-1 text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30 btn-mobile"
+                            className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5/30 btn-mobile"
                           >
                             <XCircle className="h-4 w-4 sm:mr-1" />
                             <span className="hidden sm:inline">Reject</span>

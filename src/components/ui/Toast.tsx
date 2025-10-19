@@ -35,7 +35,7 @@ export function Toast({ id, type, title, message, duration = 5000, onClose }: To
       case 'warning':
         return <AlertTriangle className="h-5 w-5 text-yellow-500" />
       case 'info':
-        return <Info className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+        return <Info className="h-5 w-5 text-primary" />
     }
   }
 

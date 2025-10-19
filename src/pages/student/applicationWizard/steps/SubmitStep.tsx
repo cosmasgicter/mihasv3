@@ -57,7 +57,7 @@ const SubmitStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100"
       data-testid="submit-step"
     >
       <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
@@ -120,7 +120,7 @@ const SubmitStep = ({
                   )
                 })}
                 {selectedGrades.length === 0 && (
-                  <p className="text-sm text-muted-foreground dark:text-muted-foreground">No subjects selected</p>
+                  <p className="text-sm text-muted-foreground">No subjects selected</p>
                 )}
               </div>
             </div>
@@ -136,7 +136,7 @@ const SubmitStep = ({
                   )}
                 </p>
                 {!eligibilityCheck.eligible && (
-                  <p className="text-sm text-yellow-600 dark:text-yellow-400 dark:text-yellow-500 mt-1">{eligibilityCheck.message}</p>
+                  <p className="text-sm text-accent mt-1">{eligibilityCheck.message}</p>
                 )}
               </div>
             )}
@@ -164,8 +164,8 @@ const SubmitStep = ({
         </div>
 
         {!confirmSubmission && (
-          <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 rounded-lg p-3">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+          <div className="bg-accent/5/30 border border-yellow-200 rounded-lg p-3">
+            <p className="text-sm text-accent-foreground">
               ⚠️ Please confirm that all information is accurate before you can submit your application.
             </p>
           </div>

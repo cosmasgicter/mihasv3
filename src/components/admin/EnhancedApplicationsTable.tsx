@@ -202,12 +202,12 @@ export function EnhancedApplicationsTable({
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      'draft': 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700',
-      'submitted': 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800',
-      'under-review': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200',
-      'approved': 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200',
-      'rejected': 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
-    }[status] || 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+      'draft': 'bg-accent dark:bg-gray-200 text-foreground',
+      'submitted': 'bg-primary/10 text-primary-foreground',
+      'under-review': 'bg-accent/10 text-accent-foreground',
+      'approved': 'bg-accent/10 text-accent-foreground',
+      'rejected': 'bg-destructive/10 text-destructive-foreground'
+    }[status] || 'bg-accent dark:bg-gray-200 text-foreground'
 
     return (
       <span className={cn(
@@ -221,10 +221,10 @@ export function EnhancedApplicationsTable({
 
   const getPaymentBadge = (status: string) => {
     const styles = {
-      'pending': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200',
-      'verified': 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200',
-      'rejected': 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
-    }[status] || 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+      'pending': 'bg-accent/10 text-accent-foreground',
+      'verified': 'bg-accent/10 text-accent-foreground',
+      'rejected': 'bg-destructive/10 text-destructive-foreground'
+    }[status] || 'bg-accent dark:bg-gray-200 text-foreground'
 
     return (
       <span className={cn(
@@ -259,7 +259,7 @@ export function EnhancedApplicationsTable({
         
         <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center">
-            <FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <FileText className="w-5 h-5 text-accent" />
             <span className="ml-2 text-sm font-medium text-muted-foreground">Submitted</span>
           </div>
           <p className="text-2xl font-bold text-foreground mt-1">{stats.submitted}</p>
@@ -267,7 +267,7 @@ export function EnhancedApplicationsTable({
         
         <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center">
-            <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+            <Clock className="w-5 h-5 text-accent" />
             <span className="ml-2 text-sm font-medium text-muted-foreground">Review</span>
           </div>
           <p className="text-2xl font-bold text-foreground mt-1">{stats.underReview}</p>
@@ -275,7 +275,7 @@ export function EnhancedApplicationsTable({
         
         <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center">
-            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <CheckCircle className="w-5 h-5 text-accent" />
             <span className="ml-2 text-sm font-medium text-muted-foreground">Approved</span>
           </div>
           <p className="text-2xl font-bold text-foreground mt-1">{stats.approved}</p>
@@ -412,11 +412,11 @@ export function EnhancedApplicationsTable({
                     type="checkbox"
                     checked={selectedIds.length === filteredAndSortedApplications.length && filteredAndSortedApplications.length > 0}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-primary border-input dark:border-gray-400 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-primary border-input rounded focus:ring-blue-500"
                   />
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
                     onClick={() => handleSort('fullName')}>
                   <div className="flex items-center space-x-1">
                     <span>Name</span>
@@ -426,11 +426,11 @@ export function EnhancedApplicationsTable({
                   </div>
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Contact
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
                     onClick={() => handleSort('program')}>
                   <div className="flex items-center space-x-1">
                     <span>Program</span>
@@ -440,7 +440,7 @@ export function EnhancedApplicationsTable({
                   </div>
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
                     onClick={() => handleSort('status')}>
                   <div className="flex items-center space-x-1">
                     <span>Status</span>
@@ -450,11 +450,11 @@ export function EnhancedApplicationsTable({
                   </div>
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Payment
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
                     onClick={() => handleSort('submittedAt')}>
                   <div className="flex items-center space-x-1">
                     <span>Submitted</span>
@@ -465,7 +465,7 @@ export function EnhancedApplicationsTable({
                 </th>
                 
                 {/* Eligibility Score Column */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
                     onClick={() => handleSort('eligibilityScore')}>
                   <div className="flex items-center space-x-1">
                     <span>Score</span>
@@ -485,7 +485,7 @@ export function EnhancedApplicationsTable({
                       type="checkbox"
                       checked={selectedIds.includes(application.id)}
                       onChange={() => handleSelectOne(application.id)}
-                      className="w-4 h-4 text-primary border-input dark:border-gray-400 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-primary border-input rounded focus:ring-blue-500"
                     />
                   </td>
                   
@@ -494,7 +494,7 @@ export function EnhancedApplicationsTable({
                       <div className="text-sm font-medium text-foreground">
                         {application.fullName}
                       </div>
-                      <div className="text-sm text-muted-foreground dark:text-muted-foreground">
+                      <div className="text-sm text-muted-foreground">
                         {application.trackingCode}
                       </div>
                     </div>
@@ -502,14 +502,14 @@ export function EnhancedApplicationsTable({
                   
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-foreground">{application.email}</div>
-                    <div className="text-sm text-muted-foreground dark:text-muted-foreground">{application.phone}</div>
+                    <div className="text-sm text-muted-foreground">{application.phone}</div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-foreground">
                       {application.program.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </div>
-                    <div className="text-sm text-muted-foreground dark:text-muted-foreground">{getInstitutionName(application.institution)}</div>
+                    <div className="text-sm text-muted-foreground">{getInstitutionName(application.institution)}</div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -520,7 +520,7 @@ export function EnhancedApplicationsTable({
                     {getPaymentBadge(application.paymentStatus)}
                   </td>
                   
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {new Date(application.submittedAt).toLocaleDateString()}
                   </td>
                   
@@ -554,7 +554,7 @@ export function EnhancedApplicationsTable({
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-foreground mb-2">No applications found</h3>
-              <p className="text-muted-foreground dark:text-muted-foreground">
+              <p className="text-muted-foreground">
                 {applications.length === 0 
                   ? 'No applications have been submitted yet.'
                   : 'Try adjusting your search or filter criteria.'

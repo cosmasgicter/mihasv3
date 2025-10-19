@@ -293,7 +293,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                     exportOptions.format === format.value
                       ? 'border-blue-500 bg-blue-50'
-                      : 'border-border hover:border-input dark:border-gray-400'
+                      : 'border-border hover:border-input'
                   }`}
                   onClick={() => setExportOptions({ ...exportOptions, format: format.value as typeof exportOptions.format })}
                 >
@@ -341,7 +341,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                   className={`p-2 border rounded cursor-pointer transition-colors ${
                     exportOptions.fields.includes(field.id)
                       ? 'border-blue-300 dark:border-blue-700 bg-blue-50'
-                      : 'border-border hover:border-input dark:border-gray-400'
+                      : 'border-border hover:border-input'
                   }`}
                   onClick={() => handleFieldToggle(field.id)}
                 >
@@ -388,8 +388,8 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                     onClick={() => handleRoleToggle(role)}
                     className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors ${
                       exportOptions.filters.roles.includes(role)
-                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 border-blue-300 dark:border-blue-700'
-                        : 'bg-accent dark:bg-gray-200 text-foreground border-input dark:border-gray-400 hover:bg-gray-200 dark:bg-gray-700'
+                        ? 'bg-primary/10 text-primary-foreground border-blue-300 dark:border-blue-700'
+                        : 'bg-accent dark:bg-gray-200 text-foreground border-input hover:bg-gray-200 dark:bg-gray-700'
                     }`}
                   >
                     {role.replace(/_/g, ' ').toUpperCase()}
@@ -414,7 +414,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                       dateRange: { ...exportOptions.filters.dateRange, start: e.target.value }
                     }
                   })}
-                  className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <div>
@@ -431,7 +431,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                       dateRange: { ...exportOptions.filters.dateRange, end: e.target.value }
                     }
                   })}
-                  className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>

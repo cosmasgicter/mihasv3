@@ -126,7 +126,7 @@ const ApplicationWizardContent = () => {
       <div className="w-full">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-blue-700 dark:text-blue-300 mb-4">
+          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
@@ -150,12 +150,12 @@ const ApplicationWizardContent = () => {
                 </motion.div>
               )}
               {draftSaved && (
-                <motion.div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
+                <motion.div className="flex items-center space-x-2 text-sm text-accent" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
                   <CheckCircle className="h-4 w-4" />
                   <span>Draft saved</span>
                 </motion.div>
               )}
-              <Button type="button" variant="ghost" size="sm" onClick={saveDraft} disabled={isDraftSaving} className="hover:bg-blue-50 dark:bg-blue-950/30">
+              <Button type="button" variant="ghost" size="sm" onClick={saveDraft} disabled={isDraftSaving} className="hover:bg-primary/5/30">
                 <Send className="h-4 w-4 mr-2" />
                 {saveNowLabel}
               </Button>
@@ -182,14 +182,14 @@ const ApplicationWizardContent = () => {
                           ? 'bg-green-500 border-green-500 text-white shadow-lg'
                           : isActive
                           ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-110'
-                          : 'bg-card border-input dark:border-gray-400 text-muted-foreground'
+                          : 'bg-card border-input text-muted-foreground'
                       }`}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                     </motion.div>
-                    <div className={`mt-2 text-xs font-medium text-center truncate max-w-[80px] ${isActive ? 'text-blue-600' : 'text-muted-foreground dark:text-muted-foreground'}`}>
+                    <div className={`mt-2 text-xs font-medium text-center truncate max-w-[80px] ${isActive ? 'text-blue-600' : 'text-muted-foreground'}`}>
                       {step.title}
                     </div>
                   </motion.div>
@@ -200,7 +200,7 @@ const ApplicationWizardContent = () => {
         </div>
 
         {error && (
-          <motion.div className="rounded-md bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div className="rounded-md bg-destructive/5/30 border border-destructive/30 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-start">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -208,7 +208,7 @@ const ApplicationWizardContent = () => {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+                <h3 className="text-sm font-medium text-destructive-foreground">Error</h3>
                 <div className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</div>
                 <div className="mt-2">
                   <button
@@ -293,7 +293,7 @@ const ApplicationWizardContent = () => {
             )}
           </AnimatePresence>
 
-          <motion.div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-gray-100 dark:border-gray-800" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <motion.div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-gray-100" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

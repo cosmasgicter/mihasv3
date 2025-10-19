@@ -22,11 +22,11 @@ export default function EmailNotifications() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'sent':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+        return 'bg-accent/10 text-accent-foreground'
       case 'failed':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+        return 'bg-destructive/10 text-destructive-foreground'
       default:
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
+        return 'bg-accent/10 text-accent-foreground'
     }
   }
 
@@ -49,7 +49,7 @@ export default function EmailNotifications() {
       
       <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="px-6 py-8 text-center text-muted-foreground dark:text-muted-foreground">
+          <div className="px-6 py-8 text-center text-muted-foreground">
             No email notifications found
           </div>
         ) : (
@@ -72,7 +72,7 @@ export default function EmailNotifications() {
                     To: {sanitizeForDisplay(notification.recipient_email)}
                   </p>
                   
-                  <p className="text-xs text-muted-foreground dark:text-muted-foreground mb-2">
+                  <p className="text-xs text-muted-foreground mb-2">
                     {sanitizeForDisplay(notification.body)}
                   </p>
                   

@@ -105,15 +105,15 @@ export function EnhancedApplicationsManager({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+        return 'bg-accent/10 text-accent-foreground'
       case 'rejected':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+        return 'bg-destructive/10 text-destructive-foreground'
       case 'under_review':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800'
+        return 'bg-primary/10 text-primary-foreground'
       case 'submitted':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
+        return 'bg-accent/10 text-accent-foreground'
       default:
-        return 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+        return 'bg-accent dark:bg-gray-200 text-foreground'
     }
   }
 
@@ -124,11 +124,11 @@ export function EnhancedApplicationsManager({
       case 'rejected':
         return <XCircle className="h-4 w-4 text-red-500" />
       case 'under_review':
-        return <Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+        return <Clock className="h-4 w-4 text-primary" />
       case 'submitted':
         return <Zap className="h-4 w-4 text-yellow-500" />
       default:
-        return <Clock className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
+        return <Clock className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -190,7 +190,7 @@ export function EnhancedApplicationsManager({
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+        className="bg-card rounded-xl shadow-lg border border-border p-6"
       >
         <div className="space-y-4">
           {/* Top Controls */}
@@ -227,14 +227,14 @@ export function EnhancedApplicationsManager({
                 placeholder="Search applications..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
               />
             </div>
             
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
             >
               <option value="all">All Status</option>
               <option value="submitted"><FileText className="w-5 h-5" /> Submitted</option>
@@ -250,7 +250,7 @@ export function EnhancedApplicationsManager({
                 setSortBy(field as any)
                 setSortOrder(order as any)
               }}
-              className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
             >
               <option value="date-desc"><Calendar className="w-5 h-5" /> Newest First</option>
               <option value="date-asc"><Calendar className="w-5 h-5" /> Oldest First</option>
@@ -277,7 +277,7 @@ export function EnhancedApplicationsManager({
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4"
+              className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-primary/30 rounded-xl p-4"
             >
               <div className="flex items-center justify-between mb-4">
                 <h4 className="font-bold text-foreground"><Zap className="w-5 h-5" /> Bulk Actions</h4>
@@ -287,7 +287,7 @@ export function EnhancedApplicationsManager({
                 <Button
                   size="sm"
                   onClick={() => onBulkAction('under_review', selectedApplications)}
-                  className="bg-blue-50 dark:bg-blue-950/300 hover:bg-blue-600"
+                  className="bg-primary/5/300 hover:bg-blue-600"
                 >
                   <Clock className="h-4 w-4 mr-2" />
                   Start Review
@@ -295,7 +295,7 @@ export function EnhancedApplicationsManager({
                 <Button
                   size="sm"
                   onClick={() => onBulkAction('approved', selectedApplications)}
-                  className="bg-green-50 dark:bg-green-950/300 hover:bg-green-600"
+                  className="bg-accent/10/300 hover:bg-green-600"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Approve All
@@ -303,7 +303,7 @@ export function EnhancedApplicationsManager({
                 <Button
                   size="sm"
                   onClick={() => onBulkAction('rejected', selectedApplications)}
-                  className="bg-red-50 dark:bg-red-950/300 hover:bg-red-600"
+                  className="bg-destructive/5/300 hover:bg-red-600"
                 >
                   <XCircle className="h-4 w-4 mr-2" />
                   Reject All
@@ -348,7 +348,7 @@ export function EnhancedApplicationsManager({
               className={`bg-card rounded-xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
                 selectedApplications.includes(application.id) 
                   ? 'border-blue-600 bg-blue-50' 
-                  : 'border-gray-100 dark:border-gray-800 hover:border-border'
+                  : 'border-border hover:border-border'
               }`}
             >
               <div className="p-6">
@@ -358,11 +358,11 @@ export function EnhancedApplicationsManager({
                       type="checkbox"
                       checked={selectedApplications.includes(application.id)}
                       onChange={() => toggleSelection(application.id)}
-                      className="h-5 w-5 mt-1 text-primary focus:ring-blue-500 border-input dark:border-gray-400 rounded"
+                      className="h-5 w-5 mt-1 text-primary focus:ring-blue-500 border-input rounded"
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-lg text-foreground truncate">{application.full_name}</h3>
-                      <p className="text-sm text-muted-foreground dark:text-muted-foreground font-mono">#{application.application_number}</p>
+                      <p className="text-sm text-muted-foreground font-mono">#{application.application_number}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -391,7 +391,7 @@ export function EnhancedApplicationsManager({
                     <Button
                       size="sm"
                       onClick={() => onStatusUpdate(application.id, 'under_review')}
-                      className="flex-1 bg-blue-50 dark:bg-blue-950/300 hover:bg-blue-600"
+                      className="flex-1 bg-primary/5/300 hover:bg-blue-600"
                     >
                       <Zap className="h-4 w-4 mr-1" />
                       Review
@@ -403,7 +403,7 @@ export function EnhancedApplicationsManager({
                       <Button
                         size="sm"
                         onClick={() => onStatusUpdate(application.id, 'approved')}
-                        className="flex-1 bg-green-50 dark:bg-green-950/300 hover:bg-green-600"
+                        className="flex-1 bg-accent/10/300 hover:bg-green-600"
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
                         Approve
@@ -411,7 +411,7 @@ export function EnhancedApplicationsManager({
                       <Button
                         size="sm"
                         onClick={() => onStatusUpdate(application.id, 'rejected')}
-                        className="flex-1 bg-red-50 dark:bg-red-950/300 hover:bg-red-600"
+                        className="flex-1 bg-destructive/5/300 hover:bg-red-600"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
                         Reject
@@ -435,7 +435,7 @@ export function EnhancedApplicationsManager({
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden"
+          className="bg-card rounded-xl shadow-lg border border-border overflow-hidden"
         >
           <div className="overflow-x-auto">
             <table className="min-w-full">
@@ -446,7 +446,7 @@ export function EnhancedApplicationsManager({
                       type="checkbox"
                       checked={selectedApplications.length === filteredApplications.length && filteredApplications.length > 0}
                       onChange={selectAll}
-                      className="h-4 w-4 text-primary focus:ring-blue-500 border-input dark:border-gray-400 rounded"
+                      className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
                     />
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase">
@@ -482,13 +482,13 @@ export function EnhancedApplicationsManager({
                         type="checkbox"
                         checked={selectedApplications.includes(application.id)}
                         onChange={() => toggleSelection(application.id)}
-                        className="h-4 w-4 text-primary focus:ring-blue-500 border-input dark:border-gray-400 rounded"
+                        className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
                       />
                     </td>
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-bold text-foreground">{application.full_name}</div>
-                        <div className="text-sm text-muted-foreground dark:text-muted-foreground">{application.email}</div>
+                        <div className="text-sm text-muted-foreground">{application.email}</div>
                         <div className="text-xs text-muted-foreground font-mono">#{application.application_number}</div>
                       </div>
                     </td>
@@ -503,7 +503,7 @@ export function EnhancedApplicationsManager({
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground dark:text-muted-foreground">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {new Date(application.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
@@ -512,7 +512,7 @@ export function EnhancedApplicationsManager({
                           <Button
                             size="sm"
                             onClick={() => onStatusUpdate(application.id, 'under_review')}
-                            className="bg-blue-50 dark:bg-blue-950/300 hover:bg-blue-600"
+                            className="bg-primary/5/300 hover:bg-blue-600"
                           >
                             <Zap className="h-4 w-4" />
                           </Button>
@@ -523,14 +523,14 @@ export function EnhancedApplicationsManager({
                             <Button
                               size="sm"
                               onClick={() => onStatusUpdate(application.id, 'approved')}
-                              className="bg-green-50 dark:bg-green-950/300 hover:bg-green-600"
+                              className="bg-accent/10/300 hover:bg-green-600"
                             >
                               <CheckCircle className="h-4 w-4" />
                             </Button>
                             <Button
                               size="sm"
                               onClick={() => onStatusUpdate(application.id, 'rejected')}
-                              className="bg-red-50 dark:bg-red-950/300 hover:bg-red-600"
+                              className="bg-destructive/5/300 hover:bg-red-600"
                             >
                               <XCircle className="h-4 w-4" />
                             </Button>

@@ -43,7 +43,7 @@ export function StorageExample() {
             onChange={handleFileUpload}
             disabled={uploading}
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-            className="block w-full text-sm text-muted-foreground dark:text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:bg-blue-950/30 file:text-blue-700 dark:text-blue-300 hover:file:bg-blue-100 dark:bg-blue-900/30"
+            className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
           />
         </div>
 
@@ -55,7 +55,7 @@ export function StorageExample() {
 
         {uploadResult && (
           <div className={`p-3 rounded ${
-            uploadResult.includes('✅') ? 'bg-green-50 text-green-700 dark:text-green-300' : 'bg-red-50 text-red-700 dark:text-red-300'
+            uploadResult.includes('✅') ? 'bg-green-50 text-accent' : 'bg-red-50 text-red-700 dark:text-red-300'
           }`}>
             {uploadResult}
           </div>

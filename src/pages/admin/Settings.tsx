@@ -376,13 +376,13 @@ export default function AdminSettings() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="bg-card rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                 <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/90/30 border-white/30">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
@@ -398,7 +398,7 @@ export default function AdminSettings() {
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button 
                   onClick={() => setShowAddForm(true)}
-                  className="bg-white/10 dark:bg-gray-800/20 hover:bg-white/20 text-white border-white/30"
+                  className="bg-card/80 hover:bg-white/20 text-white border-white/30"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Setting
@@ -407,13 +407,13 @@ export default function AdminSettings() {
                   <Button 
                     onClick={exportSettings}
                     variant="outline"
-                    className="bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 text-white border-white/30"
+                    className="bg-white/10/10 hover:bg-white/20 text-white border-white/30"
                     size="sm"
                   >
                     Export
                   </Button>
                   <label className="cursor-pointer">
-                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 text-white border-white/30">
+                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm bg-white/10/10 hover:bg-white/20 text-white border-white/30">
                       Import
                     </span>
                     <input
@@ -436,7 +436,7 @@ export default function AdminSettings() {
                 <div className="text-sm text-muted-foreground">Total Settings</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{settings.filter(s => s.is_public).length}</div>
+                <div className="text-2xl font-bold text-accent">{settings.filter(s => s.is_public).length}</div>
                 <div className="text-sm text-muted-foreground">Public</div>
               </div>
               <div className="text-center">
@@ -444,7 +444,7 @@ export default function AdminSettings() {
                 <div className="text-sm text-muted-foreground">Private</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                <div className="text-2xl font-bold text-secondary">
                   {new Set(settings.map(s => s.setting_type)).size}
                 </div>
                 <div className="text-sm text-muted-foreground">Data Types</div>
@@ -507,7 +507,7 @@ export default function AdminSettings() {
                   variant="outline"
                   onClick={resetToDefaults}
                   size="sm"
-                  className="text-destructive hover:text-red-700 dark:text-red-300 border-red-300 dark:border-red-700 hover:border-red-400"
+                  className="text-destructive hover:text-red-700 dark:text-red-300 border-destructive/30 hover:border-red-400"
                 >
                   Reset to Defaults
                 </Button>
@@ -519,7 +519,7 @@ export default function AdminSettings() {
           <div className="p-6">
 
             {error && (
-              <div className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4 mb-6">
+              <div className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-4 mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="text-2xl">⚠️</div>
                   <div className="text-red-700 dark:text-red-300 font-medium">{error}</div>
@@ -528,10 +528,10 @@ export default function AdminSettings() {
             )}
 
             {success && (
-              <div className="rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4 mb-6">
+              <div className="rounded-xl bg-accent/10/30 border border-accent/30 p-4 mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="text-2xl">✅</div>
-                  <div className="text-green-700 dark:text-green-300 font-medium">{success}</div>
+                  <div className="text-accent font-medium">{success}</div>
                 </div>
               </div>
             )}
@@ -547,7 +547,7 @@ export default function AdminSettings() {
               <>
                 {/* Add New Setting Form */}
                 {showAddForm && (
-                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-6">
+                  <div className="bg-primary/5/30 border border-primary/30 rounded-xl p-6 mb-6">
                     <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                       <Plus className="h-5 w-5 mr-2" />
                       Add New Setting
@@ -629,15 +629,15 @@ export default function AdminSettings() {
                                 </div>
                                 <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
                                   setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
-                                  setting.setting_type === 'integer' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' :
-                                  setting.setting_type === 'decimal' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
-                                  'bg-accent text-gray-800 dark:text-gray-200'
+                                  setting.setting_type === 'integer' ? 'bg-primary/10 text-primary-foreground' :
+                                  setting.setting_type === 'decimal' ? 'bg-accent/10 text-accent-foreground' :
+                                  'bg-accent text-gray-800'
                                 }`}>
                                   {setting.setting_type}
                                 </span>
                               </div>
                               <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
-                                setting.is_public ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                                setting.is_public ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
                               }`}>
                                 {setting.is_public ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                               </span>
@@ -646,7 +646,7 @@ export default function AdminSettings() {
                               <div className="text-lg font-bold text-foreground mb-1">
                                 {formatValue(setting.setting_value, setting.setting_type)}
                               </div>
-                              <p className="text-xs text-muted-foreground dark:text-muted-foreground">{setting.description || 'No description'}</p>
+                              <p className="text-xs text-muted-foreground">{setting.description || 'No description'}</p>
                             </div>
                             <div className="flex gap-2">
                               <Button
@@ -678,22 +678,22 @@ export default function AdminSettings() {
                       <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-muted">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             Setting Key
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             Value
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             Type
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             Visibility
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             Description
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -723,9 +723,9 @@ export default function AdminSettings() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                 setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
-                                setting.setting_type === 'integer' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' :
-                                setting.setting_type === 'decimal' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
-                                'bg-accent text-gray-800 dark:text-gray-200'
+                                setting.setting_type === 'integer' ? 'bg-primary/10 text-primary-foreground' :
+                                setting.setting_type === 'decimal' ? 'bg-accent/10 text-accent-foreground' :
+                                'bg-accent text-gray-800'
                               }`}>
                                 {setting.setting_type}
                               </span>
@@ -740,7 +740,7 @@ export default function AdminSettings() {
                                 />
                               ) : (
                                 <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
-                                  setting.is_public ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                                  setting.is_public ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
                                 }`}>
                                   {setting.is_public ? (
                                     <><Globe className="h-3 w-3 mr-1" /> Public</>
@@ -759,7 +759,7 @@ export default function AdminSettings() {
                                   placeholder="Description"
                                 />
                               ) : (
-                                <span className="text-sm text-muted-foreground dark:text-muted-foreground break-words">
+                                <span className="text-sm text-muted-foreground break-words">
                                   {setting.description || 'No description'}
                                 </span>
                               )}
@@ -814,7 +814,7 @@ export default function AdminSettings() {
                     <div className="text-center py-12">
                       <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-foreground mb-2">No settings found</h3>
-                      <p className="text-muted-foreground dark:text-muted-foreground mb-4">
+                      <p className="text-muted-foreground mb-4">
                         {searchTerm ? 'No settings match your search criteria.' : 'No settings configured yet.'}
                       </p>
                       {!searchTerm && (

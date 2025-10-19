@@ -38,8 +38,8 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
         <div className="bg-card rounded-lg shadow-lg p-8">
           {/* Success Header */}
           <div className="text-center mb-8">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-              <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-accent/10 mb-4">
+              <CheckCircle className="h-10 w-10 text-accent" />
             </div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 break-words px-2">
               Application Submitted Successfully!
@@ -77,7 +77,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   Tracking Code
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
-                  <span className="font-mono text-sm sm:text-base md:text-lg text-green-600 dark:text-green-400 font-bold break-all">
+                  <span className="font-mono text-sm sm:text-base md:text-lg text-accent font-bold break-all">
                     {trackingCode}
                   </span>
                   <button
@@ -111,10 +111,10 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                 </label>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                   paymentStatus === 'completed' 
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+                    ? 'bg-accent/10 text-accent-foreground'
                     : paymentStatus === 'pending'
-                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
-                    : 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+                    ? 'bg-accent/10 text-accent-foreground'
+                    : 'bg-accent dark:bg-gray-200 text-foreground'
                 }`}>
                   {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
                 </span>
@@ -133,9 +133,9 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
           </div>
 
           {/* Important Information */}
-          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800 mb-2">Important Information</h3>
-            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+          <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-4 mb-6">
+            <h3 className="font-medium text-primary-foreground mb-2">Important Information</h3>
+            <ul className="text-sm text-primary space-y-1">
               <li>• Keep your reference number and tracking code safe for future reference</li>
               <li>• You will receive email updates about your application status</li>
               <li>• Processing typically takes 5-10 business days</li>

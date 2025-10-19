@@ -202,7 +202,7 @@ export default function EligibilityManagement() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-muted-foreground dark:text-muted-foreground hover:text-foreground hover:border-input dark:border-gray-400'
+                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-input'
                   }`}
                 >
                   <tab.icon className="h-5 w-5" />
@@ -238,22 +238,22 @@ export default function EligibilityManagement() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Rule Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Program
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Weight
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -264,20 +264,20 @@ export default function EligibilityManagement() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {rule.rule_name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {(rule as any).programs?.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {rule.rule_type}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {rule.weight}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                           rule.is_active 
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
-                            : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                            ? 'bg-accent/10 text-accent-foreground' 
+                            : 'bg-destructive/10 text-destructive-foreground'
                         }`}>
                           {rule.is_active ? 'Active' : 'Inactive'}
                         </span>
@@ -285,7 +285,7 @@ export default function EligibilityManagement() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                         <button
                           onClick={() => handleEditRule(rule)}
-                          className="text-primary hover:text-blue-900 dark:text-blue-100 dark:text-blue-900"
+                          className="text-primary hover:text-primary-foreground"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
@@ -346,7 +346,7 @@ export default function EligibilityManagement() {
                     id="program"
                     value={ruleForm.program_id}
                     onChange={(e) => setRuleForm({ ...ruleForm, program_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select Program</option>
                     {programs.map((program) => (
@@ -371,7 +371,7 @@ export default function EligibilityManagement() {
                     id="rule_type"
                     value={ruleForm.rule_type}
                     onChange={(e) => setRuleForm({ ...ruleForm, rule_type: e.target.value })}
-                    className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="subject_count">Subject Count</option>
                     <option value="grade_average">Grade Average</option>

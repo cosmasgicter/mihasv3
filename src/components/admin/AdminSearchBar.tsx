@@ -97,7 +97,7 @@ export function AdminSearchBar() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'application':
-        return <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+        return <FileText className="h-4 w-4 text-primary" />
       case 'user':
         return <Users className="h-4 w-4 text-green-500" />
       case 'program':
@@ -105,7 +105,7 @@ export function AdminSearchBar() {
       case 'intake':
         return <Calendar className="h-4 w-4 text-orange-500" />
       default:
-        return <Search className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
+        return <Search className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -128,7 +128,7 @@ export function AdminSearchBar() {
           onKeyDown={handleKeyDown}
           onFocus={() => query.length > 2 && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-          className="w-full pl-10 pr-4 py-2 bg-card border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-all duration-200"
+          className="w-full pl-10 pr-4 py-2 bg-card border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-all duration-200"
         />
       </div>
 
@@ -162,7 +162,7 @@ export function AdminSearchBar() {
                       {result.title}
                     </p>
                     <p className={`text-xs ${
-                      selectedIndex === index ? 'text-white/80' : 'text-muted-foreground dark:text-muted-foreground'
+                      selectedIndex === index ? 'text-white/80' : 'text-muted-foreground'
                     }`}>
                       {result.subtitle}
                     </p>
@@ -175,7 +175,7 @@ export function AdminSearchBar() {
             </div>
             
             {results.length === 0 && query.length > 2 && (
-              <div className="p-6 text-center text-muted-foreground dark:text-muted-foreground">
+              <div className="p-6 text-center text-muted-foreground">
                 <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No results found for "{query}"</p>
               </div>

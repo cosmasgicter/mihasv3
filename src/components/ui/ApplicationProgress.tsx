@@ -16,7 +16,7 @@ export function ApplicationProgress({ currentStep, totalSteps, completedSteps, h
         <span className="text-sm font-medium text-foreground">
           Step {currentStep} of {totalSteps}
         </span>
-        <span className="text-sm text-muted-foreground dark:text-muted-foreground">
+        <span className="text-sm text-muted-foreground">
           {Math.round(progressPercentage)}% Complete
         </span>
       </div>
@@ -36,7 +36,7 @@ export function ApplicationProgress({ currentStep, totalSteps, completedSteps, h
           <span>{completedSteps.filter(Boolean).length} completed</span>
         </div>
         <div className="flex items-center gap-1">
-          <Clock className="h-3 w-3 text-blue-500 dark:text-blue-400" />
+          <Clock className="h-3 w-3 text-primary" />
           <span>{totalSteps - completedSteps.filter(Boolean).length} remaining</span>
         </div>
         {hasErrors && (

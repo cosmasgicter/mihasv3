@@ -259,7 +259,7 @@ export function SimpleFileUpload({
           Supporting Documents
         </h2>
         {uploadedFiles.length > 0 && (
-          <div className="flex items-center text-sm text-green-600 dark:text-green-400">
+          <div className="flex items-center text-sm text-accent">
             <CheckCircle className="h-4 w-4 mr-1" />
             {uploadedFiles.length} file{uploadedFiles.length !== 1 ? 's' : ''} uploaded
           </div>
@@ -284,7 +284,7 @@ export function SimpleFileUpload({
                 ? 'border-border bg-muted cursor-not-allowed'
                 : dragActive
                 ? 'border-blue-600 bg-primary/5 cursor-pointer'
-                : 'border-input dark:border-gray-400 hover:border-blue-600 hover:bg-blue-600/5 cursor-pointer'
+                : 'border-input hover:border-blue-600 hover:bg-blue-600/5 cursor-pointer'
             )}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -309,7 +309,7 @@ export function SimpleFileUpload({
                           color="blue"
                         />
                       {uploadStats.speed > 0 && (
-                        <div className="flex justify-between text-xs text-muted-foreground dark:text-muted-foreground mt-1">
+                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
                           <span>{formatFileSize(uploadStats.speed)}/s</span>
                           <span>~{Math.ceil(uploadStats.eta)}s remaining</span>
                         </div>
@@ -329,7 +329,7 @@ export function SimpleFileUpload({
                   )}>
                     {dragActive ? 'Drop files here' : 'Click to upload or drag and drop'}
                   </p>
-                  <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {acceptedTypes.join(', ').replace(/\./g, '').toUpperCase()} up to {formatFileSize(maxFileSize)}
                   </p>
                   {enableCompression && (
@@ -346,7 +346,7 @@ export function SimpleFileUpload({
         
         {displayError && (
           <motion.div 
-            className="mt-4 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg"
+            className="mt-4 p-4 bg-destructive/5/30 border border-destructive/30 rounded-lg"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -354,7 +354,7 @@ export function SimpleFileUpload({
             <div className="flex items-start space-x-3">
               <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-red-800 dark:text-red-200">Upload Error</p>
+                <p className="text-sm font-medium text-destructive-foreground">Upload Error</p>
                 <p className="text-sm text-red-700 dark:text-red-300 mt-1">{displayError}</p>
               </div>
             </div>
@@ -364,18 +364,18 @@ export function SimpleFileUpload({
         {/* Compression Stats */}
         {showCompressionStats && compressionResults.length > 0 && (
           <motion.div 
-            className="mt-4 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg"
+            className="mt-4 p-4 bg-accent/10/30 border border-accent/30 rounded-lg"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
           >
             <div className="flex items-start space-x-3">
-              <Zap className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+              <Zap className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-green-800 dark:text-green-200">Image Optimization Complete</p>
+                <p className="text-sm font-medium text-accent-foreground">Image Optimization Complete</p>
                 <div className="mt-2 space-y-1">
                   {compressionResults.map((result, index) => (
-                    <div key={index} className="text-xs text-green-700 dark:text-green-300">
+                    <div key={index} className="text-xs text-accent">
                       <span className="font-medium">{result.originalFile.name}</span>: 
                       {formatFileSize(result.originalSize)} → {formatFileSize(result.compressedSize)} 
                       ({result.compressionRatio.toFixed(1)}% smaller)
@@ -387,7 +387,7 @@ export function SimpleFileUpload({
                 variant="ghost"
                 size="sm"
                 onClick={clearResults}
-                className="text-green-700 dark:text-green-300 hover:text-green-800 dark:text-green-200 p-1 h-auto"
+                className="text-accent hover:text-accent-foreground p-1 h-auto"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -408,12 +408,12 @@ export function SimpleFileUpload({
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center">
                     {isComplete ? (
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mr-2" />
+                      <CheckCircle className="h-4 w-4 text-accent mr-2" />
                     ) : (
                       <div className="h-4 w-4 mr-2 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     )}
                     <span className={`text-sm font-medium ${
-                      isComplete ? 'text-green-800 dark:text-green-200' : 'text-blue-800 dark:text-blue-200 dark:text-blue-800'
+                      isComplete ? 'text-accent-foreground' : 'text-primary-foreground'
                     }`}>{fileName}</span>
                   </div>
                   <span className={`text-sm font-semibold ${
@@ -433,7 +433,7 @@ export function SimpleFileUpload({
                   />
                 </div>
                 {isComplete && (
-                  <div className="mt-2 text-xs text-green-600 dark:text-green-400">
+                  <div className="mt-2 text-xs text-accent">
                     File uploaded successfully!
                   </div>
                 )}
@@ -456,22 +456,22 @@ export function SimpleFileUpload({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
-                className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 dark:border-green-800 rounded-lg transition-all duration-200 hover:shadow-md group"
+                className="bg-gradient-to-r from-green-50 to-emerald-50 border border-accent/30 rounded-lg transition-all duration-200 hover:shadow-md group"
               >
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center space-x-4 flex-1">
                     <div className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
+                      <CheckCircle className="h-5 w-5 text-accent mr-2" />
                       {file.type?.startsWith('image/') ? (
-                        <ImageIcon className="h-5 w-5 text-green-700 dark:text-green-300" />
+                        <ImageIcon className="h-5 w-5 text-accent" />
                       ) : (
-                        <FileText className="h-5 w-5 text-green-700 dark:text-green-300" />
+                        <FileText className="h-5 w-5 text-accent" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-green-800 dark:text-green-200 truncate">{file.name}</p>
+                      <p className="text-sm font-medium text-accent-foreground truncate">{file.name}</p>
                       <div className="flex items-center space-x-3 mt-1">
-                        <p className="text-xs text-green-600 dark:text-green-400">{formatFileSize(file.size)}</p>
+                        <p className="text-xs text-accent">{formatFileSize(file.size)}</p>
                         {file.compressed && file.originalSize && (
                           <div className="flex items-center space-x-1">
                             <Zap className="h-3 w-3 text-primary" />
@@ -487,7 +487,7 @@ export function SimpleFileUpload({
                     variant="ghost"
                     size="sm"
                     onClick={() => onRemoveFile(file.id)}
-                    className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30 min-h-[44px] min-w-[44px] touch-target opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-destructive/5/30 min-h-[44px] min-w-[44px] touch-target opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label={`Remove ${file.name}`}
                   >
                     <X className="h-4 w-4" />

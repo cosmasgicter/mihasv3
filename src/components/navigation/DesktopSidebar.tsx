@@ -58,7 +58,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         <button
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="p-2 rounded-lg hover:bg-accent dark:hover:bg-gray-800 dark:bg-gray-200 transition-colors"
+          className="p-2 rounded-lg hover:bg-accent dark:bg-gray-200 transition-colors"
         >
           {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
         </button>

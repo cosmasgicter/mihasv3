@@ -15,19 +15,19 @@ export function ApplicationsTable() {
       <table className="min-w-full bg-card border border-border">
         <thead className="bg-muted">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
               Application #
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
               Student Name
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
               Program
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
               Actions
             </th>
           </tr>
@@ -38,17 +38,17 @@ export function ApplicationsTable() {
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                 {app.application_number}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                 {app.full_name}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                 {app.program}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`px-2 py-1 text-xs rounded-full ${
-                  app.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
-                  app.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200' :
-                  'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
+                  app.status === 'approved' ? 'bg-accent/10 text-accent-foreground' :
+                  app.status === 'rejected' ? 'bg-destructive/10 text-destructive-foreground' :
+                  'bg-accent/10 text-accent-foreground'
                 }`}>
                   {app.status}
                 </span>

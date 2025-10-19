@@ -67,11 +67,11 @@ export function MobileOptimizedButton({
     ),
     secondary: cn(
       'bg-accent dark:bg-gray-200 text-foreground shadow-sm',
-      'hover:bg-gray-200 dark:bg-gray-700 active:bg-gray-300 dark:bg-gray-600 dark:bg-gray-400',
+      'hover:bg-gray-200 dark:bg-gray-700 active:bg-muted',
       'focus-visible:ring-gray-500'
     ),
     outline: cn(
-      'border-2 border-input dark:border-gray-400 bg-card text-foreground',
+      'border-2 border-input bg-card text-foreground',
       'hover:bg-muted hover:border-gray-400 dark:border-gray-500',
       'active:bg-accent dark:bg-gray-200 active:border-gray-500 dark:border-gray-500',
       'focus-visible:ring-gray-500'
@@ -247,7 +247,7 @@ export function QuickActionButton({
       <div className="relative">
         {icon}
         {count !== undefined && count > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-50 dark:bg-red-950/300 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="absolute -top-2 -right-2 bg-destructive/5/300 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {count > 99 ? '99+' : count}
           </span>
         )}

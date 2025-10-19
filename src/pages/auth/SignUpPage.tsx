@@ -125,7 +125,7 @@ export default function SignUpPage() {
         description={success}
       >
         <div className="space-y-6 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-blue-600/30 bg-blue-50 dark:bg-blue-950/300/10 text-primary">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-blue-600/30 bg-primary/5/300/10 text-primary">
             <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -311,7 +311,7 @@ export default function SignUpPage() {
         )}
 
         {error && (
-          <div className="rounded-xl border border-red-200 dark:border-red-800/70 bg-red-50 dark:bg-red-950/30/80 p-4 text-left shadow-sm">
+          <div className="rounded-xl border border-destructive/30/70 bg-destructive/5/30/80 p-4 text-left shadow-sm">
             <div className="text-sm font-medium text-red-700 dark:text-red-300">{error}</div>
           </div>
         )}

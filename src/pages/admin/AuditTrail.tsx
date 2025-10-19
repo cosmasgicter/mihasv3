@@ -195,7 +195,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
           <div className="flex items-center space-x-3 flex-shrink-0">
             <div className="text-right">
               <div className="text-sm font-medium text-foreground">{relativeTime}</div>
-              <div className="text-xs text-muted-foreground dark:text-muted-foreground">{exactTime}</div>
+              <div className="text-xs text-muted-foreground">{exactTime}</div>
             </div>
             <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${showDetails ? 'rotate-90' : ''}`} />
           </div>
@@ -204,7 +204,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
       
       {/* Expanded Details */}
       {showDetails && (
-        <div className="border-t border-gray-100 dark:border-gray-800 p-4 bg-muted/50">
+        <div className="border-t border-border p-4 bg-muted/50">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Actor Details */}
             <div className="bg-card rounded-lg p-3 border border-border">
@@ -214,21 +214,21 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
               </div>
               <div className="space-y-2">
                 <div>
-                  <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Email:</span>
+                  <span className="text-xs font-medium text-muted-foreground">Email:</span>
                   <p className="text-sm text-foreground">{entry.actorEmail || 'Unknown'}</p>
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">User ID:</span>
+                  <span className="text-xs font-medium text-muted-foreground">User ID:</span>
                   <p className="text-sm font-mono text-foreground">{entry.actorId || 'N/A'}</p>
                 </div>
                 {entry.actorRoles?.length > 0 && (
                   <div>
-                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Roles:</span>
+                    <span className="text-xs font-medium text-muted-foreground">Roles:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {entry.actorRoles.map((role, index) => (
                         <span
                           key={`${entry.id}-${role}-${index}`}
-                          className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200 dark:text-blue-800"
+                          className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary-foreground"
                         >
                           {role.replace('_', ' ').toUpperCase()}
                         </span>
@@ -242,29 +242,29 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
             {/* Request Details */}
             <div className="bg-card rounded-lg p-3 border border-border">
               <div className="flex items-center gap-2 mb-3">
-                <Activity className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <Activity className="h-4 w-4 text-secondary" />
                 <span className="text-sm font-semibold text-foreground">Request Details</span>
               </div>
               <div className="space-y-2">
                 <div>
-                  <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Action:</span>
+                  <span className="text-xs font-medium text-muted-foreground">Action:</span>
                   <p className="text-sm font-mono text-foreground">{entry.action}</p>
                 </div>
                 {entry.requestId && (
                   <div>
-                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Request ID:</span>
+                    <span className="text-xs font-medium text-muted-foreground">Request ID:</span>
                     <p className="text-sm font-mono text-foreground">{entry.requestId}</p>
                   </div>
                 )}
                 {entry.requestIp && (
                   <div>
-                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">IP Address:</span>
+                    <span className="text-xs font-medium text-muted-foreground">IP Address:</span>
                     <p className="text-sm font-mono text-foreground">{entry.requestIp}</p>
                   </div>
                 )}
                 {entry.userAgent && (
                   <div>
-                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">User Agent:</span>
+                    <span className="text-xs font-medium text-muted-foreground">User Agent:</span>
                     <p className="text-xs text-muted-foreground truncate" title={entry.userAgent}>{entry.userAgent}</p>
                   </div>
                 )}
@@ -276,23 +276,23 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
           {entry.targetTable && (
             <div className="bg-card rounded-lg p-3 border border-border mt-4">
               <div className="flex items-center gap-2 mb-3">
-                <Database className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <Database className="h-4 w-4 text-accent" />
                 <span className="text-sm font-semibold text-foreground">Target Information</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Table:</span>
+                  <span className="text-xs font-medium text-muted-foreground">Table:</span>
                   <p className="text-sm text-foreground">{getTableDisplayName(entry.targetTable)}</p>
                 </div>
                 {entry.targetId && (
                   <div>
-                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Record ID:</span>
+                    <span className="text-xs font-medium text-muted-foreground">Record ID:</span>
                     <p className="text-sm font-mono text-foreground">{entry.targetId}</p>
                   </div>
                 )}
                 {entry.targetLabel && (
                   <div>
-                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Label:</span>
+                    <span className="text-xs font-medium text-muted-foreground">Label:</span>
                     <p className="text-sm text-foreground">{entry.targetLabel}</p>
                   </div>
                 )}
@@ -445,7 +445,7 @@ export default function AuditTrailPage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-foreground">System Audit Trail</h1>
-              <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {response?.totalCount || 0} security events tracked
               </p>
             </div>
@@ -482,25 +482,25 @@ export default function AuditTrailPage() {
       <div className="px-4 py-4 sm:px-6">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-primary/30">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-primary uppercase tracking-wide">Total Events</p>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 dark:text-blue-900">{response?.totalCount || 0}</p>
+                <p className="text-2xl font-bold text-primary-foreground">{response?.totalCount || 0}</p>
               </div>
-              <div className="p-3 bg-blue-50 dark:bg-blue-950/300 rounded-xl">
+              <div className="p-3 bg-primary/5/300 rounded-xl">
                 <Activity className="h-5 w-5 text-white" />
               </div>
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200 dark:border-green-800">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-accent/30">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wide">This Page</p>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">{response?.data?.length || 0}</p>
+                <p className="text-xs font-medium text-accent uppercase tracking-wide">This Page</p>
+                <p className="text-2xl font-bold text-accent-foreground">{response?.data?.length || 0}</p>
               </div>
-              <div className="p-3 bg-green-50 dark:bg-green-950/300 rounded-xl">
+              <div className="p-3 bg-accent/10/300 rounded-xl">
                 <FileText className="h-5 w-5 text-white" />
               </div>
             </div>
@@ -509,10 +509,10 @@ export default function AuditTrailPage() {
           <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide">Page {response?.page || 1}</p>
-                <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">of {response?.totalPages || 1}</p>
+                <p className="text-xs font-medium text-secondary uppercase tracking-wide">Page {response?.page || 1}</p>
+                <p className="text-2xl font-bold text-secondary-foreground">of {response?.totalPages || 1}</p>
               </div>
-              <div className="p-3 bg-purple-50 dark:bg-purple-950/300 rounded-xl">
+              <div className="p-3 bg-secondary/5/300 rounded-xl">
                 <BarChart3 className="h-5 w-5 text-white" />
               </div>
             </div>
@@ -533,7 +533,7 @@ export default function AuditTrailPage() {
 
         {/* Mobile Filters Panel */}
         {showFilters && (
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 mb-6 sm:hidden">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-border mb-6 sm:hidden">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1"><Search className="w-5 h-5" /> Search Actions</label>
@@ -556,7 +556,7 @@ export default function AuditTrailPage() {
                 <select
                   value={formFilters.targetTable}
                   onChange={event => setFormFilters(filters => ({ ...filters, targetTable: event.target.value }))}
-                  className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">All data types</option>
                   <option value="applications">Applications</option>
@@ -600,7 +600,7 @@ export default function AuditTrailPage() {
         )}
 
         {/* Desktop Filters */}
-        <div className="hidden sm:block bg-card rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
+        <div className="hidden sm:block bg-card rounded-xl p-6 shadow-sm border border-border mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="h-5 w-5 text-muted-foreground" />
             <h2 className="text-lg font-semibold text-foreground">Filters</h2>
@@ -627,7 +627,7 @@ export default function AuditTrailPage() {
               <select
                 value={formFilters.targetTable}
                 onChange={event => setFormFilters(filters => ({ ...filters, targetTable: event.target.value }))}
-                className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All data types</option>
                 <option value="applications">Applications</option>
@@ -644,7 +644,7 @@ export default function AuditTrailPage() {
               <select
                 value={formFilters.category}
                 onChange={event => setFormFilters(filters => ({ ...filters, category: event.target.value }))}
-                className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All categories</option>
                 <option value="Authentication">Authentication</option>
@@ -685,18 +685,18 @@ export default function AuditTrailPage() {
 
         {/* Error Display */}
         {error && (
-          <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 mb-6">
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5/30 p-4 mb-6">
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
               <div>
-                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error Loading Audit Log</h3>
+                <h3 className="text-sm font-medium text-destructive-foreground">Error Loading Audit Log</h3>
                 <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
-                className="ml-auto text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/5/30"
               >
                 <RefreshCw className="h-4 w-4 mr-1" />
                 Retry
@@ -745,7 +745,7 @@ export default function AuditTrailPage() {
                     Showing page <span className="font-semibold text-foreground">{response.page}</span> of{' '}
                     <span className="font-semibold text-foreground">{response.totalPages}</span>
                   </div>
-                  <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 dark:bg-gray-400" />
+                  <div className="h-4 w-px bg-muted" />
                   <div className="text-sm text-muted-foreground">
                     <span className="font-semibold text-foreground">{response.totalCount}</span> total entries
                   </div>
@@ -817,7 +817,7 @@ export default function AuditTrailPage() {
         ) : (
           <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-border">
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
-              <Shield className="h-10 w-10 text-muted-foreground dark:text-muted-foreground" />
+              <Shield className="h-10 w-10 text-muted-foreground" />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">No Security Events Found</h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">

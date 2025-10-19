@@ -500,7 +500,7 @@ export function ReportsGenerator() {
           <p className="text-sm text-muted-foreground">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6">
-          <div className="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 text-sm text-red-700 dark:text-red-300">
+          <div className="rounded-md border border-destructive/30 bg-destructive/5/30 p-4 text-sm text-red-700 dark:text-red-300">
             Unable to verify your permissions at this time. Please refresh the page or contact an administrator.
           </div>
         </div>
@@ -516,7 +516,7 @@ export function ReportsGenerator() {
           <p className="text-sm text-muted-foreground">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6">
-          <div className="rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 text-sm text-amber-700 dark:text-amber-300">
+          <div className="rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 text-sm text-accent">
             You do not have permission to access analytics report generation. Please contact your administrator if you believe this is a mistake.
           </div>
         </div>
@@ -544,8 +544,8 @@ export function ReportsGenerator() {
                   onClick={() => setConfig(prev => ({ ...prev, type: type.value as any }))}
                   className={`p-3 border rounded-lg text-left transition-colors ${
                     config.type === type.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:text-blue-300'
-                      : 'border-input dark:border-gray-400 hover:border-gray-400 dark:border-gray-500'
+                      ? 'border-blue-500 bg-blue-50 text-primary'
+                      : 'border-input hover:border-gray-400 dark:border-gray-500'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
@@ -566,7 +566,7 @@ export function ReportsGenerator() {
               type="date"
               value={config.startDate}
               onChange={(e) => setConfig(prev => ({ ...prev, startDate: e.target.value }))}
-              className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -575,7 +575,7 @@ export function ReportsGenerator() {
               type="date"
               value={config.endDate}
               onChange={(e) => setConfig(prev => ({ ...prev, endDate: e.target.value }))}
-              className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -589,7 +589,7 @@ export function ReportsGenerator() {
                 type="checkbox"
                 checked={config.includePrograms}
                 onChange={(e) => setConfig(prev => ({ ...prev, includePrograms: e.target.checked }))}
-                className="rounded border-input dark:border-gray-400 text-primary focus:ring-blue-500"
+                className="rounded border-input text-primary focus:ring-blue-500"
               />
               <span className="ml-2 text-sm text-foreground">Program Analytics</span>
             </label>
@@ -598,7 +598,7 @@ export function ReportsGenerator() {
                 type="checkbox"
                 checked={config.includeEngagement}
                 onChange={(e) => setConfig(prev => ({ ...prev, includeEngagement: e.target.checked }))}
-                className="rounded border-input dark:border-gray-400 text-primary focus:ring-blue-500"
+                className="rounded border-input text-primary focus:ring-blue-500"
               />
               <span className="ml-2 text-sm text-foreground">User Engagement Metrics</span>
             </label>
@@ -607,7 +607,7 @@ export function ReportsGenerator() {
                 type="checkbox"
                 checked={config.includeEligibility}
                 onChange={(e) => setConfig(prev => ({ ...prev, includeEligibility: e.target.checked }))}
-                className="rounded border-input dark:border-gray-400 text-primary focus:ring-blue-500"
+                className="rounded border-input text-primary focus:ring-blue-500"
               />
               <span className="ml-2 text-sm text-foreground">Eligibility Success Rates</span>
             </label>
@@ -628,8 +628,8 @@ export function ReportsGenerator() {
                   onClick={() => setConfig(prev => ({ ...prev, format: format.value }))}
                   className={`p-3 border rounded-lg text-left transition-colors ${
                     isActive
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:text-blue-300'
-                      : 'border-input dark:border-gray-400 hover:border-gray-400 dark:border-gray-500'
+                      ? 'border-blue-500 bg-blue-50 text-primary'
+                      : 'border-input hover:border-gray-400 dark:border-gray-500'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
@@ -668,7 +668,7 @@ export function ReportsGenerator() {
           <div className="pt-8 border-t border-border space-y-6">
             <div>
               <h4 className="text-lg font-semibold text-foreground flex items-center space-x-2">
-                <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                <FileText className="h-4 w-4 text-primary" />
                 <span>Official Document Templates</span>
               </h4>
               <p className="text-sm text-muted-foreground">
@@ -689,7 +689,7 @@ export function ReportsGenerator() {
                     id="document-template-select"
                     value={selectedTemplate}
                     onChange={(event) => setSelectedTemplate(event.target.value as DocumentTemplateId)}
-                    className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {templateOptions.map(option => (
                       <option key={option.id} value={option.id}>
@@ -704,10 +704,10 @@ export function ReportsGenerator() {
                   <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
                     {selectedTemplateDefinition.tokens.map(token => (
                       <li key={token.token} className="border-b border-border pb-2 last:border-b-0 last:pb-0">
-                        <div className="font-mono text-[11px] text-muted-foreground dark:text-muted-foreground">{`{{${token.token}}}`}</div>
+                        <div className="font-mono text-[11px] text-muted-foreground">{`{{${token.token}}}`}</div>
                         <div className="text-foreground">
                           {token.label}
-                          {token.required === false && <span className="text-muted-foreground dark:text-muted-foreground"> (optional)</span>}
+                          {token.required === false && <span className="text-muted-foreground"> (optional)</span>}
                         </div>
                       </li>
                     ))}
@@ -745,12 +745,12 @@ export function ReportsGenerator() {
                   </Button>
                 </div>
                 {documentGenerating && (
-                  <div className="flex items-center text-sm text-muted-foreground dark:text-muted-foreground">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <LoadingSpinner size="sm" className="mr-2" />
                     Preparing document…
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Fill in the relevant sections below. Optional placeholders will be skipped automatically when left blank.
                 </p>
               </div>
@@ -764,7 +764,7 @@ export function ReportsGenerator() {
                   value={prefillApplicationId}
                   onChange={(event) => setPrefillApplicationId(event.target.value)}
                   placeholder="Enter application ID (UUID)"
-                  className="flex-1 border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <Button
                   type="button"
@@ -800,7 +800,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.studentName}
                         onChange={handleDocumentFieldChange('studentName')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Jane Doe"
                       />
                     </div>
@@ -813,7 +813,7 @@ export function ReportsGenerator() {
                         type="email"
                         value={documentForm.studentEmail}
                         onChange={handleDocumentFieldChange('studentEmail')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="student@example.com"
                       />
                     </div>
@@ -826,7 +826,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.studentPhone}
                         onChange={handleDocumentFieldChange('studentPhone')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="+260 700 000 000"
                       />
                     </div>
@@ -839,7 +839,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.programName}
                         onChange={handleDocumentFieldChange('programName')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Diploma in Accounting"
                       />
                     </div>
@@ -852,7 +852,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.intake}
                         onChange={handleDocumentFieldChange('intake')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="January 2025"
                       />
                     </div>
@@ -865,7 +865,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.startDate}
                         onChange={handleDocumentFieldChange('startDate')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -877,7 +877,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.responseDeadline}
                         onChange={handleDocumentFieldChange('responseDeadline')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -889,7 +889,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.orientationDate}
                         onChange={handleDocumentFieldChange('orientationDate')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -901,7 +901,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.referenceNumber}
                         onChange={handleDocumentFieldChange('referenceNumber')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="APP-2025-001"
                       />
                     </div>
@@ -914,7 +914,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.decisionDate}
                         onChange={handleDocumentFieldChange('decisionDate')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
@@ -932,7 +932,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.interviewDate}
                         onChange={handleDocumentFieldChange('interviewDate')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -944,7 +944,7 @@ export function ReportsGenerator() {
                         type="time"
                         value={documentForm.interviewTime}
                         onChange={handleDocumentFieldChange('interviewTime')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -956,7 +956,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.interviewMode}
                         onChange={handleDocumentFieldChange('interviewMode')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Virtual / In-person"
                       />
                     </div>
@@ -969,7 +969,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.interviewLocation}
                         onChange={handleDocumentFieldChange('interviewLocation')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Admissions Centre / Zoom link"
                       />
                     </div>
@@ -990,7 +990,7 @@ export function ReportsGenerator() {
                         value={documentForm.feedbackSummary}
                         onChange={handleDocumentFieldChange('feedbackSummary')}
                         rows={3}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Overall impression and decision rationale"
                       />
                     </div>
@@ -1003,7 +1003,7 @@ export function ReportsGenerator() {
                         value={documentForm.feedbackStrengths}
                         onChange={handleDocumentFieldChange('feedbackStrengths')}
                         rows={3}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder={"Strong leadership skills\nClear motivation"}
                       />
                     </div>
@@ -1016,7 +1016,7 @@ export function ReportsGenerator() {
                         value={documentForm.feedbackImprovements}
                         onChange={handleDocumentFieldChange('feedbackImprovements')}
                         rows={3}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder={"Strengthen quantitative examples\nProvide additional references"}
                       />
                     </div>
@@ -1029,7 +1029,7 @@ export function ReportsGenerator() {
                         value={documentForm.feedbackRecommendation}
                         onChange={handleDocumentFieldChange('feedbackRecommendation')}
                         rows={2}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Suggested improvements or follow-up guidance"
                       />
                     </div>
@@ -1048,7 +1048,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.paymentAmountDue}
                         onChange={handleDocumentFieldChange('paymentAmountDue')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="1250"
                       />
                     </div>
@@ -1061,7 +1061,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.paymentAmountPaid}
                         onChange={handleDocumentFieldChange('paymentAmountPaid')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="800"
                       />
                     </div>
@@ -1074,7 +1074,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.paymentBalance}
                         onChange={handleDocumentFieldChange('paymentBalance')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="450"
                       />
                     </div>
@@ -1087,7 +1087,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.paymentDueDate}
                         onChange={handleDocumentFieldChange('paymentDueDate')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -1099,7 +1099,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.paymentReference}
                         onChange={handleDocumentFieldChange('paymentReference')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="INV-2025-04"
                       />
                     </div>
@@ -1112,7 +1112,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.paymentLastPaymentDate}
                         onChange={handleDocumentFieldChange('paymentLastPaymentDate')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
@@ -1125,7 +1125,7 @@ export function ReportsGenerator() {
                       value={documentForm.paymentBreakdown}
                       onChange={handleDocumentFieldChange('paymentBreakdown')}
                       rows={3}
-                      className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder={"Tuition - 950\nLibrary Fee - 50"}
                     />
                   </div>
@@ -1143,7 +1143,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.staffName}
                         onChange={handleDocumentFieldChange('staffName')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Dr. Chanda Mwila"
                       />
                     </div>
@@ -1156,7 +1156,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.staffTitle}
                         onChange={handleDocumentFieldChange('staffTitle')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Admissions Director"
                       />
                     </div>
@@ -1169,7 +1169,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.staffDepartment}
                         onChange={handleDocumentFieldChange('staffDepartment')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Admissions Office"
                       />
                     </div>
@@ -1182,7 +1182,7 @@ export function ReportsGenerator() {
                         type="email"
                         value={documentForm.staffEmail}
                         onChange={handleDocumentFieldChange('staffEmail')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="admissions@example.com"
                       />
                     </div>
@@ -1195,7 +1195,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.staffPhone}
                         onChange={handleDocumentFieldChange('staffPhone')}
-                        className="w-full border border-input dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="+260 900 000 000"
                       />
                     </div>
@@ -1211,7 +1211,7 @@ export function ReportsGenerator() {
                     <p className="text-sm font-semibold text-foreground">
                       {DOCUMENT_TEMPLATE_DEFINITIONS[documentPreview.templateId].name} preview
                     </p>
-                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Showing {previewMode === 'html' ? 'HTML markup' : 'plain text'} output ready for review.
                     </p>
                   </div>
@@ -1240,7 +1240,7 @@ export function ReportsGenerator() {
           </div>
         ) : (
           <div className="pt-8 border-t border-border">
-            <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800 dark:text-yellow-200">
+            <div className="bg-accent/5/30 border border-yellow-200 rounded-lg p-4 text-sm text-accent-foreground">
               Document templates are available to authorised staff members.
             </div>
           </div>

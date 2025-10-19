@@ -193,16 +193,16 @@ export default function NotificationSettings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: channel === 'sms' ? 0.1 : 0.2 }}
-        className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 space-y-4"
+        className="bg-card rounded-2xl shadow-lg border border-border p-6 space-y-4"
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-primary shadow-inner">
+            <div className="p-3 rounded-xl bg-primary/10 text-primary shadow-inner">
               <details.Icon className="h-6 w-6" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">{details.title}</h2>
-              <p className="text-sm text-muted-foreground">{details.description} <span className="text-green-600 dark:text-green-400 font-medium">(Enabled by default)</span></p>
+              <p className="text-sm text-muted-foreground">{details.description} <span className="text-accent font-medium">(Enabled by default)</span></p>
             </div>
           </div>
           <span
@@ -218,14 +218,14 @@ export default function NotificationSettings() {
           {optedIn && summary.optInAt && (
             <p>
               <span className="font-semibold">Opted in:</span> {summary.optInAt}
-              {summary.source && <span className="text-muted-foreground dark:text-muted-foreground"> · via {summary.source}</span>}
+              {summary.source && <span className="text-muted-foreground"> · via {summary.source}</span>}
             </p>
           )}
 
           {!optedIn && summary.optOutAt && (
             <p>
               <span className="font-semibold">Consent revoked:</span> {summary.optOutAt}
-              {summary.optOutReason && <span className="text-muted-foreground dark:text-muted-foreground"> · {summary.optOutReason}</span>}
+              {summary.optOutReason && <span className="text-muted-foreground"> · {summary.optOutReason}</span>}
             </p>
           )}
 
@@ -234,24 +234,24 @@ export default function NotificationSettings() {
           )}
 
           {disableGrant && (
-            <div className="rounded-xl bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
+            <div className="rounded-xl bg-accent/5/30 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
               <p className="font-medium">Add a valid phone number in your profile to enable this channel.</p>
               <p>
-                <Link to="/settings" className="underline font-semibold text-yellow-800 dark:text-yellow-200">
+                <Link to="/settings" className="underline font-semibold text-accent-foreground">
                   Update contact information
                 </Link>
               </p>
             </div>
           )}
 
-          <div className="flex flex-col gap-2 text-xs text-muted-foreground dark:text-muted-foreground">
+          <div className="flex flex-col gap-2 text-xs text-muted-foreground">
             <span className="uppercase tracking-wide text-muted-foreground font-semibold">Current contact</span>
             <span className="text-sm text-foreground">{preferences?.phone || 'No phone number on file'}</span>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
-          <div className="text-xs text-muted-foreground dark:text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-gray-100">
+          <div className="text-xs text-muted-foreground">
             Priority: <span className="font-medium text-foreground">{entry.priority}</span>
           </div>
           <Button
@@ -297,7 +297,7 @@ export default function NotificationSettings() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4 sm:p-6 mb-6 shadow-lg"
+            className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="text-3xl">⚠️</div>

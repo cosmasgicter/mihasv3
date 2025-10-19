@@ -74,7 +74,7 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
           <p className={`text-2xl font-bold ${color}`}>{value}</p>
           {trend !== undefined && (
             <div className={`flex items-center mt-1 text-sm ${
-              trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-muted-foreground dark:text-muted-foreground'
+              trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-muted-foreground'
             }`}>
               <TrendingUp className={`h-3 w-3 mr-1 ${trend < 0 ? 'rotate-180' : ''}`} />
               {trend > 0 ? '+' : ''}{trend} from yesterday
@@ -102,14 +102,14 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
         title="Pending Review"
         value={metrics.pendingReview}
         icon={Clock}
-        color="text-yellow-600 dark:text-yellow-400 dark:text-yellow-500"
+        color="text-accent"
       />
       
       <MetricCard
         title="Approval Rate"
         value={`${metrics.approvalRate.toFixed(1)}%`}
         icon={CheckCircle}
-        color="text-green-600 dark:text-green-400"
+        color="text-accent"
       />
       
       <MetricCard

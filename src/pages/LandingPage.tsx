@@ -388,7 +388,7 @@ export default function LandingPageNew() {
  
  <div className={`grid ${isMobile ? 'grid-cols-1 gap-6 px-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8'} items-stretch`}>
  <motion.div
- className="bg-card rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+ className="bg-card rounded-lg shadow-lg p-6 text-center border border-border h-full flex flex-col justify-between"
  initial={maybeMotion({ opacity: 0, y: 30 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
  viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -409,13 +409,13 @@ export default function LandingPageNew() {
  Nursing and Midwifery Council of Zambia
  </p>
  </div>
- <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-auto">
+ <p className="text-xs text-muted-foreground mt-auto">
  Graduates qualified for nursing jobs in all Zambian hospitals and clinics
  </p>
  </motion.div>
  
  <motion.div
- className="bg-card rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+ className="bg-card rounded-lg shadow-lg p-6 text-center border border-border h-full flex flex-col justify-between"
  initial={maybeMotion({ opacity: 0, y: 30 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
  viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -436,13 +436,13 @@ export default function LandingPageNew() {
  Health Professions Council of Zambia
  </p>
  </div>
- <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-auto">
+ <p className="text-xs text-muted-foreground mt-auto">
  Graduates eligible for clinical officer positions nationwide
  </p>
  </motion.div>
  
  <motion.div
- className="bg-card rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+ className="bg-card rounded-lg shadow-lg p-6 text-center border border-border h-full flex flex-col justify-between"
  initial={maybeMotion({ opacity: 0, y: 30 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
  viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -463,13 +463,13 @@ export default function LandingPageNew() {
  Examinations Council of Zambia
  </p>
  </div>
- <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-auto">
+ <p className="text-xs text-muted-foreground mt-auto">
  Environmental health graduates work in government and private sectors
  </p>
  </motion.div>
  
  <motion.div
- className="bg-card rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+ className="bg-card rounded-lg shadow-lg p-6 text-center border border-border h-full flex flex-col justify-between"
  initial={maybeMotion({ opacity: 0, y: 30 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
  viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -490,7 +490,7 @@ export default function LandingPageNew() {
  University of Zambia
  </p>
  </div>
- <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-auto">
+ <p className="text-xs text-muted-foreground mt-auto">
  University-level qualifications recognized by international employers
  </p>
  </motion.div>
@@ -579,7 +579,7 @@ export default function LandingPageNew() {
  transition={maybeMotion({ delay: courseIndex * 0.1 })}
  >
  <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
- <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 dark:text-gray-700 font-medium">{course}</span>
+ <span className="text-sm sm:text-base text-foreground font-medium">{course}</span>
  </motion.div>
  ))}
  </div>
@@ -614,7 +614,7 @@ export default function LandingPageNew() {
  {program.courses.map((course, courseIndex) => (
  <div key={courseIndex} className="flex items-center space-x-3">
  <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
- <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 dark:text-gray-700 font-medium">{course}</span>
+ <span className="text-sm sm:text-base text-foreground font-medium">{course}</span>
  </div>
  ))}
  </div>
@@ -702,7 +702,7 @@ export default function LandingPageNew() {
  <span className="text-2xl font-bold gradient-text">MIHAS-KATC</span>
  </motion.div>
  <h3 className="text-xl font-semibold mb-4">Apply Today - Contact Us</h3>
- <div className="space-y-2 text-foreground dark:text-muted-foreground">
+ <div className="space-y-2 text-foreground">
  <p><strong>Location:</strong> Mukuba University Campus, Kitwe, Copperbelt Province, Zambia</p>
  <p><strong>Applications:</strong> Open for Zambian & International Students</p>
  <p><strong>KATC:</strong> +260 966 992 299</p>
@@ -728,7 +728,7 @@ export default function LandingPageNew() {
  viewport={shouldReduceMotion ? undefined : { once: true }}
  transition={maybeMotion({ delay: index * 0.1 })}
  >
- <Link to={link.href} className="text-foreground dark:text-muted-foreground hover:text-primary transition-colors duration-300 flex items-center group">
+ <Link to={link.href} className="text-foreground hover:text-primary transition-colors duration-300 flex items-center group">
  <ArrowRight className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
  {link.name}
  </Link>
@@ -744,7 +744,7 @@ export default function LandingPageNew() {
  <motion.a
  key={social}
  href="#"
- className="text-foreground dark:text-muted-foreground hover:text-primary transition-colors duration-300 px-4 py-2 rounded-lg hover:bg-blue-50 dark:bg-blue-950/300/10"
+ className="text-foreground hover:text-primary transition-colors duration-300 px-4 py-2 rounded-lg hover:bg-primary/5/300/10"
  whileHover={maybeMotion({ scale: 1.1 })}
  whileTap={maybeMotion({ scale: 0.9 })}
  initial={maybeMotion({ opacity: 0, y: 20 })}
@@ -765,7 +765,7 @@ export default function LandingPageNew() {
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
  viewport={shouldReduceMotion ? undefined : { once: true }}
  >
- <p className="text-foreground dark:text-muted-foreground mb-2">&copy; 2025 MIHAS-KATC. All rights reserved.</p>
+ <p className="text-foreground mb-2">&copy; 2025 MIHAS-KATC. All rights reserved.</p>
  <p className="text-muted-foreground">
  Developed with ❤️ by{' '}
  <motion.a

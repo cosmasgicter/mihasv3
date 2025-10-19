@@ -15,7 +15,7 @@ interface AuthLayoutProps {
 const defaultHero = (
   <div className="mx-auto max-w-xl text-center lg:mx-0 lg:text-left">
     <div className="rounded-3xl bg-gradient-to-br from-blue-600/90 via-purple-600/90 to-blue-800/90 p-8 text-white shadow-2xl backdrop-blur-sm">
-      <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 dark:bg-gray-800/20 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-gray-900 dark:text-white backdrop-blur">
+      <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-card/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-foreground backdrop-blur">
         <span className="h-2 w-2 rounded-full bg-card" aria-hidden />
         MIHAS Student Portal
       </span>

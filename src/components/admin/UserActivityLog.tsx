@@ -27,14 +27,14 @@ interface UserActivityLogProps {
 }
 
 const ACTION_ICONS: Record<string, React.ReactNode> = {
-  'user.created': <Plus className="h-4 w-4 text-green-600 dark:text-green-400" />,
+  'user.created': <Plus className="h-4 w-4 text-accent" />,
   'user.updated': <Edit className="h-4 w-4 text-primary" />,
   'user.deleted': <Trash2 className="h-4 w-4 text-destructive" />,
-  'user.role_changed': <Shield className="h-4 w-4 text-purple-600 dark:text-purple-400" />,
+  'user.role_changed': <Shield className="h-4 w-4 text-secondary" />,
   'user.permissions_updated': <Shield className="h-4 w-4 text-orange-600" />,
   'user.login': <User className="h-4 w-4 text-green-500" />,
-  'user.logout': <User className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />,
-  'user.password_changed': <Shield className="h-4 w-4 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />,
+  'user.logout': <User className="h-4 w-4 text-muted-foreground" />,
+  'user.password_changed': <Shield className="h-4 w-4 text-accent" />,
 }
 
 const ACTION_LABELS: Record<string, string> = {
@@ -162,7 +162,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                 placeholder="Filter by action..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
@@ -173,7 +173,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
@@ -182,7 +182,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
         {/* Activity List */}
         <div className="flex-1 overflow-y-auto">
           {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg mb-4">
+            <div className="p-4 bg-destructive/5/30 border border-destructive/30 rounded-lg mb-4">
               <p className="text-red-700 dark:text-red-300">{error}</p>
             </div>
           )}
@@ -204,7 +204,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
               {filteredActivities.map((activity) => (
                 <div key={activity.id} className="flex items-start space-x-4 p-4 bg-card border border-border rounded-lg hover:shadow-sm transition-shadow">
                   <div className="flex-shrink-0 mt-1">
-                    {ACTION_ICONS[activity.action] || <Eye className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />}
+                    {ACTION_ICONS[activity.action] || <Eye className="h-4 w-4 text-muted-foreground" />}
                   </div>
                   
                   <div className="flex-1 min-w-0">
@@ -212,7 +212,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                       <h4 className="text-sm font-medium text-foreground">
                         {ACTION_LABELS[activity.action] || activity.action}
                       </h4>
-                      <time className="text-xs text-muted-foreground dark:text-muted-foreground">
+                      <time className="text-xs text-muted-foreground">
                         {new Date(activity.created_at).toLocaleString()}
                       </time>
                     </div>
@@ -222,14 +222,14 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                     </p>
                     
                     {activity.performed_by_name && (
-                      <div className="flex items-center space-x-2 text-xs text-muted-foreground dark:text-muted-foreground">
+                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                         <User className="h-3 w-3" />
                         <span>Performed by: {activity.performed_by_name}</span>
                       </div>
                     )}
                     
                     {activity.details.ip_address && (
-                      <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
+                      <div className="text-xs text-muted-foreground mt-1">
                         IP: {activity.details.ip_address}
                       </div>
                     )}

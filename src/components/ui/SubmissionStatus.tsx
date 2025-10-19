@@ -18,7 +18,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
       case 'pending':
         return <Clock className="h-5 w-5 text-yellow-500 animate-pulse" />
       case 'processing':
-        return <RefreshCw className="h-5 w-5 text-blue-500 dark:text-blue-400 animate-spin" />
+        return <RefreshCw className="h-5 w-5 text-primary animate-spin" />
       case 'retry':
         return <RefreshCw className="h-5 w-5 text-orange-500 animate-spin" />
       case 'completed':
@@ -26,7 +26,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
       case 'failed':
         return <AlertCircle className="h-5 w-5 text-red-500" />
       default:
-        return <Clock className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
+        return <Clock className="h-5 w-5 text-muted-foreground" />
     }
   }
 
@@ -57,7 +57,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
             {status.step && (
               <p className="text-sm text-muted-foreground">Step: {status.step}</p>
             )}
-            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {new Date(status.timestamp).toLocaleString()}
             </p>
           </div>

@@ -90,7 +90,7 @@ export default function ApplicationStatus() {
       case 'submitted':
         return <AlertCircle className="h-5 w-5 text-yellow-500" />
       case 'interview_scheduled':
-        return <Calendar className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+        return <Calendar className="h-5 w-5 text-primary" />
       default:
         return <Clock className="h-5 w-5 text-secondary" />
     }
@@ -233,13 +233,13 @@ export default function ApplicationStatus() {
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Location / Link</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">Location / Link</p>
                     <p className="text-sm text-foreground">
                       {interview.location || 'You will receive the meeting details shortly.'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Important notes</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">Important notes</p>
                     <p className="text-sm text-foreground">
                       {interview.notes || 'Please arrive 10 minutes early and bring your identification.'}
                     </p>
@@ -281,7 +281,7 @@ export default function ApplicationStatus() {
                         className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full shadow-lg ${
                           step.completed
                             ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
-                            : 'bg-accent dark:bg-gray-200 text-muted-foreground dark:text-muted-foreground'
+                            : 'bg-accent dark:bg-gray-200 text-muted-foreground'
                         }`}
                       >
                         {step.completed ? <CheckCircle className="h-5 w-5" /> : getStatusIcon(step.status)}
@@ -291,7 +291,7 @@ export default function ApplicationStatus() {
                           {step.description}
                         </p>
                         {step.date && (
-                          <p className="text-sm text-muted-foreground dark:text-muted-foreground">{formatDate(step.date)}</p>
+                          <p className="text-sm text-muted-foreground">{formatDate(step.date)}</p>
                         )}
                       </div>
                     </motion.div>
@@ -305,7 +305,7 @@ export default function ApplicationStatus() {
                 icon={<FileText className="h-5 w-5" />}
               >
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-5 py-4">
+                  <div className="rounded-xl border border-primary/30 bg-primary/5/30 px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3"><User className="w-5 h-5" /> Personal information</h3>
                     <div className="space-y-2 text-sm text-foreground">
                       <div className="flex justify-between">
@@ -330,7 +330,7 @@ export default function ApplicationStatus() {
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 px-5 py-4">
+                  <div className="rounded-xl border border-accent/30 bg-accent/10/30 px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3"><Phone className="w-5 h-5" /> Contact information</h3>
                     <div className="space-y-2 text-sm text-foreground">
                       <div className="flex justify-between">
@@ -351,7 +351,7 @@ export default function ApplicationStatus() {
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 px-5 py-4 lg:col-span-2">
+                  <div className="rounded-xl border border-purple-200 dark:border-purple-800 bg-secondary/5/30 px-5 py-4 lg:col-span-2">
                     <h3 className="text-sm font-bold text-foreground mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
                     <div className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
                       <div className="flex justify-between">
@@ -385,10 +385,10 @@ export default function ApplicationStatus() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-4 py-3"
+                      className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5/30 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-2">
+                        <div className="rounded-lg bg-primary/10 p-2">
                           <FileText className="h-5 w-5 text-primary" />
                         </div>
                         <div>
@@ -400,7 +400,7 @@ export default function ApplicationStatus() {
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(application.result_slip_url as string, '_blank')}
-                        className="border-blue-300 dark:border-blue-700 text-primary hover:bg-blue-100 dark:bg-blue-900/30"
+                        className="border-blue-300 dark:border-blue-700 text-primary hover:bg-primary/10"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View
@@ -413,22 +413,22 @@ export default function ApplicationStatus() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      className="flex items-center justify-between rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 px-4 py-3"
+                      className="flex items-center justify-between rounded-xl border border-accent/30 bg-accent/10/30 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-green-100 dark:bg-green-900/30 p-2">
-                          <FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        <div className="rounded-lg bg-accent/10 p-2">
+                          <FileText className="h-5 w-5 text-accent" />
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-foreground">Extra KYC documents</p>
-                          <p className="text-xs font-medium text-green-600 dark:text-green-400">✓ Uploaded</p>
+                          <p className="text-xs font-medium text-accent">✓ Uploaded</p>
                         </div>
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(application.extra_kyc_url as string, '_blank')}
-                        className="border-green-300 dark:border-green-700 text-green-600 dark:text-green-400 hover:bg-green-100 dark:bg-green-900/30"
+                        className="border-green-300 dark:border-green-700 text-accent hover:bg-accent/10"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View
@@ -441,22 +441,22 @@ export default function ApplicationStatus() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="flex items-center justify-between rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 px-4 py-3"
+                      className="flex items-center justify-between rounded-xl border border-purple-200 dark:border-purple-800 bg-secondary/5/30 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-purple-100 dark:bg-purple-900/30 p-2">
-                          <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                        <div className="rounded-lg bg-secondary/10 p-2">
+                          <FileText className="h-5 w-5 text-secondary" />
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-foreground">Proof of payment</p>
-                          <p className="text-xs font-medium text-purple-600 dark:text-purple-400">✓ Uploaded</p>
+                          <p className="text-xs font-medium text-secondary">✓ Uploaded</p>
                         </div>
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(application.pop_url as string, '_blank')}
-                        className="border-purple-300 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:bg-purple-900/30"
+                        className="border-purple-300 text-secondary hover:bg-secondary/10"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View
@@ -465,7 +465,7 @@ export default function ApplicationStatus() {
                   )}
 
                   {!application.result_slip_url && !application.extra_kyc_url && !application.pop_url && (
-                    <p className="rounded-xl bg-muted px-4 py-6 text-center text-sm text-muted-foreground dark:text-muted-foreground">
+                    <p className="rounded-xl bg-muted px-4 py-6 text-center text-sm text-muted-foreground">
                       No supporting documents uploaded.
                     </p>
                   )}
