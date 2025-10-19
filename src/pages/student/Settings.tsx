@@ -68,7 +68,7 @@ export default function StudentSettings() {
       setSuccess('')
 
       await updateProfile(data)
-      setSuccess('Profile updated successfully!')
+      setSuccess('Profile updated successfully! Please sign out and sign back in to see the changes.')
     } catch (error) {
       console.error('Error updating profile:', error)
       setError(error instanceof Error ? error.message : 'Failed to update profile')
@@ -121,7 +121,15 @@ export default function StudentSettings() {
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">✅</div>
-              <div className="text-green-700 dark:text-green-300 font-medium">{success}</div>
+              <div className="flex-1">
+                <div className="text-green-700 dark:text-green-300 font-medium">{success}</div>
+                <button
+                  onClick={() => window.location.href = '/auth/signin'}
+                  className="mt-2 text-sm text-green-600 dark:text-green-400 underline hover:text-green-700"
+                >
+                  Sign out now
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
