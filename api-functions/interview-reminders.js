@@ -1,5 +1,6 @@
 // Scheduled function to send interview reminders
 import { supabaseAdminClient } from '../api/_lib/supabaseClient.js'
+import { logger } from './utils/logger.js'
 
 const supabase = supabaseAdminClient
 
@@ -79,7 +80,7 @@ export async function handler(event) {
       body: JSON.stringify({ success: true, processed: interviews?.length || 0 })
     }
   } catch (error) {
-    console.error('Reminder error:', error)
+    logger.error('Reminder error:', error)
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })

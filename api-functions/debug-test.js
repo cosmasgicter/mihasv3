@@ -1,6 +1,8 @@
 // Simple debug function to test Netlify runtime
+import { logger } from './utils/logger.js'
+
 export const handler = async (event, context) => {
-  console.log('Debug function called:', event.httpMethod, event.path)
+  logger.info('Debug function called:', { method: event.httpMethod, path: event.path })
   
   return {
     statusCode: 200,
