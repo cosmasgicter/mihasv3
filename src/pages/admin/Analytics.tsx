@@ -220,7 +220,7 @@ export default function Analytics() {
         <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold"><BarChart3 className="w-5 h-5" /> Analytics & Reporting</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold break-words"><BarChart3 className="w-5 h-5" /> Analytics & Reporting</h1>
               <p className="text-xl text-white/90 mt-2">Application statistics and trends analysis with full CRUD functionality</p>
             </div>
             <div className="flex items-center space-x-4">
@@ -233,7 +233,7 @@ export default function Analytics() {
                 Refresh
               </Button>
               <div className="text-right">
-                <div className="text-3xl font-bold">{totalApplications}</div>
+                <div className="text-2xl sm:text-3xl font-bold break-words">{totalApplications}</div>
                 <div className="text-sm text-white/80">Total Applications</div>
               </div>
             </div>
@@ -385,7 +385,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Applications</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{totalApplications}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words">{totalApplications}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+12% from last month</p>
                   </div>
                   <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl">
@@ -398,7 +398,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Approval Rate</p>
-                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">{overallApprovalRate}%</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 break-words">{overallApprovalRate}%</p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+5% from last month</p>
                   </div>
                   <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-2xl">
@@ -411,7 +411,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Eligibility Success</p>
-                    <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{avgEligibilitySuccess}%</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400 break-words">{avgEligibilitySuccess}%</p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+8% from last month</p>
                   </div>
                   <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-2xl">
@@ -424,7 +424,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Active Users</p>
-                    <p className="text-3xl font-bold text-indigo-600">{uniqueUsers}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-indigo-600 break-words">{uniqueUsers}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">+15% from last month</p>
                   </div>
                   <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl">
