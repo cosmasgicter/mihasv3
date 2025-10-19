@@ -48,7 +48,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
+              className="bg-card rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
             >
               {/* Header */}
               <div className={`p-6 ${
@@ -64,9 +64,9 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                       'bg-blue-100 dark:bg-blue-900/50'
                     }`}>
                       <AlertTriangle className={`h-6 w-6 ${
-                        variant === 'danger' ? 'text-red-600 dark:text-red-400' :
+                        variant === 'danger' ? 'text-destructive' :
                         variant === 'warning' ? 'text-yellow-600 dark:text-yellow-400' :
-                        'text-blue-600 dark:text-blue-400'
+                        'text-primary'
                       }`} />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -90,7 +90,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               </div>
 
               {/* Actions */}
-              <div className="p-6 bg-gray-50 dark:bg-gray-900/50 flex gap-3 justify-end">
+              <div className="p-6 bg-muted/50 flex gap-3 justify-end">
                 <Button
                   variant="outline"
                   onClick={onClose}

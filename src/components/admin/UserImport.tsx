@@ -280,7 +280,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Upload className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <Upload className="h-5 w-5 text-primary" />
             <span>Import Users</span>
           </DialogTitle>
         </DialogHeader>
@@ -305,7 +305,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                 <Button
                   variant="outline"
                   onClick={downloadTemplate}
-                  className="text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+                  className="text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Download Template
@@ -313,7 +313,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               </div>
 
               {/* File Upload */}
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg p-8 text-center hover:border-gray-400 dark:border-gray-500 transition-colors">
+              <div className="border-2 border-dashed border-input dark:border-gray-400 rounded-lg p-8 text-center hover:border-gray-400 dark:border-gray-500 transition-colors">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -321,11 +321,11 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-                <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   {file ? file.name : 'Select CSV File'}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-muted-foreground mb-4">
                   {file ? 'File selected. Click Import to proceed.' : 'Choose a CSV file to import users'}
                 </p>
                 <Button
@@ -345,11 +345,11 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
 
               {/* Preview */}
               {showPreview && previewData.length > 0 && (
-                <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Preview (First 5 rows)</h3>
+                <div className="bg-muted border border-border rounded-lg p-4">
+                  <h3 className="font-medium text-foreground mb-3">Preview (First 5 rows)</h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
+                      <thead className="bg-accent dark:bg-gray-200">
                         <tr>
                           <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Name</th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Email</th>
@@ -357,13 +357,13 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                           <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">Role</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-200 divide-y divide-gray-200">
+                      <tbody className="bg-card divide-y divide-gray-200">
                         {previewData.map((user, index) => (
                           <tr key={index}>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{sanitizeText(user.full_name)}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{sanitizeText(user.email)}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{sanitizeText(user.phone) || '-'}</td>
-                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">
+                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.full_name)}</td>
+                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.email)}</td>
+                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.phone) || '-'}</td>
+                            <td className="px-3 py-2 text-sm text-foreground">
                               <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 rounded text-xs">
                                 {sanitizeText(user.role)}
                               </span>
@@ -386,14 +386,14 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                       <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                     </div>
                     <p className="text-2xl font-bold text-green-600 dark:text-green-400">{importResult.success}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Successful</p>
+                    <p className="text-sm text-muted-foreground">Successful</p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full mb-2">
-                      <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                      <XCircle className="h-6 w-6 text-destructive" />
                     </div>
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">{importResult.failed}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Failed</p>
+                    <p className="text-2xl font-bold text-destructive">{importResult.failed}</p>
+                    <p className="text-sm text-muted-foreground">Failed</p>
                   </div>
                   {importResult.duplicates > 0 && (
                     <div className="text-center">
@@ -401,7 +401,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                         <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
                       </div>
                       <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 dark:text-yellow-500">{importResult.duplicates}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Duplicates</p>
+                      <p className="text-sm text-muted-foreground">Duplicates</p>
                     </div>
                   )}
                 </div>
@@ -412,10 +412,10 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                   <h3 className="font-medium text-red-900 dark:text-red-100 mb-3">Import Errors</h3>
                   <div className="space-y-2">
                     {importResult.errors.map((error, index) => (
-                      <div key={index} className="text-sm text-red-700 dark:text-red-300 bg-white dark:bg-gray-800 dark:bg-gray-200 p-2 rounded border">
+                      <div key={index} className="text-sm text-red-700 dark:text-red-300 bg-card p-2 rounded border">
                         <p className="font-medium">Row {error.row}: {error.error}</p>
                         {error.data && (
-                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                          <p className="text-xs text-destructive mt-1">
                             Data: {sanitizeForLog(JSON.stringify(error.data))}
                           </p>
                         )}

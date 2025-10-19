@@ -69,7 +69,7 @@ export function NotificationBell() {
         className="relative hover:bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center"
         data-testid="notification-bell"
       >
-        <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+        <Bell className="h-5 w-5 text-muted-foreground" />
         {unreadCount > 0 && (
           <motion.span
             initial={{ scale: 0 }}
@@ -96,15 +96,15 @@ export function NotificationBell() {
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[9999] max-h-[80vh] flex flex-col"
+              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-card rounded-xl shadow-2xl border border-border z-[9999] max-h-[80vh] flex flex-col"
               data-testid="notifications-panel"
             >
               {/* Header */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50">
+              <div className="p-4 border-b border-border bg-gradient-to-r from-blue-50 to-purple-50">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-gray-900 dark:text-gray-100"><Bell className="w-5 h-5" /> Notifications</h3>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                    <h3 className="font-bold text-foreground"><Bell className="w-5 h-5" /> Notifications</h3>
+                    <p className="text-xs text-muted-foreground">
                       {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up!'}
                     </p>
                   </div>
@@ -114,7 +114,7 @@ export function NotificationBell() {
                         variant="ghost"
                         size="sm"
                         onClick={markAllAsRead}
-                        className="text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:bg-blue-900/30"
+                        className="text-xs text-primary hover:bg-blue-100 dark:bg-blue-900/30"
                         data-testid="mark-all-read"
                       >
                         Mark all read
@@ -166,10 +166,10 @@ export function NotificationBell() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <p className={`font-medium text-sm ${!notification.read ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
+                                <p className={`font-medium text-sm ${!notification.read ? 'text-foreground' : 'text-foreground'}`}>
                                   {sanitizeText(notification.title)}
                                 </p>
-                                <p className={`text-xs mt-1 ${!notification.read ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-500'}`}>
+                                <p className={`text-xs mt-1 ${!notification.read ? 'text-foreground' : 'text-gray-500 dark:text-gray-500'}`}>
                                   {sanitizeText(notification.content)}
                                 </p>
                                 <div className="flex items-center justify-between mt-2">
@@ -192,7 +192,7 @@ export function NotificationBell() {
                                     console.error('Failed to delete notification')
                                   }
                                 }}
-                                className="p-1 h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:bg-red-100 dark:bg-red-900/30 hover:text-red-600 dark:text-red-400 focus:bg-red-100 dark:bg-red-900/30 focus:text-red-600"
+                                className="p-1 h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:bg-red-100 dark:bg-red-900/30 hover:text-destructive focus:bg-red-100 dark:bg-red-900/30 focus:text-red-600"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -207,7 +207,7 @@ export function NotificationBell() {
 
               {/* Footer */}
               {notifications.length > 0 && (
-                <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <div className="p-3 border-t border-border bg-muted">
                   <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
                     <Lightbulb className="w-5 h-5" /> Click notifications to mark as read
                   </p>

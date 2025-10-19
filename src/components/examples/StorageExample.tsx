@@ -30,7 +30,7 @@ export function StorageExample() {
   }
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow">
+    <div className="p-6 bg-card rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-4">Storage Upload Example</h3>
       
       <div className="space-y-4">
@@ -48,7 +48,7 @@ export function StorageExample() {
         </div>
 
         {uploading && (
-          <div className="text-blue-600 dark:text-blue-400">
+          <div className="text-primary">
             Uploading...
           </div>
         )}
@@ -61,7 +61,7 @@ export function StorageExample() {
           </div>
         )}
 
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="text-sm text-muted-foreground">
           <p><strong>Available buckets:</strong></p>
           <ul className="list-disc list-inside mt-1">
             <li>documents (public) - for general documents</li>

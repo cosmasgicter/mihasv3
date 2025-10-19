@@ -103,8 +103,8 @@ export function TestNotifications() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-md p-6">
-      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+    <div className="bg-card rounded-lg shadow-md p-6">
+      <h3 className="text-lg font-bold text-foreground mb-4 flex items-center">
         <Bell className="h-5 w-5 mr-2" />
         Test Notification System
       </h3>

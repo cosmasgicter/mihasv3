@@ -376,7 +376,7 @@ export default function AdminSettings() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -429,31 +429,31 @@ export default function AdminSettings() {
           </div>
 
           {/* Statistics */}
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{settings.length}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Total Settings</div>
+                <div className="text-2xl font-bold text-primary">{settings.length}</div>
+                <div className="text-sm text-muted-foreground">Total Settings</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">{settings.filter(s => s.is_public).length}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Public</div>
+                <div className="text-sm text-muted-foreground">Public</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-red-600 dark:text-red-400">{settings.filter(s => !s.is_public).length}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Private</div>
+                <div className="text-2xl font-bold text-destructive">{settings.filter(s => !s.is_public).length}</div>
+                <div className="text-sm text-muted-foreground">Private</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                   {new Set(settings.map(s => s.setting_type)).size}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Data Types</div>
+                <div className="text-sm text-muted-foreground">Data Types</div>
               </div>
             </div>
           </div>
 
           {/* Filters and Search */}
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div className="p-6 border-b border-border bg-muted">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <Input
@@ -507,7 +507,7 @@ export default function AdminSettings() {
                   variant="outline"
                   onClick={resetToDefaults}
                   size="sm"
-                  className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 border-red-300 dark:border-red-700 hover:border-red-400"
+                  className="text-destructive hover:text-red-700 dark:text-red-300 border-red-300 dark:border-red-700 hover:border-red-400"
                 >
                   Reset to Defaults
                 </Button>
@@ -540,7 +540,7 @@ export default function AdminSettings() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">Loading settings...</p>
+                  <p className="mt-4 text-lg text-muted-foreground">Loading settings...</p>
                 </div>
               </div>
             ) : (
@@ -548,7 +548,7 @@ export default function AdminSettings() {
                 {/* Add New Setting Form */}
                 {showAddForm && (
                   <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                       <Plus className="h-5 w-5 mr-2" />
                       Add New Setting
                     </h3>
@@ -560,11 +560,11 @@ export default function AdminSettings() {
                         placeholder="e.g., max_file_size"
                       />
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Type</label>
                         <select
                           value={newSetting.setting_type}
                           onChange={(e) => setNewSetting({...newSetting, setting_type: e.target.value as any})}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="string">String</option>
                           <option value="integer">Integer</option>
@@ -584,9 +584,9 @@ export default function AdminSettings() {
                           id="is_public"
                           checked={newSetting.is_public}
                           onChange={(e) => setNewSetting({...newSetting, is_public: e.target.checked})}
-                          className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                          className="rounded border-input text-blue-600 focus:ring-blue-500"
                         />
-                        <label htmlFor="is_public" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label htmlFor="is_public" className="text-sm font-medium text-foreground">
                           Public Setting
                         </label>
                       </div>
@@ -616,22 +616,22 @@ export default function AdminSettings() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {Object.entries(groupedSettings).map(([category, categorySettings]) => (
                       <div key={category} className="space-y-3">
-                        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide px-2">
+                        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide px-2">
                           {category}
                         </h3>
                         {categorySettings.map((setting) => (
-                          <div key={setting.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-shadow">
+                          <div key={setting.id} className="bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow">
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <Database className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{setting.setting_key}</span>
+                                  <Database className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-sm font-semibold text-foreground">{setting.setting_key}</span>
                                 </div>
                                 <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
                                   setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
                                   setting.setting_type === 'integer' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' :
                                   setting.setting_type === 'decimal' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
-                                  'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
+                                  'bg-accent text-gray-800 dark:text-gray-200'
                                 }`}>
                                   {setting.setting_type}
                                 </span>
@@ -643,7 +643,7 @@ export default function AdminSettings() {
                               </span>
                             </div>
                             <div className="mb-3">
-                              <div className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+                              <div className="text-lg font-bold text-foreground mb-1">
                                 {formatValue(setting.setting_value, setting.setting_type)}
                               </div>
                               <p className="text-xs text-gray-500 dark:text-gray-500">{setting.description || 'No description'}</p>
@@ -662,7 +662,7 @@ export default function AdminSettings() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleDelete(setting.id, setting.setting_key)}
-                                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300"
+                                className="text-destructive hover:text-red-700 dark:text-red-300"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -673,10 +673,10 @@ export default function AdminSettings() {
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                  <div className="bg-card border border-border rounded-xl overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50 dark:bg-gray-900">
+                      <thead className="bg-muted">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                             Setting Key
@@ -698,13 +698,13 @@ export default function AdminSettings() {
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                      <tbody className="bg-card divide-y divide-gray-200">
                         {filteredSettings.map((setting) => (
-                          <tr key={setting.id} className="hover:bg-gray-50 dark:bg-gray-900">
+                          <tr key={setting.id} className="hover:bg-muted">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                <Database className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
-                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{setting.setting_key}</span>
+                                <Database className="h-4 w-4 text-muted-foreground mr-2" />
+                                <span className="text-sm font-medium text-foreground">{setting.setting_key}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4">
@@ -715,7 +715,7 @@ export default function AdminSettings() {
                                   className="w-full"
                                 />
                               ) : (
-                                <span className="text-sm text-gray-900 dark:text-gray-100 break-words">
+                                <span className="text-sm text-foreground break-words">
                                   {formatValue(setting.setting_value, setting.setting_type)}
                                 </span>
                               )}
@@ -725,7 +725,7 @@ export default function AdminSettings() {
                                 setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
                                 setting.setting_type === 'integer' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' :
                                 setting.setting_type === 'decimal' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
-                                'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
+                                'bg-accent text-gray-800 dark:text-gray-200'
                               }`}>
                                 {setting.setting_type}
                               </span>
@@ -736,7 +736,7 @@ export default function AdminSettings() {
                                   type="checkbox"
                                   checked={editForm.is_public || false}
                                   onChange={(e) => setEditForm({...editForm, is_public: e.target.checked})}
-                                  className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                                  className="rounded border-input text-blue-600 focus:ring-blue-500"
                                 />
                               ) : (
                                 <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
@@ -795,7 +795,7 @@ export default function AdminSettings() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleDelete(setting.id, setting.setting_key)}
-                                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300"
+                                    className="text-destructive hover:text-red-700 dark:text-red-300"
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
@@ -812,8 +812,8 @@ export default function AdminSettings() {
                   
                   {filteredSettings.length === 0 && (
                     <div className="text-center py-12">
-                      <Database className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No settings found</h3>
+                      <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-foreground mb-2">No settings found</h3>
                       <p className="text-gray-500 dark:text-gray-500 mb-4">
                         {searchTerm ? 'No settings match your search criteria.' : 'No settings configured yet.'}
                       </p>

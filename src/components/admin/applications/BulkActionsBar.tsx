@@ -29,8 +29,8 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
 
   return (
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="bg-card rounded-xl shadow-lg border border-border p-4 flex items-center gap-3">
+        <span className="text-sm font-medium text-foreground">
           {selectedIds.length} selected
         </span>
         
@@ -53,7 +53,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
             variant="outline"
             onClick={() => handleAction('reject')}
             loading={loading === 'reject'}
-            className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+            className="text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
           >
             <XCircle className="h-4 w-4 mr-1" />
             Reject
@@ -64,7 +64,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
             variant="outline"
             onClick={() => handleAction('review')}
             loading={loading === 'review'}
-            className="text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+            className="text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
           >
             <Clock className="h-4 w-4 mr-1" />
             Review
@@ -77,7 +77,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
           size="sm"
           variant="ghost"
           onClick={onClearSelection}
-          className="text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300"
+          className="text-gray-500 dark:text-gray-500 hover:text-foreground"
         >
           Clear
         </Button>

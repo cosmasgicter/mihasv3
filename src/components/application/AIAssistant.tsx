@@ -639,7 +639,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 md:bottom-6 right-4 md:right-6 z-[70] w-[calc(100vw-2rem)] md:w-96 max-w-md h-[500px] bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden"
+            className="fixed bottom-6 md:bottom-6 right-4 md:right-6 z-[70] w-[calc(100vw-2rem)] md:w-96 max-w-md h-[500px] bg-card rounded-2xl shadow-2xl border border-border flex flex-col overflow-hidden"
             style={{ bottom: 'calc(env(safe-area-inset-bottom) + 5rem)' }}
           >
             {/* Header */}
@@ -667,8 +667,8 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-600 dark:text-blue-400" />
-                  <span className="ml-2 text-gray-600 dark:text-gray-400">Loading conversation...</span>
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <span className="ml-2 text-muted-foreground">Loading conversation...</span>
                 </div>
               ) : (
                 messages.map((message) => (
@@ -681,11 +681,11 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                     <div className={`max-w-[85%] rounded-2xl p-3 ${
                       message.type === 'user'
                         ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+                        : 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
                     }`}>
                       <div className="flex items-start space-x-2">
                         {message.type === 'assistant' && (
-                          <Bot className="h-4 w-4 mt-1 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                          <Bot className="h-4 w-4 mt-1 flex-shrink-0 text-primary" />
                         )}
                         <div className="flex-1">
                           <p className="text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
@@ -696,7 +696,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                                 <button
                                   key={idx}
                                   onClick={() => handleSuggestionClick(suggestion)}
-                                  className="block w-full text-left text-xs bg-white dark:bg-gray-800/20 hover:bg-white/90 dark:hover:bg-gray-800/30 rounded-lg p-2 transition-colors border border-white/10"
+                                  className="block w-full text-left text-xs bg-card/20 hover:bg-white/90 dark:hover:bg-gray-800/30 rounded-lg p-2 transition-colors border border-white/10"
                                 >
                                   {suggestion}
                                 </button>
@@ -716,9 +716,9 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                   animate={{ opacity: 1, y: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 rounded-2xl p-3 max-w-[85%]">
+                  <div className="bg-accent dark:bg-gray-200 rounded-2xl p-3 max-w-[85%]">
                     <div className="flex items-center space-x-2">
-                      <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <Bot className="h-4 w-4 text-primary" />
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -733,7 +733,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            <div className="p-4 border-t border-border bg-muted">
               <div className="flex space-x-2">
                 <input
                   type="text"
@@ -742,7 +742,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                   onKeyPress={handleKeyPress}
                   placeholder={isTyping ? 'AI is thinking...' : 'Ask me anything about your application...'}
                   disabled={isTyping || isLoading}
-                  className="flex-1 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 disabled:cursor-not-allowed"
+                  className="flex-1 border border-input dark:border-gray-400 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-accent dark:bg-gray-200 disabled:cursor-not-allowed"
                 />
                 <Button
                   onClick={handleSendMessage}

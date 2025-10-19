@@ -73,14 +73,14 @@ const ApplicationWizardContent = () => {
 
   if (authLoading || restoringDraft) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner />
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
+          <p className="mt-4 text-muted-foreground">
             {authLoading ? 'Loading...' : 'Restoring your saved progress...'}
           </p>
           {restoringDraft && (
-            <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">
+            <p className="mt-2 text-sm text-primary">
               We found a saved draft of your application
             </p>
           )}
@@ -126,25 +126,25 @@ const ApplicationWizardContent = () => {
       <div className="w-full">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <Link to="/student/dashboard" className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:text-blue-300 mb-4">
+          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-blue-700 dark:text-blue-300 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 break-words">Student Application</h1>
-            <p className="text-gray-600 dark:text-gray-400">Complete the {totalSteps}-step application process</p>
-            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 break-all">Logged in as: {user.email}</div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 break-words">Student Application</h1>
+            <p className="text-muted-foreground">Complete the {totalSteps}-step application process</p>
+            <div className="mt-2 text-sm text-muted-foreground break-all">Logged in as: {user.email}</div>
           </motion.div>
         </div>
 
         <div className="mb-6 lg:mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 break-words">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground break-words">
               Step {currentStepConfig.id} of {totalSteps}: {currentStepConfig.progressTitle}
             </h2>
             <div className="flex items-center space-x-4">
               {isDraftSaving && (
-                <motion.div className="flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <motion.div className="flex items-center space-x-2 text-sm text-primary" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
                   <span>Auto-saving...</span>
                 </motion.div>
@@ -171,7 +171,7 @@ const ApplicationWizardContent = () => {
                 return (
                   <motion.div
                     key={step.id}
-                    className="flex flex-col items-center bg-gray-50 dark:bg-gray-900 relative min-w-0 flex-shrink-0 px-2 sm:px-0"
+                    className="flex flex-col items-center bg-muted relative min-w-0 flex-shrink-0 px-2 sm:px-0"
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: step.id * 0.1 }}
@@ -182,7 +182,7 @@ const ApplicationWizardContent = () => {
                           ? 'bg-green-500 border-green-500 text-white shadow-lg'
                           : isActive
                           ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-110'
-                          : 'bg-white dark:bg-gray-800 dark:bg-gray-200 border-gray-300 dark:border-gray-600 dark:border-gray-400 text-gray-400 dark:text-gray-500'
+                          : 'bg-card border-input dark:border-gray-400 text-muted-foreground'
                       }`}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
@@ -214,7 +214,7 @@ const ApplicationWizardContent = () => {
                   <button
                     type="button"
                     onClick={() => setError('')}
-                    className="text-xs text-red-600 dark:text-red-400 hover:text-red-500 underline"
+                    className="text-xs text-destructive hover:text-red-500 underline"
                   >
                     Dismiss
                   </button>

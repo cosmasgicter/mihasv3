@@ -82,7 +82,7 @@ export default function StudentSettings() {
         <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header - Mobile First */}
         <div className="mb-6 sm:mb-8">
-          <Link to="/student/dashboard" className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-600/80 mb-4 font-medium transition-colors">
+          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-blue-600/80 mb-4 font-medium transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
@@ -140,13 +140,13 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
               <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <User className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 <User className="w-5 h-5" /> Basic Information
               </h2>
             </div>
@@ -162,7 +162,7 @@ export default function StudentSettings() {
               />
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Email Address
                 </label>
                 <div className="relative">
@@ -171,10 +171,10 @@ export default function StudentSettings() {
                     type="email"
                     value={profile?.email || ''}
                     disabled
-                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-muted-foreground cursor-not-allowed"
                   />
                 </div>
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 px-3 py-1 rounded-lg inline-block">
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-500 bg-accent dark:bg-gray-200 px-3 py-1 rounded-lg inline-block">
                   🔒 Email cannot be changed
                 </p>
               </div>
@@ -199,19 +199,19 @@ export default function StudentSettings() {
               />
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Sex
                 </label>
                 <select
                   {...register('sex')}
-                  className="form-input-mobile w-full rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+                  className="form-input-mobile w-full rounded-xl border-2 border-border bg-card px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
                 >
                   <option value="">Select Sex</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
                 {errors.sex && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 px-3 py-1 rounded-lg">{errors.sex.message}</p>
+                  <p className="mt-2 text-sm text-destructive bg-red-50 dark:bg-red-950/30 px-3 py-1 rounded-lg">{errors.sex.message}</p>
                 )}
               </div>
             </div>
@@ -222,13 +222,13 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
               <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                 <MapPin className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 📍 Address Information
               </h2>
             </div>
@@ -246,17 +246,17 @@ export default function StudentSettings() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Address
                 </label>
                 <textarea
                   {...register('address')}
                   rows={4}
                   placeholder="House number, street, area"
-                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-700 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 resize-none"
+                  className="w-full rounded-xl border-2 border-border px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 resize-none"
                 />
                 {errors.address && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 px-3 py-1 rounded-lg">{errors.address.message}</p>
+                  <p className="mt-2 text-sm text-destructive bg-red-50 dark:bg-red-950/30 px-3 py-1 rounded-lg">{errors.address.message}</p>
                 )}
               </div>
               
@@ -276,13 +276,13 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
               <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                <Phone className="h-5 w-5 text-red-600 dark:text-red-400" />
+                <Phone className="h-5 w-5 text-destructive" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 👥 Next of Kin
               </h2>
             </div>
@@ -313,13 +313,13 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
               <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                 <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 🔐 Security & Active Sessions
               </h2>
             </div>

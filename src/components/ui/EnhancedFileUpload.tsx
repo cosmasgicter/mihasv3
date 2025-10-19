@@ -202,15 +202,15 @@ export function EnhancedFileUpload({
         {...getRootProps()}
         className={cn(
           'relative border-2 border-dashed rounded-lg p-6 transition-all duration-200',
-          'cursor-pointer hover:bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500',
+          'cursor-pointer hover:bg-muted focus:outline-none focus:ring-2 focus:ring-blue-500',
           // Touch-optimized minimum height
           'min-h-[120px] flex flex-col items-center justify-center',
           // State-based styling
           isDragActive || dzIsDragActive
             ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 dark:border-gray-600 dark:border-gray-400',
+            : 'border-input dark:border-gray-400',
           disabled || !isOnline
-            ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900'
+            ? 'opacity-50 cursor-not-allowed bg-muted'
             : 'hover:border-gray-400 dark:border-gray-500',
           // Mobile optimizations
           'touch-manipulation'
@@ -221,22 +221,22 @@ export function EnhancedFileUpload({
         <div className="text-center space-y-2">
           <Upload className={cn(
             'w-8 h-8 mx-auto',
-            isDragActive || dzIsDragActive ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
+            isDragActive || dzIsDragActive ? 'text-blue-500 dark:text-blue-400' : 'text-muted-foreground'
           )} />
           
           <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            <p className="text-sm font-medium text-foreground">
               {isDragActive || dzIsDragActive
                 ? 'Drop files here'
                 : 'Drop files here or click to browse'
               }
             </p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {accept.join(', ')} up to {formatFileSize(maxSize)}
               {autoCompress && ' (Images will be compressed)'}
             </p>
             {!isOnline && (
-              <p className="text-xs text-red-600 dark:text-red-400">
+              <p className="text-xs text-destructive">
                 No internet connection - upload disabled
               </p>
             )}
@@ -252,7 +252,7 @@ export function EnhancedFileUpload({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <h4 className="text-sm font-medium text-foreground">
             Files ({files.length}/{maxFiles})
           </h4>
           
@@ -260,7 +260,7 @@ export function EnhancedFileUpload({
             {files.map((fileWithProgress, index) => (
               <div
                 key={`${fileWithProgress.file.name}-${index}`}
-                className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                className="flex items-center space-x-3 p-3 bg-muted rounded-lg"
               >
                 {/* File Icon */}
                 <div className="shrink-0">
@@ -270,7 +270,7 @@ export function EnhancedFileUpload({
                 {/* File Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {fileWithProgress.file.name}
                     </p>
                     <div className="flex items-center space-x-2">
@@ -286,7 +286,7 @@ export function EnhancedFileUpload({
                   </div>
                   
                   <div className="mt-1 space-y-1">
-                    <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>
                         {formatFileSize(fileWithProgress.file.size)}
                         {fileWithProgress.compressed && fileWithProgress.originalSize && (
@@ -313,10 +313,10 @@ export function EnhancedFileUpload({
                     {/* Error Message */}
                     {fileWithProgress.status === 'error' && fileWithProgress.error && (
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-red-600 dark:text-red-400">{fileWithProgress.error}</p>
+                        <p className="text-xs text-destructive">{fileWithProgress.error}</p>
                         <button
                           onClick={() => retryUpload(fileWithProgress.file)}
-                          className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:text-blue-300 font-medium"
+                          className="text-xs text-primary hover:text-blue-700 dark:text-blue-300 font-medium"
                           type="button"
                         >
                           Retry
@@ -326,7 +326,7 @@ export function EnhancedFileUpload({
                     
                     {/* Status Messages */}
                     {fileWithProgress.status === 'compressing' && (
-                      <p className="text-xs text-blue-600 dark:text-blue-400">Compressing image...</p>
+                      <p className="text-xs text-primary">Compressing image...</p>
                     )}
                     {fileWithProgress.status === 'completed' && (
                       <p className="text-xs text-green-600 dark:text-green-400">Upload completed</p>
@@ -357,7 +357,7 @@ export function ImagePreview({ file, className }: { file: File, className?: stri
   if (!preview) return null
 
   return (
-    <div className={cn('aspect-square bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 rounded-lg overflow-hidden', className)}>
+    <div className={cn('aspect-square bg-accent dark:bg-gray-200 rounded-lg overflow-hidden', className)}>
       <img
         src={preview}
         alt={file.name}

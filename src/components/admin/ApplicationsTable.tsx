@@ -12,8 +12,8 @@ export function ApplicationsTable() {
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full bg-white dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700">
-        <thead className="bg-gray-50 dark:bg-gray-900">
+      <table className="min-w-full bg-card border border-border">
+        <thead className="bg-muted">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase">
               Application #
@@ -35,7 +35,7 @@ export function ApplicationsTable() {
         <tbody className="divide-y divide-gray-200">
           {applications.map((app: Application) => (
             <tr key={app.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                 {app.application_number}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">

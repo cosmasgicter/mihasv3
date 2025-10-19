@@ -193,28 +193,28 @@ export default function NotificationSettings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: channel === 'sms' ? 0.1 : 0.2 }}
-        className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 space-y-4"
+        className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 space-y-4"
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shadow-inner">
+            <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-primary shadow-inner">
               <details.Icon className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{details.title}</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{details.description} <span className="text-green-600 dark:text-green-400 font-medium">(Enabled by default)</span></p>
+              <h2 className="text-lg font-bold text-foreground">{details.title}</h2>
+              <p className="text-sm text-muted-foreground">{details.description} <span className="text-green-600 dark:text-green-400 font-medium">(Enabled by default)</span></p>
             </div>
           </div>
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700'
+              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-accent dark:bg-gray-200 text-muted-foreground border border-border'
             }`}
           >
             {optedIn ? 'Enabled' : 'Disabled'}
           </span>
         </div>
 
-        <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+        <div className="space-y-2 text-sm text-foreground">
           {optedIn && summary.optInAt && (
             <p>
               <span className="font-semibold">Opted in:</span> {summary.optInAt}
@@ -230,7 +230,7 @@ export default function NotificationSettings() {
           )}
 
           {!optedIn && !summary.optOutAt && (
-            <p className="text-gray-600 dark:text-gray-400">This channel is enabled by default. You can opt out if you prefer.</p>
+            <p className="text-muted-foreground">This channel is enabled by default. You can opt out if you prefer.</p>
           )}
 
           {disableGrant && (
@@ -245,14 +245,14 @@ export default function NotificationSettings() {
           )}
 
           <div className="flex flex-col gap-2 text-xs text-gray-500 dark:text-gray-500">
-            <span className="uppercase tracking-wide text-gray-400 dark:text-gray-500 font-semibold">Current contact</span>
-            <span className="text-sm text-gray-700 dark:text-gray-300">{preferences?.phone || 'No phone number on file'}</span>
+            <span className="uppercase tracking-wide text-muted-foreground font-semibold">Current contact</span>
+            <span className="text-sm text-foreground">{preferences?.phone || 'No phone number on file'}</span>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
           <div className="text-xs text-gray-500 dark:text-gray-500">
-            Priority: <span className="font-medium text-gray-700 dark:text-gray-300">{entry.priority}</span>
+            Priority: <span className="font-medium text-foreground">{entry.priority}</span>
           </div>
           <Button
             type="button"
@@ -275,7 +275,7 @@ export default function NotificationSettings() {
         <div className="mb-6 sm:mb-8">
           <Link
             to="/settings"
-            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-600/80 mb-4 font-medium transition-colors"
+            className="inline-flex items-center text-primary hover:text-blue-600/80 mb-4 font-medium transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Profile Settings

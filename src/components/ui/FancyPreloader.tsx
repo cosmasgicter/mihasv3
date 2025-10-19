@@ -20,7 +20,7 @@ export function FancyPreloader() {
           }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <div className="w-32 h-32 bg-white dark:bg-gray-800/30 rounded-full mx-auto" />
+          <div className="w-32 h-32 bg-card/30 rounded-full mx-auto" />
         </motion.div>
 
         {/* Icon */}
@@ -63,7 +63,7 @@ export function FancyPreloader() {
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className="w-2.5 h-2.5 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-full shadow-lg"
+              className="w-2.5 h-2.5 bg-card rounded-full shadow-lg"
               animate={{ 
                 scale: [1, 1.3, 1], 
                 opacity: [0.4, 1, 0.4],

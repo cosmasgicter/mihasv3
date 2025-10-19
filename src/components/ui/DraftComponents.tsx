@@ -156,7 +156,7 @@ export function SessionTimeoutWarning({
       className
     )}>
       <div className="flex items-start space-x-3">
-        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+        <AlertTriangle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
         
         <div className="flex-1">
           <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
@@ -203,7 +203,7 @@ export function FormRecoveryBanner({
       'flex items-start space-x-3',
       className
     )}>
-      <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+      <AlertTriangle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
       
       <div className="flex-1 min-w-0">
         <h3 className="text-sm font-medium text-red-800 dark:text-red-200">

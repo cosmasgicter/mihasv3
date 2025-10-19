@@ -113,7 +113,7 @@ export function EnhancedApplicationsManager({
       case 'submitted':
         return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
       default:
-        return 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+        return 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
     }
   }
 
@@ -190,18 +190,18 @@ export function EnhancedApplicationsManager({
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+        className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
       >
         <div className="space-y-4">
           {/* Top Controls */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100"><Search className="w-5 h-5" /> Search & Filter</h3>
+            <h3 className="text-lg font-bold text-foreground"><Search className="w-5 h-5" /> Search & Filter</h3>
             <div className="flex items-center space-x-2">
-              <div className="flex bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 rounded-lg p-1">
+              <div className="flex bg-accent dark:bg-gray-200 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('cards')}
                   className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'cards' ? 'bg-white dark:bg-gray-800 dark:bg-gray-200 text-blue-600 shadow-sm' : 'text-gray-600 dark:text-gray-400'
+                    viewMode === 'cards' ? 'bg-card text-blue-600 shadow-sm' : 'text-muted-foreground'
                   }`}
                 >
                   Cards
@@ -209,7 +209,7 @@ export function EnhancedApplicationsManager({
                 <button
                   onClick={() => setViewMode('table')}
                   className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'table' ? 'bg-white dark:bg-gray-800 dark:bg-gray-200 text-blue-600 shadow-sm' : 'text-gray-600 dark:text-gray-400'
+                    viewMode === 'table' ? 'bg-card text-blue-600 shadow-sm' : 'text-muted-foreground'
                   }`}
                 >
                   Table
@@ -221,20 +221,20 @@ export function EnhancedApplicationsManager({
           {/* Search and Filters */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search applications..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+                className="w-full pl-10 pr-4 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
               />
             </div>
             
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
             >
               <option value="all">All Status</option>
               <option value="submitted"><FileText className="w-5 h-5" /> Submitted</option>
@@ -250,7 +250,7 @@ export function EnhancedApplicationsManager({
                 setSortBy(field as any)
                 setSortOrder(order as any)
               }}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
             >
               <option value="date-desc"><Calendar className="w-5 h-5" /> Newest First</option>
               <option value="date-asc"><Calendar className="w-5 h-5" /> Oldest First</option>
@@ -280,8 +280,8 @@ export function EnhancedApplicationsManager({
               className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4"
             >
               <div className="flex items-center justify-between mb-4">
-                <h4 className="font-bold text-gray-900 dark:text-gray-100"><Zap className="w-5 h-5" /> Bulk Actions</h4>
-                <span className="text-sm text-gray-600 dark:text-gray-400">{selectedApplications.length} selected</span>
+                <h4 className="font-bold text-foreground"><Zap className="w-5 h-5" /> Bulk Actions</h4>
+                <span className="text-sm text-muted-foreground">{selectedApplications.length} selected</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -331,11 +331,11 @@ export function EnhancedApplicationsManager({
         <motion.div 
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-12 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg"
+          className="text-center py-12 bg-card rounded-xl shadow-lg"
         >
           <div className="text-6xl mb-4"><FileText className="w-5 h-5" /></div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Applications Found</h3>
-          <p className="text-gray-600 dark:text-gray-400">Try adjusting your search filters</p>
+          <h3 className="text-xl font-bold text-foreground mb-2">No Applications Found</h3>
+          <p className="text-muted-foreground">Try adjusting your search filters</p>
         </motion.div>
       ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -345,10 +345,10 @@ export function EnhancedApplicationsManager({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className={`bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
+              className={`bg-card rounded-xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
                 selectedApplications.includes(application.id) 
                   ? 'border-blue-600 bg-blue-50' 
-                  : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:border-gray-700'
+                  : 'border-gray-100 dark:border-gray-800 hover:border-border'
               }`}
             >
               <div className="p-6">
@@ -358,10 +358,10 @@ export function EnhancedApplicationsManager({
                       type="checkbox"
                       checked={selectedApplications.includes(application.id)}
                       onChange={() => toggleSelection(application.id)}
-                      className="h-5 w-5 mt-1 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded"
+                      className="h-5 w-5 mt-1 text-primary focus:ring-blue-500 border-input dark:border-gray-400 rounded"
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 truncate">{application.full_name}</h3>
+                      <h3 className="font-bold text-lg text-foreground truncate">{application.full_name}</h3>
                       <p className="text-sm text-gray-500 dark:text-gray-500 font-mono">#{application.application_number}</p>
                     </div>
                   </div>
@@ -374,13 +374,13 @@ export function EnhancedApplicationsManager({
                 </div>
 
                 <div className="space-y-3 mb-4">
-                  <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <span className="truncate">{application.email}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <span className="truncate">{application.program}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
                     <span>Created {new Date(application.created_at).toLocaleDateString()}</span>
                   </div>
@@ -435,7 +435,7 @@ export function EnhancedApplicationsManager({
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden"
+          className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden"
         >
           <div className="overflow-x-auto">
             <table className="min-w-full">
@@ -446,22 +446,22 @@ export function EnhancedApplicationsManager({
                       type="checkbox"
                       checked={selectedApplications.length === filteredApplications.length && filteredApplications.length > 0}
                       onChange={selectAll}
-                      className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded"
+                      className="h-4 w-4 text-primary focus:ring-blue-500 border-input dark:border-gray-400 rounded"
                     />
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase">
                     <User className="w-5 h-5" /> Applicant
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase">
                     <GraduationCap className="w-5 h-5" /> Program
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase">
                     <BarChart3 className="w-5 h-5" /> Status
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase">
                     <Calendar className="w-5 h-5" /> Date
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-6 py-4 text-right text-sm font-bold text-foreground uppercase">
                     <Zap className="w-5 h-5" /> Actions
                   </th>
                 </tr>
@@ -474,7 +474,7 @@ export function EnhancedApplicationsManager({
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.02 }}
                     className={`hover:bg-blue-50 transition-colors ${
-                      selectedApplications.includes(application.id) ? 'bg-blue-50' : 'bg-white dark:bg-gray-800 dark:bg-gray-200'
+                      selectedApplications.includes(application.id) ? 'bg-blue-50' : 'bg-card'
                     }`}
                   >
                     <td className="px-6 py-4">
@@ -482,18 +482,18 @@ export function EnhancedApplicationsManager({
                         type="checkbox"
                         checked={selectedApplications.includes(application.id)}
                         onChange={() => toggleSelection(application.id)}
-                        className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded"
+                        className="h-4 w-4 text-primary focus:ring-blue-500 border-input dark:border-gray-400 rounded"
                       />
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-bold text-gray-900 dark:text-gray-100">{application.full_name}</div>
+                        <div className="font-bold text-foreground">{application.full_name}</div>
                         <div className="text-sm text-gray-500 dark:text-gray-500">{application.email}</div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500 font-mono">#{application.application_number}</div>
+                        <div className="text-xs text-muted-foreground font-mono">#{application.application_number}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900 dark:text-gray-100">{application.program}</div>
+                      <div className="font-medium text-foreground">{application.program}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">

@@ -119,7 +119,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
             }}
             style={{ willChange: 'transform' }}
           >
-            <GraduationCap className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <GraduationCap className="h-8 w-8 text-primary" />
           </motion.div>
           <span className="text-xl font-bold text-high-contrast">MIHAS-KATC</span>
         </motion.div>
@@ -131,7 +131,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
               variant="gradient"
               size="md"
               
-              className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-blue-600 dark:text-blue-400 font-bold backdrop-blur-sm shadow-lg"
+              className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
             >
               Track Application
             </Button>
@@ -143,7 +143,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                   variant="gradient"
                   size="md"
                   
-                  className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-blue-600 dark:text-blue-400 font-bold backdrop-blur-sm shadow-lg"
+                  className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
                 >
                   Sign In
                 </Button>
@@ -240,7 +240,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-white/20 bg-black/10 backdrop-blur-sm">
                   <div className="flex items-center space-x-3">
-                    <GraduationCap className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+                    <GraduationCap className="h-7 w-7 text-primary" />
                     <span className="text-xl font-bold text-high-contrast">MIHAS-KATC</span>
                   </div>
                   <motion.button

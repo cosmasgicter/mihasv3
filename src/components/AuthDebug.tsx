@@ -38,7 +38,7 @@ export function AuthDebug() {
   }
 
   return (
-    <div className="p-4 bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 border border-gray-300 dark:border-gray-600 dark:border-gray-400 rounded mb-4">
+    <div className="p-4 bg-accent dark:bg-gray-200 border border-input dark:border-gray-400 rounded mb-4">
       <h3 className="font-bold mb-2">Authentication Debug Info</h3>
       
       <div className="space-y-2 text-sm">
@@ -51,7 +51,7 @@ export function AuthDebug() {
         </div>
         
         {error && (
-          <div className="text-red-600 dark:text-red-400">
+          <div className="text-destructive">
             <strong>Error:</strong> {error}
           </div>
         )}
@@ -59,7 +59,7 @@ export function AuthDebug() {
         {sessionInfo && (
           <div>
             <strong>Session Info:</strong>
-            <pre className="mt-1 p-2 bg-white dark:bg-gray-800 dark:bg-gray-200 border rounded text-xs">
+            <pre className="mt-1 p-2 bg-card border rounded text-xs">
               {JSON.stringify(sessionInfo, null, 2)}
             </pre>
           </div>

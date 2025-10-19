@@ -63,11 +63,11 @@ const BasicKycStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
       data-testid="basic-kyc-step"
     >
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         {hasAutoPopulatedData && (
           <ProfileCompletionBadge completionPercentage={completionPercentage} />
         )}
@@ -130,19 +130,19 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="sex" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="sex" className="block text-sm font-medium text-foreground mb-1">
             Sex <span className="text-red-500">*</span>
           </label>
           <select
             {...register('sex')}
             id="sex"
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select sex</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
           </select>
-          {errors.sex && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.sex.message}</p>}
+          {errors.sex && <p className="mt-1 text-sm text-destructive">{errors.sex.message}</p>}
         </div>
 
         <div>
@@ -200,13 +200,13 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="program" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="program" className="block text-sm font-medium text-foreground mb-1">
             Program <span className="text-red-500">*</span>
           </label>
           <select
             {...register('program')}
             id="program"
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select program</option>
             {programs.length === 0 && (
@@ -224,11 +224,11 @@ const BasicKycStep = ({
               )
             })}
           </select>
-          {errors.program && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.program.message}</p>}
+          {errors.program && <p className="mt-1 text-sm text-destructive">{errors.program.message}</p>}
         </div>
 
         <div>
-          <label htmlFor="intake" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="intake" className="block text-sm font-medium text-foreground mb-1">
             Intake <span className="text-red-500">*</span>
           </label>
           <select
@@ -236,7 +236,7 @@ const BasicKycStep = ({
             id="intake"
             disabled={intakes.length === 0}
             className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              intakes.length === 0 ? 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-500 dark:text-gray-500 cursor-not-allowed border-gray-200 dark:border-gray-700' : 'bg-white dark:bg-gray-800 dark:bg-gray-200 border-gray-300 dark:border-gray-600 dark:border-gray-400'
+              intakes.length === 0 ? 'bg-accent dark:bg-gray-200 text-gray-500 dark:text-gray-500 cursor-not-allowed border-border' : 'bg-card border-input dark:border-gray-400'
             }`}
           >
             <option value="">Select intake</option>
@@ -259,7 +259,7 @@ const BasicKycStep = ({
           {intakes.length === 0 && (
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">Intakes will appear here once enrollment periods are announced.</p>
           )}
-          {errors.intake && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.intake.message}</p>}
+          {errors.intake && <p className="mt-1 text-sm text-destructive">{errors.intake.message}</p>}
         </div>
       </div>
 

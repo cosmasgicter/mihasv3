@@ -85,7 +85,7 @@ export default function ApplicationDetail() {
           <div className="content-wrapper py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-            <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg p-8 space-y-4">
+            <div className="bg-card rounded-2xl shadow-lg p-8 space-y-4">
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
@@ -104,8 +104,8 @@ export default function ApplicationDetail() {
           <div className="content-wrapper py-8">
           <div className="text-center py-16">
             <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Application Not Found</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{error || 'The application you are looking for does not exist.'}</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Application Not Found</h2>
+            <p className="text-muted-foreground mb-6">{error || 'The application you are looking for does not exist.'}</p>
             <Link to="/student/dashboard">
               <Button>Return to Dashboard</Button>
             </Link>
@@ -127,15 +127,15 @@ export default function ApplicationDetail() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <Link to="/student/dashboard" className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-600/80 mb-4">
+          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-blue-600/80 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words">Application Details</h1>
-              <p className="text-gray-600 dark:text-gray-400 break-all">#{application.application_number}</p>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground break-words">Application Details</h1>
+              <p className="text-muted-foreground break-all">#{application.application_number}</p>
             </div>
             
             <div className="flex items-center space-x-3">
@@ -152,12 +152,12 @@ export default function ApplicationDetail() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 mb-8"
+          className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 mb-8"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Application Slip</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Download or email your official application slip</p>
+              <h3 className="text-lg font-semibold text-foreground mb-1">Application Slip</h3>
+              <p className="text-muted-foreground text-sm">Download or email your official application slip</p>
             </div>
             <ApplicationSlipActions 
               applicationId={application.id} 
@@ -172,35 +172,35 @@ export default function ApplicationDetail() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
           >
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-              <User className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+              <User className="h-5 w-5 mr-2 text-primary" />
               Personal Information
             </h3>
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Full Name</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium break-words">{application.full_name}</p>
+                <p className="text-foreground font-medium break-words">{application.full_name}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Email</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium flex items-center">
-                  <Mail className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                <p className="text-foreground font-medium flex items-center">
+                  <Mail className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
                   <span className="break-all">{application.email}</span>
                 </p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Phone</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                <p className="text-foreground font-medium flex items-center">
+                  <Phone className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
                   <span className="break-all">{application.phone}</span>
                 </p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Nationality</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
+                <p className="text-foreground font-medium flex items-center">
+                  <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                   {application.nationality || 'Zambian'}
                 </p>
               </div>
@@ -212,20 +212,20 @@ export default function ApplicationDetail() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
           >
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-              <GraduationCap className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+              <GraduationCap className="h-5 w-5 mr-2 text-primary" />
               Program Information
             </h3>
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Program</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium break-words">{application.program}</p>
+                <p className="text-foreground font-medium break-words">{application.program}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Institution</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium break-words">
+                <p className="text-foreground font-medium break-words">
                   {application.institution === 'KATC' ? 'Kalulushi Training Centre' : 
                    application.institution === 'MIHAS' ? 'Mukuba Institute of Health and Allied Sciences' : 
                    application.institution}
@@ -233,11 +233,11 @@ export default function ApplicationDetail() {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Intake</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium break-words">{application.intake}</p>
+                <p className="text-foreground font-medium break-words">{application.intake}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Application Fee</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium">ZMW {application.application_fee}</p>
+                <p className="text-foreground font-medium">ZMW {application.application_fee}</p>
               </div>
             </div>
           </motion.div>
@@ -247,17 +247,17 @@ export default function ApplicationDetail() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
           >
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-              <Calendar className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+              <Calendar className="h-5 w-5 mr-2 text-primary" />
               Timeline
             </h3>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-green-50 dark:bg-green-950/300 rounded-full"></div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Application Created</p>
+                  <p className="text-sm font-medium text-foreground">Application Created</p>
                   <p className="text-xs text-gray-500 dark:text-gray-500">{formatDate(application.created_at)}</p>
                 </div>
               </div>
@@ -265,7 +265,7 @@ export default function ApplicationDetail() {
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-blue-50 dark:bg-blue-950/300 rounded-full"></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Application Submitted</p>
+                    <p className="text-sm font-medium text-foreground">Application Submitted</p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">{formatDate(application.submitted_at)}</p>
                   </div>
                 </div>
@@ -274,7 +274,7 @@ export default function ApplicationDetail() {
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-yellow-50 dark:bg-yellow-950/300 rounded-full"></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Review Started</p>
+                    <p className="text-sm font-medium text-foreground">Review Started</p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">{formatDate(application.review_started_at)}</p>
                   </div>
                 </div>
@@ -285,7 +285,7 @@ export default function ApplicationDetail() {
                     application.status === 'approved' ? 'bg-green-500' : 'bg-red-500'
                   }`}></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Decision Made</p>
+                    <p className="text-sm font-medium text-foreground">Decision Made</p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">{formatDate(application.decision_date)}</p>
                   </div>
                 </div>
@@ -298,10 +298,10 @@ export default function ApplicationDetail() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
           >
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-              <CreditCard className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+              <CreditCard className="h-5 w-5 mr-2 text-primary" />
               Payment Status
             </h3>
             <div className="space-y-4">
@@ -317,12 +317,12 @@ export default function ApplicationDetail() {
               {application.payment_verified_at && (
                 <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Verified Date</label>
-                  <p className="text-gray-900 dark:text-gray-100 font-medium">{formatDate(application.payment_verified_at)}</p>
+                  <p className="text-foreground font-medium">{formatDate(application.payment_verified_at)}</p>
                 </div>
               )}
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Tracking Code</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium font-mono break-all">{application.public_tracking_code}</p>
+                <p className="text-foreground font-medium font-mono break-all">{application.public_tracking_code}</p>
               </div>
             </div>
           </motion.div>

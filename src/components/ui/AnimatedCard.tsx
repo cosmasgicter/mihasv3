@@ -77,7 +77,7 @@ function AnimatedCard({
   }
 
   const baseClasses = "relative overflow-hidden rounded-xl transition-all duration-300"
-  const glassClasses = glassEffect ? "glass-effect" : "bg-white dark:bg-gray-800 dark:bg-gray-200"
+  const glassClasses = glassEffect ? "glass-effect" : "bg-card"
   const gradientClasses = gradient ? "bg-gradient-to-br from-white via-white to-primary/5" : ""
   const shadowClasses = "shadow-lg hover:shadow-2xl"
 
@@ -103,7 +103,7 @@ function AnimatedCard({
         >
           <div className={cn(
             "h-full w-full rounded-xl",
-            glassEffect ? "glass-effect" : "bg-white dark:bg-gray-800 dark:bg-gray-200"
+            glassEffect ? "glass-effect" : "bg-card"
           )} />
         </div>
 
@@ -144,7 +144,7 @@ function AnimatedCard({
            style={{ padding: '2px' }}>
         <div className={cn(
           "h-full w-full rounded-xl",
-          glassEffect ? "glass-effect" : "bg-white dark:bg-gray-800 dark:bg-gray-200"
+          glassEffect ? "glass-effect" : "bg-card"
         )} />
       </div>
 
