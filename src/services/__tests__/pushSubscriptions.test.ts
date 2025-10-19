@@ -168,7 +168,7 @@ describe('registerPushSubscription', () => {
     expect(subscribeOptions.userVisibleOnly).toBe(true)
     expect(subscribeOptions.applicationServerKey).toBeInstanceOf(Uint8Array)
 
-    expect(requestMock).toHaveBeenCalledWith('/api/push-subscriptions', {
+    expect(requestMock).toHaveBeenCalledWith('/push-subscriptions', {
       method: 'POST',
       body: JSON.stringify({
         subscription: mockSubscription.toJSON(),

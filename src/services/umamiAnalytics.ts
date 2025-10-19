@@ -73,13 +73,13 @@ async function fetchFromShareApi<T>(path: string, searchParams?: Record<string, 
 
 export const umamiAnalyticsService = {
   getActiveUsers: async (): Promise<UmamiActiveUsersResponse> => {
-    return fetchFromShareApi<UmamiActiveUsersResponse>(`/api/share/${analyticsConfig.siteId}/active`)
+    return fetchFromShareApi<UmamiActiveUsersResponse>(`/share/${analyticsConfig.siteId}/active`)
   },
 
   getPageviews: async (params: GetPageviewsParams): Promise<UmamiPageviewsResponse> => {
     const { startAt, endAt, unit = 'day', timezone } = params
 
-    return fetchFromShareApi<UmamiPageviewsResponse>(`/api/share/${analyticsConfig.siteId}/pageviews`, {
+    return fetchFromShareApi<UmamiPageviewsResponse>(`/share/${analyticsConfig.siteId}/pageviews`, {
       startAt,
       endAt,
       unit,

@@ -39,7 +39,7 @@ describe('Security Enhancements', () => {
     })
 
     it('should sanitize URLs and reject malicious ones', () => {
-      const validUrl = 'https://apply.mihas.edu.zm/api/test'
+      const validUrl = 'https://apply.mihas.edu.zm/test'
       const maliciousUrl = 'https://evil.com/steal-data'
       
       expect(SecuritySanitizer.sanitizeUrl(validUrl)).toBe(validUrl)
@@ -65,9 +65,9 @@ describe('Security Enhancements', () => {
 
   describe('UrlValidator', () => {
     it('should validate allowed API URLs', () => {
-      expect(UrlValidator.isValidApiUrl('https://apply.mihas.edu.zm/api/test')).toBe(true)
+      expect(UrlValidator.isValidApiUrl('https://apply.mihas.edu.zm/test')).toBe(true)
       expect(UrlValidator.isValidApiUrl('https://mylgegkqoddcrxtwcclb.supabase.co/rest/v1/test')).toBe(true)
-      expect(UrlValidator.isValidApiUrl('https://evil.com/api/test')).toBe(false)
+      expect(UrlValidator.isValidApiUrl('https://evil.com/test')).toBe(false)
     })
 
     it('should throw error for invalid URLs', () => {

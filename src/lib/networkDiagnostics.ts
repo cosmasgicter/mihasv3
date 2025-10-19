@@ -24,7 +24,7 @@ export class NetworkDiagnostics {
 
     try {
       // Use a same-origin health check so the browser receives proper CORS headers
-      const response = await fetch('/api/test', {
+      const response = await fetch('/test', {
         method: 'GET',
         signal: controller.signal
       })

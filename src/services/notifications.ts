@@ -33,7 +33,7 @@ type SendNotificationApiResponse = SendNotificationResponse & {
 
 export const notificationService = {
   send: async (payload: SendNotificationPayload): Promise<boolean> => {
-    const response = await apiClient.request<SendNotificationApiResponse>('/api/notifications/send', {
+    const response = await apiClient.request<SendNotificationApiResponse>('/notifications/send', {
       method: 'POST',
       body: JSON.stringify(payload)
     })
@@ -50,21 +50,21 @@ export const notificationService = {
     return Boolean(response.id || (response.notification as { id?: string | number } | undefined)?.id)
   },
   applicationSubmitted: (data: { applicationId: string; userId: string }) =>
-    apiClient.request('/api/notifications/application-submitted', {
+    apiClient.request('/notifications/application-submitted', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
   dispatchChannel: (payload: DispatchChannelPayload) =>
-    apiClient.request('/api/notifications/dispatch-channel', {
+    apiClient.request('/notifications/dispatch-channel', {
       method: 'POST',
       body: JSON.stringify(payload)
     }),
   getPreferences: () =>
-    apiClient.request('/api/notifications/preferences', {
+    apiClient.request('/notifications/preferences', {
       method: 'GET'
     }),
   updateConsent: (payload: UpdateConsentPayload) =>
-    apiClient.request('/api/notifications/update-consent', {
+    apiClient.request('/notifications/update-consent', {
       method: 'POST',
       body: JSON.stringify(payload)
     })
