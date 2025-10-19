@@ -276,7 +276,7 @@ export default function AdminPrograms() {
                             {program.institutions?.name || 'Unknown Institution'}
                           </p>
                           {program.description && (
-                            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2 line-clamp-2">{program.description}</p>
+                            <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-2 line-clamp-2">{program.description}</p>
                           )}
                         </div>
                       </div>

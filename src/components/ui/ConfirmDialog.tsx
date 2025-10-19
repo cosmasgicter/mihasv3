@@ -75,7 +75,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                   </div>
                   <button
                     onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="text-muted-foreground hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     <X className="h-5 w-5" />
                   </button>

@@ -105,7 +105,7 @@ export function AutoSaveIndicator({
     if (isSaving) return 'text-blue-600'
     if (hasUnsavedChanges) return 'text-yellow-600'
     if (lastSaved) return 'text-green-600'
-    return 'text-gray-500 dark:text-gray-500'
+    return 'text-muted-foreground dark:text-muted-foreground'
   }
 
   const getIcon = () => {

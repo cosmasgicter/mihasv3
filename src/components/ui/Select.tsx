@@ -77,7 +77,7 @@ export function Select({
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown className="w-4 h-4 text-gray-500 dark:text-muted-foreground" />
+            <ChevronDown className="w-4 h-4 text-muted-foreground dark:text-muted-foreground" />
           </motion.div>
         </button>
 

@@ -195,7 +195,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
           <div className="flex items-center space-x-3 flex-shrink-0">
             <div className="text-right">
               <div className="text-sm font-medium text-foreground">{relativeTime}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-500">{exactTime}</div>
+              <div className="text-xs text-muted-foreground dark:text-muted-foreground">{exactTime}</div>
             </div>
             <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${showDetails ? 'rotate-90' : ''}`} />
           </div>
@@ -214,16 +214,16 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
               </div>
               <div className="space-y-2">
                 <div>
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Email:</span>
+                  <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Email:</span>
                   <p className="text-sm text-foreground">{entry.actorEmail || 'Unknown'}</p>
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-500">User ID:</span>
+                  <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">User ID:</span>
                   <p className="text-sm font-mono text-foreground">{entry.actorId || 'N/A'}</p>
                 </div>
                 {entry.actorRoles?.length > 0 && (
                   <div>
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Roles:</span>
+                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Roles:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {entry.actorRoles.map((role, index) => (
                         <span
@@ -247,24 +247,24 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
               </div>
               <div className="space-y-2">
                 <div>
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Action:</span>
+                  <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Action:</span>
                   <p className="text-sm font-mono text-foreground">{entry.action}</p>
                 </div>
                 {entry.requestId && (
                   <div>
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Request ID:</span>
+                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Request ID:</span>
                     <p className="text-sm font-mono text-foreground">{entry.requestId}</p>
                   </div>
                 )}
                 {entry.requestIp && (
                   <div>
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-500">IP Address:</span>
+                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">IP Address:</span>
                     <p className="text-sm font-mono text-foreground">{entry.requestIp}</p>
                   </div>
                 )}
                 {entry.userAgent && (
                   <div>
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-500">User Agent:</span>
+                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">User Agent:</span>
                     <p className="text-xs text-muted-foreground truncate" title={entry.userAgent}>{entry.userAgent}</p>
                   </div>
                 )}
@@ -281,18 +281,18 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Table:</span>
+                  <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Table:</span>
                   <p className="text-sm text-foreground">{getTableDisplayName(entry.targetTable)}</p>
                 </div>
                 {entry.targetId && (
                   <div>
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Record ID:</span>
+                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Record ID:</span>
                     <p className="text-sm font-mono text-foreground">{entry.targetId}</p>
                   </div>
                 )}
                 {entry.targetLabel && (
                   <div>
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-500">Label:</span>
+                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">Label:</span>
                     <p className="text-sm text-foreground">{entry.targetLabel}</p>
                   </div>
                 )}
@@ -445,7 +445,7 @@ export default function AuditTrailPage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-foreground">System Audit Trail</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-500">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                 {response?.totalCount || 0} security events tracked
               </p>
             </div>
@@ -817,7 +817,7 @@ export default function AuditTrailPage() {
         ) : (
           <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-border">
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
-              <Shield className="h-10 w-10 text-gray-500 dark:text-gray-500" />
+              <Shield className="h-10 w-10 text-muted-foreground dark:text-muted-foreground" />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">No Security Events Found</h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">

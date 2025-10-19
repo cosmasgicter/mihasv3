@@ -125,7 +125,7 @@ export function ProgressIndicator({
                     </div>
                     {step.description && (
                       <div className={cn(
-                        'text-gray-500 dark:text-gray-500 mt-1',
+                        'text-muted-foreground dark:text-muted-foreground mt-1',
                         sizeClasses[size].description
                       )}>
                         {step.description}
@@ -169,7 +169,7 @@ export function ProgressIndicator({
                 </div>
                 {step.description && (
                   <div className={cn(
-                    'text-gray-500 dark:text-gray-500 mt-1',
+                    'text-muted-foreground dark:text-muted-foreground mt-1',
                     sizeClasses[size].description
                   )}>
                     {step.description}

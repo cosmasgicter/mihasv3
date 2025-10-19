@@ -213,7 +213,7 @@ export function FixedAdminDashboard() {
                 >
                   {integerFormatter.format(stats.todayApplications)}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Today</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Today</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">New Applications</div>
@@ -243,7 +243,7 @@ export function FixedAdminDashboard() {
                 >
                   {integerFormatter.format(stats.pendingApplications)}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Pending</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Pending</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">Awaiting Review</div>
@@ -272,7 +272,7 @@ export function FixedAdminDashboard() {
                 >
                   {approvalRate}%
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Rate</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Rate</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">Approval Rate</div>
@@ -302,7 +302,7 @@ export function FixedAdminDashboard() {
                 >
                   {decimalFormatter.format(averageProcessingDays)}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Days</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Days</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
@@ -322,7 +322,7 @@ export function FixedAdminDashboard() {
         >
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-lg font-bold text-foreground"><BarChart3 className="w-5 h-5" /> Status Distribution</h3>
-            <span className="text-sm text-gray-500 dark:text-gray-500">Total: {formatCount(totalApplications)}</span>
+            <span className="text-sm text-muted-foreground dark:text-muted-foreground">Total: {formatCount(totalApplications)}</span>
           </div>
           <div className="p-6 space-y-4">
             {statusEntries.length > 0 ? (
@@ -350,7 +350,7 @@ export function FixedAdminDashboard() {
                 )
               })
             ) : (
-              <div className="text-sm text-gray-500 dark:text-gray-500 text-center py-6">
+              <div className="text-sm text-muted-foreground dark:text-muted-foreground text-center py-6">
                 No application statuses available
               </div>
             )}
@@ -373,7 +373,7 @@ export function FixedAdminDashboard() {
                 { label: 'This Month', value: monthTotal }
               ].map(period => (
                 <div key={period.label} className="p-3 bg-slate-50 rounded-xl">
-                  <div className="text-xs text-gray-500 dark:text-gray-500">{period.label}</div>
+                  <div className="text-xs text-muted-foreground dark:text-muted-foreground">{period.label}</div>
                   <div className="mt-1 text-lg font-semibold text-foreground">
                     {formatCount(period.value)}
                   </div>
@@ -469,13 +469,13 @@ export function FixedAdminDashboard() {
                     <div className={`w-2 h-2 rounded-full mt-2 ${accentColor}`}></div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{activity.message}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">{formatTimestamp(activity.timestamp)}</p>
+                      <p className="text-xs text-muted-foreground dark:text-muted-foreground">{formatTimestamp(activity.timestamp)}</p>
                     </div>
                   </motion.div>
                 )
               })
             ) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-500">
+              <div className="text-center py-8 text-muted-foreground dark:text-muted-foreground">
                 <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No recent activity</p>
               </div>

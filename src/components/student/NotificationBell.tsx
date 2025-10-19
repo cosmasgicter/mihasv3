@@ -137,10 +137,10 @@ export function NotificationBell() {
                 {loading ? (
                   <div className="p-6 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Loading notifications...</p>
+                    <p className="text-muted-foreground dark:text-muted-foreground text-sm mt-2">Loading notifications...</p>
                   </div>
                 ) : notifications.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 dark:text-gray-500">
+                  <div className="p-8 text-center text-muted-foreground dark:text-muted-foreground">
                     <Bell className="h-12 w-12 mx-auto mb-3 opacity-30" />
                     <p className="font-medium">No notifications yet</p>
                     <p className="text-xs mt-1">We'll notify you about important updates</p>
@@ -169,11 +169,11 @@ export function NotificationBell() {
                                 <p className={`font-medium text-sm ${!notification.read ? 'text-foreground' : 'text-foreground'}`}>
                                   {sanitizeText(notification.title)}
                                 </p>
-                                <p className={`text-xs mt-1 ${!notification.read ? 'text-foreground' : 'text-gray-500 dark:text-gray-500'}`}>
+                                <p className={`text-xs mt-1 ${!notification.read ? 'text-foreground' : 'text-muted-foreground dark:text-muted-foreground'}`}>
                                   {sanitizeText(notification.content)}
                                 </p>
                                 <div className="flex items-center justify-between mt-2">
-                                  <span className="text-xs text-gray-500 dark:text-gray-500">
+                                  <span className="text-xs text-muted-foreground dark:text-muted-foreground">
                                     {formatDate(notification.created_at)}
                                   </span>
                                   {!notification.read && (
@@ -208,7 +208,7 @@ export function NotificationBell() {
               {/* Footer */}
               {notifications.length > 0 && (
                 <div className="p-3 border-t border-border bg-muted">
-                  <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground text-center">
                     <Lightbulb className="w-5 h-5" /> Click notifications to mark as read
                   </p>
                 </div>

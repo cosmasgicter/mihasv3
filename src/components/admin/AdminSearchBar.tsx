@@ -105,7 +105,7 @@ export function AdminSearchBar() {
       case 'intake':
         return <Calendar className="h-4 w-4 text-orange-500" />
       default:
-        return <Search className="h-4 w-4 text-gray-500 dark:text-gray-500" />
+        return <Search className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
     }
   }
 
@@ -162,7 +162,7 @@ export function AdminSearchBar() {
                       {result.title}
                     </p>
                     <p className={`text-xs ${
-                      selectedIndex === index ? 'text-white/80' : 'text-gray-500 dark:text-gray-500'
+                      selectedIndex === index ? 'text-white/80' : 'text-muted-foreground dark:text-muted-foreground'
                     }`}>
                       {result.subtitle}
                     </p>
@@ -175,7 +175,7 @@ export function AdminSearchBar() {
             </div>
             
             {results.length === 0 && query.length > 2 && (
-              <div className="p-6 text-center text-gray-500 dark:text-gray-500">
+              <div className="p-6 text-center text-muted-foreground dark:text-muted-foreground">
                 <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No results found for "{query}"</p>
               </div>

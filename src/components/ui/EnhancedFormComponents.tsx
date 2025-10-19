@@ -46,7 +46,7 @@ export function EnhancedInput({
           {required ? (
             <span className="text-red-500 ml-1">*</span>
           ) : showOptional ? (
-            <span className="text-gray-500 dark:text-gray-500 ml-1 font-normal">(optional)</span>
+            <span className="text-muted-foreground dark:text-muted-foreground ml-1 font-normal">(optional)</span>
           ) : null}
         </label>
       )}
@@ -79,7 +79,7 @@ export function EnhancedInput({
             // Success state
             success && 'border-green-300 focus:border-green-500 focus:ring-green-500/20',
             // Disabled state
-            'disabled:bg-muted disabled:text-gray-500 dark:text-gray-500 disabled:cursor-not-allowed',
+            'disabled:bg-muted disabled:text-muted-foreground dark:text-muted-foreground disabled:cursor-not-allowed',
             className
           )}
         />
@@ -152,14 +152,14 @@ export function EnhancedTextarea({
             {required ? (
               <span className="text-red-500 ml-1">*</span>
             ) : showOptional ? (
-              <span className="text-gray-500 dark:text-gray-500 ml-1 font-normal">(optional)</span>
+              <span className="text-muted-foreground dark:text-muted-foreground ml-1 font-normal">(optional)</span>
             ) : null}
           </label>
           
           {showCharCount && maxLength && (
             <span className={cn(
               'text-xs',
-              charCount > maxLength ? 'text-red-600' : 'text-gray-500 dark:text-gray-500'
+              charCount > maxLength ? 'text-red-600' : 'text-muted-foreground dark:text-muted-foreground'
             )}>
               {charCount}/{maxLength}
             </span>
@@ -188,7 +188,7 @@ export function EnhancedTextarea({
           // Success state
           success && 'border-green-300 focus:border-green-500 focus:ring-green-500/20',
           // Disabled state
-          'disabled:bg-muted disabled:text-gray-500 dark:text-gray-500 disabled:cursor-not-allowed',
+          'disabled:bg-muted disabled:text-muted-foreground dark:text-muted-foreground disabled:cursor-not-allowed',
           className
         )}
       />
@@ -258,7 +258,7 @@ export function EnhancedSelect({
           {required ? (
             <span className="text-red-500 ml-1">*</span>
           ) : showOptional ? (
-            <span className="text-gray-500 dark:text-gray-500 ml-1 font-normal">(optional)</span>
+            <span className="text-muted-foreground dark:text-muted-foreground ml-1 font-normal">(optional)</span>
           ) : null}
         </label>
       )}
@@ -285,7 +285,7 @@ export function EnhancedSelect({
           // Success state
           success && 'border-green-300 focus:border-green-500 focus:ring-green-500/20',
           // Disabled state
-          'disabled:bg-muted disabled:text-gray-500 dark:text-gray-500 disabled:cursor-not-allowed',
+          'disabled:bg-muted disabled:text-muted-foreground dark:text-muted-foreground disabled:cursor-not-allowed',
           className
         )}
         style={{

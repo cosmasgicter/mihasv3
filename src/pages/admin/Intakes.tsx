@@ -293,15 +293,15 @@ export default function AdminIntakes() {
                       
                       <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
                         <div>
-                          <span className="text-gray-500 dark:text-gray-500">Start:</span>
+                          <span className="text-muted-foreground dark:text-muted-foreground">Start:</span>
                           <div className="font-medium">{formatDate(intake.start_date)}</div>
                         </div>
                         <div>
-                          <span className="text-gray-500 dark:text-gray-500">End:</span>
+                          <span className="text-muted-foreground dark:text-muted-foreground">End:</span>
                           <div className="font-medium">{formatDate(intake.end_date)}</div>
                         </div>
                         <div className="col-span-2">
-                          <span className="text-gray-500 dark:text-gray-500">Application Deadline:</span>
+                          <span className="text-muted-foreground dark:text-muted-foreground">Application Deadline:</span>
                           <div className="font-medium text-destructive">{formatDate(intake.application_deadline)}</div>
                         </div>
                       </div>

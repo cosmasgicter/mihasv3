@@ -360,15 +360,15 @@ export default function StudentDashboard() {
                             </div>
                             <dl className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
                               <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500 dark:text-gray-500">Program:</dt>
+                                <dt className="font-medium text-muted-foreground dark:text-muted-foreground">Program:</dt>
                                 <dd className="text-foreground break-words">{application.program}</dd>
                               </div>
                               <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500 dark:text-gray-500">Intake:</dt>
+                                <dt className="font-medium text-muted-foreground dark:text-muted-foreground">Intake:</dt>
                                 <dd className="text-foreground break-words">{application.intake}</dd>
                               </div>
                               <div className="flex gap-2">
-                                <dt className="font-medium text-gray-500 dark:text-gray-500">Created:</dt>
+                                <dt className="font-medium text-muted-foreground dark:text-muted-foreground">Created:</dt>
                                 <dd className="text-foreground">{formatDate(application.created_at)}</dd>
                               </div>
                             </dl>
@@ -502,15 +502,15 @@ export default function StudentDashboard() {
                             </div>
                             <dl className="grid gap-2 text-sm text-foreground grid-cols-1 sm:grid-cols-2">
                               <div className="flex gap-2 min-w-0">
-                                <dt className="font-medium text-gray-500 dark:text-gray-500 flex-shrink-0">Application:</dt>
+                                <dt className="font-medium text-muted-foreground dark:text-muted-foreground flex-shrink-0">Application:</dt>
                                 <dd className="text-foreground break-all min-w-0">#{application.application_number}</dd>
                               </div>
                               <div className="flex gap-2 min-w-0">
-                                <dt className="font-medium text-gray-500 dark:text-gray-500 flex-shrink-0">Intake:</dt>
+                                <dt className="font-medium text-muted-foreground dark:text-muted-foreground flex-shrink-0">Intake:</dt>
                                 <dd className="text-foreground break-words min-w-0">{getIntakeName(application.intake)}</dd>
                               </div>
                               <div className="flex gap-2 min-w-0">
-                                <dt className="font-medium text-gray-500 dark:text-gray-500 flex-shrink-0">Submitted:</dt>
+                                <dt className="font-medium text-muted-foreground dark:text-muted-foreground flex-shrink-0">Submitted:</dt>
                                 <dd className="text-foreground min-w-0">{formatDate(application.submitted_at)}</dd>
                               </div>
                             </dl>
@@ -539,23 +539,23 @@ export default function StudentDashboard() {
                 >
                   <div className="grid gap-3">
                     <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Full name</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Full name</p>
                       <p className="text-sm font-semibold text-foreground break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
                       </p>
                     </div>
                     <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Email</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Email</p>
                       <p className="text-sm font-semibold text-foreground break-all overflow-wrap-anywhere">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
                     </div>
                     <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Phone</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Phone</p>
                       <p className="text-sm font-semibold text-foreground break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
                       </p>
                     </div>
                     <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Residence</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">Residence</p>
                       <p className="text-sm font-semibold text-foreground break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}
                       </p>
@@ -591,7 +591,7 @@ export default function StudentDashboard() {
                       </motion.div>
                     ))}
                     {intakes.length === 0 && (
-                      <p className="rounded-xl bg-muted px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-500">
+                      <p className="rounded-xl bg-muted px-4 py-4 text-center text-sm text-muted-foreground dark:text-muted-foreground">
                         No upcoming deadlines yet. Check back soon.
                       </p>
                     )}

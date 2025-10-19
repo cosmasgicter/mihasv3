@@ -380,7 +380,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.todayApplications}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-500">Today</div>
+                  <div className="text-xs text-muted-foreground dark:text-muted-foreground">Today</div>
                 </div>
               </div>
               <div className="text-sm font-medium text-muted-foreground">New Applications</div>
@@ -409,7 +409,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.pendingApplications}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-500">Pending</div>
+                  <div className="text-xs text-muted-foreground dark:text-muted-foreground">Pending</div>
                 </div>
               </div>
               <div className="text-sm font-medium text-muted-foreground">Awaiting Review</div>
@@ -437,7 +437,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.avgProcessingTime}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-500">Days</div>
+                  <div className="text-xs text-muted-foreground dark:text-muted-foreground">Days</div>
                 </div>
               </div>
               <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
@@ -468,7 +468,7 @@ export default function AdminDashboard() {
                       ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                       : 0}%
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-500">Rate</div>
+                  <div className="text-xs text-muted-foreground dark:text-muted-foreground">Rate</div>
                 </div>
               </div>
               <div className="text-sm font-medium text-muted-foreground">Approval Rate</div>

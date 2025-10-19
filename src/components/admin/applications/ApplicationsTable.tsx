@@ -186,7 +186,7 @@ export function ApplicationsTable({
                 {selectedIds.length > 0 && (
                   <button
                     onClick={() => onSelectionChange([])}
-                    className="text-sm text-gray-500 dark:text-gray-500 hover:text-foreground"
+                    className="text-sm text-muted-foreground dark:text-muted-foreground hover:text-foreground"
                   >
                     Clear selection
                   </button>
@@ -228,7 +228,7 @@ export function ApplicationsTable({
               {totalCount > 0 && (
                 <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 dark:bg-gray-400" />
               )}
-              <div className="text-xs text-gray-500 dark:text-gray-500">
+              <div className="text-xs text-muted-foreground dark:text-muted-foreground">
                 {Math.round((loadedCount / Math.max(totalCount, 1)) * 100)}% loaded
               </div>
             </div>
@@ -245,7 +245,7 @@ export function ApplicationsTable({
               </button>
             ) : (
               totalCount > 0 && (
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground">
                   <CheckCircle className="h-4 w-4 text-green-500" />
                   All applications loaded
                 </div>
@@ -259,7 +259,7 @@ export function ApplicationsTable({
             <FileText className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-medium text-foreground mb-2">No applications found</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-500">Try adjusting your filters to see more results.</p>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">Try adjusting your filters to see more results.</p>
         </div>
       )}
     </div>
@@ -334,7 +334,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
             <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <h3 className="font-semibold text-foreground truncate">{app.full_name}</h3>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground">
             <span className="font-mono">#{app.application_number}</span>
             <span className="text-gray-300 dark:text-gray-600">•</span>
             <Calendar className="h-3 w-3" />
@@ -375,7 +375,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       {/* Payment & Grades */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <div className="text-xs text-gray-500 dark:text-gray-500 mb-1">Payment Status</div>
+          <div className="text-xs text-muted-foreground dark:text-muted-foreground mb-1">Payment Status</div>
           {getPaymentBadge(app.payment_status)}
           <div className="text-sm font-medium text-foreground mt-1">
             K{app.paid_amount || 0} / K{app.application_fee}
@@ -384,7 +384,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
         
         {app.total_subjects > 0 && (
           <div>
-            <div className="text-xs text-gray-500 dark:text-gray-500 mb-1">Academic</div>
+            <div className="text-xs text-muted-foreground dark:text-muted-foreground mb-1">Academic</div>
             <div className="text-sm">
               <span className="text-foreground">{app.total_subjects} subjects</span>
               {app.points > 0 && (
@@ -399,7 +399,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
       {app.grades_summary && (
         <div className="mb-4 rounded-lg border border-gray-100 dark:border-gray-800 bg-muted p-3">
-          <div className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500 mb-2">
+          <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground dark:text-muted-foreground mb-2">
             Grades Summary
           </div>
           <div

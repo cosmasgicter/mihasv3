@@ -118,7 +118,7 @@ export default function OfflineAdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.todayApplications}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Today</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Today</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">New Applications</div>
@@ -135,7 +135,7 @@ export default function OfflineAdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.pendingApplications}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Pending</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Pending</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">Awaiting Review</div>
@@ -155,7 +155,7 @@ export default function OfflineAdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.approvedApplications}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Approved</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Approved</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">Successful Applications</div>
@@ -172,7 +172,7 @@ export default function OfflineAdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.avgProcessingTime}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500">Days</div>
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground">Days</div>
               </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>

@@ -235,7 +235,7 @@ export default function WorkflowAutomation() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-foreground">Automation Rules</h2>
-            <div className="text-sm text-gray-500 dark:text-gray-500">
+            <div className="text-sm text-muted-foreground dark:text-muted-foreground">
               {stats.activeRules} of {stats.totalRules} rules active
             </div>
           </div>

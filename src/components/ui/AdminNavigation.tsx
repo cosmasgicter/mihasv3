@@ -179,7 +179,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             })}
             
             <NavigationMenu.Item>
-              <div className="hidden xl:flex items-center text-xs text-gray-500 dark:text-gray-500 px-3 py-2 bg-muted rounded-lg ml-2">
+              <div className="hidden xl:flex items-center text-xs text-muted-foreground dark:text-muted-foreground px-3 py-2 bg-muted rounded-lg ml-2">
                 <span className="font-medium truncate max-w-[100px]">{userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}</span>
               </div>
             </NavigationMenu.Item>
@@ -378,7 +378,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                     <p className="text-sm font-medium text-foreground mb-1">
                       MIHAS-KATC Admin Portal
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                       Secure Administrative Access
                     </p>
                   </div>

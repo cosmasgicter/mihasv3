@@ -176,16 +176,16 @@ export function ContinueApplication() {
 
           <dl className="mt-4 grid gap-3 text-sm text-foreground sm:max-w-md">
             <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
-              <dt className="text-gray-500 dark:text-gray-500">Progress</dt>
+              <dt className="text-muted-foreground dark:text-muted-foreground">Progress</dt>
               <dd>{draftInfo.progress}</dd>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
-              <dt className="text-gray-500 dark:text-gray-500">Last saved</dt>
+              <dt className="text-muted-foreground dark:text-muted-foreground">Last saved</dt>
               <dd>{draftInfo.lastSaved ? formatDate(draftInfo.lastSaved) : 'Unknown'}</dd>
             </div>
             {draftInfo.expiresAt && (
               <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
-                <dt className="text-gray-500 dark:text-gray-500">Expires in</dt>
+                <dt className="text-muted-foreground dark:text-muted-foreground">Expires in</dt>
                 <dd className={cn(isExpiringSoon() ? 'text-amber-700 dark:text-amber-300' : 'text-foreground')}>{getTimeUntilExpiry()}</dd>
               </div>
             )}

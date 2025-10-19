@@ -416,7 +416,7 @@ export function EnhancedApplicationsTable({
                   />
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
                     onClick={() => handleSort('fullName')}>
                   <div className="flex items-center space-x-1">
                     <span>Name</span>
@@ -426,11 +426,11 @@ export function EnhancedApplicationsTable({
                   </div>
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                   Contact
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
                     onClick={() => handleSort('program')}>
                   <div className="flex items-center space-x-1">
                     <span>Program</span>
@@ -440,7 +440,7 @@ export function EnhancedApplicationsTable({
                   </div>
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
                     onClick={() => handleSort('status')}>
                   <div className="flex items-center space-x-1">
                     <span>Status</span>
@@ -450,11 +450,11 @@ export function EnhancedApplicationsTable({
                   </div>
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                   Payment
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
                     onClick={() => handleSort('submittedAt')}>
                   <div className="flex items-center space-x-1">
                     <span>Submitted</span>
@@ -465,7 +465,7 @@ export function EnhancedApplicationsTable({
                 </th>
                 
                 {/* Eligibility Score Column */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-accent dark:bg-gray-200"
                     onClick={() => handleSort('eligibilityScore')}>
                   <div className="flex items-center space-x-1">
                     <span>Score</span>
@@ -494,7 +494,7 @@ export function EnhancedApplicationsTable({
                       <div className="text-sm font-medium text-foreground">
                         {application.fullName}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-500">
+                      <div className="text-sm text-muted-foreground dark:text-muted-foreground">
                         {application.trackingCode}
                       </div>
                     </div>
@@ -502,14 +502,14 @@ export function EnhancedApplicationsTable({
                   
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-foreground">{application.email}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-500">{application.phone}</div>
+                    <div className="text-sm text-muted-foreground dark:text-muted-foreground">{application.phone}</div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-foreground">
                       {application.program.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-500">{getInstitutionName(application.institution)}</div>
+                    <div className="text-sm text-muted-foreground dark:text-muted-foreground">{getInstitutionName(application.institution)}</div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -520,7 +520,7 @@ export function EnhancedApplicationsTable({
                     {getPaymentBadge(application.paymentStatus)}
                   </td>
                   
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
                     {new Date(application.submittedAt).toLocaleDateString()}
                   </td>
                   
@@ -554,7 +554,7 @@ export function EnhancedApplicationsTable({
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-foreground mb-2">No applications found</h3>
-              <p className="text-gray-500 dark:text-gray-500">
+              <p className="text-muted-foreground dark:text-muted-foreground">
                 {applications.length === 0 
                   ? 'No applications have been submitted yet.'
                   : 'Try adjusting your search or filter criteria.'

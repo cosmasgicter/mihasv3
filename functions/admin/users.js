@@ -14,7 +14,12 @@ export async function onRequestGet(context) {
   }
   
   try {
-    const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) });
+    const headers = {};
+    for (const [key, value] of request.headers.entries()) {
+      headers[key.toLowerCase()] = value;
+    }
+    const authContext = await getUserFromRequest({ headers }, { requireAdmin: true });
+    
     if (authContext.error) {
       return new Response(JSON.stringify({ error: authContext.error }), {
         status: 401,
@@ -28,18 +33,20 @@ export async function onRequestGet(context) {
       .order('created_at', { ascending: false });
     
     if (error) {
+      console.error('Users query error:', error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     
-    return new Response(JSON.stringify(data || []), {
+    return new Response(JSON.stringify({ data: data || [] }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error('Users API error:', error);
+    return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

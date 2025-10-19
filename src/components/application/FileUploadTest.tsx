@@ -112,7 +112,7 @@ export function FileUploadTest() {
               {uploading ? 'Uploading...' : 'Click to upload file'}
             </p>
             <p className={`text-xs ${
-              uploading ? 'text-muted-foreground' : 'text-gray-500 dark:text-gray-500'
+              uploading ? 'text-muted-foreground' : 'text-muted-foreground dark:text-muted-foreground'
             }`}>
               PDF, JPG, JPEG, PNG up to 10MB
             </p>

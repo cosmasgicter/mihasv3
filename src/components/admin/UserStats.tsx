@@ -55,7 +55,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       case 'academic_head':
         return <Shield className="h-4 w-4 text-blue-500 dark:text-blue-400" />
       default:
-        return <User className="h-4 w-4 text-gray-500 dark:text-gray-500" />
+        return <User className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
     }
   }
 
@@ -159,7 +159,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
                       style={{ width: `${(count / stats.total) * 100}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm text-gray-500 dark:text-gray-500 w-12 text-right">
+                  <span className="text-sm text-muted-foreground dark:text-muted-foreground w-12 text-right">
                     {Math.round((count / stats.total) * 100)}%
                   </span>
                 </div>
@@ -182,21 +182,21 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
                   {getRoleIcon(user.role)}
                   <div>
                     <p className="font-medium text-foreground">{sanitizeForDisplay(user.full_name) || 'No name'}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-500">{sanitizeForDisplay(user.email)}</p>
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">{sanitizeForDisplay(user.email)}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                     {getRoleLabel(user.role)}
                   </span>
-                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                     {new Date(user.created_at).toLocaleDateString()}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-gray-500 dark:text-gray-500 text-center py-4">No recent users</p>
+            <p className="text-muted-foreground dark:text-muted-foreground text-center py-4">No recent users</p>
           )}
         </div>
       </div>

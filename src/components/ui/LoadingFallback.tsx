@@ -98,7 +98,7 @@ export function LoadingFallback({
         )}
 
         <motion.div
-          className="mt-4 text-xs text-gray-500 dark:text-gray-500"
+          className="mt-4 text-xs text-muted-foreground dark:text-muted-foreground"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}

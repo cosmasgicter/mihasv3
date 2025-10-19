@@ -137,7 +137,7 @@ export function MaintenancePanel() {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
-                  <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500">
+                  <div className="flex items-center space-x-4 text-xs text-muted-foreground dark:text-muted-foreground">
                     <span>Schedule: {task.schedule}</span>
                     <span>Next: {task.nextRun.toLocaleString()}</span>
                     {task.lastRun && (
@@ -174,13 +174,13 @@ export function MaintenancePanel() {
         <CardContent>
           <div className="space-y-2">
             {logs.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-500 text-center py-4">No maintenance logs</p>
+              <p className="text-muted-foreground dark:text-muted-foreground text-center py-4">No maintenance logs</p>
             ) : (
               logs.map((log, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border rounded">
                   <div>
                     <span className="font-medium">{log.task_name}</span>
-                    <div className="text-sm text-gray-500 dark:text-gray-500">
+                    <div className="text-sm text-muted-foreground dark:text-muted-foreground">
                       {new Date(log.executed_at).toLocaleString()} • {log.duration}ms
                     </div>
                     {log.error_message && (

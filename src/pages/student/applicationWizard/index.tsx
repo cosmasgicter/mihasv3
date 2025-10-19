@@ -189,7 +189,7 @@ const ApplicationWizardContent = () => {
                     >
                       {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                     </motion.div>
-                    <div className={`mt-2 text-xs font-medium text-center truncate max-w-[80px] ${isActive ? 'text-blue-600' : 'text-gray-500 dark:text-gray-500'}`}>
+                    <div className={`mt-2 text-xs font-medium text-center truncate max-w-[80px] ${isActive ? 'text-blue-600' : 'text-muted-foreground dark:text-muted-foreground'}`}>
                       {step.title}
                     </div>
                   </motion.div>

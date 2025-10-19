@@ -164,7 +164,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-foreground flex items-center space-x-2">
                     <span>{category}</span>
-                    <span className="text-sm text-gray-500 dark:text-gray-500">({selectedInCategory}/{categoryPermissions.length})</span>
+                    <span className="text-sm text-muted-foreground dark:text-muted-foreground">({selectedInCategory}/{categoryPermissions.length})</span>
                   </h3>
                   <Button
                     variant="outline"

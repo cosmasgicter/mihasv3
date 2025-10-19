@@ -409,7 +409,7 @@ export default function LandingPageNew() {
                   Nursing and Midwifery Council of Zambia
                 </p>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-auto">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-auto">
                 Graduates qualified for nursing jobs in all Zambian hospitals and clinics
               </p>
             </motion.div>
@@ -436,7 +436,7 @@ export default function LandingPageNew() {
                   Health Professions Council of Zambia
                 </p>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-auto">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-auto">
                 Graduates eligible for clinical officer positions nationwide
               </p>
             </motion.div>
@@ -463,7 +463,7 @@ export default function LandingPageNew() {
                   Examinations Council of Zambia
                 </p>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-auto">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-auto">
                 Environmental health graduates work in government and private sectors
               </p>
             </motion.div>
@@ -490,7 +490,7 @@ export default function LandingPageNew() {
                   University of Zambia
                 </p>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-auto">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-auto">
                 University-level qualifications recognized by international employers
               </p>
             </motion.div>

@@ -16,7 +16,7 @@ export function ApplicationProgress({ currentStep, totalSteps, completedSteps, h
         <span className="text-sm font-medium text-foreground">
           Step {currentStep} of {totalSteps}
         </span>
-        <span className="text-sm text-gray-500 dark:text-gray-500">
+        <span className="text-sm text-muted-foreground dark:text-muted-foreground">
           {Math.round(progressPercentage)}% Complete
         </span>
       </div>

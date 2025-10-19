@@ -96,7 +96,7 @@ export function NotificationPreferences() {
             <Mail className="h-5 w-5 text-primary" />
             <div>
               <p className="font-medium text-foreground">Email Notifications</p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">Receive updates via email</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">Receive updates via email</p>
             </div>
           </div>
           <input
@@ -112,7 +112,7 @@ export function NotificationPreferences() {
             <MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
             <div>
               <p className="font-medium text-foreground">SMS Notifications</p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">Receive updates via SMS</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">Receive updates via SMS</p>
             </div>
           </div>
           <input
@@ -128,7 +128,7 @@ export function NotificationPreferences() {
             <Bell className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             <div>
               <p className="font-medium text-foreground">Push Notifications</p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">Receive in-app notifications</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">Receive in-app notifications</p>
             </div>
           </div>
           <input
@@ -147,7 +147,7 @@ export function NotificationPreferences() {
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
           <div>
             <p className="font-medium text-foreground">Application Updates</p>
-            <p className="text-sm text-gray-500 dark:text-gray-500">Status changes and decisions</p>
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">Status changes and decisions</p>
           </div>
           <input
             type="checkbox"
@@ -163,7 +163,7 @@ export function NotificationPreferences() {
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
           <div>
             <p className="font-medium text-foreground">Interview Schedules</p>
-            <p className="text-sm text-gray-500 dark:text-gray-500">Interview invitations and reminders</p>
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">Interview invitations and reminders</p>
           </div>
           <input
             type="checkbox"
@@ -179,7 +179,7 @@ export function NotificationPreferences() {
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
           <div>
             <p className="font-medium text-foreground">Document Ready</p>
-            <p className="text-sm text-gray-500 dark:text-gray-500">Acceptance letters and receipts</p>
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">Acceptance letters and receipts</p>
           </div>
           <input
             type="checkbox"

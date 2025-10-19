@@ -280,7 +280,7 @@ export function EnhancedFileUpload({
                         className="p-1 hover:bg-gray-200 dark:bg-gray-700 rounded-full transition-colors"
                         type="button"
                       >
-                        <X className="w-4 h-4 text-gray-500 dark:text-gray-500" />
+                        <X className="w-4 h-4 text-muted-foreground dark:text-muted-foreground" />
                       </button>
                     </div>
                   </div>

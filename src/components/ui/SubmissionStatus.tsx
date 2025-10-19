@@ -26,7 +26,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
       case 'failed':
         return <AlertCircle className="h-5 w-5 text-red-500" />
       default:
-        return <Clock className="h-5 w-5 text-gray-500 dark:text-gray-500" />
+        return <Clock className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
     }
   }
 
@@ -57,7 +57,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
             {status.step && (
               <p className="text-sm text-muted-foreground">Step: {status.step}</p>
             )}
-            <p className="text-xs text-gray-500 dark:text-gray-500">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               {new Date(status.timestamp).toLocaleString()}
             </p>
           </div>

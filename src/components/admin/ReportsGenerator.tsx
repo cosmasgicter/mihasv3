@@ -704,10 +704,10 @@ export function ReportsGenerator() {
                   <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
                     {selectedTemplateDefinition.tokens.map(token => (
                       <li key={token.token} className="border-b border-border pb-2 last:border-b-0 last:pb-0">
-                        <div className="font-mono text-[11px] text-gray-500 dark:text-gray-500">{`{{${token.token}}}`}</div>
+                        <div className="font-mono text-[11px] text-muted-foreground dark:text-muted-foreground">{`{{${token.token}}}`}</div>
                         <div className="text-foreground">
                           {token.label}
-                          {token.required === false && <span className="text-gray-500 dark:text-gray-500"> (optional)</span>}
+                          {token.required === false && <span className="text-muted-foreground dark:text-muted-foreground"> (optional)</span>}
                         </div>
                       </li>
                     ))}
@@ -745,12 +745,12 @@ export function ReportsGenerator() {
                   </Button>
                 </div>
                 {documentGenerating && (
-                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-500">
+                  <div className="flex items-center text-sm text-muted-foreground dark:text-muted-foreground">
                     <LoadingSpinner size="sm" className="mr-2" />
                     Preparing document…
                   </div>
                 )}
-                <p className="text-xs text-gray-500 dark:text-gray-500">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                   Fill in the relevant sections below. Optional placeholders will be skipped automatically when left blank.
                 </p>
               </div>
@@ -1211,7 +1211,7 @@ export function ReportsGenerator() {
                     <p className="text-sm font-semibold text-foreground">
                       {DOCUMENT_TEMPLATE_DEFINITIONS[documentPreview.templateId].name} preview
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                       Showing {previewMode === 'html' ? 'HTML markup' : 'plain text'} output ready for review.
                     </p>
                   </div>

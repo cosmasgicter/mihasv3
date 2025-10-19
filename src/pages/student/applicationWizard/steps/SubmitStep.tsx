@@ -120,7 +120,7 @@ const SubmitStep = ({
                   )
                 })}
                 {selectedGrades.length === 0 && (
-                  <p className="text-sm text-gray-500 dark:text-gray-500">No subjects selected</p>
+                  <p className="text-sm text-muted-foreground dark:text-muted-foreground">No subjects selected</p>
                 )}
               </div>
             </div>
