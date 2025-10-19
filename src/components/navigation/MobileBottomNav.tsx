@@ -81,7 +81,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                   }`}
                 />
                 <span
-                  className={`text-xs mt-1 transition-all duration-300 ${
+                  className={`text-xs mt-1 transition-all duration-300 truncate max-w-[60px] ${
                     isActive
                       ? 'text-blue-600 dark:text-blue-400 font-medium'
                       : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300'
@@ -123,7 +123,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="md:hidden fixed bottom-20 right-4 w-48 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
+              className="md:hidden fixed bottom-20 right-4 w-48 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
             >
               <div className="py-2">
                 {adminMoreSections.map((section) => (

@@ -140,13 +140,13 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-gray-100">
+                <h1 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-gray-100 truncate max-w-[150px] sm:max-w-[200px]">
                   {isMobile ? 'Admin' : 'Admin Dashboard'}
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block truncate max-w-[200px]">
                   Welcome, {profile?.full_name || 'Admin'}
                 </p>
-                <p className="text-xs text-gray-600 dark:text-gray-400 sm:hidden">
+                <p className="text-xs text-gray-600 dark:text-gray-400 sm:hidden truncate max-w-[120px]">
                   {profile?.full_name || 'Admin'}
                 </p>
               </div>
@@ -154,7 +154,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
           </div>
 
           {/* Desktop Navigation */}
-          <NavigationMenu.List className="hidden lg:flex items-center space-x-1 overflow-x-auto flex-nowrap scrollbar-hide">
+          <NavigationMenu.List className="hidden lg:flex items-center space-x-1 overflow-x-auto flex-nowrap scrollbar-hide max-w-[60vw]">
             {navigationItems.map((item) => {
               const isActive = isActiveRoute(item.href)
               return (
@@ -171,7 +171,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                       )}
                     >
                       <item.icon className="h-4 w-4" />
-                      <span className="font-medium">{item.label}</span>
+                      <span className="font-medium truncate">{item.label}</span>
                     </Button>
                   </Link>
                 </NavigationMenu.Item>
@@ -180,7 +180,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             
             <NavigationMenu.Item>
               <div className="hidden xl:flex items-center text-xs text-gray-500 dark:text-gray-500 px-3 py-2 bg-gray-50 dark:bg-gray-900 rounded-lg ml-2">
-                <span className="font-medium">{userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}</span>
+                <span className="font-medium truncate max-w-[100px]">{userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}</span>
               </div>
             </NavigationMenu.Item>
             
@@ -247,7 +247,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white dark:bg-gray-800 dark:bg-gray-200 shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l-4 border-blue-600 overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-800 dark:bg-gray-200 shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l-4 border-blue-600 overflow-y-auto"
               style={{
                 backgroundColor: '#ffffff',
                 zIndex: 9999,
@@ -267,8 +267,8 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                       <Shield className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900 dark:text-gray-100 text-lg">Admin Panel</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{profile?.full_name || 'Administrator'}</p>
+                      <p className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate max-w-[150px]">Admin Panel</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-[150px]">{profile?.full_name || 'Administrator'}</p>
                     </div>
                   </div>
                   <motion.button
@@ -314,7 +314,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                               <div className="flex items-center space-x-3">
                                 <span className="text-xl" style={{ opacity: 1 }}>{item.emoji}</span>
                                 <div>
-                                  <span className="mobile-nav-text" style={{ 
+                                  <span className="mobile-nav-text truncate" style={{ 
                                     color: isActive ? '#ffffff' : '#1f2937',
                                     fontWeight: 600,
                                     opacity: 1
@@ -339,7 +339,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                   <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200 dark:border-blue-800">
                     <div className="text-center">
                       <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Role</div>
-                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white truncate max-w-[150px]">
                         {userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}
                       </div>
                     </div>
@@ -363,7 +363,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center space-x-3">
                             <LogOut className="h-5 w-5" />
-                            <span className="mobile-nav-text">Sign Out</span>
+                            <span className="mobile-nav-text truncate">Sign Out</span>
                           </div>
                           <ChevronRight className="h-5 w-5 text-white/80" />
                         </div>

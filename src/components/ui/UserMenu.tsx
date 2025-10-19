@@ -45,7 +45,7 @@ export function UserMenu() {
             <User className="w-4 h-4 text-white" />
           </div>
         )}
-        <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300 truncate max-w-[120px]">
           {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
         </span>
         <ChevronDown className={cn(
@@ -56,14 +56,14 @@ export function UserMenu() {
 
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 py-1 z-[110]"
+          className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 py-1 z-[110]"
           data-testid="user-menu-dropdown"
         >
           <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
               {user?.user_metadata?.full_name || 'User'}
             </p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">{user?.email}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 break-words">{user?.email}</p>
           </div>
           
           <Link

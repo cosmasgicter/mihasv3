@@ -49,7 +49,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent"
+              className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent truncate max-w-[150px]"
             >
               MIHAS
             </motion.h1>
@@ -94,7 +94,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className={`text-sm font-medium transition-colors relative z-10 ${
+                    className={`text-sm font-medium transition-colors relative z-10 truncate ${
                       isActive
                         ? 'text-blue-600 dark:text-blue-400'
                         : 'text-gray-700 dark:text-gray-300 group-hover:text-blue-500 dark:group-hover:text-blue-300'

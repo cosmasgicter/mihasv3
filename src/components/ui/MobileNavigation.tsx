@@ -230,7 +230,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-gray-900/90 from-gray-900 to-gray-800 backdrop-blur-xl shadow-2xl md:hidden border-l-4 border-white/30 safe-area-top safe-area-bottom z-[9999] opacity-100 visible"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-gray-900/90 from-gray-900 to-gray-800 backdrop-blur-xl shadow-2xl md:hidden border-l-4 border-white/30 safe-area-top safe-area-bottom z-[9999] opacity-100 visible"
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -276,7 +276,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                           )}
                         >
                           {item.icon}
-                          <span className="text-white font-bold">{item.label}</span>
+                          <span className="text-white font-bold truncate">{item.label}</span>
                         </Link>
                       </motion.div>
                     ))}

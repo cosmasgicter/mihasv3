@@ -25,17 +25,17 @@ export function Button({
   const baseClasses = cn(
     'relative inline-flex items-center justify-center rounded-lg font-medium',
     'transition-all duration-200 focus-visible:outline-none focus-visible:ring-2',
-    'focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400',
+    'focus-visible:ring-ring',
     'disabled:pointer-events-none disabled:opacity-50',
     'overflow-hidden group'
   )
   
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/50 dark:hover:shadow-blue-400/30',
-    secondary: 'bg-white dark:bg-gray-800 dark:bg-gray-200 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700',
-    outline: 'border-2 border-blue-600 dark:border-blue-400 bg-transparent text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950',
-    ghost: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-200',
-    danger: 'bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/50'
+    primary: 'bg-primary text-primary-foreground hover:shadow-lg hover:opacity-90',
+    secondary: 'bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80',
+    outline: 'border-2 border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground',
+    ghost: 'text-foreground hover:bg-accent hover:text-accent-foreground',
+    danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-lg'
   }
   
   const sizeClasses = {
