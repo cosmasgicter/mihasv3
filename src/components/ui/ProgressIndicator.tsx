@@ -78,7 +78,7 @@ export function ProgressIndicator({
       case 'error':
         return cn(baseClasses, 'bg-red-500 border-red-500 text-white')
       default:
-        return cn(baseClasses, 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 border-gray-300 dark:border-gray-600 dark:border-gray-400 text-gray-600 dark:text-gray-400')
+        return cn(baseClasses, 'bg-accent dark:bg-gray-200 border-input dark:border-gray-400 text-muted-foreground')
     }
   }
 
@@ -119,7 +119,7 @@ export function ProgressIndicator({
                     <div className={cn(
                       'font-medium',
                       sizeClasses[size].title,
-                      step.status === 'current' ? 'text-blue-600' : 'text-gray-900 dark:text-gray-100'
+                      step.status === 'current' ? 'text-blue-600' : 'text-foreground'
                     )}>
                       {step.title}
                     </div>
@@ -163,7 +163,7 @@ export function ProgressIndicator({
                 <div className={cn(
                   'font-medium',
                   sizeClasses[size].title,
-                  step.status === 'current' ? 'text-blue-600' : 'text-gray-900 dark:text-gray-100'
+                  step.status === 'current' ? 'text-blue-600' : 'text-foreground'
                 )}>
                   {step.title}
                 </div>
@@ -219,8 +219,8 @@ export function ProgressBar({
     <div className={cn('w-full', className)}>
       {showPercentage && (
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
-          <span className="text-sm text-gray-600 dark:text-gray-400">{percentage}%</span>
+          <span className="text-sm font-medium text-foreground">Progress</span>
+          <span className="text-sm text-muted-foreground">{percentage}%</span>
         </div>
       )}
       <div className={cn(

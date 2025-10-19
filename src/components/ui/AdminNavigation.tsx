@@ -126,7 +126,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
   }
 
   return (
-    <NavigationMenu.Root className={cn("bg-white dark:bg-gray-800/95 backdrop-blur-sm shadow-lg border-b border-gray-200 dark:border-gray-700/50 sticky top-0 z-50", className)}>
+    <NavigationMenu.Root className={cn("bg-card/95 backdrop-blur-sm shadow-lg border-b border-border/50 sticky top-0 z-50", className)}>
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-3 sm:py-4 max-w-7xl mx-auto">
           {/* Admin Info - Mobile First */}
@@ -140,13 +140,13 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-gray-100 truncate max-w-[150px] sm:max-w-[200px]">
+                <h1 className="text-sm sm:text-lg font-bold text-foreground truncate max-w-[150px] sm:max-w-[200px]">
                   {isMobile ? 'Admin' : 'Admin Dashboard'}
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block truncate max-w-[200px]">
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block truncate max-w-[200px]">
                   Welcome, {profile?.full_name || 'Admin'}
                 </p>
-                <p className="text-xs text-gray-600 dark:text-gray-400 sm:hidden truncate max-w-[120px]">
+                <p className="text-xs text-muted-foreground sm:hidden truncate max-w-[120px]">
                   {profile?.full_name || 'Admin'}
                 </p>
               </div>
@@ -167,7 +167,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                         "flex items-center space-x-2 transition-all duration-200",
                         isActive 
                           ? "bg-primary text-white shadow-md" 
-                          : "hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-700 dark:text-gray-300"
+                          : "hover:bg-accent dark:bg-gray-200 text-foreground"
                       )}
                     >
                       <item.icon className="h-4 w-4" />
@@ -179,7 +179,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             })}
             
             <NavigationMenu.Item>
-              <div className="hidden xl:flex items-center text-xs text-gray-500 dark:text-gray-500 px-3 py-2 bg-gray-50 dark:bg-gray-900 rounded-lg ml-2">
+              <div className="hidden xl:flex items-center text-xs text-gray-500 dark:text-gray-500 px-3 py-2 bg-muted rounded-lg ml-2">
                 <span className="font-medium truncate max-w-[100px]">{userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}</span>
               </div>
             </NavigationMenu.Item>
@@ -189,7 +189,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="ml-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:bg-red-950/30 hover:border-red-300 dark:border-red-700 whitespace-nowrap flex items-center logout-button"
+                className="ml-2 text-destructive border-red-200 dark:border-red-800 hover:bg-red-50 dark:bg-red-950/30 hover:border-red-300 dark:border-red-700 whitespace-nowrap flex items-center logout-button"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
@@ -247,7 +247,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-800 dark:bg-gray-200 shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l-4 border-blue-600 overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l-4 border-blue-600 overflow-y-auto"
               style={{
                 backgroundColor: '#ffffff',
                 zIndex: 9999,
@@ -261,18 +261,18 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700/70 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm">
+                <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm">
                   <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
                       <Shield className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate max-w-[150px]">Admin Panel</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-[150px]">{profile?.full_name || 'Administrator'}</p>
+                      <p className="font-bold text-foreground text-lg truncate max-w-[150px]">Admin Panel</p>
+                      <p className="text-sm text-muted-foreground truncate max-w-[150px]">{profile?.full_name || 'Administrator'}</p>
                     </div>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
+                    className="p-2 rounded-lg text-muted-foreground hover:bg-accent dark:bg-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -300,7 +300,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                               "mobile-nav-item mobile-nav-focus transition-all duration-300",
                               isActive 
                                 ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
-                                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:border-gray-600 dark:border-gray-400"
+                                : "text-foreground hover:bg-accent dark:bg-gray-200 border border-border hover:border-input dark:border-gray-400"
                             )}
                             style={{
                               backgroundColor: isActive ? undefined : '#ffffff',
@@ -326,7 +326,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                               </div>
                               <ChevronRight className={cn(
                                 "h-5 w-5 transition-colors",
-                                isActive ? "text-white/80" : "text-gray-400 dark:text-gray-500"
+                                isActive ? "text-white/80" : "text-muted-foreground"
                               )} style={{ opacity: 1 }} />
                             </div>
                           </Link>
@@ -338,7 +338,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                   {/* Role Badge */}
                   <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200 dark:border-blue-800">
                     <div className="text-center">
-                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Role</div>
+                      <div className="text-sm font-medium text-foreground mb-1">Current Role</div>
                       <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white truncate max-w-[150px]">
                         {userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}
                       </div>
@@ -373,9 +373,9 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 </NavigationMenu.List>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-200 dark:border-gray-700/70 bg-gray-50 dark:bg-gray-900/80 backdrop-blur-sm">
+                <div className="p-6 border-t border-border/70 bg-muted/80 backdrop-blur-sm">
                   <div className="text-center">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <p className="text-sm font-medium text-foreground mb-1">
                       MIHAS-KATC Admin Portal
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">

@@ -65,7 +65,7 @@ export default function SignInPage() {
           Or{' '}
           <Link
             to="/auth/signup"
-            className="font-semibold text-blue-600 dark:text-blue-400 transition-colors hover:text-blue-600/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md"
+            className="font-semibold text-primary transition-colors hover:text-blue-600/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md"
           >
             create a new account
           </Link>
@@ -78,14 +78,14 @@ export default function SignInPage() {
               <div className="w-full border-t border-secondary/20" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white dark:bg-gray-800/80 px-3 py-0.5 text-secondary/70">Need help?</span>
+              <span className="bg-card/80 px-3 py-0.5 text-secondary/70">Need help?</span>
             </div>
           </div>
 
           <div className="text-center">
             <Link
               to="/auth/forgot-password"
-              className="text-sm font-semibold text-blue-600 dark:text-blue-400 transition-colors hover:text-blue-600/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md"
+              className="text-sm font-semibold text-primary transition-colors hover:text-blue-600/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md"
             >
               Forgot your password?
             </Link>

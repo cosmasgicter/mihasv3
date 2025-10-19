@@ -181,7 +181,7 @@ function ApplicationsAdminContent() {
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      draft: 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700',
+      draft: 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700',
       submitted: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800',
       under_review: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200',
       approved: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200',
@@ -209,13 +209,13 @@ function ApplicationsAdminContent() {
     )
   }
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen bg-muted py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Applications Management
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground">
             Manage student applications and review submissions
           </p>
         </div>
@@ -230,7 +230,7 @@ function ApplicationsAdminContent() {
         ) : (
           <>
             {/* Actions Bar */}
-            <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow p-4 mb-4">
+            <div className="bg-card rounded-lg shadow p-4 mb-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -255,7 +255,7 @@ function ApplicationsAdminContent() {
                 
                 {selectedApplications.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="text-sm text-muted-foreground">
                       {selectedApplications.length} selected
                     </span>
                     <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 dark:bg-gray-400" />
@@ -267,7 +267,7 @@ function ApplicationsAdminContent() {
                         }
                       }}
                       aria-label="Bulk status update"
-                      className="text-xs rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                      className="text-xs rounded border-input dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500"
                     >
                       <option value="">Bulk Status Update</option>
                       <option value="under_review">Under Review</option>
@@ -282,7 +282,7 @@ function ApplicationsAdminContent() {
                         }
                       }}
                       aria-label="Bulk payment update"
-                      className="text-xs rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                      className="text-xs rounded border-input dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500"
                     >
                       <option value="">Bulk Payment Update</option>
                       <option value="verified">Verify</option>
@@ -294,11 +294,11 @@ function ApplicationsAdminContent() {
             </div>
 
             {/* Filters */}
-            <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow p-6 mb-6">
+            <div className="bg-card rounded-lg shadow p-6 mb-6">
               <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div className="md:col-span-2">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search by name, email, or application number..."
                       value={searchTerm}
@@ -314,7 +314,7 @@ function ApplicationsAdminContent() {
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     aria-label="Filter by status"
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Statuses</option>
                     <option value="draft">Draft</option>
@@ -330,7 +330,7 @@ function ApplicationsAdminContent() {
                     value={paymentFilter}
                     onChange={(e) => setPaymentFilter(e.target.value)}
                     aria-label="Filter by payment status"
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Payments</option>
                     <option value="pending_review">Pending Review</option>
@@ -344,7 +344,7 @@ function ApplicationsAdminContent() {
                     value={programFilter}
                     onChange={(e) => setProgramFilter(e.target.value)}
                     aria-label="Filter by program"
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Programs</option>
                     <option value="Clinical Medicine">Clinical Medicine</option>
@@ -358,7 +358,7 @@ function ApplicationsAdminContent() {
                     value={institutionFilter}
                     onChange={(e) => setInstitutionFilter(e.target.value)}
                     aria-label="Filter by institution"
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">All Institutions</option>
                     <option value="KATC">Kalulushi Training Centre</option>
@@ -369,23 +369,23 @@ function ApplicationsAdminContent() {
             </div>
 
             {isRefreshing && (
-              <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 mb-4">
+              <div className="flex items-center gap-2 text-sm text-primary mb-4">
                 <LoadingSpinner size="sm" />
                 <span>Refreshing latest applications…</span>
               </div>
             )}
 
             {/* Applications Table */}
-            <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow overflow-hidden">
+            <div className="bg-card rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50 dark:bg-gray-900">
+                  <thead className="bg-muted">
                     <tr>
                       <th className="px-6 py-3 text-left">
                         <button
                           onClick={selectAll}
                           aria-label={selectedApplications.length === filteredApplications.length && filteredApplications.length > 0 ? 'Deselect all applications' : 'Select all applications'}
-                          className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider hover:text-gray-700 dark:text-gray-300"
+                          className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider hover:text-foreground"
                         >
                           {selectedApplications.length === filteredApplications.length && filteredApplications.length > 0 ? (
                             <CheckSquare className="h-4 w-4" />
@@ -417,24 +417,24 @@ function ApplicationsAdminContent() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-200 divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-gray-200">
                     {filteredApplications.map((app) => (
-                      <tr key={app.id} className="hover:bg-gray-50 dark:bg-gray-900">
+                      <tr key={app.id} className="hover:bg-muted">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
                             onClick={() => toggleSelection(app.id)}
                             aria-label={selectedApplications.includes(app.id) ? `Deselect ${app.full_name}` : `Select ${app.full_name}`}
-                            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400"
+                            className="text-muted-foreground hover:text-muted-foreground"
                           >
                             {selectedApplications.includes(app.id) ? (
-                              <CheckSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                              <CheckSquare className="h-5 w-5 text-primary" />
                             ) : (
                               <Square className="h-5 w-5" />
                             )}
                           </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <div className="text-sm font-medium text-foreground">
                             {app.application_number}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-500">
@@ -442,7 +442,7 @@ function ApplicationsAdminContent() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <div className="text-sm font-medium text-foreground">
                             {app.full_name}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-500">
@@ -453,7 +453,7 @@ function ApplicationsAdminContent() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <div className="text-sm font-medium text-foreground">
                             {app.program}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-500">
@@ -469,7 +469,7 @@ function ApplicationsAdminContent() {
                                 onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
                                 disabled={updating === app.id}
                                 aria-label={`Update status for ${app.full_name}`}
-                                className="block w-full text-xs rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                                className="block w-full text-xs rounded border-input dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
                               >
                                 <option value="draft">Draft</option>
                                 <option value="submitted">Submitted</option>
@@ -497,7 +497,7 @@ function ApplicationsAdminContent() {
                                 onChange={(e) => handlePaymentStatusUpdate(app.id, e.target.value)}
                                 disabled={updatingPayment === app.id}
                                 aria-label={`Update payment status for ${app.full_name}`}
-                                className="block w-full text-xs rounded border-gray-300 dark:border-gray-600 dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                                className="block w-full text-xs rounded border-input dark:border-gray-400 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
                               >
                                 <option value="pending_review">Pending Review</option>
                                 <option value="verified">Verified</option>
@@ -512,7 +512,7 @@ function ApplicationsAdminContent() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-gray-100">
+                          <div className="text-sm text-foreground">
                             {app.total_subjects} subjects
                           </div>
                           {app.grades_summary && (
@@ -547,17 +547,17 @@ function ApplicationsAdminContent() {
                 <div className="text-gray-500 dark:text-gray-500">No applications found matching your criteria.</div>
               </div>
             )}
-            <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="border-t border-border bg-muted px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-gray-500 dark:text-gray-500">
                 Showing{' '}
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{filteredApplications.length}</span>
+                <span className="font-semibold text-foreground">{filteredApplications.length}</span>
                 {' '}of{' '}
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{pagination.loadedCount}</span>{' '}
+                <span className="font-semibold text-foreground">{pagination.loadedCount}</span>{' '}
                 loaded
                 {pagination.totalCount > 0 && (
                   <>
                     {' '}•{' '}
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">{pagination.totalCount}</span>{' '}
+                    <span className="font-semibold text-foreground">{pagination.totalCount}</span>{' '}
                     total
                   </>
                 )}{' '}
@@ -576,7 +576,7 @@ function ApplicationsAdminContent() {
                 </button>
               ) : (
                 pagination.totalCount > 0 && (
-                  <span className="text-sm text-gray-400 dark:text-gray-500">All applications loaded.</span>
+                  <span className="text-sm text-muted-foreground">All applications loaded.</span>
                 )
               )}
             </div>
@@ -584,29 +584,29 @@ function ApplicationsAdminContent() {
 
             {/* Summary Stats */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow p-6">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="bg-card rounded-lg shadow p-6">
+                <div className="text-2xl font-bold text-foreground">
                   {pagination.totalCount}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-500">Total Applications</div>
-                <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Loaded: {applications.length}</div>
+                <div className="text-xs text-muted-foreground mt-1">Loaded: {applications.length}</div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow p-6">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="bg-card rounded-lg shadow p-6">
+                <div className="text-2xl font-bold text-primary">
                   {applications.filter(app => app.status === 'submitted').length}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-500">Submitted (loaded)</div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow p-6">
+              <div className="bg-card rounded-lg shadow p-6">
                 <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 dark:text-yellow-500">
                   {applications.filter(app => app.payment_status === 'pending_review').length}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-500">Pending Payment Review (loaded)</div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow p-6">
+              <div className="bg-card rounded-lg shadow p-6">
                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {applications.filter(app => app.status === 'approved').length}
                 </div>

@@ -162,7 +162,7 @@ export function FixedAdminDashboard() {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600 dark:text-gray-400">Loading dashboard...</span>
+        <span className="ml-3 text-muted-foreground">Loading dashboard...</span>
       </div>
     )
   }
@@ -180,7 +180,7 @@ export function FixedAdminDashboard() {
             <AlertTriangle className="h-5 w-5 text-red-500" />
             <div>
               <p className="text-red-800 dark:text-red-200 font-medium">Dashboard Error</p>
-              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+              <p className="text-destructive text-sm">{error}</p>
             </div>
             <Button
               variant="ghost"
@@ -198,17 +198,17 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
+          className="bg-card rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <Calendar className="h-6 w-6 text-primary" />
               </div>
               <div className="text-right">
                 <div
-                  className="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                  className="text-2xl font-bold text-foreground"
                   data-testid="today-applications-value"
                 >
                   {integerFormatter.format(stats.todayApplications)}
@@ -216,7 +216,7 @@ export function FixedAdminDashboard() {
                 <div className="text-xs text-gray-500 dark:text-gray-500">Today</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">New Applications</div>
+            <div className="text-sm font-medium text-muted-foreground">New Applications</div>
             <div className="flex items-center mt-2 text-xs">
               <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
               <span className="text-green-600 dark:text-green-400">{formatCount(weekTotal)} this week</span>
@@ -228,7 +228,7 @@ export function FixedAdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
+          className="bg-card rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-orange-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -238,7 +238,7 @@ export function FixedAdminDashboard() {
               </div>
               <div className="text-right">
                 <div
-                  className="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                  className="text-2xl font-bold text-foreground"
                   data-testid="pending-applications-value"
                 >
                   {integerFormatter.format(stats.pendingApplications)}
@@ -246,7 +246,7 @@ export function FixedAdminDashboard() {
                 <div className="text-xs text-gray-500 dark:text-gray-500">Pending</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Awaiting Review</div>
+            <div className="text-sm font-medium text-muted-foreground">Awaiting Review</div>
             <div className="text-xs text-yellow-600 dark:text-yellow-400 dark:text-yellow-500 mt-2">
               In review: {formatCount(inReviewCount)}
             </div>
@@ -257,7 +257,7 @@ export function FixedAdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
+          className="bg-card rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-green-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -267,7 +267,7 @@ export function FixedAdminDashboard() {
               </div>
               <div className="text-right">
                 <div
-                  className="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                  className="text-2xl font-bold text-foreground"
                   data-testid="approval-rate-value"
                 >
                   {approvalRate}%
@@ -275,7 +275,7 @@ export function FixedAdminDashboard() {
                 <div className="text-xs text-gray-500 dark:text-gray-500">Rate</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Approval Rate</div>
+            <div className="text-sm font-medium text-muted-foreground">Approval Rate</div>
             <div className="flex items-center mt-2 text-xs">
               <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
               <span className="text-green-600 dark:text-green-400">Approved: {formatCount(stats.approvedApplications)}</span>
@@ -287,7 +287,7 @@ export function FixedAdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
+          className="bg-card rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -297,7 +297,7 @@ export function FixedAdminDashboard() {
               </div>
               <div className="text-right">
                 <div
-                  className="text-2xl font-bold text-gray-900 dark:text-gray-100"
+                  className="text-2xl font-bold text-foreground"
                   data-testid="avg-processing-value"
                 >
                   {decimalFormatter.format(averageProcessingDays)}
@@ -305,7 +305,7 @@ export function FixedAdminDashboard() {
                 <div className="text-xs text-gray-500 dark:text-gray-500">Days</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Processing</div>
+            <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
             <div className="flex items-center mt-2 text-xs">
               <ArrowDown className="h-3 w-3 text-green-500 mr-1" />
               <span className="text-green-600 dark:text-green-400">Median: {formatHours(medianProcessingHours)}h</span>
@@ -318,10 +318,10 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 xl:col-span-2"
+          className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 xl:col-span-2"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100"><BarChart3 className="w-5 h-5" /> Status Distribution</h3>
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h3 className="text-lg font-bold text-foreground"><BarChart3 className="w-5 h-5" /> Status Distribution</h3>
             <span className="text-sm text-gray-500 dark:text-gray-500">Total: {formatCount(totalApplications)}</span>
           </div>
           <div className="p-6 space-y-4">
@@ -335,11 +335,11 @@ export function FixedAdminDashboard() {
 
                 return (
                   <div key={status} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <div className="flex items-center justify-between text-sm font-medium text-foreground">
                       <span>{formatStatusLabel(status)}</span>
                       <span>{formatCount(numericValue)} ({percentage}%)</span>
                     </div>
-                    <div className="h-2 bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-2 bg-accent dark:bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className={`${barClass} h-full`}
                         style={{ width: `${percentage}%` }}
@@ -360,10 +360,10 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 xl:col-span-2"
+          className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 xl:col-span-2"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100"><Zap className="w-5 h-5" /> Processing Performance</h3>
+          <div className="px-6 py-4 border-b border-border">
+            <h3 className="text-lg font-bold text-foreground"><Zap className="w-5 h-5" /> Processing Performance</h3>
           </div>
           <div className="p-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -374,7 +374,7 @@ export function FixedAdminDashboard() {
               ].map(period => (
                 <div key={period.label} className="p-3 bg-slate-50 rounded-xl">
                   <div className="text-xs text-gray-500 dark:text-gray-500">{period.label}</div>
-                  <div className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="mt-1 text-lg font-semibold text-foreground">
                     {formatCount(period.value)}
                   </div>
                 </div>
@@ -383,41 +383,41 @@ export function FixedAdminDashboard() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
                   <span>Average processing time</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-semibold text-foreground">
                   {decimalFormatter.format(averageProcessingDays)} days · {formatHours(averageProcessingHours)}h
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                   <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                   <span>Median decision time</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-semibold text-foreground">
                   {formatHours(medianProcessingHours)}h
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                   <Zap className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                   <span>P95 response time</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-semibold text-foreground">
                   {formatHours(p95ProcessingHours)}h
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                  <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <Activity className="h-4 w-4 text-primary" />
                   <span>Decisions in last 24h</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-semibold text-foreground">
                   {formatCount(processingMetrics.decisionVelocity24h)}
                 </span>
               </div>
@@ -430,10 +430,10 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
+          className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h3 className="text-lg font-bold text-foreground"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -464,11 +464,11 @@ export function FixedAdminDashboard() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 transition-colors"
+                    className="flex items-start space-x-3 p-3 bg-muted rounded-lg hover:bg-accent dark:bg-gray-200 transition-colors"
                   >
                     <div className={`w-2 h-2 rounded-full mt-2 ${accentColor}`}></div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{activity.message}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{activity.message}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-500">{formatTimestamp(activity.timestamp)}</p>
                     </div>
                   </motion.div>
@@ -486,15 +486,15 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
+          className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
         >
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">🛡️ System Health</h3>
+          <div className="px-6 py-4 border-b border-border">
+            <h3 className="text-lg font-bold text-foreground">🛡️ System Health</h3>
           </div>
 
           <div className="p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Shield className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                 <span>Overall status</span>
               </div>
@@ -505,41 +505,41 @@ export function FixedAdminDashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                   <Users className="h-4 w-4 text-indigo-600" />
                   <span>Active admins (24h)</span>
                 </div>
                 <p
-                  className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                  className="mt-2 text-lg font-semibold text-foreground"
                   data-testid="active-admins-24h"
                 >
                   {formatCount(processingMetrics.activeAdminsLast24h)}
                 </p>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                   <TrendingUp className="h-4 w-4 text-sky-600" />
                   <span>Active admins (7d)</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <p className="mt-2 text-lg font-semibold text-foreground">
                   {formatCount(processingMetrics.activeAdminsLast7d)}
                 </p>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                   <Database className="h-4 w-4 text-emerald-600" />
                   <span>Total applications</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100" data-testid="total-applications-value">
+                <p className="mt-2 text-lg font-semibold text-foreground" data-testid="total-applications-value">
                   {formatCount(totalApplications)}
                 </p>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                   <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   <span>Active intakes</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <p className="mt-2 text-lg font-semibold text-foreground">
                   {formatCount(stats.activeIntakes)}
                 </p>
               </div>

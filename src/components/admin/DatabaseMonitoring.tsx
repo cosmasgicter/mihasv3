@@ -164,7 +164,7 @@ export default function DatabaseMonitoring() {
       case 'critical':
         return 'bg-red-50 border-red-200'
       default:
-        return 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700'
+        return 'bg-muted border-border'
     }
   }
 
@@ -179,7 +179,7 @@ export default function DatabaseMonitoring() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Database Monitoring</h1>
+        <h1 className="text-2xl font-bold text-foreground">Database Monitoring</h1>
         <div className="flex space-x-3">
           <Button
             onClick={loadDashboardData}
@@ -230,15 +230,15 @@ export default function DatabaseMonitoring() {
             className={`p-4 rounded-lg border ${getStatusColor(metric.status)}`}
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-gray-900 dark:text-gray-100">
+              <h3 className="font-medium text-foreground">
                 {metric.metric.replace(/_/g, ' ').toUpperCase()}
               </h3>
               {getStatusIcon(metric.status)}
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <p className="text-2xl font-bold text-foreground">
               {metric.current_value.toLocaleString()}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {metric.message}
             </p>
           </div>
@@ -246,8 +246,8 @@ export default function DatabaseMonitoring() {
       </div>
 
       {/* Error Statistics */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+      <div className="bg-card rounded-lg border border-border p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center">
           <Shield className="w-5 h-5 mr-2" />
           Error Statistics (Last 24 Hours)
         </h2>
@@ -257,7 +257,7 @@ export default function DatabaseMonitoring() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50 dark:bg-gray-900">
+              <thead className="bg-muted">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                     Error Code
@@ -273,10 +273,10 @@ export default function DatabaseMonitoring() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-200 divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-gray-200">
                 {errorStats.map((stat, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       {stat.error_code}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-500">
@@ -297,8 +297,8 @@ export default function DatabaseMonitoring() {
       </div>
 
       {/* Data Integrity */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+      <div className="bg-card rounded-lg border border-border p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">
           Data Integrity Status
         </h2>
         
@@ -311,7 +311,7 @@ export default function DatabaseMonitoring() {
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                <h3 className="font-medium text-foreground">
                   {issue.issue_type.replace(/_/g, ' ').toUpperCase()}
                 </h3>
                 {issue.issue_count > 0 ? (
@@ -320,7 +320,7 @@ export default function DatabaseMonitoring() {
                   <CheckCircle className="w-5 h-5 text-green-500" />
                 )}
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              <p className="text-sm text-muted-foreground mb-2">
                 {issue.description}
               </p>
               <div className="flex justify-between text-sm">

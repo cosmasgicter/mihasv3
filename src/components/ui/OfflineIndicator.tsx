@@ -23,7 +23,7 @@ export function OfflineIndicator() {
     <div className="fixed top-4 right-4 z-50 max-w-sm">
       <div className="rounded-lg shadow-lg p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
         <div className="flex items-center space-x-3">
-          <WifiOff className="h-5 w-5 text-red-600 dark:text-red-400" />
+          <WifiOff className="h-5 w-5 text-destructive" />
           <div>
             <p className="text-sm font-medium text-red-900 dark:text-red-100">Working offline</p>
             <p className="text-xs text-red-700 dark:text-red-300">Changes saved locally</p>

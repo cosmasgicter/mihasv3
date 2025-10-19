@@ -253,9 +253,9 @@ export function SimpleFileUpload({
   const isUploading_ = isUploading || isCompressing || uploadingFiles.length > 0
   
   return (
-    <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-card rounded-lg shadow-lg border border-border p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h2 className="text-lg font-semibold text-foreground">
           Supporting Documents
         </h2>
         {uploadedFiles.length > 0 && (
@@ -281,10 +281,10 @@ export function SimpleFileUpload({
             className={cn(
               'border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 min-h-[48px] touch-target',
               isUploading_
-                ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 cursor-not-allowed'
+                ? 'border-border bg-muted cursor-not-allowed'
                 : dragActive
                 ? 'border-blue-600 bg-primary/5 cursor-pointer'
-                : 'border-gray-300 dark:border-gray-600 dark:border-gray-400 hover:border-blue-600 hover:bg-blue-600/5 cursor-pointer'
+                : 'border-input dark:border-gray-400 hover:border-blue-600 hover:bg-blue-600/5 cursor-pointer'
             )}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -293,13 +293,13 @@ export function SimpleFileUpload({
             <div className="flex flex-col items-center space-y-2">
               {isCompressing ? (
                 <>
-                  <Zap className="h-8 w-8 text-blue-600 dark:text-blue-400 animate-pulse" />
-                  <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Optimizing image...</p>
+                  <Zap className="h-8 w-8 text-primary animate-pulse" />
+                  <p className="text-sm text-primary font-medium">Optimizing image...</p>
                 </>
               ) : isUploading ? (
                 <>
-                  <Upload className="h-8 w-8 text-blue-600 dark:text-blue-400 animate-bounce" />
-                  <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Uploading...</p>
+                  <Upload className="h-8 w-8 text-primary animate-bounce" />
+                  <p className="text-sm text-primary font-medium">Uploading...</p>
                     {uploadStats.progress > 0 && (
                       <div className="w-full max-w-xs">
                         <ProgressBar
@@ -321,11 +321,11 @@ export function SimpleFileUpload({
                 <>
                   <Upload className={cn(
                     'h-8 w-8 mx-auto',
-                    dragActive ? 'text-blue-600' : 'text-gray-600 dark:text-gray-400'
+                    dragActive ? 'text-blue-600' : 'text-muted-foreground'
                   )} />
                   <p className={cn(
                     'text-sm font-medium',
-                    dragActive ? 'text-blue-600' : 'text-gray-600 dark:text-gray-400'
+                    dragActive ? 'text-blue-600' : 'text-muted-foreground'
                   )}>
                     {dragActive ? 'Drop files here' : 'Click to upload or drag and drop'}
                   </p>
@@ -333,7 +333,7 @@ export function SimpleFileUpload({
                     {acceptedTypes.join(', ').replace(/\./g, '').toUpperCase()} up to {formatFileSize(maxFileSize)}
                   </p>
                   {enableCompression && (
-                    <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                    <p className="text-xs text-primary flex items-center">
                       <ImageIcon className="h-3 w-3 mr-1" />
                       Images will be automatically optimized
                     </p>
@@ -445,7 +445,7 @@ export function SimpleFileUpload({
 
       {uploadedFiles.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          <h3 className="text-sm font-medium text-foreground mb-3">
             Uploaded Files ({uploadedFiles.length})
           </h3>
           <AnimatePresence>
@@ -474,8 +474,8 @@ export function SimpleFileUpload({
                         <p className="text-xs text-green-600 dark:text-green-400">{formatFileSize(file.size)}</p>
                         {file.compressed && file.originalSize && (
                           <div className="flex items-center space-x-1">
-                            <Zap className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            <Zap className="h-3 w-3 text-primary" />
+                            <span className="text-xs text-primary font-medium">
                               Optimized ({((1 - file.size / file.originalSize) * 100).toFixed(0)}% smaller)
                             </span>
                           </div>
@@ -487,7 +487,7 @@ export function SimpleFileUpload({
                     variant="ghost"
                     size="sm"
                     onClick={() => onRemoveFile(file.id)}
-                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30 min-h-[44px] min-w-[44px] touch-target opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30 min-h-[44px] min-w-[44px] touch-target opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label={`Remove ${file.name}`}
                   >
                     <X className="h-4 w-4" />

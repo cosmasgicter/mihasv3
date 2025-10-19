@@ -19,7 +19,7 @@ export function LightweightButton({
   const variantClasses = {
     primary: 'bg-primary text-white hover:bg-blue-600/90',
     secondary: 'bg-secondary text-white hover:bg-secondary/90',
-    outline: 'border-2 border-white bg-transparent text-white hover:bg-white dark:bg-gray-800 dark:bg-gray-200 hover:text-blue-600',
+    outline: 'border-2 border-white bg-transparent text-white hover:bg-card hover:text-blue-600',
     gradient: 'bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white hover:shadow-lg'
   }
   

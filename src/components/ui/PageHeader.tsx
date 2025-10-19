@@ -25,8 +25,8 @@ export interface PageHeaderProps {
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
   gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-white/20 shadow-2xl',
-  surface: 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-100 dark:border-gray-700 shadow-xl',
-  subtle: 'bg-white dark:bg-gray-800/90 text-gray-900 dark:text-gray-100 border border-white/60 shadow-lg backdrop-blur-sm'
+  surface: 'bg-card text-foreground border border-gray-100 dark:border-gray-700 shadow-xl',
+  subtle: 'bg-card/90 text-foreground border border-white/60 shadow-lg backdrop-blur-sm'
 }
 
 const statAccentStyles: Record<StatAccent, string> = {
@@ -34,7 +34,7 @@ const statAccentStyles: Record<StatAccent, string> = {
   secondary: 'bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300',
   success: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300',
   warning: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300',
-  neutral: 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100'
+  neutral: 'bg-gray-50 dark:bg-gray-800 border-border text-foreground'
 }
 
 const alignmentStyles: Record<NonNullable<PageHeaderProps['align']>, string> = {
@@ -73,7 +73,7 @@ export function PageHeader({
       >
         {statIcon && <span className="shrink-0 text-lg">{statIcon}</span>}
         <div className="space-y-1">
-          <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-gray-600 dark:text-white/70' : 'text-gray-600 dark:text-gray-400')}>
+          <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-gray-600 dark:text-white/70' : 'text-muted-foreground')}>
             {label}
           </p>
           <p className={cn('text-lg sm:text-xl md:text-2xl font-bold break-words', isGradient ? 'text-gray-900 dark:text-white' : '')}>{value}</p>
@@ -116,7 +116,7 @@ export function PageHeader({
             <div className="space-y-3">
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight break-words">{title}</h1>
               {description && (
-                <p className={cn('text-base sm:text-lg', isGradient ? 'text-white/80' : 'text-gray-600 dark:text-gray-400')}>{description}</p>
+                <p className={cn('text-base sm:text-lg', isGradient ? 'text-white/80' : 'text-muted-foreground')}>{description}</p>
               )}
               {children}
             </div>

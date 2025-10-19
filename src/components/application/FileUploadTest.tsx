@@ -86,7 +86,7 @@ export function FileUploadTest() {
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow">
+    <div className="max-w-md mx-auto p-6 bg-card rounded-lg shadow">
       <h2 className="text-lg font-semibold mb-4">File Upload Test</h2>
       
       <div className="mb-4">
@@ -100,19 +100,19 @@ export function FileUploadTest() {
           />
           <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
             uploading 
-              ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 cursor-not-allowed' 
-              : 'border-gray-300 dark:border-gray-600 dark:border-gray-400 hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
+              ? 'border-border bg-muted cursor-not-allowed' 
+              : 'border-input dark:border-gray-400 hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
           }`}>
             <Upload className={`h-8 w-8 mx-auto mb-2 ${
-              uploading ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400'
+              uploading ? 'text-muted-foreground' : 'text-muted-foreground'
             }`} />
             <p className={`text-sm ${
-              uploading ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400'
+              uploading ? 'text-muted-foreground' : 'text-muted-foreground'
             }`}>
               {uploading ? 'Uploading...' : 'Click to upload file'}
             </p>
             <p className={`text-xs ${
-              uploading ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-500'
+              uploading ? 'text-muted-foreground' : 'text-gray-500 dark:text-gray-500'
             }`}>
               PDF, JPG, JPEG, PNG up to 10MB
             </p>
@@ -131,7 +131,7 @@ export function FileUploadTest() {
 
       {uploading && (
         <div className="mb-4">
-          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+          <div className="flex justify-between text-sm text-muted-foreground mb-1">
             <span>Uploading...</span>
             <span>{progress}%</span>
           </div>
@@ -146,7 +146,7 @@ export function FileUploadTest() {
 
       {files.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <h3 className="text-sm font-medium text-foreground mb-2">
             Uploaded Files ({files.length})
           </h3>
           {files.map((file) => (
@@ -167,7 +167,7 @@ export function FileUploadTest() {
                   variant="ghost"
                   size="sm"
                   onClick={() => removeFile(file.id)}
-                  className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30"
+                  className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30"
                 >
                   <X className="h-4 w-4" />
                 </Button>

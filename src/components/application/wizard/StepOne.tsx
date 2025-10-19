@@ -31,9 +31,9 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
     >
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+      <h2 className="text-lg font-semibold text-foreground mb-4">
         Step 1: Basic KYC Information
       </h2>
       
@@ -80,12 +80,12 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             Sex <span className="text-red-500">*</span>
           </label>
           <select
             {...register('sex')}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             autoComplete="sex"
           >
             <option value="">Select sex</option>
@@ -93,7 +93,7 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
             <option value="Female">Female</option>
           </select>
           {errors.sex && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.sex.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.sex.message}</p>
           )}
         </div>
         
@@ -148,12 +148,12 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             Program <span className="text-red-500">*</span>
           </label>
           <select
             {...register('program')}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select program</option>
             <option value="Clinical Medicine">Clinical Medicine (KATC)</option>
@@ -161,17 +161,17 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
             <option value="Registered Nursing">Registered Nursing (MIHAS)</option>
           </select>
           {errors.program && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.program.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.program.message}</p>
           )}
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             Intake <span className="text-red-500">*</span>
           </label>
           <select
             {...register('intake')}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select intake</option>
             <option value="January 2025">January 2025</option>
@@ -180,7 +180,7 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
             <option value="July 2026">July 2026</option>
           </select>
           {errors.intake && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.intake.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.intake.message}</p>
           )}
         </div>
       </div>

@@ -50,7 +50,7 @@ export function FeedbackWidget() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-80 bg-white dark:bg-gray-800 dark:bg-gray-200 border rounded-lg shadow-xl">
+    <div className="fixed bottom-4 right-4 z-50 w-80 bg-card border rounded-lg shadow-xl">
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Feedback</h3>

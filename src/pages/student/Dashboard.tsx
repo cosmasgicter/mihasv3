@@ -183,7 +183,7 @@ export default function StudentDashboard() {
       case 'rejected':
         return <XCircle className="h-5 w-5 text-red-500" />
       case 'under_review':
-        return <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        return <Clock className="h-5 w-5 text-primary" />
       default:
         return <Clock className="h-5 w-5 text-yellow-500" />
     }
@@ -241,7 +241,7 @@ export default function StudentDashboard() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="rounded-full bg-white dark:bg-gray-800/80 px-6 py-3 shadow-lg"
+                  className="rounded-full bg-card/80 px-6 py-3 shadow-lg"
                 >
                   <div className="h-1 w-full overflow-hidden rounded-full bg-blue-50 dark:bg-blue-950/300/10">
                     <motion.div
@@ -301,7 +301,7 @@ export default function StudentDashboard() {
                   <XCircle className="h-6 w-6 flex-shrink-0" />
                   <div className="flex-1">
                     <p className="font-semibold">Dashboard Error</p>
-                    <p className="text-sm text-red-600 dark:text-red-400/80">{error}</p>
+                    <p className="text-sm text-destructive/80">{error}</p>
                   </div>
                   <button
                     onClick={() => setError('')}
@@ -327,10 +327,10 @@ export default function StudentDashboard() {
               >
                 {submittedApplications.length === 0 && draftApplications.length === 0 && !hasLocalDraftOnly ? (
                   <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-                    <div className="text-gray-400 dark:text-gray-500"><FileText className="w-16 h-16" /></div>
+                    <div className="text-muted-foreground"><FileText className="w-16 h-16" /></div>
                     <div className="space-y-2">
-                      <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100">No applications yet</h3>
-                      <p className="text-gray-600 dark:text-gray-400">
+                      <h3 className="text-xl sm:text-2xl font-semibold text-foreground">No applications yet</h3>
+                      <p className="text-muted-foreground">
                         Start your journey by submitting your first application. We'll guide you every step of the way.
                       </p>
                     </div>
@@ -355,21 +355,21 @@ export default function StudentDashboard() {
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 break-all">Draft application #{application.application_number}</h4>
+                              <h4 className="text-base font-semibold text-foreground break-all">Draft application #{application.application_number}</h4>
                               <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Draft</span>
                             </div>
-                            <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
+                            <dl className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Program:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100 break-words">{application.program}</dd>
+                                <dd className="text-foreground break-words">{application.program}</dd>
                               </div>
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Intake:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100 break-words">{application.intake}</dd>
+                                <dd className="text-foreground break-words">{application.intake}</dd>
                               </div>
                               <div className="flex gap-2">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500">Created:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100">{formatDate(application.created_at)}</dd>
+                                <dd className="text-foreground">{formatDate(application.created_at)}</dd>
                               </div>
                             </dl>
                           </div>
@@ -386,7 +386,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30"
+                              className="w-full sm:w-auto border-red-200 dark:border-red-800 text-destructive hover:bg-red-50 dark:bg-red-950/30"
                               onClick={async () => {
                                 const confirmed = await confirmDialog.confirm({
                                   title: 'Delete Draft',
@@ -427,13 +427,13 @@ export default function StudentDashboard() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">Local draft in progress</h4>
+                              <h4 className="text-base font-semibold text-foreground truncate">Local draft in progress</h4>
                               <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Draft</span>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Progress: {getDraftProgress()}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Last saved: {getDraftTimestamp()}</p>
+                            <p className="text-sm text-muted-foreground">Progress: {getDraftProgress()}</p>
+                            <p className="text-sm text-muted-foreground">Last saved: {getDraftTimestamp()}</p>
                             {draftData?.formData?.program && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 break-words">Program: {draftData.formData.program}</p>
+                              <p className="text-sm text-muted-foreground break-words">Program: {draftData.formData.program}</p>
                             )}
                           </div>
                           <div className="flex flex-col gap-2 sm:flex-row">
@@ -449,7 +449,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30"
+                              className="w-full sm:w-auto border-red-200 dark:border-red-800 text-destructive hover:bg-red-50 dark:bg-red-950/30"
                               onClick={async () => {
                                 const confirmed = await confirmDialog.confirm({
                                   title: 'Delete Draft',
@@ -495,23 +495,23 @@ export default function StudentDashboard() {
                           <div className="space-y-2 min-w-0 flex-1">
                             <div className="flex items-start gap-2 flex-wrap">
                               <div className="flex-shrink-0">{getStatusIcon(application.status)}</div>
-                              <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 break-words min-w-0 flex-1">{getProgramName(application.program)}</h4>
+                              <h4 className="text-base font-semibold text-foreground break-words min-w-0 flex-1">{getProgramName(application.program)}</h4>
                               <span className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap ${getStatusColor(application.status)}`}>
                                 {application.status.replace('_', ' ').toUpperCase()}
                               </span>
                             </div>
-                            <dl className="grid gap-2 text-sm text-gray-700 dark:text-gray-300 grid-cols-1 sm:grid-cols-2">
+                            <dl className="grid gap-2 text-sm text-foreground grid-cols-1 sm:grid-cols-2">
                               <div className="flex gap-2 min-w-0">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500 flex-shrink-0">Application:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100 break-all min-w-0">#{application.application_number}</dd>
+                                <dd className="text-foreground break-all min-w-0">#{application.application_number}</dd>
                               </div>
                               <div className="flex gap-2 min-w-0">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500 flex-shrink-0">Intake:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100 break-words min-w-0">{getIntakeName(application.intake)}</dd>
+                                <dd className="text-foreground break-words min-w-0">{getIntakeName(application.intake)}</dd>
                               </div>
                               <div className="flex gap-2 min-w-0">
                                 <dt className="font-medium text-gray-500 dark:text-gray-500 flex-shrink-0">Submitted:</dt>
-                                <dd className="text-gray-900 dark:text-gray-100 min-w-0">{formatDate(application.submitted_at)}</dd>
+                                <dd className="text-foreground min-w-0">{formatDate(application.submitted_at)}</dd>
                               </div>
                             </dl>
                           </div>
@@ -519,7 +519,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white"
+                              className="w-full sm:w-auto border-blue-600 text-primary hover:bg-blue-600 hover:text-white"
                             >
                               View Details
                             </Button>
@@ -538,25 +538,25 @@ export default function StudentDashboard() {
                   icon={<User className="h-5 w-5" />}
                 >
                   <div className="grid gap-3">
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3 overflow-hidden">
+                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Full name</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words overflow-wrap-anywhere">
+                      <p className="text-sm font-semibold text-foreground break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3 overflow-hidden">
+                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Email</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-all overflow-wrap-anywhere">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
+                      <p className="text-sm font-semibold text-foreground break-all overflow-wrap-anywhere">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
                     </div>
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3 overflow-hidden">
+                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Phone</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words overflow-wrap-anywhere">
+                      <p className="text-sm font-semibold text-foreground break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3 overflow-hidden">
+                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500">Residence</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words overflow-wrap-anywhere">
+                      <p className="text-sm font-semibold text-foreground break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}
                       </p>
                     </div>
@@ -565,7 +565,7 @@ export default function StudentDashboard() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="mt-4 w-full border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white"
+                      className="mt-4 w-full border-blue-600 text-primary hover:bg-blue-600 hover:text-white"
                     >
                       Update profile
                     </Button>
@@ -586,12 +586,12 @@ export default function StudentDashboard() {
                         transition={{ delay: 0.1 * index }}
                         className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3"
                       >
-                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{intake.name}</p>
-                        <p className="text-xs font-semibold text-red-600 dark:text-red-400">Deadline: {formatDate(intake.application_deadline)}</p>
+                        <p className="text-sm font-semibold text-foreground">{intake.name}</p>
+                        <p className="text-xs font-semibold text-destructive">Deadline: {formatDate(intake.application_deadline)}</p>
                       </motion.div>
                     ))}
                     {intakes.length === 0 && (
-                      <p className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-500">
+                      <p className="rounded-xl bg-muted px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-500">
                         No upcoming deadlines yet. Check back soon.
                       </p>
                     )}
@@ -631,7 +631,7 @@ export default function StudentDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full justify-start border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30"
+                        className="w-full justify-start border-red-200 dark:border-red-800 text-destructive hover:bg-red-50 dark:bg-red-950/30"
                         disabled={isClearingAllDrafts}
                         onClick={async () => {
                           const confirmed = await confirmDialog.confirm({
@@ -684,7 +684,7 @@ export default function StudentDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full justify-start border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900"
+                        className="w-full justify-start border-border text-foreground hover:bg-muted"
                       >
                         <User className="mr-2 h-4 w-4" />
                         Profile settings

@@ -116,9 +116,9 @@ export function ContinueApplication() {
 
   if (loading) {
     return (
-      <div className={cn(baseCardClasses, 'bg-white dark:bg-gray-800/90 border-gray-200 dark:border-gray-700/80 text-gray-600 dark:text-gray-400')}>
+      <div className={cn(baseCardClasses, 'bg-card/90 border-border/80 text-muted-foreground')}>
         <div className="flex items-center gap-3">
-          <RefreshCw className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
+          <RefreshCw className="h-5 w-5 animate-spin text-primary" />
           <span>Checking for saved applications...</span>
         </div>
       </div>
@@ -135,7 +135,7 @@ export function ContinueApplication() {
       >
         <div className="space-y-2">
           <h2 className="text-xl font-semibold">Ready to apply?</h2>
-          <p className="text-sm sm:text-base text-blue-600 dark:text-blue-400-800">
+          <p className="text-sm sm:text-base text-primary-800">
             Start your application to join programs at Kalulushi Training Centre or Mukuba Institute of Health and Applied Sciences.
           </p>
         </div>
@@ -151,19 +151,19 @@ export function ContinueApplication() {
 
   const cardTone = isExpiringSoon()
     ? 'bg-amber-50/90 border-amber-200 text-amber-900'
-    : 'bg-white dark:bg-gray-800/90 border-gray-200 dark:border-gray-700/80 text-gray-900 dark:text-gray-100'
+    : 'bg-card/90 border-border/80 text-foreground'
 
   return (
     <div className={cn(baseCardClasses, 'flex flex-col gap-5', cardTone)}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/300/10 text-blue-600 dark:text-blue-400">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/300/10 text-primary">
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Continue your application</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Jump back in where you left off—your progress is saved securely.</p>
+              <h2 className="text-lg font-semibold text-foreground">Continue your application</h2>
+              <p className="text-sm text-muted-foreground">Jump back in where you left off—your progress is saved securely.</p>
             </div>
           </div>
 
@@ -174,19 +174,19 @@ export function ContinueApplication() {
             </div>
           )}
 
-          <dl className="mt-4 grid gap-3 text-sm text-gray-700 dark:text-gray-300 sm:max-w-md">
-            <div className="flex items-center justify-between rounded-xl bg-white dark:bg-gray-800/70 px-4 py-2 font-medium text-gray-900 dark:text-gray-100 shadow-sm">
+          <dl className="mt-4 grid gap-3 text-sm text-foreground sm:max-w-md">
+            <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
               <dt className="text-gray-500 dark:text-gray-500">Progress</dt>
               <dd>{draftInfo.progress}</dd>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-white dark:bg-gray-800/70 px-4 py-2 font-medium text-gray-900 dark:text-gray-100 shadow-sm">
+            <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
               <dt className="text-gray-500 dark:text-gray-500">Last saved</dt>
               <dd>{draftInfo.lastSaved ? formatDate(draftInfo.lastSaved) : 'Unknown'}</dd>
             </div>
             {draftInfo.expiresAt && (
-              <div className="flex items-center justify-between rounded-xl bg-white dark:bg-gray-800/70 px-4 py-2 font-medium text-gray-900 dark:text-gray-100 shadow-sm">
+              <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
                 <dt className="text-gray-500 dark:text-gray-500">Expires in</dt>
-                <dd className={cn(isExpiringSoon() ? 'text-amber-700 dark:text-amber-300' : 'text-gray-900 dark:text-gray-100')}>{getTimeUntilExpiry()}</dd>
+                <dd className={cn(isExpiringSoon() ? 'text-amber-700 dark:text-amber-300' : 'text-foreground')}>{getTimeUntilExpiry()}</dd>
               </div>
             )}
           </dl>
@@ -205,7 +205,7 @@ export function ContinueApplication() {
               size="sm"
               onClick={handleDeleteDraft}
               disabled={deleting}
-              className="flex-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-950/30"
+              className="flex-1 text-destructive hover:bg-red-50 dark:bg-red-950/30"
             >
               {deleting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
               <span className="ml-2">Delete</span>
@@ -214,7 +214,7 @@ export function ContinueApplication() {
               variant="outline"
               size="sm"
               onClick={loadDraftInfo}
-              className="flex-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:bg-blue-950/300/10"
+              className="flex-1 text-primary hover:bg-blue-50 dark:bg-blue-950/300/10"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh

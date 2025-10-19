@@ -47,7 +47,7 @@ export function LoadingButton({
       
       {loading && (
         <motion.div
-          className="absolute inset-0 bg-white dark:bg-gray-800/10 backdrop-blur-sm"
+          className="absolute inset-0 bg-card/10 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}

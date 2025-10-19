@@ -19,7 +19,7 @@ const sizeClasses = {
 
 const colorClasses = {
   primary: 'text-blue-600',
-  secondary: 'text-gray-600 dark:text-gray-400',
+  secondary: 'text-muted-foreground',
   success: 'text-green-600',
   warning: 'text-yellow-600',
   error: 'text-red-600'
@@ -113,13 +113,13 @@ export function FullScreenLoader({
   variant?: 'default' | 'dots' | 'pulse'
 }) {
   return (
-    <div className="fixed inset-0 bg-white dark:bg-gray-800/80 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-card/80 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="text-center space-y-4">
         <EnhancedLoadingSpinner size="xl" variant={variant} color="primary" />
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{text}</h3>
+          <h3 className="text-lg font-semibold text-foreground">{text}</h3>
           {subtext && (
-            <p className="text-sm text-gray-600 dark:text-gray-400">{subtext}</p>
+            <p className="text-sm text-muted-foreground">{subtext}</p>
           )}
         </div>
       </div>

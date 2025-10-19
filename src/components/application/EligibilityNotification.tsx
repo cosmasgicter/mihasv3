@@ -63,7 +63,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
               eligibility.competitivenessLevel === 'Highly Competitive' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
               eligibility.competitivenessLevel === 'Competitive' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800' :
               eligibility.competitivenessLevel === 'Minimum' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200' :
-              'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+              'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
             }`}>
               {eligibility.competitivenessLevel}
             </div>
@@ -72,7 +72,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           {!eligible && canProceed && (
             <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md">
               <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
                 <div className="text-xs text-blue-800 dark:text-blue-200 dark:text-blue-800">
                   <p className="font-medium mb-1">✓ You can still proceed with your application</p>
                   <p>
@@ -85,11 +85,11 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
 
           {recommendations && recommendations.length > 0 && (
             <div className="space-y-1 mb-2">
-              <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Recommendations:</p>
+              <p className="text-xs font-medium text-foreground">Recommendations:</p>
               <ul className="space-y-1">
                 {recommendations.map((rec, index) => (
-                  <li key={index} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
-                    <span className="text-gray-400 dark:text-gray-500 mt-0.5">•</span>
+                  <li key={index} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <span className="text-muted-foreground mt-0.5">•</span>
                     <span>{rec}</span>
                   </li>
                 ))}

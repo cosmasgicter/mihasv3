@@ -83,19 +83,19 @@ export function NotificationPreferences() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Notification Preferences</h2>
-        <p className="text-gray-600 dark:text-gray-400">Choose how you want to receive notifications</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Notification Preferences</h2>
+        <p className="text-muted-foreground">Choose how you want to receive notifications</p>
       </div>
 
       {/* Channels */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Notification Channels</h3>
+      <div className="bg-card rounded-lg border border-border p-6 space-y-4">
+        <h3 className="font-semibold text-foreground mb-4">Notification Channels</h3>
         
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
           <div className="flex items-center gap-3">
-            <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <Mail className="h-5 w-5 text-primary" />
             <div>
-              <p className="font-medium text-gray-900 dark:text-gray-100">Email Notifications</p>
+              <p className="font-medium text-foreground">Email Notifications</p>
               <p className="text-sm text-gray-500 dark:text-gray-500">Receive updates via email</p>
             </div>
           </div>
@@ -103,15 +103,15 @@ export function NotificationPreferences() {
             type="checkbox"
             checked={preferences.email_enabled}
             onChange={(e) => setPreferences({ ...preferences, email_enabled: e.target.checked })}
-            className="h-5 w-5 text-blue-600 dark:text-blue-400 rounded"
+            className="h-5 w-5 text-primary rounded"
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
           <div className="flex items-center gap-3">
             <MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
             <div>
-              <p className="font-medium text-gray-900 dark:text-gray-100">SMS Notifications</p>
+              <p className="font-medium text-foreground">SMS Notifications</p>
               <p className="text-sm text-gray-500 dark:text-gray-500">Receive updates via SMS</p>
             </div>
           </div>
@@ -119,15 +119,15 @@ export function NotificationPreferences() {
             type="checkbox"
             checked={preferences.sms_enabled}
             onChange={(e) => setPreferences({ ...preferences, sms_enabled: e.target.checked })}
-            className="h-5 w-5 text-blue-600 dark:text-blue-400 rounded"
+            className="h-5 w-5 text-primary rounded"
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             <div>
-              <p className="font-medium text-gray-900 dark:text-gray-100">Push Notifications</p>
+              <p className="font-medium text-foreground">Push Notifications</p>
               <p className="text-sm text-gray-500 dark:text-gray-500">Receive in-app notifications</p>
             </div>
           </div>
@@ -135,18 +135,18 @@ export function NotificationPreferences() {
             type="checkbox"
             checked={preferences.push_enabled}
             onChange={(e) => setPreferences({ ...preferences, push_enabled: e.target.checked })}
-            className="h-5 w-5 text-blue-600 dark:text-blue-400 rounded"
+            className="h-5 w-5 text-primary rounded"
           />
         </label>
       </div>
 
       {/* Types */}
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Notification Types</h3>
+      <div className="bg-card rounded-lg border border-border p-6 space-y-4">
+        <h3 className="font-semibold text-foreground mb-4">Notification Types</h3>
         
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
           <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100">Application Updates</p>
+            <p className="font-medium text-foreground">Application Updates</p>
             <p className="text-sm text-gray-500 dark:text-gray-500">Status changes and decisions</p>
           </div>
           <input
@@ -156,13 +156,13 @@ export function NotificationPreferences() {
               ...preferences,
               notification_types: { ...preferences.notification_types, application_update: e.target.checked }
             })}
-            className="h-5 w-5 text-blue-600 dark:text-blue-400 rounded"
+            className="h-5 w-5 text-primary rounded"
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
           <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100">Interview Schedules</p>
+            <p className="font-medium text-foreground">Interview Schedules</p>
             <p className="text-sm text-gray-500 dark:text-gray-500">Interview invitations and reminders</p>
           </div>
           <input
@@ -172,13 +172,13 @@ export function NotificationPreferences() {
               ...preferences,
               notification_types: { ...preferences.notification_types, interview_schedule: e.target.checked }
             })}
-            className="h-5 w-5 text-blue-600 dark:text-blue-400 rounded"
+            className="h-5 w-5 text-primary rounded"
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
           <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100">Document Ready</p>
+            <p className="font-medium text-foreground">Document Ready</p>
             <p className="text-sm text-gray-500 dark:text-gray-500">Acceptance letters and receipts</p>
           </div>
           <input
@@ -188,7 +188,7 @@ export function NotificationPreferences() {
               ...preferences,
               notification_types: { ...preferences.notification_types, document_ready: e.target.checked }
             })}
-            className="h-5 w-5 text-blue-600 dark:text-blue-400 rounded"
+            className="h-5 w-5 text-primary rounded"
           />
         </label>
       </div>

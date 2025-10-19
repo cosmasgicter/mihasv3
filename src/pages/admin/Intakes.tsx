@@ -214,7 +214,7 @@ export default function AdminIntakes() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
           {/* Header - Mobile First */}
           <div className="bg-gradient-to-r from-secondary to-primary p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -232,7 +232,7 @@ export default function AdminIntakes() {
               </div>
               <Button 
                 onClick={openCreate}
-                className="bg-white dark:bg-gray-800 dark:bg-gray-200 text-secondary hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 font-semibold shadow-lg"
+                className="bg-card text-secondary hover:bg-accent dark:bg-gray-200 font-semibold shadow-lg"
               >
                 <Plus className="h-4 w-4 mr-2" /> Add Intake
               </Button>
@@ -246,17 +246,17 @@ export default function AdminIntakes() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">Loading intakes...</p>
+                  <p className="mt-4 text-lg text-muted-foreground">Loading intakes...</p>
                 </div>
               </div>
             ) : error ? (
               <div className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-6 text-center">
                 <div className="text-6xl mb-4">😱</div>
-                <p className="text-red-600 dark:text-red-400 font-medium text-lg">{error}</p>
+                <p className="text-destructive font-medium text-lg">{error}</p>
                 <Button 
                   onClick={loadIntakes} 
                   variant="outline" 
-                  className="mt-4 text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                  className="mt-4 text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
                 >
                   Try Again
                 </Button>
@@ -264,8 +264,8 @@ export default function AdminIntakes() {
             ) : intakes.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-8xl mb-6"><Calendar className="w-5 h-5" /></div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Intakes Yet</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-foreground mb-2">No Intakes Yet</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   Create admission intakes to define application periods, deadlines, and capacity for student enrollment.
                 </p>
                 <Button onClick={openCreate} className="bg-gradient-to-r from-secondary to-primary text-white font-semibold">
@@ -278,11 +278,11 @@ export default function AdminIntakes() {
                 {/* Mobile Cards View */}
                 <div className="block lg:hidden space-y-4">
                   {intakes.map((intake) => (
-                    <div key={intake.id} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                    <div key={intake.id} className="bg-muted rounded-xl p-4 border border-border">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{intake.name}</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Year: {intake.year}</p>
+                          <h3 className="font-bold text-lg text-foreground">{intake.name}</h3>
+                          <p className="text-sm text-muted-foreground">Year: {intake.year}</p>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                           intake.available_spots > 0 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
@@ -302,7 +302,7 @@ export default function AdminIntakes() {
                         </div>
                         <div className="col-span-2">
                           <span className="text-gray-500 dark:text-gray-500">Application Deadline:</span>
-                          <div className="font-medium text-red-600 dark:text-red-400">{formatDate(intake.application_deadline)}</div>
+                          <div className="font-medium text-destructive">{formatDate(intake.application_deadline)}</div>
                         </div>
                       </div>
                       
@@ -311,7 +311,7 @@ export default function AdminIntakes() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openEdit(intake)}
-                          className="flex-1 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+                          className="flex-1 text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
                         >
                           <Pencil className="h-4 w-4 mr-1" />
                           Edit
@@ -320,7 +320,7 @@ export default function AdminIntakes() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openDelete(intake)}
-                          className="flex-1 text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                          className="flex-1 text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           Delete
@@ -335,51 +335,51 @@ export default function AdminIntakes() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gradient-to-r from-gray-50 to-purple-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
                           <Calendar className="w-5 h-5" /> Name
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
                           📆 Year
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
                           🟢 Start
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
                           🔴 End
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
                           ⏰ Deadline
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
                           <BarChart3 className="w-5 h-5" /> Capacity
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
                           <Target className="w-5 h-5" /> Available
                         </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-right text-sm font-bold text-foreground uppercase tracking-wider">
                           ⚙️ Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 dark:bg-gray-200 divide-y divide-gray-200">
+                    <tbody className="bg-card divide-y divide-gray-200">
                       {intakes.map((intake) => (
                         <tr key={intake.id} className="hover:bg-purple-50 dark:bg-purple-950/30 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-gray-900 dark:text-gray-100">{intake.name}</div>
+                            <div className="font-semibold text-foreground">{intake.name}</div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800">
                               {intake.year}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                          <td className="px-6 py-4 text-sm text-muted-foreground">
                             {formatDate(intake.start_date)}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                          <td className="px-6 py-4 text-sm text-muted-foreground">
                             {formatDate(intake.end_date)}
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                            <span className="text-sm font-medium text-destructive">
                               {formatDate(intake.application_deadline)}
                             </span>
                           </td>
@@ -401,7 +401,7 @@ export default function AdminIntakes() {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openEdit(intake)}
-                                className="text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+                                className="text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -409,7 +409,7 @@ export default function AdminIntakes() {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openDelete(intake)}
-                                className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                                className="text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

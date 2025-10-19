@@ -37,9 +37,9 @@ export function SaveNotification({
       case 'success':
         return <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
       case 'error':
-        return <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+        return <AlertCircle className="h-5 w-5 text-destructive" />
       case 'info':
-        return <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        return <AlertCircle className="h-5 w-5 text-primary" />
     }
   }
 
@@ -66,7 +66,7 @@ export function SaveNotification({
             setIsVisible(false)
             setTimeout(onClose, 300)
           }}
-          className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400"
+          className="ml-2 text-muted-foreground hover:text-muted-foreground"
         >
           <X className="h-4 w-4" />
         </button>

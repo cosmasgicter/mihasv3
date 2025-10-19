@@ -39,10 +39,10 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
   return (
     <motion.aside
       animate={{ width: collapsed ? 80 : 256 }}
-      className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-white dark:bg-gray-800/80 backdrop-blur-xl border-r border-gray-200 dark:border-gray-700 shadow-xl z-40"
+      className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-card/80 backdrop-blur-xl border-r border-border shadow-xl z-40"
       transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
     >
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between p-4 border-b border-border">
         <AnimatePresence mode="wait">
           {!collapsed && (
             <motion.h1
@@ -58,7 +58,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         <button
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-800 dark:bg-gray-200 transition-colors"
+          className="p-2 rounded-lg hover:bg-accent dark:hover:bg-gray-800 dark:bg-gray-200 transition-colors"
         >
           {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
         </button>
@@ -84,8 +84,8 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
               <Icon
                 className={`h-5 w-5 transition-all duration-300 relative z-10 ${
                   isActive
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                    ? 'text-primary'
+                    : 'text-muted-foreground group-hover:text-blue-500 dark:group-hover:text-blue-300'
                 }`}
               />
               <AnimatePresence mode="wait">
@@ -96,8 +96,8 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                     exit={{ opacity: 0, x: -10 }}
                     className={`text-sm font-medium transition-colors relative z-10 truncate ${
                       isActive
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-gray-700 dark:text-gray-300 group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                        ? 'text-primary'
+                        : 'text-foreground group-hover:text-blue-500 dark:group-hover:text-blue-300'
                     }`}
                   >
                     {label}
@@ -109,7 +109,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-border">
         <div className={`flex ${collapsed ? 'justify-center' : 'justify-end'}`}>
           <ThemeToggle />
         </div>

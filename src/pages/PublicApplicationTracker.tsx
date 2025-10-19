@@ -188,7 +188,7 @@ export default function PublicApplicationTracker() {
       case 'rejected':
         return <XCircle className="h-8 w-8 text-red-500" />
       case 'under_review':
-        return <Target className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+        return <Target className="h-8 w-8 text-primary" />
       case 'submitted':
         return <Rocket className="h-8 w-8 text-yellow-500" />
       default:
@@ -510,12 +510,12 @@ export default function PublicApplicationTracker() {
       <motion.header
         initial={maybeMotion({ y: -50, opacity: 0 })}
         animate={maybeMotion({ y: 0, opacity: 1 })}
-        className="relative bg-white dark:bg-gray-800/90 backdrop-blur-md shadow-2xl border-b border-white/30 safe-area-top"
+        className="relative bg-card/90 backdrop-blur-md shadow-2xl border-b border-white/30 safe-area-top"
       >
         <div className="container-mobile">
           <div className="flex flex-col space-y-4 py-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 sm:py-8">
             <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-6">
-              <Link to="/" className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-600/80 transition-all duration-300 group touch-target">
+              <Link to="/" className="inline-flex items-center text-primary hover:text-blue-600/80 transition-all duration-300 group touch-target">
                 <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 group-hover:-translate-x-2 transition-transform" />
                 <span className="font-bold text-base sm:text-lg">Back to Home</span>
               </Link>
@@ -571,7 +571,7 @@ export default function PublicApplicationTracker() {
                   Find Your Application
                 </h2>
                 <p className="text-base sm:text-xl text-secondary/80 max-w-2xl mx-auto leading-relaxed px-4">
-                  Enter your <span className="font-bold text-blue-600 dark:text-blue-400">application number</span> (e.g., MIHAS123456) or 
+                  Enter your <span className="font-bold text-primary">application number</span> (e.g., MIHAS123456) or 
                   <span className="font-bold text-secondary"> tracking code</span> to check status.
                 </p>
               </div>
@@ -590,7 +590,7 @@ export default function PublicApplicationTracker() {
                         onPaste={handlePaste}
                         onKeyPress={handleKeyPress}
                         placeholder="Enter application number..."
-                        className="form-input-mobile w-full text-base sm:text-xl py-4 sm:py-6 pl-12 sm:pl-16 pr-4 sm:pr-6 border-3 border-gray-200 dark:border-gray-700 focus:border-blue-600 rounded-2xl shadow-lg font-medium"
+                        className="form-input-mobile w-full text-base sm:text-xl py-4 sm:py-6 pl-12 sm:pl-16 pr-4 sm:pr-6 border-3 border-border focus:border-blue-600 rounded-2xl shadow-lg font-medium"
                       />
                     </motion.div>
                   </div>
@@ -680,12 +680,12 @@ export default function PublicApplicationTracker() {
                     <motion.div
                       animate={maybeMotion({ x: [0, 100, 0], y: [0, -50, 0] })}
                       transition={maybeMotion({ duration: 10, repeat: Infinity })}
-                      className="absolute top-0 left-0 w-32 h-32 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-full"
+                      className="absolute top-0 left-0 w-32 h-32 bg-card rounded-full"
                     />
                     <motion.div
                       animate={maybeMotion({ x: [100, 0, 100], y: [0, 50, 0] })}
                       transition={maybeMotion({ duration: 15, repeat: Infinity })}
-                      className="absolute bottom-0 right-0 w-24 h-24 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-full"
+                      className="absolute bottom-0 right-0 w-24 h-24 bg-card rounded-full"
                     />
                   </div>
                   
@@ -861,7 +861,7 @@ export default function PublicApplicationTracker() {
                               <span className="text-xl sm:text-2xl">💬</span>
                               <span>Message from Admissions</span>
                             </h5>
-                            <div className="bg-white dark:bg-gray-800/70 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
+                            <div className="bg-card/70 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
                               <p className="text-green-800 dark:text-green-200 text-base sm:text-lg lg:text-xl leading-relaxed font-medium">
                                 {application.admin_feedback}
                               </p>
@@ -972,7 +972,7 @@ export default function PublicApplicationTracker() {
                               {application.email ? (
                                 <a
                                   href={`mailto:${application.email}`}
-                                  className="text-blue-600 dark:text-blue-400 text-base sm:text-lg lg:text-xl break-all hover:underline"
+                                  className="text-primary text-base sm:text-lg lg:text-xl break-all hover:underline"
                                 >
                                   {application.email}
                                 </a>
@@ -1207,7 +1207,7 @@ export default function PublicApplicationTracker() {
               <div className="text-center space-y-6">
                 <div className="flex items-center justify-center space-x-4">
                   <Phone className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-                  <Mail className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  <Mail className="h-8 w-8 text-primary" />
                   <MapPin className="h-8 w-8 text-indigo-600" />
                 </div>
                 
@@ -1216,18 +1216,18 @@ export default function PublicApplicationTracker() {
                 </h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
-                  <div className="bg-white dark:bg-gray-800/70 rounded-xl p-6">
+                  <div className="bg-card/70 rounded-xl p-6">
                     <p className="font-bold text-secondary mb-2">📧 Email Support</p>
-                    <a href="mailto:info@mihas.edu.zm" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
+                    <a href="mailto:info@mihas.edu.zm" className="text-primary font-bold hover:underline">
                       info@mihas.edu.zm
                     </a>
                   </div>
                   
-                  <div className="bg-white dark:bg-gray-800/70 rounded-xl p-6">
+                  <div className="bg-card/70 rounded-xl p-6">
                     <p className="font-bold text-secondary mb-2">📱 Phone Support</p>
                     <div className="space-y-1">
-                      <p><strong>KATC:</strong> <a href="tel:0966992299" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">0966992299</a></p>
-                      <p><strong>MIHAS:</strong> <a href="tel:0961515151" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">0961515151</a></p>
+                      <p><strong>KATC:</strong> <a href="tel:0966992299" className="text-primary font-bold hover:underline">0966992299</a></p>
+                      <p><strong>MIHAS:</strong> <a href="tel:0961515151" className="text-primary font-bold hover:underline">0961515151</a></p>
                     </div>
                   </div>
                 </div>
@@ -1250,7 +1250,7 @@ export default function PublicApplicationTracker() {
                 initial={maybeMotion({ scale: 0.8, opacity: 0 })}
                 animate={maybeMotion({ scale: 1, opacity: 1 })}
                 exit={maybeMotion({ scale: 0.8, opacity: 0 })}
-                className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-2xl p-8 max-w-md w-full"
+                className="bg-card rounded-2xl p-8 max-w-md w-full"
                 onClick={(e) => e.stopPropagation()}
               >
                 <h3 className="text-2xl font-bold text-secondary mb-6 text-center">
@@ -1258,7 +1258,7 @@ export default function PublicApplicationTracker() {
                 </h3>
                 
                 <div className="space-y-4">
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+                  <div className="bg-muted rounded-xl p-4">
                     <p className="text-sm text-secondary/70 mb-2">Application Number</p>
                     <p className="font-mono text-lg font-bold">{application?.application_number}</p>
                   </div>

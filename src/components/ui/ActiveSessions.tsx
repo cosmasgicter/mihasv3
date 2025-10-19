@@ -121,7 +121,7 @@ export function ActiveSessions() {
               <div
                 key={session.id}
                 className={`flex items-center justify-between p-3 rounded-lg border ${
-                  isCurrentDevice ? 'bg-green-50 border-green-200' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700'
+                  isCurrentDevice ? 'bg-green-50 border-green-200' : 'bg-muted border-border'
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -150,7 +150,7 @@ export function ActiveSessions() {
                     size="sm"
                     onClick={() => terminateSession(session.device_id)}
                     disabled={terminating === session.device_id}
-                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30"
+                    className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950/30"
                   >
                     {terminating === session.device_id ? 'Terminating...' : 'Terminate'}
                   </Button>

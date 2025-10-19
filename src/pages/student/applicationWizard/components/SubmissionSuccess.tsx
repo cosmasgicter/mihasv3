@@ -68,10 +68,10 @@ const SubmissionSuccess = ({
   onDownload,
   onEmail
 }: SubmissionSuccessProps) => (
-  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4">
+  <div className="min-h-screen bg-muted flex items-center justify-center py-12 px-4">
     <div className="max-w-lg w-full">
       <motion.div
-        className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-8 text-center"
+        className="bg-card rounded-lg shadow-lg p-8 text-center"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -79,10 +79,10 @@ const SubmissionSuccess = ({
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}>
           <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-6" />
         </motion.div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Application Submitted Successfully!</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-4">Application Submitted Successfully!</h2>
 
         {persistingSlip && (
-          <p className="text-sm text-blue-600 dark:text-blue-400 mb-4">Saving a copy of your application slip for admissions records...</p>
+          <p className="text-sm text-primary mb-4">Saving a copy of your application slip for admissions records...</p>
         )}
 
         <motion.div
@@ -124,7 +124,7 @@ const SubmissionSuccess = ({
           </div>
         </motion.div>
 
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-muted-foreground mb-6">
           Your application is now under review. You'll receive notifications about status updates.
         </p>
 

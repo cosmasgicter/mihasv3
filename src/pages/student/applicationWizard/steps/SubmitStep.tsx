@@ -57,22 +57,22 @@ const SubmitStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
       data-testid="submit-step"
     >
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-4">
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-muted-foreground">
           Please review all your information before submitting. Once submitted, you cannot make changes.
         </p>
 
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-          <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Application Summary</h3>
+        <div className="bg-muted rounded-lg p-4">
+          <h3 className="font-medium text-foreground mb-2">Application Summary</h3>
           
           {/* Validation Status */}
-          <div className="mb-4 p-3 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded border">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Completion Status</h4>
+          <div className="mb-4 p-3 bg-card rounded border">
+            <h4 className="text-sm font-medium text-foreground mb-2">Completion Status</h4>
             <div className="space-y-1 text-xs">
               <div className={`flex items-center ${formValues.full_name ? 'text-green-600' : 'text-red-600'}`}>
                 {formValues.full_name ? '✓' : '✗'} Personal Information
@@ -88,7 +88,7 @@ const SubmitStep = ({
               </div>
             </div>
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <div className="text-sm text-muted-foreground space-y-1">
             <p>
               <strong>Name:</strong> {formValues.full_name}
             </p>
@@ -132,7 +132,7 @@ const SubmitStep = ({
                     {eligibilityCheck.eligible ? ' ✓ Meets Requirements' : ' ⚠ Advisory Only'}
                   </span>
                   {eligibilityCheck.score && (
-                    <span className="ml-2 text-blue-600 dark:text-blue-400">({eligibilityCheck.score}%)</span>
+                    <span className="ml-2 text-primary">({eligibilityCheck.score}%)</span>
                   )}
                 </p>
                 {!eligibilityCheck.eligible && (
@@ -158,7 +158,7 @@ const SubmitStep = ({
             onChange={event => onConfirmChange(event.target.checked)}
             required
           />
-          <label htmlFor="confirm" className="text-sm text-gray-700 dark:text-gray-300">
+          <label htmlFor="confirm" className="text-sm text-foreground">
             I confirm that all information provided is accurate and complete.
           </label>
         </div>

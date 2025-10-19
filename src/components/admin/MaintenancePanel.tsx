@@ -66,7 +66,7 @@ export function MaintenancePanel() {
       case 'completed': return <CheckCircle className="h-4 w-4 text-green-500" />
       case 'failed': return <XCircle className="h-4 w-4 text-red-500" />
       case 'running': return <LoadingSpinner className="h-4 w-4" />
-      default: return <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+      default: return <Clock className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -75,7 +75,7 @@ export function MaintenancePanel() {
       case 'completed': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
       case 'failed': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
       case 'running': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800'
-      default: return 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
+      default: return 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700'
     }
   }
 
@@ -96,14 +96,14 @@ export function MaintenancePanel() {
         <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <Download className="h-5 w-5 text-primary" />
               <span>Update Available</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <p className="font-medium">Version {updateInfo.version}</p>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-muted-foreground">
                 <p><strong>Features:</strong> {updateInfo.features.join(', ')}</p>
                 <p><strong>Fixes:</strong> {updateInfo.fixes.join(', ')}</p>
               </div>
@@ -136,7 +136,7 @@ export function MaintenancePanel() {
                       {task.status}
                     </Badge>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{task.description}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
                   <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500">
                     <span>Schedule: {task.schedule}</span>
                     <span>Next: {task.nextRun.toLocaleString()}</span>
@@ -184,7 +184,7 @@ export function MaintenancePanel() {
                       {new Date(log.executed_at).toLocaleString()} • {log.duration}ms
                     </div>
                     {log.error_message && (
-                      <div className="text-sm text-red-600 dark:text-red-400 mt-1">{log.error_message}</div>
+                      <div className="text-sm text-destructive mt-1">{log.error_message}</div>
                     )}
                   </div>
                   <Badge className={log.success ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'}>

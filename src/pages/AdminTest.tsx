@@ -12,16 +12,16 @@ export default function AdminTest() {
   const isAdmin = hasAdminRole || isAdminRole(profile?.role)
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+    <div className="min-h-screen bg-muted p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-8">
+        <div className="bg-card rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold mb-8">🔧 Admin Access Test</h1>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* User Info */}
             <div className="space-y-4">
               <h2 className="text-xl font-semibold"><User className="w-5 h-5" /> User Information</h2>
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg space-y-2">
+              <div className="bg-muted p-4 rounded-lg space-y-2">
                 <div><strong>Email:</strong> {user?.email || 'Not logged in'}</div>
                 <div><strong>User ID:</strong> {user?.id || 'None'}</div>
                 <div><strong>Created:</strong> {user?.created_at ? new Date(user.created_at).toLocaleString() : 'None'}</div>
@@ -31,7 +31,7 @@ export default function AdminTest() {
             {/* Profile Info */}
             <div className="space-y-4">
               <h2 className="text-xl font-semibold"><FileText className="w-5 h-5" /> Profile Information</h2>
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg space-y-2">
+              <div className="bg-muted p-4 rounded-lg space-y-2">
                 <div><strong>Full Name:</strong> {profile?.full_name || 'None'}</div>
                 <div><strong>Role:</strong> {profile?.role || 'None'}</div>
                 <div><strong>Phone:</strong> {profile?.phone || 'None'}</div>
@@ -42,7 +42,7 @@ export default function AdminTest() {
             {/* User Role Info */}
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">🎭 User Role Information</h2>
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg space-y-2">
+              <div className="bg-muted p-4 rounded-lg space-y-2">
                 <div><strong>Role:</strong> {userRole?.role || 'None'}</div>
                 <div><strong>Permissions:</strong> {userRole?.permissions?.join(', ') || 'None'}</div>
                 <div><strong>Department:</strong> {userRole?.department || 'None'}</div>
@@ -53,7 +53,7 @@ export default function AdminTest() {
             {/* Access Check */}
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">🔐 Access Check</h2>
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg space-y-2">
+              <div className="bg-muted p-4 rounded-lg space-y-2">
                 <div><strong>Is Admin:</strong> {isAdmin ? '✅ Yes' : '❌ No'}</div>
                 <div><strong>Dev Mode:</strong> {import.meta.env.DEV ? '✅ Yes' : '❌ No'}</div>
                 <div><strong>Super Admin:</strong> {user?.email === 'cosmas@beanola.com' ? '✅ Yes' : '❌ No'}</div>

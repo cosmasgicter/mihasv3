@@ -66,18 +66,18 @@ export function MobileOptimizedButton({
       'focus-visible:ring-blue-500'
     ),
     secondary: cn(
-      'bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 text-gray-900 dark:text-gray-100 shadow-sm',
+      'bg-accent dark:bg-gray-200 text-foreground shadow-sm',
       'hover:bg-gray-200 dark:bg-gray-700 active:bg-gray-300 dark:bg-gray-600 dark:bg-gray-400',
       'focus-visible:ring-gray-500'
     ),
     outline: cn(
-      'border-2 border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 text-gray-700 dark:text-gray-300',
-      'hover:bg-gray-50 dark:bg-gray-900 hover:border-gray-400 dark:border-gray-500',
-      'active:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 active:border-gray-500 dark:border-gray-500',
+      'border-2 border-input dark:border-gray-400 bg-card text-foreground',
+      'hover:bg-muted hover:border-gray-400 dark:border-gray-500',
+      'active:bg-accent dark:bg-gray-200 active:border-gray-500 dark:border-gray-500',
       'focus-visible:ring-gray-500'
     ),
     ghost: cn(
-      'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200 active:bg-gray-200 dark:bg-gray-700',
+      'text-foreground hover:bg-accent dark:bg-gray-200 active:bg-gray-200 dark:bg-gray-700',
       'focus-visible:ring-gray-500'
     ),
     danger: cn(
@@ -237,8 +237,8 @@ export function QuickActionButton({
       className={cn(
         'flex flex-col items-center justify-center',
         'min-h-[64px] min-w-[64px] p-2',
-        'rounded-lg bg-white dark:bg-gray-800 dark:bg-gray-200 shadow-sm border border-gray-200 dark:border-gray-700',
-        'hover:bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:bg-gray-800 dark:bg-gray-200',
+        'rounded-lg bg-card shadow-sm border border-border',
+        'hover:bg-muted active:bg-accent dark:bg-gray-200',
         'transition-colors duration-200',
         'touch-manipulation select-none',
         className
@@ -252,7 +252,7 @@ export function QuickActionButton({
           </span>
         )}
       </div>
-      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-1 text-center">
+      <span className="text-xs font-medium text-muted-foreground mt-1 text-center">
         {label}
       </span>
     </button>

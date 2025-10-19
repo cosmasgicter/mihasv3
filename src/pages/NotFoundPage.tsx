@@ -5,13 +5,13 @@ import { Home, ArrowLeft } from 'lucide-react'
 
 export default function NotFoundPage() {
   return (
-    <div className="page-container bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12">
+    <div className="page-container bg-muted flex flex-col justify-center py-12">
       <div className="content-wrapper">
         <div className="mx-auto w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-200 py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="text-center">
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
-              <span className="text-2xl font-bold text-red-600 dark:text-red-400">404</span>
+              <span className="text-2xl font-bold text-destructive">404</span>
             </div>
             <h3 className="text-lg font-medium text-secondary mb-2">Page Not Found</h3>
             <p className="text-sm text-secondary mb-6">

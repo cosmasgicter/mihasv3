@@ -54,15 +54,15 @@ const EducationStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
       data-testid="education-step"
     >
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-6">
         <div>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h3 className="text-md font-medium text-gray-900 dark:text-gray-100">Grade 12 Subjects (Minimum 5 required)</h3>
+            <h3 className="text-md font-medium text-foreground">Grade 12 Subjects (Minimum 5 required)</h3>
             <Button
               type="button"
               onClick={event => {
@@ -116,19 +116,19 @@ const EducationStep = ({
             {selectedGrades.map((grade, index) => (
               <div key={index}>
                 <motion.div
-                  className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                  className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 bg-muted rounded-lg"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
                   <div className="flex-1 min-w-0">
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 sm:hidden">
+                    <label className="block text-xs font-medium text-foreground mb-1 sm:hidden">
                       Subject
                     </label>
                     <select
                       value={grade.subject_id}
                       onChange={event => updateGrade(index, 'subject_id', event.target.value)}
-                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       disabled={subjects.length === 0}
                     >
                       <option value="">{subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}</option>
@@ -144,11 +144,11 @@ const EducationStep = ({
                   </div>
 
                   <div className="w-full sm:w-24">
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 sm:hidden">Grade</label>
+                    <label className="block text-xs font-medium text-foreground mb-1 sm:hidden">Grade</label>
                     <select
                       value={grade.grade}
                       onChange={event => updateGrade(index, 'grade', parseInt(event.target.value))}
-                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 dark:bg-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value={1}>1 (A+)</option>
                       <option value={2}>2 (A)</option>
@@ -198,7 +198,7 @@ const EducationStep = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Result Slip <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -217,7 +217,7 @@ const EducationStep = ({
               )}
               {uploadProgress.result_slip !== undefined && (
                 <div className="mt-2">
-                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  <div className="flex justify-between text-sm text-muted-foreground mb-1">
                     <span>Uploading...</span>
                     <span>{uploadProgress.result_slip}%</span>
                   </div>
@@ -245,7 +245,7 @@ const EducationStep = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Extra KYC Documents (Optional)
             </label>
             <div className="relative">
@@ -263,7 +263,7 @@ const EducationStep = ({
               )}
               {uploadProgress.extra_kyc !== undefined && (
                 <div className="mt-2">
-                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  <div className="flex justify-between text-sm text-muted-foreground mb-1">
                     <span>Uploading...</span>
                     <span>{uploadProgress.extra_kyc}%</span>
                   </div>

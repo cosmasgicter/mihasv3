@@ -99,12 +99,12 @@ export function UploadDebugger() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow">
+    <div className="max-w-2xl mx-auto p-6 bg-card rounded-lg shadow">
       <h2 className="text-lg font-semibold mb-4">Upload Debugger</h2>
       
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Select File to Test Upload
           </label>
           <input
@@ -116,7 +116,7 @@ export function UploadDebugger() {
         </div>
 
         {file && (
-          <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded">
+          <div className="p-3 bg-muted rounded">
             <p className="text-sm">
               <strong>Selected:</strong> {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
             </p>
@@ -141,7 +141,7 @@ export function UploadDebugger() {
 
         {uploading && (
           <div>
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+            <div className="flex justify-between text-sm text-muted-foreground mb-1">
               <span>Progress</span>
               <span>{progress}%</span>
             </div>
@@ -174,7 +174,7 @@ export function UploadDebugger() {
 
         {logs.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Debug Logs:</h3>
+            <h3 className="text-sm font-medium text-foreground mb-2">Debug Logs:</h3>
             <div className="bg-gray-900 dark:bg-gray-100 text-green-400 p-3 rounded text-xs font-mono max-h-64 overflow-y-auto">
               {logs.map((log, index) => (
                 <div key={index}>{log}</div>

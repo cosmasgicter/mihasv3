@@ -255,9 +255,9 @@ export default function LandingPageNew() {
           transition={maybeMotion({ duration: 2, repeat: Infinity })}
           onClick={() => document.getElementById('stats')?.scrollIntoView({ behavior: 'smooth' })}
         >
-          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-gray-200 dark:border-gray-700 transition-colors">
+          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-border transition-colors">
             <motion.div
-              className="w-1 h-3 bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-full mt-2"
+              className="w-1 h-3 bg-card rounded-full mt-2"
               animate={maybeMotion({ y: [0, 12, 0] })}
               transition={maybeMotion({ duration: 2, repeat: Infinity })}
             />
@@ -266,7 +266,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Stats Section */}
-      <section id="stats" ref={statsBackgroundRef} className="py-20 bg-white dark:bg-gray-800 dark:bg-gray-200 relative transition-colors duration-500">
+      <section id="stats" ref={statsBackgroundRef} className="py-20 bg-card relative transition-colors duration-500">
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
             <FloatingElements
@@ -299,7 +299,7 @@ export default function LandingPageNew() {
                 >
                   {stat.number}
                 </motion.div>
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium text-center">{stat.label}</p>
+                <p className="text-sm sm:text-base text-muted-foreground font-medium text-center">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -307,7 +307,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Enhanced Features Section */}
-      <section id="features" className="py-20 bg-gray-50 dark:bg-gray-900 relative transition-colors duration-500">
+      <section id="features" className="py-20 bg-muted relative transition-colors duration-500">
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
             <GeometricPatterns />
@@ -324,7 +324,7 @@ export default function LandingPageNew() {
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold gradient-text mb-6 px-4">
               Why Choose MIHAS-KATC for Your Healthcare Career?
             </h2>
-            <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-medium px-4">
+            <p className="text-lg sm:text-xl text-foreground max-w-3xl mx-auto font-medium px-4">
               Join 300+ successful graduates working across Zambia and internationally. Get job-ready with our accredited programs and industry partnerships
             </p>
           </motion.div>
@@ -347,18 +347,18 @@ export default function LandingPageNew() {
                   >
                     <feature.icon className="h-10 w-10 text-white" />
                   </motion.div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-foreground">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-foreground leading-relaxed font-medium">
                     {feature.description}
                   </p>
                 </AnimatedCard>
               ) : (
-                <div key={index} className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 text-center group">
+                <div key={index} className="bg-card rounded-lg shadow-lg p-6 text-center group">
                   <div className={`bg-gradient-to-br ${feature.gradient} w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg`}>
                     <feature.icon className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-foreground">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-foreground leading-relaxed font-medium">
                     {feature.description}
                   </p>
                 </div>
@@ -369,7 +369,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Accreditation Section */}
-      <section className="py-16 bg-white dark:bg-gray-800 dark:bg-gray-200 relative transition-colors duration-500">
+      <section className="py-16 bg-card relative transition-colors duration-500">
         <div className="content-wrapper">
           <motion.div
             className="text-center mb-12"
@@ -381,14 +381,14 @@ export default function LandingPageNew() {
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold gradient-text mb-4 px-4">
               Qualifications Recognized by Employers Across Zambia & Beyond
             </h2>
-            <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 px-4">
+            <p className="text-base sm:text-lg text-foreground px-4">
               Our graduates are qualified to work in hospitals, clinics, and health organizations throughout Zambia, SADC region, and internationally
             </p>
           </motion.div>
           
           <div className={`grid ${isMobile ? 'grid-cols-1 gap-6 px-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8'} items-stretch`}>
             <motion.div
-              className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+              className="bg-card rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -396,7 +396,7 @@ export default function LandingPageNew() {
               whileHover={maybeMotion({ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" })}
             >
               <div className="flex-1 flex flex-col items-center">
-                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-2">
+                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-muted rounded-lg p-2">
                   <OptimizedImage
                     src="/images/accreditation/GNCLogo.png"
                     alt="Nursing and Midwifery Council of Zambia (NMCZ) official accreditation logo"
@@ -404,8 +404,8 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">NMCZ Accredited</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">NMCZ Accredited</h3>
+                <p className="text-muted-foreground text-xs sm:text-sm mb-3">
                   Nursing and Midwifery Council of Zambia
                 </p>
               </div>
@@ -415,7 +415,7 @@ export default function LandingPageNew() {
             </motion.div>
             
             <motion.div
-              className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+              className="bg-card rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -423,7 +423,7 @@ export default function LandingPageNew() {
               whileHover={maybeMotion({ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" })}
             >
               <div className="flex-1 flex flex-col items-center">
-                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-2">
+                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-muted rounded-lg p-2">
                   <OptimizedImage
                     src="/images/accreditation/hpc_logobig.png"
                     alt="Health Professions Council of Zambia (HPCZ) official accreditation logo"
@@ -431,8 +431,8 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">HPCZ Accredited</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">HPCZ Accredited</h3>
+                <p className="text-muted-foreground text-xs sm:text-sm mb-3">
                   Health Professions Council of Zambia
                 </p>
               </div>
@@ -442,7 +442,7 @@ export default function LandingPageNew() {
             </motion.div>
             
             <motion.div
-              className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+              className="bg-card rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -450,7 +450,7 @@ export default function LandingPageNew() {
               whileHover={maybeMotion({ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" })}
             >
               <div className="flex-1 flex flex-col items-center">
-                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-2">
+                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-muted rounded-lg p-2">
                   <OptimizedImage
                     src="/images/accreditation/eczlogo.png"
                     alt="Examinations Council of Zambia (ECZ) official certification logo"
@@ -458,8 +458,8 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">ECZ Recognized</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">ECZ Recognized</h3>
+                <p className="text-muted-foreground text-xs sm:text-sm mb-3">
                   Examinations Council of Zambia
                 </p>
               </div>
@@ -469,7 +469,7 @@ export default function LandingPageNew() {
             </motion.div>
             
             <motion.div
-              className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
+              className="bg-card rounded-lg shadow-lg p-6 text-center border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between"
               initial={maybeMotion({ opacity: 0, y: 30 })}
               whileInView={maybeMotion({ opacity: 1, y: 0 })}
               viewport={shouldReduceMotion ? undefined : { once: true }}
@@ -477,7 +477,7 @@ export default function LandingPageNew() {
               whileHover={maybeMotion({ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" })}
             >
               <div className="flex-1 flex flex-col items-center">
-                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-2">
+                <div className="h-16 w-16 mb-4 flex items-center justify-center bg-muted rounded-lg p-2">
                   <OptimizedImage
                     src="/images/accreditation/unza.jpg"
                     alt="University of Zambia (UNZA) official affiliation logo"
@@ -485,8 +485,8 @@ export default function LandingPageNew() {
                     loading="lazy"
                   />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">UNZA Affiliated</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">UNZA Affiliated</h3>
+                <p className="text-muted-foreground text-xs sm:text-sm mb-3">
                   University of Zambia
                 </p>
               </div>
@@ -499,7 +499,7 @@ export default function LandingPageNew() {
       </section>
 
       {/* Enhanced Programs Section */}
-      <section ref={programsBackgroundRef} className="py-20 bg-white dark:bg-gray-800 dark:bg-gray-200 relative transition-colors duration-500">
+      <section ref={programsBackgroundRef} className="py-20 bg-card relative transition-colors duration-500">
         {animationHelpersEnabled && (
           <Suspense fallback={null}>
             <FloatingElements
@@ -519,7 +519,7 @@ export default function LandingPageNew() {
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold gradient-text mb-6 px-4">
               High-Demand Healthcare Jobs Training Programs
             </h2>
-            <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 font-medium px-4">
+            <p className="text-lg sm:text-xl text-foreground font-medium px-4">
               Three government-accredited programs with guaranteed job opportunities in Zambia's growing healthcare sector
             </p>
           </motion.div>
@@ -578,14 +578,14 @@ export default function LandingPageNew() {
                           viewport={shouldReduceMotion ? undefined : { once: true }}
                           transition={maybeMotion({ delay: courseIndex * 0.1 })}
                         >
-                          <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                          <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
                           <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 dark:text-gray-700 font-medium">{course}</span>
                         </motion.div>
                       ))}
                     </div>
                 </AnimatedCard>
               ) : (
-                <div key={index} className="bg-white dark:bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg p-6 overflow-hidden">
+                <div key={index} className="bg-card rounded-lg shadow-lg p-6 overflow-hidden">
                   <div className="relative">
                     <picture className="w-full h-48 rounded-lg mb-6 overflow-hidden block">
                       <source srcSet={program.image} type="image/webp" />
@@ -613,7 +613,7 @@ export default function LandingPageNew() {
                   <div className="space-y-3">
                     {program.courses.map((course, courseIndex) => (
                       <div key={courseIndex} className="flex items-center space-x-3">
-                        <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                        <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
                         <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 dark:text-gray-700 font-medium">{course}</span>
                       </div>
                     ))}
@@ -698,7 +698,7 @@ export default function LandingPageNew() {
                 className="flex items-center space-x-2 mb-6"
                 whileHover={maybeMotion({ scale: 1.05 })}
               >
-                <GraduationCap className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                <GraduationCap className="h-8 w-8 text-primary" />
                 <span className="text-2xl font-bold gradient-text">MIHAS-KATC</span>
               </motion.div>
               <h3 className="text-xl font-semibold mb-4">Apply Today - Contact Us</h3>
@@ -728,7 +728,7 @@ export default function LandingPageNew() {
                     viewport={shouldReduceMotion ? undefined : { once: true }}
                     transition={maybeMotion({ delay: index * 0.1 })}
                   >
-                    <Link to={link.href} className="text-gray-300 dark:text-gray-600 hover:text-blue-600 dark:text-blue-400 transition-colors duration-300 flex items-center group">
+                    <Link to={link.href} className="text-gray-300 dark:text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group">
                       <ArrowRight className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       {link.name}
                     </Link>
@@ -744,7 +744,7 @@ export default function LandingPageNew() {
                   <motion.a
                     key={social}
                     href="#"
-                    className="text-gray-300 dark:text-gray-600 hover:text-blue-600 dark:text-blue-400 transition-colors duration-300 px-4 py-2 rounded-lg hover:bg-blue-50 dark:bg-blue-950/300/10"
+                    className="text-gray-300 dark:text-gray-600 hover:text-primary transition-colors duration-300 px-4 py-2 rounded-lg hover:bg-blue-50 dark:bg-blue-950/300/10"
                     whileHover={maybeMotion({ scale: 1.1 })}
                     whileTap={maybeMotion({ scale: 0.9 })}
                     initial={maybeMotion({ opacity: 0, y: 20 })}
@@ -766,7 +766,7 @@ export default function LandingPageNew() {
             viewport={shouldReduceMotion ? undefined : { once: true }}
           >
             <p className="text-gray-300 dark:text-gray-600 mb-2">&copy; 2025 MIHAS-KATC. All rights reserved.</p>
-            <p className="text-gray-400 dark:text-gray-500">
+            <p className="text-muted-foreground">
               Developed with ❤️ by{' '}
               <motion.a
                 href="https://beanola.com"
