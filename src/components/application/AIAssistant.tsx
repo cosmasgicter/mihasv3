@@ -681,7 +681,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                     <div className={`max-w-[85%] rounded-2xl p-3 ${
                       message.type === 'user'
                         ? 'bg-blue-600 text-white'
-                        : 'bg-accent dark:bg-gray-200 text-foreground'
+                        : 'bg-accent text-foreground'
                     }`}>
                       <div className="flex items-start space-x-2">
                         {message.type === 'assistant' && (
@@ -716,7 +716,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                   animate={{ opacity: 1, y: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="bg-accent dark:bg-gray-200 rounded-2xl p-3 max-w-[85%]">
+                  <div className="bg-accent rounded-2xl p-3 max-w-[85%]">
                     <div className="flex items-center space-x-2">
                       <Bot className="h-4 w-4 text-primary" />
                       <div className="flex space-x-1">
@@ -742,7 +742,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                   onKeyPress={handleKeyPress}
                   placeholder={isTyping ? 'AI is thinking...' : 'Ask me anything about your application...'}
                   disabled={isTyping || isLoading}
-                  className="flex-1 border border-input rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-accent dark:bg-gray-200 disabled:cursor-not-allowed"
+                  className="flex-1 border border-input rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-accent disabled:cursor-not-allowed"
                 />
                 <Button
                   onClick={handleSendMessage}

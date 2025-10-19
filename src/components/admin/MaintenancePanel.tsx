@@ -75,7 +75,7 @@ export function MaintenancePanel() {
       case 'completed': return 'bg-accent/10 text-accent-foreground'
       case 'failed': return 'bg-destructive/10 text-destructive-foreground'
       case 'running': return 'bg-primary/10 text-primary-foreground'
-      default: return 'bg-accent dark:bg-gray-200 text-foreground'
+      default: return 'bg-accent text-foreground'
     }
   }
 

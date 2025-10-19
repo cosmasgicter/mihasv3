@@ -78,7 +78,7 @@ export function ProgressIndicator({
       case 'error':
         return cn(baseClasses, 'bg-red-500 border-red-500 text-white')
       default:
-        return cn(baseClasses, 'bg-accent dark:bg-gray-200 border-input text-muted-foreground')
+        return cn(baseClasses, 'bg-accent border-input text-muted-foreground')
     }
   }
 
@@ -93,14 +93,14 @@ export function ProgressIndicator({
       return cn(
         baseClasses,
         'flex-1 mx-2',
-        isCompleted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
+        isCompleted ? 'bg-green-500' : 'bg-skeleton'
       )
     }
     
     return cn(
       baseClasses,
       'my-2 h-8',
-      isCompleted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
+      isCompleted ? 'bg-green-500' : 'bg-skeleton'
     )
   }
 
@@ -224,7 +224,7 @@ export function ProgressBar({
         </div>
       )}
       <div className={cn(
-        'w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden',
+        'w-full bg-skeleton rounded-full overflow-hidden',
         sizeClasses[size]
       )}>
         <div 

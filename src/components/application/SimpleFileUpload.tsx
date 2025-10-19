@@ -355,7 +355,7 @@ export function SimpleFileUpload({
               <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-destructive-foreground">Upload Error</p>
-                <p className="text-sm text-red-700 dark:text-red-300 mt-1">{displayError}</p>
+                <p className="text-sm text-error mt-1">{displayError}</p>
               </div>
             </div>
           </motion.div>
@@ -422,7 +422,7 @@ export function SimpleFileUpload({
                     {isComplete ? 'Complete!' : `${progress}%`}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-skeleton rounded-full h-2">
                   <div 
                     className={`h-2 rounded-full transition-all duration-500 ${
                       isComplete 
@@ -487,7 +487,7 @@ export function SimpleFileUpload({
                     variant="ghost"
                     size="sm"
                     onClick={() => onRemoveFile(file.id)}
-                    className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-destructive/5/30 min-h-[44px] min-w-[44px] touch-target opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-destructive hover:text-error hover:bg-destructive/5/30 min-h-[44px] min-w-[44px] touch-target opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label={`Remove ${file.name}`}
                   >
                     <X className="h-4 w-4" />

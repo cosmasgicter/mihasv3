@@ -21,7 +21,7 @@ export function ApplicationProgress({ currentStep, totalSteps, completedSteps, h
         </span>
       </div>
       
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-3">
+      <div className="w-full bg-skeleton rounded-full h-2 mb-3">
         <div 
           className={`h-2 rounded-full transition-all duration-300 ${
             hasErrors ? 'bg-red-500' : 'bg-blue-600'

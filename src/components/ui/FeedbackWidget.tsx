@@ -91,7 +91,7 @@ export function FeedbackWidget() {
  key={star}
  type="button"
  onClick={() => setFeedback(prev => ({ ...prev, rating: star }))}
- className={`p-1 ${star <= (feedback.rating || 0) ? 'text-yellow-400 dark:text-yellow-500' : 'text-foreground'}`}
+ className={`p-1 ${star <= (feedback.rating || 0) ? 'text-warning' : 'text-foreground'}`}
  >
  <Star className="h-4 w-4 fill-current" />
  </button>

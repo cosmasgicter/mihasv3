@@ -267,7 +267,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="page-container bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 transition-colors duration-500">
+    <div className="page-container bg-gradient-to-br from-background via-primary/5 to-secondary/5 transition-colors duration-500">
       <main className="w-full max-w-full overflow-x-hidden">
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 safe-area-bottom">
         {/* Enhanced Welcome Section */}
@@ -332,7 +332,7 @@ export default function AdminDashboard() {
             >
               <div className="flex items-center space-x-3">
                 <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0" />
-                <div className="text-sm sm:text-base text-red-700 dark:text-red-300 font-medium">
+                <div className="text-sm sm:text-base text-error font-medium">
                   <strong>Error:</strong> {error}
                 </div>
               </div>

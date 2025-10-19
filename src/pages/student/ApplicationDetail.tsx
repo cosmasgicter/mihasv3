@@ -84,11 +84,11 @@ export default function ApplicationDetail() {
         <main className="w-full">
           <div className="content-wrapper py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+            <div className="h-8 bg-skeleton rounded w-1/3"></div>
             <div className="bg-card rounded-2xl shadow-lg p-8 space-y-4">
-              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+              <div className="h-6 bg-skeleton rounded w-1/2"></div>
+              <div className="h-4 bg-skeleton rounded w-3/4"></div>
+              <div className="h-4 bg-skeleton rounded w-1/2"></div>
             </div>
           </div>
           </div>

@@ -207,7 +207,7 @@ export default function NotificationSettings() {
           </div>
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-accent dark:bg-gray-200 text-muted-foreground border border-border'
+              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-accent text-muted-foreground border border-border'
             }`}
           >
             {optedIn ? 'Enabled' : 'Disabled'}
@@ -301,7 +301,7 @@ export default function NotificationSettings() {
           >
             <div className="flex items-center space-x-3">
               <div className="text-3xl">⚠️</div>
-              <div className="text-red-700 dark:text-red-300 font-medium">{error}</div>
+              <div className="text-error font-medium">{error}</div>
             </div>
           </motion.div>
         )}

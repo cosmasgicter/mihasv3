@@ -305,7 +305,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                 <Button
                   variant="outline"
                   onClick={downloadTemplate}
-                  className="text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
+                  className="text-primary border-blue-300 hover:bg-primary/5/30"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Download Template
@@ -313,7 +313,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               </div>
 
               {/* File Upload */}
-              <div className="border-2 border-dashed border-input rounded-lg p-8 text-center hover:border-gray-400 dark:border-gray-500 transition-colors">
+              <div className="border-2 border-dashed border-input rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -349,7 +349,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                   <h3 className="font-medium text-foreground mb-3">Preview (First 5 rows)</h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-accent dark:bg-gray-200">
+                      <thead className="bg-accent">
                         <tr>
                           <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Email</th>
@@ -409,10 +409,10 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
 
               {importResult.errors.length > 0 && (
                 <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-4 max-h-60 overflow-y-auto">
-                  <h3 className="font-medium text-red-900 dark:text-red-100 mb-3">Import Errors</h3>
+                  <h3 className="font-medium text-red-900 mb-3">Import Errors</h3>
                   <div className="space-y-2">
                     {importResult.errors.map((error, index) => (
-                      <div key={index} className="text-sm text-red-700 dark:text-red-300 bg-card p-2 rounded border">
+                      <div key={index} className="text-sm text-error bg-card p-2 rounded border">
                         <p className="font-medium">Row {error.row}: {error.error}</p>
                         {error.data && (
                           <p className="text-xs text-destructive mt-1">

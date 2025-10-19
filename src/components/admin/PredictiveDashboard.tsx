@@ -220,12 +220,12 @@ export function PredictiveDashboard() {
       <div ref={containerRef} className="space-y-6">
         {loading ? (
           <div className="animate-pulse space-y-6">
-            <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
+            <div className="h-40 bg-skeleton rounded-2xl"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-              <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              <div className="h-64 bg-skeleton rounded-lg"></div>
+              <div className="h-64 bg-skeleton rounded-lg"></div>
             </div>
-            <div className="h-80 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            <div className="h-80 bg-skeleton rounded-lg"></div>
           </div>
         ) : (
           <Card className="p-6">
@@ -462,7 +462,7 @@ export function PredictiveDashboard() {
           <div className="flex items-center mb-6">
             <Brain className="h-6 w-6 mr-2 text-secondary" />
             <h3 className="text-lg font-semibold">AI Recommendations</h3>
-            <span className="ml-auto text-xs text-muted-foreground bg-accent dark:bg-gray-200 px-2 py-1 rounded">
+            <span className="ml-auto text-xs text-muted-foreground bg-accent px-2 py-1 rounded">
               Updated {refreshing ? 'now' : 'recently'}
             </span>
           </div>
@@ -489,12 +489,12 @@ export function PredictiveDashboard() {
                   : 'Application volume is evenly distributed. Current staffing appears adequate.'}
               </p>
             </div>
-            <div className="p-4 bg-secondary/5/30 rounded-lg border border-purple-200 dark:border-purple-800">
+            <div className="p-4 bg-secondary/5/30 rounded-lg border border-secondary/30">
               <h4 className="font-medium text-purple-800 mb-2 flex items-center">
                 <AlertTriangle className="h-4 w-4 mr-1" />
                 Proactive Outreach
               </h4>
-              <p className="text-sm text-purple-700 dark:text-purple-300">
+              <p className="text-sm text-purple-700">
                 {metrics.riskApplications > 0 
                   ? `${metrics.riskApplications} applications identified as high-risk. Consider proactive support outreach.`
                   : 'No high-risk applications detected. Current support processes are effective.'}

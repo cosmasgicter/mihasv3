@@ -28,7 +28,7 @@ export function Loading({ size = 'md', text, fullScreen = false }: LoadingProps)
         {/* Spinning gradient ring */}
         <motion.div
           className={cn(
-            'absolute inset-0 rounded-full border-2 border-transparent border-t-blue-600 dark:border-t-blue-400',
+            'absolute inset-0 rounded-full border-2 border-transparent border-t-primary',
             sizeClasses[size]
           )}
           animate={{ rotate: 360 }}
@@ -62,7 +62,7 @@ export function Loading({ size = 'md', text, fullScreen = false }: LoadingProps)
 export function LoadingSkeleton({ className }: { className?: string }) {
   return (
     <motion.div
-      className={cn('bg-gray-200 dark:bg-gray-700 rounded', className)}
+      className={cn('bg-skeleton rounded', className)}
       animate={{ opacity: [0.5, 1, 0.5] }}
       transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
     />

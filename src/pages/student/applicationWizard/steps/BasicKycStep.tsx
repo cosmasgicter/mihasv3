@@ -236,7 +236,7 @@ const BasicKycStep = ({
             id="intake"
             disabled={intakes.length === 0}
             className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              intakes.length === 0 ? 'bg-accent dark:bg-gray-200 text-muted-foreground cursor-not-allowed border-border' : 'bg-card border-input'
+              intakes.length === 0 ? 'bg-accent text-muted-foreground cursor-not-allowed border-border' : 'bg-card border-input'
             }`}
           >
             <option value="">Select intake</option>

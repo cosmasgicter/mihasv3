@@ -106,7 +106,7 @@ export function AuthDebugPage() {
           >
             Refresh Session Info
           </button>
-          <pre className="bg-accent dark:bg-gray-200 p-4 rounded overflow-auto text-xs">
+          <pre className="bg-accent p-4 rounded overflow-auto text-xs">
             {JSON.stringify(sessionInfo, null, 2)}
           </pre>
         </div>
@@ -120,7 +120,7 @@ export function AuthDebugPage() {
           >
             Refresh Storage Info
           </button>
-          <pre className="bg-accent dark:bg-gray-200 p-4 rounded overflow-auto text-xs">
+          <pre className="bg-accent p-4 rounded overflow-auto text-xs">
             {JSON.stringify(storageInfo, null, 2)}
           </pre>
         </div>
@@ -135,7 +135,7 @@ export function AuthDebugPage() {
             Test Refresh
           </button>
           {refreshResult && (
-            <pre className="bg-accent dark:bg-gray-200 p-4 rounded overflow-auto text-xs">
+            <pre className="bg-accent p-4 rounded overflow-auto text-xs">
               {JSON.stringify(refreshResult, null, 2)}
             </pre>
           )}

@@ -213,12 +213,12 @@ export function EligibilityDashboard() {
         <div className="animate-pulse">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-gray-200 dark:bg-gray-700 h-24 rounded-lg"></div>
+              <div key={i} className="bg-skeleton h-24 rounded-lg"></div>
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-gray-200 dark:bg-gray-700 h-64 rounded-lg"></div>
-            <div className="bg-gray-200 dark:bg-gray-700 h-64 rounded-lg"></div>
+            <div className="bg-skeleton h-64 rounded-lg"></div>
+            <div className="bg-skeleton h-64 rounded-lg"></div>
           </div>
         </div>
       </div>

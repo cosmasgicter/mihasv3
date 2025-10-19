@@ -168,7 +168,7 @@ export function ContinueApplication() {
           </div>
 
           {isExpiringSoon() && (
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-800">
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
               <AlertTriangle className="h-4 w-4" />
               Expiring soon
             </div>
@@ -224,7 +224,7 @@ export function ContinueApplication() {
       </div>
 
       {isExpiringSoon() && (
-        <div className="rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-100 dark:bg-amber-900/30/60 px-4 py-3 text-sm text-amber-900">
+        <div className="rounded-2xl border border-warning/30 bg-amber-100/60 px-4 py-3 text-sm text-amber-900">
           <div className="flex items-start gap-2">
             <Clock className="mt-0.5 h-4 w-4" />
             <span>Finish your application soon to keep your saved progress active.</span>

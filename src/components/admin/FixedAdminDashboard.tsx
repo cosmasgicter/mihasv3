@@ -40,8 +40,8 @@ const statusColorMap: Record<string, string> = {
 const systemHealthStyles: Record<AdminDashboardStats['systemHealth'], string> = {
   excellent: 'bg-emerald-100 text-emerald-700',
   good: 'bg-primary/10 text-primary',
-  warning: 'bg-amber-100 dark:bg-amber-900/30 text-accent',
-  critical: 'bg-destructive/10 text-red-700 dark:text-red-300'
+  warning: 'bg-amber-100 text-accent',
+  critical: 'bg-destructive/10 text-error'
 }
 
 const formatStatusLabel = (status: string) =>
@@ -339,7 +339,7 @@ export function FixedAdminDashboard() {
                       <span>{formatStatusLabel(status)}</span>
                       <span>{formatCount(numericValue)} ({percentage}%)</span>
                     </div>
-                    <div className="h-2 bg-accent dark:bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-2 bg-accent rounded-full overflow-hidden">
                       <div
                         className={`${barClass} h-full`}
                         style={{ width: `${percentage}%` }}
@@ -464,7 +464,7 @@ export function FixedAdminDashboard() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="flex items-start space-x-3 p-3 bg-muted rounded-lg hover:bg-accent dark:bg-gray-200 transition-colors"
+                    className="flex items-start space-x-3 p-3 bg-muted rounded-lg hover:bg-accent transition-colors"
                   >
                     <div className={`w-2 h-2 rounded-full mt-2 ${accentColor}`}></div>
                     <div className="flex-1 min-w-0">
@@ -556,7 +556,7 @@ export function FixedAdminDashboard() {
                 </p>
               </div>
               <div className="p-3 bg-secondary/5/30 rounded-xl">
-                <div className="flex items-center space-x-2 text-xs text-purple-700 dark:text-purple-300">
+                <div className="flex items-center space-x-2 text-xs text-purple-700">
                   <Users className="h-4 w-4" />
                   <span>Total students</span>
                 </div>

@@ -113,7 +113,7 @@ export function EnhancedApplicationsManager({
       case 'submitted':
         return 'bg-accent/10 text-accent-foreground'
       default:
-        return 'bg-accent dark:bg-gray-200 text-foreground'
+        return 'bg-accent text-foreground'
     }
   }
 
@@ -197,7 +197,7 @@ export function EnhancedApplicationsManager({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <h3 className="text-lg font-bold text-foreground"><Search className="w-5 h-5" /> Search & Filter</h3>
             <div className="flex items-center space-x-2">
-              <div className="flex bg-accent dark:bg-gray-200 rounded-lg p-1">
+              <div className="flex bg-accent rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('cards')}
                   className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${

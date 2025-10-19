@@ -38,7 +38,7 @@ export function AuthDebug() {
   }
 
   return (
-    <div className="p-4 bg-accent dark:bg-gray-200 border border-input rounded mb-4">
+    <div className="p-4 bg-accent border border-input rounded mb-4">
       <h3 className="font-bold mb-2">Authentication Debug Info</h3>
       
       <div className="space-y-2 text-sm">

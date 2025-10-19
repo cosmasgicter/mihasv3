@@ -20,6 +20,24 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 199 89% 48%;
     --radius: 0.5rem;
+    
+    /* Skeleton/Loading */
+    --skeleton: 0 0% 93%;
+    --skeleton-highlight: 0 0% 88%;
+    
+    /* Status colors */
+    --error: 0 84.2% 60.2%;
+    --error-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Gradients */
+    --gradient-from: 199 89% 48%;
+    --gradient-to: 271 81% 56%;
   }
 
   .dark {
@@ -42,6 +60,24 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 199 89% 48%;
+    
+    /* Skeleton/Loading */
+    --skeleton: 217.2 32.6% 25%;
+    --skeleton-highlight: 217.2 32.6% 30%;
+    
+    /* Status colors */
+    --error: 0 62.8% 50%;
+    --error-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222.2 84% 4.9%;
+    --info: 199 89% 48%;
+    --info-foreground: 222.2 47.4% 11.2%;
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+    
+    /* Gradients */
+    --gradient-from: 199 89% 48%;
+    --gradient-to: 271 81% 56%;
   }
 }
 

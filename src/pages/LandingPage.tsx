@@ -156,7 +156,7 @@ export default function LandingPageNew() {
  ]
 
  return (
- <div className="page-container bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 transition-colors duration-500 overflow-x-hidden">
+ <div className="page-container bg-gradient-to-br from-background via-primary/5 to-secondary/5 transition-colors duration-500 overflow-x-hidden">
  {/* Enhanced Header */}
  <motion.header
  className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/20"
@@ -171,7 +171,7 @@ export default function LandingPageNew() {
 
  {!supabaseAvailable && supabaseStatusMessage && (
  <div className="mt-20 px-4 sm:px-6 lg:px-8">
- <div className="max-w-4xl mx-auto rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30/95 p-4 shadow-sm">
+ <div className="max-w-4xl mx-auto rounded-2xl border border-warning/30 bg-warning/10/95 p-4 shadow-sm">
  <div className="flex items-start gap-3 text-amber-900">
  <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
  <div>
@@ -675,7 +675,7 @@ export default function LandingPageNew() {
  </section>
 
  {/* Enhanced Footer */}
- <footer ref={footerBackgroundRef} className="bg-gray-900 dark:bg-gray-100 text-white py-16 relative">
+ <footer ref={footerBackgroundRef} className="bg-foreground text-white py-16 relative">
  {animationHelpersEnabled && (
  <Suspense fallback={null}>
  <FloatingElements
@@ -760,7 +760,7 @@ export default function LandingPageNew() {
  </motion.div>
  
  <motion.div
- className="border-t border-gray-700 dark:border-gray-300 mt-12 pt-8 text-center"
+ className="border-t border-border mt-12 pt-8 text-center"
  initial={maybeMotion({ opacity: 0, y: 20 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
  viewport={shouldReduceMotion ? undefined : { once: true }}

@@ -55,7 +55,7 @@ export function StorageExample() {
 
         {uploadResult && (
           <div className={`p-3 rounded ${
-            uploadResult.includes('✅') ? 'bg-green-50 text-accent' : 'bg-red-50 text-red-700 dark:text-red-300'
+            uploadResult.includes('✅') ? 'bg-green-50 text-accent' : 'bg-red-50 text-error'
           }`}>
             {uploadResult}
           </div>

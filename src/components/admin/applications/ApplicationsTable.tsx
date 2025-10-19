@@ -102,7 +102,7 @@ export function ApplicationsTable({
 
  const getStatusBadge = useCallback((status: string) => {
  const statusConfig = {
- draft: { color: 'bg-accent dark:bg-gray-200 text-foreground', icon: Clock },
+ draft: { color: 'bg-accent text-foreground', icon: Clock },
  submitted: { color: 'bg-primary/10 text-primary-foreground', icon: AlertTriangle },
  under_review: { color: 'bg-accent/10 text-accent-foreground', icon: Eye },
  approved: { color: 'bg-accent/10 text-accent-foreground', icon: CheckCircle },
@@ -255,7 +255,7 @@ export function ApplicationsTable({
  </>
  ) : (
  <div className="text-center py-16 bg-card rounded-xl border border-border">
- <div className="mx-auto w-16 h-16 bg-accent dark:bg-gray-200 rounded-full flex items-center justify-center mb-4">
+ <div className="mx-auto w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
  <FileText className="h-8 w-8 text-muted-foreground" />
  </div>
  <h3 className="text-lg font-medium text-foreground mb-2">No applications found</h3>
@@ -444,7 +444,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  href={app.result_slip_url}
  target="_blank"
  rel="noopener noreferrer"
- className="bg-accent dark:bg-gray-200 hover:bg-gray-200 dark:bg-gray-700 text-foreground p-2.5 rounded-lg transition-colors"
+ className="bg-accent hover:bg-skeleton text-foreground p-2.5 rounded-lg transition-colors"
  title="Result Slip"
  >
  <FileText className="h-4 w-4" />
@@ -455,7 +455,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  href={app.pop_url}
  target="_blank"
  rel="noopener noreferrer"
- className="bg-accent dark:bg-gray-200 hover:bg-gray-200 dark:bg-gray-700 text-foreground p-2.5 rounded-lg transition-colors"
+ className="bg-accent hover:bg-skeleton text-foreground p-2.5 rounded-lg transition-colors"
  title="Proof of Payment"
  >
  <CreditCard className="h-4 w-4" />

@@ -145,7 +145,7 @@ export function UploadDebugger() {
               <span>Progress</span>
               <span>{progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-skeleton rounded-full h-2">
               <div 
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
@@ -156,7 +156,7 @@ export function UploadDebugger() {
 
         {error && (
           <div className="p-3 bg-destructive/5/30 border border-destructive/30 rounded">
-            <div className="flex items-center text-sm text-red-700 dark:text-red-300">
+            <div className="flex items-center text-sm text-error">
               <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -175,7 +175,7 @@ export function UploadDebugger() {
         {logs.length > 0 && (
           <div className="mt-4">
             <h3 className="text-sm font-medium text-foreground mb-2">Debug Logs:</h3>
-            <div className="bg-gray-900 dark:bg-gray-100 text-green-400 p-3 rounded text-xs font-mono max-h-64 overflow-y-auto">
+            <div className="bg-foreground text-green-400 p-3 rounded text-xs font-mono max-h-64 overflow-y-auto">
               {logs.map((log, index) => (
                 <div key={index}>{log}</div>
               ))}

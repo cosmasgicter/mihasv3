@@ -151,7 +151,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
             <p className="text-sm font-medium text-destructive-foreground">
               Minimum 5 subjects required
             </p>
-            <p className="text-sm text-red-700 dark:text-red-300">
+            <p className="text-sm text-error">
               You need to select at least {5 - selectedSubjects.length} more subject(s) to proceed.
             </p>
           </div>
@@ -187,7 +187,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
                 key={subject.id}
                 type="button"
                 onClick={() => addSubject(subject)}
-                className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-card hover:border-blue-300 dark:border-blue-700 transition-colors text-left"
+                className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-card hover:border-blue-300 transition-colors text-left"
               >
                 <div>
                   <p className="font-medium text-foreground">{subject.name}</p>
@@ -314,8 +314,8 @@ function AddSubjectButton({ onClick, isOpen, disabled, variant = 'secondary' }: 
         disabled 
           ? 'border-border text-muted-foreground cursor-not-allowed'
           : isPrimary
-          ? 'border-blue-300 dark:border-blue-700 text-blue-600 hover:border-blue-400 hover:bg-blue-50'
-          : 'border-input text-muted-foreground hover:border-gray-400 dark:border-gray-500 hover:bg-muted'
+          ? 'border-blue-300 text-blue-600 hover:border-blue-400 hover:bg-blue-50'
+          : 'border-input text-muted-foreground hover:border-gray-400 hover:bg-muted'
       } ${isOpen ? 'bg-blue-50 border-blue-400' : ''}`}
     >
       <div className="flex items-center justify-center space-x-2">
@@ -362,7 +362,7 @@ function SubjectCard({
             <button
               type="button"
               onClick={() => onRemove(subject.id)}
-              className="text-red-500 hover:text-red-700 dark:text-red-300 transition-colors"
+              className="text-red-500 hover:text-error transition-colors"
             >
               <X className="h-4 w-4" />
             </button>

@@ -25,8 +25,8 @@ export function OfflineIndicator() {
         <div className="flex items-center space-x-3">
           <WifiOff className="h-5 w-5 text-destructive" />
           <div>
-            <p className="text-sm font-medium text-red-900 dark:text-red-100">Working offline</p>
-            <p className="text-xs text-red-700 dark:text-red-300">Changes saved locally</p>
+            <p className="text-sm font-medium text-red-900">Working offline</p>
+            <p className="text-xs text-error">Changes saved locally</p>
           </div>
         </div>
       </div>

@@ -121,7 +121,7 @@ export function FileUploadTest() {
         
         {error && (
           <div className="mt-2 p-3 bg-destructive/5/30 border border-destructive/30 rounded-lg">
-            <div className="flex items-center text-sm text-red-700 dark:text-red-300">
+            <div className="flex items-center text-sm text-error">
               <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -135,7 +135,7 @@ export function FileUploadTest() {
             <span>Uploading...</span>
             <span>{progress}%</span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div className="w-full bg-skeleton rounded-full h-2">
             <div 
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -167,7 +167,7 @@ export function FileUploadTest() {
                   variant="ghost"
                   size="sm"
                   onClick={() => removeFile(file.id)}
-                  className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-destructive/5/30"
+                  className="text-destructive hover:text-error hover:bg-destructive/5/30"
                 >
                   <X className="h-4 w-4" />
                 </Button>

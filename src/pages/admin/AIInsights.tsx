@@ -307,7 +307,7 @@ export default function AIInsights() {
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               channel.status === 'active' 
                                 ? 'bg-accent/10 text-accent-foreground' 
-                                : 'bg-accent dark:bg-gray-200 text-foreground'
+                                : 'bg-accent text-foreground'
                             }`}>
                               {channel.status}
                             </span>

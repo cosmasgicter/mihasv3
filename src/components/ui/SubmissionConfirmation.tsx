@@ -114,7 +114,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                     ? 'bg-accent/10 text-accent-foreground'
                     : paymentStatus === 'pending'
                     ? 'bg-accent/10 text-accent-foreground'
-                    : 'bg-accent dark:bg-gray-200 text-foreground'
+                    : 'bg-accent text-foreground'
                 }`}>
                   {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
                 </span>
