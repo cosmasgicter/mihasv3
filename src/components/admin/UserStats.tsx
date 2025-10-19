@@ -101,7 +101,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 dark:text-blue-900 text-sm font-medium">Total Users</p>
-              <p className="text-3xl font-bold">{stats.total}</p>
+              <p className="text-2xl sm:text-3xl font-bold break-words">{stats.total}</p>
             </div>
             <Users className="h-8 w-8 text-blue-200 dark:text-blue-800" />
           </div>
@@ -111,7 +111,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm font-medium">Active Roles</p>
-              <p className="text-3xl font-bold">{Object.keys(stats.byRole).length}</p>
+              <p className="text-2xl sm:text-3xl font-bold break-words">{Object.keys(stats.byRole).length}</p>
             </div>
             <Shield className="h-8 w-8 text-green-200" />
           </div>
@@ -121,7 +121,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-sm font-medium">New This Month</p>
-              <p className="text-3xl font-bold">
+              <p className="text-2xl sm:text-3xl font-bold break-words">
                 {users.filter(user => {
                   const userDate = new Date(user.created_at)
                   const now = new Date()

@@ -131,7 +131,7 @@ const ApplicationWizardContent = () => {
             Back to Dashboard
           </Link>
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Student Application</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 break-words">Student Application</h1>
             <p className="text-gray-600 dark:text-gray-400">Complete the {totalSteps}-step application process</p>
             <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">Logged in as: {user.email}</div>
           </motion.div>

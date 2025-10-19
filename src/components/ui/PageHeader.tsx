@@ -76,7 +76,7 @@ export function PageHeader({
           <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-gray-600 dark:text-white/70' : 'text-gray-600 dark:text-gray-400')}>
             {label}
           </p>
-          <p className={cn('text-2xl font-bold', isGradient ? 'text-gray-900 dark:text-white' : '')}>{value}</p>
+          <p className={cn('text-lg sm:text-xl md:text-2xl font-bold break-words', isGradient ? 'text-gray-900 dark:text-white' : '')}>{value}</p>
         </div>
       </div>
     )
@@ -114,7 +114,7 @@ export function PageHeader({
               </div>
             )}
             <div className="space-y-3">
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">{title}</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight break-words">{title}</h1>
               {description && (
                 <p className={cn('text-base sm:text-lg', isGradient ? 'text-white/80' : 'text-gray-600 dark:text-gray-400')}>{description}</p>
               )}

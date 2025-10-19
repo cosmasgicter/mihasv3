@@ -134,7 +134,7 @@ export default function ApplicationDetail() {
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Application Details</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words">Application Details</h1>
               <p className="text-gray-600 dark:text-gray-400">#{application.application_number}</p>
             </div>
             
