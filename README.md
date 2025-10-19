@@ -1,4 +1,4 @@
-# MIHAS V3 - Application System
+# MIHAS - Application System
 
 ## 🎯 Project Overview
 
