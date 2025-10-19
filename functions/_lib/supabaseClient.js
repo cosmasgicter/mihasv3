@@ -5,20 +5,10 @@ import './dnsConfig.js'
 const ADMIN_ROLES = new Set(['admin', 'super_admin', 'admissions_officer'])
 const REQUEST_ROLE_CACHE_SYMBOL = Symbol.for('mihas.roleCache')
 
-// Environment variables will be injected at runtime
-let supabaseUrl, supabaseAnonKey, supabaseServiceKey;
-
-// Initialize from environment (works in both Node and Cloudflare Workers)
-if (typeof process !== 'undefined' && process.env) {
-  supabaseUrl = process.env.VITE_SUPABASE_URL;
-  supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
-  supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-} else {
-  // Cloudflare Workers - will be set via initSupabase()
-  supabaseUrl = 'https://mylgegkqoddcrxtwcclb.supabase.co';
-  supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MTIwODMsImV4cCI6MjA3MzA4ODA4M30.7f-TwYz7E6Pp07oH5Lkkfw9c8d8JkeE81EXJqpCWiLw';
-  supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzUxMjA4MywiZXhwIjoyMDczMDg4MDgzfQ.FsspKE5bjcG4TW8IvG-N0o7W0E7ljxznwlzJCm50ZRE';
-}
+// Hardcoded credentials for Cloudflare Workers
+const supabaseUrl = 'https://mylgegkqoddcrxtwcclb.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MTIwODMsImV4cCI6MjA3MzA4ODA4M30.7f-TwYz7E6Pp07oH5Lkkfw9c8d8JkeE81EXJqpCWiLw';
+const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzUxMjA4MywiZXhwIjoyMDczMDg4MDgzfQ.FsspKE5bjcG4TW8IvG-N0o7W0E7ljxznwlzJCm50ZRE';
 
 if (!supabaseUrl) {
   throw new Error('VITE_SUPABASE_URL is not configured')
@@ -226,14 +216,20 @@ async function getUserFromRequest(req, { requireAdmin = false } = {}) {
       return { error: 'Token expired' }
     }
     
+    console.log('[getUserFromRequest] Fetching profile for user:', userId)
+    console.log('[getUserFromRequest] Supabase URL:', supabaseUrl)
+    console.log('[getUserFromRequest] Service key exists:', !!supabaseServiceKey)
+    
     const { data: profile, error: userError } = await supabaseAdminClient
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle()
     
+    console.log('[getUserFromRequest] Query result - data:', !!profile, 'error:', userError?.message)
+    
     if (userError) {
-      console.log('[getUserFromRequest] Profile fetch error:', userError.message, userError)
+      console.log('[getUserFromRequest] Profile fetch error:', JSON.stringify(userError))
       return { error: 'User not found' }
     }
     
