@@ -74,10 +74,10 @@ export default function OfflineAdminDashboard() {
             <div className="relative z-10">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                 <div>
-                  <h1 className="text-3xl lg:text-4xl font-bold mb-2">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 break-words">
                      Welcome back, {profile?.full_name || 'Admin'}!
                   </h1>
-                  <p className="text-xl text-white/90 mb-4">
+                  <p className="text-base sm:text-lg md:text-xl text-white/90 mb-4 break-words">
                     Here's your system overview for today
                   </p>
                   <div className="flex items-center space-x-4 text-sm">
@@ -92,7 +92,7 @@ export default function OfflineAdminDashboard() {
                   </div>
                 </div>
                 <div className="text-right space-y-2">
-                  <div className="text-4xl font-bold">{stats.totalApplications}</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold break-words">{stats.totalApplications}</div>
                   <div className="text-base text-white/80">Total Applications</div>
                 </div>
               </div>
@@ -117,7 +117,7 @@ export default function OfflineAdminDashboard() {
                 <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.todayApplications}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 break-words">{stats.todayApplications}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Today</div>
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function OfflineAdminDashboard() {
                 <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.pendingApplications}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 break-words">{stats.pendingApplications}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Pending</div>
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function OfflineAdminDashboard() {
                 <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.approvedApplications}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 break-words">{stats.approvedApplications}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Approved</div>
               </div>
             </div>
@@ -171,7 +171,7 @@ export default function OfflineAdminDashboard() {
                 <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.avgProcessingTime}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 break-words">{stats.avgProcessingTime}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">Days</div>
               </div>
             </div>

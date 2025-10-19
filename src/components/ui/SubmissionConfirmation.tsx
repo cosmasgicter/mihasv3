@@ -41,7 +41,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
               <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 break-words px-2">
               Application Submitted Successfully!
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
@@ -60,7 +60,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   Reference Number
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
-                  <span className="font-mono text-lg text-blue-600 dark:text-blue-400 font-bold">
+                  <span className="font-mono text-sm sm:text-base md:text-lg text-blue-600 dark:text-blue-400 font-bold break-all">
                     {referenceNumber}
                   </span>
                   <button
@@ -77,7 +77,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   Tracking Code
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
-                  <span className="font-mono text-lg text-green-600 dark:text-green-400 font-bold">
+                  <span className="font-mono text-sm sm:text-base md:text-lg text-green-600 dark:text-green-400 font-bold break-all">
                     {trackingCode}
                   </span>
                   <button

@@ -303,19 +303,19 @@ export function PredictiveDashboard() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <div className="text-3xl font-bold">{metrics.avgAdmissionProbability}%</div>
+            <div className="text-2xl sm:text-3xl font-bold break-words">{metrics.avgAdmissionProbability}%</div>
             <div className="text-sm opacity-90">Avg Success Rate</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold">{metrics.riskApplications}</div>
+            <div className="text-2xl sm:text-3xl font-bold break-words">{metrics.riskApplications}</div>
             <div className="text-sm opacity-90">High-Risk Applications</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold">{Math.round(metrics.efficiencyScore)}%</div>
+            <div className="text-2xl sm:text-3xl font-bold break-words">{Math.round(metrics.efficiencyScore)}%</div>
             <div className="text-sm opacity-90">Processing Efficiency</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold">{metrics.avgProcessingTime}</div>
+            <div className="text-2xl sm:text-3xl font-bold break-words">{metrics.avgProcessingTime}</div>
             <div className="text-sm opacity-90">Avg Days to Process</div>
           </div>
         </div>
