@@ -20,7 +20,7 @@ export function SkeletonLoader({
   animation = 'pulse'
 }: SkeletonLoaderProps) {
   const skeletonClass = cn(
-    'bg-gray-200 dark:bg-gray-700',
+    'bg-skeleton',
     rounded ? 'rounded-full' : 'rounded',
     animation === 'pulse' && 'animate-pulse',
     className

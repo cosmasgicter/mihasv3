@@ -63,7 +63,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
               eligibility.competitivenessLevel === 'Highly Competitive' ? 'bg-accent/10 text-accent-foreground' :
               eligibility.competitivenessLevel === 'Competitive' ? 'bg-primary/10 text-primary-foreground' :
               eligibility.competitivenessLevel === 'Minimum' ? 'bg-accent/10 text-accent-foreground' :
-              'bg-accent dark:bg-gray-200 text-foreground'
+              'bg-accent text-foreground'
             }`}>
               {eligibility.competitivenessLevel}
             </div>
@@ -98,11 +98,11 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           )}
           
           {eligibility.alternativePathways && eligibility.alternativePathways.length > 0 && (
-            <div className="mt-2 p-2 bg-secondary/5/30 border border-purple-200 dark:border-purple-800 rounded">
+            <div className="mt-2 p-2 bg-secondary/5/30 border border-secondary/30 rounded">
               <p className="text-xs font-medium text-purple-800 mb-1">Alternative Entry Routes:</p>
               <ul className="space-y-1">
                 {eligibility.alternativePathways.map((pathway, index) => (
-                  <li key={index} className="text-xs text-purple-700 dark:text-purple-300">
+                  <li key={index} className="text-xs text-purple-700">
                     • {pathway}
                   </li>
                 ))}

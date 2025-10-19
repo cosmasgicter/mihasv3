@@ -211,7 +211,7 @@ export function EnhancedFileUpload({
             : 'border-input',
           disabled || !isOnline
             ? 'opacity-50 cursor-not-allowed bg-muted'
-            : 'hover:border-gray-400 dark:border-gray-500',
+            : 'hover:border-gray-400',
           // Mobile optimizations
           'touch-manipulation'
         )}
@@ -277,7 +277,7 @@ export function EnhancedFileUpload({
                       {getStatusIcon(fileWithProgress)}
                       <button
                         onClick={() => removeFile(fileWithProgress.file)}
-                        className="p-1 hover:bg-gray-200 dark:bg-gray-700 rounded-full transition-colors"
+                        className="p-1 hover:bg-skeleton rounded-full transition-colors"
                         type="button"
                       >
                         <X className="w-4 h-4 text-muted-foreground" />
@@ -357,7 +357,7 @@ export function ImagePreview({ file, className }: { file: File, className?: stri
   if (!preview) return null
 
   return (
-    <div className={cn('aspect-square bg-accent dark:bg-gray-200 rounded-lg overflow-hidden', className)}>
+    <div className={cn('aspect-square bg-accent rounded-lg overflow-hidden', className)}>
       <img
         src={preview}
         alt={file.name}

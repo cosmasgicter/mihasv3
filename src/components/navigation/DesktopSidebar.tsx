@@ -49,7 +49,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent truncate max-w-[150px]"
+              className="text-xl font-bold bg-gradient-to-r from-gradient-from to-gradient-to bg-clip-text text-transparent truncate max-w-[150px]"
             >
               MIHAS
             </motion.h1>
@@ -58,7 +58,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         <button
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="p-2 rounded-lg hover:bg-accent dark:bg-gray-200 transition-colors"
+          className="p-2 rounded-lg hover:bg-accent transition-colors"
         >
           {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
         </button>
@@ -77,7 +77,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
               {isActive && (
                 <motion.div
                   layoutId="activeSidebar"
-                  className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-400/10 dark:to-purple-400/10"
+                  className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10"
                   transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                 />
               )}
@@ -85,7 +85,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                 className={`h-5 w-5 transition-all duration-300 relative z-10 ${
                   isActive
                     ? 'text-primary'
-                    : 'text-muted-foreground group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                    : 'text-muted-foreground group-hover:text-blue-500'
                 }`}
               />
               <AnimatePresence mode="wait">
@@ -97,7 +97,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                     className={`text-sm font-medium transition-colors relative z-10 truncate ${
                       isActive
                         ? 'text-primary'
-                        : 'text-foreground group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                        : 'text-foreground group-hover:text-blue-500'
                     }`}
                   >
                     {label}

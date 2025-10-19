@@ -193,7 +193,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                       key={permission.id}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                         selectedPermissions.includes(permission.id)
-                          ? 'border-blue-300 dark:border-blue-700 bg-blue-50'
+                          ? 'border-blue-300 bg-blue-50'
                           : 'border-border hover:border-input'
                       }`}
                       onClick={() => handlePermissionToggle(permission.id)}

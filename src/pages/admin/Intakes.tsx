@@ -232,7 +232,7 @@ export default function AdminIntakes() {
               </div>
               <Button 
                 onClick={openCreate}
-                className="bg-card text-secondary hover:bg-accent dark:bg-gray-200 font-semibold shadow-lg"
+                className="bg-card text-secondary hover:bg-accent font-semibold shadow-lg"
               >
                 <Plus className="h-4 w-4 mr-2" /> Add Intake
               </Button>
@@ -311,7 +311,7 @@ export default function AdminIntakes() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openEdit(intake)}
-                          className="flex-1 text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
+                          className="flex-1 text-primary border-blue-300 hover:bg-primary/5/30"
                         >
                           <Pencil className="h-4 w-4 mr-1" />
                           Edit
@@ -401,7 +401,7 @@ export default function AdminIntakes() {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openEdit(intake)}
-                                className="text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
+                                className="text-primary border-blue-300 hover:bg-primary/5/30"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>

@@ -259,7 +259,7 @@ export default function PublicApplicationTracker() {
         return 'bg-rose-100 text-rose-800 border-rose-200'
       case 'pending_review':
       default:
-        return 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 border-amber-200'
+        return 'bg-amber-100 text-amber-800 border-amber-200'
     }
   }
 
@@ -617,7 +617,7 @@ export default function PublicApplicationTracker() {
                     >
                       <div className="flex items-center space-x-4">
                         <div className="text-4xl">⚠️</div>
-                        <div className="text-xl text-red-700 dark:text-red-300 font-bold">{error}</div>
+                        <div className="text-xl text-error font-bold">{error}</div>
                       </div>
                     </motion.div>
                   )}
@@ -652,7 +652,7 @@ export default function PublicApplicationTracker() {
                   initial={maybeMotion({ opacity: 0, y: 20 })}
                   animate={maybeMotion({ opacity: 1, y: 0 })}
                   transition={maybeMotion({ delay: 0.9 })}
-                  className="bg-secondary/5/30 rounded-xl p-4 sm:p-6 border border-purple-200 dark:border-purple-800 sm:col-span-2 lg:col-span-1"
+                  className="bg-secondary/5/30 rounded-xl p-4 sm:p-6 border border-secondary/30 sm:col-span-2 lg:col-span-1"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3"><Zap className="w-5 h-5" /></div>
                   <h3 className="font-bold text-secondary mb-2 text-sm sm:text-base">Instant Results</h3>
@@ -821,7 +821,7 @@ export default function PublicApplicationTracker() {
                             : application.status === 'rejected'
                             ? 'from-red-50 via-pink-50 to-rose-50 border-destructive/30'
                             : application.status === 'under_review'
-                            ? 'from-blue-50 via-indigo-50 to-purple-50 border-blue-300 dark:border-blue-700'
+                            ? 'from-blue-50 via-indigo-50 to-purple-50 border-blue-300'
                             : 'from-yellow-50 via-orange-50 to-amber-50 border-yellow-300'
                         }`}>
                           <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 lg:space-x-8">
@@ -855,7 +855,7 @@ export default function PublicApplicationTracker() {
                             animate={maybeMotion({ opacity: 1, y: 0 })}
                             exit={maybeMotion({ opacity: 0, y: -20 })}
                             transition={maybeMotion({ delay: 0.7 })}
-                            className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-2 border-green-300 dark:border-green-700 rounded-2xl space-responsive shadow-2xl"
+                            className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-2 border-green-300 rounded-2xl space-responsive shadow-2xl"
                           >
                             <h5 className="font-black text-accent-foreground mb-4 sm:mb-6 text-lg sm:text-xl lg:text-2xl flex items-center space-x-2 sm:space-x-3">
                               <span className="text-xl sm:text-2xl">💬</span>
@@ -914,7 +914,7 @@ export default function PublicApplicationTracker() {
                           </div>
                         </AnimatedCard>
 
-                        <AnimatedCard className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 dark:border-purple-800" hover3d delay={0.1}>
+                        <AnimatedCard className="bg-gradient-to-r from-purple-50 to-pink-50 border border-secondary/30" hover3d delay={0.1}>
                           <div className="flex items-center space-x-3 sm:space-x-4">
                             <div className="p-2 sm:p-3 bg-secondary/5/300 rounded-lg sm:rounded-xl flex-shrink-0">
                               <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
@@ -1203,7 +1203,7 @@ export default function PublicApplicationTracker() {
               </AnimatedCard>
             </div>
             
-            <AnimatedCard className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-purple-200 dark:border-purple-800" delay={0.2}>
+            <AnimatedCard className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-secondary/30" delay={0.2}>
               <div className="text-center space-y-6">
                 <div className="flex items-center justify-center space-x-4">
                   <Phone className="h-8 w-8 text-secondary" />

@@ -247,7 +247,7 @@ export default function AdminUsers() {
       case 'academic_head':
         return 'bg-primary/10 text-primary-foreground'
       default:
-        return 'bg-accent dark:bg-gray-200 text-foreground'
+        return 'bg-accent text-foreground'
     }
   }
 
@@ -306,7 +306,7 @@ export default function AdminUsers() {
                   </Button>
                   <Button
                     onClick={() => setShowCreateDialog(true)}
-                    className="bg-card text-secondary hover:bg-accent dark:bg-gray-200 font-semibold"
+                    className="bg-card text-secondary hover:bg-accent font-semibold"
                     size="sm"
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
@@ -380,7 +380,7 @@ export default function AdminUsers() {
               <div className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-6 mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="text-4xl">😱</div>
-                  <div className="text-red-700 dark:text-red-300 font-medium">{error}</div>
+                  <div className="text-error font-medium">{error}</div>
                 </div>
               </div>
             )}
@@ -451,7 +451,7 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={() => openEditDialog(user)}
-                            className="text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
+                            className="text-primary border-blue-300 hover:bg-primary/5/30"
                           >
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
@@ -573,7 +573,7 @@ export default function AdminUsers() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openEditDialog(user)}
-                                className="text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
+                                className="text-primary border-blue-300 hover:bg-primary/5/30"
                                 disabled={selectedUsers.length > 0}
                               >
                                 <Edit className="h-3 w-3 mr-1" />
@@ -796,7 +796,7 @@ export default function AdminUsers() {
               This action cannot be undone and will remove all user data.
             </p>
             <div className="mt-4 p-3 bg-destructive/5/30 border border-destructive/30 rounded-lg">
-              <p className="text-sm text-red-700 dark:text-red-300">
+              <p className="text-sm text-error">
                 ⚠️ This will permanently delete the user profile and cannot be reversed.
               </p>
             </div>

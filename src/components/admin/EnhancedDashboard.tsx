@@ -184,7 +184,7 @@ export function EnhancedDashboard({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="flex items-start space-x-3 p-3 bg-muted rounded-lg hover:bg-accent dark:bg-gray-200 transition-colors"
+                className="flex items-start space-x-3 p-3 bg-muted rounded-lg hover:bg-accent transition-colors"
               >
                 <div className={`w-2 h-2 rounded-full mt-2 ${
                   activity.type === 'approval' ? 'bg-green-500' :

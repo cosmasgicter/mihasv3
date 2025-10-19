@@ -123,7 +123,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         onClick={handleEmailRequest}
         disabled={isEmailing || emailSent || authUnavailable}
         variant="outline"
-        className="flex items-center justify-center space-x-2 border-green-300 dark:border-green-700 text-accent hover:bg-accent/10/30 hover:border-green-400 transition-all duration-200"
+        className="flex items-center justify-center space-x-2 border-green-300 text-accent hover:bg-accent/10/30 hover:border-green-400 transition-all duration-200"
       >
         {isEmailing ? (
           <Loader2 className="h-4 w-4 animate-spin" />

@@ -44,7 +44,7 @@ const getPaymentStatusStyles = (status?: string | null) => {
       return 'bg-rose-100 text-rose-800 border-rose-200'
     case 'pending_review':
     default:
-      return 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 border-amber-200'
+      return 'bg-amber-100 text-amber-800 border-amber-200'
   }
 }
 

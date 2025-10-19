@@ -306,11 +306,11 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="h-4 w-4 text-indigo-600" />
                 <span className="text-sm font-semibold text-foreground">Additional Data</span>
-                <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+                <span className="text-xs bg-skeleton px-2 py-0.5 rounded-full">
                   {Object.keys(entry.metadata).length} fields
                 </span>
               </div>
-              <pre className="text-xs bg-accent dark:bg-gray-200 p-3 rounded-lg overflow-auto max-h-40 border font-mono">
+              <pre className="text-xs bg-accent p-3 rounded-lg overflow-auto max-h-40 border font-mono">
                 {JSON.stringify(entry.metadata, null, 2)}
               </pre>
             </div>
@@ -506,7 +506,7 @@ export default function AuditTrailPage() {
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-secondary/30">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-secondary uppercase tracking-wide">Page {response?.page || 1}</p>
@@ -690,7 +690,7 @@ export default function AuditTrailPage() {
               <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
               <div>
                 <h3 className="text-sm font-medium text-destructive-foreground">Error Loading Audit Log</h3>
-                <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
+                <p className="text-sm text-error mt-1">{error}</p>
               </div>
               <Button
                 variant="outline"
@@ -712,17 +712,17 @@ export default function AuditTrailPage() {
               <div key={index} className="bg-card rounded-xl border border-border p-6 animate-pulse">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded" />
+                    <div className="h-8 w-8 bg-skeleton rounded" />
                     <div>
-                      <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-2" />
-                      <div className="h-4 bg-accent dark:bg-gray-200 rounded w-24" />
+                      <div className="h-5 bg-skeleton rounded w-32 mb-2" />
+                      <div className="h-4 bg-accent rounded w-24" />
                     </div>
                   </div>
-                  <div className="h-4 bg-accent dark:bg-gray-200 rounded w-20" />
+                  <div className="h-4 bg-accent rounded w-20" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="h-20 bg-accent dark:bg-gray-200 rounded-lg" />
-                  <div className="h-20 bg-accent dark:bg-gray-200 rounded-lg" />
+                  <div className="h-20 bg-accent rounded-lg" />
+                  <div className="h-20 bg-accent rounded-lg" />
                 </div>
                 <div className="h-16 bg-muted rounded-lg" />
               </div>
@@ -792,7 +792,7 @@ export default function AuditTrailPage() {
                         className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                           pageNum === response.page
                             ? 'bg-blue-600 text-white'
-                            : 'text-muted-foreground hover:bg-accent dark:bg-gray-200'
+                            : 'text-muted-foreground hover:bg-accent'
                         }`}
                       >
                         {pageNum}

@@ -90,10 +90,10 @@ export function ActiveSessions() {
     return (
       <Card className="p-4">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-skeleton rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+            <div className="h-3 bg-skeleton rounded"></div>
+            <div className="h-3 bg-skeleton rounded w-5/6"></div>
           </div>
         </div>
       </Card>
@@ -150,7 +150,7 @@ export function ActiveSessions() {
                     size="sm"
                     onClick={() => terminateSession(session.device_id)}
                     disabled={terminating === session.device_id}
-                    className="text-destructive hover:text-red-700 dark:text-red-300 hover:bg-destructive/5/30"
+                    className="text-destructive hover:text-error hover:bg-destructive/5/30"
                   >
                     {terminating === session.device_id ? 'Terminating...' : 'Terminate'}
                   </Button>

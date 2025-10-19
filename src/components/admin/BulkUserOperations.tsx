@@ -99,7 +99,7 @@ export function BulkUserOperations({
               variant="outline"
               size="sm"
               onClick={() => setShowRoleDialog(true)}
-              className="text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
+              className="text-primary border-blue-300 hover:bg-primary/5/30"
             >
               <Shield className="h-4 w-4 mr-1" />
               Update Roles
@@ -141,7 +141,7 @@ export function BulkUserOperations({
                     <p className="text-xs text-muted-foreground">{user.email?.replace(/[<>"'&]/g, '')}</p>
                   </div>
                 </div>
-                <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-foreground rounded">
+                <span className="text-xs px-2 py-1 bg-skeleton text-foreground rounded">
                   {user.role.replace('_', ' ').toUpperCase()}
                 </span>
               </div>
@@ -220,7 +220,7 @@ export function BulkUserOperations({
             <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-3">
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
-                <div className="text-sm text-red-700 dark:text-red-300">
+                <div className="text-sm text-error">
                   <p className="font-medium">This action cannot be undone!</p>
                   <p>All user data and associated records will be permanently deleted.</p>
                 </div>
@@ -264,12 +264,12 @@ export function BulkUserOperations({
                 </div>
                 <div className="text-center p-3 bg-destructive/5/30 border border-destructive/30 rounded-lg">
                   <p className="text-2xl font-bold text-destructive">{operationResult.failed}</p>
-                  <p className="text-sm text-red-700 dark:text-red-300">Failed</p>
+                  <p className="text-sm text-error">Failed</p>
                 </div>
               </div>
               {operationResult.errors.length > 0 && (
                 <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-3">
-                  <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-2">Errors:</p>
+                  <p className="text-sm font-medium text-error mb-2">Errors:</p>
                   <ul className="text-xs text-destructive space-y-1">
                     {operationResult.errors.map((error: string, index: number) => (
                       <li key={index}>• {error?.replace(/[<>"'&]/g, '')}</li>

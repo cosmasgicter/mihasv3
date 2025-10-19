@@ -116,7 +116,7 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
   const getStatusColor = () => {
     if (authStatus.canSubmitApplication) return 'text-accent'
     if (authStatus.isAuthenticated) return 'text-yellow-700'
-    return 'text-red-700 dark:text-red-300'
+    return 'text-error'
   }
 
   return (

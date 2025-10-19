@@ -41,6 +41,28 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        skeleton: {
+          DEFAULT: 'hsl(var(--skeleton))',
+          highlight: 'hsl(var(--skeleton-highlight))',
+        },
+        error: {
+          DEFAULT: 'hsl(var(--error))',
+          foreground: 'hsl(var(--error-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        'gradient-from': 'hsl(var(--gradient-from))',
+        'gradient-to': 'hsl(var(--gradient-to))',
       },
       borderRadius: {
         lg: 'var(--radius)',

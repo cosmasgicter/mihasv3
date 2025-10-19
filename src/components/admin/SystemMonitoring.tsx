@@ -112,7 +112,7 @@ export function SystemMonitoring() {
       case 'critical':
         return 'text-red-600 bg-destructive/10'
       default:
-        return 'text-muted-foreground bg-accent dark:bg-gray-200'
+        return 'text-muted-foreground bg-accent'
     }
   }
 
@@ -245,7 +245,7 @@ export function SystemMonitoring() {
                 </div>
                 <span className="text-sm font-bold text-foreground">{metrics.performance.cpu}%</span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-skeleton rounded-full h-2">
                 <motion.div 
                   className={`h-2 rounded-full ${getPerformanceColor(metrics.performance.cpu)}`}
                   initial={{ width: 0 }}
@@ -263,7 +263,7 @@ export function SystemMonitoring() {
                 </div>
                 <span className="text-sm font-bold text-foreground">{metrics.performance.memory}%</span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-skeleton rounded-full h-2">
                 <motion.div 
                   className={`h-2 rounded-full ${getPerformanceColor(metrics.performance.memory)}`}
                   initial={{ width: 0 }}
@@ -281,7 +281,7 @@ export function SystemMonitoring() {
                 </div>
                 <span className="text-sm font-bold text-foreground">{metrics.performance.storage}%</span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-skeleton rounded-full h-2">
                 <motion.div 
                   className={`h-2 rounded-full ${getPerformanceColor(metrics.performance.storage)}`}
                   initial={{ width: 0 }}
@@ -299,7 +299,7 @@ export function SystemMonitoring() {
                 </div>
                 <span className="text-sm font-bold text-foreground">{metrics.performance.network}%</span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-skeleton rounded-full h-2">
                 <motion.div 
                   className={`h-2 rounded-full ${getPerformanceColor(metrics.performance.network)}`}
                   initial={{ width: 0 }}

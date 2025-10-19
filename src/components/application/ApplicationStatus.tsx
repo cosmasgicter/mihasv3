@@ -209,9 +209,9 @@ export function ApplicationStatusBadge({
       case 'submitted':
         return 'bg-accent/10 text-accent-foreground'
       case 'draft':
-        return 'bg-accent dark:bg-gray-200 text-foreground'
+        return 'bg-accent text-foreground'
       default:
-        return 'bg-accent dark:bg-gray-200 text-foreground'
+        return 'bg-accent text-foreground'
     }
   }
 

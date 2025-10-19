@@ -34,7 +34,7 @@ export function StatusIcon({ status, size = 'md', animated = false, className }:
     under_review: { Icon: Target, color: 'text-primary' },
     submitted: { Icon: Rocket, color: 'text-accent' },
     pending: { Icon: Clock, color: 'text-muted-foreground' },
-    warning: { Icon: AlertTriangle, color: 'text-orange-600 dark:text-orange-400' }
+    warning: { Icon: AlertTriangle, color: 'text-warning' }
   }
 
   const { Icon, color } = iconMap[status]

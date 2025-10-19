@@ -70,7 +70,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       case 'academic_head':
         return 'bg-primary/10 text-primary-foreground border-blue-200'
       default:
-        return 'bg-accent dark:bg-gray-200 text-foreground border-border'
+        return 'bg-accent text-foreground border-border'
     }
   }
 
@@ -82,11 +82,11 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
     return (
       <div className={`bg-card rounded-xl shadow-sm border border-border p-6 ${className}`}>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-skeleton rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-4/6"></div>
+            <div className="h-3 bg-skeleton rounded"></div>
+            <div className="h-3 bg-skeleton rounded w-5/6"></div>
+            <div className="h-3 bg-skeleton rounded w-4/6"></div>
           </div>
         </div>
       </div>
@@ -100,10 +100,10 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 dark:text-blue-900 text-sm font-medium">Total Users</p>
+              <p className="text-blue-100 text-sm font-medium">Total Users</p>
               <p className="text-2xl sm:text-3xl font-bold break-words">{stats.total}</p>
             </div>
-            <Users className="h-8 w-8 text-blue-200 dark:text-blue-800" />
+            <Users className="h-8 w-8 text-blue-200" />
           </div>
         </div>
 
@@ -153,7 +153,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getRoleColor(role)}`}>
                     {count} users
                   </span>
-                  <div className="w-20 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="w-20 bg-skeleton rounded-full h-2">
                     <div
                       className="bg-primary/5/300 h-2 rounded-full"
                       style={{ width: `${(count / stats.total) * 100}%` }}

@@ -295,7 +295,7 @@ export default function StudentDashboard() {
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border border-destructive/30/70 bg-destructive/5/30/90 px-6 py-5 text-red-700 dark:text-red-300 shadow-lg"
+                className="rounded-2xl border border-destructive/30/70 bg-destructive/5/30/90 px-6 py-5 text-error shadow-lg"
               >
                 <div className="flex items-start gap-3">
                   <XCircle className="h-6 w-6 flex-shrink-0" />
@@ -349,14 +349,14 @@ export default function StudentDashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="px-6 py-5 transition-colors hover:bg-amber-50 dark:bg-amber-950/30/60"
+                        className="px-6 py-5 transition-colors hover:bg-warning/10"
                       >
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between min-w-0">
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-accent" />
                               <h4 className="text-base font-semibold text-foreground break-all">Draft application #{application.application_number}</h4>
-                              <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-accent">Draft</span>
+                              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-accent">Draft</span>
                             </div>
                             <dl className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
                               <div className="flex gap-2">
@@ -378,7 +378,7 @@ export default function StudentDashboard() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full sm:w-auto border-amber-200 dark:border-amber-800 text-accent hover:bg-amber-100 dark:bg-amber-900/30"
+                                className="w-full sm:w-auto border-warning/30 text-accent hover:bg-amber-100"
                               >
                                 Continue draft
                               </Button>
@@ -428,7 +428,7 @@ export default function StudentDashboard() {
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-accent" />
                               <h4 className="text-base font-semibold text-foreground truncate">Local draft in progress</h4>
-                              <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-accent">Draft</span>
+                              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-accent">Draft</span>
                             </div>
                             <p className="text-sm text-muted-foreground">Progress: {getDraftProgress()}</p>
                             <p className="text-sm text-muted-foreground">Last saved: {getDraftTimestamp()}</p>
@@ -441,7 +441,7 @@ export default function StudentDashboard() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full sm:w-auto border-amber-200 dark:border-amber-800 text-accent hover:bg-amber-100 dark:bg-amber-900/30"
+                                className="w-full sm:w-auto border-warning/30 text-accent hover:bg-amber-100"
                               >
                                 Continue draft
                               </Button>
@@ -609,7 +609,7 @@ export default function StudentDashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full justify-start border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-accent hover:bg-amber-100 dark:bg-amber-900/30"
+                          className="w-full justify-start border-warning/30 bg-warning/10 text-accent hover:bg-amber-100"
                         >
                           <FileText className="mr-2 h-4 w-4" />
                           Continue draft

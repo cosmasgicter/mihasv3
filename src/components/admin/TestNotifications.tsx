@@ -135,7 +135,7 @@ export function TestNotifications() {
           <div className={`p-3 rounded-lg text-sm ${
             message.includes('✅') 
               ? 'bg-green-50 text-accent border border-green-200' 
-              : 'bg-red-50 text-red-700 dark:text-red-300 border border-red-200'
+              : 'bg-red-50 text-error border border-red-200'
           }`}>
             {message}
           </div>

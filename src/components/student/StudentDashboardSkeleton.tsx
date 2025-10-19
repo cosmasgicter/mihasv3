@@ -5,7 +5,7 @@ export function StudentDashboardSkeleton() {
     <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 pb-20">
       {/* Welcome Section Skeleton */}
       <div className="mb-6 sm:mb-8">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
+        <div className="bg-gradient-to-r from-gradient-from to-gradient-to rounded-2xl p-6 sm:p-8 text-white shadow-xl">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="space-y-3">
               <div className="h-8 sm:h-10 w-64 sm:w-80 rounded-full bg-card/40 animate-pulse" />
@@ -24,13 +24,13 @@ export function StudentDashboardSkeleton() {
         <div className="bg-card border border-border rounded-2xl p-6 shadow-lg transition-colors duration-200">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-3 flex-1">
-              <div className="h-6 w-48 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-              <div className="h-4 w-64 rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
-              <div className="h-4 w-40 rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
+              <div className="h-6 w-48 rounded-full bg-skeleton animate-pulse" />
+              <div className="h-4 w-64 rounded-full bg-accent animate-pulse" />
+              <div className="h-4 w-40 rounded-full bg-accent animate-pulse" />
             </div>
             <div className="flex gap-3">
               <div className="h-10 w-32 rounded-lg bg-primary/5/300/20 animate-pulse" />
-              <div className="h-10 w-32 rounded-lg bg-accent dark:bg-gray-200 animate-pulse" />
+              <div className="h-10 w-32 rounded-lg bg-accent animate-pulse" />
             </div>
           </div>
         </div>
@@ -42,9 +42,9 @@ export function StudentDashboardSkeleton() {
         <div className="lg:col-span-2">
           <div className="bg-card rounded-2xl shadow-lg border border-border transition-colors duration-200">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-blue-900">
-              <div className="h-6 w-48 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-              <div className="mt-2 h-4 w-64 rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
+            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-muted to-primary/10">
+              <div className="h-6 w-48 rounded-full bg-skeleton animate-pulse" />
+              <div className="mt-2 h-4 w-64 rounded-full bg-accent animate-pulse" />
             </div>
             
             {/* Application Items */}
@@ -54,17 +54,17 @@ export function StudentDashboardSkeleton() {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <div className="h-5 w-5 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                        <div className="h-5 w-48 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                        <div className="h-5 w-20 rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
+                        <div className="h-5 w-5 rounded-full bg-skeleton animate-pulse" />
+                        <div className="h-5 w-48 rounded-full bg-skeleton animate-pulse" />
+                        <div className="h-5 w-20 rounded-full bg-accent animate-pulse" />
                       </div>
                       <div className="space-y-2">
-                        <div className="h-4 w-64 rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
-                        <div className="h-4 w-56 rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
-                        <div className="h-4 w-48 rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
+                        <div className="h-4 w-64 rounded-full bg-accent animate-pulse" />
+                        <div className="h-4 w-56 rounded-full bg-accent animate-pulse" />
+                        <div className="h-4 w-48 rounded-full bg-accent animate-pulse" />
                       </div>
                     </div>
-                    <div className="h-10 w-32 rounded-lg bg-accent dark:bg-gray-200 animate-pulse" />
+                    <div className="h-10 w-32 rounded-lg bg-accent animate-pulse" />
                   </div>
                 </div>
               ))}
@@ -77,28 +77,28 @@ export function StudentDashboardSkeleton() {
           {/* Profile Summary */}
           <div className="bg-card rounded-2xl shadow-lg border border-border p-6 transition-colors duration-200">
             <div className="flex items-center justify-between mb-4">
-              <div className="h-6 w-40 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-              <div className="h-6 w-16 rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
+              <div className="h-6 w-40 rounded-full bg-skeleton animate-pulse" />
+              <div className="h-6 w-16 rounded-full bg-accent animate-pulse" />
             </div>
             <div className="space-y-4">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div key={index} className="p-3 bg-muted rounded-xl space-y-2">
-                  <div className="h-3 w-20 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                  <div className="h-4 w-full rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
+                  <div className="h-3 w-20 rounded-full bg-skeleton animate-pulse" />
+                  <div className="h-4 w-full rounded-full bg-accent animate-pulse" />
                 </div>
               ))}
             </div>
-            <div className="h-10 w-full rounded-xl bg-accent dark:bg-gray-200 animate-pulse mt-4" />
+            <div className="h-10 w-full rounded-xl bg-accent animate-pulse mt-4" />
           </div>
 
           {/* Upcoming Deadlines */}
           <div className="bg-card rounded-2xl shadow-lg border border-border p-6 transition-colors duration-200">
-            <div className="h-6 w-48 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse mb-4" />
+            <div className="h-6 w-48 rounded-full bg-skeleton animate-pulse mb-4" />
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="border-l-4 border-red-400 pl-4 p-3 bg-destructive/5/30 rounded-r-xl space-y-2">
-                  <div className="h-4 w-3/4 rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
-                  <div className="h-3 w-1/2 rounded-full bg-accent dark:bg-gray-200 animate-pulse" />
+                  <div className="h-4 w-3/4 rounded-full bg-accent animate-pulse" />
+                  <div className="h-3 w-1/2 rounded-full bg-accent animate-pulse" />
                 </div>
               ))}
             </div>
@@ -106,10 +106,10 @@ export function StudentDashboardSkeleton() {
 
           {/* Quick Actions */}
           <div className="bg-card rounded-2xl shadow-lg border border-border p-6 transition-colors duration-200">
-            <div className="h-6 w-40 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse mb-4" />
+            <div className="h-6 w-40 rounded-full bg-skeleton animate-pulse mb-4" />
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="h-10 w-full rounded-lg bg-accent dark:bg-gray-200 animate-pulse" />
+                <div key={index} className="h-10 w-full rounded-lg bg-accent animate-pulse" />
               ))}
             </div>
           </div>

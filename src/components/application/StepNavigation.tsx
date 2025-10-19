@@ -19,7 +19,7 @@ export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClic
         </div>
       </div>
       
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-6">
+      <div className="w-full bg-skeleton rounded-full h-2 mb-6">
         <div 
           className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500 ease-out"
           style={{ width: `${(currentStep / totalSteps) * 100}%` }}
@@ -39,7 +39,7 @@ export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClic
                   ? 'bg-green-500 text-white' 
                   : isActive 
                   ? 'bg-primary text-white' 
-                  : 'bg-gray-200 dark:bg-gray-700 text-muted-foreground'
+                  : 'bg-skeleton text-muted-foreground'
               }`}>
                 {isCompleted ? '✓' : stepNumber}
               </div>

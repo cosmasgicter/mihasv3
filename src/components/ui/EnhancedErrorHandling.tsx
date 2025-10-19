@@ -37,7 +37,7 @@ const toastStyles = {
     container: 'bg-red-50 border-red-200',
     icon: 'text-red-600',
     title: 'text-destructive-foreground',
-    message: 'text-red-700 dark:text-red-300'
+    message: 'text-error'
   },
   warning: {
     container: 'bg-yellow-50 border-yellow-200',

@@ -500,7 +500,7 @@ export function ReportsGenerator() {
           <p className="text-sm text-muted-foreground">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6">
-          <div className="rounded-md border border-destructive/30 bg-destructive/5/30 p-4 text-sm text-red-700 dark:text-red-300">
+          <div className="rounded-md border border-destructive/30 bg-destructive/5/30 p-4 text-sm text-error">
             Unable to verify your permissions at this time. Please refresh the page or contact an administrator.
           </div>
         </div>
@@ -516,7 +516,7 @@ export function ReportsGenerator() {
           <p className="text-sm text-muted-foreground">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6">
-          <div className="rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 text-sm text-accent">
+          <div className="rounded-md border border-warning/30 bg-warning/10 p-4 text-sm text-accent">
             You do not have permission to access analytics report generation. Please contact your administrator if you believe this is a mistake.
           </div>
         </div>
@@ -545,7 +545,7 @@ export function ReportsGenerator() {
                   className={`p-3 border rounded-lg text-left transition-colors ${
                     config.type === type.value
                       ? 'border-blue-500 bg-blue-50 text-primary'
-                      : 'border-input hover:border-gray-400 dark:border-gray-500'
+                      : 'border-input hover:border-gray-400'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
@@ -629,7 +629,7 @@ export function ReportsGenerator() {
                   className={`p-3 border rounded-lg text-left transition-colors ${
                     isActive
                       ? 'border-blue-500 bg-blue-50 text-primary'
-                      : 'border-input hover:border-gray-400 dark:border-gray-500'
+                      : 'border-input hover:border-gray-400'
                   }`}
                 >
                   <div className="flex items-center space-x-2">

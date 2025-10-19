@@ -188,7 +188,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <span className="text-sm font-medium text-foreground">{item.label}</span>
  </div>
  <div className="flex items-center space-x-3">
- <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+ <div className="w-32 bg-skeleton rounded-full h-2">
  <motion.div 
  className={`h-2 rounded-full ${item.color}`}
  initial={{ width: 0 }}
@@ -266,7 +266,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  {Array.from({ length: 7 }).map((_, index) => (
  <div key={index} className="text-center">
  <div className="text-xs text-foreground mb-2">---</div>
- <div className="h-16 w-full rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse mx-auto"></div>
+ <div className="h-16 w-full rounded-lg bg-skeleton animate-pulse mx-auto"></div>
  <div className="text-xs font-semibold text-foreground mt-2">--</div>
  </div>
  ))}

@@ -584,7 +584,7 @@ export default function Applications() {
               <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
               <div>
                 <h3 className="text-sm font-medium text-destructive-foreground">Error Loading Applications</h3>
-                <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
+                <p className="text-sm text-error mt-1">{error}</p>
               </div>
               <Button
                 variant="outline"

@@ -86,7 +86,7 @@ export function LoadingFallback({
               <span>Loading</span>
               <span>{Math.round(progress)}%</span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-skeleton rounded-full h-2">
               <motion.div 
                 className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full"
                 initial={{ width: 0 }}

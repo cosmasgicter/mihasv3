@@ -87,7 +87,7 @@ export default function WorkflowAutomation() {
   }
 
   const getRuleStatusColor = (rule: WorkflowRule) => {
-    if (!rule.enabled) return 'bg-accent dark:bg-gray-200 text-foreground'
+    if (!rule.enabled) return 'bg-accent text-foreground'
     return 'bg-accent/10 text-accent-foreground'
   }
 

@@ -57,7 +57,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  const styles = {
  mandatory: 'bg-destructive/10 text-destructive-foreground border-red-200',
  recommended: 'bg-accent/10 text-accent-foreground border-yellow-200',
- optional: 'bg-accent dark:bg-gray-200 text-foreground border-border'
+ optional: 'bg-accent text-foreground border-border'
  }
  
  return (
@@ -261,7 +261,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
  guideline.verification_required
  ? 'bg-orange-100 text-orange-800'
- : 'bg-accent dark:bg-gray-200 text-foreground'
+ : 'bg-accent text-foreground'
  }`}>
  {guideline.verification_required ? 'Required' : 'Not Required'}
  </span>

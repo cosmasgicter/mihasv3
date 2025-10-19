@@ -162,7 +162,7 @@ const ApplicationWizardContent = () => {
             </div>
           </div>
           <div className="relative">
-            <div className="absolute top-4 left-0 w-full h-0.5 bg-gray-200 dark:bg-gray-700 hidden sm:block" />
+            <div className="absolute top-4 left-0 w-full h-0.5 bg-skeleton hidden sm:block" />
             <div className="flex items-center justify-between relative overflow-x-auto pb-2 sm:pb-0">
               {wizardSteps.map((step, index) => {
                 const Icon = step.icon
@@ -209,7 +209,7 @@ const ApplicationWizardContent = () => {
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-destructive-foreground">Error</h3>
-                <div className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</div>
+                <div className="text-sm text-error mt-1">{error}</div>
                 <div className="mt-2">
                   <button
                     type="button"

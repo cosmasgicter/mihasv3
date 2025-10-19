@@ -162,7 +162,7 @@ export function SessionTimeoutWarning({
           <h3 className="text-sm font-medium text-destructive-foreground">
             Session Expiring
           </h3>
-          <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+          <p className="text-sm text-error mt-1">
             Your session will expire in {formatTimeLeft()}. 
             Any unsaved changes will be lost.
           </p>
@@ -209,7 +209,7 @@ export function FormRecoveryBanner({
         <h3 className="text-sm font-medium text-destructive-foreground">
           Form Submission Failed
         </h3>
-        <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+        <p className="text-sm text-error mt-1">
           {errorMessage} Your data has been saved locally and can be recovered.
         </p>
         

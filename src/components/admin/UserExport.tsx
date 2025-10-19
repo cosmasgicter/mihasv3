@@ -340,7 +340,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                   key={field.id}
                   className={`p-2 border rounded cursor-pointer transition-colors ${
                     exportOptions.fields.includes(field.id)
-                      ? 'border-blue-300 dark:border-blue-700 bg-blue-50'
+                      ? 'border-blue-300 bg-blue-50'
                       : 'border-border hover:border-input'
                   }`}
                   onClick={() => handleFieldToggle(field.id)}
@@ -388,8 +388,8 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                     onClick={() => handleRoleToggle(role)}
                     className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors ${
                       exportOptions.filters.roles.includes(role)
-                        ? 'bg-primary/10 text-primary-foreground border-blue-300 dark:border-blue-700'
-                        : 'bg-accent dark:bg-gray-200 text-foreground border-input hover:bg-gray-200 dark:bg-gray-700'
+                        ? 'bg-primary/10 text-primary-foreground border-blue-300'
+                        : 'bg-accent text-foreground border-input hover:bg-skeleton'
                     }`}
                   >
                     {role.replace(/_/g, ' ').toUpperCase()}

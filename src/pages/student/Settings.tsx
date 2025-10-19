@@ -108,7 +108,7 @@ export default function StudentSettings() {
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">😱</div>
-              <div className="text-red-700 dark:text-red-300 font-medium">{error}</div>
+              <div className="text-error font-medium">{error}</div>
             </div>
           </motion.div>
         )}
@@ -174,7 +174,7 @@ export default function StudentSettings() {
                     className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-muted-foreground cursor-not-allowed truncate"
                   />
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground bg-accent dark:bg-gray-200 px-3 py-1 rounded-lg inline-block">
+                <p className="mt-2 text-xs text-muted-foreground bg-accent px-3 py-1 rounded-lg inline-block">
                   🔒 Email cannot be changed
                 </p>
               </div>
@@ -338,7 +338,7 @@ export default function StudentSettings() {
               <Button 
                 type="button" 
                 variant="outline" 
-                className="btn-responsive border-2 hover:border-gray-400 dark:border-gray-500"
+                className="btn-responsive border-2 hover:border-gray-400"
               >
                 Cancel
               </Button>

@@ -91,7 +91,7 @@ export function NotificationPreferences() {
       <div className="bg-card rounded-lg border border-border p-6 space-y-4">
         <h3 className="font-semibold text-foreground mb-4">Notification Channels</h3>
         
-        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div className="flex items-center gap-3">
             <Mail className="h-5 w-5 text-primary" />
             <div>
@@ -107,7 +107,7 @@ export function NotificationPreferences() {
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div className="flex items-center gap-3">
             <MessageSquare className="h-5 w-5 text-accent" />
             <div>
@@ -123,7 +123,7 @@ export function NotificationPreferences() {
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-secondary" />
             <div>
@@ -144,7 +144,7 @@ export function NotificationPreferences() {
       <div className="bg-card rounded-lg border border-border p-6 space-y-4">
         <h3 className="font-semibold text-foreground mb-4">Notification Types</h3>
         
-        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div>
             <p className="font-medium text-foreground">Application Updates</p>
             <p className="text-sm text-muted-foreground">Status changes and decisions</p>
@@ -160,7 +160,7 @@ export function NotificationPreferences() {
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div>
             <p className="font-medium text-foreground">Interview Schedules</p>
             <p className="text-sm text-muted-foreground">Interview invitations and reminders</p>
@@ -176,7 +176,7 @@ export function NotificationPreferences() {
           />
         </label>
 
-        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent dark:bg-gray-200">
+        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div>
             <p className="font-medium text-foreground">Document Ready</p>
             <p className="text-sm text-muted-foreground">Acceptance letters and receipts</p>

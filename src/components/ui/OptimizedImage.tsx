@@ -22,7 +22,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   return (
     <div className={`relative overflow-hidden ${className}`}>
       {!isLoaded && !hasError && (
-        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse rounded" />
+        <div className="absolute inset-0 bg-skeleton animate-pulse rounded" />
       )}
       
       <motion.img

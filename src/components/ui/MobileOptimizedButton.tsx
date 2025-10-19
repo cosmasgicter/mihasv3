@@ -66,18 +66,18 @@ export function MobileOptimizedButton({
       'focus-visible:ring-blue-500'
     ),
     secondary: cn(
-      'bg-accent dark:bg-gray-200 text-foreground shadow-sm',
-      'hover:bg-gray-200 dark:bg-gray-700 active:bg-muted',
+      'bg-accent text-foreground shadow-sm',
+      'hover:bg-skeleton active:bg-muted',
       'focus-visible:ring-gray-500'
     ),
     outline: cn(
       'border-2 border-input bg-card text-foreground',
-      'hover:bg-muted hover:border-gray-400 dark:border-gray-500',
-      'active:bg-accent dark:bg-gray-200 active:border-gray-500 dark:border-gray-500',
+      'hover:bg-muted hover:border-gray-400',
+      'active:bg-accent active:border-gray-500',
       'focus-visible:ring-gray-500'
     ),
     ghost: cn(
-      'text-foreground hover:bg-accent dark:bg-gray-200 active:bg-gray-200 dark:bg-gray-700',
+      'text-foreground hover:bg-accent active:bg-skeleton',
       'focus-visible:ring-gray-500'
     ),
     danger: cn(
@@ -238,7 +238,7 @@ export function QuickActionButton({
         'flex flex-col items-center justify-center',
         'min-h-[64px] min-w-[64px] p-2',
         'rounded-lg bg-card shadow-sm border border-border',
-        'hover:bg-muted active:bg-accent dark:bg-gray-200',
+        'hover:bg-muted active:bg-accent',
         'transition-colors duration-200',
         'touch-manipulation select-none',
         className

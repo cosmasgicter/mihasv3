@@ -507,7 +507,7 @@ export default function AdminSettings() {
                   variant="outline"
                   onClick={resetToDefaults}
                   size="sm"
-                  className="text-destructive hover:text-red-700 dark:text-red-300 border-destructive/30 hover:border-red-400"
+                  className="text-destructive hover:text-error border-destructive/30 hover:border-red-400"
                 >
                   Reset to Defaults
                 </Button>
@@ -522,7 +522,7 @@ export default function AdminSettings() {
               <div className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-4 mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="text-2xl">⚠️</div>
-                  <div className="text-red-700 dark:text-red-300 font-medium">{error}</div>
+                  <div className="text-error font-medium">{error}</div>
                 </div>
               </div>
             )}
@@ -662,7 +662,7 @@ export default function AdminSettings() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleDelete(setting.id, setting.setting_key)}
-                                className="text-destructive hover:text-red-700 dark:text-red-300"
+                                className="text-destructive hover:text-error"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -795,7 +795,7 @@ export default function AdminSettings() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleDelete(setting.id, setting.setting_key)}
-                                    className="text-destructive hover:text-red-700 dark:text-red-300"
+                                    className="text-destructive hover:text-error"
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>

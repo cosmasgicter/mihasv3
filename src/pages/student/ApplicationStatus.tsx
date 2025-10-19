@@ -281,7 +281,7 @@ export default function ApplicationStatus() {
                         className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full shadow-lg ${
                           step.completed
                             ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
-                            : 'bg-accent dark:bg-gray-200 text-muted-foreground'
+                            : 'bg-accent text-muted-foreground'
                         }`}
                       >
                         {step.completed ? <CheckCircle className="h-5 w-5" /> : getStatusIcon(step.status)}
@@ -351,7 +351,7 @@ export default function ApplicationStatus() {
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-purple-200 dark:border-purple-800 bg-secondary/5/30 px-5 py-4 lg:col-span-2">
+                  <div className="rounded-xl border border-secondary/30 bg-secondary/5/30 px-5 py-4 lg:col-span-2">
                     <h3 className="text-sm font-bold text-foreground mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
                     <div className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
                       <div className="flex justify-between">
@@ -400,7 +400,7 @@ export default function ApplicationStatus() {
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(application.result_slip_url as string, '_blank')}
-                        className="border-blue-300 dark:border-blue-700 text-primary hover:bg-primary/10"
+                        className="border-blue-300 text-primary hover:bg-primary/10"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View
@@ -428,7 +428,7 @@ export default function ApplicationStatus() {
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(application.extra_kyc_url as string, '_blank')}
-                        className="border-green-300 dark:border-green-700 text-accent hover:bg-accent/10"
+                        className="border-green-300 text-accent hover:bg-accent/10"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View
@@ -441,7 +441,7 @@ export default function ApplicationStatus() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="flex items-center justify-between rounded-xl border border-purple-200 dark:border-purple-800 bg-secondary/5/30 px-4 py-3"
+                      className="flex items-center justify-between rounded-xl border border-secondary/30 bg-secondary/5/30 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
                         <div className="rounded-lg bg-secondary/10 p-2">

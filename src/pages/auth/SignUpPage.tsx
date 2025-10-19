@@ -312,7 +312,7 @@ export default function SignUpPage() {
 
         {error && (
           <div className="rounded-xl border border-destructive/30/70 bg-destructive/5/30/80 p-4 text-left shadow-sm">
-            <div className="text-sm font-medium text-red-700 dark:text-red-300">{error}</div>
+            <div className="text-sm font-medium text-error">{error}</div>
           </div>
         )}
 

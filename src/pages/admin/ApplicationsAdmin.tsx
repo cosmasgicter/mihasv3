@@ -181,7 +181,7 @@ function ApplicationsAdminContent() {
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      draft: 'bg-accent dark:bg-gray-200 text-foreground',
+      draft: 'bg-accent text-foreground',
       submitted: 'bg-primary/10 text-primary-foreground',
       under_review: 'bg-accent/10 text-accent-foreground',
       approved: 'bg-accent/10 text-accent-foreground',
@@ -222,7 +222,7 @@ function ApplicationsAdminContent() {
 
         {errorMessage && (
           <div className="rounded-md bg-destructive/5/30 p-4 mb-6">
-            <div className="text-sm text-red-700 dark:text-red-300">{errorMessage}</div>
+            <div className="text-sm text-error">{errorMessage}</div>
           </div>
         )}
         {isInitialLoading ? (

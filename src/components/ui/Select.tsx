@@ -66,8 +66,8 @@ export function Select({
             'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
             'transition-all duration-200',
             'disabled:opacity-50 disabled:cursor-not-allowed',
-            error && 'border-red-500 dark:border-red-400',
-            isOpen && 'ring-2 ring-blue-500 dark:ring-blue-400 border-transparent'
+            error && 'border-error',
+            isOpen && 'ring-2 ring-ring border-transparent'
           )}
         >
           <span className={cn(!selectedOption && 'text-muted-foreground')}>
@@ -103,7 +103,7 @@ export function Select({
                       'w-full px-3 py-2 text-left flex items-center justify-between',
                       'hover:bg-accent',
                       'transition-colors duration-150',
-                      option.value === value && 'bg-blue-50 dark:bg-blue-900/30 text-primary'
+                      option.value === value && 'bg-primary/10 text-primary'
                     )}
                   >
                     <span>{option.label}</span>

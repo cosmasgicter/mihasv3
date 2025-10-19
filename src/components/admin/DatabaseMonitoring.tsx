@@ -215,7 +215,7 @@ export default function DatabaseMonitoring() {
         <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-4">
           <div className="flex items-center">
             <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
-            <span className="text-red-700 dark:text-red-300">
+            <span className="text-error">
               Error: {errorState.error?.message}
             </span>
           </div>

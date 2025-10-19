@@ -45,7 +45,7 @@ export function EligibilityReport({
       case 'under_review':
         return 'text-primary-foreground bg-primary/10'
       default:
-        return 'text-foreground bg-accent dark:bg-gray-200'
+        return 'text-foreground bg-accent'
     }
   }
 
