@@ -135,7 +135,7 @@ export default function ApplicationDetail() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 break-words">Application Details</h1>
-              <p className="text-gray-600 dark:text-gray-400">#{application.application_number}</p>
+              <p className="text-gray-600 dark:text-gray-400 break-all">#{application.application_number}</p>
             </div>
             
             <div className="flex items-center space-x-3">
@@ -181,20 +181,20 @@ export default function ApplicationDetail() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Full Name</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium">{application.full_name}</p>
+                <p className="text-gray-900 dark:text-gray-100 font-medium break-words">{application.full_name}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Email</label>
                 <p className="text-gray-900 dark:text-gray-100 font-medium flex items-center">
-                  <Mail className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
-                  {application.email}
+                  <Mail className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                  <span className="break-all">{application.email}</span>
                 </p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Phone</label>
                 <p className="text-gray-900 dark:text-gray-100 font-medium flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
-                  {application.phone}
+                  <Phone className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                  <span className="break-all">{application.phone}</span>
                 </p>
               </div>
               <div>
@@ -221,11 +221,11 @@ export default function ApplicationDetail() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Program</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium">{application.program}</p>
+                <p className="text-gray-900 dark:text-gray-100 font-medium break-words">{application.program}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Institution</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium">
+                <p className="text-gray-900 dark:text-gray-100 font-medium break-words">
                   {application.institution === 'KATC' ? 'Kalulushi Training Centre' : 
                    application.institution === 'MIHAS' ? 'Mukuba Institute of Health and Allied Sciences' : 
                    application.institution}
@@ -233,7 +233,7 @@ export default function ApplicationDetail() {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Intake</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium">{application.intake}</p>
+                <p className="text-gray-900 dark:text-gray-100 font-medium break-words">{application.intake}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Application Fee</label>
@@ -322,7 +322,7 @@ export default function ApplicationDetail() {
               )}
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-500">Tracking Code</label>
-                <p className="text-gray-900 dark:text-gray-100 font-medium font-mono">{application.public_tracking_code}</p>
+                <p className="text-gray-900 dark:text-gray-100 font-medium font-mono break-all">{application.public_tracking_code}</p>
               </div>
             </div>
           </motion.div>

@@ -29,12 +29,12 @@ export const Header = React.memo(function Header() {
         left: isMobile ? 0 : (collapsed ? 80 : 256),
         width: isMobile ? '100%' : `calc(100% - ${collapsed ? 80 : 256}px)`
       }}
-      className="fixed top-0 z-40 bg-white dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm"
+      className="fixed top-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border shadow-sm"
       transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
     >
       <div className="flex items-center justify-between h-16 px-3 sm:px-4 md:px-6">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 overflow-hidden">
-          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-white flex items-center gap-2 truncate max-w-full">
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-card-foreground flex items-center gap-2 truncate max-w-full">
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
