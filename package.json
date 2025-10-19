@@ -16,7 +16,7 @@
     "dev:netlify": "netlify dev",
     "dev:cf": "wrangler pages dev dist --compatibility-date=2024-01-01",
     "migrate:cf": "node scripts/migrate-to-cloudflare.js",
-    "deploy:cf": "npm run build:prod && wrangler pages deploy dist --project-name=mihas-v3",
+    "deploy:cf": "npm run build:prod && wrangler pages deploy dist --project-name=mihas",
     "build": "tsc -p tsconfig.build.json && vite build --config vite.config.production.ts",
     "build:prod": "tsc -p tsconfig.build.json && vite build --config vite.config.production.ts --mode production",
     "build:analyze": "tsc -p tsconfig.build.json && vite build --mode production && npx vite-bundle-analyzer dist/stats.html",
