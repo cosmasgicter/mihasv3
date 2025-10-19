@@ -1,11 +1,11 @@
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
 
-export async function onRequest(context) {
+export async function onRequestPost(context) {
   const { request } = context;
   
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   };
   
@@ -13,11 +13,54 @@ export async function onRequest(context) {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
   
-  return new Response(JSON.stringify({ 
-    error: 'Not implemented yet',
-    message: 'This endpoint is being migrated to Cloudflare Pages'
-  }), {
-    status: 501,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  });
+  try {
+    const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) }, { requireAdmin: true });
+    if (authContext.error) {
+      return new Response(JSON.stringify({ error: authContext.error }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const body = await request.json();
+    const { user_id, title, message, type, action_url } = body;
+    
+    if (!user_id || !title || !message) {
+      return new Response(JSON.stringify({ error: 'user_id, title, and message are required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const { data, error } = await supabaseAdminClient
+      .from('notifications')
+      .insert({
+        user_id,
+        title,
+        message,
+        type: type || 'info',
+        action_url,
+        is_read: false
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    return new Response(JSON.stringify({ success: true, notification: data }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+    
+  } catch (error) {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
 }
