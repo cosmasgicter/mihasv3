@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, X, CheckCircle, AlertTriangle, Info, Clock, Trash2 } from 'lucide-react'
+import { Bell, X, CheckCircle, AlertTriangle, Info, Clock, Trash2, Lightbulb } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useStudentNotifications } from '@/hooks/useStudentNotifications'
 import { formatDate } from '@/lib/utils'
