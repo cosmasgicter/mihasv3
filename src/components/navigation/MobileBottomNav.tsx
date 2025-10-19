@@ -54,7 +54,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
 
   return (
     <>
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800/80 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700 shadow-lg safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t border-border shadow-lg safe-area-bottom">
         <div className="flex justify-around items-center h-16 px-2">
           {links.map(({ to, icon: Icon, label }) => {
             const isActive = location.pathname === to
@@ -69,22 +69,22 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-400/10 dark:to-purple-400/10 rounded-lg"
+                    className="absolute inset-0 bg-primary/10 rounded-lg"
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                   />
                 )}
                 <Icon
                   className={`h-5 w-5 transition-all duration-300 ${
                     isActive
-                      ? 'text-blue-600 dark:text-blue-400 scale-110'
-                      : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300 group-hover:scale-105'
+                      ? 'text-primary scale-110'
+                      : 'text-muted-foreground group-hover:text-primary group-hover:scale-105'
                   }`}
                 />
                 <span
                   className={`text-xs mt-1 transition-all duration-300 truncate max-w-[60px] ${
                     isActive
-                      ? 'text-blue-600 dark:text-blue-400 font-medium'
-                      : 'text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300'
+                      ? 'text-primary font-medium'
+                      : 'text-muted-foreground group-hover:text-primary'
                   }`}
                 >
                   {label}
@@ -98,8 +98,8 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
               aria-label="More options"
               className="relative flex flex-col items-center justify-center flex-1 h-full group min-w-[60px]"
             >
-              <MoreHorizontal className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-all duration-300" />
-              <span className="text-xs mt-1 text-gray-600 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-all duration-300">
+              <MoreHorizontal className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-all duration-300" />
+              <span className="text-xs mt-1 text-muted-foreground group-hover:text-primary transition-all duration-300">
                 More
               </span>
             </button>
@@ -123,12 +123,12 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="md:hidden fixed bottom-20 right-4 w-48 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
+              className="md:hidden fixed bottom-20 right-4 w-48 max-w-[calc(100vw-2rem)] bg-card rounded-2xl shadow-lg border border-border z-50 overflow-hidden"
             >
               <div className="py-2">
                 {adminMoreSections.map((section) => (
                   <div key={section.title}>
-                    <div className="px-3 py-1.5 text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+                    <div className="px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                       {section.title}
                     </div>
                     {section.links.map(({ to, icon: Icon, label }) => {
@@ -140,8 +140,8 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                           onClick={() => setShowMoreMenu(false)}
                           className={`flex items-center gap-2.5 px-3 py-2 transition-colors ${
                             isActive
-                              ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
-                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-foreground hover:bg-accent'
                           }`}
                         >
                           <Icon className="h-4 w-4" />
