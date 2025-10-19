@@ -13,7 +13,7 @@
     "dev:prod": "vite build --config vite.config.production.ts && vite preview",
     "dev:api": "node local-server.js",
     "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\"",
-    "dev:netlify": "netlify dev",
+
     "dev:cf": "wrangler pages dev dist --compatibility-date=2024-01-01",
     "migrate:cf": "node scripts/migrate-to-cloudflare.js",
     "deploy:cf": "npm run build:prod && wrangler pages deploy dist --project-name=mihas",
@@ -155,18 +155,11 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.12.0",
     "jsdom": "^25.0.1",
-    "netlify-cli": "^23.7.3",
+
     "sharp": "^0.34.4",
     "terser": "^5.37.0",
     "typescript-eslint": "^8.18.1",
     "vitest": "^3.2.4",
     "wrangler": "^4.43.0"
-  },
-  "netlify": {
-    "functions": {
-      "included_files": [
-        "api/_lib/validation.js"
-      ]
-    }
   }
 }
