@@ -21,9 +21,17 @@ if (!supabaseServiceKey) {
 const clientOptions = {
   auth: {
     persistSession: false,
-    autoRefreshToken: false
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+    flowType: 'implicit'
+  },
+  db: {
+    schema: 'public'
   },
   global: {
+    headers: {
+      'apikey': supabaseServiceKey
+    },
     fetch: (url, options = {}) => {
       return retryFetch(url, {
         ...options,
