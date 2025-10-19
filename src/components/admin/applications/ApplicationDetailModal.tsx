@@ -122,7 +122,7 @@ interface ApplicationDetailModalProps {
 function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground">
+ <div className="flex items-center gap-2 text-sm text-muted-foreground">
  <LoadingSpinner size="sm" />
  <span>Loading grades...</span>
  </div>
@@ -131,8 +131,8 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 
  if (grades.length === 0) {
  return (
- <div className="text-center py-8 text-muted-foreground dark:text-muted-foreground">
- <GraduationCap className="h-8 w-8 mx-auto mb-2 text-foreground dark:text-muted-foreground" />
+ <div className="text-center py-8 text-muted-foreground">
+ <GraduationCap className="h-8 w-8 mx-auto mb-2 text-foreground" />
  <p className="text-sm">No grades recorded</p>
  </div>
  )
@@ -154,14 +154,14 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 
  return (
  <div className="space-y-4">
- <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+ <div className="flex items-center justify-between p-4 bg-primary/5/30 rounded-lg">
  <div>
- <p className="text-sm font-medium text-blue-900 dark:text-blue-100 dark:text-blue-900">{grades.length} Subjects</p>
- <p className="text-xs text-blue-700 dark:text-blue-300">Grade 12 Results</p>
+ <p className="text-sm font-medium text-primary-foreground">{grades.length} Subjects</p>
+ <p className="text-xs text-primary">Grade 12 Results</p>
  </div>
  <div className="text-right">
- <p className="text-lg font-bold text-blue-900 dark:text-blue-100 dark:text-blue-900">{totalPoints}</p>
- <p className="text-xs text-blue-700 dark:text-blue-300">Points (Best 5)</p>
+ <p className="text-lg font-bold text-primary-foreground">{totalPoints}</p>
+ <p className="text-xs text-primary">Points (Best 5)</p>
  </div>
  </div>
 
@@ -175,12 +175,12 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  }`}>
  <div>
  <span className="font-medium text-foreground">{grade.subject_name}</span>
- {isBestFive && <span className="ml-2 text-xs text-green-600 dark:text-green-400 font-medium">BEST 5</span>}
+ {isBestFive && <span className="ml-2 text-xs text-accent font-medium">BEST 5</span>}
  </div>
  <span className={`px-3 py-1 rounded-full text-sm font-bold ${
- normalized !== null && normalized <= 3 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
- normalized !== null && normalized <= 6 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200' :
- 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+ normalized !== null && normalized <= 3 ? 'bg-accent/10 text-accent-foreground' :
+ normalized !== null && normalized <= 6 ? 'bg-accent/10 text-accent-foreground' :
+ 'bg-destructive/10 text-destructive-foreground'
  }`}>
  {grade.grade}
  </span>
@@ -195,7 +195,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem[], loading: boolean }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground">
+ <div className="flex items-center gap-2 text-sm text-muted-foreground">
  <LoadingSpinner size="sm" />
  <span>Loading history...</span>
  </div>
@@ -204,8 +204,8 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
  
  if (history.length === 0) {
  return (
- <div className="text-center py-8 text-muted-foreground dark:text-muted-foreground">
- <History className="h-8 w-8 mx-auto mb-2 text-foreground dark:text-muted-foreground" />
+ <div className="text-center py-8 text-muted-foreground">
+ <History className="h-8 w-8 mx-auto mb-2 text-foreground" />
  <p className="text-sm">No status changes recorded</p>
  </div>
  )
@@ -217,14 +217,14 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
  <div key={item.id} className="flex gap-4 p-4 bg-card border border-border rounded-lg">
  <div className="flex-shrink-0">
  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
- item.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30' :
- item.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30' :
- item.status === 'under_review' ? 'bg-yellow-100 dark:bg-yellow-900/30' :
- 'bg-blue-100 dark:bg-blue-900/30'
+ item.status === 'approved' ? 'bg-accent/10' :
+ item.status === 'rejected' ? 'bg-destructive/10' :
+ item.status === 'under_review' ? 'bg-accent/10' :
+ 'bg-primary/10'
  }`}>
- {item.status === 'approved' ? <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" /> :
+ {item.status === 'approved' ? <CheckCircle className="h-4 w-4 text-accent" /> :
  item.status === 'rejected' ? <XCircle className="h-4 w-4 text-destructive" /> :
- item.status === 'under_review' ? <Eye className="h-4 w-4 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" /> :
+ item.status === 'under_review' ? <Eye className="h-4 w-4 text-accent" /> :
  <Clock className="h-4 w-4 text-primary" />}
  </div>
  </div>
@@ -233,7 +233,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
  <p className="font-medium text-foreground capitalize">
  {item.status.replace('_', ' ')}
  </p>
- <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+ <p className="text-xs text-muted-foreground">
  {formatDate(item.created_at)}
  </p>
  </div>
@@ -255,7 +255,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
 function DocumentsDisplay({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: ApplicationWithDetails | null }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground">
+ <div className="flex items-center gap-2 text-sm text-muted-foreground">
  <LoadingSpinner size="sm" />
  <span>Loading documents...</span>
  </div>
@@ -303,8 +303,8 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  
  if (allDocuments.length === 0) {
  return (
- <div className="text-center py-8 text-muted-foreground dark:text-muted-foreground">
- <FileText className="h-8 w-8 mx-auto mb-2 text-foreground dark:text-muted-foreground" />
+ <div className="text-center py-8 text-muted-foreground">
+ <FileText className="h-8 w-8 mx-auto mb-2 text-foreground" />
  <p className="text-sm">No documents uploaded</p>
  </div>
  )
@@ -316,9 +316,9 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  <div key={doc.id} className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
  <div className="flex items-center gap-3">
  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
- doc.verification_status === 'verified' ? 'bg-green-100 dark:bg-green-900/30' :
- doc.verification_status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30' :
- 'bg-yellow-100 dark:bg-yellow-900/30'
+ doc.verification_status === 'verified' ? 'bg-accent/10' :
+ doc.verification_status === 'rejected' ? 'bg-destructive/10' :
+ 'bg-accent/10'
  }`}>
  <FileText className={`h-5 w-5 ${
  doc.verification_status === 'verified' ? 'text-green-600' :
@@ -328,16 +328,16 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  </div>
  <div>
  <p className="font-medium text-foreground">{doc.document_name}</p>
- <div className="flex items-center gap-2 text-xs text-muted-foreground dark:text-muted-foreground">
+ <div className="flex items-center gap-2 text-xs text-muted-foreground">
  <span className={`px-2 py-1 rounded-full ${
- doc.verification_status === 'verified' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
- doc.verification_status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200' :
- 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
+ doc.verification_status === 'verified' ? 'bg-accent/10 text-accent-foreground' :
+ doc.verification_status === 'rejected' ? 'bg-destructive/10 text-destructive-foreground' :
+ 'bg-accent/10 text-accent-foreground'
  }`}>
  {doc.verification_status.toUpperCase()}
  </span>
  {doc.system_generated && (
- <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 px-2 py-1 rounded-full">
+ <span className="bg-primary/10 text-primary-foreground px-2 py-1 rounded-full">
  SYSTEM
  </span>
  )}
@@ -354,7 +354,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  href={doc.file_url}
  target="_blank"
  rel="noopener noreferrer"
- className="flex items-center gap-1 px-3 py-2 text-sm text-primary hover:text-blue-800 dark:text-blue-200 dark:text-blue-800 hover:bg-blue-50 dark:bg-blue-950/30 rounded-lg transition-colors"
+ className="flex items-center gap-1 px-3 py-2 text-sm text-primary hover:text-primary-foreground hover:bg-primary/5/30 rounded-lg transition-colors"
  >
  <Download className="h-4 w-4" />
  View
@@ -646,9 +646,9 @@ export function ApplicationDetailModal({
 
  const getStatusIcon = (status: string) => {
  switch (status) {
- case 'approved': return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+ case 'approved': return <CheckCircle className="h-5 w-5 text-accent" />
  case 'rejected': return <XCircle className="h-5 w-5 text-destructive" />
- case 'under_review': return <Eye className="h-5 w-5 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+ case 'under_review': return <Eye className="h-5 w-5 text-accent" />
  case 'submitted': return <AlertCircle className="h-5 w-5 text-primary" />
  default: return <Clock className="h-5 w-5 text-muted-foreground" />
  }
@@ -656,9 +656,9 @@ export function ApplicationDetailModal({
 
  const getPaymentIcon = (status: string) => {
  switch (status) {
- case 'verified': return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+ case 'verified': return <CheckCircle className="h-5 w-5 text-accent" />
  case 'rejected': return <XCircle className="h-5 w-5 text-destructive" />
- default: return <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+ default: return <Clock className="h-5 w-5 text-accent" />
  }
  }
 
@@ -720,7 +720,7 @@ export function ApplicationDetailModal({
  variant="ghost"
  size="sm"
  onClick={onClose}
- className="hover:bg-white/90 dark:hover:bg-gray-800/30"
+ className="hover:bg-white/90/30"
  >
  <XCircle className="h-5 w-5" />
  </Button>
@@ -739,7 +739,7 @@ export function ApplicationDetailModal({
  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
  activeTab === tab.id
  ? 'border-blue-600 text-blue-600'
- : 'border-transparent text-muted-foreground dark:text-muted-foreground hover:text-foreground hover:border-input dark:border-gray-400'
+ : 'border-transparent text-muted-foreground hover:text-foreground hover:border-input'
  }`}
  >
  <Icon className="h-4 w-4" />
@@ -770,7 +770,7 @@ export function ApplicationDetailModal({
  {getStatusIcon(application.status)}
  <div>
  <p className="text-sm font-medium text-foreground">Application Status</p>
- <p className="text-lg font-bold text-blue-900 dark:text-blue-100 dark:text-blue-900 capitalize">
+ <p className="text-lg font-bold text-primary-foreground capitalize">
  {application.status.replace('_', ' ')}
  </p>
  </div>
@@ -782,7 +782,7 @@ export function ApplicationDetailModal({
  {getPaymentIcon(application.payment_status || 'pending')}
  <div>
  <p className="text-sm font-medium text-foreground">Payment Status</p>
- <p className="text-lg font-bold text-green-900 dark:text-green-100 capitalize">
+ <p className="text-lg font-bold text-accent-foreground capitalize">
  {(application.payment_status || 'pending').replace('_', ' ')}
  </p>
  </div>
@@ -791,10 +791,10 @@ export function ApplicationDetailModal({
  
  <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-xl">
  <div className="flex items-center gap-3">
- <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+ <Calendar className="h-5 w-5 text-secondary" />
  <div>
  <p className="text-sm font-medium text-foreground">Submitted</p>
- <p className="text-lg font-bold text-purple-900 dark:text-purple-100">
+ <p className="text-lg font-bold text-secondary-foreground">
  {formatDate(application.submitted_at || application.created_at)}
  </p>
  </div>
@@ -803,18 +803,18 @@ export function ApplicationDetailModal({
  </div>
 
  {hasActiveInterview && (
- <div className="bg-card border border-blue-100 dark:border-blue-800 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+ <div className="bg-card border border-primary/30 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
  <div className="flex items-center gap-3">
- <Calendar className="h-10 w-10 text-blue-500 dark:text-blue-400" />
+ <Calendar className="h-10 w-10 text-primary" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Upcoming interview</p>
+ <p className="text-sm text-muted-foreground">Upcoming interview</p>
  <p className="text-base font-semibold text-foreground">
  {formatInterviewDateTime(currentInterview?.scheduled_at)}
  </p>
  </div>
  </div>
  <div className="text-sm text-muted-foreground">
- <p className="font-medium text-gray-800 dark:text-gray-200 dark:text-gray-700">
+ <p className="font-medium text-foreground">
  Mode: {formatInterviewModeLabel(currentInterview?.mode)}
  </p>
  <p>Status: {formatInterviewStatus(currentInterview?.status)}</p>
@@ -833,21 +833,21 @@ export function ApplicationDetailModal({
  <div className="flex items-center gap-3">
  <Mail className="h-4 w-4 text-muted-foreground" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Email</p>
+ <p className="text-sm text-muted-foreground">Email</p>
  <p className="font-medium text-foreground">{application.email}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <Phone className="h-4 w-4 text-muted-foreground" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Phone</p>
+ <p className="text-sm text-muted-foreground">Phone</p>
  <p className="font-medium text-foreground">{application.phone || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <Calendar className="h-4 w-4 text-muted-foreground" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Date of Birth</p>
+ <p className="text-sm text-muted-foreground">Date of Birth</p>
  <p className="font-medium text-foreground">{application.date_of_birth || 'Not provided'}</p>
  </div>
  </div>
@@ -856,21 +856,21 @@ export function ApplicationDetailModal({
  <div className="flex items-center gap-3">
  <MapPin className="h-4 w-4 text-muted-foreground" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Residence</p>
+ <p className="text-sm text-muted-foreground">Residence</p>
  <p className="font-medium text-foreground">{application.residence_town || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <Users className="h-4 w-4 text-muted-foreground" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Next of Kin</p>
+ <p className="text-sm text-muted-foreground">Next of Kin</p>
  <p className="font-medium text-foreground">{application.next_of_kin_name || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <FileText className="h-4 w-4 text-muted-foreground" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">NRC Number</p>
+ <p className="text-sm text-muted-foreground">NRC Number</p>
  <p className="font-medium text-foreground">{application.nrc_number || 'Not provided'}</p>
  </div>
  </div>
@@ -888,21 +888,21 @@ export function ApplicationDetailModal({
  <div className="flex items-center gap-3">
  <GraduationCap className="h-4 w-4 text-muted-foreground" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Program</p>
+ <p className="text-sm text-muted-foreground">Program</p>
  <p className="font-medium text-foreground">{application.program}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <Building className="h-4 w-4 text-muted-foreground" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Institution</p>
+ <p className="text-sm text-muted-foreground">Institution</p>
  <p className="font-medium text-foreground">{getInstitutionName(application.institution)}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <Calendar className="h-4 w-4 text-muted-foreground" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Intake</p>
+ <p className="text-sm text-muted-foreground">Intake</p>
  <p className="font-medium text-foreground">{application.intake}</p>
  </div>
  </div>
@@ -918,31 +918,31 @@ export function ApplicationDetailModal({
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="space-y-4">
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-1">Payment Method</p>
+ <p className="text-sm text-muted-foreground mb-1">Payment Method</p>
  <p className="font-medium text-foreground">{application.payment_method || 'Not specified'}</p>
  </div>
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-1">Amount Paid</p>
- <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+ <p className="text-sm text-muted-foreground mb-1">Amount Paid</p>
+ <p className="text-2xl font-bold text-accent">
  K{application.amount || 0} / K{application.application_fee || 0}
  </p>
  </div>
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-1">Payer Name</p>
+ <p className="text-sm text-muted-foreground mb-1">Payer Name</p>
  <p className="font-medium text-foreground">{application.payer_name || 'Not provided'}</p>
  </div>
  </div>
  {application.payment_verified_at && (
- <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-lg">
+ <div className="bg-accent/10/30 p-4 rounded-lg">
  <div className="flex items-center gap-2 mb-2">
- <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
- <p className="font-medium text-green-900 dark:text-green-100">Payment Verified</p>
+ <CheckCircle className="h-4 w-4 text-accent" />
+ <p className="font-medium text-accent-foreground">Payment Verified</p>
  </div>
- <p className="text-sm text-green-700 dark:text-green-300 mb-1">
+ <p className="text-sm text-accent mb-1">
  Verified on {formatDate(application.payment_verified_at)}
  </p>
  {(application.payment_verified_by_name || application.payment_verified_by_email) && (
- <p className="text-sm text-green-700 dark:text-green-300">
+ <p className="text-sm text-accent">
  By: {application.payment_verified_by_name || application.payment_verified_by_email}
  </p>
  )}
@@ -952,8 +952,8 @@ export function ApplicationDetailModal({
  </div>
 
  {/* Admin Feedback */}
- <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
- <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 dark:text-blue-900 mb-4 flex items-center gap-2">
+ <div className="bg-primary/5/30 border border-primary/30 rounded-xl p-6">
+ <h3 className="text-lg font-semibold text-primary-foreground mb-4 flex items-center gap-2">
  <AlertCircle className="h-5 w-5" />
  Admin Feedback
  </h3>
@@ -964,7 +964,7 @@ export function ApplicationDetailModal({
  onChange={(e) => setAdminFeedback(e.target.value)}
  placeholder="Add feedback for the applicant..."
  rows={4}
- className="w-full rounded-lg border border-blue-200 dark:border-blue-800 px-3 py-2 text-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-primary/30 px-3 py-2 text-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
  />
  
  <div className="flex items-center justify-between">
@@ -999,24 +999,24 @@ export function ApplicationDetailModal({
  {hasActiveInterview ? (
  <div className="space-y-4">
  <div className="flex items-center gap-3">
- <Clock className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+ <Clock className="h-5 w-5 text-primary" />
  <div>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">Scheduled for</p>
+ <p className="text-sm text-muted-foreground">Scheduled for</p>
  <p className="text-base font-medium text-foreground">
  {formatInterviewDateTime(currentInterview?.scheduled_at)}
  </p>
  </div>
  </div>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-lg p-4">
- <p className="text-sm text-blue-700 dark:text-blue-300 uppercase tracking-wide">Mode</p>
- <p className="text-lg font-semibold text-blue-900 dark:text-blue-100 dark:text-blue-900">
+ <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-4">
+ <p className="text-sm text-primary uppercase tracking-wide">Mode</p>
+ <p className="text-lg font-semibold text-primary-foreground">
  {formatInterviewModeLabel(currentInterview?.mode)}
  </p>
  </div>
  <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
- <p className="text-sm text-indigo-700 dark:text-indigo-300 uppercase tracking-wide">Status</p>
- <p className="text-lg font-semibold text-indigo-900 dark:text-indigo-100 capitalize">
+ <p className="text-sm text-primary uppercase tracking-wide">Status</p>
+ <p className="text-lg font-semibold text-primary-foreground capitalize">
  {formatInterviewStatus(currentInterview?.status)}
  </p>
  </div>
@@ -1038,9 +1038,9 @@ export function ApplicationDetailModal({
  </div>
  ) : (
  <div className="text-center py-8">
- <Calendar className="h-12 w-12 mx-auto mb-3 text-foreground dark:text-muted-foreground" />
+ <Calendar className="h-12 w-12 mx-auto mb-3 text-foreground" />
  <p className="text-base font-medium text-foreground mb-1">No interview scheduled yet</p>
- <p className="text-sm text-muted-foreground dark:text-muted-foreground">
+ <p className="text-sm text-muted-foreground">
  Use the form below to schedule and notify the applicant about their interview.
  </p>
  </div>
@@ -1057,8 +1057,8 @@ export function ApplicationDetailModal({
  <div
  className={`p-4 mb-4 rounded-lg border ${
  interviewNotice.type === 'success'
- ? 'bg-green-50 border-green-200 text-green-800 dark:text-green-200'
- : 'bg-red-50 border-red-200 text-red-800 dark:text-red-200'
+ ? 'bg-green-50 border-green-200 text-accent-foreground'
+ : 'bg-red-50 border-red-200 text-destructive-foreground'
  }`}
  >
  {interviewNotice.message}
@@ -1076,7 +1076,7 @@ export function ApplicationDetailModal({
  type="datetime-local"
  value={interviewForm.scheduledAt}
  onChange={handleInterviewFieldChange('scheduledAt')}
- className="w-full rounded-lg border border-input dark:border-gray-400 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
  required
  />
  </div>
@@ -1088,7 +1088,7 @@ export function ApplicationDetailModal({
  id="interview-mode"
  value={interviewForm.mode}
  onChange={handleInterviewFieldChange('mode')}
- className="w-full rounded-lg border border-input dark:border-gray-400 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
  >
  <option value="in_person">In person</option>
  <option value="virtual">Virtual</option>
@@ -1107,7 +1107,7 @@ export function ApplicationDetailModal({
  value={interviewForm.location}
  onChange={handleInterviewFieldChange('location')}
  placeholder={interviewForm.mode === 'virtual' ? 'Zoom/Teams link' : 'Campus room or venue'}
- className="w-full rounded-lg border border-input dark:border-gray-400 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
  />
  </div>
 
@@ -1120,7 +1120,7 @@ export function ApplicationDetailModal({
  value={interviewForm.notes}
  onChange={handleInterviewFieldChange('notes')}
  rows={4}
- className="w-full rounded-lg border border-input dark:border-gray-400 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
  placeholder="Add preparation details, required documents or virtual meeting instructions"
  />
  </div>
@@ -1137,7 +1137,7 @@ export function ApplicationDetailModal({
  variant="outline"
  loading={isCancellingInterview}
  onClick={() => { void handleInterviewCancel() }}
- className="text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+ className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
  >
  <XCircle className="h-4 w-4 mr-2" />
  Cancel interview
@@ -1236,7 +1236,7 @@ export function ApplicationDetailModal({
  variant="outline"
  loading={updating === application.id}
  onClick={() => onUpdateStatus(application.id, 'rejected')}
- className="text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+ className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
  >
  <XCircle className="h-4 w-4 mr-2" />
  Reject

@@ -77,10 +77,10 @@ export function AuthenticationGuard({ children, onAuthenticationRequired }: Auth
 
   if (authError || !sessionValid) {
     return (
-      <div className="max-w-md mx-auto mt-8 p-6 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+      <div className="max-w-md mx-auto mt-8 p-6 bg-destructive/5/30 border border-destructive/30 rounded-lg">
         <div className="flex items-center space-x-2 mb-4">
           <AlertCircle className="h-5 w-5 text-destructive" />
-          <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">Authentication Required</h3>
+          <h3 className="text-lg font-semibold text-destructive-foreground">Authentication Required</h3>
         </div>
         
         <p className="text-red-700 dark:text-red-300 mb-4">

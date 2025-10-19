@@ -38,7 +38,7 @@ export function ConflictResolution({
         <div className="space-y-3 mb-6">
           <div className="border rounded-lg p-3">
             <div className="flex items-center gap-2 mb-1">
-              <Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+              <Clock className="h-4 w-4 text-primary" />
               <span className="font-medium">Your Local Changes</span>
             </div>
             <p className="text-sm text-muted-foreground">

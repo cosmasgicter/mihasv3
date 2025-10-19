@@ -99,7 +99,7 @@ export function BulkUserOperations({
               variant="outline"
               size="sm"
               onClick={() => setShowRoleDialog(true)}
-              className="text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+              className="text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
             >
               <Shield className="h-4 w-4 mr-1" />
               Update Roles
@@ -109,7 +109,7 @@ export function BulkUserOperations({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowDeleteDialog(true)}
-                className="text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
                 Delete Users
@@ -132,13 +132,13 @@ export function BulkUserOperations({
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => handleUserSelect(user.user_id)}
-                    className="text-primary hover:text-blue-800 dark:text-blue-200 dark:text-blue-800"
+                    className="text-primary hover:text-primary-foreground"
                   >
                     <CheckSquare className="h-4 w-4" />
                   </button>
                   <div>
                     <p className="text-sm font-medium text-foreground">{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
-                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">{user.email?.replace(/[<>"'&]/g, '')}</p>
+                    <p className="text-xs text-muted-foreground">{user.email?.replace(/[<>"'&]/g, '')}</p>
                   </div>
                 </div>
                 <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-foreground rounded">
@@ -170,7 +170,7 @@ export function BulkUserOperations({
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {AVAILABLE_ROLES.map(role => (
                   <option key={role.value} value={role.value}>
@@ -179,8 +179,8 @@ export function BulkUserOperations({
                 ))}
               </select>
             </div>
-            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <p className="text-sm text-blue-700 dark:text-blue-300">
+            <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-3">
+              <p className="text-sm text-primary">
                 ℹ️ This will update the role for all selected users. This action cannot be undone.
               </p>
             </div>
@@ -217,7 +217,7 @@ export function BulkUserOperations({
             <p className="text-muted-foreground">
               Are you sure you want to delete {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}?
             </p>
-            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+            <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-3">
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
                 <div className="text-sm text-red-700 dark:text-red-300">
@@ -258,17 +258,17 @@ export function BulkUserOperations({
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{operationResult.success}</p>
-                  <p className="text-sm text-green-700 dark:text-green-300">Successful</p>
+                <div className="text-center p-3 bg-accent/10/30 border border-accent/30 rounded-lg">
+                  <p className="text-2xl font-bold text-accent">{operationResult.success}</p>
+                  <p className="text-sm text-accent">Successful</p>
                 </div>
-                <div className="text-center p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+                <div className="text-center p-3 bg-destructive/5/30 border border-destructive/30 rounded-lg">
                   <p className="text-2xl font-bold text-destructive">{operationResult.failed}</p>
                   <p className="text-sm text-red-700 dark:text-red-300">Failed</p>
                 </div>
               </div>
               {operationResult.errors.length > 0 && (
-                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-3">
                   <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-2">Errors:</p>
                   <ul className="text-xs text-destructive space-y-1">
                     {operationResult.errors.map((error: string, index: number) => (

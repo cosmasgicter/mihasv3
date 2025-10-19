@@ -68,12 +68,12 @@ export default function RoleManagement() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-muted">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">User</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">Profile Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">Auth Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">User</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Profile Role</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Auth Role</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-card divide-y divide-gray-200">
@@ -85,17 +85,17 @@ export default function RoleManagement() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                     {fullName}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {user.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">{user.role}</span>
+                    <span className="px-2 py-1 bg-primary/10 text-primary-foreground rounded">{user.role}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded">{user.role}</span>
+                    <span className="px-2 py-1 bg-accent/10 text-accent-foreground rounded">{user.role}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className="text-green-600 dark:text-green-400">✓ Synced</span>
+                    <span className="text-accent">✓ Synced</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {selectedUser === user.id ? (
@@ -113,13 +113,13 @@ export default function RoleManagement() {
                         <button
                           onClick={() => updateRoleMutation.mutate({ userId: user.id, role: newRole })}
                           disabled={!newRole}
-                          className="px-3 py-1 bg-blue-50 dark:bg-blue-950/300 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                          className="px-3 py-1 bg-primary/5/300 text-white rounded hover:bg-blue-600 disabled:opacity-50"
                         >
                           Save
                         </button>
                         <button
                           onClick={() => setSelectedUser(null)}
-                          className="px-3 py-1 bg-gray-300 dark:bg-gray-600 dark:bg-gray-400 text-foreground rounded hover:bg-gray-400"
+                          className="px-3 py-1 bg-muted text-foreground rounded hover:bg-gray-400"
                         >
                           Cancel
                         </button>
@@ -130,7 +130,7 @@ export default function RoleManagement() {
                           setSelectedUser(user.id)
                           setNewRole(user.role)
                         }}
-                        className="text-primary hover:text-blue-800 dark:text-blue-200 dark:text-blue-800"
+                        className="text-primary hover:text-primary-foreground"
                       >
                         Edit Role
                       </button>

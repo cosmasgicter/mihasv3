@@ -12,7 +12,7 @@ export function Card({ className, hover = false, gradient = false, ...props }: C
     "rounded-lg bg-card shadow-sm transition-all duration-200",
     gradient && "border border-transparent bg-gradient-to-br from-card via-card to-primary/5",
     !gradient && "border border-border",
-    hover && "hover:shadow-lg hover:shadow-blue-500/10 dark:hover:shadow-blue-400/10",
+    hover && "hover:shadow-lg hover:shadow-blue-500/10 hover:shadow-blue-400/10",
     className
   )
 

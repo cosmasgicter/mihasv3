@@ -78,7 +78,7 @@ export function ProgressIndicator({
       case 'error':
         return cn(baseClasses, 'bg-red-500 border-red-500 text-white')
       default:
-        return cn(baseClasses, 'bg-accent dark:bg-gray-200 border-input dark:border-gray-400 text-muted-foreground')
+        return cn(baseClasses, 'bg-accent dark:bg-gray-200 border-input text-muted-foreground')
     }
   }
 
@@ -125,7 +125,7 @@ export function ProgressIndicator({
                     </div>
                     {step.description && (
                       <div className={cn(
-                        'text-muted-foreground dark:text-muted-foreground mt-1',
+                        'text-muted-foreground mt-1',
                         sizeClasses[size].description
                       )}>
                         {step.description}
@@ -169,7 +169,7 @@ export function ProgressIndicator({
                 </div>
                 {step.description && (
                   <div className={cn(
-                    'text-muted-foreground dark:text-muted-foreground mt-1',
+                    'text-muted-foreground mt-1',
                     sizeClasses[size].description
                   )}>
                     {step.description}

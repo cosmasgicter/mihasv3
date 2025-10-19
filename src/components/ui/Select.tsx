@@ -61,7 +61,7 @@ export function Select({
           className={cn(
             'w-full h-10 px-3 rounded-lg flex items-center justify-between',
             'bg-card',
-            'border border-input dark:border-gray-400',
+            'border border-input',
             'text-foreground',
             'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
             'transition-all duration-200',
@@ -77,7 +77,7 @@ export function Select({
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown className="w-4 h-4 text-muted-foreground dark:text-muted-foreground" />
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </motion.div>
         </button>
 

@@ -310,7 +310,7 @@ export default function AdminDashboard() {
                     size="sm"
                     onClick={refreshDashboard}
                     loading={isRefreshing}
-                    className="bg-white/10 dark:bg-gray-800/20 border-white/30 text-gray-900 dark:text-white hover:bg-white/90 dark:hover:bg-gray-800/30"
+                    className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Refresh
@@ -328,7 +328,7 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4 sm:p-6 mb-6 shadow-lg"
+              className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
             >
               <div className="flex items-center space-x-3">
                 <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0" />
@@ -342,13 +342,13 @@ export default function AdminDashboard() {
 
         {isRefreshing && (
           <div className="mb-6">
-            <div className="rounded-2xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-4 py-3 shadow-sm">
+            <div className="rounded-2xl border border-primary/30 bg-primary/5/30 px-4 py-3 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
                   <LoadingSpinner size="sm" />
                   <span>Refreshing dashboard metrics…</span>
                 </div>
-                <div className="h-1 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900/30 sm:w-56">
+                <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10 sm:w-56">
                   <div className="h-full w-1/2 animate-pulse bg-blue-400" />
                 </div>
               </div>
@@ -370,24 +370,24 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
+            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-bl-full"></div>
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                <div className="p-3 bg-primary/10 rounded-xl">
                   <Calendar className="h-6 w-6 text-primary" />
                 </div>
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.todayApplications}</div>
-                  <div className="text-xs text-muted-foreground dark:text-muted-foreground">Today</div>
+                  <div className="text-xs text-muted-foreground">Today</div>
                 </div>
               </div>
               <div className="text-sm font-medium text-muted-foreground">New Applications</div>
               {stats.todayApplications > 0 && (
                 <div className="flex items-center mt-2 text-xs">
                   <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
-                  <span className="text-green-600 dark:text-green-400">Today</span>
+                  <span className="text-accent">Today</span>
                 </div>
               )}
             </div>
@@ -399,17 +399,17 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
+            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-orange-600/20 rounded-bl-full"></div>
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl">
-                  <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+                <div className="p-3 bg-accent/10 rounded-xl">
+                  <Clock className="h-6 w-6 text-accent" />
                 </div>
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.pendingApplications}</div>
-                  <div className="text-xs text-muted-foreground dark:text-muted-foreground">Pending</div>
+                  <div className="text-xs text-muted-foreground">Pending</div>
                 </div>
               </div>
               <div className="text-sm font-medium text-muted-foreground">Awaiting Review</div>
@@ -427,23 +427,23 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
+            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/20 rounded-bl-full"></div>
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                  <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                <div className="p-3 bg-secondary/10 rounded-xl">
+                  <Zap className="h-6 w-6 text-secondary" />
                 </div>
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.avgProcessingTime}</div>
-                  <div className="text-xs text-muted-foreground dark:text-muted-foreground">Days</div>
+                  <div className="text-xs text-muted-foreground">Days</div>
                 </div>
               </div>
               <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
               <div className="flex items-center mt-2 text-xs">
                 <ArrowDown className="h-3 w-3 text-green-500 mr-1" />
-                <span className="text-green-600 dark:text-green-400">Improved by 15%</span>
+                <span className="text-accent">Improved by 15%</span>
               </div>
             </div>
           </motion.div>
@@ -454,13 +454,13 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
+            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-green-600/20 rounded-bl-full"></div>
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <div className="p-3 bg-accent/10 rounded-xl">
+                  <CheckCircle className="h-6 w-6 text-accent" />
                 </div>
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-foreground break-words">
@@ -468,13 +468,13 @@ export default function AdminDashboard() {
                       ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                       : 0}%
                   </div>
-                  <div className="text-xs text-muted-foreground dark:text-muted-foreground">Rate</div>
+                  <div className="text-xs text-muted-foreground">Rate</div>
                 </div>
               </div>
               <div className="text-sm font-medium text-muted-foreground">Approval Rate</div>
               <div className="flex items-center mt-2 text-xs">
                 <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-                <span className="text-green-600 dark:text-green-400">Stable performance</span>
+                <span className="text-accent">Stable performance</span>
               </div>
             </div>
           </motion.div>
@@ -515,7 +515,7 @@ export default function AdminDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="mt-8 bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700"
+          className="mt-8 bg-card rounded-2xl shadow-lg border border-gray-100"
         >
           <div className="px-6 py-4 border-b border-border">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
@@ -531,12 +531,12 @@ export default function AdminDashboard() {
                 <div className="text-sm text-muted-foreground">Applications This Week</div>
               </div>
               <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400 break-words">{stats.avgProcessingTime}</div>
+                <div className="text-xl sm:text-2xl font-bold text-secondary break-words">{stats.avgProcessingTime}</div>
                 <div className="text-sm text-muted-foreground">Avg Processing Days</div>
-                <div className="text-xs text-green-600 dark:text-green-400 mt-1">-12% improvement</div>
+                <div className="text-xs text-accent mt-1">-12% improvement</div>
               </div>
               <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400 break-words">
+                <div className="text-xl sm:text-2xl font-bold text-accent break-words">
                   {stats.approvedApplications + stats.rejectedApplications > 0 
                     ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                     : 0}%

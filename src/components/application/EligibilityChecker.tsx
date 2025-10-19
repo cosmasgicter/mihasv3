@@ -47,9 +47,9 @@ export function EligibilityChecker({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'eligible':
-        return <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+        return <CheckCircle className="h-6 w-6 text-accent" />
       case 'conditional':
-        return <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+        return <AlertTriangle className="h-6 w-6 text-accent" />
       case 'not_eligible':
         return <XCircle className="h-6 w-6 text-destructive" />
       default:
@@ -60,13 +60,13 @@ export function EligibilityChecker({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'eligible':
-        return 'bg-green-50 border-green-200 text-green-800 dark:text-green-200'
+        return 'bg-green-50 border-green-200 text-accent-foreground'
       case 'conditional':
-        return 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:text-yellow-200'
+        return 'bg-yellow-50 border-yellow-200 text-accent-foreground'
       case 'not_eligible':
-        return 'bg-red-50 border-red-200 text-red-800 dark:text-red-200'
+        return 'bg-red-50 border-red-200 text-destructive-foreground'
       default:
-        return 'bg-muted border-border text-gray-800 dark:text-gray-200 dark:text-gray-700'
+        return 'bg-muted border-border text-foreground'
     }
   }
 
@@ -208,13 +208,13 @@ export function EligibilityChecker({
       {assessment.recommendations.length > 0 && (
         <div className="bg-card rounded-lg shadow p-6">
           <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-            <TrendingUp className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-2" />
+            <TrendingUp className="h-5 w-5 text-primary mr-2" />
             Recommendations
           </h4>
           <ul className="space-y-2">
             {assessment.recommendations.map((rec: string, index: number) => (
               <li key={index} className="flex items-start space-x-2">
-                <div className="w-2 h-2 bg-blue-50 dark:bg-blue-950/300 rounded-full mt-2 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-primary/5/300 rounded-full mt-2 flex-shrink-0"></div>
                 <span className="text-foreground">{rec}</span>
               </li>
             ))}
@@ -270,7 +270,7 @@ export function EligibilityChecker({
                   value={appealReason}
                   onChange={(e) => setAppealReason(e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Explain why you believe the assessment should be reconsidered..."
                 />
               </div>

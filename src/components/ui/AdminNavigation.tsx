@@ -179,7 +179,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             })}
             
             <NavigationMenu.Item>
-              <div className="hidden xl:flex items-center text-xs text-muted-foreground dark:text-muted-foreground px-3 py-2 bg-muted rounded-lg ml-2">
+              <div className="hidden xl:flex items-center text-xs text-muted-foreground px-3 py-2 bg-muted rounded-lg ml-2">
                 <span className="font-medium truncate max-w-[100px]">{userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}</span>
               </div>
             </NavigationMenu.Item>
@@ -189,7 +189,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="ml-2 text-destructive border-red-200 dark:border-red-800 hover:bg-red-50 dark:bg-red-950/30 hover:border-red-300 dark:border-red-700 whitespace-nowrap flex items-center logout-button"
+                className="ml-2 text-destructive border-destructive/30 hover:bg-destructive/5/30 hover:border-destructive/30 whitespace-nowrap flex items-center logout-button"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
@@ -199,7 +199,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
           {/* Mobile Menu Button */}
           <motion.button
-            className="lg:hidden p-3 rounded-xl bg-gray-900 dark:bg-gray-100 hover:bg-gray-800 dark:bg-gray-200 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-h-[48px] min-w-[48px] touch-target border-2 border-gray-600 dark:border-gray-400 hover:border-gray-500 dark:border-gray-500 shadow-lg nav-toggle-button"
+            className="lg:hidden p-3 rounded-xl bg-gray-900 dark:bg-gray-100 hover:bg-gray-800 dark:bg-gray-200 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-h-[48px] min-w-[48px] touch-target border-2 border-gray-600 hover:border-gray-500 dark:border-gray-500 shadow-lg nav-toggle-button"
             onClick={toggleMenu}
             whileTap={{ scale: 0.95 }}
             aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -300,7 +300,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                               "mobile-nav-item mobile-nav-focus transition-all duration-300",
                               isActive 
                                 ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
-                                : "text-foreground hover:bg-accent dark:bg-gray-200 border border-border hover:border-input dark:border-gray-400"
+                                : "text-foreground hover:bg-accent dark:bg-gray-200 border border-border hover:border-input"
                             )}
                             style={{
                               backgroundColor: isActive ? undefined : '#ffffff',
@@ -336,7 +336,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                   })}
 
                   {/* Role Badge */}
-                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-primary/30">
                     <div className="text-center">
                       <div className="text-sm font-medium text-foreground mb-1">Current Role</div>
                       <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white truncate max-w-[150px]">
@@ -378,7 +378,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                     <p className="text-sm font-medium text-foreground mb-1">
                       MIHAS-KATC Admin Portal
                     </p>
-                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Secure Administrative Access
                     </p>
                   </div>

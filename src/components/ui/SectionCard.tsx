@@ -62,7 +62,7 @@ export function SectionCard({
         >
           <div className="flex flex-1 items-start gap-3">
             {icon && (
-              <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/300/10 text-primary">
+              <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/5/300/10 text-primary">
                 {icon}
               </div>
             )}

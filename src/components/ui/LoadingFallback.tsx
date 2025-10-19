@@ -45,7 +45,7 @@ export function LoadingFallback({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="w-16 h-16 mx-auto mb-4 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-accent/10 rounded-full flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">Taking longer than expected</h3>
@@ -98,7 +98,7 @@ export function LoadingFallback({
         )}
 
         <motion.div
-          className="mt-4 text-xs text-muted-foreground dark:text-muted-foreground"
+          className="mt-4 text-xs text-muted-foreground"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}

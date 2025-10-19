@@ -29,10 +29,10 @@ export function StatusIcon({ status, size = 'md', animated = false, className }:
   }
 
   const iconMap = {
-    approved: { Icon: Trophy, color: 'text-green-600 dark:text-green-400' },
+    approved: { Icon: Trophy, color: 'text-accent' },
     rejected: { Icon: XCircle, color: 'text-destructive' },
     under_review: { Icon: Target, color: 'text-primary' },
-    submitted: { Icon: Rocket, color: 'text-yellow-600 dark:text-yellow-400 dark:text-yellow-500' },
+    submitted: { Icon: Rocket, color: 'text-accent' },
     pending: { Icon: Clock, color: 'text-muted-foreground' },
     warning: { Icon: AlertTriangle, color: 'text-orange-600 dark:text-orange-400' }
   }

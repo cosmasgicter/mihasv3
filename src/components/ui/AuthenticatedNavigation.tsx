@@ -111,7 +111,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
   ]
 
   return (
-    <NavigationMenu.Root className={cn("nav-container bg-card/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg border-b border-border/50 dark:border-gray-700/50 sticky top-0 z-50 w-full transition-colors duration-500", className)}>
+    <NavigationMenu.Root className={cn("nav-container bg-card/95/95 backdrop-blur-sm shadow-lg border-b border-border/50/50 sticky top-0 z-50 w-full transition-colors duration-500", className)}>
       <div className="container-mobile">
         <div className="flex justify-between items-center py-3 sm:py-4">
           {/* User Info - Mobile First */}
@@ -159,7 +159,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex items-center space-x-2 hover:bg-blue-50 dark:bg-blue-950/30 dark:hover:bg-blue-900/30 hover:text-primary dark:hover:text-blue-400 smooth-transition"
+                      className="flex items-center space-x-2 hover:bg-primary/5/30 hover:bg-blue-900/30 hover:text-primary hover:text-blue-400 smooth-transition"
                     >
                       <item.icon className="h-4 w-4" />
                       <span className="font-medium">{item.label}</span>
@@ -177,7 +177,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                   variant="outline"
                   size="sm"
                   onClick={handleSignOut}
-                  className="ml-2 text-destructive border-red-200 dark:border-red-800 hover:bg-red-50 dark:bg-red-950/30 hover:border-red-300 dark:border-red-700 flex items-center !visible !flex"
+                  className="ml-2 text-destructive border-destructive/30 hover:bg-destructive/5/30 hover:border-destructive/30 flex items-center !visible !flex"
                   style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
@@ -188,7 +188,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu Button */}
             <motion.button
-              className="lg:hidden p-3 rounded-xl bg-card shadow-lg border border-border hover:bg-muted dark:hover:bg-gray-700 smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target nav-toggle-button"
+              className="lg:hidden p-3 rounded-xl bg-card shadow-lg border border-border hover:bg-muted smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target nav-toggle-button"
               onClick={toggleMenu}
               whileTap={{ scale: 0.95 }}
               aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -239,7 +239,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card dark:bg-gray-900 shadow-2xl border-l-4 border-blue-600 dark:border-purple-600 lg:hidden nav-panel overflow-y-auto z-[9999] opacity-100 visible transition-colors duration-500"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-2xl border-l-4 border-blue-600 dark:border-purple-600 lg:hidden nav-panel overflow-y-auto z-[9999] opacity-100 visible transition-colors duration-500"
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -248,7 +248,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-border/70 dark:border-gray-700/70 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 backdrop-blur-sm transition-colors duration-500">
+                <div className="flex items-center justify-between p-6 border-b border-border/70/70 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 backdrop-blur-sm transition-colors duration-500">
                   <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
                       <User className="h-5 w-5 text-white" />
@@ -271,7 +271,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                     </div>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-muted-foreground hover:bg-accent dark:hover:bg-gray-800 dark:bg-gray-200 smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
+                    className="p-2 rounded-lg text-muted-foreground hover:bg-accent dark:bg-gray-200 smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -294,12 +294,12 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                         <Link 
                           to={item.href}
                           onClick={closeMenu}
-                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-card text-gray-800 dark:text-gray-200 dark:text-gray-100 border-2 border-border hover:border-blue-500 dark:hover:border-purple-500 hover:bg-blue-50 dark:bg-blue-950/30 dark:hover:bg-gray-700 opacity-100 visible transition-all duration-200"
+                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-card text-gray-800 border-2 border-border hover:border-blue-500 hover:border-purple-500 hover:bg-primary/5/30 opacity-100 visible transition-all duration-200"
                         >
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center space-x-3">
-                              <item.icon className="h-5 w-5 flex-shrink-0 text-gray-800 dark:text-gray-200 dark:text-gray-100" />
-                              <span className="mobile-nav-text text-gray-800 dark:text-gray-200 dark:text-gray-100 font-semibold">{item.label}</span>
+                              <item.icon className="h-5 w-5 flex-shrink-0 text-gray-800" />
+                              <span className="mobile-nav-text text-gray-800 font-semibold">{item.label}</span>
                             </div>
                             <div className="w-2 h-2 rounded-full bg-blue-600 dark:bg-purple-600"></div>
                           </div>
@@ -309,7 +309,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                   </div>
 
                   {/* Fixed Sign Out Button */}
-                  <div className="p-6 border-t border-border bg-card dark:bg-gray-900 backdrop-blur-sm transition-colors duration-500">
+                  <div className="p-6 border-t border-border bg-card backdrop-blur-sm transition-colors duration-500">
                     <motion.button 
                       onClick={() => {
                         closeMenu()

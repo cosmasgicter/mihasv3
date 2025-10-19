@@ -104,7 +104,7 @@ export default function StudentSettings() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4 sm:p-6 mb-6 shadow-lg"
+            className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">😱</div>
@@ -117,15 +117,15 @@ export default function StudentSettings() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4 sm:p-6 mb-6 shadow-lg"
+            className="rounded-xl bg-accent/10/30 border border-accent/30 p-4 sm:p-6 mb-6 shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">✅</div>
               <div className="flex-1">
-                <div className="text-green-700 dark:text-green-300 font-medium">{success}</div>
+                <div className="text-accent font-medium">{success}</div>
                 <button
                   onClick={() => window.location.href = '/auth/signin'}
-                  className="mt-2 text-sm text-green-600 dark:text-green-400 underline hover:text-green-700"
+                  className="mt-2 text-sm text-accent underline hover:text-green-700"
                 >
                   Sign out now
                 </button>
@@ -140,10 +140,10 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <div className="p-2 bg-primary/10 rounded-lg">
                 <User className="h-5 w-5 text-primary" />
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-foreground">
@@ -166,7 +166,7 @@ export default function StudentSettings() {
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type="email"
                     value={profile?.email || ''}
@@ -174,7 +174,7 @@ export default function StudentSettings() {
                     className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-muted-foreground cursor-not-allowed truncate"
                   />
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground dark:text-muted-foreground bg-accent dark:bg-gray-200 px-3 py-1 rounded-lg inline-block">
+                <p className="mt-2 text-xs text-muted-foreground bg-accent dark:bg-gray-200 px-3 py-1 rounded-lg inline-block">
                   🔒 Email cannot be changed
                 </p>
               </div>
@@ -211,7 +211,7 @@ export default function StudentSettings() {
                   <option value="Female">Female</option>
                 </select>
                 {errors.sex && (
-                  <p className="mt-2 text-sm text-destructive bg-red-50 dark:bg-red-950/30 px-3 py-1 rounded-lg">{errors.sex.message}</p>
+                  <p className="mt-2 text-sm text-destructive bg-destructive/5/30 px-3 py-1 rounded-lg">{errors.sex.message}</p>
                 )}
               </div>
             </div>
@@ -222,11 +222,11 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                <MapPin className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <div className="p-2 bg-accent/10 rounded-lg">
+                <MapPin className="h-5 w-5 text-accent" />
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 📍 Address Information
@@ -256,7 +256,7 @@ export default function StudentSettings() {
                   className="w-full rounded-xl border-2 border-border px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 resize-none"
                 />
                 {errors.address && (
-                  <p className="mt-2 text-sm text-destructive bg-red-50 dark:bg-red-950/30 px-3 py-1 rounded-lg">{errors.address.message}</p>
+                  <p className="mt-2 text-sm text-destructive bg-destructive/5/30 px-3 py-1 rounded-lg">{errors.address.message}</p>
                 )}
               </div>
               
@@ -276,10 +276,10 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+              <div className="p-2 bg-destructive/10 rounded-lg">
                 <Phone className="h-5 w-5 text-destructive" />
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-foreground">
@@ -313,11 +313,11 @@ export default function StudentSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6"
+            className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div className="p-2 bg-secondary/10 rounded-lg">
+                <Shield className="h-5 w-5 text-secondary" />
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 🔐 Security & Active Sessions

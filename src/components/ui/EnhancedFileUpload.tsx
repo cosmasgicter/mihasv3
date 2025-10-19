@@ -189,7 +189,7 @@ export function EnhancedFileUpload({
       case 'error':
         return <AlertCircle className="w-4 h-4 text-red-500" />
       case 'compressing':
-        return <Minimize2 className="w-4 h-4 text-blue-500 dark:text-blue-400 animate-pulse" />
+        return <Minimize2 className="w-4 h-4 text-primary animate-pulse" />
       default:
         return <EnhancedLoadingSpinner size="sm" color="primary" />
     }
@@ -208,7 +208,7 @@ export function EnhancedFileUpload({
           // State-based styling
           isDragActive || dzIsDragActive
             ? 'border-blue-500 bg-blue-50'
-            : 'border-input dark:border-gray-400',
+            : 'border-input',
           disabled || !isOnline
             ? 'opacity-50 cursor-not-allowed bg-muted'
             : 'hover:border-gray-400 dark:border-gray-500',
@@ -221,7 +221,7 @@ export function EnhancedFileUpload({
         <div className="text-center space-y-2">
           <Upload className={cn(
             'w-8 h-8 mx-auto',
-            isDragActive || dzIsDragActive ? 'text-blue-500 dark:text-blue-400' : 'text-muted-foreground'
+            isDragActive || dzIsDragActive ? 'text-primary' : 'text-muted-foreground'
           )} />
           
           <div className="space-y-1">
@@ -241,7 +241,7 @@ export function EnhancedFileUpload({
               </p>
             )}
             {isSlowConnection && (
-              <p className="text-xs text-yellow-600 dark:text-yellow-400 dark:text-yellow-500">
+              <p className="text-xs text-accent">
                 Slow connection detected - uploads may take longer
               </p>
             )}
@@ -280,7 +280,7 @@ export function EnhancedFileUpload({
                         className="p-1 hover:bg-gray-200 dark:bg-gray-700 rounded-full transition-colors"
                         type="button"
                       >
-                        <X className="w-4 h-4 text-muted-foreground dark:text-muted-foreground" />
+                        <X className="w-4 h-4 text-muted-foreground" />
                       </button>
                     </div>
                   </div>
@@ -290,7 +290,7 @@ export function EnhancedFileUpload({
                       <span>
                         {formatFileSize(fileWithProgress.file.size)}
                         {fileWithProgress.compressed && fileWithProgress.originalSize && (
-                          <span className="text-green-600 dark:text-green-400 ml-1">
+                          <span className="text-accent ml-1">
                             (compressed from {formatFileSize(fileWithProgress.originalSize)})
                           </span>
                         )}
@@ -316,7 +316,7 @@ export function EnhancedFileUpload({
                         <p className="text-xs text-destructive">{fileWithProgress.error}</p>
                         <button
                           onClick={() => retryUpload(fileWithProgress.file)}
-                          className="text-xs text-primary hover:text-blue-700 dark:text-blue-300 font-medium"
+                          className="text-xs text-primary hover:text-primary font-medium"
                           type="button"
                         >
                           Retry
@@ -329,7 +329,7 @@ export function EnhancedFileUpload({
                       <p className="text-xs text-primary">Compressing image...</p>
                     )}
                     {fileWithProgress.status === 'completed' && (
-                      <p className="text-xs text-green-600 dark:text-green-400">Upload completed</p>
+                      <p className="text-xs text-accent">Upload completed</p>
                     )}
                   </div>
                 </div>

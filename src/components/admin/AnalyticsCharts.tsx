@@ -72,12 +72,12 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <motion.div 
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800"
+ className="bg-card rounded-xl p-6 shadow-lg border border-gray-100"
  >
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm font-medium text-muted-foreground">Approval Rate</p>
- <p className="text-2xl font-bold text-green-600 dark:text-green-400">{approvalRate}%</p>
+ <p className="text-2xl font-bold text-accent">{approvalRate}%</p>
  <div className="flex items-center mt-2 text-xs">
  {approvalRate >= 70 ? (
  <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
@@ -97,7 +97,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.1 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800"
+ className="bg-card rounded-xl p-6 shadow-lg border border-gray-100"
  >
  <div className="flex items-center justify-between">
  <div>
@@ -114,7 +114,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  </span>
  </div>
  </div>
- <BarChart3 className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+ <BarChart3 className="h-8 w-8 text-primary" />
  </div>
  </motion.div>
 
@@ -122,15 +122,15 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.2 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800"
+ className="bg-card rounded-xl p-6 shadow-lg border border-gray-100"
  >
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm font-medium text-muted-foreground">Processing Time</p>
- <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">3.2 days</p>
+ <p className="text-2xl font-bold text-secondary">3.2 days</p>
  <div className="flex items-center mt-2 text-xs">
  <TrendingDown className="h-3 w-3 text-green-500 mr-1" />
- <span className="text-green-600 dark:text-green-400">15% faster</span>
+ <span className="text-accent">15% faster</span>
  </div>
  </div>
  <Clock className="h-8 w-8 text-purple-500" />
@@ -141,7 +141,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.3 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-800"
+ className="bg-card rounded-xl p-6 shadow-lg border border-gray-100"
  >
  <div className="flex items-center justify-between">
  <div>
@@ -162,7 +162,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.4 }}
- className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
+ className="bg-card rounded-xl shadow-lg border border-gray-100"
  >
  <div className="px-6 py-4 border-b border-border">
  <h3 className="text-lg font-bold text-foreground flex items-center">
@@ -213,11 +213,11 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  </div>
  <div className="flex justify-between">
  <span className="text-sm text-muted-foreground">Success Rate</span>
- <span className="font-semibold text-green-600 dark:text-green-400">{approvalRate}%</span>
+ <span className="font-semibold text-accent">{approvalRate}%</span>
  </div>
  <div className="flex justify-between">
  <span className="text-sm text-muted-foreground">Pending Review</span>
- <span className="font-semibold text-yellow-600 dark:text-yellow-400 dark:text-yellow-500">{data.applications.pending}</span>
+ <span className="font-semibold text-accent">{data.applications.pending}</span>
  </div>
  </div>
  </div>
@@ -251,7 +251,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.6 }}
- className="bg-card rounded-xl shadow-lg border border-gray-100 dark:border-gray-800"
+ className="bg-card rounded-xl shadow-lg border border-gray-100"
  >
  <div className="px-6 py-4 border-b border-border">
  <h3 className="text-lg font-bold text-foreground flex items-center">
@@ -265,14 +265,14 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <div className="grid grid-cols-7 gap-2 mb-4">
  {Array.from({ length: 7 }).map((_, index) => (
  <div key={index} className="text-center">
- <div className="text-xs text-foreground dark:text-muted-foreground mb-2">---</div>
+ <div className="text-xs text-foreground mb-2">---</div>
  <div className="h-16 w-full rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse mx-auto"></div>
- <div className="text-xs font-semibold text-foreground dark:text-muted-foreground mt-2">--</div>
+ <div className="text-xs font-semibold text-foreground mt-2">--</div>
  </div>
  ))}
  </div>
  ) : isAnalyticsError || dailyCounts.length === 0 ? (
- <div className="flex flex-col items-center justify-center py-10 text-sm text-muted-foreground dark:text-muted-foreground">
+ <div className="flex flex-col items-center justify-center py-10 text-sm text-muted-foreground">
  <XCircle className="h-6 w-6 text-red-400 mb-2" />
  <p>{fallbackMessage}</p>
  </div>
@@ -284,7 +284,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
 
  return (
  <div key={day.date} className="text-center">
- <div className="text-xs text-muted-foreground dark:text-muted-foreground mb-2">{day.label}</div>
+ <div className="text-xs text-muted-foreground mb-2">{day.label}</div>
  <motion.div
  className="bg-gradient-to-t from-blue-600 to-purple-600 rounded-lg mx-auto"
  style={{ width: '100%' }}

@@ -35,7 +35,7 @@ export function SaveNotification({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+        return <Check className="h-5 w-5 text-accent" />
       case 'error':
         return <AlertCircle className="h-5 w-5 text-destructive" />
       case 'info':
@@ -46,11 +46,11 @@ export function SaveNotification({
   const getStyles = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-50 border-green-200 text-green-800 dark:text-green-200'
+        return 'bg-green-50 border-green-200 text-accent-foreground'
       case 'error':
-        return 'bg-red-50 border-red-200 text-red-800 dark:text-red-200'
+        return 'bg-red-50 border-red-200 text-destructive-foreground'
       case 'info':
-        return 'bg-blue-50 border-blue-200 text-blue-800 dark:text-blue-200 dark:text-blue-800'
+        return 'bg-blue-50 border-blue-200 text-primary-foreground'
     }
   }
 

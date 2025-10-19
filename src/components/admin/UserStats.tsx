@@ -53,9 +53,9 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       case 'registrar':
       case 'finance_officer':
       case 'academic_head':
-        return <Shield className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+        return <Shield className="h-4 w-4 text-primary" />
       default:
-        return <User className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
+        return <User className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -63,14 +63,14 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
     switch (role) {
       case 'admin':
       case 'super_admin':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200'
+        return 'bg-destructive/10 text-destructive-foreground border-red-200'
       case 'admissions_officer':
       case 'registrar':
       case 'finance_officer':
       case 'academic_head':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800 border-blue-200'
+        return 'bg-primary/10 text-primary-foreground border-blue-200'
       default:
-        return 'bg-accent dark:bg-gray-200 text-gray-800 dark:text-gray-200 dark:text-gray-700 border-border'
+        return 'bg-accent dark:bg-gray-200 text-foreground border-border'
     }
   }
 
@@ -144,7 +144,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
           {Object.entries(stats.byRole)
             .sort(([, a], [, b]) => b - a)
             .map(([role, count]) => (
-              <div key={role} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:bg-muted">
+              <div key={role} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted">
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(role)}
                   <span className="font-medium text-foreground">{getRoleLabel(role)}</span>
@@ -155,11 +155,11 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
                   </span>
                   <div className="w-20 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
-                      className="bg-blue-50 dark:bg-blue-950/300 h-2 rounded-full"
+                      className="bg-primary/5/300 h-2 rounded-full"
                       style={{ width: `${(count / stats.total) * 100}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm text-muted-foreground dark:text-muted-foreground w-12 text-right">
+                  <span className="text-sm text-muted-foreground w-12 text-right">
                     {Math.round((count / stats.total) * 100)}%
                   </span>
                 </div>
@@ -177,26 +177,26 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
         <div className="space-y-3">
           {recentUsers.length > 0 ? (
             recentUsers.map((user) => (
-              <div key={user.user_id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:bg-muted">
+              <div key={user.user_id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted">
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(user.role)}
                   <div>
                     <p className="font-medium text-foreground">{sanitizeForDisplay(user.full_name) || 'No name'}</p>
-                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">{sanitizeForDisplay(user.email)}</p>
+                    <p className="text-sm text-muted-foreground">{sanitizeForDisplay(user.email)}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                     {getRoleLabel(user.role)}
                   </span>
-                  <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {new Date(user.created_at).toLocaleDateString()}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-muted-foreground dark:text-muted-foreground text-center py-4">No recent users</p>
+            <p className="text-muted-foreground text-center py-4">No recent users</p>
           )}
         </div>
       </div>

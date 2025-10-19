@@ -126,8 +126,8 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           </h3>
           <div className={`px-3 py-1 rounded-full text-sm font-medium ${
             selectedSubjects.length >= 5 
-              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
-              : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+              ? 'bg-accent/10 text-accent-foreground' 
+              : 'bg-destructive/10 text-destructive-foreground'
           }`}>
             {selectedSubjects.length}/10 subjects
           </div>
@@ -145,10 +145,10 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
 
       {/* Minimum requirement warning */}
       {selectedSubjects.length < 5 && (
-        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start space-x-3">
+        <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-4 flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-red-800 dark:text-red-200">
+            <p className="text-sm font-medium text-destructive-foreground">
               Minimum 5 subjects required
             </p>
             <p className="text-sm text-red-700 dark:text-red-300">
@@ -169,7 +169,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
                 placeholder="Search subjects..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-input dark:border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <Button
@@ -191,7 +191,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
               >
                 <div>
                   <p className="font-medium text-foreground">{subject.name}</p>
-                  <p className="text-sm text-muted-foreground dark:text-muted-foreground">{subject.code} • {subject.category}</p>
+                  <p className="text-sm text-muted-foreground">{subject.code} • {subject.category}</p>
                 </div>
                 <Plus className="h-4 w-4 text-muted-foreground" />
               </button>
@@ -199,7 +199,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           </div>
           
           {filteredSubjects.length === 0 && (
-            <p className="text-center text-muted-foreground dark:text-muted-foreground py-4">
+            <p className="text-center text-muted-foreground py-4">
               {searchTerm ? 'No subjects found matching your search.' : 'All available subjects have been added.'}
             </p>
           )}
@@ -266,7 +266,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           {/* Show add button if no subjects selected */}
           {selectedSubjects.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-muted-foreground dark:text-muted-foreground mb-4">No subjects selected yet</p>
+              <p className="text-muted-foreground mb-4">No subjects selected yet</p>
               <AddSubjectButton 
                 onClick={() => setShowAddForm(!showAddForm)}
                 isOpen={showAddForm}
@@ -315,7 +315,7 @@ function AddSubjectButton({ onClick, isOpen, disabled, variant = 'secondary' }: 
           ? 'border-border text-muted-foreground cursor-not-allowed'
           : isPrimary
           ? 'border-blue-300 dark:border-blue-700 text-blue-600 hover:border-blue-400 hover:bg-blue-50'
-          : 'border-input dark:border-gray-400 text-muted-foreground hover:border-gray-400 dark:border-gray-500 hover:bg-muted'
+          : 'border-input text-muted-foreground hover:border-gray-400 dark:border-gray-500 hover:bg-muted'
       } ${isOpen ? 'bg-blue-50 border-blue-400' : ''}`}
     >
       <div className="flex items-center justify-center space-x-2">
@@ -348,7 +348,7 @@ function SubjectCard({
       onDragStart={() => onDragStart(index)}
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, index)}
-      className="bg-card border border-border rounded-lg p-4 hover:border-input dark:border-gray-400 transition-colors cursor-move"
+      className="bg-card border border-border rounded-lg p-4 hover:border-input transition-colors cursor-move"
     >
       <div className="flex items-center space-x-4">
         <GripVertical className="h-5 w-5 text-muted-foreground" />
@@ -357,7 +357,7 @@ function SubjectCard({
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className="font-medium text-foreground">{subject.name}</p>
-              <p className="text-sm text-muted-foreground dark:text-muted-foreground">{subject.code}</p>
+              <p className="text-sm text-muted-foreground">{subject.code}</p>
             </div>
             <button
               type="button"
@@ -376,7 +376,7 @@ function SubjectCard({
               <select
                 value={subject.grade || ''}
                 onChange={(e) => onUpdate(subject.id, 'grade', e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-input dark:border-gray-400 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
                 <option value="">Select grade</option>
                 <option value="1">1 (A+ - Distinction)</option>
@@ -401,7 +401,7 @@ function SubjectCard({
                 max="100"
                 value={subject.score || ''}
                 onChange={(e) => onUpdate(subject.id, 'score', parseInt(e.target.value) || 0)}
-                className="w-full px-2 py-1 text-sm border border-input dark:border-gray-400 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="0-100"
               />
             </div>

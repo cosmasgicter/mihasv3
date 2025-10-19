@@ -134,14 +134,14 @@ export function TestNotifications() {
         {message && (
           <div className={`p-3 rounded-lg text-sm ${
             message.includes('✅') 
-              ? 'bg-green-50 text-green-700 dark:text-green-300 border border-green-200' 
+              ? 'bg-green-50 text-accent border border-green-200' 
               : 'bg-red-50 text-red-700 dark:text-red-300 border border-red-200'
           }`}>
             {message}
           </div>
         )}
         
-        <div className="text-xs text-muted-foreground dark:text-muted-foreground">
+        <div className="text-xs text-muted-foreground">
           <p>• In-app notifications appear instantly in the notification bell</p>
           <p>• Email notifications are queued and need to be processed by an email service</p>
           <p>• Test with existing student users and applications</p>

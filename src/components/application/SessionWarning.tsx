@@ -69,9 +69,9 @@ export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningP
           <p className="text-foreground mb-3">{warning.message}</p>
           
           {timeLeft > 0 && (
-            <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 rounded-lg p-3">
+            <div className="bg-accent/5/30 border border-yellow-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                <span className="text-sm font-medium text-accent-foreground">
                   Time remaining:
                 </span>
                 <span className="text-lg font-mono font-bold text-yellow-900">
@@ -112,7 +112,7 @@ export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningP
           </Button>
         </div>
 
-        <div className="mt-4 text-xs text-muted-foreground dark:text-muted-foreground text-center">
+        <div className="mt-4 text-xs text-muted-foreground text-center">
           Your progress is automatically saved and will be preserved even if the session expires.
         </div>
       </div>

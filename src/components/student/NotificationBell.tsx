@@ -27,7 +27,7 @@ export function NotificationBell() {
       case 'error':
         return <X className="h-4 w-4 text-red-500" />
       default:
-        return <Info className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+        return <Info className="h-4 w-4 text-primary" />
     }
   }
 
@@ -66,7 +66,7 @@ export function NotificationBell() {
         variant="ghost"
         size="sm"
         onClick={() => setShowPanel(!showPanel)}
-        className="relative hover:bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center"
+        className="relative hover:bg-primary/5/30 flex items-center justify-center"
         data-testid="notification-bell"
       >
         <Bell className="h-5 w-5 text-muted-foreground" />
@@ -74,7 +74,7 @@ export function NotificationBell() {
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-red-50 dark:bg-red-950/300 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold"
+            className="absolute -top-1 -right-1 bg-destructive/5/300 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold"
             data-testid="unread-count"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -114,7 +114,7 @@ export function NotificationBell() {
                         variant="ghost"
                         size="sm"
                         onClick={markAllAsRead}
-                        className="text-xs text-primary hover:bg-blue-100 dark:bg-blue-900/30"
+                        className="text-xs text-primary hover:bg-primary/10"
                         data-testid="mark-all-read"
                       >
                         Mark all read
@@ -137,10 +137,10 @@ export function NotificationBell() {
                 {loading ? (
                   <div className="p-6 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="text-muted-foreground dark:text-muted-foreground text-sm mt-2">Loading notifications...</p>
+                    <p className="text-muted-foreground text-sm mt-2">Loading notifications...</p>
                   </div>
                 ) : notifications.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground dark:text-muted-foreground">
+                  <div className="p-8 text-center text-muted-foreground">
                     <Bell className="h-12 w-12 mx-auto mb-3 opacity-30" />
                     <p className="font-medium">No notifications yet</p>
                     <p className="text-xs mt-1">We'll notify you about important updates</p>
@@ -169,15 +169,15 @@ export function NotificationBell() {
                                 <p className={`font-medium text-sm ${!notification.read ? 'text-foreground' : 'text-foreground'}`}>
                                   {sanitizeText(notification.title)}
                                 </p>
-                                <p className={`text-xs mt-1 ${!notification.read ? 'text-foreground' : 'text-muted-foreground dark:text-muted-foreground'}`}>
+                                <p className={`text-xs mt-1 ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>
                                   {sanitizeText(notification.content)}
                                 </p>
                                 <div className="flex items-center justify-between mt-2">
-                                  <span className="text-xs text-muted-foreground dark:text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground">
                                     {formatDate(notification.created_at)}
                                   </span>
                                   {!notification.read && (
-                                    <span className="inline-flex h-2 w-2 rounded-full bg-blue-50 dark:bg-blue-950/300"></span>
+                                    <span className="inline-flex h-2 w-2 rounded-full bg-primary/5/300"></span>
                                   )}
                                 </div>
                               </div>
@@ -192,7 +192,7 @@ export function NotificationBell() {
                                     console.error('Failed to delete notification')
                                   }
                                 }}
-                                className="p-1 h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:bg-red-100 dark:bg-red-900/30 hover:text-destructive focus:bg-red-100 dark:bg-red-900/30 focus:text-red-600"
+                                className="p-1 h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-red-600"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -208,7 +208,7 @@ export function NotificationBell() {
               {/* Footer */}
               {notifications.length > 0 && (
                 <div className="p-3 border-t border-border bg-muted">
-                  <p className="text-xs text-muted-foreground dark:text-muted-foreground text-center">
+                  <p className="text-xs text-muted-foreground text-center">
                     <Lightbulb className="w-5 h-5" /> Click notifications to mark as read
                   </p>
                 </div>

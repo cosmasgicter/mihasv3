@@ -79,7 +79,7 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
 
   const getStatusIcon = () => {
     if (isChecking) {
-      return <RefreshCw className="h-4 w-4 animate-spin text-blue-500 dark:text-blue-400" />
+      return <RefreshCw className="h-4 w-4 animate-spin text-primary" />
     }
     
     if (authStatus.canSubmitApplication) {
@@ -114,7 +114,7 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
   }
 
   const getStatusColor = () => {
-    if (authStatus.canSubmitApplication) return 'text-green-700 dark:text-green-300'
+    if (authStatus.canSubmitApplication) return 'text-accent'
     if (authStatus.isAuthenticated) return 'text-yellow-700'
     return 'text-red-700 dark:text-red-300'
   }

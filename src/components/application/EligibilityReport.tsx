@@ -22,9 +22,9 @@ export function EligibilityReport({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'eligible':
-        return <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+        return <CheckCircle className="h-8 w-8 text-accent" />
       case 'conditional':
-        return <AlertTriangle className="h-8 w-8 text-yellow-600 dark:text-yellow-400 dark:text-yellow-500" />
+        return <AlertTriangle className="h-8 w-8 text-accent" />
       case 'not_eligible':
         return <XCircle className="h-8 w-8 text-destructive" />
       case 'under_review':
@@ -37,28 +37,28 @@ export function EligibilityReport({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'eligible':
-        return 'text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-900/30'
+        return 'text-accent-foreground bg-accent/10'
       case 'conditional':
-        return 'text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-900/30'
+        return 'text-accent-foreground bg-accent/10'
       case 'not_eligible':
-        return 'text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-900/30'
+        return 'text-destructive-foreground bg-destructive/10'
       case 'under_review':
-        return 'text-blue-800 dark:text-blue-200 dark:text-blue-800 bg-blue-100 dark:bg-blue-900/30'
+        return 'text-primary-foreground bg-primary/10'
       default:
-        return 'text-gray-800 dark:text-gray-200 dark:text-gray-700 bg-accent dark:bg-gray-200'
+        return 'text-foreground bg-accent dark:bg-gray-200'
     }
   }
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return 'border-red-300 dark:border-red-700 bg-red-50'
+        return 'border-destructive/30 bg-red-50'
       case 'major':
         return 'border-orange-300 bg-orange-50'
       case 'minor':
         return 'border-yellow-300 bg-yellow-50'
       default:
-        return 'border-input dark:border-gray-400 bg-muted'
+        return 'border-input bg-muted'
     }
   }
 
@@ -197,21 +197,21 @@ For appeals or queries, please contact the admissions office.
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-foreground mb-4">Detailed Score Breakdown</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4">
+          <div className="bg-primary/5/30 rounded-lg p-4">
             <div className="text-sm font-medium text-primary">Subject Count</div>
-            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 dark:text-blue-900">
+            <div className="text-2xl font-bold text-primary-foreground">
               {Math.round(assessment.detailed_breakdown.subject_count_score)}%
             </div>
           </div>
-          <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4">
-            <div className="text-sm font-medium text-green-600 dark:text-green-400">Grade Average</div>
-            <div className="text-2xl font-bold text-green-900 dark:text-green-100">
+          <div className="bg-accent/10/30 rounded-lg p-4">
+            <div className="text-sm font-medium text-accent">Grade Average</div>
+            <div className="text-2xl font-bold text-accent-foreground">
               {Math.round(assessment.detailed_breakdown.grade_average_score)}%
             </div>
           </div>
-          <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-4">
-            <div className="text-sm font-medium text-purple-600 dark:text-purple-400">Core Subjects</div>
-            <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+          <div className="bg-secondary/5/30 rounded-lg p-4">
+            <div className="text-sm font-medium text-secondary">Core Subjects</div>
+            <div className="text-2xl font-bold text-secondary-foreground">
               {Math.round(assessment.detailed_breakdown.core_subjects_score)}%
             </div>
           </div>
@@ -235,13 +235,13 @@ For appeals or queries, please contact the admissions office.
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <span className={`px-2 py-1 text-xs font-medium rounded uppercase ${
-                        req.severity === 'critical' ? 'bg-red-200 text-red-800 dark:text-red-200' :
+                        req.severity === 'critical' ? 'bg-red-200 text-destructive-foreground' :
                         req.severity === 'major' ? 'bg-orange-200 text-orange-800' :
-                        'bg-yellow-200 text-yellow-800 dark:text-yellow-200'
+                        'bg-yellow-200 text-accent-foreground'
                       }`}>
                         {req.severity}
                       </span>
-                      <span className="text-xs text-muted-foreground dark:text-muted-foreground uppercase">{req.type}</span>
+                      <span className="text-xs text-muted-foreground uppercase">{req.type}</span>
                     </div>
                     <div className="font-medium text-foreground mb-1">{req.description}</div>
                     <div className="text-sm text-foreground">{req.suggestion}</div>
@@ -257,12 +257,12 @@ For appeals or queries, please contact the admissions office.
       {assessment.recommendations.length > 0 && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-4">Recommendations</h2>
-          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-4">
             <ul className="space-y-2">
               {assessment.recommendations.map((rec: string, index: number) => (
                 <li key={index} className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-blue-50 dark:bg-blue-950/300 rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-blue-800 dark:text-blue-200 dark:text-blue-800">{rec}</span>
+                  <div className="w-2 h-2 bg-primary/5/300 rounded-full mt-2 flex-shrink-0"></div>
+                  <span className="text-primary-foreground">{rec}</span>
                 </li>
               ))}
             </ul>
@@ -294,7 +294,7 @@ For appeals or queries, please contact the admissions office.
           </ul>
           
           <div className="mt-4 pt-4 border-t border-border">
-            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               This report was generated automatically by the Eligibility Assessment System on {new Date().toLocaleString()}.
               Report ID: {assessment.id}
             </p>

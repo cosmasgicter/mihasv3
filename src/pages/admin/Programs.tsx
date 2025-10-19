@@ -201,13 +201,13 @@ export default function AdminPrograms() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="bg-card rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
           {/* Header - Mobile First */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                 <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/90 dark:hover:bg-gray-800/30 border-white/30">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/90/30 border-white/30">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
@@ -237,13 +237,13 @@ export default function AdminPrograms() {
                 </div>
               </div>
             ) : error ? (
-              <div className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-6 text-center">
+              <div className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-6 text-center">
                 <div className="text-6xl mb-4">😱</div>
                 <p className="text-destructive font-medium text-lg">{error}</p>
                 <Button 
                   onClick={loadPrograms} 
                   variant="outline" 
-                  className="mt-4 text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                  className="mt-4 text-destructive border-destructive/30 hover:bg-destructive/5/30"
                 >
                   Try Again
                 </Button>
@@ -276,7 +276,7 @@ export default function AdminPrograms() {
                             {program.institutions?.name || 'Unknown Institution'}
                           </p>
                           {program.description && (
-                            <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-2 line-clamp-2">{program.description}</p>
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{program.description}</p>
                           )}
                         </div>
                       </div>
@@ -285,7 +285,7 @@ export default function AdminPrograms() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openEdit(program)}
-                          className="flex-1 text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+                          className="flex-1 text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
                         >
                           <Pencil className="h-4 w-4 mr-1" />
                           Edit
@@ -294,7 +294,7 @@ export default function AdminPrograms() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openDelete(program)}
-                          className="flex-1 text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                          className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5/30"
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           Delete
@@ -328,17 +328,17 @@ export default function AdminPrograms() {
                     </thead>
                     <tbody className="bg-card divide-y divide-gray-200">
                       {programs.map((program) => (
-                        <tr key={program.id} className="hover:bg-blue-50 dark:bg-blue-950/30 transition-colors">
+                        <tr key={program.id} className="hover:bg-primary/5/30 transition-colors">
                           <td className="px-6 py-4">
                             <div className="font-semibold text-foreground">{program.name}</div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent/10 text-accent-foreground">
                               {program.institutions?.name || 'Unknown'}
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 dark:text-blue-800">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary-foreground">
                               {program.duration_years} year{program.duration_years !== 1 ? 's' : ''}
                             </span>
                           </td>
@@ -353,7 +353,7 @@ export default function AdminPrograms() {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openEdit(program)}
-                                className="text-primary border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:bg-blue-950/30"
+                                className="text-primary border-blue-300 dark:border-blue-700 hover:bg-primary/5/30"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -361,7 +361,7 @@ export default function AdminPrograms() {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openDelete(program)}
-                                className="text-destructive border-red-300 dark:border-red-700 hover:bg-red-50 dark:bg-red-950/30"
+                                className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -393,7 +393,7 @@ export default function AdminPrograms() {
                 name="institution_id"
                 value={form.institution_id}
                 onChange={handleSelectChange}
-                className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               >
                 <option value="">Select an institution</option>
@@ -429,7 +429,7 @@ export default function AdminPrograms() {
                 name="institution_id"
                 value={form.institution_id}
                 onChange={handleSelectChange}
-                className="w-full px-3 py-2 border border-input dark:border-gray-400 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               >
                 <option value="">Select an institution</option>

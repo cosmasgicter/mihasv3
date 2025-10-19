@@ -63,7 +63,7 @@ const BasicKycStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100"
       data-testid="basic-kyc-step"
     >
       <div className="flex items-center justify-between mb-4">
@@ -77,13 +77,13 @@ const BasicKycStep = ({
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg"
+          className="mb-4 p-3 bg-accent/10/30 border border-accent/30 rounded-lg"
         >
-          <div className="flex items-center space-x-2 text-sm text-green-800 dark:text-green-200">
+          <div className="flex items-center space-x-2 text-sm text-accent-foreground">
             <CheckCircle className="h-4 w-4" />
             <span className="font-medium">Profile data automatically populated</span>
           </div>
-          <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+          <p className="text-xs text-accent mt-1">
             Some fields have been pre-filled from your profile. Please review and update as needed.
           </p>
         </motion.div>
@@ -136,7 +136,7 @@ const BasicKycStep = ({
           <select
             {...register('sex')}
             id="sex"
-            className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select sex</option>
             <option value="Male">Male</option>
@@ -206,7 +206,7 @@ const BasicKycStep = ({
           <select
             {...register('program')}
             id="program"
-            className="w-full rounded-md border border-input dark:border-gray-400 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select program</option>
             {programs.length === 0 && (
@@ -236,7 +236,7 @@ const BasicKycStep = ({
             id="intake"
             disabled={intakes.length === 0}
             className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              intakes.length === 0 ? 'bg-accent dark:bg-gray-200 text-muted-foreground dark:text-muted-foreground cursor-not-allowed border-border' : 'bg-card border-input dark:border-gray-400'
+              intakes.length === 0 ? 'bg-accent dark:bg-gray-200 text-muted-foreground cursor-not-allowed border-border' : 'bg-card border-input'
             }`}
           >
             <option value="">Select intake</option>
@@ -257,7 +257,7 @@ const BasicKycStep = ({
             })}
           </select>
           {intakes.length === 0 && (
-            <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">Intakes will appear here once enrollment periods are announced.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Intakes will appear here once enrollment periods are announced.</p>
           )}
           {errors.intake && <p className="mt-1 text-sm text-destructive">{errors.intake.message}</p>}
         </div>
@@ -265,11 +265,11 @@ const BasicKycStep = ({
 
       {selectedProgramDetails && (
         <motion.div
-          className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg"
+          className="mt-4 p-4 bg-primary/5/30 rounded-lg"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <p className="text-sm text-blue-800 dark:text-blue-200 dark:text-blue-800">
+          <p className="text-sm text-primary-foreground">
             <strong>Institution:</strong>{' '}
             {selectedInstitutionLabel || 'MIHAS'}
           </p>

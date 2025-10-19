@@ -52,9 +52,9 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
  >
  {/* Header */}
  <div className={`p-6 ${
- variant === 'danger' ? 'bg-red-50 dark:bg-red-950/30' :
- variant === 'warning' ? 'bg-yellow-50 dark:bg-yellow-950/30' :
- 'bg-blue-50 dark:bg-blue-950/30'
+ variant === 'danger' ? 'bg-destructive/5/30' :
+ variant === 'warning' ? 'bg-accent/5/30' :
+ 'bg-primary/5/30'
  }`}>
  <div className="flex items-start justify-between">
  <div className="flex items-center gap-3">
@@ -65,17 +65,17 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
  }`}>
  <AlertTriangle className={`h-6 w-6 ${
  variant === 'danger' ? 'text-destructive' :
- variant === 'warning' ? 'text-yellow-600 dark:text-yellow-400' :
+ variant === 'warning' ? 'text-accent' :
  'text-primary'
  }`} />
  </div>
- <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+ <h3 className="text-lg font-semibold text-foreground">
  {title}
  </h3>
  </div>
  <button
  onClick={onClose}
- className="text-muted-foreground hover:text-muted-foreground dark:hover:text-foreground transition-colors"
+ className="text-muted-foreground hover:text-muted-foreground hover:text-foreground transition-colors"
  >
  <X className="h-5 w-5" />
  </button>
@@ -84,7 +84,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
  {/* Content */}
  <div className="p-6">
- <p className="text-muted-foreground dark:text-foreground">
+ <p className="text-muted-foreground">
  {message}
  </p>
  </div>
