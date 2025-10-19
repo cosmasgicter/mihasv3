@@ -10,28 +10,12 @@ const supabaseUrl = 'https://mylgegkqoddcrxtwcclb.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MTIwODMsImV4cCI6MjA3MzA4ODA4M30.7f-TwYz7E6Pp07oH5Lkkfw9c8d8JkeE81EXJqpCWiLw';
 const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzUxMjA4MywiZXhwIjoyMDczMDg4MDgzfQ.FsspKE5bjcG4TW8IvG-N0o7W0E7ljxznwlzJCm50ZRE';
 
-if (!supabaseUrl) {
-  throw new Error('VITE_SUPABASE_URL is not configured')
-}
-
-if (!supabaseServiceKey) {
-  throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for server-side Supabase access')
-}
-
 const clientOptions = {
   auth: {
     persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-    flowType: 'implicit'
-  },
-  db: {
-    schema: 'public'
+    autoRefreshToken: false
   },
   global: {
-    headers: {
-      'apikey': supabaseServiceKey
-    },
     fetch: (url, options = {}) => {
       return retryFetch(url, {
         ...options,
