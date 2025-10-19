@@ -23,9 +23,10 @@ export async function onRequestGet(context) {
     }
     
     const { data, error } = await supabaseAdminClient
-      .from('notification_preferences')
+      .from('user_notification_preferences')
       .select('*')
-      .order('created_at', { ascending: false });
+      .eq('user_id', authContext.user.id)
+      .maybeSingle();
     
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {

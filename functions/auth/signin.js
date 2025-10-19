@@ -1,23 +1,40 @@
-import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
+import { supabaseAdminClient } from '../_lib/supabaseClient.js';
 
-export async function onRequest(context) {
+export async function onRequestPost(context) {
   const { request } = context;
+  const body = await request.json();
   
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
   };
   
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
   
-  return new Response(JSON.stringify({ 
-    error: 'Not implemented yet',
-    message: 'This endpoint is being migrated to Cloudflare Pages'
-  }), {
-    status: 501,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  });
+  try {
+    const { data, error } = await supabaseAdminClient.auth.signInWithPassword({
+      email: body.email,
+      password: body.password
+    });
+    
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
 }
