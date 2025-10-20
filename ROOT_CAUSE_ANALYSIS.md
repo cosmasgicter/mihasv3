@@ -1,185 +1,173 @@
-# Root Cause Analysis - Navigation Issues
+# Root Cause Analysis - 405 Errors
 
-**Date**: 2025-01-23  
-**Status**: ✅ IDENTIFIED & FIXED
-
----
-
-## 🔍 Root Cause
-
-**DUPLICATE NAVIGATION SYSTEMS** running simultaneously on every authenticated page.
+## Critical Finding: Mixed Function Formats
 
 ### The Problem
+**Two different function export formats in the same codebase:**
 
-Two separate navigation architectures existed:
+1. **Cloudflare Pages format** (Working):
+   ```javascript
+   export async function onRequest(context) { }
+   export async function onRequestGet(context) { }
+   export async function onRequestPost(context) { }
+   ```
 
-#### System 1: Global AppLayout (Correct)
-- **File**: `src/components/navigation/AppLayout.tsx`
-- **Scope**: Wraps ALL routes in `App.tsx`
-- **Components**:
-  - `DesktopSidebar` - Left sidebar (desktop only)
-  - `Header` - Top header with user info
-  - `MobileBottomNav` - Bottom tab bar (mobile only)
-- **Design**: Already using new blue-purple gradient system ✅
+2. **Netlify format** (NOT Working on Cloudflare):
+   ```javascript
+   exports.handler = async (event) => { }
+   ```
 
-#### System 2: Page-Level Navigation (Incorrect)
-- **Files**: 
-  - `AuthenticatedNavigation.tsx` - Used in 5 student pages
-  - `AdminNavigation.tsx` - Used in 9 admin pages
-  - `MobileNavigation.tsx` - Used in landing page
-- **Scope**: Imported individually in each page
-- **Design**: Old primary/secondary color system ❌
+### Files Using WRONG Format (Netlify)
+Located in `functions/api/`:
+- ❌ `auth-roles.js` - `exports.handler`
+- ❌ `auth-sync-roles.js` - `exports.handler`
+- ❌ `admin-settings.js` - `exports.handler`
+- ❌ `notifications.js` - `exports.handler`
 
-### Visual Result
-When visiting `/student/dashboard`:
-1. AppLayout renders → Shows new navigation
-2. Dashboard.tsx renders → Shows old `<AuthenticatedNavigation />`
-3. **User sees BOTH navigations stacked!**
+### Files Using CORRECT Format (Cloudflare)
+All other functions:
+- ✅ `health.js` - `export async function onRequestGet()`
+- ✅ `catalog/programs.js` - `export async function onRequestGet()`
+- ✅ `analytics/telemetry.js` - `export async function onRequest()`
+- ✅ `sessions/track.js` - `export async function onRequestPost()`
 
----
+## Why This Causes 405 Errors
 
-## 📊 Impact Analysis
+### Cloudflare Pages Routing
+Cloudflare Pages expects:
+- `export async function onRequest()` - Handles ALL methods
+- `export async function onRequestGet()` - Handles GET only
+- `export async function onRequestPost()` - Handles POST only
+- etc.
 
-### Pages Affected
-- **Student Pages**: 5 pages with duplicate nav
-  - ApplicationDetail.tsx
-  - ApplicationStatus.tsx
-  - Dashboard.tsx
-  - NotificationSettings.tsx
-  - Settings.tsx
+### What Happens with `exports.handler`
+1. Cloudflare Pages doesn't recognize `exports.handler`
+2. Function is ignored/not loaded
+3. Request falls through to static files
+4. Returns HTML (index.html) with 200 status
+5. OR returns 405 if route doesn't match static files
 
-- **Admin Pages**: 10 pages with duplicate nav
-  - Analytics.tsx
-  - Applications.tsx
-  - AuditTrail.tsx
-  - Dashboard.tsx
-  - EnhancedDashboard.tsx
-  - Intakes.tsx
-  - Monitoring.tsx
-  - Programs.tsx
-  - Settings.tsx
-  - Users.tsx
-  - OfflineAdminDashboard.tsx (component)
+## Evidence from Logs
 
----
-
-## 🔧 Fixes Applied
-
-### Fix #1: Remove Duplicate Navigation
-```bash
-# Removed AuthenticatedNavigation from 5 student pages
-# Removed AdminNavigation from 10 admin pages
+### Browser Console Errors
+```
+/sessions/track:1  Failed to load resource: 405
+/api/auth-roles:1  Failed to load resource: net::ERR_FAILED
+/analytics/telemetry:1  Failed to load resource: 405
 ```
 
-**Result**: Only AppLayout navigation shows (correct behavior)
+### What's Actually Happening
+- `/sessions/track` - Works (uses `onRequestPost`)
+- `/api/auth-roles` - Fails (uses `exports.handler`)
+- `/analytics/telemetry` - Works (uses `onRequest`)
 
-### Fix #2: Header Welcome Message
-**Before**: `Welcome back, {user.email?.split('@')[0]}`  
-**After**: `Welcome back, {firstName}` (from profile)
+## _routes.json Issue
 
-**File**: `src/components/navigation/Header.tsx`
-
-### Fix #3: Remove Deprecated Props
-**Issue**: MobileNavigation had `magnetic` and `glow` props  
-**Fix**: Removed all instances
-
-**File**: `src/components/ui/MobileNavigation.tsx`
-
-### Fix #4: PageLayout Dark Mode
-**Issue**: Gradient background had no dark mode support  
-**Fix**: Added dark mode classes with transitions
-
-**File**: `src/components/ui/PageLayout.tsx`
-
-```tsx
-// Before
-gradient: 'bg-gradient-to-br from-blue-50 via-white to-purple-50'
-
-// After
-gradient: 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 transition-colors duration-500'
+### Current Configuration
+```json
+{
+  "version": 1,
+  "include": ["/api/*"],
+  "exclude": []
+}
 ```
 
-### Fix #5: Remove PageLayout Wrapper
-**Issue**: AppLayout already provides structure, PageLayout creates double background  
-**Fix**: Replaced PageLayout with simple div in Dashboard
+### Problem
+Only includes `/api/*` but:
+- `/sessions/track` is NOT under `/api/`
+- `/analytics/telemetry` is NOT under `/api/`
+- These should also be included OR use wildcard
 
-**File**: `src/pages/student/Dashboard.tsx`
+### Should Be
+```json
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": ["/assets/*", "/images/*", "/*.html", "/*.js", "/*.css"]
+}
+```
 
-### Fix #6: Remove Emojis
-**Issue**: Dashboard had emoji (📋) instead of icon  
-**Fix**: Replaced with `<FileText />` icon
+## Why It Worked Before
+
+### Previous State
+All functions were using Cloudflare Pages format (`export async function onRequest`)
+
+### What Changed
+During API migration (commit 9c6511cf8):
+- Created 4 new functions in `functions/api/`
+- Used Netlify format (`exports.handler`)
+- These never worked on Cloudflare Pages
+- Other endpoints continued working because they use correct format
+
+## Session Tracking 405
+
+### Root Cause
+`sessions/track.js` uses correct format but:
+1. Import statement uses ES6 modules
+2. May have dependency issues
+3. Not included in `_routes.json`
+
+### The Fix Applied
+Disabled session tracking in `useSessionListener.ts` (commit 81bf46c46)
+- This was a workaround, not a fix
+- Session tracking should work if properly configured
+
+## Summary
+
+### Root Causes Found
+1. ❌ **4 new API functions use wrong export format** (Netlify instead of Cloudflare)
+2. ❌ **_routes.json only includes /api/*** (missing other function routes)
+3. ❌ **Mixed module formats** (CommonJS vs ES6)
+
+### Why Functions Return HTML
+- Cloudflare Pages doesn't recognize `exports.handler`
+- Request falls through to static file serving
+- Returns `index.html` (React app)
+
+### Why 405 Errors
+- Some functions work (correct format)
+- Some functions don't exist (wrong format)
+- Browser gets 405 when trying to call non-existent functions
+
+## Fix Required
+
+### Step 1: Convert Function Format
+Change all 4 files in `functions/api/` from:
+```javascript
+exports.handler = async (event) => { }
+```
+
+To:
+```javascript
+export async function onRequest(context) { }
+```
+
+### Step 2: Update _routes.json
+```json
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/images/*", 
+    "/*.html",
+    "/*.css",
+    "/*.js",
+    "/*.json",
+    "/*.ico",
+    "/*.png",
+    "/*.jpg",
+    "/*.svg",
+    "/*.woff*",
+    "/*.ttf"
+  ]
+}
+```
+
+### Step 3: Fix Module Imports
+Ensure all functions use ES6 modules consistently.
 
 ---
 
-## 🎯 Additional Issues Found
-
-### Issue #6: Old Color Patterns (26 instances)
-**Files with primary/secondary colors**:
-- MobileNavigation.tsx
-- AdminNavigation.tsx
-- SectionCard.tsx
-- PageHeader.tsx
-- FloatingElements.tsx
-- LoadingSpinner.tsx
-- AnimatedCard.tsx
-- LightweightButton.tsx
-- LoadingFallback.tsx
-
-**Status**: ⏳ Needs fixing
-
-### Issue #7: Emojis in UI (20+ instances)
-**Files**:
-- AdminTest.tsx
-- PublicApplicationTracker.tsx
-- admin/Analytics.tsx
-
-**Status**: ⏳ Needs fixing
-
----
-
-## ✅ Verification
-
-### Before Fix
-```
-❌ Two navigation bars visible
-❌ Old colors (primary/secondary)
-❌ Username instead of first name
-❌ No dark mode on backgrounds
-❌ Deprecated props causing errors
-```
-
-### After Fix
-```
-✅ Single navigation (AppLayout only)
-✅ New colors (blue-purple gradient)
-✅ First name in welcome message
-✅ Dark mode support everywhere
-✅ No deprecated props
-```
-
----
-
-## 📝 Lessons Learned
-
-1. **Single Source of Truth**: Navigation should be in ONE place (AppLayout)
-2. **Global vs Local**: Layout components belong at app level, not page level
-3. **Systematic Analysis**: Check entire codebase, not just reported files
-4. **Component Hierarchy**: Understand what wraps what before making changes
-
----
-
-## 🚀 Next Steps
-
-1. ✅ Remove duplicate navigation - DONE
-2. ✅ Fix Header welcome message - DONE
-3. ✅ Remove deprecated props - DONE
-4. ✅ Add dark mode to PageLayout - DONE
-5. ⏳ Fix remaining old color patterns
-6. ⏳ Remove remaining emojis
-7. ⏳ Test on real devices
-
----
-
-**Root Cause**: Architectural duplication  
-**Solution**: Centralize navigation in AppLayout  
-**Status**: Core issue resolved, cleanup in progress
+**Status**: Root cause identified
+**Next**: Create systematic fix plan

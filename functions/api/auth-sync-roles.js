@@ -1,9 +1,8 @@
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-exports.handler = async (event) => {
+export async function onRequestPost(context) {
+  const { request, env } = context;
+  
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -11,51 +10,38 @@ exports.handler = async (event) => {
     'Content-Type': 'application/json'
   };
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers, body: '' };
-  }
-
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: 'Method not allowed' })
-    };
-  }
-
   try {
-    const authHeader = event.headers.authorization || event.headers.Authorization;
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({ error: 'Unauthorized' })
-      };
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers
+      });
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(
+      env.VITE_SUPABASE_URL,
+      env.SUPABASE_SERVICE_ROLE_KEY
+    );
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({ error: 'Invalid token' })
-      };
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers
+      });
     }
 
-    const { userId, role } = JSON.parse(event.body || '{}');
+    const { userId, role } = await request.json();
 
     if (!userId || !role) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'userId and role are required' })
-      };
+      return new Response(JSON.stringify({ error: 'userId and role are required' }), {
+        status: 400,
+        headers
+      });
     }
 
-    // Check existing role
     const { data: existingRole } = await supabase
       .from('user_roles')
       .select('*')
@@ -77,23 +63,31 @@ exports.handler = async (event) => {
         });
     }
 
-    // Sync to profiles table
     await supabase
       .from('profiles')
       .update({ role })
       .eq('id', userId);
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ success: true })
-    };
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers
+    });
   } catch (error) {
     console.error('Error in auth-sync-roles:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Internal server error' })
-    };
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers
+    });
   }
-};
+}
+
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    }
+  });
+}

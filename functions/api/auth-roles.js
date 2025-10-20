@@ -1,69 +1,51 @@
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-exports.handler = async (event) => {
+export async function onRequestGet(context) {
+  const { request, env } = context;
+  
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Content-Type': 'application/json',
-    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0'
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    'Pragma': 'no-cache'
   };
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers, body: '' };
-  }
-
-  if (event.httpMethod !== 'GET') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: 'Method not allowed' })
-    };
-  }
-
   try {
-    const authHeader = event.headers.authorization || event.headers.Authorization;
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({ error: 'Unauthorized' })
-      };
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers
+      });
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(
+      env.VITE_SUPABASE_URL,
+      env.SUPABASE_SERVICE_ROLE_KEY
+    );
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({ error: 'Invalid token' })
-      };
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers
+      });
     }
 
-    // Super admin override
     if (user.email === 'cosmas@beanola.com') {
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          data: {
-            id: 'super-admin-override',
-            user_id: user.id,
-            role: 'super_admin',
-            permissions: ['*'],
-            department: null,
-            is_active: true
-          }
-        })
-      };
+      return new Response(JSON.stringify({
+        data: {
+          id: 'super-admin-override',
+          user_id: user.id,
+          role: 'super_admin',
+          permissions: ['*'],
+          department: null,
+          is_active: true
+        }
+      }), { status: 200, headers });
     }
 
     const { data: roleData, error: roleError } = await supabase
@@ -77,24 +59,32 @@ exports.handler = async (event) => {
 
     if (roleError) {
       console.error('Role query error:', roleError);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'Failed to fetch role' })
-      };
+      return new Response(JSON.stringify({ error: 'Failed to fetch role' }), {
+        status: 500,
+        headers
+      });
     }
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ data: roleData })
-    };
+    return new Response(JSON.stringify({ data: roleData }), {
+      status: 200,
+      headers
+    });
   } catch (error) {
     console.error('Error in auth-roles:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Internal server error' })
-    };
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers
+    });
   }
-};
+}
+
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS'
+    }
+  });
+}
