@@ -61,14 +61,6 @@ module.exports = {
           DEFAULT: 'hsl(var(--success))',
           foreground: 'hsl(var(--success-foreground))',
         },
-        approved: {
-          DEFAULT: 'hsl(var(--approved))',
-          foreground: 'hsl(var(--approved-foreground))',
-        },
-        rejected: {
-          DEFAULT: 'hsl(var(--rejected))',
-          foreground: 'hsl(var(--rejected-foreground))',
-        },
         'gradient-from': 'hsl(var(--gradient-from))',
         'gradient-to': 'hsl(var(--gradient-to))',
       },

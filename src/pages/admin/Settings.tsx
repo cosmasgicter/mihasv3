@@ -1,24 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ArrowLeft, Plus, Edit2, Trash2, Save, X, Settings, Globe, Lock, Database, Grid, List } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
+import { fetchSettings, createSetting, updateSetting, deleteSetting, type SystemSetting } from '@/lib/api/adminApi'
 
-interface SystemSetting {
-  id: string
-  setting_key: string
-  setting_value: string
-  setting_type: 'string' | 'integer' | 'decimal' | 'boolean'
-  description: string | null
-  is_public: boolean
-  updated_by: string | null
-  created_at: string
-  updated_at: string
-}
+
 
 interface NewSetting {
   setting_key: string
@@ -52,12 +42,8 @@ export default function AdminSettings() {
   const loadSettings = useCallback(async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('system_settings')
-        .select('*')
-        .order('setting_key')
-      if (error) throw error
-      setSettings(data || [])
+      const data = await fetchSettings()
+      setSettings(data)
     } catch (error: any) {
       setError(error.message)
     } finally {
@@ -96,16 +82,12 @@ export default function AdminSettings() {
     try {
       setSaving(true)
       setError('')
-      const { error } = await supabase
-        .from('system_settings')
-        .update({
-          setting_value: editForm.setting_value,
-          description: editForm.description,
-          is_public: editForm.is_public,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
-      if (error) throw error
+      const success = await updateSetting(id, {
+        setting_value: editForm.setting_value,
+        description: editForm.description,
+        is_public: editForm.is_public
+      })
+      if (!success) throw new Error('Update failed')
       setSuccess('Setting updated successfully!')
       setEditingId(null)
       setEditForm({})
@@ -128,11 +110,8 @@ export default function AdminSettings() {
     try {
       setSaving(true)
       setError('')
-      const { error } = await supabase
-        .from('system_settings')
-        .delete()
-        .eq('id', id)
-      if (error) throw error
+      const success = await deleteSetting(id)
+      if (!success) throw new Error('Delete failed')
       setSuccess('Setting deleted successfully!')
       loadSettings()
     } catch (error: any) {
@@ -178,21 +157,8 @@ export default function AdminSettings() {
       setSaving(true)
       setError('')
       
-      // Check if key already exists
-      const { data: existing } = await supabase
-        .from('system_settings')
-        .select('id')
-        .eq('setting_key', newSetting.setting_key)
-        .single()
-      
-      if (existing) {
-        throw new Error('A setting with this key already exists')
-      }
-      
-      const { error } = await supabase
-        .from('system_settings')
-        .insert([newSetting])
-      if (error) throw error
+      const success = await createSetting(newSetting)
+      if (!success) throw new Error('Create failed')
       setSuccess('Setting added successfully!')
       setShowAddForm(false)
       setNewSetting({

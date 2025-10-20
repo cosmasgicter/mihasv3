@@ -183,7 +183,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
         {/* Mobile Menu Button */}
         <motion.button
-          className="md:hidden p-3 rounded-xl text-white bg-gray-900/90 hover:bg-gray-800 backdrop-blur-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 shadow-lg hover:shadow-xl border-2 border-white/50 hover:border-white/70 min-h-[48px] min-w-[48px] z-[102] touch-target"
+          className="md:hidden p-3 rounded-xl text-white bg-foreground/90 hover:bg-gray-800 backdrop-blur-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 shadow-lg hover:shadow-xl border-2 border-white/50 hover:border-white/70 min-h-[48px] min-w-[48px] z-[102] touch-target"
           onClick={toggleMenu}
           whileTap={{ scale: 0.95 }}
           aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -230,7 +230,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-gray-900/90 from-gray-900 to-gray-800 backdrop-blur-xl shadow-2xl md:hidden border-l-4 border-white/30 safe-area-top safe-area-bottom z-[9999] opacity-100 visible"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-foreground/90 from-gray-900 to-gray-800 backdrop-blur-xl shadow-2xl md:hidden border-l-4 border-white/30 safe-area-top safe-area-bottom z-[9999] opacity-100 visible"
               variants={menuVariants}
               initial="closed"
               animate="open"

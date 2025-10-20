@@ -34,7 +34,7 @@ const statAccentStyles: Record<StatAccent, string> = {
  secondary: 'bg-secondary/5/30 border-secondary/30 text-purple-700',
  success: 'bg-success/10 border-success/30 text-success',
  warning: 'bg-warning/10 border-warning/30 text-accent',
- neutral: 'bg-gray-50 border-border text-foreground'
+ neutral: 'bg-muted border-border text-foreground'
 }
 
 const alignmentStyles: Record<NonNullable<PageHeaderProps['align']>, string> = {

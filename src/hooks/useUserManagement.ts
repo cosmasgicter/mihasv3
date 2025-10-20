@@ -95,18 +95,12 @@ export function useUserManagement() {
       setError(null)
 
       for (const userId of userIds) {
-        try {
-          const { error } = await supabase
-            .from('profiles')
-            .update({ role: newRole })
-            .eq('id', userId)
-
-          if (error) throw error
+        const success = await updateUser(userId, { role: newRole } as UpdateUserData)
+        if (success) {
           result.success++
-        } catch (err) {
+        } else {
           result.failed++
-          const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-          result.errors.push(`User ${userId}: ${errorMessage}`)
+          result.errors.push(`User ${userId}: Update failed`)
         }
       }
 
@@ -119,7 +113,7 @@ export function useUserManagement() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [updateUser])
 
   const bulkDeleteUsers = useCallback(async (userIds: string[]): Promise<BulkOperationResult> => {
     const result: BulkOperationResult = { success: 0, failed: 0, errors: [] }
@@ -129,18 +123,12 @@ export function useUserManagement() {
       setError(null)
 
       for (const userId of userIds) {
-        try {
-          const { error } = await supabase
-            .from('profiles')
-            .delete()
-            .eq('id', userId)
-
-          if (error) throw error
+        const success = await deleteUser(userId)
+        if (success) {
           result.success++
-        } catch (err) {
+        } else {
           result.failed++
-          const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-          result.errors.push(`User ${userId}: ${errorMessage}`)
+          result.errors.push(`User ${userId}: Delete failed`)
         }
       }
 
@@ -153,7 +141,7 @@ export function useUserManagement() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [deleteUser])
 
   const getUserStats = useCallback(async (): Promise<UserStatsSummary | null> => {
     try {
