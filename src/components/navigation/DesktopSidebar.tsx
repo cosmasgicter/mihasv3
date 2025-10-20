@@ -4,7 +4,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ThemeToggle } from '@/components/theme/ThemeToggle'
 
 export const DesktopSidebar = React.memo(function DesktopSidebar() {
   const location = useLocation()
@@ -109,11 +108,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-border">
-        <div className={`flex ${collapsed ? 'justify-center' : 'justify-end'}`}>
-          <ThemeToggle />
-        </div>
-      </div>
+
     </motion.aside>
   )
 })
