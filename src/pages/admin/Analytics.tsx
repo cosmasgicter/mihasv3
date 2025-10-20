@@ -959,7 +959,7 @@ export default function Analytics() {
  <div className="flex justify-end space-x-2 pt-4">
  <Button
  onClick={() => setShowCreateDialog(false)}
- className="bg-muted hover:bg-gray-400 text-foreground"
+ className="bg-muted hover:bg-muted text-foreground"
  >
  Cancel
  </Button>
@@ -1119,7 +1119,7 @@ export default function Analytics() {
  <div className="flex justify-end space-x-2 pt-4">
  <Button
  onClick={() => setShowEditDialog(false)}
- className="bg-muted hover:bg-gray-400 text-foreground"
+ className="bg-muted hover:bg-muted text-foreground"
  >
  Cancel
  </Button>
@@ -1147,7 +1147,7 @@ export default function Analytics() {
  <div className="flex justify-end space-x-2 pt-4">
  <Button
  onClick={() => setShowDeleteDialog(false)}
- className="bg-muted hover:bg-gray-400 text-foreground"
+ className="bg-muted hover:bg-muted text-foreground"
  >
  Cancel
  </Button>
