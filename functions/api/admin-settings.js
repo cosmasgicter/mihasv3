@@ -1,37 +1,33 @@
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-exports.handler = async (event) => {
+export async function onRequest(context) {
+  const { request, env } = context;
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS',
     'Content-Type': 'application/json',
-    'Cache-Control': 'no-store, no-cache, must-revalidate',
-    'Pragma': 'no-cache'
+    'Cache-Control': 'no-store, no-cache, must-revalidate'
   };
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers, body: '' };
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers });
   }
 
   try {
-    const authHeader = event.headers.authorization || event.headers.Authorization;
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(env.VITE_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
-      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid token' }) };
+      return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers });
     }
 
-    // Check admin role
     const { data: roleData } = await supabase
       .from('user_roles')
       .select('role')
@@ -42,34 +38,31 @@ exports.handler = async (event) => {
                     ['super_admin', 'admin'].includes(roleData?.role);
 
     if (!isAdmin) {
-      return { statusCode: 403, headers, body: JSON.stringify({ error: 'Forbidden' }) };
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers });
     }
 
-    // GET - List all settings
-    if (event.httpMethod === 'GET') {
+    if (request.method === 'GET') {
       const { data, error } = await supabase
         .from('system_settings')
         .select('*')
         .order('setting_key');
 
       if (error) throw error;
-      return { statusCode: 200, headers, body: JSON.stringify({ data }) };
+      return new Response(JSON.stringify({ data }), { status: 200, headers });
     }
 
-    // POST - Create new setting
-    if (event.httpMethod === 'POST') {
-      const body = JSON.parse(event.body || '{}');
+    if (request.method === 'POST') {
+      const body = await request.json();
       const { error } = await supabase
         .from('system_settings')
         .insert([body]);
 
       if (error) throw error;
-      return { statusCode: 201, headers, body: JSON.stringify({ success: true }) };
+      return new Response(JSON.stringify({ success: true }), { status: 201, headers });
     }
 
-    // PUT - Update setting
-    if (event.httpMethod === 'PUT') {
-      const body = JSON.parse(event.body || '{}');
+    if (request.method === 'PUT') {
+      const body = await request.json();
       const { id, ...updates } = body;
       
       const { error } = await supabase
@@ -78,24 +71,23 @@ exports.handler = async (event) => {
         .eq('id', id);
 
       if (error) throw error;
-      return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }
 
-    // DELETE - Delete setting
-    if (event.httpMethod === 'DELETE') {
-      const body = JSON.parse(event.body || '{}');
+    if (request.method === 'DELETE') {
+      const body = await request.json();
       const { error } = await supabase
         .from('system_settings')
         .delete()
         .eq('id', body.id);
 
       if (error) throw error;
-      return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }
 
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers });
   } catch (error) {
     console.error('Error in admin-settings:', error);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
   }
-};
+}
