@@ -24,7 +24,7 @@ export function Badge({
     warning: 'bg-accent/10 text-warning border border-warning/30',
     danger: 'bg-destructive/10 text-error border border-destructive/30',
     info: 'bg-primary/10 text-info border border-primary/30',
-    gradient: 'bg-gradient-to-r from-gradient-from to-gradient-to text-white border-none'
+    gradient: 'bg-gradient-to-r from-gradient-from to-gradient-to text-card-foreground border-none'
   }
 
   const sizeClasses = {

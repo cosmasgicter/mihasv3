@@ -93,7 +93,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
         to: dashboardPath,
         label: dashboardLabel,
         variant: 'accent',
-        icon: <LayoutDashboard className="w-5 h-5 mr-3 text-white" />
+        icon: <LayoutDashboard className="w-5 h-5 mr-3 text-card" />
       })
     }
 
@@ -131,7 +131,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
               variant="gradient"
               size="md"
               
-              className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
+              className="bg-gradient-to-r from-card/30 to-card/40 border-2 border-card/70 text-card hover:from-card hover:to-card hover:text-primary font-bold backdrop-blur-sm shadow-lg"
             >
               Track Application
             </Button>
@@ -143,7 +143,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                   variant="gradient"
                   size="md"
                   
-                  className="bg-gradient-to-r from-white/30 to-white/40 border-2 border-white/70 text-white hover:from-white hover:to-white hover:text-primary font-bold backdrop-blur-sm shadow-lg"
+                  className="bg-gradient-to-r from-card/30 to-card/40 border-2 border-card/70 text-card hover:from-card hover:to-card hover:text-primary font-bold backdrop-blur-sm shadow-lg"
                 >
                   Sign In
                 </Button>
@@ -172,7 +172,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 variant="outline"
                 size="md"
                 onClick={handleSignOut}
-                className="border-white/70 text-white hover:bg-white/90/30"
+                className="border-card/70 text-card hover:bg-card/10"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
@@ -183,7 +183,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
         {/* Mobile Menu Button */}
         <motion.button
-          className="md:hidden p-3 rounded-xl text-white bg-foreground/90 hover:bg-foreground/80 backdrop-blur-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 shadow-lg hover:shadow-xl border-2 border-white/50 hover:border-white/70 min-h-[48px] min-w-[48px] z-[102] touch-target"
+          className="md:hidden p-3 rounded-xl text-card bg-foreground/90 hover:bg-foreground/80 backdrop-blur-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 shadow-lg hover:shadow-xl border-2 border-card/50 hover:border-card/70 min-h-[48px] min-w-[48px] z-[102] touch-target"
           onClick={toggleMenu}
           whileTap={{ scale: 0.95 }}
           aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -230,7 +230,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-foreground/90 from-gray-900 to-gray-800 backdrop-blur-xl shadow-2xl md:hidden border-l-4 border-white/30 safe-area-top safe-area-bottom z-[9999] opacity-100 visible"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-foreground/90 from-gray-900 to-gray-800 backdrop-blur-xl shadow-2xl md:hidden border-l-4 border-card/30 safe-area-top safe-area-bottom z-[9999] opacity-100 visible"
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -238,13 +238,13 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/20 bg-black/10 backdrop-blur-sm">
+                <div className="flex items-center justify-between p-6 border-b border-card/20 bg-foreground/10 backdrop-blur-sm">
                   <div className="flex items-center space-x-3">
                     <GraduationCap className="h-7 w-7 text-primary" />
                     <span className="text-xl font-bold text-high-contrast">MIHAS-KATC</span>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-white hover:bg-white/90/30 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 min-h-[44px] min-w-[44px] touch-target"
+                    className="p-2 rounded-lg text-card hover:bg-card/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-card/50 min-h-[44px] min-w-[44px] touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -268,15 +268,15 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                           to={item.to}
                           onClick={closeMenu}
                           className={cn(
-                            'flex items-center px-4 py-4 rounded-xl text-white transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
+                            'flex items-center px-4 py-4 rounded-xl text-card transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
                             item.variant === 'accent'
-                              ? 'bg-blue-500/30 hover:bg-blue-500/40'
-                              : 'hover:bg-white/90/30',
-                            'bg-opacity-100 visible border border-white/10'
+                              ? 'bg-primary/30 hover:bg-primary/40'
+                              : 'hover:bg-card/10',
+                            'bg-opacity-100 visible border border-card/10'
                           )}
                         >
                           {item.icon}
-                          <span className="text-white font-bold truncate">{item.label}</span>
+                          <span className="text-card font-bold truncate">{item.label}</span>
                         </Link>
                       </motion.div>
                     ))}
@@ -284,7 +284,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
                   {/* Fixed Sign Out Button for authenticated users */}
                   {user && (
-                    <div className="p-6 border-t border-white/20 bg-black/10 backdrop-blur-sm">
+                    <div className="p-6 border-t border-card/20 bg-foreground/10 backdrop-blur-sm">
                       <motion.button
                         onClick={() => {
                           closeMenu()
@@ -294,7 +294,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                         custom={drawerItems.length}
                         initial="closed"
                         animate="open"
-                        className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target"
+                        className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r bg-destructive text-card rounded-xl hover:bg-destructive/90 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target"
                       >
                         <LogOut className="h-5 w-5" />
                         <span>Sign Out</span>
@@ -305,8 +305,8 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
                 {/* Footer */}
                 {!user && (
-                  <div className="p-6 border-t border-white/20 bg-black/10 backdrop-blur-sm">
-                    <p className="text-white/90 text-base text-center font-medium drop-shadow-sm">
+                  <div className="p-6 border-t border-card/20 bg-foreground/10 backdrop-blur-sm">
+                    <p className="text-card/90 text-base text-center font-medium drop-shadow-sm">
                       Your Future Starts Here
                     </p>
                   </div>
