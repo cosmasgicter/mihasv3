@@ -1,6 +1,5 @@
 import React from 'react'
 import { Bell, User } from 'lucide-react'
-import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { UserMenu } from '@/components/ui/UserMenu'
 import { NotificationBell } from '@/components/student/NotificationBell'
 import { useAuth } from '@/contexts/AuthContext'
@@ -46,7 +45,6 @@ export const Header = React.memo(function Header() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <ThemeToggle />
           {!isAdmin && <NotificationBell />}
           <UserMenu />
         </div>

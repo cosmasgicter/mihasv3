@@ -25,7 +25,7 @@
     --skeleton: 0 0% 93%;
     --skeleton-highlight: 0 0% 88%;
     
-    /* Status colors */
+    /* Status colors - Fixed values for both modes */
     --error: 0 84.2% 60.2%;
     --error-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
@@ -34,6 +34,10 @@
     --info-foreground: 0 0% 100%;
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
+    --approved: 142 76% 36%;
+    --approved-foreground: 0 0% 100%;
+    --rejected: 0 84.2% 60.2%;
+    --rejected-foreground: 0 0% 100%;
     
     /* Gradients */
     --gradient-from: 199 89% 48%;
@@ -65,15 +69,19 @@
     --skeleton: 217.2 32.6% 25%;
     --skeleton-highlight: 217.2 32.6% 30%;
     
-    /* Status colors */
-    --error: 0 62.8% 50%;
-    --error-foreground: 210 40% 98%;
+    /* Status colors - Same as light mode */
+    --error: 0 84.2% 60.2%;
+    --error-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
-    --warning-foreground: 222.2 84% 4.9%;
+    --warning-foreground: 0 0% 100%;
     --info: 199 89% 48%;
-    --info-foreground: 222.2 47.4% 11.2%;
+    --info-foreground: 0 0% 100%;
     --success: 142 76% 36%;
-    --success-foreground: 210 40% 98%;
+    --success-foreground: 0 0% 100%;
+    --approved: 142 76% 36%;
+    --approved-foreground: 0 0% 100%;
+    --rejected: 0 84.2% 60.2%;
+    --rejected-foreground: 0 0% 100%;
     
     /* Gradients */
     --gradient-from: 199 89% 48%;
