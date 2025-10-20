@@ -86,6 +86,15 @@ export async function onRequestDelete(context) {
       });
     }
     
+    // Get session token before deactivating
+    const { data: sessionData } = await supabaseAdminClient
+      .from('device_sessions')
+      .select('session_token')
+      .eq('user_id', authContext.user.id)
+      .eq('device_id', deviceId)
+      .single();
+    
+    // Deactivate device session
     const { error } = await supabaseAdminClient
       .from('device_sessions')
       .update({ is_active: false })
@@ -97,6 +106,15 @@ export async function onRequestDelete(context) {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
+    }
+    
+    // Revoke the actual auth session
+    if (sessionData?.session_token) {
+      try {
+        await supabaseAdminClient.auth.admin.signOut(sessionData.session_token);
+      } catch (e) {
+        console.error('Failed to revoke session:', e);
+      }
     }
     
     return new Response(JSON.stringify({ success: true }), {

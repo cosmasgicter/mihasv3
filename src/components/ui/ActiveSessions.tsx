@@ -68,13 +68,17 @@ export function ActiveSessions() {
       setTerminating(deviceId)
       const supabase = getSupabaseClient()
       const { data: { session } } = await supabase.auth.getSession()
-      await fetch(`/api/sessions?device_id=${deviceId}`, {
+      
+      const response = await fetch(`/api/sessions?device_id=${deviceId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${session?.access_token}`
         }
       })
-      await loadSessions()
+      
+      if (response.ok) {
+        setSessions(prev => prev.filter(s => s.device_id !== deviceId))
+      }
     } catch (error) {
       console.error('Failed to terminate session:', error)
     } finally {

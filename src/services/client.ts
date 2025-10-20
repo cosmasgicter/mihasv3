@@ -86,27 +86,40 @@ class ApiClient {
     }
 
     try {
-      // Use the refresh utility to ensure we have a valid session
-      const refreshResult = await refreshAuthSession()
+      const supabase = getSupabaseClient()
       
-      logger.info('[API Client] Auth refresh result:', { 
-        success: refreshResult.success, 
-        hasSession: !!refreshResult.session,
-        hasToken: !!refreshResult.session?.access_token
-      })
+      // First check current session
+      const { data: { session } } = await supabase.auth.getSession()
       
-      if (!refreshResult.success) {
-        logger.warn('[API Client] Auth refresh failed:', refreshResult.error)
+      if (!session) {
+        logger.warn('[API Client] No active session')
         return baseHeaders
       }
       
-      const token = refreshResult.session?.access_token
-      if (token) {
-        baseHeaders.Authorization = `Bearer ${token}`
-        logger.info('[API Client] Authorization header added')
-      } else {
-        logger.warn('[API Client] No access token found in refreshed session')
+      // Check if token will expire in next 5 minutes
+      const expiresAt = (session.expires_at || 0) * 1000
+      const now = Date.now()
+      const fiveMinutes = 5 * 60 * 1000
+      
+      if (expiresAt - now < fiveMinutes) {
+        logger.info('[API Client] Token expiring soon, refreshing...')
+        const { data: refreshData, error } = await supabase.auth.refreshSession()
+        
+        if (error || !refreshData.session) {
+          logger.error('[API Client] Token refresh failed:', error?.message)
+          // Use existing token even if refresh failed
+          baseHeaders.Authorization = `Bearer ${session.access_token}`
+          return baseHeaders
+        }
+        
+        logger.info('[API Client] Token refreshed successfully')
+        baseHeaders.Authorization = `Bearer ${refreshData.session.access_token}`
+        return baseHeaders
       }
+      
+      // Token is still valid
+      baseHeaders.Authorization = `Bearer ${session.access_token}`
+      logger.info('[API Client] Using valid token')
     } catch (error) {
       logger.error('[API Client] Failed to get auth headers:', error)
     }
@@ -259,21 +272,8 @@ class ApiClient {
         
         // Handle 401 Unauthorized specifically
         if (response.status === 401) {
-          errorMessage = 'Your session has expired. Please sign in again.'
-          // Clear any stale session data
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('mihas-auth-token')
-            Object.keys(localStorage).forEach(key => {
-              if (key.startsWith('sb-') || key.includes('supabase')) {
-                localStorage.removeItem(key)
-              }
-            })
-            sessionStorage.clear()
-            // Redirect to sign in page
-            setTimeout(() => {
-              window.location.href = '/auth/signin'
-            }, 1000)
-          }
+          errorMessage = 'Authentication required. Please try again.'
+          logger.warn('[API Client] 401 Unauthorized - token may need refresh')
         }
         
         monitoring.logError(service, `${response.status}: ${errorMessage}`, {
@@ -329,21 +329,8 @@ class ApiClient {
       
       // Handle authentication errors specifically
       if (error instanceof Error && error.message.includes('401')) {
-        // Clear any stale session data
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('mihas-auth-token')
-          Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('sb-') || key.includes('supabase')) {
-              localStorage.removeItem(key)
-            }
-          })
-          sessionStorage.clear()
-          // Redirect to sign in page
-          setTimeout(() => {
-            window.location.href = '/auth/signin'
-          }, 1000)
-        }
-        throw new Error('Your session has expired. Please sign in again.')
+        logger.warn('[API Client] 401 error in catch block')
+        throw new Error('Authentication required. Please try again.')
       }
       
       // Enhance error if not already enhanced
