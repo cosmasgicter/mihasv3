@@ -97,9 +97,9 @@ export function useUserManagement() {
       for (const userId of userIds) {
         try {
           const { error } = await supabase
-            .from('user_profiles')
+            .from('profiles')
             .update({ role: newRole })
-            .eq('user_id', userId)
+            .eq('id', userId)
 
           if (error) throw error
           result.success++
@@ -131,9 +131,9 @@ export function useUserManagement() {
       for (const userId of userIds) {
         try {
           const { error } = await supabase
-            .from('user_profiles')
+            .from('profiles')
             .delete()
-            .eq('user_id', userId)
+            .eq('id', userId)
 
           if (error) throw error
           result.success++
@@ -158,7 +158,7 @@ export function useUserManagement() {
   const getUserStats = useCallback(async (): Promise<UserStatsSummary | null> => {
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('role')
 
       if (error) throw error
@@ -183,7 +183,7 @@ export function useUserManagement() {
   const searchUsers = useCallback(async (query: string, role?: string) => {
     try {
       let queryBuilder = supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('*')
 
       if (role) {
