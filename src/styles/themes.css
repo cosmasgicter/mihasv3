@@ -38,6 +38,23 @@
     /* Gradients */
     --gradient-from: 199 89% 48%;
     --gradient-to: 271 81% 56%;
+    
+    /* Chart colors */
+    --chart-1: 199 89% 48%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 271 81% 56%;
+    --chart-5: 0 84.2% 60.2%;
+    
+    /* Sidebar */
+    --sidebar: 0 0% 98%;
+    --sidebar-foreground: 0 0% 9%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-accent: 142 76% 96%;
+    
+    /* Tooltip */
+    --tooltip: 0 0% 9%;
+    --tooltip-foreground: 0 0% 98%;
   }
 
 
