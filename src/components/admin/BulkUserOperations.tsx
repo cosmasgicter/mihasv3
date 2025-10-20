@@ -136,9 +136,9 @@ export function BulkUserOperations({
                   >
                     <CheckSquare className="h-4 w-4" />
                   </button>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
-                    <p className="text-xs text-muted-foreground">{user.email?.replace(/[<>"'&]/g, '')}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate" title={user.full_name || 'No name'}>{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
+                    <p className="text-xs text-muted-foreground truncate" title={user.email}>{user.email?.replace(/[<>"'&]/g, '')}</p>
                   </div>
                 </div>
                 <span className="text-xs px-2 py-1 bg-skeleton text-foreground rounded">

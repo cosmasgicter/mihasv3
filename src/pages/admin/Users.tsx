@@ -424,12 +424,12 @@ export default function AdminUsers() {
                           {getRoleIcon(user.role)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-lg text-foreground truncate">
+                          <h3 className="font-bold text-lg text-foreground truncate" title={user.full_name || 'No name provided'}>
                             {sanitizeForDisplay(user.full_name) || 'No name provided'}
                           </h3>
-                          <p className="text-sm text-muted-foreground">{sanitizeForDisplay(user.email)}</p>
+                          <p className="text-sm text-muted-foreground truncate" title={user.email}>{sanitizeForDisplay(user.email)}</p>
                           {user.phone && (
-                            <p className="text-sm text-muted-foreground">{sanitizeForDisplay(user.phone)}</p>
+                            <p className="text-sm text-muted-foreground truncate" title={user.phone}>{sanitizeForDisplay(user.phone)}</p>
                           )}
                           <p className="text-xs text-muted-foreground mt-1">
                             ID: {user.user_id.slice(0, 8)}...
@@ -541,21 +541,23 @@ export default function AdminUsers() {
                                 )}
                               </button>
                               {getRoleIcon(user.role)}
-                              <div className="ml-3">
-                                <div className="text-sm font-semibold text-foreground">
+                              <div className="ml-3 min-w-0">
+                                <div className="text-sm font-semibold text-foreground truncate" title={user.full_name || 'No name provided'}>
                                   {sanitizeForDisplay(user.full_name) || 'No name provided'}
                                 </div>
-                                <div className="text-xs text-muted-foreground font-mono">
+                                <div className="text-xs text-muted-foreground font-mono truncate">
                                   ID: {user.user_id.slice(0, 8)}...
                                 </div>
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm text-foreground">{sanitizeForDisplay(user.email)}</div>
-                            {user.phone && (
-                              <div className="text-sm text-muted-foreground">{sanitizeForDisplay(user.phone)}</div>
-                            )}
+                            <div className="min-w-0 max-w-xs">
+                              <div className="text-sm text-foreground truncate" title={user.email}>{sanitizeForDisplay(user.email)}</div>
+                              {user.phone && (
+                                <div className="text-sm text-muted-foreground truncate" title={user.phone}>{sanitizeForDisplay(user.phone)}</div>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
