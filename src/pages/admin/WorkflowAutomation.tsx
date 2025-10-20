@@ -110,7 +110,7 @@ export default function WorkflowAutomation() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-error mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-foreground mb-2">Access Denied</h2>
           <p className="text-muted-foreground">You don't have permission to access workflow automation.</p>
         </div>
@@ -147,7 +147,7 @@ export default function WorkflowAutomation() {
             <div className="flex items-center space-x-3">
               <Button
                 onClick={runManualWorkflow}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+                className="flex items-center gap-2 bg-secondary hover:bg-purple-700"
               >
                 <Play className="h-4 w-4" />
                 Run Manual Execution
@@ -286,8 +286,8 @@ export default function WorkflowAutomation() {
                       variant={rule.enabled ? "outline" : "primary"}
                       className={`flex items-center gap-2 ${
                         rule.enabled 
-                          ? 'text-red-600 border-red-200 hover:bg-red-50' 
-                          : 'bg-green-600 hover:bg-green-700'
+                          ? 'text-error border-red-200 hover:bg-red-50' 
+                          : 'bg-success hover:bg-success'
                       }`}
                     >
                       {processingRule === rule.id ? (

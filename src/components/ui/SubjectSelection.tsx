@@ -136,7 +136,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
         <Button
           type="button"
           onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-blue-600 hover:bg-blue-700 fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-10 md:relative md:bottom-auto md:right-auto md:w-auto md:h-auto md:rounded-md"
+          className="bg-primary hover:bg-primary fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-10 md:relative md:bottom-auto md:right-auto md:w-auto md:h-auto md:rounded-md"
         >
           <Plus className="h-5 w-5 md:mr-2" />
           <span className="hidden md:inline">Add Subject</span>
@@ -146,7 +146,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
       {/* Minimum requirement warning */}
       {selectedSubjects.length < 5 && (
         <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-4 flex items-start space-x-3">
-          <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+          <AlertCircle className="h-5 w-5 text-error mt-0.5" />
           <div>
             <p className="text-sm font-medium text-destructive-foreground">
               Minimum 5 subjects required
@@ -314,7 +314,7 @@ function AddSubjectButton({ onClick, isOpen, disabled, variant = 'secondary' }: 
         disabled 
           ? 'border-border text-muted-foreground cursor-not-allowed'
           : isPrimary
-          ? 'border-blue-300 text-blue-600 hover:border-blue-400 hover:bg-blue-50'
+          ? 'border-blue-300 text-primary hover:border-blue-400 hover:bg-blue-50'
           : 'border-input text-muted-foreground hover:border-gray-400 hover:bg-muted'
       } ${isOpen ? 'bg-blue-50 border-blue-400' : ''}`}
     >
@@ -362,7 +362,7 @@ function SubjectCard({
             <button
               type="button"
               onClick={() => onRemove(subject.id)}
-              className="text-red-500 hover:text-error transition-colors"
+              className="text-error hover:text-error transition-colors"
             >
               <X className="h-4 w-4" />
             </button>

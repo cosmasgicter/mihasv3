@@ -544,7 +544,7 @@ export function ReportsGenerator() {
                   onClick={() => setConfig(prev => ({ ...prev, type: type.value as any }))}
                   className={`p-3 border rounded-lg text-left transition-colors ${
                     config.type === type.value
-                      ? 'border-blue-500 bg-blue-50 text-primary'
+                      ? 'border-primary bg-blue-50 text-primary'
                       : 'border-input hover:border-gray-400'
                   }`}
                 >
@@ -628,7 +628,7 @@ export function ReportsGenerator() {
                   onClick={() => setConfig(prev => ({ ...prev, format: format.value }))}
                   className={`p-3 border rounded-lg text-left transition-colors ${
                     isActive
-                      ? 'border-blue-500 bg-blue-50 text-primary'
+                      ? 'border-primary bg-blue-50 text-primary'
                       : 'border-input hover:border-gray-400'
                   }`}
                 >
@@ -778,7 +778,7 @@ export function ReportsGenerator() {
               {prefillStatus && (
                 <p
                   className={`text-sm ${
-                    prefillStatus.type === 'success' ? 'text-green-600' : 'text-red-600'
+                    prefillStatus.type === 'success' ? 'text-success' : 'text-error'
                   }`}
                 >
                   {prefillStatus.message}

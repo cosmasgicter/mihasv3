@@ -70,7 +70,7 @@ const EducationStep = ({
                 addGrade()
               }}
               disabled={selectedGrades.length >= 10}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+              className="w-full sm:w-auto bg-primary hover:bg-primary"
             >
               + Add New Subject
             </Button>
@@ -128,7 +128,7 @@ const EducationStep = ({
                     <select
                       value={grade.subject_id}
                       onChange={event => updateGrade(index, 'subject_id', event.target.value)}
-                      className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
                       disabled={subjects.length === 0}
                     >
                       <option value="">{subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}</option>
@@ -148,7 +148,7 @@ const EducationStep = ({
                     <select
                       value={grade.grade}
                       onChange={event => updateGrade(index, 'grade', parseInt(event.target.value))}
-                      className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
                     >
                       <option value={1}>1 (A+)</option>
                       <option value={2}>2 (A)</option>
@@ -184,7 +184,7 @@ const EducationStep = ({
                           addGrade()
                         }}
                         size="sm"
-                        className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700"
+                        className="flex-1 sm:flex-none bg-primary hover:bg-primary"
                       >
                         + Add
                       </Button>
@@ -199,7 +199,7 @@ const EducationStep = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Result Slip <span className="text-red-500">*</span>
+              Result Slip <span className="text-error">*</span>
             </label>
             <div className="relative">
               <input
@@ -223,7 +223,7 @@ const EducationStep = ({
                   </div>
                   <div className="w-full bg-skeleton rounded-full h-2">
                     <motion.div
-                      className="bg-blue-600 h-2 rounded-full"
+                      className="bg-primary h-2 rounded-full"
                       initial={{ width: 0 }}
                       animate={{ width: `${uploadProgress.result_slip}%` }}
                       transition={{ duration: 0.3 }}
@@ -269,7 +269,7 @@ const EducationStep = ({
                   </div>
                   <div className="w-full bg-skeleton rounded-full h-2">
                     <motion.div
-                      className="bg-blue-600 h-2 rounded-full"
+                      className="bg-primary h-2 rounded-full"
                       initial={{ width: 0 }}
                       animate={{ width: `${uploadProgress.extra_kyc}%` }}
                       transition={{ duration: 0.3 }}

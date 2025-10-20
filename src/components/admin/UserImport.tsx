@@ -438,7 +438,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                 onClick={handleImport}
                 loading={importing}
                 disabled={!file || !showPreview}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-primary hover:bg-primary text-white"
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Import Users
@@ -449,7 +449,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               <Button variant="outline" onClick={resetImport}>
                 Import More
               </Button>
-              <Button onClick={onClose} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button onClick={onClose} className="bg-primary hover:bg-primary text-white">
                 Close
               </Button>
             </>

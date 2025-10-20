@@ -321,9 +321,9 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  'bg-accent/10'
  }`}>
  <FileText className={`h-5 w-5 ${
- doc.verification_status === 'verified' ? 'text-green-600' :
- doc.verification_status === 'rejected' ? 'text-red-600' :
- 'text-yellow-600'
+ doc.verification_status === 'verified' ? 'text-success' :
+ doc.verification_status === 'rejected' ? 'text-error' :
+ 'text-warning'
  }`} />
  </div>
  <div>
@@ -738,7 +738,7 @@ export function ApplicationDetailModal({
  onClick={() => setActiveTab(tab.id)}
  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
  activeTab === tab.id
- ? 'border-blue-600 text-blue-600'
+ ? 'border-primary text-primary'
  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-input'
  }`}
  >
@@ -964,7 +964,7 @@ export function ApplicationDetailModal({
  onChange={(e) => setAdminFeedback(e.target.value)}
  placeholder="Add feedback for the applicant..."
  rows={4}
- className="w-full rounded-lg border border-primary/30 px-3 py-2 text-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-primary/30 px-3 py-2 text-sm focus:border-primary focus:ring focus:ring-blue-200"
  />
  
  <div className="flex items-center justify-between">
@@ -979,7 +979,7 @@ export function ApplicationDetailModal({
  onClick={handleSaveFeedback}
  loading={savingFeedback}
  disabled={!adminFeedback.trim() || savingFeedback}
- className="bg-blue-600 hover:bg-blue-700"
+ className="bg-primary hover:bg-primary"
  >
  Save Feedback
  </Button>
@@ -1076,7 +1076,7 @@ export function ApplicationDetailModal({
  type="datetime-local"
  value={interviewForm.scheduledAt}
  onChange={handleInterviewFieldChange('scheduledAt')}
- className="w-full rounded-lg border border-input px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus:ring focus:ring-blue-200"
  required
  />
  </div>
@@ -1088,7 +1088,7 @@ export function ApplicationDetailModal({
  id="interview-mode"
  value={interviewForm.mode}
  onChange={handleInterviewFieldChange('mode')}
- className="w-full rounded-lg border border-input px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus:ring focus:ring-blue-200"
  >
  <option value="in_person">In person</option>
  <option value="virtual">Virtual</option>
@@ -1107,7 +1107,7 @@ export function ApplicationDetailModal({
  value={interviewForm.location}
  onChange={handleInterviewFieldChange('location')}
  placeholder={interviewForm.mode === 'virtual' ? 'Zoom/Teams link' : 'Campus room or venue'}
- className="w-full rounded-lg border border-input px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus:ring focus:ring-blue-200"
  />
  </div>
 
@@ -1120,7 +1120,7 @@ export function ApplicationDetailModal({
  value={interviewForm.notes}
  onChange={handleInterviewFieldChange('notes')}
  rows={4}
- className="w-full rounded-lg border border-input px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus:ring focus:ring-blue-200"
  placeholder="Add preparation details, required documents or virtual meeting instructions"
  />
  </div>
@@ -1216,7 +1216,7 @@ export function ApplicationDetailModal({
  <Button
  loading={updating === application.id}
  onClick={() => onUpdateStatus(application.id, 'under_review')}
- className="bg-blue-600 hover:bg-blue-700"
+ className="bg-primary hover:bg-primary"
  >
  Start Review
  </Button>
@@ -1227,7 +1227,7 @@ export function ApplicationDetailModal({
  <Button
  loading={updating === application.id}
  onClick={() => onUpdateStatus(application.id, 'approved')}
- className="bg-green-600 hover:bg-green-700 text-white"
+ className="bg-success hover:bg-success text-white"
  >
  <CheckCircle className="h-4 w-4 mr-2" />
  Approve

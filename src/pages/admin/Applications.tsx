@@ -581,7 +581,7 @@ export default function Applications() {
         {error && (
           <div className="rounded-xl border border-destructive/30 bg-destructive/5/30 p-4 mb-6">
             <div className="flex items-center gap-3">
-              <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+              <XCircle className="h-5 w-5 text-error flex-shrink-0" />
               <div>
                 <h3 className="text-sm font-medium text-destructive-foreground">Error Loading Applications</h3>
                 <p className="text-sm text-error mt-1">{error}</p>

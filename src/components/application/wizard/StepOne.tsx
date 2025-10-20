@@ -81,11 +81,11 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
         
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
-            Sex <span className="text-red-500">*</span>
+            Sex <span className="text-error">*</span>
           </label>
           <select
             {...register('sex')}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
             autoComplete="sex"
           >
             <option value="">Select sex</option>
@@ -149,11 +149,11 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
         
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
-            Program <span className="text-red-500">*</span>
+            Program <span className="text-error">*</span>
           </label>
           <select
             {...register('program')}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
           >
             <option value="">Select program</option>
             <option value="Clinical Medicine">Clinical Medicine (KATC)</option>
@@ -167,11 +167,11 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
         
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
-            Intake <span className="text-red-500">*</span>
+            Intake <span className="text-error">*</span>
           </label>
           <select
             {...register('intake')}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
           >
             <option value="">Select intake</option>
             <option value="January 2025">January 2025</option>

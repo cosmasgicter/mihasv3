@@ -98,7 +98,7 @@ export function PageHeader({
  <div className={cn('relative flex flex-col gap-6 sm:flex-row sm:justify-between', alignmentStyles[align])}>
  <div className="space-y-4 sm:max-w-2xl">
  {eyebrow && (
- <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-foreground/70' : 'text-blue-600')}>
+ <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-foreground/70' : 'text-primary')}>
  {eyebrow}
  </p>
  )}
@@ -107,7 +107,7 @@ export function PageHeader({
  <div
  className={cn(
  'flex h-14 w-14 items-center justify-center rounded-2xl border text-2xl shadow-inner',
- isGradient ? 'border-card/40 bg-card/95 text-foreground backdrop-blur-md' : 'border-blue-600/10 bg-primary/5 text-blue-600'
+ isGradient ? 'border-card/40 bg-card/95 text-foreground backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
  )}
  >
  {icon}

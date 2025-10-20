@@ -72,11 +72,11 @@ export function ProgressIndicator({
 
     switch (step.status) {
       case 'completed':
-        return cn(baseClasses, 'bg-green-500 border-green-500 text-foreground')
+        return cn(baseClasses, 'bg-success border-success text-foreground')
       case 'current':
-        return cn(baseClasses, 'bg-blue-500 border-blue-500 text-foreground animate-pulse')
+        return cn(baseClasses, 'bg-primary border-primary text-foreground animate-pulse')
       case 'error':
-        return cn(baseClasses, 'bg-red-500 border-red-500 text-foreground')
+        return cn(baseClasses, 'bg-error border-error text-foreground')
       default:
         return cn(baseClasses, 'bg-accent border-input text-muted-foreground')
     }
@@ -93,14 +93,14 @@ export function ProgressIndicator({
       return cn(
         baseClasses,
         'flex-1 mx-2',
-        isCompleted ? 'bg-green-500' : 'bg-skeleton'
+        isCompleted ? 'bg-success' : 'bg-skeleton'
       )
     }
     
     return cn(
       baseClasses,
       'my-2 h-8',
-      isCompleted ? 'bg-green-500' : 'bg-skeleton'
+      isCompleted ? 'bg-success' : 'bg-skeleton'
     )
   }
 
@@ -119,7 +119,7 @@ export function ProgressIndicator({
                     <div className={cn(
                       'font-medium',
                       sizeClasses[size].title,
-                      step.status === 'current' ? 'text-blue-600' : 'text-foreground'
+                      step.status === 'current' ? 'text-primary' : 'text-foreground'
                     )}>
                       {step.title}
                     </div>
@@ -163,7 +163,7 @@ export function ProgressIndicator({
                 <div className={cn(
                   'font-medium',
                   sizeClasses[size].title,
-                  step.status === 'current' ? 'text-blue-600' : 'text-foreground'
+                  step.status === 'current' ? 'text-primary' : 'text-foreground'
                 )}>
                   {step.title}
                 </div>
@@ -203,10 +203,10 @@ export function ProgressBar({
   const percentage = Math.round((value / max) * 100)
   
   const colorClasses = {
-    blue: 'bg-blue-500',
-    green: 'bg-green-500', 
-    red: 'bg-red-500',
-    yellow: 'bg-yellow-500'
+    blue: 'bg-primary',
+    green: 'bg-success', 
+    red: 'bg-error',
+    yellow: 'bg-warning'
   }
   
   const sizeClasses = {

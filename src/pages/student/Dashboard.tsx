@@ -179,13 +179,13 @@ export default function StudentDashboard() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+        return <CheckCircle className="h-5 w-5 text-success" />
       case 'rejected':
-        return <XCircle className="h-5 w-5 text-red-500" />
+        return <XCircle className="h-5 w-5 text-error" />
       case 'under_review':
         return <Clock className="h-5 w-5 text-primary" />
       default:
-        return <Clock className="h-5 w-5 text-yellow-500" />
+        return <Clock className="h-5 w-5 text-warning" />
     }
   }
 
@@ -519,7 +519,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-blue-600 text-primary hover:bg-blue-600 hover:text-white"
+                              className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white"
                             >
                               View Details
                             </Button>
@@ -565,7 +565,7 @@ export default function StudentDashboard() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="mt-4 w-full border-blue-600 text-primary hover:bg-blue-600 hover:text-white"
+                      className="mt-4 w-full border-primary text-primary hover:bg-primary hover:text-white"
                     >
                       Update profile
                     </Button>
@@ -620,7 +620,7 @@ export default function StudentDashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full justify-start border-blue-600 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                          className="w-full justify-start border-primary bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
                         >
                           <Plus className="mr-2 h-4 w-4" />
                           Start new application

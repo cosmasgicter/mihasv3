@@ -36,7 +36,7 @@ export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClic
             <div key={index} className="flex flex-col items-center cursor-pointer min-w-0 flex-1" onClick={() => onStepClick(stepNumber)}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
                 isCompleted 
-                  ? 'bg-green-500 text-white' 
+                  ? 'bg-success text-white' 
                   : isActive 
                   ? 'bg-primary text-white' 
                   : 'bg-skeleton text-muted-foreground'
@@ -44,7 +44,7 @@ export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClic
                 {isCompleted ? '✓' : stepNumber}
               </div>
               <span className={`text-xs mt-1 text-center ${
-                isActive ? 'text-blue-600 font-medium' : 'text-muted-foreground'
+                isActive ? 'text-primary font-medium' : 'text-muted-foreground'
               }`}>
                 {title}
               </span>

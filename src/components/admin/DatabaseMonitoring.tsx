@@ -145,11 +145,11 @@ export default function DatabaseMonitoring() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'normal':
-        return <CheckCircle className="w-5 h-5 text-green-500" />
+        return <CheckCircle className="w-5 h-5 text-success" />
       case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-yellow-500" />
+        return <AlertTriangle className="w-5 h-5 text-warning" />
       case 'critical':
-        return <AlertTriangle className="w-5 h-5 text-red-500" />
+        return <AlertTriangle className="w-5 h-5 text-error" />
       default:
         return <Database className="w-5 h-5 text-muted-foreground" />
     }
@@ -214,7 +214,7 @@ export default function DatabaseMonitoring() {
       {errorState.hasError && (
         <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-4">
           <div className="flex items-center">
-            <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
+            <AlertTriangle className="w-5 h-5 text-error mr-2" />
             <span className="text-error">
               Error: {errorState.error?.message}
             </span>
@@ -315,9 +315,9 @@ export default function DatabaseMonitoring() {
                   {issue.issue_type.replace(/_/g, ' ').toUpperCase()}
                 </h3>
                 {issue.issue_count > 0 ? (
-                  <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                  <AlertTriangle className="w-5 h-5 text-warning" />
                 ) : (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <CheckCircle className="w-5 h-5 text-success" />
                 )}
               </div>
               <p className="text-sm text-muted-foreground mb-2">

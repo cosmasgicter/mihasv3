@@ -130,7 +130,7 @@ export function ContinueApplication() {
       <div
         className={cn(
           baseCardClasses,
-          'flex flex-col gap-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-600/20 text-blue-600-900 sm:flex-row sm:items-center sm:justify-between'
+          'flex flex-col gap-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-primary/20 text-primary-900 sm:flex-row sm:items-center sm:justify-between'
         )}
       >
         <div className="space-y-2">

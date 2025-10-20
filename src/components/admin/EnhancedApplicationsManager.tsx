@@ -120,13 +120,13 @@ export function EnhancedApplicationsManager({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className="h-4 w-4 text-success" />
       case 'rejected':
-        return <XCircle className="h-4 w-4 text-red-500" />
+        return <XCircle className="h-4 w-4 text-error" />
       case 'under_review':
         return <Clock className="h-4 w-4 text-primary" />
       case 'submitted':
-        return <Zap className="h-4 w-4 text-yellow-500" />
+        return <Zap className="h-4 w-4 text-warning" />
       default:
         return <Clock className="h-4 w-4 text-muted-foreground" />
     }
@@ -201,7 +201,7 @@ export function EnhancedApplicationsManager({
                 <button
                   onClick={() => setViewMode('cards')}
                   className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'cards' ? 'bg-card text-blue-600 shadow-sm' : 'text-muted-foreground'
+                    viewMode === 'cards' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground'
                   }`}
                 >
                   Cards
@@ -209,7 +209,7 @@ export function EnhancedApplicationsManager({
                 <button
                   onClick={() => setViewMode('table')}
                   className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'table' ? 'bg-card text-blue-600 shadow-sm' : 'text-muted-foreground'
+                    viewMode === 'table' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground'
                   }`}
                 >
                   Table
@@ -227,14 +227,14 @@ export function EnhancedApplicationsManager({
                 placeholder="Search applications..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
               />
             </div>
             
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
             >
               <option value="all">All Status</option>
               <option value="submitted"><FileText className="w-5 h-5" /> Submitted</option>
@@ -250,7 +250,7 @@ export function EnhancedApplicationsManager({
                 setSortBy(field as any)
                 setSortOrder(order as any)
               }}
-              className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
             >
               <option value="date-desc"><Calendar className="w-5 h-5" /> Newest First</option>
               <option value="date-asc"><Calendar className="w-5 h-5" /> Oldest First</option>
@@ -287,7 +287,7 @@ export function EnhancedApplicationsManager({
                 <Button
                   size="sm"
                   onClick={() => onBulkAction('under_review', selectedApplications)}
-                  className="bg-primary/5/300 hover:bg-blue-600"
+                  className="bg-primary/5/300 hover:bg-primary"
                 >
                   <Clock className="h-4 w-4 mr-2" />
                   Start Review
@@ -295,7 +295,7 @@ export function EnhancedApplicationsManager({
                 <Button
                   size="sm"
                   onClick={() => onBulkAction('approved', selectedApplications)}
-                  className="bg-accent/10/300 hover:bg-green-600"
+                  className="bg-accent/10/300 hover:bg-success"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Approve All
@@ -303,7 +303,7 @@ export function EnhancedApplicationsManager({
                 <Button
                   size="sm"
                   onClick={() => onBulkAction('rejected', selectedApplications)}
-                  className="bg-destructive/5/300 hover:bg-red-600"
+                  className="bg-destructive/5/300 hover:bg-error"
                 >
                   <XCircle className="h-4 w-4 mr-2" />
                   Reject All
@@ -325,7 +325,7 @@ export function EnhancedApplicationsManager({
       {/* Applications Display */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : filteredApplications.length === 0 ? (
         <motion.div 
@@ -347,7 +347,7 @@ export function EnhancedApplicationsManager({
               transition={{ delay: index * 0.05 }}
               className={`bg-card rounded-xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
                 selectedApplications.includes(application.id) 
-                  ? 'border-blue-600 bg-blue-50' 
+                  ? 'border-primary bg-blue-50' 
                   : 'border-border hover:border-border'
               }`}
             >
@@ -361,8 +361,8 @@ export function EnhancedApplicationsManager({
                       className="h-5 w-5 mt-1 text-primary focus:ring-blue-500 border-input rounded"
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-lg text-foreground truncate">{application.full_name}</h3>
-                      <p className="text-sm text-muted-foreground font-mono">#{application.application_number}</p>
+                      <h3 className="font-bold text-lg text-foreground truncate" title={application.full_name}>{application.full_name}</h3>
+                      <p className="text-sm text-muted-foreground font-mono truncate">#{application.application_number}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -374,11 +374,11 @@ export function EnhancedApplicationsManager({
                 </div>
 
                 <div className="space-y-3 mb-4">
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <span className="truncate">{application.email}</span>
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground min-w-0">
+                    <span className="truncate" title={application.email}>{application.email}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <span className="truncate">{application.program}</span>
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground min-w-0">
+                    <span className="truncate" title={application.program}>{application.program}</span>
                   </div>
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
@@ -391,7 +391,7 @@ export function EnhancedApplicationsManager({
                     <Button
                       size="sm"
                       onClick={() => onStatusUpdate(application.id, 'under_review')}
-                      className="flex-1 bg-primary/5/300 hover:bg-blue-600"
+                      className="flex-1 bg-primary/5/300 hover:bg-primary"
                     >
                       <Zap className="h-4 w-4 mr-1" />
                       Review
@@ -403,7 +403,7 @@ export function EnhancedApplicationsManager({
                       <Button
                         size="sm"
                         onClick={() => onStatusUpdate(application.id, 'approved')}
-                        className="flex-1 bg-accent/10/300 hover:bg-green-600"
+                        className="flex-1 bg-accent/10/300 hover:bg-success"
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
                         Approve
@@ -411,7 +411,7 @@ export function EnhancedApplicationsManager({
                       <Button
                         size="sm"
                         onClick={() => onStatusUpdate(application.id, 'rejected')}
-                        className="flex-1 bg-destructive/5/300 hover:bg-red-600"
+                        className="flex-1 bg-destructive/5/300 hover:bg-error"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
                         Reject
@@ -486,10 +486,10 @@ export function EnhancedApplicationsManager({
                       />
                     </td>
                     <td className="px-6 py-4">
-                      <div>
-                        <div className="font-bold text-foreground">{application.full_name}</div>
-                        <div className="text-sm text-muted-foreground">{application.email}</div>
-                        <div className="text-xs text-muted-foreground font-mono">#{application.application_number}</div>
+                      <div className="min-w-0 max-w-xs">
+                        <div className="font-bold text-foreground truncate" title={application.full_name}>{application.full_name}</div>
+                        <div className="text-sm text-muted-foreground truncate" title={application.email}>{application.email}</div>
+                        <div className="text-xs text-muted-foreground font-mono truncate">#{application.application_number}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -512,7 +512,7 @@ export function EnhancedApplicationsManager({
                           <Button
                             size="sm"
                             onClick={() => onStatusUpdate(application.id, 'under_review')}
-                            className="bg-primary/5/300 hover:bg-blue-600"
+                            className="bg-primary/5/300 hover:bg-primary"
                           >
                             <Zap className="h-4 w-4" />
                           </Button>
@@ -523,14 +523,14 @@ export function EnhancedApplicationsManager({
                             <Button
                               size="sm"
                               onClick={() => onStatusUpdate(application.id, 'approved')}
-                              className="bg-accent/10/300 hover:bg-green-600"
+                              className="bg-accent/10/300 hover:bg-success"
                             >
                               <CheckCircle className="h-4 w-4" />
                             </Button>
                             <Button
                               size="sm"
                               onClick={() => onStatusUpdate(application.id, 'rejected')}
-                              className="bg-destructive/5/300 hover:bg-red-600"
+                              className="bg-destructive/5/300 hover:bg-error"
                             >
                               <XCircle className="h-4 w-4" />
                             </Button>

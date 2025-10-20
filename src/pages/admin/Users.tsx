@@ -225,7 +225,7 @@ export default function AdminUsers() {
     switch (role) {
       case 'admin':
       case 'super_admin':
-        return <Shield className="h-4 w-4 text-red-500" />
+        return <Shield className="h-4 w-4 text-error" />
       case 'admissions_officer':
       case 'registrar':
       case 'finance_officer':
@@ -674,7 +674,7 @@ export default function AdminUsers() {
             />
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
-                Role <span className="text-red-500">*</span>
+                Role <span className="text-error">*</span>
               </label>
               <select
                 value={createForm.role}
@@ -701,7 +701,7 @@ export default function AdminUsers() {
             <Button
               onClick={createUser}
               loading={createUserMutation.isPending}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-secondary hover:bg-purple-700 text-white"
             >
               Create User
             </Button>
@@ -742,7 +742,7 @@ export default function AdminUsers() {
             />
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
-                Role <span className="text-red-500">*</span>
+                Role <span className="text-error">*</span>
               </label>
               <select
                 value={editForm.role}
@@ -773,7 +773,7 @@ export default function AdminUsers() {
             <Button
               onClick={updateUser}
               loading={updateUserMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-primary hover:bg-primary text-white"
             >
               Update User
             </Button>
@@ -812,7 +812,7 @@ export default function AdminUsers() {
             <Button
               onClick={deleteUser}
               loading={deleteUserMutation.isPending}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-error hover:bg-error text-white"
             >
               Delete User
             </Button>

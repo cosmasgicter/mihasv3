@@ -48,7 +48,7 @@ export function ConflictResolution({
           
           <div className="border rounded-lg p-3">
             <div className="flex items-center gap-2 mb-1">
-              <Clock className="h-4 w-4 text-green-500" />
+              <Clock className="h-4 w-4 text-success" />
               <span className="font-medium">Server Version</span>
             </div>
             <p className="text-sm text-muted-foreground">

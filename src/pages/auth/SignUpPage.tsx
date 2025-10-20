@@ -125,7 +125,7 @@ export default function SignUpPage() {
         description={success}
       >
         <div className="space-y-6 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-blue-600/30 bg-primary/5/300/10 text-primary">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/30 bg-primary/5/300/10 text-primary">
             <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -159,7 +159,7 @@ export default function SignUpPage() {
           Already have an account?{' '}
           <Link
             to="/auth/signin"
-            className="font-semibold text-primary transition-colors hover:text-blue-600/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md"
+            className="font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md"
           >
             Sign in here
           </Link>
@@ -225,12 +225,12 @@ export default function SignUpPage() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
             <label htmlFor="sex" className="mb-1 block text-sm font-medium text-secondary">
-              Sex <span className="text-red-500">*</span>
+              Sex <span className="text-error">*</span>
             </label>
             <select
               {...register('sex')}
               id="sex"
-              className="w-full rounded-md border border-secondary/30 bg-card px-3 py-2 text-sm text-secondary placeholder:text-secondary/60 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+              className="w-full rounded-md border border-secondary/30 bg-card px-3 py-2 text-sm text-secondary placeholder:text-secondary/60 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
             >
               <option value="">Select Sex</option>
               <option value="Male">Male</option>

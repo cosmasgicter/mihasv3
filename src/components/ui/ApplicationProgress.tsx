@@ -24,7 +24,7 @@ export function ApplicationProgress({ currentStep, totalSteps, completedSteps, h
       <div className="w-full bg-skeleton rounded-full h-2 mb-3">
         <div 
           className={`h-2 rounded-full transition-all duration-300 ${
-            hasErrors ? 'bg-red-500' : 'bg-blue-600'
+            hasErrors ? 'bg-error' : 'bg-primary'
           }`}
           style={{ width: `${progressPercentage}%` }}
         />
@@ -32,7 +32,7 @@ export function ApplicationProgress({ currentStep, totalSteps, completedSteps, h
       
       <div className="flex items-center gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1">
-          <CheckCircle className="h-3 w-3 text-green-500" />
+          <CheckCircle className="h-3 w-3 text-success" />
           <span>{completedSteps.filter(Boolean).length} completed</span>
         </div>
         <div className="flex items-center gap-1">
@@ -41,7 +41,7 @@ export function ApplicationProgress({ currentStep, totalSteps, completedSteps, h
         </div>
         {hasErrors && (
           <div className="flex items-center gap-1">
-            <AlertCircle className="h-3 w-3 text-red-500" />
+            <AlertCircle className="h-3 w-3 text-error" />
             <span>Needs attention</span>
           </div>
         )}

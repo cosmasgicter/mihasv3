@@ -37,13 +37,13 @@ interface ApplicationsCardsProps {
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'approved':
-      return <CheckCircle className="h-4 w-4 text-green-500" />
+      return <CheckCircle className="h-4 w-4 text-success" />
     case 'rejected':
-      return <XCircle className="h-4 w-4 text-red-500" />
+      return <XCircle className="h-4 w-4 text-error" />
     case 'under_review':
       return <Clock className="h-4 w-4 text-primary" />
     case 'submitted':
-      return <AlertTriangle className="h-4 w-4 text-yellow-500" />
+      return <AlertTriangle className="h-4 w-4 text-warning" />
     case 'draft':
       return <FileText className="h-4 w-4 text-muted-foreground" />
     default:

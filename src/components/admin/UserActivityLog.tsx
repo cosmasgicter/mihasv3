@@ -32,7 +32,7 @@ const ACTION_ICONS: Record<string, React.ReactNode> = {
   'user.deleted': <Trash2 className="h-4 w-4 text-destructive" />,
   'user.role_changed': <Shield className="h-4 w-4 text-secondary" />,
   'user.permissions_updated': <Shield className="h-4 w-4 text-orange-600" />,
-  'user.login': <User className="h-4 w-4 text-green-500" />,
+  'user.login': <User className="h-4 w-4 text-success" />,
   'user.logout': <User className="h-4 w-4 text-muted-foreground" />,
   'user.password_changed': <Shield className="h-4 w-4 text-accent" />,
 }
@@ -162,7 +162,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                 placeholder="Filter by action..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
               />
             </div>
           </div>
@@ -173,7 +173,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
               />
             </div>
           </div>
@@ -244,7 +244,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
           <div className="text-sm text-muted-foreground">
             {filteredActivities.length} of {activities.length} activities
           </div>
-          <Button onClick={onClose} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Button onClick={onClose} className="bg-primary hover:bg-primary text-white">
             Close
           </Button>
         </div>

@@ -343,8 +343,8 @@ export function PredictiveDashboard() {
                     <TrendingUp className="h-4 w-4 text-destructive mr-1 rotate-180" />
                   )}
                   <span className={`text-sm font-medium ${
-                    metrics.trendDirection === 'up' ? 'text-green-600' : 
-                    metrics.trendDirection === 'down' ? 'text-red-600' : 'text-muted-foreground'
+                    metrics.trendDirection === 'up' ? 'text-success' : 
+                    metrics.trendDirection === 'down' ? 'text-error' : 'text-muted-foreground'
                   }`}>
                     {metrics.trendDirection === 'up' ? 'Increasing' : 
                      metrics.trendDirection === 'down' ? 'Decreasing' : 'Stable'}
@@ -420,7 +420,7 @@ export function PredictiveDashboard() {
                     <span className={`text-lg font-semibold ${
                       metrics.workflowStats.totalExecutions > 0 
                         ? (metrics.workflowStats.successfulExecutions / metrics.workflowStats.totalExecutions) > 0.9 
-                          ? 'text-green-600' : 'text-yellow-600'
+                          ? 'text-success' : 'text-warning'
                         : 'text-muted-foreground'
                     }`}>
                       {metrics.workflowStats.totalExecutions > 0 

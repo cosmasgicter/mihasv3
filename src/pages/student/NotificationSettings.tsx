@@ -275,7 +275,7 @@ export default function NotificationSettings() {
         <div className="mb-6 sm:mb-8">
           <Link
             to="/settings"
-            className="inline-flex items-center text-primary hover:text-blue-600/80 mb-4 font-medium transition-colors"
+            className="inline-flex items-center text-primary hover:text-primary/80 mb-4 font-medium transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Profile Settings

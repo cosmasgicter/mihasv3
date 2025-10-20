@@ -66,7 +66,7 @@ export function AuthLayout({
               <div className="space-y-6 text-center sm:text-left">
                 <Link
                   to={backLinkHref}
-                  className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-blue-600/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-full px-3 py-1"
+                  className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-full px-3 py-1"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   {backLinkLabel}

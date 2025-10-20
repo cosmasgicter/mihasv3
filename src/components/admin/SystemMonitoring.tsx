@@ -106,20 +106,20 @@ export function SystemMonitoring() {
     switch (status) {
       case 'healthy':
       case 'secure':
-        return 'text-green-600 bg-accent/10'
+        return 'text-success bg-accent/10'
       case 'warning':
-        return 'text-yellow-600 bg-accent/10'
+        return 'text-warning bg-accent/10'
       case 'critical':
-        return 'text-red-600 bg-destructive/10'
+        return 'text-error bg-destructive/10'
       default:
         return 'text-muted-foreground bg-accent'
     }
   }
 
   const getPerformanceColor = (value: number) => {
-    if (value < 50) return 'bg-green-500'
-    if (value < 80) return 'bg-yellow-500'
-    return 'bg-red-500'
+    if (value < 50) return 'bg-success'
+    if (value < 80) return 'bg-warning'
+    return 'bg-error'
   }
 
   return (
@@ -199,7 +199,7 @@ export function SystemMonitoring() {
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-primary/10 rounded-xl">
-              <Users className="h-6 w-6 text-indigo-600" />
+              <Users className="h-6 w-6 text-secondary" />
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-indigo-800">
               ACTIVE
@@ -276,7 +276,7 @@ export function SystemMonitoring() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <HardDrive className="h-4 w-4 text-green-500" />
+                  <HardDrive className="h-4 w-4 text-success" />
                   <span className="text-sm font-medium text-foreground">Storage</span>
                 </div>
                 <span className="text-sm font-bold text-foreground">{metrics.performance.storage}%</span>

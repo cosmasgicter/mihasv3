@@ -65,7 +65,7 @@ export default function SignInPage() {
           Or{' '}
           <Link
             to="/auth/signup"
-            className="font-semibold text-primary transition-colors hover:text-blue-600/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md"
+            className="font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md"
           >
             create a new account
           </Link>
@@ -85,7 +85,7 @@ export default function SignInPage() {
           <div className="text-center">
             <Link
               to="/auth/forgot-password"
-              className="text-sm font-semibold text-primary transition-colors hover:text-blue-600/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md"
+              className="text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md"
             >
               Forgot your password?
             </Link>

@@ -328,7 +328,7 @@ export function QuickFilters({
             size="sm"
             className={cn(
               'transition-colors',
-              isActive && 'bg-blue-600 text-white border-blue-600'
+              isActive && 'bg-primary text-white border-primary'
             )}
           >
             {filter.label}

@@ -196,7 +196,7 @@ export function NotificationPreferences() {
       <Button
         onClick={savePreferences}
         loading={saving}
-        className="w-full bg-blue-600 hover:bg-blue-700"
+        className="w-full bg-primary hover:bg-primary"
       >
         <Check className="h-5 w-5 mr-2" />
         Save Preferences

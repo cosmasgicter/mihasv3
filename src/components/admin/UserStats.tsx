@@ -48,7 +48,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
     switch (role) {
       case 'admin':
       case 'super_admin':
-        return <Shield className="h-4 w-4 text-red-500" />
+        return <Shield className="h-4 w-4 text-error" />
       case 'admissions_officer':
       case 'registrar':
       case 'finance_officer':

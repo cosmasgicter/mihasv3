@@ -18,7 +18,7 @@ export const Header = React.memo(function Header() {
 
   if (!user) return null
 
-  const fullName = profile?.full_name || user.email?.split('@')[0] || 'User'
+  const fullName = profile?.full_name || user.user_metadata?.full_name || 'User'
 
   return (
     <motion.header
@@ -33,14 +33,15 @@ export const Header = React.memo(function Header() {
     >
       <div className="flex items-center justify-between h-16 px-3 sm:px-4 md:px-6">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 overflow-hidden">
-          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-foreground flex items-center gap-2 truncate max-w-full">
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-foreground flex items-center gap-2 min-w-0 max-w-full">
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              className="flex-shrink-0"
             >
               <User className="h-5 w-5" />
             </motion.div>
-            {fullName}
+            <span className="truncate">{fullName}</span>
           </h2>
         </div>
 

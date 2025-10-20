@@ -43,9 +43,9 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  const getComplianceIcon = (level: string) => {
  switch (level) {
  case 'mandatory':
- return <AlertTriangle className="h-4 w-4 text-red-500" />
+ return <AlertTriangle className="h-4 w-4 text-error" />
  case 'recommended':
- return <CheckCircle className="h-4 w-4 text-yellow-500" />
+ return <CheckCircle className="h-4 w-4 text-warning" />
  case 'optional':
  return <Clock className="h-4 w-4 text-muted-foreground" />
  default:
@@ -173,11 +173,11 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  {filteredGuidelines.length > 0 && (
  <div className="flex items-center space-x-4">
  <span className="flex items-center space-x-1">
- <AlertTriangle className="h-3 w-3 text-red-500" />
+ <AlertTriangle className="h-3 w-3 text-error" />
  <span>{filteredGuidelines.filter(g => g.compliance_level === 'mandatory').length} Mandatory</span>
  </span>
  <span className="flex items-center space-x-1">
- <CheckCircle className="h-3 w-3 text-yellow-500" />
+ <CheckCircle className="h-3 w-3 text-warning" />
  <span>{filteredGuidelines.filter(g => g.compliance_level === 'recommended').length} Recommended</span>
  </span>
  </div>
@@ -188,7 +188,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  <div className="bg-card rounded-lg shadow overflow-hidden">
  {loading ? (
  <div className="p-8 text-center">
- <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+ <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
  <p className="text-muted-foreground">Loading guidelines...</p>
  </div>
  ) : filteredGuidelines.length === 0 ? (

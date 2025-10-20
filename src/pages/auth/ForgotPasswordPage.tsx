@@ -107,7 +107,7 @@ export default function ForgotPasswordPage() {
         )}
 
         {Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY) && (
-          <div className="rounded-xl border border-blue-600/10 bg-primary/5 p-4">
+          <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
             <Turnstile
               key={turnstileKey}
               siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}

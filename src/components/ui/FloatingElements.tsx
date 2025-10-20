@@ -77,7 +77,7 @@ export const GeometricPatterns = React.memo(() => {
       {/* Animated geometric shapes */}
       {prefersReducedMotion ? (
         <>
-          <div className="absolute top-10 right-10 w-32 h-32 border-2 border-blue-600 rounded-full" />
+          <div className="absolute top-10 right-10 w-32 h-32 border-2 border-primary rounded-full" />
           <div className="absolute bottom-20 left-10 w-24 h-24 bg-gradient-to-r from-secondary to-accent rounded-lg" />
           <div className="absolute top-1/2 left-1/4 w-16 h-16 border-2 border-accent transform rotate-45" />
           <div className="absolute top-1/4 right-1/3 w-20 h-20 bg-gradient-radial from-blue-500/20 to-transparent rounded-full" />
@@ -85,7 +85,7 @@ export const GeometricPatterns = React.memo(() => {
       ) : (
         <>
           <motion.div
-            className="absolute top-10 right-10 w-32 h-32 border-2 border-blue-600 rounded-full"
+            className="absolute top-10 right-10 w-32 h-32 border-2 border-primary rounded-full"
             animate={{
               rotate: 360,
               scale: [1, 1.1, 1]

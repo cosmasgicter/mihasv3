@@ -56,9 +56,9 @@ export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningP
       <div className="bg-card rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
         <div className="flex items-center space-x-3 mb-4">
           {warning.type === 'timeout' ? (
-            <Clock className="h-6 w-6 text-yellow-500" />
+            <Clock className="h-6 w-6 text-warning" />
           ) : (
-            <AlertTriangle className="h-6 w-6 text-red-500" />
+            <AlertTriangle className="h-6 w-6 text-error" />
           )}
           <h3 className="text-lg font-semibold text-foreground">
             Session {warning.type === 'timeout' ? 'Timeout Warning' : 'Expired'}

@@ -47,7 +47,7 @@ export default function OfflineAdminDashboard() {
           className="rounded-xl bg-accent/5/30 border border-yellow-200 p-4 mb-6 shadow-lg"
         >
           <div className="flex items-center space-x-3">
-            <AlertTriangle className="h-6 w-6 text-yellow-500 flex-shrink-0" />
+            <AlertTriangle className="h-6 w-6 text-warning flex-shrink-0" />
             <div className="text-sm text-yellow-700">
               <strong>Offline Mode:</strong> Network connectivity issues detected. Showing cached data.
             </div>
@@ -82,7 +82,7 @@ export default function OfflineAdminDashboard() {
                   </p>
                   <div className="flex items-center space-x-4 text-sm">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-warning/80"></div>
                       <span>System offline</span>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -187,7 +187,7 @@ export default function OfflineAdminDashboard() {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
         >
           <Link to="/admin/applications" className="block">
-            <div className="bg-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border hover:border-blue-600/20">
+            <div className="bg-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border hover:border-primary/20">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-primary/10 rounded-xl">
                   <FileText className="h-6 w-6 text-primary" />
@@ -201,7 +201,7 @@ export default function OfflineAdminDashboard() {
           </Link>
 
           <Link to="/admin/users" className="block">
-            <div className="bg-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border hover:border-blue-600/20">
+            <div className="bg-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border hover:border-primary/20">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-accent/10 rounded-xl">
                   <Users className="h-6 w-6 text-accent" />
@@ -215,7 +215,7 @@ export default function OfflineAdminDashboard() {
           </Link>
 
           <Link to="/admin/programs" className="block">
-            <div className="bg-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border hover:border-blue-600/20">
+            <div className="bg-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border hover:border-primary/20">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-secondary/10 rounded-xl">
                   <GraduationCap className="h-6 w-6 text-secondary" />
