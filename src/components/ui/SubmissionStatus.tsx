@@ -67,7 +67,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
           {status.status === 'failed' && onRetry && (
             <button
               onClick={onRetry}
-              className="px-3 py-1 text-sm bg-blue-600 text-card-foreground rounded hover:bg-blue-700"
+              className="px-3 py-1 text-sm bg-blue-600 text-foreground rounded hover:bg-blue-700"
             >
               Retry
             </button>

@@ -42,7 +42,7 @@ export function UserMenu() {
           />
         ) : (
           <div className="w-8 h-8 bg-primary/5/300 rounded-full flex items-center justify-center">
-            <User className="w-4 h-4 text-card-foreground" />
+            <User className="w-4 h-4 text-foreground" />
           </div>
         )}
         <span className="hidden md:block text-sm font-medium text-foreground truncate max-w-[120px]">
