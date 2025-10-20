@@ -172,7 +172,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 variant="outline"
                 size="md"
                 onClick={handleSignOut}
-                className="border-card/70 text-card hover:bg-card/10"
+                className="border-card/70 text-foreground hover:bg-card/10"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
@@ -183,7 +183,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
         {/* Mobile Menu Button */}
         <motion.button
-          className="md:hidden p-3 rounded-xl text-card bg-foreground/90 hover:bg-foreground/80 backdrop-blur-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 shadow-lg hover:shadow-xl border-2 border-card/50 hover:border-card/70 min-h-[48px] min-w-[48px] z-[102] touch-target"
+          className="md:hidden p-3 rounded-xl text-card-foreground bg-foreground/90 hover:bg-foreground/80 backdrop-blur-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 shadow-lg hover:shadow-xl border-2 border-card/50 hover:border-card/70 min-h-[48px] min-w-[48px] z-[102] touch-target"
           onClick={toggleMenu}
           whileTap={{ scale: 0.95 }}
           aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -244,7 +244,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                     <span className="text-xl font-bold text-high-contrast">MIHAS-KATC</span>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-card hover:bg-card/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-card/50 min-h-[44px] min-w-[44px] touch-target"
+                    className="p-2 rounded-lg text-foreground hover:bg-card/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-card/50 min-h-[44px] min-w-[44px] touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -268,7 +268,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                           to={item.to}
                           onClick={closeMenu}
                           className={cn(
-                            'flex items-center px-4 py-4 rounded-xl text-card transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
+                            'flex items-center px-4 py-4 rounded-xl text-foreground transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
                             item.variant === 'accent'
                               ? 'bg-primary/30 hover:bg-primary/40'
                               : 'hover:bg-card/10',
@@ -276,7 +276,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                           )}
                         >
                           {item.icon}
-                          <span className="text-card font-bold truncate">{item.label}</span>
+                          <span className="text-foreground font-bold truncate">{item.label}</span>
                         </Link>
                       </motion.div>
                     ))}

@@ -24,7 +24,7 @@ export interface PageHeaderProps {
 }
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
- gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-card-foreground border-card/20 shadow-2xl',
+ gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-foreground border-card/20 shadow-2xl',
  surface: 'bg-card text-foreground border border-border shadow-xl',
  subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg backdrop-blur-sm'
 }
@@ -98,7 +98,7 @@ export function PageHeader({
  <div className={cn('relative flex flex-col gap-6 sm:flex-row sm:justify-between', alignmentStyles[align])}>
  <div className="space-y-4 sm:max-w-2xl">
  {eyebrow && (
- <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-card-foreground/70' : 'text-blue-600')}>
+ <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-foreground/70' : 'text-blue-600')}>
  {eyebrow}
  </p>
  )}
@@ -116,7 +116,7 @@ export function PageHeader({
  <div className="space-y-3">
  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight break-words">{title}</h1>
  {description && (
- <p className={cn('text-base sm:text-lg', isGradient ? 'text-card-foreground/80' : 'text-muted-foreground')}>{description}</p>
+ <p className={cn('text-base sm:text-lg', isGradient ? 'text-foreground/80' : 'text-muted-foreground')}>{description}</p>
  )}
  {children}
  </div>

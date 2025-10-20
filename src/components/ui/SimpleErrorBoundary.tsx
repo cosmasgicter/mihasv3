@@ -33,7 +33,7 @@ export class SimpleErrorBoundary extends React.Component<Props, State> {
             <p className="text-muted-foreground mb-4">Please refresh the page to try again.</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-card-foreground rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-foreground rounded-lg hover:bg-blue-700"
             >
               Refresh Page
             </button>
