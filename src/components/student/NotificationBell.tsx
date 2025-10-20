@@ -69,7 +69,7 @@ export function NotificationBell() {
         className="relative hover:bg-primary/5/30 flex items-center justify-center"
         data-testid="notification-bell"
       >
-        <Bell className="h-5 w-5 text-muted-foreground" />
+        <Bell className="h-5 w-5 text-foreground" />
         {unreadCount > 0 && (
           <motion.span
             initial={{ scale: 0 }}

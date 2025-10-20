@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { draftManager } from '@/lib/draftManager'
-import { useToast } from '@/components/ui/Toast'
+import { useToastStore } from '@/components/ui/Toast'
 import { clearAllDraftData } from '@/lib/draftCleanup'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 

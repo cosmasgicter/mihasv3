@@ -2,6 +2,9 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import './styles/design-tokens.css'
+import './styles/animations.css'
+import './styles/print.css'
 
 // Initialize connection manager to suppress extension errors
 import { connectionManager } from '@/lib/connectionFix'

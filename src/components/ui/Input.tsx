@@ -29,7 +29,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             type={type}
             className={cn(
-              'w-full h-10 px-3 rounded-lg',
+              'w-full h-10 px-3 rounded-lg touch-target',
               'bg-background',
               'border border-input',
               'text-foreground',
@@ -44,6 +44,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
+            aria-invalid={error ? 'true' : 'false'}
+            aria-describedby={error ? `${props.id}-error` : helperText ? `${props.id}-helper` : undefined}
             {...props}
           />
           {isFocused && (
@@ -58,7 +60,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         </div>
         {error && (
           <motion.p
+            id={`${props.id}-error`}
             className="mt-1.5 text-sm text-destructive"
+            role="alert"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -66,7 +70,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </motion.p>
         )}
         {helperText && !error && (
-          <p className="mt-1.5 text-sm text-muted-foreground">
+          <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-muted-foreground">
             {helperText}
           </p>
         )}

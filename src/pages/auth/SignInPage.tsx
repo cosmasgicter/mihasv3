@@ -78,7 +78,7 @@ export default function SignInPage() {
               <div className="w-full border-t border-secondary/20" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-card/80 px-3 py-0.5 text-secondary/70">Need help?</span>
+              <span className="bg-card/80 px-3 py-0.5 text-foreground">Need help?</span>
             </div>
           </div>
 
@@ -111,8 +111,8 @@ export default function SignInPage() {
         />
 
         {error && (
-          <div className="rounded-xl border border-destructive/30/70 bg-destructive/5/30/80 p-4 text-left shadow-sm">
-            <div className="text-sm font-medium text-error">{error}</div>
+          <div className="rounded-xl border border-destructive bg-destructive/10 p-4 text-left shadow-sm">
+            <div className="text-sm font-medium text-destructive">{error}</div>
           </div>
         )}
 

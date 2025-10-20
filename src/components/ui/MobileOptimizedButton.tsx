@@ -68,17 +68,17 @@ export function MobileOptimizedButton({
     secondary: cn(
       'bg-accent text-foreground shadow-sm',
       'hover:bg-skeleton active:bg-muted',
-      'focus-visible:ring-gray-500'
+      'focus-visible:ring-ring'
     ),
     outline: cn(
       'border-2 border-input bg-card text-foreground',
-      'hover:bg-muted hover:border-gray-400',
-      'active:bg-accent active:border-gray-500',
-      'focus-visible:ring-gray-500'
+      'hover:bg-muted hover:border-input',
+      'active:bg-accent active:border-input',
+      'focus-visible:ring-ring'
     ),
     ghost: cn(
       'text-foreground hover:bg-accent active:bg-skeleton',
-      'focus-visible:ring-gray-500'
+      'focus-visible:ring-ring'
     ),
     danger: cn(
       'bg-error text-foreground shadow-sm',

@@ -3,7 +3,7 @@ import { formatDistanceToNow, format } from 'date-fns'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { useToast } from '@/components/ui/Toast'
+import { useToastStore } from '@/components/ui/Toast'
 import {
   adminAuditService,
   type AuditLogEntry,
@@ -815,7 +815,7 @@ export default function AuditTrailPage() {
             </div>
           </>
         ) : (
-          <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-border">
+          <div className="text-center py-20 bg-gradient-to-br from-muted to-muted rounded-xl border border-border">
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
               <Shield className="h-10 w-10 text-muted-foreground" />
             </div>

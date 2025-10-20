@@ -430,7 +430,7 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-card rounded-xl shadow-lg border border-gray-100"
+          className="bg-card rounded-xl shadow-lg border border-border"
         >
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-lg font-bold text-foreground"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
@@ -486,7 +486,7 @@ export function FixedAdminDashboard() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-card rounded-xl shadow-lg border border-gray-100"
+          className="bg-card rounded-xl shadow-lg border border-border"
         >
           <div className="px-6 py-4 border-b border-border">
             <h3 className="text-lg font-bold text-foreground">🛡️ System Health</h3>

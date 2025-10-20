@@ -42,7 +42,7 @@ const PaymentStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100"
+      className="bg-card rounded-lg shadow-lg p-6 border border-border"
       data-testid="payment-step"
     >
       <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>

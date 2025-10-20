@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { UserProfile } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { LoadingState } from '@/components/ui/LoadingState'
 import { Input } from '@/components/ui/Input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
 import { UserStats } from '@/components/admin/UserStats'
@@ -356,7 +356,7 @@ export default function AdminUsers() {
 
           {/* User Statistics */}
           {showStats && (
-            <div className="p-6 border-b border-border bg-gradient-to-r from-gray-50 to-purple-50">
+            <div className="p-6 border-b border-border bg-gradient-to-r from-muted to-purple-50">
               <UserStats users={users} />
             </div>
           )}
@@ -386,12 +386,7 @@ export default function AdminUsers() {
             )}
 
             {loading ? (
-              <div className="flex justify-center py-16">
-                <div className="text-center">
-                  <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-muted-foreground">Loading users...</p>
-                </div>
-              </div>
+              <LoadingState message="Loading users..." size="lg" />
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-8xl mb-6">👥</div>
@@ -493,8 +488,8 @@ export default function AdminUsers() {
 
                 {/* Desktop Table View */}
                 <div className="hidden lg:block overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gradient-to-r from-gray-50 to-purple-50">
+                  <table className="min-w-full divide-y divide-border">
+                    <thead className="bg-gradient-to-r from-muted to-purple-50">
                       <tr>
                         <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
                           <div className="flex items-center space-x-2">
@@ -525,7 +520,7 @@ export default function AdminUsers() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-card divide-y divide-gray-200">
+                    <tbody className="bg-card divide-y divide-border">
                       {filteredUsers.map((user) => (
                         <tr key={user.user_id} className="hover:bg-secondary/5/30 transition-colors">
                           <td className="px-6 py-4">

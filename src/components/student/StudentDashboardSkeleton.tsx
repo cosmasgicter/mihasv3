@@ -48,7 +48,7 @@ export function StudentDashboardSkeleton() {
             </div>
             
             {/* Application Items */}
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-border">
               {Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="px-6 py-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">

@@ -211,7 +211,7 @@ export function EnhancedFileUpload({
             : 'border-input',
           disabled || !isOnline
             ? 'opacity-50 cursor-not-allowed bg-muted'
-            : 'hover:border-gray-400',
+            : 'hover:border-input',
           // Mobile optimizations
           'touch-manipulation'
         )}

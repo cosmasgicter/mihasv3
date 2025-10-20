@@ -199,7 +199,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  </div>
  ) : (
  <div className="overflow-x-auto">
- <table className="min-w-full divide-y divide-gray-200">
+ <table className="min-w-full divide-y divide-border">
  <thead className="bg-muted">
  <tr>
  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -225,7 +225,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  </th>
  </tr>
  </thead>
- <tbody className="bg-card divide-y divide-gray-200">
+ <tbody className="bg-card divide-y divide-border">
  {filteredGuidelines.map((guideline) => (
  <tr key={guideline.id} className="hover:bg-muted">
  <td className="px-6 py-4 whitespace-nowrap">

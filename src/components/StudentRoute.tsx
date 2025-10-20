@@ -12,7 +12,7 @@ export function StudentRoute({ children }: StudentRouteProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted to-muted">
         <div className="text-center p-8 bg-card rounded-xl shadow-lg border border-border max-w-md mx-4">
           <LoadingSpinner size="lg" message="Loading..." />
           <p className="mt-4 text-sm text-muted-foreground">Please wait</p>

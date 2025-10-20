@@ -32,7 +32,7 @@ export function ApplicationsTable() {
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200">
+        <tbody className="divide-y divide-border">
           {applications.map((app: Application) => (
             <tr key={app.id}>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">

@@ -332,8 +332,8 @@ export default function AdminIntakes() {
 
                 {/* Desktop Table View */}
                 <div className="hidden lg:block overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gradient-to-r from-gray-50 to-purple-50">
+                  <table className="min-w-full divide-y divide-border">
+                    <thead className="bg-gradient-to-r from-muted to-purple-50">
                       <tr>
                         <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
                           <Calendar className="w-5 h-5" /> Name
@@ -361,7 +361,7 @@ export default function AdminIntakes() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-card divide-y divide-gray-200">
+                    <tbody className="bg-card divide-y divide-border">
                       {intakes.map((intake) => (
                         <tr key={intake.id} className="hover:bg-secondary/5/30 transition-colors">
                           <td className="px-6 py-4">

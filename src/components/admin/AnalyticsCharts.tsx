@@ -72,7 +72,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <motion.div 
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-gray-100"
+ className="bg-card rounded-xl p-6 shadow-lg border border-border"
  >
  <div className="flex items-center justify-between">
  <div>
@@ -97,7 +97,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.1 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-gray-100"
+ className="bg-card rounded-xl p-6 shadow-lg border border-border"
  >
  <div className="flex items-center justify-between">
  <div>
@@ -122,7 +122,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.2 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-gray-100"
+ className="bg-card rounded-xl p-6 shadow-lg border border-border"
  >
  <div className="flex items-center justify-between">
  <div>
@@ -141,7 +141,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.3 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-gray-100"
+ className="bg-card rounded-xl p-6 shadow-lg border border-border"
  >
  <div className="flex items-center justify-between">
  <div>
@@ -162,7 +162,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.4 }}
- className="bg-card rounded-xl shadow-lg border border-gray-100"
+ className="bg-card rounded-xl shadow-lg border border-border"
  >
  <div className="px-6 py-4 border-b border-border">
  <h3 className="text-lg font-bold text-foreground flex items-center">
@@ -251,7 +251,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.6 }}
- className="bg-card rounded-xl shadow-lg border border-gray-100"
+ className="bg-card rounded-xl shadow-lg border border-border"
  >
  <div className="px-6 py-4 border-b border-border">
  <h3 className="text-lg font-bold text-foreground flex items-center">

@@ -315,7 +315,7 @@ function AddSubjectButton({ onClick, isOpen, disabled, variant = 'secondary' }: 
           ? 'border-border text-muted-foreground cursor-not-allowed'
           : isPrimary
           ? 'border-blue-300 text-primary hover:border-blue-400 hover:bg-blue-50'
-          : 'border-input text-muted-foreground hover:border-gray-400 hover:bg-muted'
+          : 'border-input text-muted-foreground hover:border-input hover:bg-muted'
       } ${isOpen ? 'bg-blue-50 border-blue-400' : ''}`}
     >
       <div className="flex items-center justify-center space-x-2">

@@ -63,7 +63,7 @@ export function EnhancedInput({
           className={cn(
             // Base styling
             'block w-full rounded-lg border border-input bg-card',
-            'text-sm text-foreground placeholder-gray-500',
+            'text-sm text-foreground placeholder-muted-foreground',
             'transition-colors duration-200',
             // Focus states
             'focus:border-primary focus:ring-2 focus:ring-blue-500/20',
@@ -174,7 +174,7 @@ export function EnhancedTextarea({
         className={cn(
           // Base styling
           'block w-full rounded-lg border border-input bg-card',
-          'text-sm text-foreground placeholder-gray-500',
+          'text-sm text-foreground placeholder-muted-foreground',
           'transition-colors duration-200',
           // Focus states
           'focus:border-primary focus:ring-2 focus:ring-blue-500/20',

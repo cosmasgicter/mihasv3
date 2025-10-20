@@ -239,7 +239,7 @@ export default function LandingPageNew() {
  <Button 
  variant="outline" 
  size="xl" 
- className="border-2 border-white text-white hover:bg-white hover:text-primary font-semibold"
+ className="border-2 border-white bg-white/10 text-white hover:bg-white hover:text-primary font-semibold backdrop-blur-sm"
  onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
  >
  <span className="mr-2">Learn More</span>

@@ -10,7 +10,7 @@ import { logger } from '@/utils/logger'
 
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { sanitizeForDisplay } from '@/lib/sanitize'
-import { useToast } from '@/components/ui/Toast'
+import { useToastStore } from '@/components/ui/Toast'
 import { createApplicationSlip } from '@/lib/slipService'
 
 // Institution code to name mapping

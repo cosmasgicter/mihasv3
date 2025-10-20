@@ -545,7 +545,7 @@ export function ReportsGenerator() {
                   className={`p-3 border rounded-lg text-left transition-colors ${
                     config.type === type.value
                       ? 'border-primary bg-blue-50 text-primary'
-                      : 'border-input hover:border-gray-400'
+                      : 'border-input hover:border-input'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
@@ -629,7 +629,7 @@ export function ReportsGenerator() {
                   className={`p-3 border rounded-lg text-left transition-colors ${
                     isActive
                       ? 'border-primary bg-blue-50 text-primary'
-                      : 'border-input hover:border-gray-400'
+                      : 'border-input hover:border-input'
                   }`}
                 >
                   <div className="flex items-center space-x-2">

@@ -82,6 +82,7 @@ export function Button({
         className={cn(buttonVariants({ variant, size, className }))}
         disabled={disabled || loading}
         onClick={onClick}
+        aria-busy={loading}
         {...props}
       >
         {buttonContent}
@@ -97,6 +98,7 @@ export function Button({
       whileTap="tap"
       disabled={disabled || loading}
       onClick={onClick}
+      aria-busy={loading}
       {...props}
     >
       {buttonContent}
