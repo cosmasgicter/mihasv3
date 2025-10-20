@@ -34,17 +34,28 @@ export function ActiveSessions() {
       setLoading(true)
       const supabase = getSupabaseClient()
       const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        setSessions([])
+        return
+      }
+      
       const response = await fetch('/api/sessions', {
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`
+          'Authorization': `Bearer ${session.access_token}`
         }
       })
-      const result = await response.json()
-      if (result.data) {
-        setSessions(result.data)
+      
+      if (!response.ok) {
+        setSessions([])
+        return
       }
+      
+      const result = await response.json()
+      setSessions(result.data || [])
     } catch (error) {
       console.error('Failed to load sessions:', error)
+      setSessions([])
     } finally {
       setLoading(false)
     }

@@ -282,7 +282,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                 <div>
                   <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-2 break-words">
-                    Welcome back, {sanitizeForDisplay(profile?.full_name?.split(' ')[0]) || 'Admin'}
+                    Welcome back, {sanitizeForDisplay(profile?.full_name?.split(' ')[0] || profile?.first_name || 'Admin')}
                   </h1>
                   <p className="text-sm sm:text-base md:text-lg text-white/90 mb-4 break-words">
                     Here's your system overview for today
