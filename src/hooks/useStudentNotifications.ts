@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { StudentNotification } from '@/types/notifications'
+import { fetchNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification as apiDeleteNotification } from '@/lib/api/adminApi'
 
 export function useStudentNotifications() {
   const { user } = useAuth()
@@ -14,17 +15,8 @@ export function useStudentNotifications() {
 
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('in_app_notifications')
-        .select('*')
-        .eq('id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50)
-
-      if (error) throw error
-
-      const formattedNotifications = (data || []).map(formatNotification)
-
+      const data = await fetchNotifications()
+      const formattedNotifications = data.map(formatNotification)
       setNotifications(formattedNotifications)
       setUnreadCount(formattedNotifications.filter(n => !n.read).length)
     } catch (error) {
@@ -39,16 +31,8 @@ export function useStudentNotifications() {
 
     const timestamp = new Date().toISOString()
     try {
-      const { error } = await supabase
-        .from('in_app_notifications')
-        .update({ 
-          read: true, 
-          read_at: timestamp 
-        })
-        .eq('id', notificationId)
-        .eq('id', user.id)
-
-      if (error) throw error
+      const success = await markNotificationRead(notificationId)
+      if (!success) throw new Error('Failed to mark as read')
 
       setNotifications(prev => 
         prev.map(n => 
@@ -69,16 +53,8 @@ export function useStudentNotifications() {
 
     const timestamp = new Date().toISOString()
     try {
-      const { error } = await supabase
-        .from('in_app_notifications')
-        .update({ 
-          read: true, 
-          read_at: timestamp 
-        })
-        .eq('id', user.id)
-        .eq('read', false)
-
-      if (error) throw error
+      const success = await markAllNotificationsRead()
+      if (!success) throw new Error('Failed to mark all as read')
 
       setNotifications(prev => 
         prev.map(n => ({ ...n, read: true, read_at: timestamp }))
@@ -94,13 +70,8 @@ export function useStudentNotifications() {
     if (!user?.id) return
 
     try {
-      const { error } = await supabase
-        .from('in_app_notifications')
-        .delete()
-        .eq('id', notificationId)
-        .eq('id', user.id)
-
-      if (error) throw error
+      const success = await apiDeleteNotification(notificationId)
+      if (!success) throw new Error('Failed to delete')
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId))
       setUnreadCount(prev => {

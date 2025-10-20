@@ -16,7 +16,7 @@ interface PageContentProps {
 const backgroundClasses = {
   default: 'bg-muted',
   gradient: 'bg-gradient-to-br from-background via-primary/5 to-secondary/5 transition-colors duration-500',
-  white: 'bg-white',
+  white: 'bg-card',
   gray: 'bg-accent'
 }
 

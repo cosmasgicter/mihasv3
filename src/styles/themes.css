@@ -10,10 +10,10 @@
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96.1%;
+    --muted: 210 40% 98%;
     --muted-foreground: 222.2 47.4% 11.2%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 142 76% 96%;
+    --accent-foreground: 142 76% 20%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
     --border: 214.3 31.8% 91.4%;
@@ -34,10 +34,6 @@
     --info-foreground: 0 0% 100%;
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
-    --approved: 142 76% 36%;
-    --approved-foreground: 0 0% 100%;
-    --rejected: 0 84.2% 60.2%;
-    --rejected-foreground: 0 0% 100%;
     
     /* Gradients */
     --gradient-from: 199 89% 48%;

@@ -294,12 +294,12 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                         <Link 
                           to={item.href}
                           onClick={closeMenu}
-                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-card text-gray-800 border-2 border-border hover:border-blue-500 hover:border-purple-500 hover:bg-primary/5/30 opacity-100 visible transition-all duration-200"
+                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-card text-foreground border-2 border-border hover:border-blue-500 hover:border-purple-500 hover:bg-primary/5/30 opacity-100 visible transition-all duration-200"
                         >
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center space-x-3">
-                              <item.icon className="h-5 w-5 flex-shrink-0 text-gray-800" />
-                              <span className="mobile-nav-text text-gray-800 font-semibold">{item.label}</span>
+                              <item.icon className="h-5 w-5 flex-shrink-0 text-foreground" />
+                              <span className="mobile-nav-text text-foreground font-semibold">{item.label}</span>
                             </div>
                             <div className="w-2 h-2 rounded-full bg-primary"></div>
                           </div>
