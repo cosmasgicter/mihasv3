@@ -6,7 +6,6 @@
     "/images/*",
     "/*.html",
     "/*.css",
-    "/*.js",
     "/*.json",
     "/*.ico",
     "/*.png",
