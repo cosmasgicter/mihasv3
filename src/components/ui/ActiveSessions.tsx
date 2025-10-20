@@ -34,7 +34,7 @@ export function ActiveSessions() {
       setLoading(true)
       const supabase = getSupabaseClient()
       const { data: { session } } = await supabase.auth.getSession()
-      const response = await fetch('/sessions', {
+      const response = await fetch('/api/sessions', {
         headers: {
           'Authorization': `Bearer ${session?.access_token}`
         }
@@ -57,7 +57,7 @@ export function ActiveSessions() {
       setTerminating(deviceId)
       const supabase = getSupabaseClient()
       const { data: { session } } = await supabase.auth.getSession()
-      await fetch(`/sessions?device_id=${deviceId}`, {
+      await fetch(`/api/sessions?device_id=${deviceId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${session?.access_token}`
