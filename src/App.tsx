@@ -6,7 +6,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
 import { ToastProvider } from '@/components/ui/Toast'
-import { ThemeProvider } from '@/components/theme/ThemeProvider'
+
 import { AppLayout } from '@/components/navigation/AppLayout'
 import { UserMenu } from '@/components/ui/UserMenu'
 import { NotificationBell } from '@/components/student/NotificationBell'
@@ -17,7 +17,7 @@ import { FancyPreloader } from '@/components/ui/FancyPreloader'
 import { routes, type RouteConfig } from '@/routes/config'
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { ParticleBackground } from '@/components/theme/ParticleBackground'
+
 
 
 
@@ -67,7 +67,7 @@ const renderRoute = (route: RouteConfig) => {
 
 function App() {
   const [isLoading, setIsLoading] = useState(true)
-  const [showParticles, setShowParticles] = useState(false)
+
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2000)
@@ -85,9 +85,7 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          {showParticles && <ParticleBackground />}
-          <AuthProvider>
+        <AuthProvider>
             <ToastProvider>
             <Router>
               <AnalyticsTracker>
@@ -110,8 +108,7 @@ function App() {
               </AnalyticsTracker>
             </Router>
             </ToastProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   )

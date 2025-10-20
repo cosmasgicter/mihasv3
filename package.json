@@ -13,7 +13,6 @@
     "dev:prod": "vite build --config vite.config.production.ts && vite preview",
     "dev:api": "node local-server.js",
     "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\"",
-
     "dev:cf": "wrangler pages dev dist --compatibility-date=2024-01-01",
     "migrate:cf": "node scripts/migrate-to-cloudflare.js",
     "deploy:cf": "npm run build:prod && wrangler pages deploy dist --project-name=mihas",
@@ -113,7 +112,6 @@
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.468.0",
-    "next-themes": "^0.4.6",
     "node-fetch": "^3.3.2",
     "pdf-lib": "^1.17.1",
     "postcss": "^8.5.1",
@@ -156,7 +154,6 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.12.0",
     "jsdom": "^25.0.1",
-
     "sharp": "^0.34.4",
     "terser": "^5.37.0",
     "typescript-eslint": "^8.18.1",
