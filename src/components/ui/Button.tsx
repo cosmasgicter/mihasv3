@@ -17,6 +17,7 @@ const buttonVariants = cva(
         destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-lg',
         success: 'bg-success text-success-foreground hover:bg-success/90 hover:shadow-lg',
         warning: 'bg-warning text-warning-foreground hover:bg-warning/90 hover:shadow-lg',
+        gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-lg',
       },
       size: {
         default: 'h-10 px-4 text-sm min-w-[44px]',

@@ -131,7 +131,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
               variant="gradient"
               size="md"
               
-              className="bg-gradient-to-r from-card/30 to-card/40 border-2 border-card/70 text-card hover:from-card hover:to-card hover:text-primary font-bold backdrop-blur-sm shadow-lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 border-2 border-white text-white hover:from-blue-700 hover:to-purple-700 font-bold backdrop-blur-sm shadow-lg"
             >
               Track Application
             </Button>
@@ -143,7 +143,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                   variant="gradient"
                   size="md"
                   
-                  className="bg-gradient-to-r from-card/30 to-card/40 border-2 border-card/70 text-card hover:from-card hover:to-card hover:text-primary font-bold backdrop-blur-sm shadow-lg"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 border-2 border-white text-white hover:from-blue-700 hover:to-purple-700 font-bold backdrop-blur-sm shadow-lg"
                 >
                   Sign In
                 </Button>
