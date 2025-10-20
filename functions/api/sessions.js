@@ -1,4 +1,4 @@
-import { supabaseAdminClient, getUserFromRequest } from './_lib/supabaseClient.js';
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
 
 export async function onRequestGet(context) {
   const { request } = context;
