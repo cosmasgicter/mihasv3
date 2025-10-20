@@ -63,6 +63,23 @@ module.exports = {
         },
         'gradient-from': 'hsl(var(--gradient-from))',
         'gradient-to': 'hsl(var(--gradient-to))',
+        chart: {
+          1: 'hsl(var(--chart-1))',
+          2: 'hsl(var(--chart-2))',
+          3: 'hsl(var(--chart-3))',
+          4: 'hsl(var(--chart-4))',
+          5: 'hsl(var(--chart-5))',
+        },
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar))',
+          foreground: 'hsl(var(--sidebar-foreground))',
+          primary: 'hsl(var(--sidebar-primary))',
+          accent: 'hsl(var(--sidebar-accent))',
+        },
+        tooltip: {
+          DEFAULT: 'hsl(var(--tooltip))',
+          foreground: 'hsl(var(--tooltip-foreground))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
