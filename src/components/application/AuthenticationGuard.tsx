@@ -97,7 +97,7 @@ export function AuthenticationGuard({ children, onAuthenticationRequired }: Auth
           
           <button
             onClick={() => window.location.href = '/auth/signin'}
-            className="px-4 py-2 bg-muted text-white rounded hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 bg-muted text-white rounded hover:bg-muted transition-colors"
           >
             Sign In
           </button>

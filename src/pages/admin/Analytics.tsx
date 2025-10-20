@@ -9,7 +9,7 @@ import { exportReport, ReportExportData, ReportFormat } from '@/lib/reportExport
 import { TrendingUp, Users, FileText, CheckCircle, Download, Plus, Edit, Trash2, RefreshCw, Eye, Filter, BarChart3, Trophy, GraduationCap } from 'lucide-react'
 import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { isReportManagerRole } from '@/lib/auth/roles'
-import { useToast } from '@/components/ui/Toast'
+import { useToastStore } from '@/components/ui/Toast'
 
 export default function Analytics() {
  const [loading, setLoading] = useState(true)
@@ -227,7 +227,7 @@ export default function Analytics() {
  <Button
  onClick={refreshData}
  disabled={refreshing}
- className="bg-card/80 hover:bg-card/80 text-gray-900 border-white/30"
+ className="bg-card/80 hover:bg-card/80 text-foreground border-white/30"
  >
  <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
  Refresh
@@ -436,15 +436,15 @@ export default function Analytics() {
 
  {/* Program Analytics */}
  <div className="bg-card rounded-2xl shadow-lg border border-border mb-8 overflow-hidden">
- <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-border">
+ <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border">
  <h3 className="text-xl font-bold text-foreground flex items-center">
  <Trophy className="w-5 h-5" /> Program Performance
  </h3>
  </div>
  <div className="p-6">
  <div className="overflow-x-auto">
- <table className="min-w-full divide-y divide-gray-200">
- <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
+ <table className="min-w-full divide-y divide-border">
+ <thead className="bg-gradient-to-r from-muted to-blue-50">
  <tr>
  <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
  <GraduationCap className="w-5 h-5" /> Program
@@ -463,7 +463,7 @@ export default function Analytics() {
  </th>
  </tr>
  </thead>
- <tbody className="bg-card divide-y divide-gray-200">
+ <tbody className="bg-card divide-y divide-border">
  {programAnalytics.map((program, index) => (
  <tr key={index} className="hover:bg-primary/5/30 transition-colors">
  <td className="px-6 py-4">
@@ -519,7 +519,7 @@ export default function Analytics() {
 
  {activeTab === 'applications' && (
  <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
- <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-border flex justify-between items-center">
+ <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border flex justify-between items-center">
  <h3 className="text-xl font-bold text-foreground"><FileText className="w-5 h-5" /> Application Statistics</h3>
  <Button
  onClick={() => {
@@ -535,7 +535,7 @@ export default function Analytics() {
  </div>
  <div className="p-6">
  <div className="overflow-x-auto">
- <table className="min-w-full divide-y divide-gray-200">
+ <table className="min-w-full divide-y divide-border">
  <thead className="bg-muted">
  <tr>
  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
@@ -546,7 +546,7 @@ export default function Analytics() {
  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
  </tr>
  </thead>
- <tbody className="bg-card divide-y divide-gray-200">
+ <tbody className="bg-card divide-y divide-border">
  {applicationStats.map((stat, index) => (
  <tr key={index} className="hover:bg-muted">
  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
@@ -590,7 +590,7 @@ export default function Analytics() {
 
  {activeTab === 'eligibility' && (
  <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
- <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-border flex justify-between items-center">
+ <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border flex justify-between items-center">
  <h3 className="text-xl font-bold text-foreground">✅ Eligibility Analytics</h3>
  <Button
  onClick={() => {
@@ -606,7 +606,7 @@ export default function Analytics() {
  </div>
  <div className="p-6">
  <div className="overflow-x-auto">
- <table className="min-w-full divide-y divide-gray-200">
+ <table className="min-w-full divide-y divide-border">
  <thead className="bg-muted">
  <tr>
  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
@@ -616,7 +616,7 @@ export default function Analytics() {
  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
  </tr>
  </thead>
- <tbody className="bg-card divide-y divide-gray-200">
+ <tbody className="bg-card divide-y divide-border">
  {eligibilityAnalytics.map((analytics, index) => (
  <tr key={index} className="hover:bg-muted">
  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
@@ -669,7 +669,7 @@ export default function Analytics() {
 
  {activeTab === 'programs' && (
  <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
- <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-border flex justify-between items-center">
+ <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border flex justify-between items-center">
  <h3 className="text-xl font-bold text-foreground"><GraduationCap className="w-5 h-5" /> Program Analytics</h3>
  <Button
  onClick={() => {
@@ -685,7 +685,7 @@ export default function Analytics() {
  </div>
  <div className="p-6">
  <div className="overflow-x-auto">
- <table className="min-w-full divide-y divide-gray-200">
+ <table className="min-w-full divide-y divide-border">
  <thead className="bg-muted">
  <tr>
  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Program</th>
@@ -696,7 +696,7 @@ export default function Analytics() {
  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
  </tr>
  </thead>
- <tbody className="bg-card divide-y divide-gray-200">
+ <tbody className="bg-card divide-y divide-border">
  {programAnalytics.map((program, index) => (
  <tr key={index} className="hover:bg-muted">
  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
@@ -746,7 +746,7 @@ export default function Analytics() {
  ) : (
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
  <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
- <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-border">
+ <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border">
  <h3 className="text-xl font-bold text-foreground">📄 Automated Reports</h3>
  </div>
  <div className="p-6">

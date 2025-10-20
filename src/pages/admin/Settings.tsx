@@ -597,7 +597,7 @@ export default function AdminSettings() {
                                   setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
                                   setting.setting_type === 'integer' ? 'bg-primary/10 text-primary-foreground' :
                                   setting.setting_type === 'decimal' ? 'bg-accent/10 text-accent-foreground' :
-                                  'bg-accent text-gray-800'
+                                  'bg-accent text-foreground'
                                 }`}>
                                   {setting.setting_type}
                                 </span>
@@ -641,7 +641,7 @@ export default function AdminSettings() {
                 ) : (
                   <div className="bg-card border border-border rounded-xl overflow-hidden">
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
+                      <table className="min-w-full divide-y divide-border">
                       <thead className="bg-muted">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -664,7 +664,7 @@ export default function AdminSettings() {
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-card divide-y divide-gray-200">
+                      <tbody className="bg-card divide-y divide-border">
                         {filteredSettings.map((setting) => (
                           <tr key={setting.id} className="hover:bg-muted">
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -691,7 +691,7 @@ export default function AdminSettings() {
                                 setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
                                 setting.setting_type === 'integer' ? 'bg-primary/10 text-primary-foreground' :
                                 setting.setting_type === 'decimal' ? 'bg-accent/10 text-accent-foreground' :
-                                'bg-accent text-gray-800'
+                                'bg-accent text-foreground'
                               }`}>
                                 {setting.setting_type}
                               </span>

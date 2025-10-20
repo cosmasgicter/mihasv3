@@ -38,7 +38,7 @@ export function LoadingFallback({
 
   if (timeoutReached) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted to-muted">
         <motion.div 
           className="text-center p-8 bg-card rounded-xl shadow-lg border border-border max-w-md"
           initial={{ opacity: 0, scale: 0.8 }}
@@ -62,7 +62,7 @@ export function LoadingFallback({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted to-muted">
       <motion.div 
         className="text-center p-8 bg-card rounded-xl shadow-lg border border-border"
         initial={{ opacity: 0, y: 20 }}

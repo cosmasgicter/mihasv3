@@ -268,7 +268,7 @@ export default function SignUpPage() {
           />
         </div>
 
-        <div className="rounded-2xl border border-secondary/10 bg-secondary/5 p-6">
+        <div className="rounded-2xl border border-border bg-muted/50 p-6">
           <h3 className="text-lg font-semibold text-secondary">Next of Kin</h3>
           <p className="mt-1 text-sm text-secondary/70">
             Provide the details of a trusted contact we can reach in case of emergencies.

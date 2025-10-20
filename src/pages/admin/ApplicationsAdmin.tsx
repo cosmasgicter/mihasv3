@@ -378,7 +378,7 @@ function ApplicationsAdminContent() {
             {/* Applications Table */}
             <div className="bg-card rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="min-w-full divide-y divide-border">
                   <thead className="bg-muted">
                     <tr>
                       <th className="px-6 py-3 text-left">
@@ -417,7 +417,7 @@ function ApplicationsAdminContent() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-border">
                     {filteredApplications.map((app) => (
                       <tr key={app.id} className="hover:bg-muted">
                         <td className="px-6 py-4 whitespace-nowrap">

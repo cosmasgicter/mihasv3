@@ -110,7 +110,7 @@ export default function OfflineAdminDashboard() {
           {/* Today's Applications */}
           <motion.div 
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-primary/10 rounded-xl">
@@ -127,7 +127,7 @@ export default function OfflineAdminDashboard() {
           {/* Pending Reviews */}
           <motion.div 
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-accent/10 rounded-xl">
@@ -147,7 +147,7 @@ export default function OfflineAdminDashboard() {
           {/* Approved Applications */}
           <motion.div 
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-accent/10 rounded-xl">
@@ -164,7 +164,7 @@ export default function OfflineAdminDashboard() {
           {/* Processing Time */}
           <motion.div 
             whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-secondary/10 rounded-xl">

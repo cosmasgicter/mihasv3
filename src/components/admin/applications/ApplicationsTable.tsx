@@ -428,7 +428,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  />
 
  {/* Actions */}
- <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+ <div className="flex gap-2 mt-4 pt-4 border-t border-border">
  <button
  onClick={() => onViewDetails(app.id)}
  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm py-2.5 px-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center justify-center gap-2 group-hover:shadow-md"

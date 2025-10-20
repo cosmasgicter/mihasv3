@@ -63,7 +63,7 @@ const BasicKycStep = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-gray-100"
+      className="bg-card rounded-lg shadow-lg p-6 border border-border"
       data-testid="basic-kyc-step"
     >
       <div className="flex items-center justify-between mb-4">
@@ -77,13 +77,13 @@ const BasicKycStep = ({
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-3 bg-accent/10/30 border border-accent/30 rounded-lg"
+          className="mb-4 p-3 bg-accent/10 border border-accent rounded-lg"
         >
           <div className="flex items-center space-x-2 text-sm text-accent-foreground">
             <CheckCircle className="h-4 w-4" />
             <span className="font-medium">Profile data automatically populated</span>
           </div>
-          <p className="text-xs text-accent mt-1">
+          <p className="text-xs text-foreground mt-1">
             Some fields have been pre-filled from your profile. Please review and update as needed.
           </p>
         </motion.div>
@@ -211,7 +211,7 @@ const BasicKycStep = ({
             <option value="">Select program</option>
             {programs.length === 0 && (
               <option value="" disabled>
-                Programs currently unavailable
+                No programs available
               </option>
             )}
             {programs.map(program => {
@@ -242,7 +242,7 @@ const BasicKycStep = ({
             <option value="">Select intake</option>
             {intakes.length === 0 && (
               <option value="" disabled>
-                Intakes currently unavailable
+                No intakes available
               </option>
             )}
             {intakes.map(intake => {
@@ -265,7 +265,7 @@ const BasicKycStep = ({
 
       {selectedProgramDetails && (
         <motion.div
-          className="mt-4 p-4 bg-primary/5/30 rounded-lg"
+          className="mt-4 p-4 bg-primary/10 rounded-lg"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
         >

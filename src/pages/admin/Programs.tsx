@@ -306,8 +306,8 @@ export default function AdminPrograms() {
 
                 {/* Desktop Table View */}
                 <div className="hidden sm:block overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
+                  <table className="min-w-full divide-y divide-border">
+                    <thead className="bg-gradient-to-r from-muted to-blue-50">
                       <tr>
                         <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
                           <GraduationCap className="w-5 h-5" /> Program Name
@@ -326,7 +326,7 @@ export default function AdminPrograms() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-card divide-y divide-gray-200">
+                    <tbody className="bg-card divide-y divide-border">
                       {programs.map((program) => (
                         <tr key={program.id} className="hover:bg-primary/5/30 transition-colors">
                           <td className="px-6 py-4">

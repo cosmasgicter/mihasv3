@@ -338,7 +338,7 @@ export default function StudentSettings() {
               <Button 
                 type="button" 
                 variant="outline" 
-                className="btn-responsive border-2 hover:border-gray-400"
+                className="btn-responsive border-2 hover:border-border"
               >
                 Cancel
               </Button>

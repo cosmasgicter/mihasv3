@@ -5,7 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
-import { ToastProvider } from '@/components/ui/Toast'
+import { ToastContainer } from '@/components/ui/Toast'
 
 import { AppLayout } from '@/components/navigation/AppLayout'
 import { UserMenu } from '@/components/ui/UserMenu'

@@ -342,7 +342,7 @@ export default function StudentDashboard() {
                     </Link>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-100">
+                  <div className="divide-y divide-border">
                     {draftApplications.map((application, index) => (
                       <motion.div
                         key={`draft-${application.id}`}

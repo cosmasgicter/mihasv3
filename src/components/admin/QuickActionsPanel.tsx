@@ -93,7 +93,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-2xl shadow-lg border border-gray-100"
+        className="bg-card rounded-2xl shadow-lg border border-border"
       >
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-bold text-foreground"><Zap className="w-5 h-5" /> Quick Actions</h3>
@@ -143,7 +143,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-card rounded-2xl shadow-lg border border-gray-100"
+        className="bg-card rounded-2xl shadow-lg border border-border"
       >
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-bold text-foreground">🛠️ System Tools</h3>

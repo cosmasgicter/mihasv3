@@ -313,7 +313,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               </div>
 
               {/* File Upload */}
-              <div className="border-2 border-dashed border-input rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+              <div className="border-2 border-dashed border-input rounded-lg p-8 text-center hover:border-input transition-colors">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -348,7 +348,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                 <div className="bg-muted border border-border rounded-lg p-4">
                   <h3 className="font-medium text-foreground mb-3">Preview (First 5 rows)</h3>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
+                    <table className="min-w-full divide-y divide-border">
                       <thead className="bg-accent">
                         <tr>
                           <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
@@ -357,7 +357,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                           <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Role</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-card divide-y divide-gray-200">
+                      <tbody className="bg-card divide-y divide-border">
                         {previewData.map((user, index) => (
                           <tr key={index}>
                             <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.full_name)}</td>

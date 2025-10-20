@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { workflowAutomation } from '@/lib/workflowAutomation'
 import { multiChannelNotifications } from '@/lib/multiChannelNotifications'
-import { useToast } from '@/components/ui/Toast'
+import { useToastStore } from '@/components/ui/Toast'
 
 interface AIInsightsStats {
   totalPredictions: number

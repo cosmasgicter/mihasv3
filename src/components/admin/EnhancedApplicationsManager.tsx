@@ -439,7 +439,7 @@ export function EnhancedApplicationsManager({
         >
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
+              <thead className="bg-gradient-to-r from-muted to-blue-50">
                 <tr>
                   <th className="px-6 py-4 text-left">
                     <input
@@ -466,7 +466,7 @@ export function EnhancedApplicationsManager({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {filteredApplications.map((application, index) => (
                   <motion.tr 
                     key={application.id}

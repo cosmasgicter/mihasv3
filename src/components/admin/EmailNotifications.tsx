@@ -47,7 +47,7 @@ export default function EmailNotifications() {
         </h3>
       </div>
       
-      <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+      <div className="divide-y divide-border max-h-96 overflow-y-auto">
         {notifications.length === 0 ? (
           <div className="px-6 py-8 text-center text-muted-foreground">
             No email notifications found

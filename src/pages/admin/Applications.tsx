@@ -12,7 +12,7 @@ import { BulkActionsBar } from '@/components/admin/applications/BulkActionsBar'
 import { AdminMetrics } from '@/components/admin/applications/AdminMetrics'
 import { APPLICATION_FILTER_KEYS, useApplicationsData, useApplicationFilters } from '@/hooks/admin'
 import { Button } from '@/components/ui/Button'
-import { useToast } from '@/components/ui/Toast'
+import { useToastStore } from '@/components/ui/Toast'
 import { supabase } from '@/lib/supabase'
 import { applicationService } from '@/services/applications'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
@@ -463,7 +463,7 @@ export default function Applications() {
         
         {/* Quick Stats Cards - Mobile First */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Clock className="h-4 w-4 text-primary" />
@@ -474,7 +474,7 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-accent/10 rounded-lg">
                 <AlertCircle className="h-4 w-4 text-accent" />
@@ -485,7 +485,7 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-accent/10 rounded-lg">
                 <CheckCircle className="h-4 w-4 text-accent" />
@@ -496,7 +496,7 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-destructive/10 rounded-lg">
                 <XCircle className="h-4 w-4 text-destructive" />
