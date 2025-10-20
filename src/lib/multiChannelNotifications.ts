@@ -112,7 +112,7 @@ export class MultiChannelNotificationService {
     const { data } = await supabase
       .from('user_notification_preferences')
       .select('*')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .maybeSingle()
 
     const defaults: NotificationPreferences = {
@@ -364,9 +364,9 @@ export class MultiChannelNotificationService {
   private async sendEmail(userId: string, subject: string, content: string): Promise<boolean> {
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('email')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single()
 
       if (error) {

@@ -6,14 +6,14 @@ export async function syncUserRole(userId: string, role: string) {
   const { data: existingRole } = await supabase
     .from('user_roles')
     .select('*')
-    .eq('user_id', userId)
+    .eq('id', userId)
     .maybeSingle()
 
   if (existingRole) {
     await supabase
       .from('user_roles')
       .update({ role, updated_at: new Date().toISOString() })
-      .eq('user_id', userId)
+      .eq('id', userId)
   } else {
     await supabase
       .from('user_roles')
@@ -25,7 +25,7 @@ export async function syncUserRole(userId: string, role: string) {
   }
 
   await supabase
-    .from('user_profiles')
+    .from('profiles')
     .update({ role })
-    .eq('user_id', userId)
+    .eq('id', userId)
 }

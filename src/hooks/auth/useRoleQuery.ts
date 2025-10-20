@@ -72,7 +72,7 @@ export function useRoleQuery(options: UseRoleQueryOptions = {}): RoleQueryResult
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('id', user.id)
           .eq('is_active', true)
           .order('created_at', { ascending: false })
           .limit(1)

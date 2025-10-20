@@ -158,7 +158,7 @@ class ApplicationSessionManager {
             updated_at: new Date().toISOString(),
             last_saved_at: draft.last_saved_at
           })
-          .eq('user_id', draft.user_id)
+          .eq('id', draft.user_id)
       }
     } catch (error) {
       console.error('Auto-save failed:', sanitizeForLog(error))
@@ -173,7 +173,7 @@ class ApplicationSessionManager {
         const { data, error } = await supabase
           .from('application_drafts')
           .select('*')
-          .eq('user_id', userId)
+          .eq('id', userId)
           .single()
 
         if (!error && data) {
@@ -226,8 +226,8 @@ class ApplicationSessionManager {
 
       // Step 3: Database cleanup (don't fail if this doesn't work)
       await Promise.allSettled([
-        supabase.from('application_drafts').delete().eq('user_id', userId),
-        supabase.from('applications').delete().eq('user_id', userId).eq('status', 'draft')
+        supabase.from('application_drafts').delete().eq('id', userId),
+        supabase.from('applications').delete().eq('id', userId).eq('status', 'draft')
       ])
 
       // Step 4: Set deletion flag for other components
@@ -297,7 +297,7 @@ class ApplicationSessionManager {
       const { data } = await supabase
         .from('application_drafts')
         .select('version')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single()
 
       return data ? (data.version || 0) + 1 : 1
@@ -373,7 +373,7 @@ class ApplicationSessionManager {
       const { data: draftApps } = await supabase
         .from('applications')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .eq('status', 'draft')
         .order('created_at', { ascending: false })
         .limit(1)

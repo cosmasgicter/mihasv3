@@ -30,7 +30,7 @@ export function NotificationPreferences() {
       const { data, error } = await supabase
         .from('user_notification_preferences')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .maybeSingle()
 
       if (error) throw error

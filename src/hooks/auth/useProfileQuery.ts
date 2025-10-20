@@ -76,7 +76,7 @@ async function createUserProfile(user: User): Promise<UserProfile | null> {
       'Student'
 
     const profileData = {
-      user_id: user.id,
+      id: user.id,
       full_name: sanitizeForDisplay(fullName),
       phone: sanitizeForDisplay(signupData.phone || metadata.phone || null),
       sex: signupData.sex || metadata.sex || null,
@@ -91,7 +91,7 @@ async function createUserProfile(user: User): Promise<UserProfile | null> {
     }
 
     const { data: newProfile, error } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .insert(profileData)
       .select()
       .single()
@@ -135,9 +135,9 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
 
       // Try direct Supabase query first (for students)
       const { data: profileData, error: profileError } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .maybeSingle()
 
       if (profileError) {
@@ -200,9 +200,9 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       }, {} as Record<string, any>)
 
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .update(sanitizedUpdates)
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .select()
         .maybeSingle()
 

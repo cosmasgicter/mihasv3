@@ -17,7 +17,7 @@ export function useStudentNotifications() {
       const { data, error } = await supabase
         .from('in_app_notifications')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .order('created_at', { ascending: false })
         .limit(50)
 
@@ -46,7 +46,7 @@ export function useStudentNotifications() {
           read_at: timestamp 
         })
         .eq('id', notificationId)
-        .eq('user_id', user.id)
+        .eq('id', user.id)
 
       if (error) throw error
 
@@ -75,7 +75,7 @@ export function useStudentNotifications() {
           read: true, 
           read_at: timestamp 
         })
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .eq('read', false)
 
       if (error) throw error
@@ -98,7 +98,7 @@ export function useStudentNotifications() {
         .from('in_app_notifications')
         .delete()
         .eq('id', notificationId)
-        .eq('user_id', user.id)
+        .eq('id', user.id)
 
       if (error) throw error
 

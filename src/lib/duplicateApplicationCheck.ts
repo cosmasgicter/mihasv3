@@ -16,7 +16,7 @@ export async function checkDuplicateApplication(
     const { data, error } = await supabase
       .from('applications')
       .select('id, status, application_number')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .eq('program', programId)
       .eq('intake', intake)
       .in('status', ['submitted', 'under_review', 'approved'])
