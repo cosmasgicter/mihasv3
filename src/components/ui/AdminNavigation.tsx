@@ -137,7 +137,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
               transition={{ type: "spring", stiffness: 300 }}
             >
               <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-card-foreground" />
               </div>
               <div>
                 <h1 className="text-sm sm:text-lg font-bold text-foreground truncate max-w-[150px] sm:max-w-[200px]">
@@ -166,7 +166,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                       className={cn(
                         "flex items-center space-x-2 transition-all duration-200",
                         isActive 
-                          ? "bg-primary text-white shadow-md" 
+                          ? "bg-primary text-card-foreground shadow-md" 
                           : "hover:bg-accent text-foreground"
                       )}
                     >
@@ -199,7 +199,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
           {/* Mobile Menu Button */}
           <motion.button
-            className="lg:hidden p-3 rounded-xl bg-foreground hover:bg-foreground/80 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-h-[48px] min-w-[48px] touch-target border-2 border-border hover:border-primary shadow-lg nav-toggle-button"
+            className="lg:hidden p-3 rounded-xl bg-foreground hover:bg-foreground/80 text-card-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-h-[48px] min-w-[48px] touch-target border-2 border-border hover:border-primary shadow-lg nav-toggle-button"
             onClick={toggleMenu}
             whileTap={{ scale: 0.95 }}
             aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -264,7 +264,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm">
                   <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-                      <Shield className="h-5 w-5 text-white" />
+                      <Shield className="h-5 w-5 text-card-foreground" />
                     </div>
                     <div>
                       <p className="font-bold text-foreground text-lg truncate max-w-[150px]">Admin Panel</p>
@@ -299,7 +299,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                             className={cn(
                               "mobile-nav-item mobile-nav-focus transition-all duration-300",
                               isActive 
-                                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
+                                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-card-foreground shadow-lg" 
                                 : "text-foreground hover:bg-accent border border-border hover:border-input"
                             )}
                             style={{
@@ -320,13 +320,13 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                                     opacity: 1
                                   }}>{item.label}</span>
                                   {isActive && (
-                                    <div className="text-xs text-white/80 mt-1">Current Page</div>
+                                    <div className="text-xs text-card-foreground/80 mt-1">Current Page</div>
                                   )}
                                 </div>
                               </div>
                               <ChevronRight className={cn(
                                 "h-5 w-5 transition-colors",
-                                isActive ? "text-white/80" : "text-muted-foreground"
+                                isActive ? "text-card-foreground/80" : "text-muted-foreground"
                               )} style={{ opacity: 1 }} />
                             </div>
                           </Link>
@@ -339,7 +339,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                   <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-primary/30">
                     <div className="text-center">
                       <div className="text-sm font-medium text-foreground mb-1">Current Role</div>
-                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white truncate max-w-[150px]">
+                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-card-foreground truncate max-w-[150px]">
                         {userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}
                       </div>
                     </div>
@@ -358,14 +358,14 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                           closeMenu()
                           await handleSignOut()
                         }}
-                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-red-500 logout-button"
+                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-600 to-red-700 text-card-foreground hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-red-500 logout-button"
                       >
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center space-x-3">
                             <LogOut className="h-5 w-5" />
                             <span className="mobile-nav-text truncate">Sign Out</span>
                           </div>
-                          <ChevronRight className="h-5 w-5 text-white/80" />
+                          <ChevronRight className="h-5 w-5 text-card-foreground/80" />
                         </div>
                       </button>
                     </motion.div>

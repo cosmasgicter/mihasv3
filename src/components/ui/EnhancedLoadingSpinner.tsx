@@ -192,7 +192,7 @@ export function LoadingButton({
           'h-10 px-4': size === 'md', 
           'h-12 px-6 text-lg': size === 'lg'
         },
-        'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500',
+        'bg-blue-600 text-card-foreground hover:bg-blue-700 focus-visible:ring-blue-500',
         className
       )}
     >

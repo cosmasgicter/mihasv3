@@ -27,7 +27,7 @@ export function LoadingSpinner({
   const colorClasses = {
     primary: 'border-border border-t-primary',
     secondary: 'border-border border-t-secondary', 
-    white: 'border-white/20 border-t-white'
+    white: 'border-card/20 border-t-white'
   }
 
   const textSizeClasses = {

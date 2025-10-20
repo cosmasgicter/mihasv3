@@ -61,7 +61,7 @@ export function MobileOptimizedButton({
   // Color variants with better contrast for mobile
   const variantClasses = {
     primary: cn(
-      'bg-blue-600 text-white shadow-sm',
+      'bg-blue-600 text-card-foreground shadow-sm',
       'hover:bg-blue-700 active:bg-blue-800',
       'focus-visible:ring-blue-500'
     ),
@@ -81,7 +81,7 @@ export function MobileOptimizedButton({
       'focus-visible:ring-gray-500'
     ),
     danger: cn(
-      'bg-red-600 text-white shadow-sm',
+      'bg-red-600 text-card-foreground shadow-sm',
       'hover:bg-red-700 active:bg-red-800',
       'focus-visible:ring-red-500'
     )
@@ -163,7 +163,7 @@ export function FloatingActionButton({
       className={cn(
         // FAB styling
         'w-14 h-14 rounded-full shadow-lg',
-        'bg-blue-600 text-white',
+        'bg-blue-600 text-card-foreground',
         'hover:bg-blue-700 active:bg-blue-800',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
         'transition-all duration-200 ease-in-out',
@@ -247,7 +247,7 @@ export function QuickActionButton({
       <div className="relative">
         {icon}
         {count !== undefined && count > 0 && (
-          <span className="absolute -top-2 -right-2 bg-destructive/5/300 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="absolute -top-2 -right-2 bg-destructive/5/300 text-card-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {count > 99 ? '99+' : count}
           </span>
         )}

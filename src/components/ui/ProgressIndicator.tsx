@@ -72,11 +72,11 @@ export function ProgressIndicator({
 
     switch (step.status) {
       case 'completed':
-        return cn(baseClasses, 'bg-green-500 border-green-500 text-white')
+        return cn(baseClasses, 'bg-green-500 border-green-500 text-card-foreground')
       case 'current':
-        return cn(baseClasses, 'bg-blue-500 border-blue-500 text-white animate-pulse')
+        return cn(baseClasses, 'bg-blue-500 border-blue-500 text-card-foreground animate-pulse')
       case 'error':
-        return cn(baseClasses, 'bg-red-500 border-red-500 text-white')
+        return cn(baseClasses, 'bg-red-500 border-red-500 text-card-foreground')
       default:
         return cn(baseClasses, 'bg-accent border-input text-muted-foreground')
     }

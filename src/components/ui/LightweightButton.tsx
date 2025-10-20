@@ -17,10 +17,10 @@ export function LightweightButton({
   const baseClasses = 'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50'
   
   const variantClasses = {
-    primary: 'bg-primary text-white hover:bg-blue-600/90',
-    secondary: 'bg-secondary text-white hover:bg-secondary/90',
-    outline: 'border-2 border-white bg-transparent text-white hover:bg-card hover:text-blue-600',
-    gradient: 'bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white hover:shadow-lg'
+    primary: 'bg-primary text-card-foreground hover:bg-blue-600/90',
+    secondary: 'bg-secondary text-card-foreground hover:bg-secondary/90',
+    outline: 'border-2 border-card bg-transparent text-card-foreground hover:bg-card hover:text-blue-600',
+    gradient: 'bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-card-foreground hover:shadow-lg'
   }
   
   const sizeClasses = {

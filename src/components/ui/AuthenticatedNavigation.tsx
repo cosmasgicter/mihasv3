@@ -122,7 +122,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
               <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-                <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-card-foreground" />
               </div>
               <div className="min-w-0 flex-1">
                 <h1 className="text-sm sm:text-lg font-bold text-foreground truncate">
@@ -251,7 +251,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                 <div className="flex items-center justify-between p-6 border-b border-border/70/70 bg-gradient-to-r from-primary/5 to-secondary/5 backdrop-blur-sm transition-colors duration-500">
                   <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-                      <User className="h-5 w-5 text-white" />
+                      <User className="h-5 w-5 text-card-foreground" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-bold text-foreground text-lg truncate">
@@ -319,7 +319,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                       custom={navigationItems.length}
                       initial="closed"
                       animate="open"
-                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel logout-button"
+                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 text-card-foreground rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel logout-button"
                     >
                       <LogOut className="h-5 w-5" />
                       <span>Sign Out</span>

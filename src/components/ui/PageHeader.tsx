@@ -24,9 +24,9 @@ export interface PageHeaderProps {
 }
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
- gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-white/20 shadow-2xl',
+ gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-card-foreground border-card/20 shadow-2xl',
  surface: 'bg-card text-foreground border border-border shadow-xl',
- subtle: 'bg-card/90 text-foreground border border-white/60 shadow-lg backdrop-blur-sm'
+ subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg backdrop-blur-sm'
 }
 
 const statAccentStyles: Record<StatAccent, string> = {
@@ -60,7 +60,7 @@ export function PageHeader({
  const { label, value, icon: statIcon, accent = 'neutral' } = stat
 
  const baseClasses = isGradient
- ? 'bg-card/95 border-white/40 text-foreground backdrop-blur-md'
+ ? 'bg-card/95 border-card/40 text-foreground backdrop-blur-md'
  : statAccentStyles[accent]
 
  return (
@@ -98,7 +98,7 @@ export function PageHeader({
  <div className={cn('relative flex flex-col gap-6 sm:flex-row sm:justify-between', alignmentStyles[align])}>
  <div className="space-y-4 sm:max-w-2xl">
  {eyebrow && (
- <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-white/70' : 'text-blue-600')}>
+ <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-card-foreground/70' : 'text-blue-600')}>
  {eyebrow}
  </p>
  )}
@@ -107,7 +107,7 @@ export function PageHeader({
  <div
  className={cn(
  'flex h-14 w-14 items-center justify-center rounded-2xl border text-2xl shadow-inner',
- isGradient ? 'border-white/40 bg-card/95 text-foreground backdrop-blur-md' : 'border-blue-600/10 bg-primary/5 text-blue-600'
+ isGradient ? 'border-card/40 bg-card/95 text-foreground backdrop-blur-md' : 'border-blue-600/10 bg-primary/5 text-blue-600'
  )}
  >
  {icon}
@@ -116,7 +116,7 @@ export function PageHeader({
  <div className="space-y-3">
  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight break-words">{title}</h1>
  {description && (
- <p className={cn('text-base sm:text-lg', isGradient ? 'text-white/80' : 'text-muted-foreground')}>{description}</p>
+ <p className={cn('text-base sm:text-lg', isGradient ? 'text-card-foreground/80' : 'text-muted-foreground')}>{description}</p>
  )}
  {children}
  </div>

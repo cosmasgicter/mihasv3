@@ -35,12 +35,12 @@ export function FancyPreloader() {
             scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
           }}
         >
-          <GraduationCap className="w-16 h-16 text-white mx-auto drop-shadow-lg" />
+          <GraduationCap className="w-16 h-16 text-card-foreground mx-auto drop-shadow-lg" />
         </motion.div>
         
         {/* Title */}
         <motion.h1
-          className="text-3xl font-bold text-white mb-2 relative z-10"
+          className="text-3xl font-bold text-card-foreground mb-2 relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, type: 'spring' }}
@@ -50,7 +50,7 @@ export function FancyPreloader() {
         
         {/* Subtitle */}
         <motion.p
-          className="text-white/90 mb-8 text-lg relative z-10"
+          className="text-card-foreground/90 mb-8 text-lg relative z-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
