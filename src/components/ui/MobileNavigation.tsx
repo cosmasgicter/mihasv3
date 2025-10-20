@@ -230,7 +230,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-foreground/90 from-background to-background backdrop-blur-xl shadow-2xl md:hidden border-l-4 border-card/30 safe-area-top safe-area-bottom z-[9999] opacity-100 visible"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card backdrop-blur-xl shadow-2xl md:hidden border-l-4 border-border safe-area-top safe-area-bottom z-[9999] opacity-100 visible"
               variants={menuVariants}
               initial="closed"
               animate="open"
@@ -238,13 +238,13 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-card/20 bg-foreground/10 backdrop-blur-sm">
+                <div className="flex items-center justify-between p-6 border-b border-border bg-muted backdrop-blur-sm">
                   <div className="flex items-center space-x-3">
                     <GraduationCap className="h-7 w-7 text-primary" />
-                    <span className="text-xl font-bold text-high-contrast">MIHAS-KATC</span>
+                    <span className="text-xl font-bold text-foreground">MIHAS-KATC</span>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-foreground hover:bg-card/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-card/50 min-h-[44px] min-w-[44px] touch-target"
+                    className="p-2 rounded-lg text-foreground hover:bg-muted transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] min-w-[44px] touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -270,13 +270,13 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                           className={cn(
                             'flex items-center px-4 py-4 rounded-xl text-foreground transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
                             item.variant === 'accent'
-                              ? 'bg-primary/30 hover:bg-primary/40'
-                              : 'hover:bg-card/10',
-                            'bg-opacity-100 visible border border-card/10'
+                              ? 'bg-primary/10 hover:bg-primary/20'
+                              : 'hover:bg-muted',
+                            'bg-opacity-100 visible border border-border'
                           )}
                         >
                           {item.icon}
-                          <span className="text-foreground font-bold truncate">{item.label}</span>
+                          <span className="font-bold truncate">{item.label}</span>
                         </Link>
                       </motion.div>
                     ))}
@@ -284,7 +284,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
                   {/* Fixed Sign Out Button for authenticated users */}
                   {user && (
-                    <div className="p-6 border-t border-card/20 bg-foreground/10 backdrop-blur-sm">
+                    <div className="p-6 border-t border-border bg-muted backdrop-blur-sm">
                       <motion.button
                         onClick={() => {
                           closeMenu()
@@ -294,7 +294,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                         custom={drawerItems.length}
                         initial="closed"
                         animate="open"
-                        className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r bg-destructive text-card rounded-xl hover:bg-destructive/90 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target"
+                        className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-destructive text-white rounded-xl hover:bg-destructive/90 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target"
                       >
                         <LogOut className="h-5 w-5" />
                         <span>Sign Out</span>
@@ -305,8 +305,8 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
                 {/* Footer */}
                 {!user && (
-                  <div className="p-6 border-t border-card/20 bg-foreground/10 backdrop-blur-sm">
-                    <p className="text-card/90 text-base text-center font-medium drop-shadow-sm">
+                  <div className="p-6 border-t border-border bg-muted backdrop-blur-sm">
+                    <p className="text-foreground text-base text-center font-medium">
                       Your Future Starts Here
                     </p>
                   </div>
