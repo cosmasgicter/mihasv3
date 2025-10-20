@@ -138,23 +138,25 @@ export function useSessionListener() {
       if (data.session && data.user) {
         setUser(data.user)
         
-        // Track device session
+        // Track device session (disabled for now)
+        // TODO: Implement session tracking with Cloudflare Pages
         try {
           const deviceId = localStorage.getItem('device_id') || 
             (crypto?.randomUUID ? crypto.randomUUID() : `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`)
           if (deviceId) localStorage.setItem('device_id', deviceId)
           
-          await fetch('/sessions/track', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${data.session.access_token}`
-            },
-            body: JSON.stringify({
-              device_id: deviceId,
-              device_info: navigator.userAgent
-            })
-          })
+          // Session tracking disabled - causing 405 errors
+          // await fetch('/sessions/track', {
+          //   method: 'POST',
+          //   headers: {
+          //     'Content-Type': 'application/json',
+          //     'Authorization': `Bearer ${data.session.access_token}`
+          //   },
+          //   body: JSON.stringify({
+          //     device_id: deviceId,
+          //     device_info: navigator.userAgent
+          //   })
+          // })
         } catch (e) {
           console.error('Failed to track session:', e)
         }
