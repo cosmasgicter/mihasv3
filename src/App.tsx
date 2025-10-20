@@ -17,6 +17,7 @@ import { FancyPreloader } from '@/components/ui/FancyPreloader'
 import { routes, type RouteConfig } from '@/routes/config'
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { ParticleBackground } from '@/components/effects/ParticleBackground'
 
 
 
@@ -71,11 +72,7 @@ function App() {
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2000)
-    const particleTimer = setTimeout(() => setShowParticles(true), 1000)
-    return () => {
-      clearTimeout(timer)
-      clearTimeout(particleTimer)
-    }
+    return () => clearTimeout(timer)
   }, [])
 
   if (isLoading) {
@@ -92,6 +89,7 @@ function App() {
                 <SessionMonitor />
                 <SimpleErrorBoundary>
                   <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 transition-colors duration-500">
+                    <ParticleBackground />
                     <AppLayout>
                       <Routes>
                         {routes.map((route) => (
