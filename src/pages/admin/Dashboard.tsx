@@ -245,11 +245,11 @@ export default function AdminDashboard() {
 
   const COLOR_CLASSES = {
     blue: 'bg-primary text-white',
-    yellow: 'bg-yellow-500 text-white',
-    green: 'bg-green-500 text-white',
-    red: 'bg-red-500 text-white',
-    purple: 'bg-purple-500 text-white',
-    indigo: 'bg-indigo-500 text-white'
+    yellow: 'bg-warning text-white',
+    green: 'bg-success text-white',
+    red: 'bg-error text-white',
+    purple: 'bg-secondary text-white',
+    indigo: 'bg-secondary text-white'
   } as const
 
 
@@ -290,9 +290,9 @@ export default function AdminDashboard() {
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
                     <div className="flex items-center space-x-2">
                       <div className={`w-3 h-3 rounded-full ${
-                        stats.systemHealth === 'excellent' ? 'bg-green-400' :
-                        stats.systemHealth === 'good' ? 'bg-blue-400' :
-                        stats.systemHealth === 'warning' ? 'bg-yellow-400' : 'bg-red-400'
+                        stats.systemHealth === 'excellent' ? 'bg-success/80' :
+                        stats.systemHealth === 'good' ? 'bg-primary/80' :
+                        stats.systemHealth === 'warning' ? 'bg-warning/80' : 'bg-error/80'
                       }`}></div>
                       <span>System {stats.systemHealth}</span>
                     </div>
@@ -331,7 +331,7 @@ export default function AdminDashboard() {
               className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
             >
               <div className="flex items-center space-x-3">
-                <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0" />
+                <AlertTriangle className="h-6 w-6 text-error flex-shrink-0" />
                 <div className="text-sm sm:text-base text-error font-medium">
                   <strong>Error:</strong> {error}
                 </div>
@@ -349,7 +349,7 @@ export default function AdminDashboard() {
                   <span>Refreshing dashboard metrics…</span>
                 </div>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10 sm:w-56">
-                  <div className="h-full w-1/2 animate-pulse bg-blue-400" />
+                  <div className="h-full w-1/2 animate-pulse bg-primary/80" />
                 </div>
               </div>
             </div>
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
               <div className="text-sm font-medium text-muted-foreground">New Applications</div>
               {stats.todayApplications > 0 && (
                 <div className="flex items-center mt-2 text-xs">
-                  <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
+                  <ArrowUp className="h-3 w-3 text-success mr-1" />
                   <span className="text-accent">Today</span>
                 </div>
               )}
@@ -442,7 +442,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
               <div className="flex items-center mt-2 text-xs">
-                <ArrowDown className="h-3 w-3 text-green-500 mr-1" />
+                <ArrowDown className="h-3 w-3 text-success mr-1" />
                 <span className="text-accent">Improved by 15%</span>
               </div>
             </div>
@@ -473,7 +473,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-sm font-medium text-muted-foreground">Approval Rate</div>
               <div className="flex items-center mt-2 text-xs">
-                <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+                <TrendingUp className="h-3 w-3 text-success mr-1" />
                 <span className="text-accent">Stable performance</span>
               </div>
             </div>

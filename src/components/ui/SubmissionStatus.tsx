@@ -16,15 +16,15 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
   const getStatusIcon = () => {
     switch (status.status) {
       case 'pending':
-        return <Clock className="h-5 w-5 text-yellow-500 animate-pulse" />
+        return <Clock className="h-5 w-5 text-warning animate-pulse" />
       case 'processing':
         return <RefreshCw className="h-5 w-5 text-primary animate-spin" />
       case 'retry':
         return <RefreshCw className="h-5 w-5 text-orange-500 animate-spin" />
       case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+        return <CheckCircle className="h-5 w-5 text-success" />
       case 'failed':
-        return <AlertCircle className="h-5 w-5 text-red-500" />
+        return <AlertCircle className="h-5 w-5 text-error" />
       default:
         return <Clock className="h-5 w-5 text-muted-foreground" />
     }
@@ -67,7 +67,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
           {status.status === 'failed' && onRetry && (
             <button
               onClick={onRetry}
-              className="px-3 py-1 text-sm bg-blue-600 text-foreground rounded hover:bg-blue-700"
+              className="px-3 py-1 text-sm bg-primary text-foreground rounded hover:bg-primary"
             >
               Retry
             </button>

@@ -83,14 +83,14 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
     }
     
     if (authStatus.canSubmitApplication) {
-      return <CheckCircle className="h-4 w-4 text-green-500" />
+      return <CheckCircle className="h-4 w-4 text-success" />
     }
     
     if (authStatus.isAuthenticated) {
-      return <AlertTriangle className="h-4 w-4 text-yellow-500" />
+      return <AlertTriangle className="h-4 w-4 text-warning" />
     }
     
-    return <XCircle className="h-4 w-4 text-red-500" />
+    return <XCircle className="h-4 w-4 text-error" />
   }
 
   const getStatusMessage = () => {
@@ -129,7 +129,7 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
       {!authStatus.canSubmitApplication && (
         <button
           onClick={checkAuthenticationStatus}
-          className="ml-auto px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          className="ml-auto px-3 py-1 text-xs bg-primary text-white rounded hover:bg-primary transition-colors"
         >
           Refresh
         </button>

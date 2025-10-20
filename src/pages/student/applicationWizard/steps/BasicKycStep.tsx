@@ -131,12 +131,12 @@ const BasicKycStep = ({
 
         <div>
           <label htmlFor="sex" className="block text-sm font-medium text-foreground mb-1">
-            Sex <span className="text-red-500">*</span>
+            Sex <span className="text-error">*</span>
           </label>
           <select
             {...register('sex')}
             id="sex"
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
           >
             <option value="">Select sex</option>
             <option value="Male">Male</option>
@@ -201,12 +201,12 @@ const BasicKycStep = ({
 
         <div>
           <label htmlFor="program" className="block text-sm font-medium text-foreground mb-1">
-            Program <span className="text-red-500">*</span>
+            Program <span className="text-error">*</span>
           </label>
           <select
             {...register('program')}
             id="program"
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
           >
             <option value="">Select program</option>
             {programs.length === 0 && (
@@ -229,13 +229,13 @@ const BasicKycStep = ({
 
         <div>
           <label htmlFor="intake" className="block text-sm font-medium text-foreground mb-1">
-            Intake <span className="text-red-500">*</span>
+            Intake <span className="text-error">*</span>
           </label>
           <select
             {...register('intake')}
             id="intake"
             disabled={intakes.length === 0}
-            className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+            className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary ${
               intakes.length === 0 ? 'bg-accent text-muted-foreground cursor-not-allowed border-border' : 'bg-card border-input'
             }`}
           >

@@ -23,7 +23,7 @@ export function ApplicationStatus({
       case 'approved':
         return {
           icon: CheckCircle,
-          color: 'text-green-600',
+          color: 'text-success',
           bg: 'bg-green-50',
           border: 'border-green-200',
           label: 'Approved',
@@ -32,7 +32,7 @@ export function ApplicationStatus({
       case 'rejected':
         return {
           icon: XCircle,
-          color: 'text-red-600',
+          color: 'text-error',
           bg: 'bg-red-50',
           border: 'border-red-200',
           label: 'Rejected',
@@ -41,7 +41,7 @@ export function ApplicationStatus({
       case 'under_review':
         return {
           icon: Clock,
-          color: 'text-blue-600',
+          color: 'text-primary',
           bg: 'bg-blue-50',
           border: 'border-blue-200',
           label: 'Under Review',
@@ -50,7 +50,7 @@ export function ApplicationStatus({
       case 'submitted':
         return {
           icon: AlertTriangle,
-          color: 'text-yellow-600',
+          color: 'text-warning',
           bg: 'bg-yellow-50',
           border: 'border-yellow-200',
           label: 'Submitted',
@@ -81,19 +81,19 @@ export function ApplicationStatus({
     switch (paymentStatus) {
       case 'verified':
         return {
-          color: 'text-green-600',
+          color: 'text-success',
           label: 'Payment Verified',
           icon: CheckCircle
         }
       case 'rejected':
         return {
-          color: 'text-red-600',
+          color: 'text-error',
           label: 'Payment Rejected',
           icon: XCircle
         }
       default:
         return {
-          color: 'text-yellow-600',
+          color: 'text-warning',
           label: 'Payment Pending',
           icon: Clock
         }
@@ -104,19 +104,19 @@ export function ApplicationStatus({
     switch (eligibilityStatus) {
       case 'eligible':
         return {
-          color: 'text-green-600',
+          color: 'text-success',
           label: 'Eligible',
           icon: CheckCircle
         }
       case 'not_eligible':
         return {
-          color: 'text-red-600',
+          color: 'text-error',
           label: 'Not Eligible',
           icon: XCircle
         }
       default:
         return {
-          color: 'text-yellow-600',
+          color: 'text-warning',
           label: 'Pending Review',
           icon: Clock
         }

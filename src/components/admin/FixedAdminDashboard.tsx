@@ -28,13 +28,13 @@ const integerFormatter = new Intl.NumberFormat()
 const decimalFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 })
 
 const statusColorMap: Record<string, string> = {
-  approved: 'bg-green-500',
-  rejected: 'bg-red-500',
-  submitted: 'bg-blue-500',
+  approved: 'bg-success',
+  rejected: 'bg-error',
+  submitted: 'bg-primary',
   under_review: 'bg-amber-500',
   review: 'bg-amber-500',
-  pending: 'bg-yellow-500',
-  awaiting_documents: 'bg-purple-500'
+  pending: 'bg-warning',
+  awaiting_documents: 'bg-secondary'
 }
 
 const systemHealthStyles: Record<AdminDashboardStats['systemHealth'], string> = {
@@ -161,7 +161,7 @@ export function FixedAdminDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         <span className="ml-3 text-muted-foreground">Loading dashboard...</span>
       </div>
     )
@@ -177,7 +177,7 @@ export function FixedAdminDashboard() {
             exit={{ opacity: 0, y: -20 }}
             className="bg-destructive/5/30 border border-destructive/30 rounded-xl p-4 flex items-center space-x-3"
           >
-            <AlertTriangle className="h-5 w-5 text-red-500" />
+            <AlertTriangle className="h-5 w-5 text-error" />
             <div>
               <p className="text-destructive-foreground font-medium">Dashboard Error</p>
               <p className="text-destructive text-sm">{error}</p>
@@ -218,7 +218,7 @@ export function FixedAdminDashboard() {
             </div>
             <div className="text-sm font-medium text-muted-foreground">New Applications</div>
             <div className="flex items-center mt-2 text-xs">
-              <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
+              <ArrowUp className="h-3 w-3 text-success mr-1" />
               <span className="text-accent">{formatCount(weekTotal)} this week</span>
             </div>
           </div>
@@ -277,7 +277,7 @@ export function FixedAdminDashboard() {
             </div>
             <div className="text-sm font-medium text-muted-foreground">Approval Rate</div>
             <div className="flex items-center mt-2 text-xs">
-              <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+              <TrendingUp className="h-3 w-3 text-success mr-1" />
               <span className="text-accent">Approved: {formatCount(stats.approvedApplications)}</span>
             </div>
           </div>
@@ -307,7 +307,7 @@ export function FixedAdminDashboard() {
             </div>
             <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
             <div className="flex items-center mt-2 text-xs">
-              <ArrowDown className="h-3 w-3 text-green-500 mr-1" />
+              <ArrowDown className="h-3 w-3 text-success mr-1" />
               <span className="text-accent">Median: {formatHours(medianProcessingHours)}h</span>
             </div>
           </div>
@@ -449,14 +449,14 @@ export function FixedAdminDashboard() {
               recentActivity.map((activity, index) => {
                 const accentColor =
                   activity.type === 'approval'
-                    ? 'bg-green-500'
+                    ? 'bg-success'
                     : activity.type === 'rejection'
-                      ? 'bg-red-500'
+                      ? 'bg-error'
                       : activity.type === 'review'
                         ? 'bg-amber-500'
                         : activity.type === 'system'
-                          ? 'bg-purple-500'
-                          : 'bg-blue-500'
+                          ? 'bg-secondary'
+                          : 'bg-primary'
 
                 return (
                   <motion.div
@@ -506,7 +506,7 @@ export function FixedAdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="p-3 bg-slate-50 rounded-xl">
                 <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                  <Users className="h-4 w-4 text-indigo-600" />
+                  <Users className="h-4 w-4 text-secondary" />
                   <span>Active admins (24h)</span>
                 </div>
                 <p

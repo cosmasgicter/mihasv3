@@ -292,13 +292,13 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                   key={format.value}
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                     exportOptions.format === format.value
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-primary bg-blue-50'
                       : 'border-border hover:border-input'
                   }`}
                   onClick={() => setExportOptions({ ...exportOptions, format: format.value as typeof exportOptions.format })}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`${exportOptions.format === format.value ? 'text-blue-600' : 'text-muted-foreground'}`}>
+                    <div className={`${exportOptions.format === format.value ? 'text-primary' : 'text-muted-foreground'}`}>
                       {format.icon}
                     </div>
                     <div>
@@ -414,7 +414,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                       dateRange: { ...exportOptions.filters.dateRange, start: e.target.value }
                     }
                   })}
-                  className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-primary"
                 />
               </div>
               <div>
@@ -431,7 +431,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                       dateRange: { ...exportOptions.filters.dateRange, end: e.target.value }
                     }
                   })}
-                  className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-primary"
                 />
               </div>
             </div>
@@ -471,7 +471,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
             onClick={handleExport}
             loading={exporting}
             disabled={exportOptions.fields.length === 0 || filteredUsers.length === 0}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-primary hover:bg-primary text-white"
           >
             <Download className="h-4 w-4 mr-2" />
             Export {filteredUsers.length} Users

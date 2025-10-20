@@ -101,12 +101,12 @@ const PaymentStep = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <label htmlFor="payment_method" className="block text-sm font-medium text-foreground mb-1">
-              Payment Method <span className="text-red-500">*</span>
+              Payment Method <span className="text-error">*</span>
             </label>
             <select
               {...register('payment_method')}
               id="payment_method"
-              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
               defaultValue="MTN Money"
             >
               <option value="MTN Money">MTN Money</option>
@@ -162,7 +162,7 @@ const PaymentStep = ({
 
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
-            Proof of Payment <span className="text-red-500">*</span>
+            Proof of Payment <span className="text-error">*</span>
           </label>
           <div className="relative">
             <input
@@ -185,7 +185,7 @@ const PaymentStep = ({
                 </div>
                 <div className="w-full bg-skeleton rounded-full h-2">
                   <motion.div
-                    className="bg-blue-600 h-2 rounded-full"
+                    className="bg-primary h-2 rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${uploadProgress.proof_of_payment}%` }}
                     transition={{ duration: 0.3 }}

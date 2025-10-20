@@ -74,16 +74,16 @@ const SubmitStep = ({
           <div className="mb-4 p-3 bg-card rounded border">
             <h4 className="text-sm font-medium text-foreground mb-2">Completion Status</h4>
             <div className="space-y-1 text-xs">
-              <div className={`flex items-center ${formValues.full_name ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`flex items-center ${formValues.full_name ? 'text-success' : 'text-error'}`}>
                 {formValues.full_name ? '✓' : '✗'} Personal Information
               </div>
-              <div className={`flex items-center ${selectedGrades.length >= 5 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`flex items-center ${selectedGrades.length >= 5 ? 'text-success' : 'text-error'}`}>
                 {selectedGrades.length >= 5 ? '✓' : '✗'} Minimum 5 Subjects ({selectedGrades.length}/5)
               </div>
-              <div className={`flex items-center ${resultSlipFile ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`flex items-center ${resultSlipFile ? 'text-success' : 'text-error'}`}>
                 {resultSlipFile ? '✓' : '✗'} Result Slip Uploaded
               </div>
-              <div className={`flex items-center ${proofOfPaymentFile ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`flex items-center ${proofOfPaymentFile ? 'text-success' : 'text-error'}`}>
                 {proofOfPaymentFile ? '✓' : '✗'} Proof of Payment Uploaded
               </div>
             </div>
@@ -128,7 +128,7 @@ const SubmitStep = ({
               <div>
                 <p>
                   <strong>Eligibility:</strong>
-                  <span className={eligibilityCheck.eligible ? 'text-green-600' : 'text-yellow-600'}>
+                  <span className={eligibilityCheck.eligible ? 'text-success' : 'text-warning'}>
                     {eligibilityCheck.eligible ? ' ✓ Meets Requirements' : ' ⚠ Advisory Only'}
                   </span>
                   {eligibilityCheck.score && (

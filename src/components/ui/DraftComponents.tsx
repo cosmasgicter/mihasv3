@@ -55,7 +55,7 @@ export function DraftWarningBanner({
             size="sm"
             variant="primary"
             icon={<RefreshCw className="w-4 h-4" />}
-            className="bg-yellow-600 hover:bg-yellow-700"
+            className="bg-warning hover:bg-yellow-700"
           >
             Restore Draft
           </MobileOptimizedButton>
@@ -102,9 +102,9 @@ export function AutoSaveIndicator({
   }
 
   const getStatusColor = () => {
-    if (isSaving) return 'text-blue-600'
-    if (hasUnsavedChanges) return 'text-yellow-600'
-    if (lastSaved) return 'text-green-600'
+    if (isSaving) return 'text-primary'
+    if (hasUnsavedChanges) return 'text-warning'
+    if (lastSaved) return 'text-success'
     return 'text-muted-foreground'
   }
 
@@ -172,7 +172,7 @@ export function SessionTimeoutWarning({
               onClick={onExtend}
               size="sm"
               variant="primary"
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-error hover:bg-error"
               fullWidth
             >
               Extend Session
@@ -219,7 +219,7 @@ export function FormRecoveryBanner({
             size="sm"
             variant="primary"
             icon={<RefreshCw className="w-4 h-4" />}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-error hover:bg-error"
           >
             Try Again
           </MobileOptimizedButton>

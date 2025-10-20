@@ -29,25 +29,25 @@ const toastIcons = {
 const toastStyles = {
   success: {
     container: 'bg-green-50 border-green-200',
-    icon: 'text-green-600',
+    icon: 'text-success',
     title: 'text-accent-foreground',
     message: 'text-accent'
   },
   error: {
     container: 'bg-red-50 border-red-200',
-    icon: 'text-red-600',
+    icon: 'text-error',
     title: 'text-destructive-foreground',
     message: 'text-error'
   },
   warning: {
     container: 'bg-yellow-50 border-yellow-200',
-    icon: 'text-yellow-600',
+    icon: 'text-warning',
     title: 'text-accent-foreground',
     message: 'text-yellow-700'
   },
   info: {
     container: 'bg-blue-50 border-blue-200',
-    icon: 'text-blue-600',
+    icon: 'text-primary',
     title: 'text-primary-foreground',
     message: 'text-primary'
   }
@@ -149,9 +149,9 @@ export function EnhancedToast({
           <div 
             className={cn(
               'h-full transition-all ease-linear',
-              type === 'success' ? 'bg-green-500' :
-              type === 'error' ? 'bg-red-500' :
-              type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+              type === 'success' ? 'bg-success' :
+              type === 'error' ? 'bg-error' :
+              type === 'warning' ? 'bg-warning' : 'bg-primary'
             )}
             style={{
               animation: `shrink ${duration}ms linear forwards`
@@ -282,7 +282,7 @@ export function FormError({
   
   return (
     <div className={cn(
-      'flex items-center space-x-2 text-sm text-red-600 mt-1',
+      'flex items-center space-x-2 text-sm text-error mt-1',
       className
     )}>
       <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -303,7 +303,7 @@ export function FormSuccess({
   
   return (
     <div className={cn(
-      'flex items-center space-x-2 text-sm text-green-600 mt-1',
+      'flex items-center space-x-2 text-sm text-success mt-1',
       className
     )}>
       <CheckCircle className="w-4 h-4 flex-shrink-0" />

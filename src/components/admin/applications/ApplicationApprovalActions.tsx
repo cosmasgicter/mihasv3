@@ -86,7 +86,7 @@ export function ApplicationApprovalActions({
             <button
               onClick={() => handleStatusUpdate('under_review')}
               disabled={updatingStatus || disabled}
-              className="flex-1 bg-primary/5/300 hover:bg-blue-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+              className="flex-1 bg-primary/5/300 hover:bg-primary disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
             >
               {updatingStatus ? (
                 <LoadingSpinner size="sm" />
@@ -104,7 +104,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('approved')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-accent/10/300 hover:bg-green-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-accent/10/300 hover:bg-success disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingStatus ? (
                   <LoadingSpinner size="sm" />
@@ -118,7 +118,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('rejected')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-destructive/5/300 hover:bg-red-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-destructive/5/300 hover:bg-error disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingStatus ? (
                   <LoadingSpinner size="sm" />
@@ -167,7 +167,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handlePaymentUpdate('verified')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-accent/10/300 hover:bg-green-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-accent/10/300 hover:bg-success disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingPayment ? (
                   <LoadingSpinner size="sm" />
@@ -181,7 +181,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handlePaymentUpdate('rejected')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-destructive/5/300 hover:bg-red-600 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-destructive/5/300 hover:bg-error disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingPayment ? (
                   <LoadingSpinner size="sm" />

@@ -550,7 +550,7 @@ export default function AdminSettings() {
                           id="is_public"
                           checked={newSetting.is_public}
                           onChange={(e) => setNewSetting({...newSetting, is_public: e.target.checked})}
-                          className="rounded border-input text-blue-600 focus:ring-blue-500"
+                          className="rounded border-input text-primary focus:ring-blue-500"
                         />
                         <label htmlFor="is_public" className="text-sm font-medium text-foreground">
                           Public Setting
@@ -702,7 +702,7 @@ export default function AdminSettings() {
                                   type="checkbox"
                                   checked={editForm.is_public || false}
                                   onChange={(e) => setEditForm({...editForm, is_public: e.target.checked})}
-                                  className="rounded border-input text-blue-600 focus:ring-blue-500"
+                                  className="rounded border-input text-primary focus:ring-blue-500"
                                 />
                               ) : (
                                 <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${

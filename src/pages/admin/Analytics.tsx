@@ -265,7 +265,7 @@ export default function Analytics() {
  disabled={disabled}
  className={`flex items-center px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
  activeTab === tab.key
- ? 'border-green-500 text-green-600 bg-green-50'
+ ? 'border-success text-success bg-green-50'
  : disabled
  ? 'border-transparent text-foreground cursor-not-allowed'
  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-input'
@@ -294,7 +294,7 @@ export default function Analytics() {
  setFormData({})
  setShowCreateDialog(true)
  }}
- className="bg-green-600 hover:bg-green-700 text-white"
+ className="bg-success hover:bg-success text-white"
  >
  <Plus className="h-4 w-4 mr-2" />
  Add Stats
@@ -302,7 +302,7 @@ export default function Analytics() {
  <Button
  onClick={generateReport}
  disabled={!canManageReports || roleStatusLoading || Boolean(roleError)}
- className={`bg-blue-600 text-white ${(!canManageReports || roleStatusLoading || Boolean(roleError)) ? 'opacity-60 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+ className={`bg-primary text-white ${(!canManageReports || roleStatusLoading || Boolean(roleError)) ? 'opacity-60 cursor-not-allowed' : 'hover:bg-primary'}`}
  >
  <Download className="h-4 w-4 mr-2" />
  Generate Report
@@ -326,7 +326,7 @@ export default function Analytics() {
  type="date"
  value={dateRange.start}
  onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
- className="w-full border-2 border-border rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
+ className="w-full border-2 border-border rounded-xl px-3 py-2 focus:border-success focus:ring-2 focus:ring-green-500/20"
  />
  </div>
  <div>
@@ -335,7 +335,7 @@ export default function Analytics() {
  type="date"
  value={dateRange.end}
  onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
- className="w-full border-2 border-border rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
+ className="w-full border-2 border-border rounded-xl px-3 py-2 focus:border-success focus:ring-2 focus:ring-green-500/20"
  />
  </div>
  <div>
@@ -351,7 +351,7 @@ export default function Analytics() {
  })
  }
  }}
- className="w-full border-2 border-border rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
+ className="w-full border-2 border-border rounded-xl px-3 py-2 focus:border-success focus:ring-2 focus:ring-green-500/20"
  >
  <option value="">Select Range</option>
  <option value="7">Last 7 days</option>
@@ -366,7 +366,7 @@ export default function Analytics() {
  id="export_format"
  value={exportFormat}
  onChange={(e) => setExportFormat(e.target.value as ReportFormat)}
- className="w-full border-2 border-border rounded-xl px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
+ className="w-full border-2 border-border rounded-xl px-3 py-2 focus:border-success focus:ring-2 focus:ring-green-500/20"
  >
  <option value="pdf">PDF</option>
  <option value="excel">Excel</option>
@@ -424,11 +424,11 @@ export default function Analytics() {
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm font-medium text-muted-foreground mb-1">Active Users</p>
- <p className="text-2xl sm:text-3xl font-bold text-indigo-600 break-words">{uniqueUsers}</p>
+ <p className="text-2xl sm:text-3xl font-bold text-secondary break-words">{uniqueUsers}</p>
  <p className="text-xs text-muted-foreground mt-1">+15% from last month</p>
  </div>
  <div className="p-3 bg-primary/10 rounded-2xl">
- <Users className="h-8 w-8 text-indigo-600" />
+ <Users className="h-8 w-8 text-secondary" />
  </div>
  </div>
  </div>
@@ -492,7 +492,7 @@ export default function Analytics() {
  setFormData(program)
  setShowEditDialog(true)
  }}
- className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+ className="bg-primary hover:bg-primary text-white px-3 py-1 text-xs"
  >
  <Edit className="h-3 w-3" />
  </Button>
@@ -501,7 +501,7 @@ export default function Analytics() {
  setSelectedItem({ ...program, type: 'program' })
  setShowDeleteDialog(true)
  }}
- className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs"
+ className="bg-error hover:bg-error text-white px-3 py-1 text-xs"
  >
  <Trash2 className="h-3 w-3" />
  </Button>
@@ -527,7 +527,7 @@ export default function Analytics() {
  setFormData({})
  setShowCreateDialog(true)
  }}
- className="bg-green-600 hover:bg-green-700 text-white"
+ className="bg-success hover:bg-success text-white"
  >
  <Plus className="h-4 w-4 mr-2" />
  Add Record
@@ -564,7 +564,7 @@ export default function Analytics() {
  setFormData(stat)
  setShowEditDialog(true)
  }}
- className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+ className="bg-primary hover:bg-primary text-white px-3 py-1 text-xs"
  >
  <Edit className="h-3 w-3" />
  </Button>
@@ -573,7 +573,7 @@ export default function Analytics() {
  setSelectedItem({ ...stat, type: 'application' })
  setShowDeleteDialog(true)
  }}
- className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs"
+ className="bg-error hover:bg-error text-white px-3 py-1 text-xs"
  >
  <Trash2 className="h-3 w-3" />
  </Button>
@@ -598,7 +598,7 @@ export default function Analytics() {
  setFormData({})
  setShowCreateDialog(true)
  }}
- className="bg-green-600 hover:bg-green-700 text-white"
+ className="bg-success hover:bg-success text-white"
  >
  <Plus className="h-4 w-4 mr-2" />
  Add Record
@@ -643,7 +643,7 @@ export default function Analytics() {
  setFormData(analytics)
  setShowEditDialog(true)
  }}
- className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+ className="bg-primary hover:bg-primary text-white px-3 py-1 text-xs"
  >
  <Edit className="h-3 w-3" />
  </Button>
@@ -652,7 +652,7 @@ export default function Analytics() {
  setSelectedItem({ ...analytics, type: 'eligibility' })
  setShowDeleteDialog(true)
  }}
- className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs"
+ className="bg-error hover:bg-error text-white px-3 py-1 text-xs"
  >
  <Trash2 className="h-3 w-3" />
  </Button>
@@ -677,7 +677,7 @@ export default function Analytics() {
  setFormData({})
  setShowCreateDialog(true)
  }}
- className="bg-green-600 hover:bg-green-700 text-white"
+ className="bg-success hover:bg-success text-white"
  >
  <Plus className="h-4 w-4 mr-2" />
  Add Record
@@ -714,7 +714,7 @@ export default function Analytics() {
  setFormData(program)
  setShowEditDialog(true)
  }}
- className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+ className="bg-primary hover:bg-primary text-white px-3 py-1 text-xs"
  >
  <Edit className="h-3 w-3" />
  </Button>
@@ -723,7 +723,7 @@ export default function Analytics() {
  setSelectedItem({ ...program, type: 'program' })
  setShowDeleteDialog(true)
  }}
- className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs"
+ className="bg-error hover:bg-error text-white px-3 py-1 text-xs"
  >
  <Trash2 className="h-3 w-3" />
  </Button>
@@ -779,7 +779,7 @@ export default function Analytics() {
  showError(fallbackMessage, message !== fallbackMessage ? message : undefined)
  }
  }}
- className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+ className="bg-primary hover:bg-primary text-white px-3 py-1 text-xs"
  >
  <Download className="h-3 w-3" />
  </Button>
@@ -788,7 +788,7 @@ export default function Analytics() {
  setSelectedItem({ ...report, type: 'report' })
  setShowDeleteDialog(true)
  }}
- className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs"
+ className="bg-error hover:bg-error text-white px-3 py-1 text-xs"
  >
  <Trash2 className="h-3 w-3" />
  </Button>
@@ -965,7 +965,7 @@ export default function Analytics() {
  </Button>
  <Button
  onClick={handleCreate}
- className="bg-green-600 hover:bg-green-700 text-white"
+ className="bg-success hover:bg-success text-white"
  >
  Create
  </Button>
@@ -1125,7 +1125,7 @@ export default function Analytics() {
  </Button>
  <Button
  onClick={handleEdit}
- className="bg-blue-600 hover:bg-blue-700 text-white"
+ className="bg-primary hover:bg-primary text-white"
  >
  Update
  </Button>
@@ -1153,7 +1153,7 @@ export default function Analytics() {
  </Button>
  <Button
  onClick={handleDelete}
- className="bg-red-600 hover:bg-red-700 text-white"
+ className="bg-error hover:bg-error text-white"
  >
  Delete
  </Button>

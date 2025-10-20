@@ -61,8 +61,8 @@ export function MobileOptimizedButton({
   // Color variants with better contrast for mobile
   const variantClasses = {
     primary: cn(
-      'bg-blue-600 text-foreground shadow-sm',
-      'hover:bg-blue-700 active:bg-blue-800',
+      'bg-primary text-foreground shadow-sm',
+      'hover:bg-primary active:bg-blue-800',
       'focus-visible:ring-blue-500'
     ),
     secondary: cn(
@@ -81,8 +81,8 @@ export function MobileOptimizedButton({
       'focus-visible:ring-gray-500'
     ),
     danger: cn(
-      'bg-red-600 text-foreground shadow-sm',
-      'hover:bg-red-700 active:bg-red-800',
+      'bg-error text-foreground shadow-sm',
+      'hover:bg-error active:bg-red-800',
       'focus-visible:ring-red-500'
     )
   }
@@ -163,8 +163,8 @@ export function FloatingActionButton({
       className={cn(
         // FAB styling
         'w-14 h-14 rounded-full shadow-lg',
-        'bg-blue-600 text-foreground',
-        'hover:bg-blue-700 active:bg-blue-800',
+        'bg-primary text-foreground',
+        'hover:bg-primary active:bg-blue-800',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
         'transition-all duration-200 ease-in-out',
         'flex items-center justify-center',

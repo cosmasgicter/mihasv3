@@ -239,7 +239,7 @@ export default function LandingPageNew() {
  <Button 
  variant="outline" 
  size="xl" 
- className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-semibold"
+ className="border-2 border-white text-white hover:bg-white hover:text-primary font-semibold"
  onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
  >
  <span className="mr-2">Learn More</span>
@@ -558,7 +558,7 @@ export default function LandingPageNew() {
  {program.highlight}
  </motion.div>
  <motion.div
- className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+ className="bg-success text-white px-3 py-1 rounded-full text-xs font-semibold"
  whileHover={maybeMotion({ scale: 1.1 })}
  >
  {program.accreditation}
@@ -602,7 +602,7 @@ export default function LandingPageNew() {
  <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
  {program.highlight}
  </div>
- <div className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+ <div className="bg-success text-white px-3 py-1 rounded-full text-xs font-semibold">
  {program.accreditation}
  </div>
  </div>
@@ -665,7 +665,7 @@ export default function LandingPageNew() {
  whileTap={maybeMotion({ scale: 0.95 })}
  >
  <Link to="/auth/signup">
- <Button variant="outline" size="xl" className="border-2 border-white text-white hover:bg-white hover:text-blue-600">
+ <Button variant="outline" size="xl" className="border-2 border-white text-white hover:bg-white hover:text-primary">
  <span className="mr-2">Apply Now</span>
  <ArrowRight className="w-6 h-6" />
  </Button>

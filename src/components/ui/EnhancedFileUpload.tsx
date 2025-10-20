@@ -185,9 +185,9 @@ export function EnhancedFileUpload({
   const getStatusIcon = (fileWithProgress: FileWithProgress) => {
     switch (fileWithProgress.status) {
       case 'completed':
-        return <Check className="w-4 h-4 text-green-500" />
+        return <Check className="w-4 h-4 text-success" />
       case 'error':
-        return <AlertCircle className="w-4 h-4 text-red-500" />
+        return <AlertCircle className="w-4 h-4 text-error" />
       case 'compressing':
         return <Minimize2 className="w-4 h-4 text-primary animate-pulse" />
       default:
@@ -207,7 +207,7 @@ export function EnhancedFileUpload({
           'min-h-[120px] flex flex-col items-center justify-center',
           // State-based styling
           isDragActive || dzIsDragActive
-            ? 'border-blue-500 bg-blue-50'
+            ? 'border-primary bg-blue-50'
             : 'border-input',
           disabled || !isOnline
             ? 'opacity-50 cursor-not-allowed bg-muted'

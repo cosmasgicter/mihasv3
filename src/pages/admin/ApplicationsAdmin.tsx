@@ -267,7 +267,7 @@ function ApplicationsAdminContent() {
                         }
                       }}
                       aria-label="Bulk status update"
-                      className="text-xs rounded border-input focus:border-blue-500 focus:ring-blue-500"
+                      className="text-xs rounded border-input focus:border-primary focus:ring-blue-500"
                     >
                       <option value="">Bulk Status Update</option>
                       <option value="under_review">Under Review</option>
@@ -282,7 +282,7 @@ function ApplicationsAdminContent() {
                         }
                       }}
                       aria-label="Bulk payment update"
-                      className="text-xs rounded border-input focus:border-blue-500 focus:ring-blue-500"
+                      className="text-xs rounded border-input focus:border-primary focus:ring-blue-500"
                     >
                       <option value="">Bulk Payment Update</option>
                       <option value="verified">Verify</option>
@@ -314,7 +314,7 @@ function ApplicationsAdminContent() {
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     aria-label="Filter by status"
-                    className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
                   >
                     <option value="">All Statuses</option>
                     <option value="draft">Draft</option>
@@ -330,7 +330,7 @@ function ApplicationsAdminContent() {
                     value={paymentFilter}
                     onChange={(e) => setPaymentFilter(e.target.value)}
                     aria-label="Filter by payment status"
-                    className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
                   >
                     <option value="">All Payments</option>
                     <option value="pending_review">Pending Review</option>
@@ -344,7 +344,7 @@ function ApplicationsAdminContent() {
                     value={programFilter}
                     onChange={(e) => setProgramFilter(e.target.value)}
                     aria-label="Filter by program"
-                    className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
                   >
                     <option value="">All Programs</option>
                     <option value="Clinical Medicine">Clinical Medicine</option>
@@ -358,7 +358,7 @@ function ApplicationsAdminContent() {
                     value={institutionFilter}
                     onChange={(e) => setInstitutionFilter(e.target.value)}
                     aria-label="Filter by institution"
-                    className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
                   >
                     <option value="">All Institutions</option>
                     <option value="KATC">Kalulushi Training Centre</option>
@@ -469,7 +469,7 @@ function ApplicationsAdminContent() {
                                 onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
                                 disabled={updating === app.id}
                                 aria-label={`Update status for ${app.full_name}`}
-                                className="block w-full text-xs rounded border-input focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                                className="block w-full text-xs rounded border-input focus:border-primary focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
                               >
                                 <option value="draft">Draft</option>
                                 <option value="submitted">Submitted</option>
@@ -497,7 +497,7 @@ function ApplicationsAdminContent() {
                                 onChange={(e) => handlePaymentStatusUpdate(app.id, e.target.value)}
                                 disabled={updatingPayment === app.id}
                                 aria-label={`Update payment status for ${app.full_name}`}
-                                className="block w-full text-xs rounded border-input focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                                className="block w-full text-xs rounded border-input focus:border-primary focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-8"
                               >
                                 <option value="pending_review">Pending Review</option>
                                 <option value="verified">Verified</option>
@@ -569,7 +569,7 @@ function ApplicationsAdminContent() {
                   type="button"
                   onClick={loadNextPage}
                   disabled={isLoadingMore}
-                  className="inline-flex items-center justify-center rounded-md border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center rounded-md border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isLoadingMore && <LoadingSpinner size="sm" className="mr-2" />}
                   {isLoadingMore ? 'Loading more...' : 'Load more applications'}

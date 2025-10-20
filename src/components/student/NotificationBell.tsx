@@ -21,11 +21,11 @@ export function NotificationBell() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className="h-4 w-4 text-success" />
       case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />
+        return <AlertTriangle className="h-4 w-4 text-warning" />
       case 'error':
-        return <X className="h-4 w-4 text-red-500" />
+        return <X className="h-4 w-4 text-error" />
       default:
         return <Info className="h-4 w-4 text-primary" />
     }
@@ -136,7 +136,7 @@ export function NotificationBell() {
               <div className="flex-1 overflow-y-auto">
                 {loading ? (
                   <div className="p-6 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                     <p className="text-muted-foreground text-sm mt-2">Loading notifications...</p>
                   </div>
                 ) : notifications.length === 0 ? (
@@ -192,7 +192,7 @@ export function NotificationBell() {
                                     console.error('Failed to delete notification')
                                   }
                                 }}
-                                className="p-1 h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-red-600"
+                                className="p-1 h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-error"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>

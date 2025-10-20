@@ -99,7 +99,7 @@ export function AdminSearchBar() {
       case 'application':
         return <FileText className="h-4 w-4 text-primary" />
       case 'user':
-        return <Users className="h-4 w-4 text-green-500" />
+        return <Users className="h-4 w-4 text-success" />
       case 'program':
         return <GraduationCap className="h-4 w-4 text-purple-500" />
       case 'intake':
@@ -128,7 +128,7 @@ export function AdminSearchBar() {
           onKeyDown={handleKeyDown}
           onFocus={() => query.length > 2 && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-          className="w-full pl-10 pr-4 py-2 bg-card border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-all duration-200"
+          className="w-full pl-10 pr-4 py-2 bg-card border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary transition-all duration-200"
         />
       </div>
 

@@ -531,8 +531,8 @@ export function EnhancedApplicationsTable({
                           <div 
                             className={cn(
                               'h-2 rounded-full',
-                              application.eligibilityScore >= 80 ? 'bg-green-500' :
-                              application.eligibilityScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                              application.eligibilityScore >= 80 ? 'bg-success' :
+                              application.eligibilityScore >= 60 ? 'bg-warning' : 'bg-error'
                             )}
                             style={{ width: `${application.eligibilityScore}%` }}
                           />

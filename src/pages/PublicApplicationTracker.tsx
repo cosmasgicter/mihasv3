@@ -184,13 +184,13 @@ export default function PublicApplicationTracker() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Trophy className="h-8 w-8 text-green-500" />
+        return <Trophy className="h-8 w-8 text-success" />
       case 'rejected':
-        return <XCircle className="h-8 w-8 text-red-500" />
+        return <XCircle className="h-8 w-8 text-error" />
       case 'under_review':
         return <Target className="h-8 w-8 text-primary" />
       case 'submitted':
-        return <Rocket className="h-8 w-8 text-yellow-500" />
+        return <Rocket className="h-8 w-8 text-warning" />
       default:
         return <Clock className="h-8 w-8 text-secondary" />
     }
@@ -515,7 +515,7 @@ export default function PublicApplicationTracker() {
         <div className="container-mobile">
           <div className="flex flex-col space-y-4 py-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 sm:py-8">
             <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-6">
-              <Link to="/" className="inline-flex items-center text-primary hover:text-blue-600/80 transition-all duration-300 group touch-target">
+              <Link to="/" className="inline-flex items-center text-primary hover:text-primary/80 transition-all duration-300 group touch-target">
                 <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 group-hover:-translate-x-2 transition-transform" />
                 <span className="font-bold text-base sm:text-lg">Back to Home</span>
               </Link>
@@ -590,7 +590,7 @@ export default function PublicApplicationTracker() {
                         onPaste={handlePaste}
                         onKeyPress={handleKeyPress}
                         placeholder="Enter application number..."
-                        className="form-input-mobile w-full text-base sm:text-xl py-4 sm:py-6 pl-12 sm:pl-16 pr-4 sm:pr-6 border-3 border-border focus:border-blue-600 rounded-2xl shadow-lg font-medium"
+                        className="form-input-mobile w-full text-base sm:text-xl py-4 sm:py-6 pl-12 sm:pl-16 pr-4 sm:pr-6 border-3 border-border focus:border-primary rounded-2xl shadow-lg font-medium"
                       />
                     </motion.div>
                   </div>
@@ -952,7 +952,7 @@ export default function PublicApplicationTracker() {
 
                         <AnimatedCard className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200" hover3d delay={0.25}>
                           <div className="flex items-center space-x-3 sm:space-x-4">
-                            <div className="p-2 sm:p-3 bg-indigo-500 rounded-lg sm:rounded-xl flex-shrink-0">
+                            <div className="p-2 sm:p-3 bg-secondary rounded-lg sm:rounded-xl flex-shrink-0">
                               <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1208,7 +1208,7 @@ export default function PublicApplicationTracker() {
                 <div className="flex items-center justify-center space-x-4">
                   <Phone className="h-8 w-8 text-secondary" />
                   <Mail className="h-8 w-8 text-primary" />
-                  <MapPin className="h-8 w-8 text-indigo-600" />
+                  <MapPin className="h-8 w-8 text-secondary" />
                 </div>
                 
                 <h4 className="text-3xl font-black text-secondary">

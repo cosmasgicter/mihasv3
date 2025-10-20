@@ -141,7 +141,7 @@ const SubmissionSuccess = ({
 
         <div className="space-y-3">
           <Link to="/student/dashboard">
-            <Button className="w-full bg-blue-600 hover:bg-blue-700">Go to Dashboard</Button>
+            <Button className="w-full bg-primary hover:bg-primary">Go to Dashboard</Button>
           </Link>
           <Link to="/track-application">
             <Button variant="outline" className="w-full">Track Application Status</Button>

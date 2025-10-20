@@ -170,7 +170,7 @@ export function BulkUserOperations({
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-primary"
               >
                 {AVAILABLE_ROLES.map(role => (
                   <option key={role.value} value={role.value}>
@@ -196,7 +196,7 @@ export function BulkUserOperations({
             <Button
               onClick={handleBulkRoleUpdate}
               loading={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-primary hover:bg-primary text-white"
             >
               Update Roles
             </Button>
@@ -238,7 +238,7 @@ export function BulkUserOperations({
             <Button
               onClick={handleBulkDelete}
               loading={loading}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-error hover:bg-error text-white"
             >
               Delete Users
             </Button>
@@ -281,7 +281,7 @@ export function BulkUserOperations({
             <DialogFooter>
               <Button
                 onClick={() => setOperationResult(null)}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-primary hover:bg-primary text-white"
               >
                 Close
               </Button>

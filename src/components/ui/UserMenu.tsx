@@ -9,6 +9,9 @@ export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const { user, signOut } = useAuth()
   const menuRef = useRef<HTMLDivElement>(null)
+  
+  const fullName = user?.user_metadata?.full_name || 'User'
+  const firstName = fullName.split(' ')[0] || 'User'
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -46,7 +49,7 @@ export function UserMenu() {
           </div>
         )}
         <span className="hidden md:block text-sm font-medium text-foreground truncate max-w-[120px]">
-          {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
+          {firstName}
         </span>
         <ChevronDown className={cn(
           "w-4 h-4 text-muted-foreground transition-transform",
@@ -60,10 +63,10 @@ export function UserMenu() {
           data-testid="user-menu-dropdown"
         >
           <div className="px-4 py-2 border-b border-gray-100">
-            <p className="text-sm font-medium text-foreground truncate">
-              {user?.user_metadata?.full_name || 'User'}
+            <p className="text-sm font-medium text-foreground truncate" title={fullName}>
+              {fullName}
             </p>
-            <p className="text-xs text-muted-foreground break-words">{user?.email}</p>
+            <p className="text-xs text-muted-foreground break-all" title={user?.email}>{user?.email}</p>
           </div>
           
           <Link

@@ -83,7 +83,7 @@ export default function AIInsights() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-error mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-foreground mb-2">Access Denied</h2>
           <p className="text-muted-foreground">You don't have permission to access AI insights.</p>
         </div>
@@ -218,7 +218,7 @@ export default function AIInsights() {
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
-                      ? 'border-purple-500 text-purple-600'
+                      ? 'border-purple-500 text-secondary'
                       : 'border-transparent text-muted-foreground hover:text-foreground hover:border-input'
                   }`}
                 >

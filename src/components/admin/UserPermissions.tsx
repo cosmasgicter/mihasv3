@@ -200,7 +200,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                     >
                       <div className="flex items-start space-x-3">
                         <div className={`mt-0.5 ${
-                          selectedPermissions.includes(permission.id) ? 'text-blue-600' : 'text-muted-foreground'
+                          selectedPermissions.includes(permission.id) ? 'text-primary' : 'text-muted-foreground'
                         }`}>
                           {permission.icon}
                         </div>
@@ -242,7 +242,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
               </Button>
               <Button
                 onClick={handleSave}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-primary hover:bg-primary text-white"
                 disabled={isBusy}
                 loading={isSaving}
               >

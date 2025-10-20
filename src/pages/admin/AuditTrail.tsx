@@ -84,24 +84,24 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
     
     // Authentication actions
     if (actionLower.includes('login') || actionLower.includes('signin')) {
-      return { icon: <UserCheck className="h-4 w-4" />, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', label: 'User Login', category: 'Authentication' }
+      return { icon: <UserCheck className="h-4 w-4" />, color: 'text-success', bg: 'bg-green-50', border: 'border-green-200', label: 'User Login', category: 'Authentication' }
     }
     if (actionLower.includes('logout') || actionLower.includes('signout')) {
       return { icon: <Lock className="h-4 w-4" />, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', label: 'User Logout', category: 'Authentication' }
     }
     if (actionLower.includes('register') || actionLower.includes('signup')) {
-      return { icon: <Plus className="h-4 w-4" />, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', label: 'User Registration', category: 'Authentication' }
+      return { icon: <Plus className="h-4 w-4" />, color: 'text-primary', bg: 'bg-blue-50', border: 'border-blue-200', label: 'User Registration', category: 'Authentication' }
     }
     
     // CRUD operations
     if (actionLower.includes('create') || actionLower.includes('insert') || actionLower.includes('add')) {
-      return { icon: <Plus className="h-4 w-4" />, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', label: 'Created Record', category: 'Data' }
+      return { icon: <Plus className="h-4 w-4" />, color: 'text-success', bg: 'bg-green-50', border: 'border-green-200', label: 'Created Record', category: 'Data' }
     }
     if (actionLower.includes('update') || actionLower.includes('modify') || actionLower.includes('edit')) {
-      return { icon: <Edit className="h-4 w-4" />, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Updated Record', category: 'Data' }
+      return { icon: <Edit className="h-4 w-4" />, color: 'text-primary', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Updated Record', category: 'Data' }
     }
     if (actionLower.includes('delete') || actionLower.includes('remove')) {
-      return { icon: <Trash2 className="h-4 w-4" />, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', label: 'Deleted Record', category: 'Data' }
+      return { icon: <Trash2 className="h-4 w-4" />, color: 'text-error', bg: 'bg-red-50', border: 'border-red-200', label: 'Deleted Record', category: 'Data' }
     }
     if (actionLower.includes('view') || actionLower.includes('read') || actionLower.includes('get')) {
       return { icon: <Eye className="h-4 w-4" />, color: 'text-muted-foreground', bg: 'bg-muted', border: 'border-border', label: 'Viewed Record', category: 'Access' }
@@ -109,10 +109,10 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
     
     // System actions
     if (actionLower.includes('settings') || actionLower.includes('config')) {
-      return { icon: <Settings className="h-4 w-4" />, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200', label: 'System Settings', category: 'System' }
+      return { icon: <Settings className="h-4 w-4" />, color: 'text-secondary', bg: 'bg-purple-50', border: 'border-purple-200', label: 'System Settings', category: 'System' }
     }
     if (actionLower.includes('email') || actionLower.includes('notification')) {
-      return { icon: <Mail className="h-4 w-4" />, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Email/Notification', category: 'Communication' }
+      return { icon: <Mail className="h-4 w-4" />, color: 'text-secondary', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Email/Notification', category: 'Communication' }
     }
     if (actionLower.includes('analytics') || actionLower.includes('report')) {
       return { icon: <BarChart3 className="h-4 w-4" />, color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-200', label: 'Analytics/Report', category: 'Analytics' }
@@ -304,7 +304,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
           {entry.metadata && Object.keys(entry.metadata).length > 0 && (
             <div className="bg-card rounded-lg p-3 border border-border mt-4">
               <div className="flex items-center gap-2 mb-3">
-                <FileText className="h-4 w-4 text-indigo-600" />
+                <FileText className="h-4 w-4 text-secondary" />
                 <span className="text-sm font-semibold text-foreground">Additional Data</span>
                 <span className="text-xs bg-skeleton px-2 py-0.5 rounded-full">
                   {Object.keys(entry.metadata).length} fields
@@ -556,7 +556,7 @@ export default function AuditTrailPage() {
                 <select
                   value={formFilters.targetTable}
                   onChange={event => setFormFilters(filters => ({ ...filters, targetTable: event.target.value }))}
-                  className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
                 >
                   <option value="">All data types</option>
                   <option value="applications">Applications</option>
@@ -627,7 +627,7 @@ export default function AuditTrailPage() {
               <select
                 value={formFilters.targetTable}
                 onChange={event => setFormFilters(filters => ({ ...filters, targetTable: event.target.value }))}
-                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
               >
                 <option value="">All data types</option>
                 <option value="applications">Applications</option>
@@ -644,7 +644,7 @@ export default function AuditTrailPage() {
               <select
                 value={formFilters.category}
                 onChange={event => setFormFilters(filters => ({ ...filters, category: event.target.value }))}
-                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
               >
                 <option value="">All categories</option>
                 <option value="Authentication">Authentication</option>
@@ -687,7 +687,7 @@ export default function AuditTrailPage() {
         {error && (
           <div className="rounded-xl border border-destructive/30 bg-destructive/5/30 p-4 mb-6">
             <div className="flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
+              <AlertTriangle className="h-5 w-5 text-error flex-shrink-0" />
               <div>
                 <h3 className="text-sm font-medium text-destructive-foreground">Error Loading Audit Log</h3>
                 <p className="text-sm text-error mt-1">{error}</p>
@@ -791,7 +791,7 @@ export default function AuditTrailPage() {
                         onClick={() => setPage(pageNum)}
                         className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                           pageNum === response.page
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-primary text-white'
                             : 'text-muted-foreground hover:bg-accent'
                         }`}
                       >

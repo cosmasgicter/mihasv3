@@ -68,13 +68,13 @@ export default function ApplicationDetail() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return <CheckCircle className="h-6 w-6 text-green-500" />
+        return <CheckCircle className="h-6 w-6 text-success" />
       case 'rejected':
-        return <XCircle className="h-6 w-6 text-red-500" />
+        return <XCircle className="h-6 w-6 text-error" />
       case 'under_review':
         return <Clock className="h-6 w-6 text-primary" />
       default:
-        return <AlertCircle className="h-6 w-6 text-yellow-500" />
+        return <AlertCircle className="h-6 w-6 text-warning" />
     }
   }
 
@@ -103,7 +103,7 @@ export default function ApplicationDetail() {
         <main className="w-full">
           <div className="content-wrapper py-8">
           <div className="text-center py-16">
-            <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <XCircle className="h-16 w-16 text-error mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">Application Not Found</h2>
             <p className="text-muted-foreground mb-6">{error || 'The application you are looking for does not exist.'}</p>
             <Link to="/student/dashboard">
@@ -127,7 +127,7 @@ export default function ApplicationDetail() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-blue-600/80 mb-4">
+          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
@@ -282,7 +282,7 @@ export default function ApplicationDetail() {
               {application.decision_date && (
                 <div className="flex items-center space-x-3">
                   <div className={`w-2 h-2 rounded-full ${
-                    application.status === 'approved' ? 'bg-green-500' : 'bg-red-500'
+                    application.status === 'approved' ? 'bg-success' : 'bg-error'
                   }`}></div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Decision Made</p>
@@ -308,8 +308,8 @@ export default function ApplicationDetail() {
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Payment Status</label>
                 <p className={`font-medium ${
-                  application.payment_status === 'verified' ? 'text-green-600' : 
-                  application.payment_status === 'pending' ? 'text-yellow-600' : 'text-red-600'
+                  application.payment_status === 'verified' ? 'text-success' : 
+                  application.payment_status === 'pending' ? 'text-warning' : 'text-error'
                 }`}>
                   {(application.payment_status || 'pending').toUpperCase()}
                 </p>

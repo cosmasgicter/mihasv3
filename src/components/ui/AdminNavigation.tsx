@@ -247,7 +247,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
             {/* Mobile Menu */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l-4 border-blue-600 overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l-4 border-primary overflow-y-auto"
               style={{
                 backgroundColor: '#ffffff',
                 zIndex: 9999,
@@ -358,7 +358,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                           closeMenu()
                           await handleSignOut()
                         }}
-                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-600 to-red-700 text-foreground hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-red-500 logout-button"
+                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-600 to-red-700 text-foreground hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-error logout-button"
                       >
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center space-x-3">

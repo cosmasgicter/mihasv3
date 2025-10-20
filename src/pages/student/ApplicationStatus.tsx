@@ -82,13 +82,13 @@ export default function ApplicationStatus() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+        return <CheckCircle className="h-5 w-5 text-success" />
       case 'rejected':
-        return <XCircle className="h-5 w-5 text-red-500" />
+        return <XCircle className="h-5 w-5 text-error" />
       case 'under_review':
         return <Clock className="h-5 w-5 text-primary" />
       case 'submitted':
-        return <AlertCircle className="h-5 w-5 text-yellow-500" />
+        return <AlertCircle className="h-5 w-5 text-warning" />
       case 'interview_scheduled':
         return <Calendar className="h-5 w-5 text-primary" />
       default:
@@ -198,7 +198,7 @@ export default function ApplicationStatus() {
         <div className="space-y-6 sm:space-y-8">
           <Link
             to="/student/dashboard"
-            className="inline-flex items-center text-primary transition-colors hover:text-blue-600/80"
+            className="inline-flex items-center text-primary transition-colors hover:text-primary/80"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to dashboard
@@ -530,7 +530,7 @@ export default function ApplicationStatus() {
                 <SectionCard
                   title="Congratulations!"
                   description="Your application has been approved. Look out for enrollment instructions via email."
-                  icon={<CheckCircle className="h-5 w-5 text-green-500" />}
+                  icon={<CheckCircle className="h-5 w-5 text-success" />}
                 />
               )}
 
@@ -538,7 +538,7 @@ export default function ApplicationStatus() {
                 <SectionCard
                   title="Application update"
                   description="Unfortunately this application was not successful. You're welcome to apply again for future intakes."
-                  icon={<XCircle className="h-5 w-5 text-red-500" />}
+                  icon={<XCircle className="h-5 w-5 text-error" />}
                 />
               )}
             </div>

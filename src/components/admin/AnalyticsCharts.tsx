@@ -57,12 +57,12 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  : isAnalyticsLoading
  ? 'Fetching latest data'
  : 'Online now'
- const activeUsersStatusClass = isAnalyticsError ? 'text-red-600' : 'text-indigo-600'
+ const activeUsersStatusClass = isAnalyticsError ? 'text-error' : 'text-secondary'
 
  const chartData = [
- { label: 'Approved', value: data.applications.approved, color: 'bg-green-500', percentage: Math.round((data.applications.approved / data.applications.total) * 100) },
- { label: 'Rejected', value: data.applications.rejected, color: 'bg-red-500', percentage: Math.round((data.applications.rejected / data.applications.total) * 100) },
- { label: 'Pending', value: data.applications.pending, color: 'bg-yellow-500', percentage: Math.round((data.applications.pending / data.applications.total) * 100) }
+ { label: 'Approved', value: data.applications.approved, color: 'bg-success', percentage: Math.round((data.applications.approved / data.applications.total) * 100) },
+ { label: 'Rejected', value: data.applications.rejected, color: 'bg-error', percentage: Math.round((data.applications.rejected / data.applications.total) * 100) },
+ { label: 'Pending', value: data.applications.pending, color: 'bg-warning', percentage: Math.round((data.applications.pending / data.applications.total) * 100) }
  ]
 
  return (
@@ -80,16 +80,16 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <p className="text-2xl font-bold text-accent">{approvalRate}%</p>
  <div className="flex items-center mt-2 text-xs">
  {approvalRate >= 70 ? (
- <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+ <TrendingUp className="h-3 w-3 text-success mr-1" />
  ) : (
- <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
+ <TrendingDown className="h-3 w-3 text-error mr-1" />
  )}
- <span className={approvalRate >= 70 ? 'text-green-600' : 'text-red-600'}>
+ <span className={approvalRate >= 70 ? 'text-success' : 'text-error'}>
  {approvalRate >= 70 ? 'Good' : 'Needs attention'}
  </span>
  </div>
  </div>
- <CheckCircle className="h-8 w-8 text-green-500" />
+ <CheckCircle className="h-8 w-8 text-success" />
  </div>
  </motion.div>
 
@@ -105,11 +105,11 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <p className="text-2xl font-bold text-primary">{weeklyGrowth}%</p>
  <div className="flex items-center mt-2 text-xs">
  {weeklyGrowth >= 0 ? (
- <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+ <TrendingUp className="h-3 w-3 text-success mr-1" />
  ) : (
- <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
+ <TrendingDown className="h-3 w-3 text-error mr-1" />
  )}
- <span className={weeklyGrowth >= 0 ? 'text-green-600' : 'text-red-600'}>
+ <span className={weeklyGrowth >= 0 ? 'text-success' : 'text-error'}>
  vs last week
  </span>
  </div>
@@ -129,7 +129,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <p className="text-sm font-medium text-muted-foreground">Processing Time</p>
  <p className="text-2xl font-bold text-secondary">3.2 days</p>
  <div className="flex items-center mt-2 text-xs">
- <TrendingDown className="h-3 w-3 text-green-500 mr-1" />
+ <TrendingDown className="h-3 w-3 text-success mr-1" />
  <span className="text-accent">15% faster</span>
  </div>
  </div>
@@ -146,9 +146,9 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm font-medium text-muted-foreground">Active Users</p>
- <p className="text-2xl font-bold text-indigo-600">{activeUsersDisplay}</p>
+ <p className="text-2xl font-bold text-secondary">{activeUsersDisplay}</p>
  <div className="flex items-center mt-2 text-xs">
- <Users className={`h-3 w-3 mr-1 ${isAnalyticsError ? 'text-red-500' : 'text-indigo-500'}`} />
+ <Users className={`h-3 w-3 mr-1 ${isAnalyticsError ? 'text-error' : 'text-indigo-500'}`} />
  <span className={activeUsersStatusClass}>{activeUsersStatus}</span>
  </div>
  </div>
@@ -235,7 +235,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  </div>
  <div className="flex justify-between">
  <span className="text-sm text-muted-foreground">Growth</span>
- <span className={`font-semibold ${weeklyGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+ <span className={`font-semibold ${weeklyGrowth >= 0 ? 'text-success' : 'text-error'}`}>
  {weeklyGrowth >= 0 ? '+' : ''}{weeklyGrowth}%
  </span>
  </div>

@@ -246,7 +246,7 @@ export function ApplicationsTable({
  ) : (
  totalCount > 0 && (
  <div className="flex items-center gap-2 text-sm text-muted-foreground">
- <CheckCircle className="h-4 w-4 text-green-500" />
+ <CheckCircle className="h-4 w-4 text-success" />
  All applications loaded
  </div>
  )
@@ -305,16 +305,16 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  }
 
  const getPointsColor = (points: number) => {
- if (points <= 15) return 'text-green-600' // Lower is better
- if (points <= 25) return 'text-yellow-600'
- return 'text-red-600'
+ if (points <= 15) return 'text-success' // Lower is better
+ if (points <= 25) return 'text-warning'
+ return 'text-error'
  }
 
  const documentsCount = [app.result_slip_url, app.extra_kyc_url, app.pop_url].filter(Boolean).length
 
  return (
  <div className={`relative bg-card rounded-xl border p-6 hover:shadow-lg transition-all duration-200 group ${
- isSelected ? 'border-blue-500 bg-blue-50' : 'border-border hover:border-input'
+ isSelected ? 'border-primary bg-blue-50' : 'border-border hover:border-input'
  }`}>
  {/* Selection Checkbox */}
  {onSelect && (

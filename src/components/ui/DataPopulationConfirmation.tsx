@@ -34,7 +34,7 @@ export function DataPopulationConfirmation({
       <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4">
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <CheckCircle className="h-6 w-6 text-green-500" />
+            <CheckCircle className="h-6 w-6 text-success" />
             <h3 className="text-lg font-semibold text-foreground">
               Auto-Fill Detected
             </h3>
@@ -57,7 +57,7 @@ export function DataPopulationConfirmation({
           <div className="flex space-x-3">
             <Button
               onClick={onConfirm}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1 bg-success hover:bg-success"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               Use This Data

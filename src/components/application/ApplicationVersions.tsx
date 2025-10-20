@@ -130,7 +130,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
               
               {loading ? (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 </div>
               ) : versions.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
@@ -144,7 +144,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                       key={version.id}
                       className={`p-3 rounded-lg border cursor-pointer transition-colors ${
                         selectedVersion?.id === version.id
-                          ? 'border-blue-600 bg-primary/5'
+                          ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-input'
                       }`}
                       onClick={() => setSelectedVersion(version)}

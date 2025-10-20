@@ -163,7 +163,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                 >
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start h-12 border-2 hover:border-blue-600 hover:bg-blue-600/5 transition-all duration-300"
+                    className="w-full justify-start h-12 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-300"
                   >
                     <Icon className="h-4 w-4 mr-3" />
                     <div className="text-left">

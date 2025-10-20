@@ -145,7 +145,7 @@ const ApplicationWizardContent = () => {
             <div className="flex items-center space-x-4">
               {isDraftSaving && (
                 <motion.div className="flex items-center space-x-2 text-sm text-primary" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
                   <span>Auto-saving...</span>
                 </motion.div>
               )}
@@ -179,9 +179,9 @@ const ApplicationWizardContent = () => {
                     <motion.div
                       className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all duration-300 ${
                         isCompleted
-                          ? 'bg-green-500 border-green-500 text-white shadow-lg'
+                          ? 'bg-success border-success text-white shadow-lg'
                           : isActive
-                          ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-110'
+                          ? 'bg-primary border-primary text-white shadow-lg scale-110'
                           : 'bg-card border-input text-muted-foreground'
                       }`}
                       whileHover={{ scale: 1.1 }}
@@ -189,7 +189,7 @@ const ApplicationWizardContent = () => {
                     >
                       {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                     </motion.div>
-                    <div className={`mt-2 text-xs font-medium text-center truncate max-w-[80px] ${isActive ? 'text-blue-600' : 'text-muted-foreground'}`}>
+                    <div className={`mt-2 text-xs font-medium text-center truncate max-w-[80px] ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                       {step.title}
                     </div>
                   </motion.div>
@@ -214,7 +214,7 @@ const ApplicationWizardContent = () => {
                   <button
                     type="button"
                     onClick={() => setError('')}
-                    className="text-xs text-destructive hover:text-red-500 underline"
+                    className="text-xs text-destructive hover:text-error underline"
                   >
                     Dismiss
                   </button>

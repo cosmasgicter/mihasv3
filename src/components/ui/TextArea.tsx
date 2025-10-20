@@ -17,14 +17,14 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
         {label && (
           <label htmlFor={finalId} className="block text-sm font-medium text-secondary mb-1">
             {label}
-            {props.required && <span className="text-red-500 ml-1">*</span>}
+            {props.required && <span className="text-error ml-1">*</span>}
           </label>
         )}
         <textarea
           id={finalId}
           className={cn(
-            'flex min-h-[80px] w-full rounded-md border border-secondary bg-card px-3 py-2 text-sm placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-red-500 focus:ring-red-500 focus:border-red-500',
+            'flex min-h-[80px] w-full rounded-md border border-secondary bg-card px-3 py-2 text-sm placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary disabled:cursor-not-allowed disabled:opacity-50',
+            error && 'border-error focus:ring-red-500 focus:border-error',
             className
           )}
           ref={ref}

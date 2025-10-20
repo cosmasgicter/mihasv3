@@ -125,7 +125,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   Email Confirmation
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
-                  <Mail className="h-4 w-4 text-green-500" />
+                  <Mail className="h-4 w-4 text-success" />
                   <span className="text-sm text-muted-foreground">Sent to {userEmail}</span>
                 </div>
               </div>

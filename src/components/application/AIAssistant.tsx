@@ -680,7 +680,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                   >
                     <div className={`max-w-[85%] rounded-2xl p-3 ${
                       message.type === 'user'
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-accent text-foreground'
                     }`}>
                       <div className="flex items-start space-x-2">
@@ -720,9 +720,9 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                     <div className="flex items-center space-x-2">
                       <Bot className="h-4 w-4 text-primary" />
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 bg-primary/80 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-primary/80 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-primary/80 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                       <span className="text-xs text-muted-foreground">AI is thinking...</span>
                     </div>

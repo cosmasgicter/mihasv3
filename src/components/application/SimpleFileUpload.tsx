@@ -283,8 +283,8 @@ export function SimpleFileUpload({
               isUploading_
                 ? 'border-border bg-muted cursor-not-allowed'
                 : dragActive
-                ? 'border-blue-600 bg-primary/5 cursor-pointer'
-                : 'border-input hover:border-blue-600 hover:bg-blue-600/5 cursor-pointer'
+                ? 'border-primary bg-primary/5 cursor-pointer'
+                : 'border-input hover:border-primary hover:bg-primary/5 cursor-pointer'
             )}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -321,11 +321,11 @@ export function SimpleFileUpload({
                 <>
                   <Upload className={cn(
                     'h-8 w-8 mx-auto',
-                    dragActive ? 'text-blue-600' : 'text-muted-foreground'
+                    dragActive ? 'text-primary' : 'text-muted-foreground'
                   )} />
                   <p className={cn(
                     'text-sm font-medium',
-                    dragActive ? 'text-blue-600' : 'text-muted-foreground'
+                    dragActive ? 'text-primary' : 'text-muted-foreground'
                   )}>
                     {dragActive ? 'Drop files here' : 'Click to upload or drag and drop'}
                   </p>
@@ -352,7 +352,7 @@ export function SimpleFileUpload({
             transition={{ duration: 0.3 }}
           >
             <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-error flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-destructive-foreground">Upload Error</p>
                 <p className="text-sm text-error mt-1">{displayError}</p>
@@ -410,14 +410,14 @@ export function SimpleFileUpload({
                     {isComplete ? (
                       <CheckCircle className="h-4 w-4 text-accent mr-2" />
                     ) : (
-                      <div className="h-4 w-4 mr-2 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      <div className="h-4 w-4 mr-2 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     )}
                     <span className={`text-sm font-medium ${
                       isComplete ? 'text-accent-foreground' : 'text-primary-foreground'
                     }`}>{fileName}</span>
                   </div>
                   <span className={`text-sm font-semibold ${
-                    isComplete ? 'text-green-600' : 'text-blue-600'
+                    isComplete ? 'text-success' : 'text-primary'
                   }`}>
                     {isComplete ? 'Complete!' : `${progress}%`}
                   </span>

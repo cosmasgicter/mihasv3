@@ -113,7 +113,7 @@ export default function RoleManagement() {
                         <button
                           onClick={() => updateRoleMutation.mutate({ userId: user.id, role: newRole })}
                           disabled={!newRole}
-                          className="px-3 py-1 bg-primary/5/300 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                          className="px-3 py-1 bg-primary/5/300 text-white rounded hover:bg-primary disabled:opacity-50"
                         >
                           Save
                         </button>

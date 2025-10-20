@@ -44,7 +44,7 @@ export function EnhancedInput({
         >
           {label}
           {required ? (
-            <span className="text-red-500 ml-1">*</span>
+            <span className="text-error ml-1">*</span>
           ) : showOptional ? (
             <span className="text-muted-foreground ml-1 font-normal">(optional)</span>
           ) : null}
@@ -66,7 +66,7 @@ export function EnhancedInput({
             'text-sm text-foreground placeholder-gray-500',
             'transition-colors duration-200',
             // Focus states
-            'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
+            'focus:border-primary focus:ring-2 focus:ring-blue-500/20',
             'focus:outline-none',
             // Mobile optimizations
             'min-h-[44px] px-3 py-2.5', // Ensure 44px touch target
@@ -75,9 +75,9 @@ export function EnhancedInput({
             leftIcon && 'pl-10',
             rightIcon && 'pr-10',
             // Error state
-            errorMessage && 'border-destructive/30 focus:border-red-500 focus:ring-red-500/20',
+            errorMessage && 'border-destructive/30 focus:border-error focus:ring-red-500/20',
             // Success state
-            success && 'border-green-300 focus:border-green-500 focus:ring-green-500/20',
+            success && 'border-green-300 focus:border-success focus:ring-green-500/20',
             // Disabled state
             'disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed',
             className
@@ -150,7 +150,7 @@ export function EnhancedTextarea({
           >
             {label}
             {required ? (
-              <span className="text-red-500 ml-1">*</span>
+              <span className="text-error ml-1">*</span>
             ) : showOptional ? (
               <span className="text-muted-foreground ml-1 font-normal">(optional)</span>
             ) : null}
@@ -159,7 +159,7 @@ export function EnhancedTextarea({
           {showCharCount && maxLength && (
             <span className={cn(
               'text-xs',
-              charCount > maxLength ? 'text-red-600' : 'text-muted-foreground'
+              charCount > maxLength ? 'text-error' : 'text-muted-foreground'
             )}>
               {charCount}/{maxLength}
             </span>
@@ -177,16 +177,16 @@ export function EnhancedTextarea({
           'text-sm text-foreground placeholder-gray-500',
           'transition-colors duration-200',
           // Focus states
-          'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
+          'focus:border-primary focus:ring-2 focus:ring-blue-500/20',
           'focus:outline-none',
           // Mobile optimizations
           'min-h-[88px] px-3 py-2.5', // Double height for textarea
           'text-base sm:text-sm', // Prevent zoom on iOS
           'resize-y', // Allow vertical resize only
           // Error state
-          errorMessage && 'border-destructive/30 focus:border-red-500 focus:ring-red-500/20',
+          errorMessage && 'border-destructive/30 focus:border-error focus:ring-red-500/20',
           // Success state
-          success && 'border-green-300 focus:border-green-500 focus:ring-green-500/20',
+          success && 'border-green-300 focus:border-success focus:ring-green-500/20',
           // Disabled state
           'disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed',
           className
@@ -256,7 +256,7 @@ export function EnhancedSelect({
         >
           {label}
           {required ? (
-            <span className="text-red-500 ml-1">*</span>
+            <span className="text-error ml-1">*</span>
           ) : showOptional ? (
             <span className="text-muted-foreground ml-1 font-normal">(optional)</span>
           ) : null}
@@ -271,7 +271,7 @@ export function EnhancedSelect({
           'text-sm text-foreground',
           'transition-colors duration-200',
           // Focus states
-          'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
+          'focus:border-primary focus:ring-2 focus:ring-blue-500/20',
           'focus:outline-none',
           // Mobile optimizations
           'min-h-[44px] px-3 py-2.5', // Ensure 44px touch target
@@ -281,9 +281,9 @@ export function EnhancedSelect({
           'bg-no-repeat bg-right bg-[length:16px_16px]',
           'pr-10', // Space for arrow
           // Error state
-          errorMessage && 'border-destructive/30 focus:border-red-500 focus:ring-red-500/20',
+          errorMessage && 'border-destructive/30 focus:border-error focus:ring-red-500/20',
           // Success state
-          success && 'border-green-300 focus:border-green-500 focus:ring-green-500/20',
+          success && 'border-green-300 focus:border-success focus:ring-green-500/20',
           // Disabled state
           'disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed',
           className

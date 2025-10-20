@@ -120,7 +120,7 @@ export default function EnhancedAdminDashboard() {
                   </p>
                   <div className="flex items-center space-x-4 mt-4 text-sm">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
+                      <div className="w-3 h-3 rounded-full bg-success/80 animate-pulse"></div>
                       <span>System Online</span>
                     </div>
                     <div className="flex items-center space-x-2">

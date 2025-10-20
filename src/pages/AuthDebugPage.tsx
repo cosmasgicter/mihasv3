@@ -90,7 +90,7 @@ export function AuthDebugPage() {
         <div className="bg-card p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Role Verification</h2>
           <div className="space-y-2">
-            <p><strong>Status:</strong> <span className={roleStatus === 'verified' ? 'text-green-600' : roleStatus === 'mismatch' ? 'text-red-600' : 'text-yellow-600'}>{roleStatus}</span></p>
+            <p><strong>Status:</strong> <span className={roleStatus === 'verified' ? 'text-success' : roleStatus === 'mismatch' ? 'text-error' : 'text-warning'}>{roleStatus}</span></p>
             <p><strong>Profile Role:</strong> {profileRole || 'N/A'}</p>
             <p><strong>Auth Role:</strong> {authRole || 'N/A'}</p>
             <p><strong>Is Admin:</strong> {isAdmin ? 'Yes' : 'No'}</p>
@@ -102,7 +102,7 @@ export function AuthDebugPage() {
           <h2 className="text-xl font-semibold mb-4">Supabase Session</h2>
           <button 
             onClick={checkSession}
-            className="mb-4 px-4 py-2 bg-primary/5/300 text-white rounded hover:bg-blue-600"
+            className="mb-4 px-4 py-2 bg-primary/5/300 text-white rounded hover:bg-primary"
           >
             Refresh Session Info
           </button>
@@ -116,7 +116,7 @@ export function AuthDebugPage() {
           <h2 className="text-xl font-semibold mb-4">LocalStorage Keys</h2>
           <button 
             onClick={checkStorage}
-            className="mb-4 px-4 py-2 bg-accent/10/300 text-white rounded hover:bg-green-600"
+            className="mb-4 px-4 py-2 bg-accent/10/300 text-white rounded hover:bg-success"
           >
             Refresh Storage Info
           </button>
@@ -130,7 +130,7 @@ export function AuthDebugPage() {
           <h2 className="text-xl font-semibold mb-4">Test Auth Refresh</h2>
           <button 
             onClick={testRefresh}
-            className="mb-4 px-4 py-2 bg-secondary/5/300 text-white rounded hover:bg-purple-600"
+            className="mb-4 px-4 py-2 bg-secondary/5/300 text-white rounded hover:bg-secondary"
           >
             Test Refresh
           </button>
@@ -147,13 +147,13 @@ export function AuthDebugPage() {
           <div className="space-x-4">
             <button 
               onClick={clearAll}
-              className="px-4 py-2 bg-destructive/5/300 text-white rounded hover:bg-red-600"
+              className="px-4 py-2 bg-destructive/5/300 text-white rounded hover:bg-error"
             >
               Clear All Auth Data
             </button>
             <a 
               href="/auth/signin"
-              className="inline-block px-4 py-2 bg-primary/5/300 text-white rounded hover:bg-blue-600"
+              className="inline-block px-4 py-2 bg-primary/5/300 text-white rounded hover:bg-primary"
             >
               Go to Sign In
             </a>

@@ -18,11 +18,11 @@ const sizeClasses = {
 }
 
 const colorClasses = {
-  primary: 'text-blue-600',
+  primary: 'text-primary',
   secondary: 'text-muted-foreground',
-  success: 'text-green-600',
-  warning: 'text-yellow-600',
-  error: 'text-red-600'
+  success: 'text-success',
+  warning: 'text-warning',
+  error: 'text-error'
 }
 
 export function EnhancedLoadingSpinner({ 
@@ -192,7 +192,7 @@ export function LoadingButton({
           'h-10 px-4': size === 'md', 
           'h-12 px-6 text-lg': size === 'lg'
         },
-        'bg-blue-600 text-foreground hover:bg-blue-700 focus-visible:ring-blue-500',
+        'bg-primary text-foreground hover:bg-primary focus-visible:ring-blue-500',
         className
       )}
     >

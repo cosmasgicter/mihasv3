@@ -82,7 +82,7 @@ export default function StudentSettings() {
         <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header - Mobile First */}
         <div className="mb-6 sm:mb-8">
-          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-blue-600/80 mb-4 font-medium transition-colors">
+          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4 font-medium transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
@@ -125,7 +125,7 @@ export default function StudentSettings() {
                 <div className="text-accent font-medium">{success}</div>
                 <button
                   onClick={() => window.location.href = '/auth/signin'}
-                  className="mt-2 text-sm text-accent underline hover:text-green-700"
+                  className="mt-2 text-sm text-accent underline hover:text-success"
                 >
                   Sign out now
                 </button>
@@ -204,7 +204,7 @@ export default function StudentSettings() {
                 </label>
                 <select
                   {...register('sex')}
-                  className="form-input-mobile w-full rounded-xl border-2 border-border bg-card px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600"
+                  className="form-input-mobile w-full rounded-xl border-2 border-border bg-card px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
                 >
                   <option value="">Select Sex</option>
                   <option value="Male">Male</option>
@@ -253,7 +253,7 @@ export default function StudentSettings() {
                   {...register('address')}
                   rows={4}
                   placeholder="House number, street, area"
-                  className="w-full rounded-xl border-2 border-border px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 resize-none"
+                  className="w-full rounded-xl border-2 border-border px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary resize-none"
                 />
                 {errors.address && (
                   <p className="mt-2 text-sm text-destructive bg-destructive/5/30 px-3 py-1 rounded-lg">{errors.address.message}</p>

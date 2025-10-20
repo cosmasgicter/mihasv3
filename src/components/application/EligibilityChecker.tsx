@@ -73,11 +73,11 @@ export function EligibilityChecker({
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return 'text-red-600 bg-red-50'
+        return 'text-error bg-red-50'
       case 'major':
         return 'text-orange-600 bg-orange-50'
       case 'minor':
-        return 'text-yellow-600 bg-yellow-50'
+        return 'text-warning bg-yellow-50'
       default:
         return 'text-muted-foreground bg-muted'
     }

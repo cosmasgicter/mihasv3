@@ -124,7 +124,7 @@ export function EnhancedDashboard({
             </div>
             <div className="text-sm font-medium text-muted-foreground">Approval Rate</div>
             <div className="flex items-center mt-2 text-xs">
-              <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+              <TrendingUp className="h-3 w-3 text-success mr-1" />
               <span className="text-accent">Stable performance</span>
             </div>
           </div>
@@ -149,7 +149,7 @@ export function EnhancedDashboard({
             </div>
             <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
             <div className="flex items-center mt-2 text-xs">
-              <ArrowDown className="h-3 w-3 text-green-500 mr-1" />
+              <ArrowDown className="h-3 w-3 text-success mr-1" />
               <span className="text-accent">Improved by 15%</span>
             </div>
           </div>
@@ -187,9 +187,9 @@ export function EnhancedDashboard({
                 className="flex items-start space-x-3 p-3 bg-muted rounded-lg hover:bg-accent transition-colors"
               >
                 <div className={`w-2 h-2 rounded-full mt-2 ${
-                  activity.type === 'approval' ? 'bg-green-500' :
-                  activity.type === 'rejection' ? 'bg-red-500' :
-                  'bg-blue-500'
+                  activity.type === 'approval' ? 'bg-success' :
+                  activity.type === 'rejection' ? 'bg-error' :
+                  'bg-primary'
                 }`}></div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{activity.message}</p>
@@ -222,7 +222,7 @@ export function EnhancedDashboard({
                 <span className="text-sm font-medium text-foreground">Database</span>
               </div>
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
-                systemHealth?.database === 'healthy' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                systemHealth?.database === 'healthy' ? 'bg-success text-white' : 'bg-error text-white'
               }`}>
                 {systemHealth?.database === 'healthy' ? '✓ Healthy' : '✗ Error'}
               </span>
