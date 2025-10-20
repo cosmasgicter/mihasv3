@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
 import { ToastContainer } from '@/components/ui/Toast'
+import { useWebVitals } from '@/hooks/useWebVitals'
 
 import { AppLayout } from '@/components/navigation/AppLayout'
 import { UserMenu } from '@/components/ui/UserMenu'
@@ -68,7 +69,7 @@ const renderRoute = (route: RouteConfig) => {
 
 function App() {
   const [isLoading, setIsLoading] = useState(true)
-
+  useWebVitals()
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2000)

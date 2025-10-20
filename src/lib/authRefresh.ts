@@ -34,7 +34,6 @@ export async function refreshAuthSession() {
     
     if (sessionError) {
       logger.error('[AuthRefresh] Session error:', sessionError)
-      clearStaleSession()
       return { success: false, error: sessionError.message }
     }
     
@@ -46,7 +45,6 @@ export async function refreshAuthSession() {
     // Validate session has required fields
     if (!session.access_token || !session.user) {
       logger.error('Invalid session structure')
-      clearStaleSession()
       return { success: false, error: 'Invalid session' }
     }
     
@@ -62,7 +60,6 @@ export async function refreshAuthSession() {
       
       if (refreshError) {
         logger.error('Token refresh failed:', refreshError)
-        clearStaleSession()
         return { success: false, error: refreshError.message }
       }
       
@@ -71,14 +68,12 @@ export async function refreshAuthSession() {
         return { success: true, session: refreshData.session }
       }
       
-      clearStaleSession()
       return { success: false, error: 'Refresh returned no session' }
     }
     
     return { success: true, session }
   } catch (error) {
     logger.error('Auth refresh error:', error)
-    clearStaleSession()
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -90,7 +85,6 @@ export async function ensureValidSession() {
   const result = await refreshAuthSession()
   
   if (!result.success) {
-    clearStaleSession()
     throw new Error(result.error || 'Authentication required')
   }
   

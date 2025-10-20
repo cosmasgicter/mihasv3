@@ -149,7 +149,7 @@ export function createSupabaseClient(options: SupabaseFactoryOptions = {}): Supa
         detectSessionInUrl: false,
         storage,
         storageKey: AUTH_STORAGE_KEY,
-        debug: false
+        debug: true
       },
       realtime: {
         params: {

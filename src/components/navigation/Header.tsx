@@ -2,6 +2,7 @@ import React from 'react'
 import { Bell, User } from 'lucide-react'
 import { UserMenu } from '@/components/ui/UserMenu'
 import { NotificationBell } from '@/components/student/NotificationBell'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useSidebar } from '@/contexts/SidebarContext'
@@ -47,6 +48,7 @@ export const Header = React.memo(function Header() {
 
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           {!isAdmin && <NotificationBell />}
+          <ThemeToggle />
           <UserMenu />
         </div>
       </div>
