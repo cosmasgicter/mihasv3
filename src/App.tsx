@@ -83,7 +83,7 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-            <ToastProvider>
+            <ToastContainer />
             <Router>
               <AnalyticsTracker>
                 <SessionMonitor />
@@ -105,7 +105,6 @@ function App() {
                 </SimpleErrorBoundary>
               </AnalyticsTracker>
             </Router>
-            </ToastProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
