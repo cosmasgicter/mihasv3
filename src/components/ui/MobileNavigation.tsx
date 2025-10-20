@@ -93,7 +93,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
         to: dashboardPath,
         label: dashboardLabel,
         variant: 'accent',
-        icon: <LayoutDashboard className="w-5 h-5 mr-3 text-card" />
+        icon: <LayoutDashboard className="w-5 h-5 mr-3 text-white" />
       })
     }
 
