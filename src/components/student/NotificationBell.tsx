@@ -103,7 +103,7 @@ export function NotificationBell() {
               <div className="p-4 border-b border-border bg-gradient-to-r from-blue-50 to-purple-50">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-foreground"><Bell className="w-5 h-5" /> Notifications</h3>
+                    <h3 className="font-bold text-foreground flex items-center gap-2"><Bell className="w-5 h-5" /> Notifications</h3>
                     <p className="text-xs text-muted-foreground">
                       {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up!'}
                     </p>
@@ -137,13 +137,13 @@ export function NotificationBell() {
                 {loading ? (
                   <div className="p-6 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-muted-foreground text-sm mt-2">Loading notifications...</p>
+                    <p className="text-foreground text-sm mt-2">Loading notifications...</p>
                   </div>
                 ) : notifications.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
+                  <div className="p-8 text-center">
                     <Bell className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                    <p className="font-medium">No notifications yet</p>
-                    <p className="text-xs mt-1">We'll notify you about important updates</p>
+                    <p className="font-medium text-foreground">No notifications yet</p>
+                    <p className="text-xs mt-1 text-muted-foreground">We'll notify you about important updates</p>
                   </div>
                 ) : (
                   <div className="p-2 space-y-2">
@@ -169,7 +169,7 @@ export function NotificationBell() {
                                 <p className={`font-medium text-sm ${!notification.read ? 'text-foreground' : 'text-foreground'}`}>
                                   {sanitizeText(notification.title)}
                                 </p>
-                                <p className={`text-xs mt-1 ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                <p className="text-xs mt-1 text-foreground">
                                   {sanitizeText(notification.content)}
                                 </p>
                                 <div className="flex items-center justify-between mt-2">
@@ -208,7 +208,7 @@ export function NotificationBell() {
               {/* Footer */}
               {notifications.length > 0 && (
                 <div className="p-3 border-t border-border bg-muted">
-                  <p className="text-xs text-muted-foreground text-center">
+                  <p className="text-xs text-foreground text-center flex items-center justify-center gap-1">
                     <Lightbulb className="w-5 h-5" /> Click notifications to mark as read
                   </p>
                 </div>
