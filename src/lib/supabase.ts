@@ -147,7 +147,6 @@ export function createSupabaseClient(options: SupabaseFactoryOptions = {}): Supa
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: false,
-        flowType: 'pkce',
         storage,
         storageKey: AUTH_STORAGE_KEY,
         debug: false
@@ -173,19 +172,7 @@ export function createSupabaseClient(options: SupabaseFactoryOptions = {}): Supa
             return Promise.reject(new Error('Realtime disabled in development'))
           }
           
-          // Longer timeout for auth requests
-          const isAuthRequest = sanitizedUrl.includes('/auth/') || sanitizedUrl.includes('/token')
-          const timeout = isAuthRequest ? 30000 : 8000
-
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), timeout)
-
-          return fetch(sanitizedUrl, {
-            ...options,
-            signal: controller.signal
-          }).finally(() => {
-            clearTimeout(timeoutId)
-          })
+          return fetch(sanitizedUrl, options)
         }
       }
     })
