@@ -47,9 +47,9 @@ export class AuthSecurityManager {
 
       // Check if user profile exists and is active
       const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('id, role, created_at')
-        .eq('user_id', user.user.id)
+        .eq('id', user.user.id)
         .single()
 
       if (profileError) {
@@ -85,7 +85,7 @@ export class AuthSecurityManager {
       const { data: userRole, error } = await supabase
         .from('user_roles')
         .select('role, is_active')
-        .eq('user_id', authResult.user.id)
+        .eq('id', authResult.user.id)
         .eq('is_active', true)
         .single()
 
@@ -206,7 +206,7 @@ export class AuthSecurityManager {
         await supabase
           .from('device_sessions')
           .update({ is_active: false })
-          .eq('user_id', userId)
+          .eq('id', userId)
       }
 
       // Sign out from Supabase

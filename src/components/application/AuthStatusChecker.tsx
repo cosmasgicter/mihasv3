@@ -43,7 +43,7 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
         try {
           // Test with a simple authenticated query
           const { error: testError } = await supabase
-            .from('user_profiles')
+            .from('profiles')
             .select('id')
             .limit(1)
           

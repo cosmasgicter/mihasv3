@@ -212,7 +212,7 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
       const { data: existingConversation } = await supabase
         .from('ai_conversations')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('id', user?.id)
         .eq('application_id', applicationData.id)
         .order('updated_at', { ascending: false })
         .limit(1)

@@ -181,7 +181,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
           try {
             // Check for existing user
             const { data: existingUser } = await supabase
-              .from('user_profiles')
+              .from('profiles')
               .select('email')
               .eq('email', userData.email)
               .single()
@@ -209,7 +209,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
 
             // Create user profile
             const { error: profileError } = await supabase
-              .from('user_profiles')
+              .from('profiles')
               .insert({
                 user_id: authData.user.id,
                 full_name: userData.full_name,

@@ -23,9 +23,9 @@ export class AdminNotificationService {
 
       // Then fetch user by application.user_id
       const { data: user, error: userError } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('full_name, email')
-        .eq('user_id', application.user_id)
+        .eq('id', application.user_id)
         .single()
 
       if (userError || !user) {
@@ -92,7 +92,7 @@ export class AdminNotificationService {
     targetRole: 'student' | 'all' = 'student'
   ): Promise<BroadcastResult> {
     try {
-      let query = supabase.from('user_profiles').select('user_id')
+      let query = supabase.from('profiles').select('user_id')
       
       if (targetRole === 'student') {
         query = query.eq('role', 'student')

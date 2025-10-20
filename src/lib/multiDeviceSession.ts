@@ -54,7 +54,7 @@ class MultiDeviceSessionManager {
       await supabase
         .from('device_sessions')
         .delete()
-        .eq('user_id', userId)
+        .eq('id', userId)
         .lt('last_activity', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
     } catch (error) {
       console.error('Failed to register session:', error)
@@ -69,7 +69,7 @@ class MultiDeviceSessionManager {
           last_activity: new Date().toISOString(),
           is_active: true
         })
-        .eq('user_id', userId)
+        .eq('id', userId)
         .eq('device_id', this.deviceId)
     } catch (error) {
       console.error('Failed to update activity:', error)
@@ -81,7 +81,7 @@ class MultiDeviceSessionManager {
       const query = supabase
         .from('device_sessions')
         .update({ is_active: false })
-        .eq('user_id', userId)
+        .eq('id', userId)
 
       if (deviceId) {
         query.eq('device_id', deviceId)
@@ -103,7 +103,7 @@ class MultiDeviceSessionManager {
       const { data: sessions, error } = await supabase
         .from('device_sessions')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .eq('is_active', true)
         .order('last_activity', { ascending: false })
 
@@ -145,7 +145,7 @@ class MultiDeviceSessionManager {
       const { data, error } = await supabase
         .from('device_sessions')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .eq('is_active', true)
         .order('last_activity', { ascending: false })
 

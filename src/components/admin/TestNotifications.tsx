@@ -16,7 +16,7 @@ export function TestNotifications() {
     try {
       // Get a test user
       const { data: users } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('user_id, full_name, email')
         .eq('role', 'student')
         .limit(1)
@@ -69,9 +69,9 @@ export function TestNotifications() {
       
       // Get user details
       const { data: user } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('full_name, email')
-        .eq('user_id', testApp.user_id)
+        .eq('id', testApp.user_id)
         .single()
 
       if (!user) {

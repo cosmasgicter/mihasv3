@@ -55,7 +55,7 @@ export function useWizardSubmit() {
           submitted_at: new Date().toISOString()
         })
         .eq('id', applicationId)
-        .eq('user_id', user.id) // Ensure user can only update their own application
+        .eq('id', user.id) // Ensure user can only update their own application
       
       if (updateError) {
         throw new Error(updateError.message)

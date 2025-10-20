@@ -57,7 +57,7 @@ export function useApplicationSubmitFixed() {
         .from('applications')
         .update(updateData)
         .eq('id', applicationId)
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .select()
         .single()
       

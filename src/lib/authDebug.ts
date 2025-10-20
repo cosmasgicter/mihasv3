@@ -13,9 +13,9 @@ export async function debugAuthState() {
     
     // Check user profile
     const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .maybeSingle()
     
     
@@ -23,7 +23,7 @@ export async function debugAuthState() {
     const { data: role, error: roleError } = await supabase
       .from('user_roles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .eq('is_active', true)
       .maybeSingle()
     
