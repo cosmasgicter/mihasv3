@@ -119,7 +119,7 @@ export default function RoleManagement() {
                         </button>
                         <button
                           onClick={() => setSelectedUser(null)}
-                          className="px-3 py-1 bg-muted text-foreground rounded hover:bg-gray-400"
+                          className="px-3 py-1 bg-muted text-foreground rounded hover:bg-muted"
                         >
                           Cancel
                         </button>

@@ -94,7 +94,7 @@ export function Modal({
               )}
 
               {/* Content */}
-              <div className="p-4 md:p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="p-4 md:p-6 max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden">
                 {children}
               </div>
             </motion.div>

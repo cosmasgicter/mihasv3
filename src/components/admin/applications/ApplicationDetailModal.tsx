@@ -693,25 +693,25 @@ export function ApplicationDetailModal({
  }
 
  return (
- <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-[60]">
- <div className="bg-card w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col">
+ <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
+ <div className="bg-card w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full">
  {/* Header */}
- <div className="flex-shrink-0 p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-4">
- <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
- <User className="h-6 w-6 text-white" />
+ <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
+ <div className="flex items-center justify-between gap-2">
+ <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+ <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+ <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
  </div>
- <div>
- <h2 className="text-xl font-bold text-foreground">
+ <div className="min-w-0 flex-1">
+ <h2 className="text-base sm:text-xl font-bold text-foreground truncate" title={application.full_name}>
  {application.full_name}
  </h2>
- <div className="flex items-center gap-3 text-sm text-muted-foreground">
- <span className="font-mono">#{application.application_number}</span>
- <span className="text-muted-foreground">•</span>
+ <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground flex-wrap">
+ <span className="font-mono truncate">#{application.application_number}</span>
+ <span className="text-muted-foreground hidden sm:inline">•</span>
  <div className="flex items-center gap-1">
  {getStatusIcon(application.status)}
- <span className="capitalize">{application.status.replace('_', ' ')}</span>
+ <span className="capitalize truncate">{application.status.replace('_', ' ')}</span>
  </div>
  </div>
  </div>
@@ -728,22 +728,22 @@ export function ApplicationDetailModal({
  </div>
 
  {/* Tabs */}
- <div className="flex-shrink-0 border-b border-border bg-card">
- <div className="flex px-6">
+ <div className="flex-shrink-0 border-b border-border bg-card overflow-x-auto">
+ <div className="flex px-2 sm:px-6 min-w-max">
  {tabs.map((tab) => {
  const Icon = tab.icon
  return (
  <button
  key={tab.id}
  onClick={() => setActiveTab(tab.id)}
- className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+ className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
  activeTab === tab.id
  ? 'border-primary text-primary'
  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-input'
  }`}
  >
- <Icon className="h-4 w-4" />
- {tab.label}
+ <Icon className="h-4 w-4 flex-shrink-0" />
+ <span className="hidden sm:inline">{tab.label}</span>
  </button>
  )
  })}
@@ -751,7 +751,7 @@ export function ApplicationDetailModal({
  </div>
  {/* Content */}
  <div className="flex-1 overflow-y-auto">
- <div className="p-6">
+ <div className="p-4 sm:p-6">
  {loading ? (
  <div className="flex items-center justify-center py-12">
  <div className="text-center">
@@ -1175,8 +1175,8 @@ export function ApplicationDetailModal({
  </div>
  </div>
  {/* Footer Actions */}
- <div className="flex-shrink-0 p-6 border-t border-border bg-muted">
- <div className="flex flex-col sm:flex-row justify-between gap-4">
+ <div className="flex-shrink-0 p-4 sm:p-6 border-t border-border bg-muted">
+ <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
  <div className="flex flex-wrap gap-2">
  <Button
  variant="outline"
