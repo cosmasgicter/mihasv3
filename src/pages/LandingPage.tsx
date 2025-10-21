@@ -50,11 +50,11 @@ export default function LandingPageNew() {
  }
  }, [user, loading, navigate])
 
- const heroFloatingCount = isMobile ? 16 : 30
- const statsFloatingCount = isMobile ? 5 : 10
- const programsFloatingCount = isMobile ? 8 : 15
- const ctaFloatingCount = isMobile ? 12 : 25
- const footerFloatingCount = isMobile ? 4 : 8
+ const heroFloatingCount = isMobile ? 20 : 40
+ const statsFloatingCount = isMobile ? 8 : 15
+ const programsFloatingCount = isMobile ? 12 : 20
+ const ctaFloatingCount = isMobile ? 15 : 30
+ const footerFloatingCount = isMobile ? 6 : 12
 
  useEffect(() => {
  // Defer animations to improve LCP
@@ -104,10 +104,10 @@ export default function LandingPageNew() {
  }
 
  const stats = [
- { number: "300+", label: "Graduates Employed", delay: 0.1 },
- { number: "92%", label: "Job Placement Rate", delay: 0.2 },
- { number: "6+", label: "Years Training Healthcare Workers", delay: 0.3 },
- { number: "25+", label: "Employer Partners Hiring Our Graduates", delay: 0.4 }
+ { number: "300+", label: "Graduates Employed", delay: 0.05 },
+ { number: "92%", label: "Job Placement Rate", delay: 0.1 },
+ { number: "6+", label: "Years Training Healthcare Workers", delay: 0.15 },
+ { number: "25+", label: "Employer Partners Hiring Our Graduates", delay: 0.2 }
  ]
 
  const features = [
@@ -198,6 +198,9 @@ export default function LandingPageNew() {
  )}
 
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  ref={heroRef}
  className="relative z-10 content-wrapper text-center text-white"
  variants={shouldReduceMotion ? undefined : containerVariants}
@@ -210,8 +213,8 @@ export default function LandingPageNew() {
  <TypewriterText
  text="Your Future Starts Here"
  className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-6 px-4 text-center"
- delay={1000}
- speed={100}
+ delay={300}
+ speed={50}
  />
  </Suspense>
  ) : (
@@ -227,6 +230,9 @@ export default function LandingPageNew() {
  </motion.p>
  
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  variants={shouldReduceMotion ? undefined : itemVariants}
  className={`flex ${isMobile ? 'flex-col px-4' : 'flex-col sm:flex-row'} gap-4 sm:gap-6 justify-center items-center`}
  >
@@ -250,6 +256,9 @@ export default function LandingPageNew() {
 
  {/* Scroll Indicator */}
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="absolute bottom-8 left-1/2 transform -translate-x-1/2 cursor-pointer"
  animate={maybeMotion({ y: [0, 10, 0] })}
  transition={maybeMotion({ duration: 2, repeat: Infinity })}
@@ -257,6 +266,9 @@ export default function LandingPageNew() {
  >
  <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-border transition-colors">
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="w-1 h-3 bg-card rounded-full mt-2"
  animate={maybeMotion({ y: [0, 12, 0] })}
  transition={maybeMotion({ duration: 2, repeat: Infinity })}
@@ -277,6 +289,9 @@ export default function LandingPageNew() {
  </Suspense>
  )}
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  ref={statsRef}
  className="content-wrapper"
  variants={shouldReduceMotion ? undefined : containerVariants}
@@ -286,12 +301,18 @@ export default function LandingPageNew() {
  <div className={`grid ${isMobile ? 'grid-cols-1 gap-6 px-4' : 'grid-cols-2 md:grid-cols-4 gap-8'}`}>
  {stats.map((stat, index) => (
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  key={index}
  variants={shouldReduceMotion ? undefined : itemVariants}
  className="text-center"
  style={{ transitionDelay: `${stat.delay}s` }}
  >
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="text-3xl sm:text-4xl md:text-5xl font-bold gradient-text mb-2"
  initial={maybeMotion({ scale: 0 })}
  animate={maybeMotion(statsInView ? { scale: 1 } : { scale: 0 })}
@@ -315,6 +336,9 @@ export default function LandingPageNew() {
  )}
  <div className="content-wrapper">
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="text-center mb-16"
  initial={maybeMotion({ opacity: 0, y: 50 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
@@ -341,6 +365,9 @@ export default function LandingPageNew() {
  className="text-center group"
  >
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className={`bg-gradient-to-br ${feature.gradient} w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg`}
  whileHover={maybeMotion({ scale: 1.1, rotate: 5 })}
  transition={maybeMotion({ type: "spring", stiffness: 300 })}
@@ -372,6 +399,9 @@ export default function LandingPageNew() {
  <section className="py-16 bg-card relative transition-colors duration-500">
  <div className="content-wrapper">
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="text-center mb-12"
  initial={maybeMotion({ opacity: 0, y: 30 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
@@ -388,6 +418,9 @@ export default function LandingPageNew() {
  
  <div className={`grid ${isMobile ? 'grid-cols-1 gap-6 px-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8'} items-stretch`}>
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="bg-card rounded-lg shadow-lg p-6 text-center border border-border h-full flex flex-col justify-between"
  initial={maybeMotion({ opacity: 0, y: 30 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
@@ -415,6 +448,9 @@ export default function LandingPageNew() {
  </motion.div>
  
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="bg-card rounded-lg shadow-lg p-6 text-center border border-border h-full flex flex-col justify-between"
  initial={maybeMotion({ opacity: 0, y: 30 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
@@ -442,6 +478,9 @@ export default function LandingPageNew() {
  </motion.div>
  
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="bg-card rounded-lg shadow-lg p-6 text-center border border-border h-full flex flex-col justify-between"
  initial={maybeMotion({ opacity: 0, y: 30 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
@@ -469,6 +508,9 @@ export default function LandingPageNew() {
  </motion.div>
  
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="bg-card rounded-lg shadow-lg p-6 text-center border border-border h-full flex flex-col justify-between"
  initial={maybeMotion({ opacity: 0, y: 30 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
@@ -510,6 +552,9 @@ export default function LandingPageNew() {
  )}
  <div className="content-wrapper">
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="text-center mb-16"
  initial={maybeMotion({ opacity: 0, y: 50 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
@@ -552,12 +597,18 @@ export default function LandingPageNew() {
  </motion.picture>
  <div className="absolute top-4 right-4 space-y-2">
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
  whileHover={maybeMotion({ scale: 1.1 })}
  >
  {program.highlight}
  </motion.div>
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="bg-success text-white px-3 py-1 rounded-full text-xs font-semibold"
  whileHover={maybeMotion({ scale: 1.1 })}
  >
@@ -571,6 +622,9 @@ export default function LandingPageNew() {
  <div className="space-y-3">
  {program.courses.map((course, courseIndex) => (
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  key={courseIndex}
  className="flex items-center space-x-3"
  initial={maybeMotion({ opacity: 0, x: -20 })}
@@ -640,6 +694,9 @@ export default function LandingPageNew() {
  )}
 
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="relative z-10 content-wrapper text-center text-white"
  initial={maybeMotion({ opacity: 0, scale: 0.9 })}
  whileInView={maybeMotion({ opacity: 1, scale: 1 })}
@@ -661,6 +718,9 @@ export default function LandingPageNew() {
  Applications open now! Join 300+ graduates working in hospitals, clinics, and health organizations across Zambia and beyond
  </motion.p>
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  whileHover={maybeMotion({ scale: 1.05 })}
  whileTap={maybeMotion({ scale: 0.95 })}
  >
@@ -687,6 +747,9 @@ export default function LandingPageNew() {
  )}
  <div className="content-wrapper">
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="grid md:grid-cols-3 gap-12"
  variants={shouldReduceMotion ? undefined : containerVariants}
  initial={shouldReduceMotion ? undefined : 'hidden'}
@@ -695,6 +758,9 @@ export default function LandingPageNew() {
  >
  <motion.div variants={shouldReduceMotion ? undefined : itemVariants}>
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="flex items-center space-x-2 mb-6"
  whileHover={maybeMotion({ scale: 1.05 })}
  >
@@ -702,7 +768,7 @@ export default function LandingPageNew() {
  <span className="text-2xl font-bold gradient-text">MIHAS-KATC</span>
  </motion.div>
  <h3 className="text-xl font-semibold mb-4">Apply Today - Contact Us</h3>
- <div className="space-y-2 text-foreground">
+ <div className="space-y-2 text-white/90">
  <p><strong>Location:</strong> Mukuba University Campus, Kitwe, Copperbelt Province, Zambia</p>
  <p><strong>Applications:</strong> Open for Zambian & International Students</p>
  <p><strong>KATC:</strong> +260 966 992 299</p>
@@ -728,7 +794,7 @@ export default function LandingPageNew() {
  viewport={shouldReduceMotion ? undefined : { once: true }}
  transition={maybeMotion({ delay: index * 0.1 })}
  >
- <Link to={link.href} className="text-foreground hover:text-primary transition-colors duration-300 flex items-center group">
+ <Link to={link.href} className="text-white/90 hover:text-primary transition-colors duration-300 flex items-center group">
  <ArrowRight className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
  {link.name}
  </Link>
@@ -744,7 +810,7 @@ export default function LandingPageNew() {
  <motion.a
  key={social}
  href="#"
- className="text-foreground hover:text-primary transition-colors duration-300 px-4 py-2 rounded-lg hover:bg-primary/5/300/10"
+ className="text-white/90 hover:text-primary transition-colors duration-300 px-4 py-2 rounded-lg hover:bg-white/10"
  whileHover={maybeMotion({ scale: 1.1 })}
  whileTap={maybeMotion({ scale: 0.9 })}
  initial={maybeMotion({ opacity: 0, y: 20 })}
@@ -760,13 +826,16 @@ export default function LandingPageNew() {
  </motion.div>
  
  <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to next section"
  className="border-t border-border mt-12 pt-8 text-center"
  initial={maybeMotion({ opacity: 0, y: 20 })}
  whileInView={maybeMotion({ opacity: 1, y: 0 })}
  viewport={shouldReduceMotion ? undefined : { once: true }}
  >
- <p className="text-foreground mb-2">&copy; 2025 MIHAS-KATC. All rights reserved.</p>
- <p className="text-muted-foreground">
+ <p className="text-white/90 mb-2">&copy; 2025 MIHAS-KATC. All rights reserved.</p>
+ <p className="text-white/70">
  Developed with ❤️ by{' '}
  <motion.a
  href="https://beanola.com"
