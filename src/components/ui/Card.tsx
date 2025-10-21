@@ -1,16 +1,22 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
-import { cardVariants } from '@/design-system/variants'
 
-type CardProps = React.HTMLAttributes<HTMLDivElement> & 
-  VariantProps<typeof cardVariants> & {
-    hover?: boolean
-  }
+type CardProps = React.HTMLAttributes<HTMLDivElement> & {
+  variant?: 'default' | 'elevated' | 'gradient' | 'interactive'
+  hover?: boolean
+}
 
 export function Card({ className, variant = 'default', hover = false, ...props }: CardProps) {
-  const baseClasses = cn(cardVariants({ variant }), className)
+  const baseClasses = cn(
+    'rounded-lg bg-card shadow-sm transition-all duration-200',
+    variant === 'gradient' && 'border border-transparent bg-gradient-to-br from-card via-card to-primary/5',
+    variant === 'elevated' && 'shadow-lg',
+    variant === 'interactive' && 'cursor-pointer hover:shadow-md',
+    variant === 'default' && 'border border-border',
+    hover && 'hover:shadow-lg hover:shadow-blue-500/10',
+    className
+  )
 
   if (hover) {
     return (
