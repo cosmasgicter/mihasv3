@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { connectionManager } from '@/lib/connectionFix'
 
-import { toast } from '@/lib/toast'
+import { useToastStore } from '@/components/ui/Toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { applicationsData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
@@ -134,10 +134,10 @@ const useWizardController = (): UseWizardControllerResult => {
   const location = useLocation()
   const { user, loading: authLoading } = useAuth()
   const { profile } = useProfileQuery()
-  const showError = (message: string) => toast.error(message)
-  const showWarning = (message: string) => toast.warning(message)
-  const showSuccess = (title: string, message?: string) => toast.success(message || title)
-  const showInfo = (title: string, message?: string) => toast.info(message || title)
+  const showError = (message: string) => useToastStore.getState().addToast('error', message)
+  const showWarning = (message: string) => useToastStore.getState().addToast('info', message)
+  const showSuccess = (title: string, message?: string) => useToastStore.getState().addToast('success', message || title)
+  const showInfo = (title: string, message?: string) => useToastStore.getState().addToast('info', message || title)
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -1103,7 +1103,7 @@ const useWizardController = (): UseWizardControllerResult => {
       }
 
       logger.info('[handleSubmitApplication] Submission successful!')
-      toast.success('Application submitted successfully!')
+      useToastStore.getState().addToast('success', 'Application submitted successfully!')
       setSuccess(true)
     } catch (error) {
       console.error('Submission error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
