@@ -1,11 +1,8 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
-import { inputVariants } from '@/design-system/variants'
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement>,
-  VariantProps<typeof inputVariants> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
   helperText?: string
@@ -13,7 +10,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement>,
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant = 'default', label, error, helperText, icon, type = 'text', ...props }, ref) => {
+  ({ className, label, error, helperText, icon, type = 'text', ...props }, ref) => {
     const [isFocused, setIsFocused] = React.useState(false)
 
     return (
@@ -32,7 +29,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             type={type}
             className={cn(
-              inputVariants({ variant }),
+              'w-full h-10 px-3 rounded-lg touch-target',
+              'bg-background',
+              'border border-input',
+              'text-foreground',
+              'placeholder:text-foreground',
+              'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
+              'transition-all duration-200',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
               error && 'border-error focus:ring-red-500 focus:ring-red-400',
               icon && 'pl-10',
               className
