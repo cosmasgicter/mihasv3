@@ -510,7 +510,7 @@ export default function AuditTrailPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-secondary uppercase tracking-wide">Page {response?.page || 1}</p>
-                <p className="text-2xl font-bold text-secondary-foreground">of {response?.totalPages || 1}</p>
+                <p className="text-2xl font-bold text-foreground-foreground">of {response?.totalPages || 1}</p>
               </div>
               <div className="p-3 bg-secondary/5/300 rounded-xl">
                 <BarChart3 className="h-5 w-5 text-white" />

@@ -71,19 +71,19 @@ const PaymentStep = ({
               <p className="text-foreground font-medium mb-2">Available Payment Methods:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="flex items-center text-accent">
-                  <span className="w-2 h-2 bg-accent/10/300 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-accent/10 rounded-full mr-2"></span>
                   MTN Money
                 </div>
                 <div className="flex items-center text-destructive">
-                  <span className="w-2 h-2 bg-destructive/5/300 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-destructive/5 rounded-full mr-2"></span>
                   Airtel Money (Cross Network)
                 </div>
                 <div className="flex items-center text-primary">
-                  <span className="w-2 h-2 bg-primary/5/300 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-primary/5 rounded-full mr-2"></span>
                   Zamtel Money (Cross Network)
                 </div>
                 <div className="flex items-center text-secondary">
-                  <span className="w-2 h-2 bg-secondary/5/300 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-secondary/5 rounded-full mr-2"></span>
                   Ewallet
                 </div>
                 <div className="flex items-center text-orange-600">
@@ -169,7 +169,7 @@ const PaymentStep = ({
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={handleProofOfPaymentUpload}
-              className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
+              className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
             />
             {proofOfPaymentFile && (
               <div className="mt-2 flex items-center text-sm text-accent">

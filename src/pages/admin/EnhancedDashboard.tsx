@@ -314,7 +314,7 @@ export default function EnhancedAdminDashboard() {
               <div className="text-sm text-foreground">Avg Processing</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-secondary">{stats.activeIntakes}</div>
+              <div className="text-2xl font-bold text-foreground">{stats.activeIntakes}</div>
               <div className="text-sm text-foreground">Active Intakes</div>
             </div>
             <div className="text-center">

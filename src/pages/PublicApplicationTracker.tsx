@@ -531,7 +531,7 @@ export default function PublicApplicationTracker() {
                   initial={maybeMotion({ opacity: 0 })}
                   animate={maybeMotion({ opacity: 1 })}
                   transition={maybeMotion({ delay: 0.2 })}
-                  className="text-sm sm:text-xl text-secondary/80 mt-1 sm:mt-2 font-medium"
+                  className="text-sm sm:text-xl text-foreground mt-1 sm:mt-2 font-medium"
                 >
                   <Sparkles className="w-5 h-5" /> Check status instantly - no login required!
                 </motion.p>
@@ -567,12 +567,12 @@ export default function PublicApplicationTracker() {
               </motion.div>
               
               <div>
-                <h2 className="text-responsive-3xl font-black text-secondary mb-3 sm:mb-4">
+                <h2 className="text-responsive-3xl font-black text-foreground mb-3 sm:mb-4">
                   Find Your Application
                 </h2>
-                <p className="text-base sm:text-xl text-secondary/80 max-w-2xl mx-auto leading-relaxed px-4">
+                <p className="text-base sm:text-xl text-foreground max-w-2xl mx-auto leading-relaxed px-4">
                   Enter your <span className="font-bold text-primary">application number</span> (e.g., MIHAS123456) or 
-                  <span className="font-bold text-secondary"> tracking code</span> to check status.
+                  <span className="font-bold text-foreground"> tracking code</span> to check status.
                 </p>
               </div>
               
@@ -583,7 +583,7 @@ export default function PublicApplicationTracker() {
                       whileFocus={maybeMotion({ scale: 1.02 })}
                       className="relative"
                     >
-                      <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-secondary/60" />
+                      <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
                       <Input
                         value={searchTerm}
                         onChange={handleInputChange}
@@ -633,8 +633,8 @@ export default function PublicApplicationTracker() {
                   className="bg-primary/5/30 rounded-xl p-4 sm:p-6 border border-primary/30"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">📧</div>
-                  <h3 className="font-bold text-secondary mb-2 text-sm sm:text-base">Check Your Email</h3>
-                  <p className="text-secondary/70 text-xs sm:text-sm">Application number sent after submission</p>
+                  <h3 className="font-bold text-foreground mb-2 text-sm sm:text-base">Check Your Email</h3>
+                  <p className="text-gray-600 text-xs sm:text-sm">Application number sent after submission</p>
                 </motion.div>
                 
                 <motion.div
@@ -644,19 +644,19 @@ export default function PublicApplicationTracker() {
                   className="bg-accent/10/30 rounded-xl p-4 sm:p-6 border border-accent/30"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">🔢</div>
-                  <h3 className="font-bold text-secondary mb-2 text-sm sm:text-base">Format Example</h3>
-                  <p className="text-secondary/70 font-mono text-xs sm:text-sm">MIHAS123456</p>
+                  <h3 className="font-bold text-foreground mb-2 text-sm sm:text-base">Format Example</h3>
+                  <p className="text-gray-600 font-mono text-xs sm:text-sm">MIHAS123456</p>
                 </motion.div>
                 
                 <motion.div
                   initial={maybeMotion({ opacity: 0, y: 20 })}
                   animate={maybeMotion({ opacity: 1, y: 0 })}
                   transition={maybeMotion({ delay: 0.9 })}
-                  className="bg-secondary/5/30 rounded-xl p-4 sm:p-6 border border-input/30 sm:col-span-2 lg:col-span-1"
+                  className="bg-secondary/5 rounded-xl p-4 sm:p-6 border border-input/30 sm:col-span-2 lg:col-span-1"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3"><Zap className="w-5 h-5" /></div>
-                  <h3 className="font-bold text-secondary mb-2 text-sm sm:text-base">Instant Results</h3>
-                  <p className="text-secondary/70 text-xs sm:text-sm">Real-time updates without login</p>
+                  <h3 className="font-bold text-foreground mb-2 text-sm sm:text-base">Instant Results</h3>
+                  <p className="text-gray-600 text-xs sm:text-sm">Real-time updates without login</p>
                 </motion.div>
               </div>
             </div>
@@ -810,7 +810,7 @@ export default function PublicApplicationTracker() {
                         animate={maybeMotion({ opacity: 1, y: 0 })}
                         transition={maybeMotion({ delay: 0.6 })}
                       >
-                        <h4 className="text-responsive-2xl font-black text-secondary mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
+                        <h4 className="text-responsive-2xl font-black text-foreground mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
                           <span className="text-2xl sm:text-3xl"><BarChart3 className="w-5 h-5" /></span>
                           <span>Current Status</span>
                         </h4>
@@ -884,7 +884,7 @@ export default function PublicApplicationTracker() {
                       transition={maybeMotion({ delay: 0.8 })}
                       className="space-y-4 sm:space-y-6"
                     >
-                      <h4 className="text-responsive-2xl font-black text-secondary mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
+                      <h4 className="text-responsive-2xl font-black text-foreground mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
                         <span className="text-2xl sm:text-3xl"><FileText className="w-5 h-5" /></span>
                         <span>Details</span>
                       </h4>
@@ -896,7 +896,7 @@ export default function PublicApplicationTracker() {
                               <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-secondary text-sm sm:text-base lg:text-lg">Application Number</p>
+                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Application Number</p>
                               <p className="text-secondary font-mono text-base sm:text-lg lg:text-xl break-all">{application.application_number}</p>
                             </div>
                           </div>
@@ -908,7 +908,7 @@ export default function PublicApplicationTracker() {
                               <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-secondary text-sm sm:text-base lg:text-lg">Applicant</p>
+                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Applicant</p>
                               <p className="text-secondary text-base sm:text-lg lg:text-xl break-words">{displayValue(application.full_name)}</p>
                             </div>
                           </div>
@@ -916,11 +916,11 @@ export default function PublicApplicationTracker() {
 
                         <AnimatedCard className="bg-gradient-to-r from-purple-50 to-pink-50 border border-input/30" hover3d delay={0.1}>
                           <div className="flex items-center space-x-3 sm:space-x-4">
-                            <div className="p-2 sm:p-3 bg-secondary/5/300 rounded-lg sm:rounded-xl flex-shrink-0">
+                            <div className="p-2 sm:p-3 bg-secondary/5 rounded-lg sm:rounded-xl flex-shrink-0">
                               <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-secondary text-sm sm:text-base lg:text-lg">Program</p>
+                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Program</p>
                               <p className="text-secondary text-base sm:text-lg lg:text-xl break-words">{displayValue(application.program_name, 'Program unavailable')}</p>
                             </div>
                           </div>
@@ -932,7 +932,7 @@ export default function PublicApplicationTracker() {
                               <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-secondary text-sm sm:text-base lg:text-lg">Intake Period</p>
+                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Intake Period</p>
                               <p className="text-secondary text-base sm:text-lg lg:text-xl break-words">{displayValue(application.intake_name, 'Intake unavailable')}</p>
                             </div>
                           </div>
@@ -944,7 +944,7 @@ export default function PublicApplicationTracker() {
                               <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-secondary text-sm sm:text-base lg:text-lg">Submitted On</p>
+                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Submitted On</p>
                               <p className="text-secondary text-base sm:text-lg lg:text-xl">{application.submitted_at ? formatDisplayDate(application.submitted_at) : 'Not submitted yet'}</p>
                             </div>
                           </div>
@@ -956,7 +956,7 @@ export default function PublicApplicationTracker() {
                               <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-secondary text-sm sm:text-base lg:text-lg">Institution</p>
+                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Institution</p>
                               <p className="text-secondary text-base sm:text-lg lg:text-xl break-words">{getInstitutionName(application.institution)}</p>
                             </div>
                           </div>
@@ -968,7 +968,7 @@ export default function PublicApplicationTracker() {
                               <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-secondary text-sm sm:text-base lg:text-lg">Email</p>
+                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Email</p>
                               {application.email ? (
                                 <a
                                   href={`mailto:${application.email}`}
@@ -989,13 +989,13 @@ export default function PublicApplicationTracker() {
                               <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-secondary text-sm sm:text-base lg:text-lg">Payment Status</p>
+                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Payment Status</p>
                               <span
                                 className={`inline-flex items-center px-3 py-1 mt-1 rounded-full text-xs sm:text-sm font-bold border ${getPaymentStatusStyles(application.payment_status)}`}
                               >
                                 {formatPaymentStatus(application.payment_status)}
                               </span>
-                              <p className="text-secondary/70 text-xs sm:text-sm mt-2">
+                              <p className="text-gray-600 text-xs sm:text-sm mt-2">
                                 {getPaymentStatusDescription(application.payment_status)}
                               </p>
                             </div>
@@ -1020,7 +1020,7 @@ export default function PublicApplicationTracker() {
                           <Phone className="h-6 w-6" />
                           <span>Need Help?</span>
                         </p>
-                        <p className="text-lg text-secondary/80">
+                        <p className="text-lg text-foreground">
                           Contact our admissions office for assistance and support.
                         </p>
                       </motion.div>
@@ -1085,10 +1085,10 @@ export default function PublicApplicationTracker() {
                   </motion.div>
                   
                   <div>
-                    <h3 className="text-4xl font-black text-secondary mb-6">
+                    <h3 className="text-4xl font-black text-foreground mb-6">
                       No Application Found
                     </h3>
-                    <p className="text-xl text-secondary/80 max-w-2xl mx-auto leading-relaxed mb-8">
+                    <p className="text-xl text-foreground max-w-2xl mx-auto leading-relaxed mb-8">
                       We couldn't find an application with that number or tracking code. 
                       Please double-check your information and try again.
                     </p>
@@ -1136,18 +1136,18 @@ export default function PublicApplicationTracker() {
         >
           <AnimatedCard glassEffect>
             <div className="text-center mb-12">
-              <h3 className="text-4xl font-black text-secondary mb-4 flex items-center justify-center space-x-3">
+              <h3 className="text-4xl font-black text-foreground mb-4 flex items-center justify-center space-x-3">
                 <span>❓</span>
                 <span>Need Help?</span>
               </h3>
-              <p className="text-xl text-secondary/80">Everything you need to know about tracking your application</p>
+              <p className="text-xl text-foreground">Everything you need to know about tracking your application</p>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
               <AnimatedCard className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-primary/30" hover3d>
                 <div className="text-center space-y-4">
                   <div className="text-5xl">📍</div>
-                  <h4 className="font-black text-secondary text-2xl">
+                  <h4 className="font-black text-foreground text-2xl">
                     Where to find your application number?
                   </h4>
                   <ul className="text-secondary space-y-3 text-lg text-left">
@@ -1170,7 +1170,7 @@ export default function PublicApplicationTracker() {
               <AnimatedCard className="bg-gradient-to-br from-green-50 to-emerald-50 border border-accent/30" hover3d delay={0.1}>
                 <div className="text-center space-y-4">
                   <div className="text-5xl"><BarChart3 className="w-5 h-5" /></div>
-                  <h4 className="font-black text-secondary text-2xl">
+                  <h4 className="font-black text-foreground text-2xl">
                     Application Status Meanings
                   </h4>
                   <ul className="text-secondary space-y-3 text-lg text-left">
@@ -1211,20 +1211,20 @@ export default function PublicApplicationTracker() {
                   <MapPin className="h-8 w-8 text-secondary" />
                 </div>
                 
-                <h4 className="text-3xl font-black text-secondary">
+                <h4 className="text-3xl font-black text-foreground">
                   <Phone className="w-5 h-5" /> Contact Information
                 </h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
                   <div className="bg-card/70 rounded-xl p-6">
-                    <p className="font-bold text-secondary mb-2">📧 Email Support</p>
+                    <p className="font-bold text-foreground mb-2">📧 Email Support</p>
                     <a href="mailto:info@mihas.edu.zm" className="text-primary font-bold hover:underline">
                       info@mihas.edu.zm
                     </a>
                   </div>
                   
                   <div className="bg-card/70 rounded-xl p-6">
-                    <p className="font-bold text-secondary mb-2">📱 Phone Support</p>
+                    <p className="font-bold text-foreground mb-2">📱 Phone Support</p>
                     <div className="space-y-1">
                       <p><strong>KATC:</strong> <a href="tel:0966992299" className="text-primary font-bold hover:underline">0966992299</a></p>
                       <p><strong>MIHAS:</strong> <a href="tel:0961515151" className="text-primary font-bold hover:underline">0961515151</a></p>
@@ -1253,13 +1253,13 @@ export default function PublicApplicationTracker() {
                 className="bg-card rounded-2xl p-8 max-w-md w-full"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h3 className="text-2xl font-bold text-secondary mb-6 text-center">
+                <h3 className="text-2xl font-bold text-foreground mb-6 text-center">
                   📤 Share Application Status
                 </h3>
                 
                 <div className="space-y-4">
                   <div className="bg-muted rounded-xl p-4">
-                    <p className="text-sm text-secondary/70 mb-2">Application Number</p>
+                    <p className="text-sm text-gray-600 mb-2">Application Number</p>
                     <p className="font-mono text-lg font-bold">{application?.application_number}</p>
                   </div>
                   

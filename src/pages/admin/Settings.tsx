@@ -410,7 +410,7 @@ export default function AdminSettings() {
                 <div className="text-sm text-foreground">Private</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-secondary">
+                <div className="text-2xl font-bold text-foreground">
                   {new Set(settings.map(s => s.setting_type)).size}
                 </div>
                 <div className="text-sm text-foreground">Data Types</div>

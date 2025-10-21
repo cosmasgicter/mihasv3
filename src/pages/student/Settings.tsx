@@ -67,11 +67,24 @@ export default function StudentSettings() {
       setError('')
       setSuccess('')
 
-      await updateProfile(data)
+      // Validate user is authenticated
+      if (!user?.id) {
+        throw new Error('You must be signed in to update your profile')
+      }
+
+      // Clean up empty strings to null
+      const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
+        acc[key] = value === '' ? null : value
+        return acc
+      }, {} as any)
+
+      console.log('Updating profile with data:', cleanData)
+      await updateProfile(cleanData)
       setSuccess('Profile updated successfully! Please sign out and sign back in to see the changes.')
     } catch (error) {
       console.error('Error updating profile:', error)
-      setError(error instanceof Error ? error.message : 'Failed to update profile')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
+      setError(`Failed to update profile: ${errorMessage}`)
     } finally {
       setLoading(false)
     }
@@ -104,7 +117,7 @@ export default function StudentSettings() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
+            className="rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">😱</div>
@@ -117,7 +130,7 @@ export default function StudentSettings() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-accent/10/30 border border-accent/30 p-4 sm:p-6 mb-6 shadow-lg"
+            className="rounded-xl bg-accent/10 border border-accent/30 p-4 sm:p-6 mb-6 shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">✅</div>
@@ -211,7 +224,7 @@ export default function StudentSettings() {
                   <option value="Female">Female</option>
                 </select>
                 {errors.sex && (
-                  <p className="mt-2 text-sm text-destructive bg-destructive/5/30 px-3 py-1 rounded-lg">{errors.sex.message}</p>
+                  <p className="mt-2 text-sm text-destructive bg-destructive/5 px-3 py-1 rounded-lg">{errors.sex.message}</p>
                 )}
               </div>
             </div>
@@ -256,7 +269,7 @@ export default function StudentSettings() {
                   className="w-full rounded-xl border-2 border-border px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary resize-none"
                 />
                 {errors.address && (
-                  <p className="mt-2 text-sm text-destructive bg-destructive/5/30 px-3 py-1 rounded-lg">{errors.address.message}</p>
+                  <p className="mt-2 text-sm text-destructive bg-destructive/5 px-3 py-1 rounded-lg">{errors.address.message}</p>
                 )}
               </div>
               
@@ -316,7 +329,7 @@ export default function StudentSettings() {
             className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-secondary/10 rounded-lg">
+              <div className="p-2 bg-muted rounded-lg">
                 <Shield className="h-5 w-5 text-secondary" />
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-foreground">

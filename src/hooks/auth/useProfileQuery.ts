@@ -4,7 +4,6 @@ import { User } from '@supabase/supabase-js'
 import { useAuth } from '@/contexts/AuthContext'
 import { getSupabaseClient, isSupabaseConfigured, SUPABASE_MISSING_CONFIG_MESSAGE, UserProfile } from '@/lib/supabase'
 import { sanitizeForDisplay } from '@/lib/sanitize'
-import { secureDisplay } from '@/lib/secureDisplay'
 import { sanitizeForLog } from '@/lib/security'
 
 export interface UseProfileQueryOptions {
@@ -116,10 +115,13 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
 
   const profileQuery = useQuery({
     queryKey: PROFILE_QUERY_KEY(user?.id),
-    enabled,
+    enabled: enabled && Boolean(user?.id),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      if (!user) return null
+      if (!user?.id) {
+        console.warn('[ProfileQuery] No user ID available')
+        return null
+      }
 
       if (!isSupabaseConfigured) {
         return null
@@ -158,8 +160,8 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
 
   const updateProfileMutation = useMutation({
     mutationFn: async (updates: ProfileUpdate) => {
-      if (!user) {
-        throw new Error('User not authenticated')
+      if (!user?.id) {
+        throw new Error('User not authenticated or user ID missing')
       }
 
       if (!isSupabaseConfigured) {
@@ -171,9 +173,6 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       const allowedFields = [
         'full_name',
         'phone',
-        'role',
-        'avatar_url',
-        'bio',
         'date_of_birth',
         'sex',
         'nationality',
@@ -183,24 +182,43 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         'next_of_kin_phone'
       ]
 
-      const sanitizedUpdates = Object.entries(updates).reduce((acc, [key, value]) => {
-        if (typeof key !== 'string' || !allowedFields.includes(key)) {
-          return acc
+      const sanitizedUpdates: Record<string, any> = {}
+
+      for (const [key, value] of Object.entries(updates)) {
+        // Only process allowed fields
+        if (!allowedFields.includes(key)) {
+          continue
         }
 
-        if (value === null || value === undefined) {
-          acc[key] = value
-          return acc
+        // Skip undefined values
+        if (value === undefined) {
+          continue
         }
 
+        // Handle null or empty string
+        if (value === null || value === '') {
+          sanitizedUpdates[key] = null
+          continue
+        }
+
+        // Handle string values
         if (typeof value === 'string') {
-          acc[key] = secureDisplay.text(value.trim())
+          const trimmed = value.trim()
+          // Basic sanitization - remove dangerous characters
+          const cleaned = trimmed.replace(/[<>]/g, '')
+          sanitizedUpdates[key] = cleaned === '' ? null : cleaned
         } else {
-          acc[key] = value
+          sanitizedUpdates[key] = value
         }
+      }
 
-        return acc
-      }, {} as Record<string, any>)
+      // Ensure we have at least one field to update
+      if (Object.keys(sanitizedUpdates).length === 0) {
+        throw new Error('No valid fields to update')
+      }
+
+      console.log('Attempting to update profile for user:', user.id)
+      console.log('Sanitized updates:', sanitizedUpdates)
 
       const { data, error } = await supabase
         .from('profiles')
@@ -210,13 +228,15 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         .maybeSingle()
 
       if (error) {
-        console.error('Database update error:', sanitizeForLog(error.message))
-        throw error
+        console.error('Database update error:', error)
+        throw new Error(`Database error: ${error.message || 'Unknown error'}`)
       }
 
       if (!data) {
-        throw new Error('Profile update failed')
+        throw new Error('Profile update returned no data. The profile may not exist.')
       }
+
+      console.log('Profile updated successfully:', data)
 
       return sanitizeProfile(data) as UserProfile
     },

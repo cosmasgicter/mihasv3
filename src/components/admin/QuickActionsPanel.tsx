@@ -215,7 +215,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
             <div className="text-sm text-foreground">Pending</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-secondary">{stats.totalPrograms}</div>
+            <div className="text-2xl font-bold text-foreground">{stats.totalPrograms}</div>
             <div className="text-sm text-foreground">Programs</div>
           </div>
         </div>

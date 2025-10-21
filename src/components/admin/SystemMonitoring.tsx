@@ -393,7 +393,7 @@ export function SystemMonitoring() {
             </div>
 
             <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
-              <div className="text-2xl font-bold text-secondary">{metrics.database.responseTime}ms</div>
+              <div className="text-2xl font-bold text-foreground">{metrics.database.responseTime}ms</div>
               <div className="text-sm text-foreground">Response Time</div>
               <div className="flex items-center justify-center mt-2 text-xs text-accent">
                 <TrendingDown className="h-3 w-3 mr-1" />

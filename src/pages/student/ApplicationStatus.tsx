@@ -305,7 +305,7 @@ export default function ApplicationStatus() {
                 icon={<FileText className="h-5 w-5" />}
               >
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  <div className="rounded-xl border border-primary/30 bg-primary/5/30 px-5 py-4">
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3"><User className="w-5 h-5" /> Personal information</h3>
                     <div className="space-y-2 text-sm text-foreground">
                       <div className="flex justify-between">
@@ -330,7 +330,7 @@ export default function ApplicationStatus() {
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-accent/30 bg-accent/10/30 px-5 py-4">
+                  <div className="rounded-xl border border-accent/30 bg-accent/10 px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3"><Phone className="w-5 h-5" /> Contact information</h3>
                     <div className="space-y-2 text-sm text-foreground">
                       <div className="flex justify-between">
@@ -351,7 +351,7 @@ export default function ApplicationStatus() {
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-input/30 bg-secondary/5/30 px-5 py-4 lg:col-span-2">
+                  <div className="rounded-xl border border-input/30 bg-secondary/5 px-5 py-4 lg:col-span-2">
                     <h3 className="text-sm font-bold text-foreground mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
                     <div className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
                       <div className="flex justify-between">
@@ -385,7 +385,7 @@ export default function ApplicationStatus() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5/30 px-4 py-3"
+                      className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
                         <div className="rounded-lg bg-primary/10 p-2">
@@ -413,7 +413,7 @@ export default function ApplicationStatus() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      className="flex items-center justify-between rounded-xl border border-accent/30 bg-accent/10/30 px-4 py-3"
+                      className="flex items-center justify-between rounded-xl border border-accent/30 bg-accent/10 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
                         <div className="rounded-lg bg-accent/10 p-2">
@@ -441,22 +441,22 @@ export default function ApplicationStatus() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="flex items-center justify-between rounded-xl border border-input/30 bg-secondary/5/30 px-4 py-3"
+                      className="flex items-center justify-between rounded-xl border border-input/30 bg-secondary/5 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-secondary/10 p-2">
+                        <div className="rounded-lg bg-muted p-2">
                           <FileText className="h-5 w-5 text-secondary" />
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-foreground">Proof of payment</p>
-                          <p className="text-xs font-medium text-secondary">✓ Uploaded</p>
+                          <p className="text-xs font-medium text-foreground">✓ Uploaded</p>
                         </div>
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(application.pop_url as string, '_blank')}
-                        className="border-purple-300 text-secondary hover:bg-secondary/10"
+                        className="border-purple-300 text-foreground hover:bg-muted"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View

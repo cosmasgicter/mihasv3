@@ -243,7 +243,7 @@ export default function OfflineAdminDashboard() {
               <div className="text-sm text-foreground">Applications This Week</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-secondary">{stats.avgProcessingTime}</div>
+              <div className="text-2xl font-bold text-foreground">{stats.avgProcessingTime}</div>
               <div className="text-sm text-foreground">Avg Processing Days</div>
             </div>
             <div className="text-center">
