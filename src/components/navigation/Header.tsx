@@ -48,7 +48,6 @@ export const Header = React.memo(function Header() {
 
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           {!isAdmin && <NotificationBell />}
-          <ThemeToggle />
           <UserMenu />
         </div>
       </div>

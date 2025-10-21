@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
+import React from 'react'
 import { onCLS, onFID, onFCP, onLCP, onTTFB } from 'web-vitals'
 
 export function useWebVitals() {
-  useEffect(() => {
+  React.useEffect(() => {
     onCLS(metric => console.log('CLS:', metric.value))
     onFID(metric => console.log('FID:', metric.value))
     onFCP(metric => console.log('FCP:', metric.value))
