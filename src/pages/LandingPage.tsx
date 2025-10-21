@@ -361,7 +361,7 @@ export default function LandingPageNew() {
  delay={index * 0.2}
  direction="up"
  hover3d={true}
- gradient={true}
+ variant="gradient"
  className="text-center group"
  >
  <motion.div

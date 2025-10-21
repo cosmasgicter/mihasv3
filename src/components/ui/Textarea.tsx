@@ -2,8 +2,8 @@ import React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
-const selectVariants = cva(
-  'w-full h-10 px-3 rounded-lg bg-background border text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-ring',
+const textareaVariants = cva(
+  'w-full px-3 py-2 rounded-lg bg-background border text-foreground placeholder:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-ring resize-none',
   {
     variants: {
       variant: {
@@ -17,16 +17,16 @@ const selectVariants = cva(
   }
 )
 
-export interface SelectProps
-  extends React.SelectHTMLAttributes<HTMLSelectElement>,
-    VariantProps<typeof selectVariants> {
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+    VariantProps<typeof textareaVariants> {
   label?: string
   error?: string
   helperText?: string
 }
 
-export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, variant, label, error, helperText, children, ...props }, ref) => {
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, variant, label, error, helperText, ...props }, ref) => {
     return (
       <div className="w-full">
         {label && (
@@ -34,13 +34,11 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             {label}
           </label>
         )}
-        <select
-          className={cn(selectVariants({ variant: error ? 'error' : variant }), className)}
+        <textarea
+          className={cn(textareaVariants({ variant: error ? 'error' : variant }), className)}
           ref={ref}
           {...props}
-        >
-          {children}
-        </select>
+        />
         {error && (
           <p className="mt-1.5 text-sm text-destructive">{error}</p>
         )}
@@ -52,4 +50,4 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   }
 )
 
-Select.displayName = 'Select'
+Textarea.displayName = 'Textarea'
