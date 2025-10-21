@@ -21,7 +21,13 @@ export class SimpleErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo)
+    console.error('=== ERROR BOUNDARY CAUGHT ERROR ===')
+    console.error('Error:', error)
+    console.error('Error message:', error.message)
+    console.error('Error stack:', error.stack)
+    console.error('Component stack:', errorInfo.componentStack)
+    console.error('===================================')
+    alert('ERROR: ' + error.message)
   }
 
   render() {
@@ -30,7 +36,8 @@ export class SimpleErrorBoundary extends React.Component<Props, State> {
         <div className="min-h-screen flex items-center justify-center bg-muted">
           <div className="text-center p-8">
             <h2 className="text-xl font-semibold text-foreground mb-4">Something went wrong</h2>
-            <p className="text-muted-foreground mb-4">Please refresh the page to try again.</p>
+            <p className="text-muted-foreground mb-4">{this.state.error?.message || 'Unknown error'}</p>
+            <p className="text-xs text-muted-foreground mb-4">{this.state.error?.stack?.substring(0, 200)}</p>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-primary text-foreground rounded-lg hover:bg-primary"
