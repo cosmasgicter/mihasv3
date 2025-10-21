@@ -10,7 +10,7 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 export const useDraftManager = () => {
   const { user } = useAuth()
   const { profile } = useProfileQuery()
-  const { success: showSuccess, error: showError } = useToast()
+  const { success: showSuccess, error: showError } = useToastStore()
   const [isDeleting, setIsDeleting] = useState(false)
   const confirmDialog = useConfirmDialog()
 

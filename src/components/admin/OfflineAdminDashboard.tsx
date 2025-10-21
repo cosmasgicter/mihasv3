@@ -118,10 +118,10 @@ export default function OfflineAdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.todayApplications}</div>
-                <div className="text-xs text-muted-foreground">Today</div>
+                <div className="text-xs text-foreground">Today</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-muted-foreground">New Applications</div>
+            <div className="text-sm font-medium text-foreground">New Applications</div>
           </motion.div>
 
           {/* Pending Reviews */}
@@ -135,10 +135,10 @@ export default function OfflineAdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.pendingApplications}</div>
-                <div className="text-xs text-muted-foreground">Pending</div>
+                <div className="text-xs text-foreground">Pending</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-muted-foreground">Awaiting Review</div>
+            <div className="text-sm font-medium text-foreground">Awaiting Review</div>
             <Link to="/admin/applications?status=submitted" className="text-xs text-primary hover:underline mt-2 block">
               Review now →
             </Link>
@@ -155,10 +155,10 @@ export default function OfflineAdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.approvedApplications}</div>
-                <div className="text-xs text-muted-foreground">Approved</div>
+                <div className="text-xs text-foreground">Approved</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-muted-foreground">Successful Applications</div>
+            <div className="text-sm font-medium text-foreground">Successful Applications</div>
           </motion.div>
 
           {/* Processing Time */}
@@ -172,10 +172,10 @@ export default function OfflineAdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.avgProcessingTime}</div>
-                <div className="text-xs text-muted-foreground">Days</div>
+                <div className="text-xs text-foreground">Days</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
+            <div className="text-sm font-medium text-foreground">Avg Processing</div>
           </motion.div>
         </motion.div>
 
@@ -194,7 +194,7 @@ export default function OfflineAdminDashboard() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">Manage Applications</h3>
-                  <p className="text-sm text-muted-foreground">Review and process applications</p>
+                  <p className="text-sm text-foreground">Review and process applications</p>
                 </div>
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function OfflineAdminDashboard() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">User Management</h3>
-                  <p className="text-sm text-muted-foreground">Manage users and roles</p>
+                  <p className="text-sm text-foreground">Manage users and roles</p>
                 </div>
               </div>
             </div>
@@ -222,7 +222,7 @@ export default function OfflineAdminDashboard() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">Programs & Intakes</h3>
-                  <p className="text-sm text-muted-foreground">Manage academic programs</p>
+                  <p className="text-sm text-foreground">Manage academic programs</p>
                 </div>
               </div>
             </div>
@@ -240,17 +240,17 @@ export default function OfflineAdminDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-primary">{stats.weekApplications}</div>
-              <div className="text-sm text-muted-foreground">Applications This Week</div>
+              <div className="text-sm text-foreground">Applications This Week</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-secondary">{stats.avgProcessingTime}</div>
-              <div className="text-sm text-muted-foreground">Avg Processing Days</div>
+              <div className="text-sm text-foreground">Avg Processing Days</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-accent">
                 {Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)}%
               </div>
-              <div className="text-sm text-muted-foreground">Success Rate</div>
+              <div className="text-sm text-foreground">Success Rate</div>
             </div>
           </div>
         </motion.div>

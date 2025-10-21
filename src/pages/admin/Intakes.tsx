@@ -246,7 +246,7 @@ export default function AdminIntakes() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-muted-foreground">Loading intakes...</p>
+                  <p className="mt-4 text-lg text-foreground">Loading intakes...</p>
                 </div>
               </div>
             ) : error ? (
@@ -265,7 +265,7 @@ export default function AdminIntakes() {
               <div className="text-center py-16">
                 <div className="text-8xl mb-6"><Calendar className="w-5 h-5" /></div>
                 <h3 className="text-2xl font-bold text-foreground mb-2">No Intakes Yet</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                <p className="text-foreground mb-6 max-w-md mx-auto">
                   Create admission intakes to define application periods, deadlines, and capacity for student enrollment.
                 </p>
                 <Button onClick={openCreate} className="bg-gradient-to-r from-secondary to-primary text-white font-semibold">
@@ -282,7 +282,7 @@ export default function AdminIntakes() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-bold text-lg text-foreground">{intake.name}</h3>
-                          <p className="text-sm text-muted-foreground">Year: {intake.year}</p>
+                          <p className="text-sm text-foreground">Year: {intake.year}</p>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                           intake.available_spots > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
@@ -293,15 +293,15 @@ export default function AdminIntakes() {
                       
                       <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
                         <div>
-                          <span className="text-muted-foreground">Start:</span>
+                          <span className="text-foreground">Start:</span>
                           <div className="font-medium">{formatDate(intake.start_date)}</div>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">End:</span>
+                          <span className="text-foreground">End:</span>
                           <div className="font-medium">{formatDate(intake.end_date)}</div>
                         </div>
                         <div className="col-span-2">
-                          <span className="text-muted-foreground">Application Deadline:</span>
+                          <span className="text-foreground">Application Deadline:</span>
                           <div className="font-medium text-destructive">{formatDate(intake.application_deadline)}</div>
                         </div>
                       </div>
@@ -372,10 +372,10 @@ export default function AdminIntakes() {
                               {intake.year}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-muted-foreground">
+                          <td className="px-6 py-4 text-sm text-foreground">
                             {formatDate(intake.start_date)}
                           </td>
-                          <td className="px-6 py-4 text-sm text-muted-foreground">
+                          <td className="px-6 py-4 text-sm text-foreground">
                             {formatDate(intake.end_date)}
                           </td>
                           <td className="px-6 py-4">

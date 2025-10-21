@@ -105,7 +105,7 @@ export function AdminSearchBar() {
       case 'intake':
         return <Calendar className="h-4 w-4 text-orange-500" />
       default:
-        return <Search className="h-4 w-4 text-muted-foreground" />
+        return <Search className="h-4 w-4 text-foreground" />
     }
   }
 
@@ -118,7 +118,7 @@ export function AdminSearchBar() {
   return (
     <div className="relative w-full max-w-md">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground" />
         <input
           ref={inputRef}
           type="text"
@@ -162,20 +162,20 @@ export function AdminSearchBar() {
                       {result.title}
                     </p>
                     <p className={`text-xs ${
-                      selectedIndex === index ? 'text-white/80' : 'text-muted-foreground'
+                      selectedIndex === index ? 'text-white/80' : 'text-foreground'
                     }`}>
                       {result.subtitle}
                     </p>
                   </div>
                   <ArrowRight className={`h-4 w-4 ${
-                    selectedIndex === index ? 'text-white' : 'text-muted-foreground'
+                    selectedIndex === index ? 'text-white' : 'text-foreground'
                   }`} />
                 </motion.div>
               ))}
             </div>
             
             {results.length === 0 && query.length > 2 && (
-              <div className="p-6 text-center text-muted-foreground">
+              <div className="p-6 text-center text-foreground">
                 <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No results found for "{query}"</p>
               </div>

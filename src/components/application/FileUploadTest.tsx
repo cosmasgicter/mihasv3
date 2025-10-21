@@ -104,15 +104,15 @@ export function FileUploadTest() {
               : 'border-input hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
           }`}>
             <Upload className={`h-8 w-8 mx-auto mb-2 ${
-              uploading ? 'text-muted-foreground' : 'text-muted-foreground'
+              uploading ? 'text-foreground' : 'text-foreground'
             }`} />
             <p className={`text-sm ${
-              uploading ? 'text-muted-foreground' : 'text-muted-foreground'
+              uploading ? 'text-foreground' : 'text-foreground'
             }`}>
               {uploading ? 'Uploading...' : 'Click to upload file'}
             </p>
             <p className={`text-xs ${
-              uploading ? 'text-muted-foreground' : 'text-muted-foreground'
+              uploading ? 'text-foreground' : 'text-foreground'
             }`}>
               PDF, JPG, JPEG, PNG up to 10MB
             </p>
@@ -131,7 +131,7 @@ export function FileUploadTest() {
 
       {uploading && (
         <div className="mb-4">
-          <div className="flex justify-between text-sm text-muted-foreground mb-1">
+          <div className="flex justify-between text-sm text-foreground mb-1">
             <span>Uploading...</span>
             <span>{progress}%</span>
           </div>

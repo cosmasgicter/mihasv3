@@ -215,7 +215,7 @@ function ApplicationsAdminContent() {
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Applications Management
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-foreground">
             Manage student applications and review submissions
           </p>
         </div>
@@ -255,7 +255,7 @@ function ApplicationsAdminContent() {
                 
                 {selectedApplications.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm text-foreground">
                       {selectedApplications.length} selected
                     </span>
                     <div className="h-4 w-px bg-muted" />
@@ -298,7 +298,7 @@ function ApplicationsAdminContent() {
               <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div className="md:col-span-2">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground" />
                     <Input
                       placeholder="Search by name, email, or application number..."
                       value={searchTerm}
@@ -385,7 +385,7 @@ function ApplicationsAdminContent() {
                         <button
                           onClick={selectAll}
                           aria-label={selectedApplications.length === filteredApplications.length && filteredApplications.length > 0 ? 'Deselect all applications' : 'Select all applications'}
-                          className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground"
+                          className="flex items-center gap-2 text-xs font-medium text-foreground uppercase tracking-wider hover:text-foreground"
                         >
                           {selectedApplications.length === filteredApplications.length && filteredApplications.length > 0 ? (
                             <CheckSquare className="h-4 w-4" />
@@ -394,25 +394,25 @@ function ApplicationsAdminContent() {
                           )}
                         </button>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                         Application
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                         Student
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                         Program
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                         Payment
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                         Subjects
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -424,7 +424,7 @@ function ApplicationsAdminContent() {
                           <button
                             onClick={() => toggleSelection(app.id)}
                             aria-label={selectedApplications.includes(app.id) ? `Deselect ${app.full_name}` : `Select ${app.full_name}`}
-                            className="text-muted-foreground hover:text-muted-foreground"
+                            className="text-foreground hover:text-foreground"
                           >
                             {selectedApplications.includes(app.id) ? (
                               <CheckSquare className="h-5 w-5 text-primary" />
@@ -437,7 +437,7 @@ function ApplicationsAdminContent() {
                           <div className="text-sm font-medium text-foreground">
                             {app.application_number}
                           </div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-foreground">
                             {new Date(app.submitted_at || app.created_at).toLocaleDateString()}
                           </div>
                         </td>
@@ -445,10 +445,10 @@ function ApplicationsAdminContent() {
                           <div className="text-sm font-medium text-foreground">
                             {app.full_name}
                           </div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-foreground">
                             {app.email}
                           </div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-foreground">
                             {app.phone}
                           </div>
                         </td>
@@ -456,7 +456,7 @@ function ApplicationsAdminContent() {
                           <div className="text-sm font-medium text-foreground">
                             {app.program}
                           </div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-foreground">
                             {app.institution} • {app.intake}
                           </div>
                         </td>
@@ -488,7 +488,7 @@ function ApplicationsAdminContent() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="space-y-2">
                             {getPaymentBadge(app.payment_status)}
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-foreground">
                               K{app.paid_amount || 0} / K{app.application_fee}
                             </div>
                             <div className="relative">
@@ -516,7 +516,7 @@ function ApplicationsAdminContent() {
                             {app.total_subjects} subjects
                           </div>
                           {app.grades_summary && (
-                            <div className="text-xs text-muted-foreground max-w-xs truncate" title={app.grades_summary}>
+                            <div className="text-xs text-foreground max-w-xs truncate" title={app.grades_summary}>
                               {app.grades_summary}
                             </div>
                           )}
@@ -544,11 +544,11 @@ function ApplicationsAdminContent() {
           
             {filteredApplications.length === 0 && (
               <div className="text-center py-12">
-                <div className="text-muted-foreground">No applications found matching your criteria.</div>
+                <div className="text-foreground">No applications found matching your criteria.</div>
               </div>
             )}
             <div className="border-t border-border bg-muted px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-foreground">
                 Showing{' '}
                 <span className="font-semibold text-foreground">{filteredApplications.length}</span>
                 {' '}of{' '}
@@ -576,7 +576,7 @@ function ApplicationsAdminContent() {
                 </button>
               ) : (
                 pagination.totalCount > 0 && (
-                  <span className="text-sm text-muted-foreground">All applications loaded.</span>
+                  <span className="text-sm text-foreground">All applications loaded.</span>
                 )
               )}
             </div>
@@ -588,29 +588,29 @@ function ApplicationsAdminContent() {
                 <div className="text-2xl font-bold text-foreground">
                   {pagination.totalCount}
                 </div>
-                <div className="text-sm text-muted-foreground">Total Applications</div>
-                <div className="text-xs text-muted-foreground mt-1">Loaded: {applications.length}</div>
+                <div className="text-sm text-foreground">Total Applications</div>
+                <div className="text-xs text-foreground mt-1">Loaded: {applications.length}</div>
               </div>
 
               <div className="bg-card rounded-lg shadow p-6">
                 <div className="text-2xl font-bold text-primary">
                   {applications.filter(app => app.status === 'submitted').length}
                 </div>
-                <div className="text-sm text-muted-foreground">Submitted (loaded)</div>
+                <div className="text-sm text-foreground">Submitted (loaded)</div>
               </div>
 
               <div className="bg-card rounded-lg shadow p-6">
                 <div className="text-2xl font-bold text-accent">
                   {applications.filter(app => app.payment_status === 'pending_review').length}
                 </div>
-                <div className="text-sm text-muted-foreground">Pending Payment Review (loaded)</div>
+                <div className="text-sm text-foreground">Pending Payment Review (loaded)</div>
               </div>
 
               <div className="bg-card rounded-lg shadow p-6">
                 <div className="text-2xl font-bold text-accent">
                   {applications.filter(app => app.status === 'approved').length}
                 </div>
-                <div className="text-sm text-muted-foreground">Approved (loaded)</div>
+                <div className="text-sm text-foreground">Approved (loaded)</div>
               </div>
             </div>
           </>

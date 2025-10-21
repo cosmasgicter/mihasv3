@@ -15,7 +15,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted to-muted">
         <div className="text-center p-8 bg-card rounded-xl shadow-lg border border-border max-w-md mx-4">
           <LoadingSpinner size="lg" message="Loading..." />
-          <p className="mt-4 text-sm text-muted-foreground">Please wait</p>
+          <p className="mt-4 text-sm text-foreground">Please wait</p>
         </div>
       </div>
     )

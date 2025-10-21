@@ -166,15 +166,15 @@ export default function StudentSettings() {
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground" />
                   <input
                     type="email"
                     value={profile?.email || ''}
                     disabled
-                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-muted-foreground cursor-not-allowed truncate"
+                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-foreground cursor-not-allowed truncate"
                   />
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground bg-accent px-3 py-1 rounded-lg inline-block">
+                <p className="mt-2 text-xs text-foreground bg-accent px-3 py-1 rounded-lg inline-block">
                   🔒 Email cannot be changed
                 </p>
               </div>

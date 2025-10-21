@@ -49,7 +49,7 @@ export function LoadingFallback({
             <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">Taking longer than expected</h3>
-          <p className="text-muted-foreground mb-4">Please check your internet connection and try refreshing the page.</p>
+          <p className="text-foreground mb-4">Please check your internet connection and try refreshing the page.</p>
           <button 
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-primary text-foreground rounded-lg hover:bg-primary/90 transition-colors"
@@ -82,7 +82,7 @@ export function LoadingFallback({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <div className="flex justify-between text-sm text-muted-foreground mb-2">
+            <div className="flex justify-between text-sm text-foreground mb-2">
               <span>Loading</span>
               <span>{Math.round(progress)}%</span>
             </div>
@@ -98,7 +98,7 @@ export function LoadingFallback({
         )}
 
         <motion.div
-          className="mt-4 text-xs text-muted-foreground"
+          className="mt-4 text-xs text-foreground"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}

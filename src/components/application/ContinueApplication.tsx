@@ -116,7 +116,7 @@ export function ContinueApplication() {
 
   if (loading) {
     return (
-      <div className={cn(baseCardClasses, 'bg-card/90 border-border/80 text-muted-foreground')}>
+      <div className={cn(baseCardClasses, 'bg-card/90 border-border/80 text-foreground')}>
         <div className="flex items-center gap-3">
           <RefreshCw className="h-5 w-5 animate-spin text-primary" />
           <span>Checking for saved applications...</span>
@@ -163,7 +163,7 @@ export function ContinueApplication() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-foreground">Continue your application</h2>
-              <p className="text-sm text-muted-foreground">Jump back in where you left off—your progress is saved securely.</p>
+              <p className="text-sm text-foreground">Jump back in where you left off—your progress is saved securely.</p>
             </div>
           </div>
 
@@ -176,16 +176,16 @@ export function ContinueApplication() {
 
           <dl className="mt-4 grid gap-3 text-sm text-foreground sm:max-w-md">
             <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
-              <dt className="text-muted-foreground">Progress</dt>
+              <dt className="text-foreground">Progress</dt>
               <dd>{draftInfo.progress}</dd>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
-              <dt className="text-muted-foreground">Last saved</dt>
+              <dt className="text-foreground">Last saved</dt>
               <dd>{draftInfo.lastSaved ? formatDate(draftInfo.lastSaved) : 'Unknown'}</dd>
             </div>
             {draftInfo.expiresAt && (
               <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
-                <dt className="text-muted-foreground">Expires in</dt>
+                <dt className="text-foreground">Expires in</dt>
                 <dd className={cn(isExpiringSoon() ? 'text-accent' : 'text-foreground')}>{getTimeUntilExpiry()}</dd>
               </div>
             )}

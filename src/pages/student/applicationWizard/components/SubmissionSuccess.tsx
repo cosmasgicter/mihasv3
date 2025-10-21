@@ -124,7 +124,7 @@ const SubmissionSuccess = ({
           </div>
         </motion.div>
 
-        <p className="text-muted-foreground mb-6">
+        <p className="text-foreground mb-6">
           Your application is now under review. You'll receive notifications about status updates.
         </p>
 

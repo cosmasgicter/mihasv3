@@ -26,6 +26,9 @@ export const useToastStore = create<ToastStore>((set) => ({
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter(t => t.id !== id) })),
 }));
 
+// Export useToast as an alias for backward compatibility
+export const useToast = useToastStore;
+
 export function ToastContainer() {
   const { toasts, removeToast } = useToastStore();
 
@@ -53,7 +56,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
         toast.type === 'error' ? 'text-destructive' : 'text-blue-500'
       }`} />
       <p className="text-sm text-foreground flex-1">{toast.message}</p>
-      <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+      <button onClick={onClose} className="text-foreground hover:text-foreground">
         <X className="h-4 w-4" />
       </button>
     </div>

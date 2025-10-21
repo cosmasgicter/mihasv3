@@ -228,7 +228,7 @@ export function EligibilityDashboard() {
   if (!metrics) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No eligibility data available</p>
+        <p className="text-foreground">No eligibility data available</p>
       </div>
     )
   }
@@ -260,7 +260,7 @@ export function EligibilityDashboard() {
           <div className="flex items-center">
             <Users className="h-8 w-8 text-primary" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Total Applications</p>
+              <p className="text-sm font-medium text-foreground">Total Applications</p>
               <p className="text-2xl font-bold text-foreground">{metrics.totalApplications}</p>
             </div>
           </div>
@@ -270,9 +270,9 @@ export function EligibilityDashboard() {
           <div className="flex items-center">
             <CheckCircle className="h-8 w-8 text-accent" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Eligible</p>
+              <p className="text-sm font-medium text-foreground">Eligible</p>
               <p className="text-2xl font-bold text-foreground">{metrics.eligibleCount}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-foreground">
                 {metrics.totalApplications > 0 ? Math.round((metrics.eligibleCount / metrics.totalApplications) * 100) : 0}%
               </p>
             </div>
@@ -283,7 +283,7 @@ export function EligibilityDashboard() {
           <div className="flex items-center">
             <Target className="h-8 w-8 text-orange-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Average Score</p>
+              <p className="text-sm font-medium text-foreground">Average Score</p>
               <p className="text-2xl font-bold text-foreground">{Math.round(metrics.averageScore)}%</p>
             </div>
           </div>
@@ -293,7 +293,7 @@ export function EligibilityDashboard() {
           <div className="flex items-center">
             <TrendingUp className="h-8 w-8 text-secondary" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Eligibility Rate</p>
+              <p className="text-sm font-medium text-foreground">Eligibility Rate</p>
               <p className="text-2xl font-bold text-foreground">{Math.round(eligibilityRate)}%</p>
             </div>
           </div>
@@ -357,22 +357,22 @@ export function EligibilityDashboard() {
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Program
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Total
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Eligible
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Conditional
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Not Eligible
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Success Rate
                   </th>
                 </tr>
@@ -383,7 +383,7 @@ export function EligibilityDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       {program.program}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       {program.total}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-accent">
@@ -415,7 +415,7 @@ export function EligibilityDashboard() {
               <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">{req.requirement}</p>
-                  <p className="text-xs text-muted-foreground">{req.count} applications affected</p>
+                  <p className="text-xs text-foreground">{req.count} applications affected</p>
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-medium text-foreground">

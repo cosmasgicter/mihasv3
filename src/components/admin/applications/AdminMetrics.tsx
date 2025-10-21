@@ -70,11 +70,11 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
     <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-muted-foreground mb-1">{title}</p>
+          <p className="text-sm text-foreground mb-1">{title}</p>
           <p className={`text-2xl font-bold ${color}`}>{value}</p>
           {trend !== undefined && (
             <div className={`flex items-center mt-1 text-sm ${
-              trend > 0 ? 'text-success' : trend < 0 ? 'text-error' : 'text-muted-foreground'
+              trend > 0 ? 'text-success' : trend < 0 ? 'text-error' : 'text-foreground'
             }`}>
               <TrendingUp className={`h-3 w-3 mr-1 ${trend < 0 ? 'rotate-180' : ''}`} />
               {trend > 0 ? '+' : ''}{trend} from yesterday

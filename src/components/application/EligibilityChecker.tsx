@@ -53,7 +53,7 @@ export function EligibilityChecker({
       case 'not_eligible':
         return <XCircle className="h-6 w-6 text-destructive" />
       default:
-        return <AlertTriangle className="h-6 w-6 text-muted-foreground" />
+        return <AlertTriangle className="h-6 w-6 text-foreground" />
     }
   }
 
@@ -79,7 +79,7 @@ export function EligibilityChecker({
       case 'minor':
         return 'text-warning bg-yellow-50'
       default:
-        return 'text-muted-foreground bg-muted'
+        return 'text-foreground bg-muted'
     }
   }
 
@@ -121,7 +121,7 @@ export function EligibilityChecker({
     return (
       <div className="bg-card rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">Eligibility Assessment</h3>
-        <p className="text-muted-foreground">Add subjects and grades to see eligibility status</p>
+        <p className="text-foreground">Add subjects and grades to see eligibility status</p>
       </div>
     )
   }

@@ -122,7 +122,7 @@ interface ApplicationDetailModalProps {
 function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-muted-foreground">
+ <div className="flex items-center gap-2 text-sm text-foreground">
  <LoadingSpinner size="sm" />
  <span>Loading grades...</span>
  </div>
@@ -131,7 +131,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 
  if (grades.length === 0) {
  return (
- <div className="text-center py-8 text-muted-foreground">
+ <div className="text-center py-8 text-foreground">
  <GraduationCap className="h-8 w-8 mx-auto mb-2 text-foreground" />
  <p className="text-sm">No grades recorded</p>
  </div>
@@ -195,7 +195,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem[], loading: boolean }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-muted-foreground">
+ <div className="flex items-center gap-2 text-sm text-foreground">
  <LoadingSpinner size="sm" />
  <span>Loading history...</span>
  </div>
@@ -204,7 +204,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
  
  if (history.length === 0) {
  return (
- <div className="text-center py-8 text-muted-foreground">
+ <div className="text-center py-8 text-foreground">
  <History className="h-8 w-8 mx-auto mb-2 text-foreground" />
  <p className="text-sm">No status changes recorded</p>
  </div>
@@ -233,11 +233,11 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
  <p className="font-medium text-foreground capitalize">
  {item.status.replace('_', ' ')}
  </p>
- <p className="text-xs text-muted-foreground">
+ <p className="text-xs text-foreground">
  {formatDate(item.created_at)}
  </p>
  </div>
- <p className="text-sm text-muted-foreground mb-2">
+ <p className="text-sm text-foreground mb-2">
  Changed by {item.changed_by_profile?.full_name || item.changed_by_profile?.email || 'System'}
  </p>
  {item.notes && (
@@ -255,7 +255,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
 function DocumentsDisplay({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: ApplicationWithDetails | null }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-muted-foreground">
+ <div className="flex items-center gap-2 text-sm text-foreground">
  <LoadingSpinner size="sm" />
  <span>Loading documents...</span>
  </div>
@@ -303,7 +303,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  
  if (allDocuments.length === 0) {
  return (
- <div className="text-center py-8 text-muted-foreground">
+ <div className="text-center py-8 text-foreground">
  <FileText className="h-8 w-8 mx-auto mb-2 text-foreground" />
  <p className="text-sm">No documents uploaded</p>
  </div>
@@ -328,7 +328,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  </div>
  <div>
  <p className="font-medium text-foreground">{doc.document_name}</p>
- <div className="flex items-center gap-2 text-xs text-muted-foreground">
+ <div className="flex items-center gap-2 text-xs text-foreground">
  <span className={`px-2 py-1 rounded-full ${
  doc.verification_status === 'verified' ? 'bg-accent/10 text-accent-foreground' :
  doc.verification_status === 'rejected' ? 'bg-destructive/10 text-destructive-foreground' :
@@ -346,7 +346,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  )}
  </div>
  {doc.verification_notes && (
- <p className="text-xs text-muted-foreground mt-1">{doc.verification_notes}</p>
+ <p className="text-xs text-foreground mt-1">{doc.verification_notes}</p>
  )}
  </div>
  </div>
@@ -650,7 +650,7 @@ export function ApplicationDetailModal({
  case 'rejected': return <XCircle className="h-5 w-5 text-destructive" />
  case 'under_review': return <Eye className="h-5 w-5 text-accent" />
  case 'submitted': return <AlertCircle className="h-5 w-5 text-primary" />
- default: return <Clock className="h-5 w-5 text-muted-foreground" />
+ default: return <Clock className="h-5 w-5 text-foreground" />
  }
  }
 
@@ -706,9 +706,9 @@ export function ApplicationDetailModal({
  <h2 className="text-base sm:text-xl font-bold text-foreground truncate" title={application.full_name}>
  {application.full_name}
  </h2>
- <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground flex-wrap">
+ <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-foreground flex-wrap">
  <span className="font-mono truncate">#{application.application_number}</span>
- <span className="text-muted-foreground hidden sm:inline">•</span>
+ <span className="text-foreground hidden sm:inline">•</span>
  <div className="flex items-center gap-1">
  {getStatusIcon(application.status)}
  <span className="capitalize truncate">{application.status.replace('_', ' ')}</span>
@@ -739,7 +739,7 @@ export function ApplicationDetailModal({
  className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
  activeTab === tab.id
  ? 'border-primary text-primary'
- : 'border-transparent text-muted-foreground hover:text-foreground hover:border-input'
+ : 'border-transparent text-foreground hover:text-foreground hover:border-input'
  }`}
  >
  <Icon className="h-4 w-4 flex-shrink-0" />
@@ -756,7 +756,7 @@ export function ApplicationDetailModal({
  <div className="flex items-center justify-center py-12">
  <div className="text-center">
  <LoadingSpinner size="lg" className="mx-auto mb-4" />
- <p className="text-muted-foreground">Loading application details...</p>
+ <p className="text-foreground">Loading application details...</p>
  </div>
  </div>
  ) : (
@@ -807,13 +807,13 @@ export function ApplicationDetailModal({
  <div className="flex items-center gap-3">
  <Calendar className="h-10 w-10 text-primary" />
  <div>
- <p className="text-sm text-muted-foreground">Upcoming interview</p>
+ <p className="text-sm text-foreground">Upcoming interview</p>
  <p className="text-base font-semibold text-foreground">
  {formatInterviewDateTime(currentInterview?.scheduled_at)}
  </p>
  </div>
  </div>
- <div className="text-sm text-muted-foreground">
+ <div className="text-sm text-foreground">
  <p className="font-medium text-foreground">
  Mode: {formatInterviewModeLabel(currentInterview?.mode)}
  </p>
@@ -831,46 +831,46 @@ export function ApplicationDetailModal({
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="space-y-4">
  <div className="flex items-center gap-3">
- <Mail className="h-4 w-4 text-muted-foreground" />
+ <Mail className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-muted-foreground">Email</p>
+ <p className="text-sm text-foreground">Email</p>
  <p className="font-medium text-foreground">{application.email}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <Phone className="h-4 w-4 text-muted-foreground" />
+ <Phone className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-muted-foreground">Phone</p>
+ <p className="text-sm text-foreground">Phone</p>
  <p className="font-medium text-foreground">{application.phone || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <Calendar className="h-4 w-4 text-muted-foreground" />
+ <Calendar className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-muted-foreground">Date of Birth</p>
+ <p className="text-sm text-foreground">Date of Birth</p>
  <p className="font-medium text-foreground">{application.date_of_birth || 'Not provided'}</p>
  </div>
  </div>
  </div>
  <div className="space-y-4">
  <div className="flex items-center gap-3">
- <MapPin className="h-4 w-4 text-muted-foreground" />
+ <MapPin className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-muted-foreground">Residence</p>
+ <p className="text-sm text-foreground">Residence</p>
  <p className="font-medium text-foreground">{application.residence_town || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <Users className="h-4 w-4 text-muted-foreground" />
+ <Users className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-muted-foreground">Next of Kin</p>
+ <p className="text-sm text-foreground">Next of Kin</p>
  <p className="font-medium text-foreground">{application.next_of_kin_name || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <FileText className="h-4 w-4 text-muted-foreground" />
+ <FileText className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-muted-foreground">NRC Number</p>
+ <p className="text-sm text-foreground">NRC Number</p>
  <p className="font-medium text-foreground">{application.nrc_number || 'Not provided'}</p>
  </div>
  </div>
@@ -886,23 +886,23 @@ export function ApplicationDetailModal({
  </h3>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="flex items-center gap-3">
- <GraduationCap className="h-4 w-4 text-muted-foreground" />
+ <GraduationCap className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-muted-foreground">Program</p>
+ <p className="text-sm text-foreground">Program</p>
  <p className="font-medium text-foreground">{application.program}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <Building className="h-4 w-4 text-muted-foreground" />
+ <Building className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-muted-foreground">Institution</p>
+ <p className="text-sm text-foreground">Institution</p>
  <p className="font-medium text-foreground">{getInstitutionName(application.institution)}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <Calendar className="h-4 w-4 text-muted-foreground" />
+ <Calendar className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-muted-foreground">Intake</p>
+ <p className="text-sm text-foreground">Intake</p>
  <p className="font-medium text-foreground">{application.intake}</p>
  </div>
  </div>
@@ -918,17 +918,17 @@ export function ApplicationDetailModal({
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="space-y-4">
  <div>
- <p className="text-sm text-muted-foreground mb-1">Payment Method</p>
+ <p className="text-sm text-foreground mb-1">Payment Method</p>
  <p className="font-medium text-foreground">{application.payment_method || 'Not specified'}</p>
  </div>
  <div>
- <p className="text-sm text-muted-foreground mb-1">Amount Paid</p>
+ <p className="text-sm text-foreground mb-1">Amount Paid</p>
  <p className="text-2xl font-bold text-accent">
  K{application.amount || 0} / K{application.application_fee || 0}
  </p>
  </div>
  <div>
- <p className="text-sm text-muted-foreground mb-1">Payer Name</p>
+ <p className="text-sm text-foreground mb-1">Payer Name</p>
  <p className="font-medium text-foreground">{application.payer_name || 'Not provided'}</p>
  </div>
  </div>
@@ -1001,7 +1001,7 @@ export function ApplicationDetailModal({
  <div className="flex items-center gap-3">
  <Clock className="h-5 w-5 text-primary" />
  <div>
- <p className="text-sm text-muted-foreground">Scheduled for</p>
+ <p className="text-sm text-foreground">Scheduled for</p>
  <p className="text-base font-medium text-foreground">
  {formatInterviewDateTime(currentInterview?.scheduled_at)}
  </p>
@@ -1023,13 +1023,13 @@ export function ApplicationDetailModal({
  </div>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Location / Link</p>
+ <p className="text-sm font-medium text-foreground mb-1">Location / Link</p>
  <p className="text-base text-foreground">
  {currentInterview?.location || 'Not provided'}
  </p>
  </div>
  <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
+ <p className="text-sm font-medium text-foreground mb-1">Notes</p>
  <p className="text-base text-foreground">
  {currentInterview?.notes || 'No additional notes recorded.'}
  </p>
@@ -1040,7 +1040,7 @@ export function ApplicationDetailModal({
  <div className="text-center py-8">
  <Calendar className="h-12 w-12 mx-auto mb-3 text-foreground" />
  <p className="text-base font-medium text-foreground mb-1">No interview scheduled yet</p>
- <p className="text-sm text-muted-foreground">
+ <p className="text-sm text-foreground">
  Use the form below to schedule and notify the applicant about their interview.
  </p>
  </div>

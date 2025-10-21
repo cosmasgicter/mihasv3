@@ -254,7 +254,7 @@ export function BulkOperations({
               </h3>
             </div>
             
-            <p className="text-sm text-muted-foreground mb-6">
+            <p className="text-sm text-foreground mb-6">
               Are you sure you want to {getActionDescription()} for {selectedCount} selected application{selectedCount !== 1 ? 's' : ''}?
             </p>
             

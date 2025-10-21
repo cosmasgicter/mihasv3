@@ -70,14 +70,14 @@ export function Select({
             isOpen && 'ring-2 ring-ring border-transparent'
           )}
         >
-          <span className={cn(!selectedOption && 'text-muted-foreground')}>
+          <span className={cn(!selectedOption && 'text-foreground')}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
           <motion.div
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            <ChevronDown className="w-4 h-4 text-foreground" />
           </motion.div>
         </button>
 

@@ -221,7 +221,7 @@ export function EnhancedFileUpload({
         <div className="text-center space-y-2">
           <Upload className={cn(
             'w-8 h-8 mx-auto',
-            isDragActive || dzIsDragActive ? 'text-primary' : 'text-muted-foreground'
+            isDragActive || dzIsDragActive ? 'text-primary' : 'text-foreground'
           )} />
           
           <div className="space-y-1">
@@ -231,7 +231,7 @@ export function EnhancedFileUpload({
                 : 'Drop files here or click to browse'
               }
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-foreground">
               {accept.join(', ')} up to {formatFileSize(maxSize)}
               {autoCompress && ' (Images will be compressed)'}
             </p>
@@ -280,13 +280,13 @@ export function EnhancedFileUpload({
                         className="p-1 hover:bg-skeleton rounded-full transition-colors"
                         type="button"
                       >
-                        <X className="w-4 h-4 text-muted-foreground" />
+                        <X className="w-4 h-4 text-foreground" />
                       </button>
                     </div>
                   </div>
                   
                   <div className="mt-1 space-y-1">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between text-xs text-foreground">
                       <span>
                         {formatFileSize(fileWithProgress.file.size)}
                         {fileWithProgress.compressed && fileWithProgress.originalSize && (

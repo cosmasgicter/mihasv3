@@ -76,7 +76,7 @@ const ApplicationWizardContent = () => {
       <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner />
-          <p className="mt-4 text-muted-foreground">
+          <p className="mt-4 text-foreground">
             {authLoading ? 'Loading...' : 'Restoring your saved progress...'}
           </p>
           {restoringDraft && (
@@ -132,8 +132,8 @@ const ApplicationWizardContent = () => {
           </Link>
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 break-words">Student Application</h1>
-            <p className="text-muted-foreground">Complete the {totalSteps}-step application process</p>
-            <div className="mt-2 text-sm text-muted-foreground break-all">Logged in as: {user.email}</div>
+            <p className="text-foreground">Complete the {totalSteps}-step application process</p>
+            <div className="mt-2 text-sm text-foreground break-all">Logged in as: {user.email}</div>
           </motion.div>
         </div>
 
@@ -182,14 +182,14 @@ const ApplicationWizardContent = () => {
                           ? 'bg-success border-success text-white shadow-lg'
                           : isActive
                           ? 'bg-primary border-primary text-white shadow-lg scale-110'
-                          : 'bg-card border-input text-muted-foreground'
+                          : 'bg-card border-input text-foreground'
                       }`}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                     </motion.div>
-                    <div className={`mt-2 text-xs font-medium text-center truncate max-w-[80px] ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <div className={`mt-2 text-xs font-medium text-center truncate max-w-[80px] ${isActive ? 'text-primary' : 'text-foreground'}`}>
                       {step.title}
                     </div>
                   </motion.div>

@@ -202,12 +202,12 @@ export default function NotificationSettings() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">{details.title}</h2>
-              <p className="text-sm text-muted-foreground">{details.description} <span className="text-accent font-medium">(Enabled by default)</span></p>
+              <p className="text-sm text-foreground">{details.description} <span className="text-accent font-medium">(Enabled by default)</span></p>
             </div>
           </div>
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-accent text-muted-foreground border border-border'
+              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-accent text-foreground border border-border'
             }`}
           >
             {optedIn ? 'Enabled' : 'Disabled'}
@@ -218,19 +218,19 @@ export default function NotificationSettings() {
           {optedIn && summary.optInAt && (
             <p>
               <span className="font-semibold">Opted in:</span> {summary.optInAt}
-              {summary.source && <span className="text-muted-foreground"> · via {summary.source}</span>}
+              {summary.source && <span className="text-foreground"> · via {summary.source}</span>}
             </p>
           )}
 
           {!optedIn && summary.optOutAt && (
             <p>
               <span className="font-semibold">Consent revoked:</span> {summary.optOutAt}
-              {summary.optOutReason && <span className="text-muted-foreground"> · {summary.optOutReason}</span>}
+              {summary.optOutReason && <span className="text-foreground"> · {summary.optOutReason}</span>}
             </p>
           )}
 
           {!optedIn && !summary.optOutAt && (
-            <p className="text-muted-foreground">This channel is enabled by default. You can opt out if you prefer.</p>
+            <p className="text-foreground">This channel is enabled by default. You can opt out if you prefer.</p>
           )}
 
           {disableGrant && (
@@ -244,14 +244,14 @@ export default function NotificationSettings() {
             </div>
           )}
 
-          <div className="flex flex-col gap-2 text-xs text-muted-foreground">
-            <span className="uppercase tracking-wide text-muted-foreground font-semibold">Current contact</span>
+          <div className="flex flex-col gap-2 text-xs text-foreground">
+            <span className="uppercase tracking-wide text-foreground font-semibold">Current contact</span>
             <span className="text-sm text-foreground">{preferences?.phone || 'No phone number on file'}</span>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-border">
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-foreground">
             Priority: <span className="font-medium text-foreground">{entry.priority}</span>
           </div>
           <Button

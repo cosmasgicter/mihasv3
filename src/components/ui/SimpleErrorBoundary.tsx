@@ -36,8 +36,8 @@ export class SimpleErrorBoundary extends React.Component<Props, State> {
         <div className="min-h-screen flex items-center justify-center bg-muted">
           <div className="text-center p-8">
             <h2 className="text-xl font-semibold text-foreground mb-4">Something went wrong</h2>
-            <p className="text-muted-foreground mb-4">{this.state.error?.message || 'Unknown error'}</p>
-            <p className="text-xs text-muted-foreground mb-4">{this.state.error?.stack?.substring(0, 200)}</p>
+            <p className="text-foreground mb-4">{this.state.error?.message || 'Unknown error'}</p>
+            <p className="text-xs text-foreground mb-4">{this.state.error?.stack?.substring(0, 200)}</p>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-primary text-foreground rounded-lg hover:bg-primary"

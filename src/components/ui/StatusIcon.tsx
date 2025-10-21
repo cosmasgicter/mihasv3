@@ -33,7 +33,7 @@ export function StatusIcon({ status, size = 'md', animated = false, className }:
     rejected: { Icon: XCircle, color: 'text-destructive' },
     under_review: { Icon: Target, color: 'text-primary' },
     submitted: { Icon: Rocket, color: 'text-accent' },
-    pending: { Icon: Clock, color: 'text-muted-foreground' },
+    pending: { Icon: Clock, color: 'text-foreground' },
     warning: { Icon: AlertTriangle, color: 'text-warning' }
   }
 

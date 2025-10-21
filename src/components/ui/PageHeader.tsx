@@ -31,7 +31,7 @@ const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
 
 const statAccentStyles: Record<StatAccent, string> = {
  primary: 'bg-primary/5/30 border-primary/30 text-primary',
- secondary: 'bg-secondary/5/30 border-secondary/30 text-purple-700',
+ secondary: 'bg-secondary/5/30 border-input/30 text-purple-700',
  success: 'bg-success/10 border-success/30 text-success',
  warning: 'bg-warning/10 border-warning/30 text-accent',
  neutral: 'bg-muted border-border text-foreground'
@@ -73,7 +73,7 @@ export function PageHeader({
  >
  {statIcon && <span className="shrink-0 text-lg">{statIcon}</span>}
  <div className="space-y-1">
- <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-muted-foreground/70' : 'text-muted-foreground')}>
+ <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-foreground/70' : 'text-foreground')}>
  {label}
  </p>
  <p className={cn('text-lg sm:text-xl md:text-2xl font-bold break-words', isGradient ? 'text-foreground' : '')}>{value}</p>
@@ -116,7 +116,7 @@ export function PageHeader({
  <div className="space-y-3">
  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight break-words">{title}</h1>
  {description && (
- <p className={cn('text-base sm:text-lg', isGradient ? 'text-foreground/80' : 'text-muted-foreground')}>{description}</p>
+ <p className={cn('text-base sm:text-lg', isGradient ? 'text-foreground/80' : 'text-foreground')}>{description}</p>
  )}
  {children}
  </div>

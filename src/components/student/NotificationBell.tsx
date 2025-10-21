@@ -104,7 +104,7 @@ export function NotificationBell() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-foreground flex items-center gap-2"><Bell className="w-5 h-5" /> Notifications</h3>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground">
                       {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up!'}
                     </p>
                   </div>
@@ -143,7 +143,7 @@ export function NotificationBell() {
                   <div className="p-8 text-center">
                     <Bell className="h-12 w-12 mx-auto mb-3 opacity-30" />
                     <p className="font-medium text-foreground">No notifications yet</p>
-                    <p className="text-xs mt-1 text-muted-foreground">We'll notify you about important updates</p>
+                    <p className="text-xs mt-1 text-foreground">We'll notify you about important updates</p>
                   </div>
                 ) : (
                   <div className="p-2 space-y-2">
@@ -173,7 +173,7 @@ export function NotificationBell() {
                                   {sanitizeText(notification.content)}
                                 </p>
                                 <div className="flex items-center justify-between mt-2">
-                                  <span className="text-xs text-muted-foreground">
+                                  <span className="text-xs text-foreground">
                                     {formatDate(notification.created_at)}
                                   </span>
                                   {!notification.read && (

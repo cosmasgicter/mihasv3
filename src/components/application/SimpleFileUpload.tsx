@@ -309,7 +309,7 @@ export function SimpleFileUpload({
                           color="blue"
                         />
                       {uploadStats.speed > 0 && (
-                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                        <div className="flex justify-between text-xs text-foreground mt-1">
                           <span>{formatFileSize(uploadStats.speed)}/s</span>
                           <span>~{Math.ceil(uploadStats.eta)}s remaining</span>
                         </div>
@@ -321,15 +321,15 @@ export function SimpleFileUpload({
                 <>
                   <Upload className={cn(
                     'h-8 w-8 mx-auto',
-                    dragActive ? 'text-primary' : 'text-muted-foreground'
+                    dragActive ? 'text-primary' : 'text-foreground'
                   )} />
                   <p className={cn(
                     'text-sm font-medium',
-                    dragActive ? 'text-primary' : 'text-muted-foreground'
+                    dragActive ? 'text-primary' : 'text-foreground'
                   )}>
                     {dragActive ? 'Drop files here' : 'Click to upload or drag and drop'}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-foreground">
                     {acceptedTypes.join(', ').replace(/\./g, '').toUpperCase()} up to {formatFileSize(maxFileSize)}
                   </p>
                   {enableCompression && (

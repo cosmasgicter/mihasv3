@@ -399,21 +399,21 @@ export default function AdminSettings() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary">{settings.length}</div>
-                <div className="text-sm text-muted-foreground">Total Settings</div>
+                <div className="text-sm text-foreground">Total Settings</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-accent">{settings.filter(s => s.is_public).length}</div>
-                <div className="text-sm text-muted-foreground">Public</div>
+                <div className="text-sm text-foreground">Public</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-destructive">{settings.filter(s => !s.is_public).length}</div>
-                <div className="text-sm text-muted-foreground">Private</div>
+                <div className="text-sm text-foreground">Private</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-secondary">
                   {new Set(settings.map(s => s.setting_type)).size}
                 </div>
-                <div className="text-sm text-muted-foreground">Data Types</div>
+                <div className="text-sm text-foreground">Data Types</div>
               </div>
             </div>
           </div>
@@ -506,7 +506,7 @@ export default function AdminSettings() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-muted-foreground">Loading settings...</p>
+                  <p className="mt-4 text-lg text-foreground">Loading settings...</p>
                 </div>
               </div>
             ) : (
@@ -590,7 +590,7 @@ export default function AdminSettings() {
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <Database className="h-4 w-4 text-muted-foreground" />
+                                  <Database className="h-4 w-4 text-foreground" />
                                   <span className="text-sm font-semibold text-foreground">{setting.setting_key}</span>
                                 </div>
                                 <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
@@ -612,7 +612,7 @@ export default function AdminSettings() {
                               <div className="text-lg font-bold text-foreground mb-1">
                                 {formatValue(setting.setting_value, setting.setting_type)}
                               </div>
-                              <p className="text-xs text-muted-foreground">{setting.description || 'No description'}</p>
+                              <p className="text-xs text-foreground">{setting.description || 'No description'}</p>
                             </div>
                             <div className="flex gap-2">
                               <Button
@@ -644,22 +644,22 @@ export default function AdminSettings() {
                       <table className="min-w-full divide-y divide-border">
                       <thead className="bg-muted">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                             Setting Key
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                             Value
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                             Type
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                             Visibility
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                             Description
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-right text-xs font-medium text-foreground uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -669,7 +669,7 @@ export default function AdminSettings() {
                           <tr key={setting.id} className="hover:bg-muted">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                <Database className="h-4 w-4 text-muted-foreground mr-2" />
+                                <Database className="h-4 w-4 text-foreground mr-2" />
                                 <span className="text-sm font-medium text-foreground">{setting.setting_key}</span>
                               </div>
                             </td>
@@ -725,7 +725,7 @@ export default function AdminSettings() {
                                   placeholder="Description"
                                 />
                               ) : (
-                                <span className="text-sm text-muted-foreground break-words">
+                                <span className="text-sm text-foreground break-words">
                                   {setting.description || 'No description'}
                                 </span>
                               )}
@@ -778,9 +778,9 @@ export default function AdminSettings() {
                   
                   {filteredSettings.length === 0 && (
                     <div className="text-center py-12">
-                      <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <Database className="h-12 w-12 text-foreground mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-foreground mb-2">No settings found</h3>
-                      <p className="text-muted-foreground mb-4">
+                      <p className="text-foreground mb-4">
                         {searchTerm ? 'No settings match your search criteria.' : 'No settings configured yet.'}
                       </p>
                       {!searchTerm && (

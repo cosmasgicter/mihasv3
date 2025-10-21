@@ -30,7 +30,7 @@ export function EligibilityReport({
       case 'under_review':
         return <Clock className="h-8 w-8 text-primary" />
       default:
-        return <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+        return <AlertTriangle className="h-8 w-8 text-foreground" />
     }
   }
 
@@ -138,7 +138,7 @@ For appeals or queries, please contact the admissions office.
               <h1 className="text-2xl font-bold text-foreground">
                 Eligibility Assessment Report
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-foreground">
                 Generated on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
               </p>
             </div>
@@ -216,7 +216,7 @@ For appeals or queries, please contact the admissions office.
             </div>
           </div>
           <div className="bg-muted rounded-lg p-4">
-            <div className="text-sm font-medium text-muted-foreground">Weighted Total</div>
+            <div className="text-sm font-medium text-foreground">Weighted Total</div>
             <div className="text-2xl font-bold text-foreground">
               {Math.round(assessment.detailed_breakdown.total_weighted_score)}%
             </div>
@@ -241,7 +241,7 @@ For appeals or queries, please contact the admissions office.
                       }`}>
                         {req.severity}
                       </span>
-                      <span className="text-xs text-muted-foreground uppercase">{req.type}</span>
+                      <span className="text-xs text-foreground uppercase">{req.type}</span>
                     </div>
                     <div className="font-medium text-foreground mb-1">{req.description}</div>
                     <div className="text-sm text-foreground">{req.suggestion}</div>
@@ -282,7 +282,7 @@ For appeals or queries, please contact the admissions office.
 
       {/* Footer */}
       <div className="border-t border-border pt-6">
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-foreground">
           <p className="mb-2">
             <strong>Important Notes:</strong>
           </p>
@@ -294,7 +294,7 @@ For appeals or queries, please contact the admissions office.
           </ul>
           
           <div className="mt-4 pt-4 border-t border-border">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-foreground">
               This report was generated automatically by the Eligibility Assessment System on {new Date().toLocaleString()}.
               Report ID: {assessment.id}
             </p>

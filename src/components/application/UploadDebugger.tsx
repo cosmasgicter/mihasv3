@@ -111,7 +111,7 @@ export function UploadDebugger() {
             type="file"
             accept=".pdf,.jpg,.jpeg,.png"
             onChange={handleFileSelect}
-            className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
+            className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
           />
         </div>
 
@@ -141,7 +141,7 @@ export function UploadDebugger() {
 
         {uploading && (
           <div>
-            <div className="flex justify-between text-sm text-muted-foreground mb-1">
+            <div className="flex justify-between text-sm text-foreground mb-1">
               <span>Progress</span>
               <span>{progress}%</span>
             </div>

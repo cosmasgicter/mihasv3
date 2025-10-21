@@ -112,7 +112,7 @@ export function RealTimeNotifications() {
 
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="p-6 text-center text-muted-foreground">
+                <div className="p-6 text-center text-foreground">
                   <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>No notifications</p>
                 </div>
@@ -135,11 +135,11 @@ export function RealTimeNotifications() {
                           <p className="font-medium text-foreground text-sm">
                             {notification.title}
                           </p>
-                          <p className="text-muted-foreground text-xs mt-1">
+                          <p className="text-foreground text-xs mt-1">
                             {notification.message}
                           </p>
                           <div className="flex items-center justify-between mt-2">
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-foreground">
                               {notification.timestamp.toLocaleTimeString()}
                             </span>
                             <Button

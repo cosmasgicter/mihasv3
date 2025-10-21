@@ -105,7 +105,7 @@ export default function ApplicationDetail() {
           <div className="text-center py-16">
             <XCircle className="h-16 w-16 text-error mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">Application Not Found</h2>
-            <p className="text-muted-foreground mb-6">{error || 'The application you are looking for does not exist.'}</p>
+            <p className="text-foreground mb-6">{error || 'The application you are looking for does not exist.'}</p>
             <Link to="/student/dashboard">
               <Button>Return to Dashboard</Button>
             </Link>
@@ -135,7 +135,7 @@ export default function ApplicationDetail() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground break-words">Application Details</h1>
-              <p className="text-muted-foreground break-all">#{application.application_number}</p>
+              <p className="text-foreground break-all">#{application.application_number}</p>
             </div>
             
             <div className="flex items-center space-x-3">
@@ -157,7 +157,7 @@ export default function ApplicationDetail() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-1">Application Slip</h3>
-              <p className="text-muted-foreground text-sm">Download or email your official application slip</p>
+              <p className="text-foreground text-sm">Download or email your official application slip</p>
             </div>
             <ApplicationSlipActions 
               applicationId={application.id} 
@@ -180,27 +180,27 @@ export default function ApplicationDetail() {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                <label className="text-sm font-medium text-foreground">Full Name</label>
                 <p className="text-foreground font-medium break-words">{application.full_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Email</label>
+                <label className="text-sm font-medium text-foreground">Email</label>
                 <p className="text-foreground font-medium flex items-center">
-                  <Mail className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
+                  <Mail className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
                   <span className="break-all">{application.email}</span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                <label className="text-sm font-medium text-foreground">Phone</label>
                 <p className="text-foreground font-medium flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
+                  <Phone className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
                   <span className="break-all">{application.phone}</span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Nationality</label>
+                <label className="text-sm font-medium text-foreground">Nationality</label>
                 <p className="text-foreground font-medium flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <MapPin className="h-4 w-4 mr-2 text-foreground" />
                   {application.nationality || 'Zambian'}
                 </p>
               </div>
@@ -220,11 +220,11 @@ export default function ApplicationDetail() {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Program</label>
+                <label className="text-sm font-medium text-foreground">Program</label>
                 <p className="text-foreground font-medium break-words">{application.program}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Institution</label>
+                <label className="text-sm font-medium text-foreground">Institution</label>
                 <p className="text-foreground font-medium break-words">
                   {application.institution === 'KATC' ? 'Kalulushi Training Centre' : 
                    application.institution === 'MIHAS' ? 'Mukuba Institute of Health and Allied Sciences' : 
@@ -232,11 +232,11 @@ export default function ApplicationDetail() {
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Intake</label>
+                <label className="text-sm font-medium text-foreground">Intake</label>
                 <p className="text-foreground font-medium break-words">{application.intake}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Application Fee</label>
+                <label className="text-sm font-medium text-foreground">Application Fee</label>
                 <p className="text-foreground font-medium">ZMW {application.application_fee}</p>
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function ApplicationDetail() {
                 <div className="w-2 h-2 bg-accent/10/300 rounded-full"></div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Application Created</p>
-                  <p className="text-xs text-muted-foreground">{formatDate(application.created_at)}</p>
+                  <p className="text-xs text-foreground">{formatDate(application.created_at)}</p>
                 </div>
               </div>
               {application.submitted_at && (
@@ -266,7 +266,7 @@ export default function ApplicationDetail() {
                   <div className="w-2 h-2 bg-primary/5/300 rounded-full"></div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Application Submitted</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(application.submitted_at)}</p>
+                    <p className="text-xs text-foreground">{formatDate(application.submitted_at)}</p>
                   </div>
                 </div>
               )}
@@ -275,7 +275,7 @@ export default function ApplicationDetail() {
                   <div className="w-2 h-2 bg-accent/5/300 rounded-full"></div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Review Started</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(application.review_started_at)}</p>
+                    <p className="text-xs text-foreground">{formatDate(application.review_started_at)}</p>
                   </div>
                 </div>
               )}
@@ -286,7 +286,7 @@ export default function ApplicationDetail() {
                   }`}></div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Decision Made</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(application.decision_date)}</p>
+                    <p className="text-xs text-foreground">{formatDate(application.decision_date)}</p>
                   </div>
                 </div>
               )}
@@ -306,7 +306,7 @@ export default function ApplicationDetail() {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Payment Status</label>
+                <label className="text-sm font-medium text-foreground">Payment Status</label>
                 <p className={`font-medium ${
                   application.payment_status === 'verified' ? 'text-success' : 
                   application.payment_status === 'pending' ? 'text-warning' : 'text-error'
@@ -316,12 +316,12 @@ export default function ApplicationDetail() {
               </div>
               {application.payment_verified_at && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Verified Date</label>
+                  <label className="text-sm font-medium text-foreground">Verified Date</label>
                   <p className="text-foreground font-medium">{formatDate(application.payment_verified_at)}</p>
                 </div>
               )}
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Tracking Code</label>
+                <label className="text-sm font-medium text-foreground">Tracking Code</label>
                 <p className="text-foreground font-medium font-mono break-all">{application.public_tracking_code}</p>
               </div>
             </div>

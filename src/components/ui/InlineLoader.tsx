@@ -26,7 +26,7 @@ export function InlineLoader({
 
   const baseClasses = {
     default: 'flex items-center justify-center space-x-3',
-    minimal: 'flex items-center space-x-2 text-muted-foreground',
+    minimal: 'flex items-center space-x-2 text-foreground',
     card: 'flex items-center justify-center space-x-3 bg-muted rounded-lg border border-border p-6'
   }
 
@@ -45,7 +45,7 @@ export function InlineLoader({
       )}
       <span className={cn(
         'font-medium',
-        variant === 'minimal' ? 'text-muted-foreground' : 'text-foreground'
+        variant === 'minimal' ? 'text-foreground' : 'text-foreground'
       )}>
         {message}
       </span>

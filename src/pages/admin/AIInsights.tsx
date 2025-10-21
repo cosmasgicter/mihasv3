@@ -21,7 +21,7 @@ export default function AIInsights() {
   const { profile } = useProfileQuery()
   const { isAdmin: hasAdminRole } = useRoleQuery()
   const isAdmin = hasAdminRole || isAdminRole(profile?.role)
-  const { success: showSuccess, error: showError } = useToast()
+  const { success: showSuccess, error: showError } = useToastStore()
   const [stats, setStats] = useState<AIInsightsStats>({
     totalPredictions: 0,
     automationRuns: 0,
@@ -85,7 +85,7 @@ export default function AIInsights() {
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-error mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-foreground mb-2">Access Denied</h2>
-          <p className="text-muted-foreground">You don't have permission to access AI insights.</p>
+          <p className="text-foreground">You don't have permission to access AI insights.</p>
         </div>
       </div>
     )
@@ -102,7 +102,7 @@ export default function AIInsights() {
                 <Brain className="h-8 w-8 mr-3 text-secondary" />
                 AI Insights & Automation
               </h1>
-              <p className="text-muted-foreground mt-2">
+              <p className="text-foreground mt-2">
                 Monitor AI performance, predictive analytics, and automation workflows
               </p>
             </div>
@@ -142,7 +142,7 @@ export default function AIInsights() {
                   <Brain className="h-6 w-6 text-primary" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-muted-foreground">AI Predictions</p>
+                  <p className="text-sm font-medium text-foreground">AI Predictions</p>
                   <p className="text-2xl font-bold text-foreground">{stats.totalPredictions}</p>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function AIInsights() {
                   <Zap className="h-6 w-6 text-secondary" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-muted-foreground">Automation Runs</p>
+                  <p className="text-sm font-medium text-foreground">Automation Runs</p>
                   <p className="text-2xl font-bold text-foreground">{stats.automationRuns}</p>
                 </div>
               </div>
@@ -178,7 +178,7 @@ export default function AIInsights() {
                   <FileText className="h-6 w-6 text-accent" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-muted-foreground">Notifications Sent</p>
+                  <p className="text-sm font-medium text-foreground">Notifications Sent</p>
                   <p className="text-2xl font-bold text-foreground">{stats.notificationsSent}</p>
                 </div>
               </div>
@@ -196,7 +196,7 @@ export default function AIInsights() {
                   <TrendingUp className="h-6 w-6 text-accent" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-muted-foreground">Avg Accuracy</p>
+                  <p className="text-sm font-medium text-foreground">Avg Accuracy</p>
                   <p className="text-2xl font-bold text-foreground">{stats.avgAccuracy}%</p>
                 </div>
               </div>
@@ -219,7 +219,7 @@ export default function AIInsights() {
                   className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-purple-500 text-secondary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-input'
+                      : 'border-transparent text-foreground hover:text-foreground hover:border-input'
                   }`}
                 >
                   <tab.icon className="h-4 w-4 mr-2" />
@@ -251,7 +251,7 @@ export default function AIInsights() {
                     <div key={rule.id} className="flex items-center justify-between p-4 bg-muted rounded-lg">
                       <div>
                         <h4 className="font-medium text-foreground">{rule.name}</h4>
-                        <p className="text-sm text-muted-foreground">Trigger: {rule.trigger}</p>
+                        <p className="text-sm text-foreground">Trigger: {rule.trigger}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${
@@ -303,7 +303,7 @@ export default function AIInsights() {
                         <div key={channel.name} className="flex items-center justify-between p-3 bg-muted rounded">
                           <span className="font-medium">{channel.name}</span>
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm text-muted-foreground">{channel.count} sent</span>
+                            <span className="text-sm text-foreground">{channel.count} sent</span>
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               channel.status === 'active' 
                                 ? 'bg-accent/10 text-accent-foreground' 
@@ -328,7 +328,7 @@ export default function AIInsights() {
                         <div key={index} className="flex items-center justify-between p-3 bg-muted rounded">
                           <div>
                             <span className="font-medium text-sm">{activity.type}</span>
-                            <p className="text-xs text-muted-foreground">{activity.time}</p>
+                            <p className="text-xs text-foreground">{activity.time}</p>
                           </div>
                           <span className="px-2 py-1 text-xs bg-accent/10 text-accent-foreground rounded-full">
                             {activity.status}

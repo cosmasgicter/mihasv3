@@ -141,7 +141,7 @@ export function TestNotifications() {
           </div>
         )}
         
-        <div className="text-xs text-muted-foreground">
+        <div className="text-xs text-foreground">
           <p>• In-app notifications appear instantly in the notification bell</p>
           <p>• Email notifications are queued and need to be processed by an email service</p>
           <p>• Test with existing student users and applications</p>

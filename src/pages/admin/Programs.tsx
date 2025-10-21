@@ -233,7 +233,7 @@ export default function AdminPrograms() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-muted-foreground">Loading programs...</p>
+                  <p className="mt-4 text-lg text-foreground">Loading programs...</p>
                 </div>
               </div>
             ) : error ? (
@@ -252,7 +252,7 @@ export default function AdminPrograms() {
               <div className="text-center py-16">
                 <div className="text-8xl mb-6"><GraduationCap className="w-5 h-5" /></div>
                 <h3 className="text-2xl font-bold text-foreground mb-2">No Programs Yet</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                <p className="text-foreground mb-6 max-w-md mx-auto">
                   Start by creating your first academic program. Programs define the courses and duration for student applications.
                 </p>
                 <Button onClick={openCreate} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
@@ -269,14 +269,14 @@ export default function AdminPrograms() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-bold text-lg text-foreground">{program.name}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-sm text-foreground mt-1">
                             Duration: {program.duration_years} year{program.duration_years !== 1 ? 's' : ''}
                           </p>
                           <p className="text-sm text-primary font-medium mt-1">
                             {program.institutions?.name || 'Unknown Institution'}
                           </p>
                           {program.description && (
-                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{program.description}</p>
+                            <p className="text-sm text-foreground mt-2 line-clamp-2">{program.description}</p>
                           )}
                         </div>
                       </div>
@@ -343,7 +343,7 @@ export default function AdminPrograms() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm text-muted-foreground max-w-xs truncate">
+                            <div className="text-sm text-foreground max-w-xs truncate">
                               {program.description || 'No description provided'}
                             </div>
                           </td>

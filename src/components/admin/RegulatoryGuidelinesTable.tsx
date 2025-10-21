@@ -47,7 +47,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  case 'recommended':
  return <CheckCircle className="h-4 w-4 text-warning" />
  case 'optional':
- return <Clock className="h-4 w-4 text-muted-foreground" />
+ return <Clock className="h-4 w-4 text-foreground" />
  default:
  return null
  }
@@ -88,7 +88,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  <div className="flex flex-col sm:flex-row gap-4">
  <div className="flex-1">
  <div className="relative">
- <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+ <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground" />
  <Input
  placeholder="Search guidelines by program, requirement, or regulatory body..."
  value={searchQuery}
@@ -164,7 +164,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  </div>
 
  {/* Results Summary */}
- <div className="flex items-center justify-between text-sm text-muted-foreground">
+ <div className="flex items-center justify-between text-sm text-foreground">
  <span>
  Showing {filteredGuidelines.length} guidelines
  {searchQuery && ` for "${searchQuery}"`}
@@ -189,10 +189,10 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  {loading ? (
  <div className="p-8 text-center">
  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
- <p className="text-muted-foreground">Loading guidelines...</p>
+ <p className="text-foreground">Loading guidelines...</p>
  </div>
  ) : filteredGuidelines.length === 0 ? (
- <div className="p-8 text-center text-muted-foreground">
+ <div className="p-8 text-center text-foreground">
  <Search className="h-12 w-12 mx-auto mb-4 text-foreground" />
  <h3 className="text-lg font-medium mb-2">No guidelines found</h3>
  <p>Try adjusting your search terms or filters</p>
@@ -202,25 +202,25 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  <table className="min-w-full divide-y divide-border">
  <thead className="bg-muted">
  <tr>
- <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+ <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
  Regulatory Body
  </th>
- <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+ <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
  Program
  </th>
- <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+ <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
  Requirement
  </th>
- <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+ <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
  Type
  </th>
- <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+ <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
  Compliance Level
  </th>
- <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+ <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
  Verification
  </th>
- <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+ <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
  Actions
  </th>
  </tr>
@@ -236,7 +236,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  <div className="text-sm font-medium text-foreground">
  {guideline.program_name}
  </div>
- <div className="text-sm text-muted-foreground">
+ <div className="text-sm text-foreground">
  {guideline.program_code}
  </div>
  </div>
@@ -247,7 +247,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  </div>
  </td>
  <td className="px-6 py-4 whitespace-nowrap">
- <span className="text-sm text-muted-foreground capitalize">
+ <span className="text-sm text-foreground capitalize">
  {guideline.guideline_type}
  </span>
  </td>

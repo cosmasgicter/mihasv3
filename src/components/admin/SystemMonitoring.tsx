@@ -112,7 +112,7 @@ export function SystemMonitoring() {
       case 'critical':
         return 'text-error bg-destructive/10'
       default:
-        return 'text-muted-foreground bg-accent'
+        return 'text-foreground bg-accent'
     }
   }
 
@@ -140,7 +140,7 @@ export function SystemMonitoring() {
             </span>
           </div>
           <h3 className="font-semibold text-foreground mb-2">Database</h3>
-          <div className="space-y-1 text-sm text-muted-foreground">
+          <div className="space-y-1 text-sm text-foreground">
             <div>Connections: {metrics.database.connections}</div>
             <div>Response: {metrics.database.responseTime}ms</div>
             <div>Uptime: {metrics.database.uptime}</div>
@@ -162,7 +162,7 @@ export function SystemMonitoring() {
             </span>
           </div>
           <h3 className="font-semibold text-foreground mb-2">Performance</h3>
-          <div className="space-y-1 text-sm text-muted-foreground">
+          <div className="space-y-1 text-sm text-foreground">
             <div>CPU: {metrics.performance.cpu}%</div>
             <div>Memory: {metrics.performance.memory}%</div>
             <div>Storage: {metrics.performance.storage}%</div>
@@ -184,7 +184,7 @@ export function SystemMonitoring() {
             </span>
           </div>
           <h3 className="font-semibold text-foreground mb-2">Security</h3>
-          <div className="space-y-1 text-sm text-muted-foreground">
+          <div className="space-y-1 text-sm text-foreground">
             <div>Last Scan: {metrics.security.lastScan}</div>
             <div>Threats: {metrics.security.threats}</div>
             <div>Updates: {metrics.security.updates}</div>
@@ -206,7 +206,7 @@ export function SystemMonitoring() {
             </span>
           </div>
           <h3 className="font-semibold text-foreground mb-2">Users</h3>
-          <div className="space-y-1 text-sm text-muted-foreground">
+          <div className="space-y-1 text-sm text-foreground">
             <div>Active: {metrics.users.active}</div>
             <div>Sessions: {metrics.users.sessions}</div>
             <div>Avg Time: {metrics.users.avgSessionTime}min</div>
@@ -229,7 +229,7 @@ export function SystemMonitoring() {
           <button
             onClick={refreshMetrics}
             disabled={refreshing}
-            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2 text-foreground hover:text-foreground transition-colors"
           >
             <Activity className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
@@ -376,7 +376,7 @@ export function SystemMonitoring() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
               <div className="text-2xl font-bold text-primary">{metrics.users.active}</div>
-              <div className="text-sm text-muted-foreground">Active Users</div>
+              <div className="text-sm text-foreground">Active Users</div>
               <div className="flex items-center justify-center mt-2 text-xs text-accent">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 +12% from yesterday
@@ -385,7 +385,7 @@ export function SystemMonitoring() {
 
             <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
               <div className="text-2xl font-bold text-accent">{metrics.database.connections}</div>
-              <div className="text-sm text-muted-foreground">DB Connections</div>
+              <div className="text-sm text-foreground">DB Connections</div>
               <div className="flex items-center justify-center mt-2 text-xs text-primary">
                 <Activity className="h-3 w-3 mr-1" />
                 Normal load
@@ -394,7 +394,7 @@ export function SystemMonitoring() {
 
             <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
               <div className="text-2xl font-bold text-secondary">{metrics.database.responseTime}ms</div>
-              <div className="text-sm text-muted-foreground">Response Time</div>
+              <div className="text-sm text-foreground">Response Time</div>
               <div className="flex items-center justify-center mt-2 text-xs text-accent">
                 <TrendingDown className="h-3 w-3 mr-1" />
                 -5ms improvement

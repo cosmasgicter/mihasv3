@@ -87,7 +87,7 @@ export function BulkUserOperations({
             </span>
           </button>
           {selectedUsers.length > 0 && (
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-foreground">
               {selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected
             </span>
           )}
@@ -138,7 +138,7 @@ export function BulkUserOperations({
                   </button>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate" title={user.full_name || 'No name'}>{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
-                    <p className="text-xs text-muted-foreground truncate" title={user.email}>{user.email?.replace(/[<>"'&]/g, '')}</p>
+                    <p className="text-xs text-foreground truncate" title={user.email}>{user.email?.replace(/[<>"'&]/g, '')}</p>
                   </div>
                 </div>
                 <span className="text-xs px-2 py-1 bg-skeleton text-foreground rounded">
@@ -160,7 +160,7 @@ export function BulkUserOperations({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-muted-foreground">
+            <p className="text-foreground">
               Update the role for {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}:
             </p>
             <div>
@@ -214,7 +214,7 @@ export function BulkUserOperations({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-muted-foreground">
+            <p className="text-foreground">
               Are you sure you want to delete {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}?
             </p>
             <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-3">

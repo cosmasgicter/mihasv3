@@ -182,7 +182,7 @@ export default function EligibilityManagement() {
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Eligibility Management System
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-foreground">
             Manage course requirements, regulatory compliance, and eligibility assessments
           </p>
         </div>
@@ -202,7 +202,7 @@ export default function EligibilityManagement() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     activeTab === tab.id
                       ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-input'
+                      : 'border-transparent text-foreground hover:text-foreground hover:border-input'
                   }`}
                 >
                   <tab.icon className="h-5 w-5" />
@@ -238,22 +238,22 @@ export default function EligibilityManagement() {
               <table className="min-w-full divide-y divide-border">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Rule Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Program
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Weight
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -264,13 +264,13 @@ export default function EligibilityManagement() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {rule.rule_name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         {(rule as any).programs?.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         {rule.rule_type}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         {rule.weight}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -309,7 +309,7 @@ export default function EligibilityManagement() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-semibold text-foreground">Regulatory Guidelines</h2>
-                <p className="text-muted-foreground mt-1">
+                <p className="text-foreground mt-1">
                   HPCZ, NMCZ, and ECZ compliance requirements for health and education programs
                 </p>
               </div>
@@ -331,7 +331,7 @@ export default function EligibilityManagement() {
                     setShowRuleForm(false)
                     setEditingRule(null)
                   }}
-                  className="text-muted-foreground hover:text-muted-foreground"
+                  className="text-foreground hover:text-foreground"
                 >
                   <X className="h-6 w-6" />
                 </button>
