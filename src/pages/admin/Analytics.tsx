@@ -294,7 +294,7 @@ export default function Analytics() {
  setFormData({})
  setShowCreateDialog(true)
  }}
- className="bg-success hover:bg-success text-white"
+ variant="success"
  >
  <Plus className="h-4 w-4 mr-2" />
  Add Stats
@@ -527,7 +527,7 @@ export default function Analytics() {
  setFormData({})
  setShowCreateDialog(true)
  }}
- className="bg-success hover:bg-success text-white"
+ variant="success"
  >
  <Plus className="h-4 w-4 mr-2" />
  Add Record
@@ -598,7 +598,7 @@ export default function Analytics() {
  setFormData({})
  setShowCreateDialog(true)
  }}
- className="bg-success hover:bg-success text-white"
+ variant="success"
  >
  <Plus className="h-4 w-4 mr-2" />
  Add Record
@@ -677,7 +677,7 @@ export default function Analytics() {
  setFormData({})
  setShowCreateDialog(true)
  }}
- className="bg-success hover:bg-success text-white"
+ variant="success"
  >
  <Plus className="h-4 w-4 mr-2" />
  Add Record
@@ -965,7 +965,7 @@ export default function Analytics() {
  </Button>
  <Button
  onClick={handleCreate}
- className="bg-success hover:bg-success text-white"
+ variant="success"
  >
  Create
  </Button>
@@ -1153,7 +1153,7 @@ export default function Analytics() {
  </Button>
  <Button
  onClick={handleDelete}
- className="bg-error hover:bg-error text-white"
+ variant="destructive"
  >
  Delete
  </Button>

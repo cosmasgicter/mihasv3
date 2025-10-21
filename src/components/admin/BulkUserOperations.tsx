@@ -238,7 +238,7 @@ export function BulkUserOperations({
             <Button
               onClick={handleBulkDelete}
               loading={loading}
-              className="bg-error hover:bg-error text-white"
+              variant="destructive"
             >
               Delete Users
             </Button>

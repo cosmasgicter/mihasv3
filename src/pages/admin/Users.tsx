@@ -809,7 +809,7 @@ export default function AdminUsers() {
             <Button
               onClick={deleteUser}
               loading={deleteUserMutation.isPending}
-              className="bg-error hover:bg-error text-white"
+              variant="destructive"
             >
               Delete User
             </Button>
