@@ -979,7 +979,7 @@ export function ApplicationDetailModal({
  onClick={handleSaveFeedback}
  loading={savingFeedback}
  disabled={!adminFeedback.trim() || savingFeedback}
- className="bg-primary hover:bg-primary"
+ variant="primary"
  >
  Save Feedback
  </Button>
@@ -1216,7 +1216,7 @@ export function ApplicationDetailModal({
  <Button
  loading={updating === application.id}
  onClick={() => onUpdateStatus(application.id, 'under_review')}
- className="bg-primary hover:bg-primary/90 text-white font-semibold"
+ variant="primary"
  >
  Start Review
  </Button>
@@ -1227,7 +1227,7 @@ export function ApplicationDetailModal({
  <Button
  loading={updating === application.id}
  onClick={() => onUpdateStatus(application.id, 'approved')}
- className="bg-success hover:bg-success text-white"
+ variant="success"
  >
  <CheckCircle className="h-4 w-4 mr-2" />
  Approve
@@ -1235,7 +1235,7 @@ export function ApplicationDetailModal({
  <Button
  loading={updating === application.id}
  onClick={() => onUpdateStatus(application.id, 'rejected')}
- className="bg-error hover:bg-error/90 text-white font-semibold"
+ variant="destructive"
  >
  <XCircle className="h-4 w-4 mr-2" />
  Reject

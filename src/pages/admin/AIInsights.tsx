@@ -43,12 +43,18 @@ export default function AIInsights() {
       
       const { supabase } = await import('@/lib/supabase')
       
-      const [predictionsResult, workflowsResult, notificationsResult, accuracyResult] = await Promise.all([
+      // Use Promise.allSettled to handle missing tables gracefully
+      const results = await Promise.allSettled([
         supabase.from('prediction_results').select('*', { count: 'exact', head: true }),
         supabase.from('workflow_execution_logs').select('*', { count: 'exact', head: true }),
         supabase.from('notification_logs').select('*', { count: 'exact', head: true }),
         supabase.from('prediction_results').select('accuracy')
       ])
+      
+      const predictionsResult = results[0].status === 'fulfilled' ? results[0].value : { count: 0 }
+      const workflowsResult = results[1].status === 'fulfilled' ? results[1].value : { count: 0 }
+      const notificationsResult = results[2].status === 'fulfilled' ? results[2].value : { count: 0 }
+      const accuracyResult = results[3].status === 'fulfilled' ? results[3].value : { data: [] }
       
       const avgAccuracy = accuracyResult.data && accuracyResult.data.length > 0
         ? accuracyResult.data.reduce((sum, r) => sum + (r.accuracy || 0), 0) / accuracyResult.data.length
@@ -62,6 +68,7 @@ export default function AIInsights() {
       })
     } catch (error) {
       console.error('Failed to load AI stats:', error)
+      setStats({ totalPredictions: 0, automationRuns: 0, notificationsSent: 0, avgAccuracy: 0 })
     } finally {
       setLoading(false)
     }

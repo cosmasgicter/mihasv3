@@ -7,6 +7,7 @@ import { ArrowLeft, Plus, Edit2, Trash2, Save, X, Settings, Globe, Lock, Databas
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { fetchSettings, createSetting, updateSetting, deleteSetting, type SystemSetting } from '@/lib/api/adminApi'
+import { supabase } from '@/lib/supabase'
 
 
 
