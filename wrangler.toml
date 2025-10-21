@@ -1,5 +1,5 @@
 name = "mihasv3"
-compatibility_date = "2025-10-19"
+compatibility_date = "2025-01-23"
 pages_build_output_dir = "dist"
 
 [vars]
