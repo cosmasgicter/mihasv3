@@ -19,7 +19,7 @@ import { User, FileText, Clock, CheckCircle, XCircle, Plus, X, RefreshCw } from 
 import { motion, AnimatePresence } from 'framer-motion'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
-import { toast } from '@/lib/toast'
+import { useToastStore } from '@/components/ui/Toast'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
@@ -399,16 +399,16 @@ export default function StudentDashboard() {
                                   await applicationService.delete(application.id)
                                   setApplications(prev => prev.filter(app => app.id !== application.id))
                                   setError('')
-                                  toast.success('Draft deleted successfully')
+                                  useToastStore.getState().addToast('success', 'Draft deleted successfully')
                                 } catch (error) {
                                   console.error('Delete error:', error)
                                   if (error instanceof Error && (error.message.includes('404') || error.message.includes('not found'))) {
                                     setApplications(prev => prev.filter(app => app.id !== application.id))
-                                    toast.success('Draft removed')
+                                    useToastStore.getState().addToast('success', 'Draft removed')
                                   } else {
                                     const errorMsg = error instanceof Error ? error.message : 'Failed to delete draft'
                                     setError(errorMsg)
-                                    toast.error(errorMsg)
+                                    useToastStore.getState().addToast('error', errorMsg)
                                   }
                                 }
                               }}
@@ -466,12 +466,12 @@ export default function StudentDashboard() {
                                   setHasDraft(false)
                                   setDraftData(null)
                                   setError('')
-                                  toast.success('Draft deleted successfully')
+                                  useToastStore.getState().addToast('success', 'Draft deleted successfully')
                                 } catch (error) {
                                   console.error('Delete error:', error)
                                   const errorMsg = error instanceof Error ? error.message : 'Failed to delete draft'
                                   setError(errorMsg)
-                                  toast.error(errorMsg)
+                                  useToastStore.getState().addToast('error', errorMsg)
                                 }
                               }}
                             >
@@ -657,12 +657,12 @@ export default function StudentDashboard() {
                             setHasDraft(false)
                             setDraftData(null)
                             setError('')
-                            toast.success('All drafts cleared successfully')
+                            useToastStore.getState().addToast('success', 'All drafts cleared successfully')
                           } catch (error) {
                             console.error('Clear drafts error:', error)
                             const errorMsg = error instanceof Error ? error.message : 'Failed to clear drafts'
                             setError(errorMsg)
-                            toast.error(errorMsg)
+                            useToastStore.getState().addToast('error', errorMsg)
                           } finally {
                             setIsClearingAllDrafts(false)
                           }
