@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react'
+import React from 'react'
 
 type Theme = 'light' | 'dark'
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() => {
+  const [theme, setTheme] = React.useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'light'
     const stored = localStorage.getItem('theme') as Theme
     return stored || 'light'
   })
 
-  useEffect(() => {
+  React.useEffect(() => {
     const root = document.documentElement
     root.classList.remove('light', 'dark')
     root.classList.add(theme)
