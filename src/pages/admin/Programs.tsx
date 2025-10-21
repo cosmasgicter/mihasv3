@@ -52,10 +52,15 @@ export default function AdminPrograms() {
   const loadPrograms = async () => {
     try {
       setLoading(true)
-      const response = await programService.list()
-      setPrograms(response.programs || [])
+      setError('')
+      const { data, error } = await supabase
+        .from('programs')
+        .select('*, institutions(*)')
+        .order('name')
+      if (error) throw error
+      setPrograms(data || [])
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || 'Failed to load programs')
     } finally {
       setLoading(false)
     }
