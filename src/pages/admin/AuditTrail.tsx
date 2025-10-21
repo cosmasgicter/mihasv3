@@ -349,8 +349,18 @@ export default function AuditTrailPage() {
         page,
         pageSize
       })
-      setResponse(payload)
-      if (payload.data.length === 0 && Object.keys(appliedFilters).length > 0) {
+      
+      // Ensure payload has proper structure
+      const safePayload = {
+        data: Array.isArray(payload?.data) ? payload.data : [],
+        page: payload?.page || 1,
+        pageSize: payload?.pageSize || DEFAULT_PAGE_SIZE,
+        totalPages: payload?.totalPages || 1,
+        totalCount: payload?.totalCount || 0
+      }
+      
+      setResponse(safePayload)
+      if (safePayload.data.length === 0 && Object.keys(appliedFilters).length > 0) {
         showInfo('No results', 'No audit entries match your current filters.')
       }
     } catch (requestError) {
@@ -360,6 +370,8 @@ export default function AuditTrailPage() {
           : 'Failed to load audit log entries'
       setError(message)
       showError('Load failed', message)
+      // Set empty response on error
+      setResponse({ data: [], page: 1, pageSize: DEFAULT_PAGE_SIZE, totalPages: 1, totalCount: 0 })
     } finally {
       setLoading(false)
     }
