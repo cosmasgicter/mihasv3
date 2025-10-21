@@ -15,19 +15,19 @@ export function ApplicationsTable() {
       <table className="min-w-full bg-card border border-border">
         <thead className="bg-muted">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
               Application #
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
               Student Name
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
               Program
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
               Actions
             </th>
           </tr>
@@ -38,10 +38,10 @@ export function ApplicationsTable() {
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                 {app.application_number}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                 {app.full_name}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                 {app.program}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">

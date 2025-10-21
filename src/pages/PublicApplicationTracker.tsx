@@ -75,7 +75,7 @@ interface PublicApplicationStatus {
 export default function PublicApplicationTracker() {
   const shouldReduceMotion = useReducedMotion()
   const maybeMotion = <T,>(value: T) => (shouldReduceMotion ? undefined : value)
-  const toast = useToast()
+  const toast = useToastStore()
   const [searchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState('')
   const [application, setApplication] = useState<PublicApplicationStatus | null>(null)
@@ -652,7 +652,7 @@ export default function PublicApplicationTracker() {
                   initial={maybeMotion({ opacity: 0, y: 20 })}
                   animate={maybeMotion({ opacity: 1, y: 0 })}
                   transition={maybeMotion({ delay: 0.9 })}
-                  className="bg-secondary/5/30 rounded-xl p-4 sm:p-6 border border-secondary/30 sm:col-span-2 lg:col-span-1"
+                  className="bg-secondary/5/30 rounded-xl p-4 sm:p-6 border border-input/30 sm:col-span-2 lg:col-span-1"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3"><Zap className="w-5 h-5" /></div>
                   <h3 className="font-bold text-secondary mb-2 text-sm sm:text-base">Instant Results</h3>
@@ -914,7 +914,7 @@ export default function PublicApplicationTracker() {
                           </div>
                         </AnimatedCard>
 
-                        <AnimatedCard className="bg-gradient-to-r from-purple-50 to-pink-50 border border-secondary/30" hover3d delay={0.1}>
+                        <AnimatedCard className="bg-gradient-to-r from-purple-50 to-pink-50 border border-input/30" hover3d delay={0.1}>
                           <div className="flex items-center space-x-3 sm:space-x-4">
                             <div className="p-2 sm:p-3 bg-secondary/5/300 rounded-lg sm:rounded-xl flex-shrink-0">
                               <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
@@ -1035,7 +1035,7 @@ export default function PublicApplicationTracker() {
                           <Button 
                             variant="outline" 
                             size="xl" 
-                            className="text-xl px-8 py-4 border-2 border-secondary hover:bg-secondary hover:text-white transition-all duration-300"
+                            className="text-xl px-8 py-4 border-2 border-input hover:bg-secondary hover:text-white transition-all duration-300"
 
                           >
                             <Rocket className="h-6 w-6 mr-3" />
@@ -1203,7 +1203,7 @@ export default function PublicApplicationTracker() {
               </AnimatedCard>
             </div>
             
-            <AnimatedCard className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-secondary/30" delay={0.2}>
+            <AnimatedCard className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-input/30" delay={0.2}>
               <div className="text-center space-y-6">
                 <div className="flex items-center justify-center space-x-4">
                   <Phone className="h-8 w-8 text-secondary" />

@@ -19,7 +19,7 @@ const sizeClasses = {
 
 const colorClasses = {
   primary: 'text-primary',
-  secondary: 'text-muted-foreground',
+  secondary: 'text-foreground',
   success: 'text-success',
   warning: 'text-warning',
   error: 'text-error'
@@ -119,7 +119,7 @@ export function FullScreenLoader({
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-foreground">{text}</h3>
           {subtext && (
-            <p className="text-sm text-muted-foreground">{subtext}</p>
+            <p className="text-sm text-foreground">{subtext}</p>
           )}
         </div>
       </div>

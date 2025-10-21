@@ -42,7 +42,7 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
             <p className="text-foreground text-xs sm:text-sm font-medium">Draft</p>
             <p className="text-xl sm:text-3xl font-bold">{stats.draft}</p>
           </div>
-          <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+          <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-foreground" />
         </div>
       </AnimatedCard>
       

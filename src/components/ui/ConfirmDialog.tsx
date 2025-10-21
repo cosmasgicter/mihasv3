@@ -75,7 +75,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
  </div>
  <button
  onClick={onClose}
- className="text-muted-foreground hover:text-muted-foreground hover:text-foreground transition-colors"
+ className="text-foreground hover:text-foreground hover:text-foreground transition-colors"
  >
  <X className="h-5 w-5" />
  </button>
@@ -84,7 +84,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
  {/* Content */}
  <div className="p-6">
- <p className="text-muted-foreground">
+ <p className="text-foreground">
  {message}
  </p>
  </div>

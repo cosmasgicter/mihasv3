@@ -91,7 +91,7 @@ export function AuthLayout({
               </div>
 
               {footer && (
-                <div className="border-t border-secondary/10 pt-8">
+                <div className="border-t border-input/10 pt-8">
                   {footer}
                 </div>
               )}

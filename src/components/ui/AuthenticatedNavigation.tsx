@@ -134,7 +134,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                     </span>
                   )}
                 </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate max-w-[200px]">
+                <p className="text-xs sm:text-sm text-foreground truncate max-w-[200px]">
                   {profile?.email || (
                     <span className="inline-flex items-center">
                       <span className="h-3 w-24 bg-skeleton rounded animate-pulse" />
@@ -261,7 +261,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                           </span>
                         )}
                       </p>
-                      <p className="text-sm text-muted-foreground truncate max-w-[180px]">
+                      <p className="text-sm text-foreground truncate max-w-[180px]">
                         {profile?.email || (
                           <span className="inline-flex items-center">
                             <span className="h-4 w-32 bg-skeleton rounded animate-pulse" />
@@ -271,7 +271,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                     </div>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-muted-foreground hover:bg-accent smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
+                    className="p-2 rounded-lg text-foreground hover:bg-accent smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"

@@ -236,7 +236,7 @@ const BasicKycStep = ({
             id="intake"
             disabled={intakes.length === 0}
             className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary ${
-              intakes.length === 0 ? 'bg-accent text-muted-foreground cursor-not-allowed border-border' : 'bg-card border-input'
+              intakes.length === 0 ? 'bg-accent text-foreground cursor-not-allowed border-border' : 'bg-card border-input'
             }`}
           >
             <option value="">Select intake</option>
@@ -257,7 +257,7 @@ const BasicKycStep = ({
             })}
           </select>
           {intakes.length === 0 && (
-            <p className="mt-1 text-sm text-muted-foreground">Intakes will appear here once enrollment periods are announced.</p>
+            <p className="mt-1 text-sm text-foreground">Intakes will appear here once enrollment periods are announced.</p>
           )}
           {errors.intake && <p className="mt-1 text-sm text-destructive">{errors.intake.message}</p>}
         </div>

@@ -22,7 +22,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative">
           {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground">
               {icon}
             </div>
           )}
@@ -33,7 +33,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               'bg-background',
               'border border-input',
               'text-foreground',
-              'placeholder:text-muted-foreground',
+              'placeholder:text-foreground',
               'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
               'transition-all duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -70,7 +70,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </motion.p>
         )}
         {helperText && !error && (
-          <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-muted-foreground">
+          <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-foreground">
             {helperText}
           </p>
         )}

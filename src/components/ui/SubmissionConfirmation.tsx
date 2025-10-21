@@ -44,7 +44,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 break-words px-2">
               Application Submitted Successfully!
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-foreground">
               Your application has been received and is being processed.
             </p>
           </div>
@@ -65,7 +65,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   </span>
                   <button
                     onClick={() => copyToClipboard(referenceNumber, 'Reference number')}
-                    className="p-1 text-muted-foreground hover:text-muted-foreground"
+                    className="p-1 text-foreground hover:text-foreground"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
@@ -82,7 +82,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   </span>
                   <button
                     onClick={() => copyToClipboard(trackingCode, 'Tracking code')}
-                    className="p-1 text-muted-foreground hover:text-muted-foreground"
+                    className="p-1 text-foreground hover:text-foreground"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
@@ -126,7 +126,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
                   <Mail className="h-4 w-4 text-success" />
-                  <span className="text-sm text-muted-foreground">Sent to {userEmail}</span>
+                  <span className="text-sm text-foreground">Sent to {userEmail}</span>
                 </div>
               </div>
             </div>

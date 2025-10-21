@@ -252,7 +252,7 @@ export function QuickActionButton({
           </span>
         )}
       </div>
-      <span className="text-xs font-medium text-muted-foreground mt-1 text-center">
+      <span className="text-xs font-medium text-foreground mt-1 text-center">
         {label}
       </span>
     </button>

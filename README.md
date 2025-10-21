@@ -9,8 +9,7 @@ MIHAS (Medical Institute of Health and Allied Sciences) Application System V3 - 
 ```
 mihasv3/
 ├── src/                          # Source code
-├── api/                          # API source (organized by feature)
-├── api-functions/                # Serverless functions (flat, deployment-ready)
+├── functions/                    # Cloudflare Pages Functions
 ├── docs/                         # Documentation
 │   ├── reports/                  # Analysis and audit reports
 │   ├── guides/                   # User guides and manuals
@@ -23,7 +22,7 @@ mihasv3/
 ├── API_STRUCTURE_GUIDE.md        # API development standards ⭐
 ├── COMPLETE_SOURCE_CODE_FINAL.md # Complete source code (2.6MB)
 ├── package.json                  # Dependencies
-├── netlify.toml                  # Netlify configuration
+├── wrangler.toml                 # Cloudflare configuration
 └── README.md                     # This file
 ```
 
@@ -40,7 +39,7 @@ npm run dev
 npm run build:prod
 ```
 
-### Testingg
+### Testing
 ```bash
 npm run test
 npm run test:unit
@@ -60,7 +59,7 @@ npm run test:unit
 
 - **Frontend**: React 18 + TypeScript + Vite
 - **Backend**: Supabase (PostgreSQL + Auth + Storage)
-- **Deployment**: Netlify with serverless functions
+- **Deployment**: Cloudflare Pages with Functions
 - **State**: Zustand + React Query
 - **Forms**: React Hook Form + Zod
 - **Styling**: Tailwind CSS + Radix UI
@@ -80,7 +79,7 @@ npm run test:unit
 - **Database Tables**: 86
 - **Source Files**: 457
 - **Lines of Code**: ~56,000
-- **API Functions**: 47 (all in `api-functions/`)
+- **API Functions**: 47 (all in `functions/`)
 - **React Components**: 120+
 - **Custom Hooks**: 38
 

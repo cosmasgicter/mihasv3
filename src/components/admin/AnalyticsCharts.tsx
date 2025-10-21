@@ -76,7 +76,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  >
  <div className="flex items-center justify-between">
  <div>
- <p className="text-sm font-medium text-muted-foreground">Approval Rate</p>
+ <p className="text-sm font-medium text-foreground">Approval Rate</p>
  <p className="text-2xl font-bold text-accent">{approvalRate}%</p>
  <div className="flex items-center mt-2 text-xs">
  {approvalRate >= 70 ? (
@@ -101,7 +101,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  >
  <div className="flex items-center justify-between">
  <div>
- <p className="text-sm font-medium text-muted-foreground">Weekly Growth</p>
+ <p className="text-sm font-medium text-foreground">Weekly Growth</p>
  <p className="text-2xl font-bold text-primary">{weeklyGrowth}%</p>
  <div className="flex items-center mt-2 text-xs">
  {weeklyGrowth >= 0 ? (
@@ -126,7 +126,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  >
  <div className="flex items-center justify-between">
  <div>
- <p className="text-sm font-medium text-muted-foreground">Processing Time</p>
+ <p className="text-sm font-medium text-foreground">Processing Time</p>
  <p className="text-2xl font-bold text-secondary">3.2 days</p>
  <div className="flex items-center mt-2 text-xs">
  <TrendingDown className="h-3 w-3 text-success mr-1" />
@@ -145,7 +145,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  >
  <div className="flex items-center justify-between">
  <div>
- <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+ <p className="text-sm font-medium text-foreground">Active Users</p>
  <p className="text-2xl font-bold text-secondary">{activeUsersDisplay}</p>
  <div className="flex items-center mt-2 text-xs">
  <Users className={`h-3 w-3 mr-1 ${isAnalyticsError ? 'text-error' : 'text-indigo-500'}`} />
@@ -208,15 +208,15 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <h4 className="font-semibold text-foreground mb-3">Summary</h4>
  <div className="space-y-2">
  <div className="flex justify-between">
- <span className="text-sm text-muted-foreground">Total Applications</span>
+ <span className="text-sm text-foreground">Total Applications</span>
  <span className="font-semibold">{data.applications.total}</span>
  </div>
  <div className="flex justify-between">
- <span className="text-sm text-muted-foreground">Success Rate</span>
+ <span className="text-sm text-foreground">Success Rate</span>
  <span className="font-semibold text-accent">{approvalRate}%</span>
  </div>
  <div className="flex justify-between">
- <span className="text-sm text-muted-foreground">Pending Review</span>
+ <span className="text-sm text-foreground">Pending Review</span>
  <span className="font-semibold text-accent">{data.applications.pending}</span>
  </div>
  </div>
@@ -226,15 +226,15 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <h4 className="font-semibold text-foreground mb-3">Performance</h4>
  <div className="space-y-2">
  <div className="flex justify-between">
- <span className="text-sm text-muted-foreground">This Week</span>
+ <span className="text-sm text-foreground">This Week</span>
  <span className="font-semibold">{data.applications.thisWeek}</span>
  </div>
  <div className="flex justify-between">
- <span className="text-sm text-muted-foreground">Last Week</span>
+ <span className="text-sm text-foreground">Last Week</span>
  <span className="font-semibold">{data.applications.lastWeek}</span>
  </div>
  <div className="flex justify-between">
- <span className="text-sm text-muted-foreground">Growth</span>
+ <span className="text-sm text-foreground">Growth</span>
  <span className={`font-semibold ${weeklyGrowth >= 0 ? 'text-success' : 'text-error'}`}>
  {weeklyGrowth >= 0 ? '+' : ''}{weeklyGrowth}%
  </span>
@@ -272,7 +272,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  ))}
  </div>
  ) : isAnalyticsError || dailyCounts.length === 0 ? (
- <div className="flex flex-col items-center justify-center py-10 text-sm text-muted-foreground">
+ <div className="flex flex-col items-center justify-center py-10 text-sm text-foreground">
  <XCircle className="h-6 w-6 text-red-400 mb-2" />
  <p>{fallbackMessage}</p>
  </div>
@@ -284,7 +284,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
 
  return (
  <div key={day.date} className="text-center">
- <div className="text-xs text-muted-foreground mb-2">{day.label}</div>
+ <div className="text-xs text-foreground mb-2">{day.label}</div>
  <motion.div
  className="bg-gradient-to-t from-blue-600 to-purple-600 rounded-lg mx-auto"
  style={{ width: '100%' }}
@@ -300,7 +300,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  })}
  </div>
 
- <div className="text-center text-sm text-muted-foreground">
+ <div className="text-center text-sm text-foreground">
  Page views for the last 7 days
  </div>
  </>

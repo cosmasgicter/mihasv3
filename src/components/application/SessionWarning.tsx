@@ -112,7 +112,7 @@ export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningP
           </Button>
         </div>
 
-        <div className="mt-4 text-xs text-muted-foreground text-center">
+        <div className="mt-4 text-xs text-foreground text-center">
           Your progress is automatically saved and will be preserved even if the session expires.
         </div>
       </div>

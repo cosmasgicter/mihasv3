@@ -105,7 +105,7 @@ export function AutoSaveIndicator({
     if (isSaving) return 'text-primary'
     if (hasUnsavedChanges) return 'text-warning'
     if (lastSaved) return 'text-success'
-    return 'text-muted-foreground'
+    return 'text-foreground'
   }
 
   const getIcon = () => {

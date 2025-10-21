@@ -320,7 +320,7 @@ export default function LandingPageNew() {
  >
  {stat.number}
  </motion.div>
- <p className="text-sm sm:text-base text-muted-foreground font-medium text-center">{stat.label}</p>
+ <p className="text-sm sm:text-base text-foreground font-medium text-center">{stat.label}</p>
  </motion.div>
  ))}
  </div>
@@ -438,11 +438,11 @@ export default function LandingPageNew() {
  />
  </div>
  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">NMCZ Accredited</h3>
- <p className="text-muted-foreground text-xs sm:text-sm mb-3">
+ <p className="text-foreground text-xs sm:text-sm mb-3">
  Nursing and Midwifery Council of Zambia
  </p>
  </div>
- <p className="text-xs text-muted-foreground mt-auto">
+ <p className="text-xs text-foreground mt-auto">
  Graduates qualified for nursing jobs in all Zambian hospitals and clinics
  </p>
  </motion.div>
@@ -468,11 +468,11 @@ export default function LandingPageNew() {
  />
  </div>
  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">HPCZ Accredited</h3>
- <p className="text-muted-foreground text-xs sm:text-sm mb-3">
+ <p className="text-foreground text-xs sm:text-sm mb-3">
  Health Professions Council of Zambia
  </p>
  </div>
- <p className="text-xs text-muted-foreground mt-auto">
+ <p className="text-xs text-foreground mt-auto">
  Graduates eligible for clinical officer positions nationwide
  </p>
  </motion.div>
@@ -498,11 +498,11 @@ export default function LandingPageNew() {
  />
  </div>
  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">ECZ Recognized</h3>
- <p className="text-muted-foreground text-xs sm:text-sm mb-3">
+ <p className="text-foreground text-xs sm:text-sm mb-3">
  Examinations Council of Zambia
  </p>
  </div>
- <p className="text-xs text-muted-foreground mt-auto">
+ <p className="text-xs text-foreground mt-auto">
  Environmental health graduates work in government and private sectors
  </p>
  </motion.div>
@@ -528,11 +528,11 @@ export default function LandingPageNew() {
  />
  </div>
  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">UNZA Affiliated</h3>
- <p className="text-muted-foreground text-xs sm:text-sm mb-3">
+ <p className="text-foreground text-xs sm:text-sm mb-3">
  University of Zambia
  </p>
  </div>
- <p className="text-xs text-muted-foreground mt-auto">
+ <p className="text-xs text-foreground mt-auto">
  University-level qualifications recognized by international employers
  </p>
  </motion.div>

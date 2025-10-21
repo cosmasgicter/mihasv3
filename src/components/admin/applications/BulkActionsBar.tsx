@@ -77,7 +77,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
           size="sm"
           variant="ghost"
           onClick={onClearSelection}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-foreground hover:text-foreground"
         >
           Clear
         </Button>

@@ -66,7 +66,7 @@ export function UserMenu() {
             <p className="text-sm font-medium text-foreground truncate" title={fullName}>
               {fullName}
             </p>
-            <p className="text-xs text-muted-foreground break-all" title={user?.email}>{user?.email}</p>
+            <p className="text-xs text-foreground break-all" title={user?.email}>{user?.email}</p>
           </div>
           
           <Link

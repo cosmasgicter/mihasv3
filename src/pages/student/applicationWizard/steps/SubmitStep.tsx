@@ -63,7 +63,7 @@ const SubmitStep = ({
       <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-4">
-        <p className="text-muted-foreground">
+        <p className="text-foreground">
           Please review all your information before submitting. Once submitted, you cannot make changes.
         </p>
 
@@ -88,7 +88,7 @@ const SubmitStep = ({
               </div>
             </div>
           </div>
-          <div className="text-sm text-muted-foreground space-y-1">
+          <div className="text-sm text-foreground space-y-1">
             <p>
               <strong>Name:</strong> {formValues.full_name}
             </p>
@@ -120,7 +120,7 @@ const SubmitStep = ({
                   )
                 })}
                 {selectedGrades.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No subjects selected</p>
+                  <p className="text-sm text-foreground">No subjects selected</p>
                 )}
               </div>
             </div>

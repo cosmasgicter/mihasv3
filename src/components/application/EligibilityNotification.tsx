@@ -88,8 +88,8 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
               <p className="text-xs font-medium text-foreground">Recommendations:</p>
               <ul className="space-y-1">
                 {recommendations.map((rec, index) => (
-                  <li key={index} className="flex items-start gap-2 text-xs text-muted-foreground">
-                    <span className="text-muted-foreground mt-0.5">•</span>
+                  <li key={index} className="flex items-start gap-2 text-xs text-foreground">
+                    <span className="text-foreground mt-0.5">•</span>
                     <span>{rec}</span>
                   </li>
                 ))}
@@ -98,7 +98,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           )}
           
           {eligibility.alternativePathways && eligibility.alternativePathways.length > 0 && (
-            <div className="mt-2 p-2 bg-secondary/5/30 border border-secondary/30 rounded">
+            <div className="mt-2 p-2 bg-secondary/5/30 border border-input/30 rounded">
               <p className="text-xs font-medium text-purple-800 mb-1">Alternative Entry Routes:</p>
               <ul className="space-y-1">
                 {eligibility.alternativePathways.map((pathway, index) => (

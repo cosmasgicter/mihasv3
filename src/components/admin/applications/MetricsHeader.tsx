@@ -19,8 +19,8 @@ export function MetricsHeader({ applications, totalCount }: MetricsHeaderProps) 
         <div className="text-xl sm:text-2xl font-bold text-foreground break-words">
           {totalCount}
         </div>
-        <div className="text-sm text-muted-foreground">Total Applications</div>
-        <div className="text-xs text-muted-foreground mt-1">
+        <div className="text-sm text-foreground">Total Applications</div>
+        <div className="text-xs text-foreground mt-1">
           Showing {loadedCount} loaded
         </div>
       </div>
@@ -29,21 +29,21 @@ export function MetricsHeader({ applications, totalCount }: MetricsHeaderProps) 
         <div className="text-xl sm:text-2xl font-bold text-primary break-words">
           {applications.filter(app => app.status === 'submitted').length}
         </div>
-        <div className="text-sm text-muted-foreground">Submitted (loaded)</div>
+        <div className="text-sm text-foreground">Submitted (loaded)</div>
       </div>
 
       <div className="bg-card rounded-lg shadow p-6">
         <div className="text-xl sm:text-2xl font-bold text-accent break-words">
           {applications.filter(app => app.payment_status === 'pending_review').length}
         </div>
-        <div className="text-sm text-muted-foreground">Pending Payment Review (loaded)</div>
+        <div className="text-sm text-foreground">Pending Payment Review (loaded)</div>
       </div>
 
       <div className="bg-card rounded-lg shadow p-6">
         <div className="text-xl sm:text-2xl font-bold text-accent break-words">
           {applications.filter(app => app.status === 'approved').length}
         </div>
-        <div className="text-sm text-muted-foreground">Approved (loaded)</div>
+        <div className="text-sm text-foreground">Approved (loaded)</div>
       </div>
     </div>
   )

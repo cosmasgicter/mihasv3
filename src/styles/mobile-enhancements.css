@@ -325,15 +325,6 @@
 }
 
 /* Dark mode considerations */
-@media (prefers-color-scheme: dark) {
-  .mobile-nav-item {
-    background-color: rgba(255, 255, 255, 0.05);
-  }
-  
-  .mobile-nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-}
 
 /* iOS specific fixes */
 @supports (-webkit-touch-callout: none) {

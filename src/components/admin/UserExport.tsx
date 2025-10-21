@@ -298,12 +298,12 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                   onClick={() => setExportOptions({ ...exportOptions, format: format.value as typeof exportOptions.format })}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`${exportOptions.format === format.value ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <div className={`${exportOptions.format === format.value ? 'text-primary' : 'text-foreground'}`}>
                       {format.icon}
                     </div>
                     <div>
                       <h4 className="font-medium">{format.label}</h4>
-                      <p className="text-sm text-muted-foreground">{format.description}</p>
+                      <p className="text-sm text-foreground">{format.description}</p>
                     </div>
                   </div>
                 </div>
@@ -349,11 +349,11 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                     {exportOptions.fields.includes(field.id) ? (
                       <CheckSquare className="h-4 w-4 text-primary" />
                     ) : (
-                      <Square className="h-4 w-4 text-muted-foreground" />
+                      <Square className="h-4 w-4 text-foreground" />
                     )}
                     <div>
                       <p className="text-sm font-medium">{field.label}</p>
-                      <p className="text-xs text-muted-foreground">{field.description}</p>
+                      <p className="text-xs text-foreground">{field.description}</p>
                     </div>
                   </div>
                 </div>
@@ -444,11 +444,11 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                 <Users className="h-4 w-4 mr-2" />
                 Export Preview
               </h4>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-foreground">
                 {filteredUsers.length} users will be exported
               </span>
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-foreground">
               <p>Format: {exportOptions.format.toUpperCase()}</p>
               <p>Fields: {exportOptions.fields.length} selected</p>
               {exportOptions.filters.roles.length > 0 && (

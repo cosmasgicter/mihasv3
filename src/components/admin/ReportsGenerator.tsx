@@ -483,7 +483,7 @@ export function ReportsGenerator() {
       <div className="bg-card rounded-lg shadow">
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-medium text-foreground">Generate Reports</h3>
-          <p className="text-sm text-muted-foreground">Create automated reports for analysis and compliance</p>
+          <p className="text-sm text-foreground">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6 flex justify-center">
           <LoadingSpinner size="lg" />
@@ -497,7 +497,7 @@ export function ReportsGenerator() {
       <div className="bg-card rounded-lg shadow">
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-medium text-foreground">Generate Reports</h3>
-          <p className="text-sm text-muted-foreground">Create automated reports for analysis and compliance</p>
+          <p className="text-sm text-foreground">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6">
           <div className="rounded-md border border-destructive/30 bg-destructive/5/30 p-4 text-sm text-error">
@@ -513,7 +513,7 @@ export function ReportsGenerator() {
       <div className="bg-card rounded-lg shadow">
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-medium text-foreground">Generate Reports</h3>
-          <p className="text-sm text-muted-foreground">Create automated reports for analysis and compliance</p>
+          <p className="text-sm text-foreground">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6">
           <div className="rounded-md border border-warning/30 bg-warning/10 p-4 text-sm text-accent">
@@ -528,7 +528,7 @@ export function ReportsGenerator() {
     <div className="bg-card rounded-lg shadow">
       <div className="px-6 py-4 border-b border-border">
         <h3 className="text-lg font-medium text-foreground">Generate Reports</h3>
-        <p className="text-sm text-muted-foreground">Create automated reports for analysis and compliance</p>
+        <p className="text-sm text-foreground">Create automated reports for analysis and compliance</p>
       </div>
 
       <div className="p-6 space-y-6">
@@ -636,7 +636,7 @@ export function ReportsGenerator() {
                     <Icon className="h-4 w-4" />
                     <span className="text-sm font-medium">{format.label}</span>
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">{format.description}</p>
+                  <p className="mt-2 text-xs text-foreground">{format.description}</p>
                 </button>
               )
             })}
@@ -671,7 +671,7 @@ export function ReportsGenerator() {
                 <FileText className="h-4 w-4 text-primary" />
                 <span>Official Document Templates</span>
               </h4>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground">
                 Generate structured admissions, interview and finance communications using the details provided below.
               </p>
             </div>
@@ -701,13 +701,13 @@ export function ReportsGenerator() {
 
                 <div className="bg-muted border border-border rounded-lg p-4">
                   <h5 className="text-sm font-semibold text-foreground">Required placeholders</h5>
-                  <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
+                  <ul className="mt-2 space-y-2 text-xs text-foreground">
                     {selectedTemplateDefinition.tokens.map(token => (
                       <li key={token.token} className="border-b border-border pb-2 last:border-b-0 last:pb-0">
-                        <div className="font-mono text-[11px] text-muted-foreground">{`{{${token.token}}}`}</div>
+                        <div className="font-mono text-[11px] text-foreground">{`{{${token.token}}}`}</div>
                         <div className="text-foreground">
                           {token.label}
-                          {token.required === false && <span className="text-muted-foreground"> (optional)</span>}
+                          {token.required === false && <span className="text-foreground"> (optional)</span>}
                         </div>
                       </li>
                     ))}
@@ -745,12 +745,12 @@ export function ReportsGenerator() {
                   </Button>
                 </div>
                 {documentGenerating && (
-                  <div className="flex items-center text-sm text-muted-foreground">
+                  <div className="flex items-center text-sm text-foreground">
                     <LoadingSpinner size="sm" className="mr-2" />
                     Preparing document…
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-foreground">
                   Fill in the relevant sections below. Optional placeholders will be skipped automatically when left blank.
                 </p>
               </div>
@@ -1211,7 +1211,7 @@ export function ReportsGenerator() {
                     <p className="text-sm font-semibold text-foreground">
                       {DOCUMENT_TEMPLATE_DEFINITIONS[documentPreview.templateId].name} preview
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground">
                       Showing {previewMode === 'html' ? 'HTML markup' : 'plain text'} output ready for review.
                     </p>
                   </div>

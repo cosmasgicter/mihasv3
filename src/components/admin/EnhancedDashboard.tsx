@@ -52,7 +52,7 @@ export function EnhancedDashboard({
   if (!metrics) {
     return (
       <div className="bg-card rounded-xl p-6 shadow-lg border border-border">
-        <p className="text-sm text-muted-foreground">Dashboard metrics are not available right now.</p>
+        <p className="text-sm text-foreground">Dashboard metrics are not available right now.</p>
       </div>
     )
   }
@@ -74,10 +74,10 @@ export function EnhancedDashboard({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">{metrics.todayApplications}</div>
-                <div className="text-xs text-muted-foreground">Today</div>
+                <div className="text-xs text-foreground">Today</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-muted-foreground">New Applications</div>
+            <div className="text-sm font-medium text-foreground">New Applications</div>
           </div>
         </motion.div>
 
@@ -95,10 +95,10 @@ export function EnhancedDashboard({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">{metrics.pendingApplications}</div>
-                <div className="text-xs text-muted-foreground">Pending</div>
+                <div className="text-xs text-foreground">Pending</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-muted-foreground">Awaiting Review</div>
+            <div className="text-sm font-medium text-foreground">Awaiting Review</div>
             {metrics.pendingApplications > 0 && (
               <div className="text-xs text-accent mt-2">Requires attention</div>
             )}
@@ -119,10 +119,10 @@ export function EnhancedDashboard({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">{metrics.approvalRate}%</div>
-                <div className="text-xs text-muted-foreground">Rate</div>
+                <div className="text-xs text-foreground">Rate</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-muted-foreground">Approval Rate</div>
+            <div className="text-sm font-medium text-foreground">Approval Rate</div>
             <div className="flex items-center mt-2 text-xs">
               <TrendingUp className="h-3 w-3 text-success mr-1" />
               <span className="text-accent">Stable performance</span>
@@ -144,10 +144,10 @@ export function EnhancedDashboard({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">{metrics.avgProcessingTime}</div>
-                <div className="text-xs text-muted-foreground">Days</div>
+                <div className="text-xs text-foreground">Days</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
+            <div className="text-sm font-medium text-foreground">Avg Processing</div>
             <div className="flex items-center mt-2 text-xs">
               <ArrowDown className="h-3 w-3 text-success mr-1" />
               <span className="text-accent">Improved by 15%</span>
@@ -193,11 +193,11 @@ export function EnhancedDashboard({
                 }`}></div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{activity.message}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(activity.timestamp).toLocaleString()}</p>
+                  <p className="text-xs text-foreground">{new Date(activity.timestamp).toLocaleString()}</p>
                 </div>
               </motion.div>
             )) : (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-foreground">
                 <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No recent activity</p>
               </div>

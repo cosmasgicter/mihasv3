@@ -15,7 +15,7 @@ export function SaveStatus({ isSaving, lastSaved, isOnline, pendingChanges, erro
     if (isSaving) return <Clock className="h-4 w-4 text-primary animate-spin" />
     if (!isOnline) return <WifiOff className="h-4 w-4 text-orange-500" />
     if (lastSaved) return <Check className="h-4 w-4 text-success" />
-    return <Clock className="h-4 w-4 text-muted-foreground" />
+    return <Clock className="h-4 w-4 text-foreground" />
   }
 
   const getStatusText = () => {
@@ -37,7 +37,7 @@ export function SaveStatus({ isSaving, lastSaved, isOnline, pendingChanges, erro
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    <div className="flex items-center gap-2 text-sm text-foreground">
       {getStatusIcon()}
       <span>{getStatusText()}</span>
     </div>

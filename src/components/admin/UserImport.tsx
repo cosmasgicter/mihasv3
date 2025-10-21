@@ -321,11 +321,11 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <FileText className="h-12 w-12 text-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">
                   {file ? file.name : 'Select CSV File'}
                 </h3>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-foreground mb-4">
                   {file ? 'File selected. Click Import to proceed.' : 'Choose a CSV file to import users'}
                 </p>
                 <Button
@@ -351,10 +351,10 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                     <table className="min-w-full divide-y divide-border">
                       <thead className="bg-accent">
                         <tr>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Email</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Phone</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Role</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Name</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Email</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Phone</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Role</th>
                         </tr>
                       </thead>
                       <tbody className="bg-card divide-y divide-border">
@@ -386,14 +386,14 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                       <CheckCircle className="h-6 w-6 text-accent" />
                     </div>
                     <p className="text-2xl font-bold text-accent">{importResult.success}</p>
-                    <p className="text-sm text-muted-foreground">Successful</p>
+                    <p className="text-sm text-foreground">Successful</p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center w-12 h-12 bg-destructive/10 rounded-full mb-2">
                       <XCircle className="h-6 w-6 text-destructive" />
                     </div>
                     <p className="text-2xl font-bold text-destructive">{importResult.failed}</p>
-                    <p className="text-sm text-muted-foreground">Failed</p>
+                    <p className="text-sm text-foreground">Failed</p>
                   </div>
                   {importResult.duplicates > 0 && (
                     <div className="text-center">
@@ -401,7 +401,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                         <AlertTriangle className="h-6 w-6 text-accent" />
                       </div>
                       <p className="text-2xl font-bold text-accent">{importResult.duplicates}</p>
-                      <p className="text-sm text-muted-foreground">Duplicates</p>
+                      <p className="text-sm text-foreground">Duplicates</p>
                     </div>
                   )}
                 </div>

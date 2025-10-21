@@ -163,7 +163,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
         <div className="bg-muted border rounded-lg p-4">
           <div className="flex items-center space-x-3 mb-4">
             <div className="relative flex-1">
-              <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground" />
               <input
                 type="text"
                 placeholder="Search subjects..."
@@ -191,15 +191,15 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
               >
                 <div>
                   <p className="font-medium text-foreground">{subject.name}</p>
-                  <p className="text-sm text-muted-foreground">{subject.code} • {subject.category}</p>
+                  <p className="text-sm text-foreground">{subject.code} • {subject.category}</p>
                 </div>
-                <Plus className="h-4 w-4 text-muted-foreground" />
+                <Plus className="h-4 w-4 text-foreground" />
               </button>
             ))}
           </div>
           
           {filteredSubjects.length === 0 && (
-            <p className="text-center text-muted-foreground py-4">
+            <p className="text-center text-foreground py-4">
               {searchTerm ? 'No subjects found matching your search.' : 'All available subjects have been added.'}
             </p>
           )}
@@ -266,7 +266,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           {/* Show add button if no subjects selected */}
           {selectedSubjects.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No subjects selected yet</p>
+              <p className="text-foreground mb-4">No subjects selected yet</p>
               <AddSubjectButton 
                 onClick={() => setShowAddForm(!showAddForm)}
                 isOpen={showAddForm}
@@ -312,10 +312,10 @@ function AddSubjectButton({ onClick, isOpen, disabled, variant = 'secondary' }: 
       disabled={disabled}
       className={`w-full p-4 border-2 border-dashed rounded-lg transition-all duration-200 ${
         disabled 
-          ? 'border-border text-muted-foreground cursor-not-allowed'
+          ? 'border-border text-foreground cursor-not-allowed'
           : isPrimary
           ? 'border-blue-300 text-primary hover:border-blue-400 hover:bg-blue-50'
-          : 'border-input text-muted-foreground hover:border-input hover:bg-muted'
+          : 'border-input text-foreground hover:border-input hover:bg-muted'
       } ${isOpen ? 'bg-blue-50 border-blue-400' : ''}`}
     >
       <div className="flex items-center justify-center space-x-2">
@@ -351,13 +351,13 @@ function SubjectCard({
       className="bg-card border border-border rounded-lg p-4 hover:border-input transition-colors cursor-move"
     >
       <div className="flex items-center space-x-4">
-        <GripVertical className="h-5 w-5 text-muted-foreground" />
+        <GripVertical className="h-5 w-5 text-foreground" />
         
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className="font-medium text-foreground">{subject.name}</p>
-              <p className="text-sm text-muted-foreground">{subject.code}</p>
+              <p className="text-sm text-foreground">{subject.code}</p>
             </div>
             <button
               type="button"

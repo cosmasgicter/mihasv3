@@ -40,7 +40,7 @@ export function DataPopulationConfirmation({
             </h3>
           </div>
           
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-foreground mb-4">
             We found information in your profile that can be used to pre-fill this application. 
             Please review and confirm the accuracy of this data:
           </p>
@@ -49,7 +49,7 @@ export function DataPopulationConfirmation({
             {populatedFields.map((field, index) => (
               <div key={index} className="flex justify-between text-sm">
                 <span className="font-medium text-foreground">{field.label}:</span>
-                <span className="text-muted-foreground">{field.value}</span>
+                <span className="text-foreground">{field.value}</span>
               </div>
             ))}
           </div>

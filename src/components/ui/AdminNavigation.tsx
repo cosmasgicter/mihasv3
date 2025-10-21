@@ -143,10 +143,10 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 <h1 className="text-sm sm:text-lg font-bold text-foreground truncate max-w-[150px] sm:max-w-[200px]">
                   {isMobile ? 'Admin' : 'Admin Dashboard'}
                 </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block truncate max-w-[200px]">
+                <p className="text-xs sm:text-sm text-foreground hidden sm:block truncate max-w-[200px]">
                   Welcome, {profile?.full_name || 'Admin'}
                 </p>
-                <p className="text-xs text-muted-foreground sm:hidden truncate max-w-[120px]">
+                <p className="text-xs text-foreground sm:hidden truncate max-w-[120px]">
                   {profile?.full_name || 'Admin'}
                 </p>
               </div>
@@ -179,7 +179,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             })}
             
             <NavigationMenu.Item>
-              <div className="hidden xl:flex items-center text-xs text-muted-foreground px-3 py-2 bg-muted rounded-lg ml-2">
+              <div className="hidden xl:flex items-center text-xs text-foreground px-3 py-2 bg-muted rounded-lg ml-2">
                 <span className="font-medium truncate max-w-[100px]">{userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}</span>
               </div>
             </NavigationMenu.Item>
@@ -268,11 +268,11 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                     </div>
                     <div>
                       <p className="font-bold text-foreground text-lg truncate max-w-[150px]">Admin Panel</p>
-                      <p className="text-sm text-muted-foreground truncate max-w-[150px]">{profile?.full_name || 'Administrator'}</p>
+                      <p className="text-sm text-foreground truncate max-w-[150px]">{profile?.full_name || 'Administrator'}</p>
                     </div>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-muted-foreground hover:bg-accent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
+                    className="p-2 rounded-lg text-foreground hover:bg-accent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -326,7 +326,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                               </div>
                               <ChevronRight className={cn(
                                 "h-5 w-5 transition-colors",
-                                isActive ? "text-foreground/80" : "text-muted-foreground"
+                                isActive ? "text-foreground/80" : "text-foreground"
                               )} style={{ opacity: 1 }} />
                             </div>
                           </Link>
@@ -378,7 +378,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                     <p className="text-sm font-medium text-foreground mb-1">
                       MIHAS-KATC Admin Portal
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground">
                       Secure Administrative Access
                     </p>
                   </div>

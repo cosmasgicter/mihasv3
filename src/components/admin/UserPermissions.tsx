@@ -164,7 +164,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-foreground flex items-center space-x-2">
                     <span>{category}</span>
-                    <span className="text-sm text-muted-foreground">({selectedInCategory}/{categoryPermissions.length})</span>
+                    <span className="text-sm text-foreground">({selectedInCategory}/{categoryPermissions.length})</span>
                   </h3>
                   <Button
                     variant="outline"
@@ -200,7 +200,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                     >
                       <div className="flex items-start space-x-3">
                         <div className={`mt-0.5 ${
-                          selectedPermissions.includes(permission.id) ? 'text-primary' : 'text-muted-foreground'
+                          selectedPermissions.includes(permission.id) ? 'text-primary' : 'text-foreground'
                         }`}>
                           {permission.icon}
                         </div>
@@ -216,7 +216,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
                             )}
                           </div>
                           <p className={`text-xs mt-1 ${
-                            selectedPermissions.includes(permission.id) ? 'text-primary' : 'text-muted-foreground'
+                            selectedPermissions.includes(permission.id) ? 'text-primary' : 'text-foreground'
                           }`}>
                             {permission.description}
                           </p>
@@ -233,7 +233,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
 
         <DialogFooter>
           <div className="flex items-center justify-between w-full">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-foreground">
               {selectedPermissions.length} of {AVAILABLE_PERMISSIONS.length} permissions selected
             </div>
             <div className="flex space-x-2">

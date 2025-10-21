@@ -68,7 +68,7 @@ export function SectionCard({
             )}
             <div className="space-y-1">
               {title && <h2 className="text-lg font-semibold text-foreground">{title}</h2>}
-              {description && <p className="text-sm text-muted-foreground">{description}</p>}
+              {description && <p className="text-sm text-foreground">{description}</p>}
             </div>
           </div>
           {actions && <div className="mt-2 flex shrink-0 flex-wrap gap-2 sm:mt-0 sm:justify-end">{actions}</div>}

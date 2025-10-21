@@ -56,7 +56,7 @@ export function DashboardRedirect() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-muted-foreground">
+          <p className="mt-4 text-foreground">
             {loading ? 'Loading...' : 'Loading your profile...'}
           </p>
         </div>

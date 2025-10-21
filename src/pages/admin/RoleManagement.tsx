@@ -68,12 +68,12 @@ export default function RoleManagement() {
         <table className="min-w-full divide-y divide-border">
           <thead className="bg-muted">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">User</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Profile Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Auth Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">User</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">Profile Role</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">Auth Role</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-card divide-y divide-border">
@@ -85,7 +85,7 @@ export default function RoleManagement() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                     {fullName}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     {user.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">

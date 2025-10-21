@@ -31,7 +31,7 @@ export function ConflictResolution({
           <h3 className="text-lg font-semibold">Sync Conflict Detected</h3>
         </div>
         
-        <p className="text-muted-foreground mb-6">
+        <p className="text-foreground mb-6">
           Your application has been modified elsewhere. Choose which version to keep:
         </p>
         
@@ -41,7 +41,7 @@ export function ConflictResolution({
               <Clock className="h-4 w-4 text-primary" />
               <span className="font-medium">Your Local Changes</span>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-foreground">
               Last modified: {localTimestamp.toLocaleString()}
             </p>
           </div>
@@ -51,7 +51,7 @@ export function ConflictResolution({
               <Clock className="h-4 w-4 text-success" />
               <span className="font-medium">Server Version</span>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-foreground">
               Last modified: {serverTimestamp.toLocaleString()}
             </p>
           </div>

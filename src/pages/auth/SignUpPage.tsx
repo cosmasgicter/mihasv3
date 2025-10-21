@@ -230,7 +230,7 @@ export default function SignUpPage() {
             <select
               {...register('sex')}
               id="sex"
-              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
             >
               <option value="">Select Sex</option>
               <option value="Male">Male</option>
@@ -293,7 +293,7 @@ export default function SignUpPage() {
         </div>
 
         {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
-          <div className="rounded-2xl border border-secondary/10 bg-card/80 p-6">
+          <div className="rounded-2xl border border-input/10 bg-card/80 p-6">
             <h3 className="text-lg font-semibold text-foreground">Security Verification</h3>
             <p className="mt-1 text-sm text-foreground">
               Complete the verification step to keep your account secure.

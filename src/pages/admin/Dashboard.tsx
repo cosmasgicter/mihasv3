@@ -228,7 +228,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-foreground mb-2">Authentication Required</h2>
-          <p className="text-muted-foreground mb-4">Please sign in to access the admin dashboard.</p>
+          <p className="text-foreground mb-4">Please sign in to access the admin dashboard.</p>
           <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
         </div>
       </div>
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-foreground mb-2">Profile Loading</h2>
-          <p className="text-muted-foreground mb-4">Setting up your profile...</p>
+          <p className="text-foreground mb-4">Setting up your profile...</p>
           <LoadingSpinner size="lg" />
         </div>
       </div>
@@ -384,10 +384,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.todayApplications}</div>
-                  <div className="text-xs text-muted-foreground">Today</div>
+                  <div className="text-xs text-foreground">Today</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-muted-foreground">New Applications</div>
+              <div className="text-sm font-medium text-foreground">New Applications</div>
               {stats.todayApplications > 0 && (
                 <div className="flex items-center mt-2 text-xs">
                   <ArrowUp className="h-3 w-3 text-success mr-1" />
@@ -413,10 +413,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.pendingApplications}</div>
-                  <div className="text-xs text-muted-foreground">Pending</div>
+                  <div className="text-xs text-foreground">Pending</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-muted-foreground">Awaiting Review</div>
+              <div className="text-sm font-medium text-foreground">Awaiting Review</div>
               {stats.pendingApplications > 0 && (
                 <Link to="/admin/applications?status=submitted" className="text-xs text-primary hover:underline mt-2 block">
                   Review now →
@@ -441,10 +441,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.avgProcessingTime}</div>
-                  <div className="text-xs text-muted-foreground">Days</div>
+                  <div className="text-xs text-foreground">Days</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-muted-foreground">Avg Processing</div>
+              <div className="text-sm font-medium text-foreground">Avg Processing</div>
               <div className="flex items-center mt-2 text-xs">
                 <ArrowDown className="h-3 w-3 text-success mr-1" />
                 <span className="text-accent">Improved by 15%</span>
@@ -472,10 +472,10 @@ export default function AdminDashboard() {
                       ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                       : 0}%
                   </div>
-                  <div className="text-xs text-muted-foreground">Rate</div>
+                  <div className="text-xs text-foreground">Rate</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-muted-foreground">Approval Rate</div>
+              <div className="text-sm font-medium text-foreground">Approval Rate</div>
               <div className="flex items-center mt-2 text-xs">
                 <TrendingUp className="h-3 w-3 text-success mr-1" />
                 <span className="text-accent">Stable performance</span>
@@ -532,11 +532,11 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-xl sm:text-2xl font-bold text-primary break-words">{stats.weekApplications}</div>
-                <div className="text-sm text-muted-foreground">Applications This Week</div>
+                <div className="text-sm text-foreground">Applications This Week</div>
               </div>
               <div className="text-center">
                 <div className="text-xl sm:text-2xl font-bold text-secondary break-words">{stats.avgProcessingTime}</div>
-                <div className="text-sm text-muted-foreground">Avg Processing Days</div>
+                <div className="text-sm text-foreground">Avg Processing Days</div>
                 <div className="text-xs text-accent mt-1">-12% improvement</div>
               </div>
               <div className="text-center">
@@ -545,7 +545,7 @@ export default function AdminDashboard() {
                     ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                     : 0}%
                 </div>
-                <div className="text-sm text-muted-foreground">Success Rate</div>
+                <div className="text-sm text-foreground">Success Rate</div>
                 <div className="text-xs text-primary mt-1">Stable performance</div>
               </div>
             </div>

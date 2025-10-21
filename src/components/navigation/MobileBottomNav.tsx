@@ -77,14 +77,14 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                   className={`h-5 w-5 transition-all duration-300 ${
                     isActive
                       ? 'text-primary scale-110'
-                      : 'text-muted-foreground group-hover:text-primary group-hover:scale-105'
+                      : 'text-foreground group-hover:text-primary group-hover:scale-105'
                   }`}
                 />
                 <span
                   className={`text-xs mt-1 transition-all duration-300 truncate max-w-[60px] ${
                     isActive
                       ? 'text-primary font-medium'
-                      : 'text-muted-foreground group-hover:text-primary'
+                      : 'text-foreground group-hover:text-primary'
                   }`}
                 >
                   {label}
@@ -98,8 +98,8 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
               aria-label="More options"
               className="relative flex flex-col items-center justify-center flex-1 h-full group min-w-[60px]"
             >
-              <MoreHorizontal className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-all duration-300" />
-              <span className="text-xs mt-1 text-muted-foreground group-hover:text-primary transition-all duration-300">
+              <MoreHorizontal className="h-5 w-5 text-foreground group-hover:text-primary transition-all duration-300" />
+              <span className="text-xs mt-1 text-foreground group-hover:text-primary transition-all duration-300">
                 More
               </span>
             </button>
@@ -128,7 +128,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
               <div className="py-2">
                 {adminMoreSections.map((section) => (
                   <div key={section.title}>
-                    <div className="px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                    <div className="px-3 py-1.5 text-[10px] font-medium text-foreground uppercase tracking-wide">
                       {section.title}
                     </div>
                     {section.links.map(({ to, icon: Icon, label }) => {

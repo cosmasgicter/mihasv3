@@ -232,7 +232,7 @@ export function PredictiveDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-foreground">AI Predictive Dashboard</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-foreground">
                   Predictive insights will load once the dashboard is ready.
                 </p>
               </div>
@@ -264,10 +264,10 @@ export function PredictiveDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">AI Predictive Dashboard</h1>
-          <p className="text-muted-foreground">
+          <p className="text-foreground">
             Real-time insights and automation analytics
             {lastUpdated && (
-              <span className="ml-2 text-sm text-muted-foreground">
+              <span className="ml-2 text-sm text-foreground">
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
@@ -334,7 +334,7 @@ export function PredictiveDashboard() {
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Trend Direction</span>
+                <span className="text-sm text-foreground">Trend Direction</span>
                 <div className="flex items-center">
                   {metrics.trendDirection === 'up' && (
                     <TrendingUp className="h-4 w-4 text-accent mr-1" />
@@ -344,7 +344,7 @@ export function PredictiveDashboard() {
                   )}
                   <span className={`text-sm font-medium ${
                     metrics.trendDirection === 'up' ? 'text-success' : 
-                    metrics.trendDirection === 'down' ? 'text-error' : 'text-muted-foreground'
+                    metrics.trendDirection === 'down' ? 'text-error' : 'text-foreground'
                   }`}>
                     {metrics.trendDirection === 'up' ? 'Increasing' : 
                      metrics.trendDirection === 'down' ? 'Decreasing' : 'Stable'}
@@ -352,7 +352,7 @@ export function PredictiveDashboard() {
                 </div>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground block mb-2">Peak Application Times</span>
+                <span className="text-sm text-foreground block mb-2">Peak Application Times</span>
                 <div className="flex flex-wrap gap-2">
                   {metrics.peakApplicationTimes.length > 0 ? (
                     metrics.peakApplicationTimes.slice(0, 4).map((time, idx) => (
@@ -361,7 +361,7 @@ export function PredictiveDashboard() {
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-muted-foreground">No peak times identified</span>
+                    <span className="text-xs text-foreground">No peak times identified</span>
                   )}
                 </div>
               </div>
@@ -412,16 +412,16 @@ export function PredictiveDashboard() {
               {metrics.workflowStats ? (
                 <>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Total Executions (7 days)</span>
+                    <span className="text-sm text-foreground">Total Executions (7 days)</span>
                     <span className="text-lg font-semibold">{metrics.workflowStats.totalExecutions}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Success Rate</span>
+                    <span className="text-sm text-foreground">Success Rate</span>
                     <span className={`text-lg font-semibold ${
                       metrics.workflowStats.totalExecutions > 0 
                         ? (metrics.workflowStats.successfulExecutions / metrics.workflowStats.totalExecutions) > 0.9 
                           ? 'text-success' : 'text-warning'
-                        : 'text-muted-foreground'
+                        : 'text-foreground'
                     }`}>
                       {metrics.workflowStats.totalExecutions > 0 
                         ? Math.round((metrics.workflowStats.successfulExecutions / metrics.workflowStats.totalExecutions) * 100)
@@ -429,14 +429,14 @@ export function PredictiveDashboard() {
                     </span>
                   </div>
                   <div className="pt-2 border-t">
-                    <span className="text-xs text-muted-foreground">Most Active Rules</span>
+                    <span className="text-xs text-foreground">Most Active Rules</span>
                     <div className="mt-1 space-y-1">
                       {Object.entries(metrics.workflowStats.ruleStats)
                         .sort(([,a], [,b]) => (b as number) - (a as number))
                         .slice(0, 3)
                         .map(([ruleId, count]) => (
                           <div key={ruleId} className="flex justify-between text-xs">
-                            <span className="text-muted-foreground truncate">{ruleId.replace(/_/g, ' ')}</span>
+                            <span className="text-foreground truncate">{ruleId.replace(/_/g, ' ')}</span>
                             <span className="text-foreground font-medium">{count as number}</span>
                           </div>
                         ))
@@ -445,7 +445,7 @@ export function PredictiveDashboard() {
                   </div>
                 </>
               ) : (
-                <div className="text-sm text-muted-foreground">Loading workflow statistics...</div>
+                <div className="text-sm text-foreground">Loading workflow statistics...</div>
               )}
             </div>
           </Card>
@@ -462,7 +462,7 @@ export function PredictiveDashboard() {
           <div className="flex items-center mb-6">
             <Brain className="h-6 w-6 mr-2 text-secondary" />
             <h3 className="text-lg font-semibold">AI Recommendations</h3>
-            <span className="ml-auto text-xs text-muted-foreground bg-accent px-2 py-1 rounded">
+            <span className="ml-auto text-xs text-foreground bg-accent px-2 py-1 rounded">
               Updated {refreshing ? 'now' : 'recently'}
             </span>
           </div>
@@ -489,7 +489,7 @@ export function PredictiveDashboard() {
                   : 'Application volume is evenly distributed. Current staffing appears adequate.'}
               </p>
             </div>
-            <div className="p-4 bg-secondary/5/30 rounded-lg border border-secondary/30">
+            <div className="p-4 bg-secondary/5/30 rounded-lg border border-input/30">
               <h4 className="font-medium text-purple-800 mb-2 flex items-center">
                 <AlertTriangle className="h-4 w-4 mr-1" />
                 Proactive Outreach

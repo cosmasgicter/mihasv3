@@ -59,7 +59,7 @@ export function ApplicationStatus({
       case 'draft':
         return {
           icon: FileText,
-          color: 'text-muted-foreground',
+          color: 'text-foreground',
           bg: 'bg-muted',
           border: 'border-border',
           label: 'Draft',
@@ -68,7 +68,7 @@ export function ApplicationStatus({
       default:
         return {
           icon: Clock,
-          color: 'text-muted-foreground',
+          color: 'text-foreground',
           bg: 'bg-muted',
           border: 'border-border',
           label: 'Unknown',
@@ -153,7 +153,7 @@ export function ApplicationStatus({
           <h3 className={`text-lg font-semibold ${statusConfig.color}`}>
             {statusConfig.label}
           </h3>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-foreground mt-1">
             {statusConfig.description}
           </p>
           

@@ -169,7 +169,7 @@ const PaymentStep = ({
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={handleProofOfPaymentUpload}
-              className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
+              className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
             />
             {proofOfPaymentFile && (
               <div className="mt-2 flex items-center text-sm text-accent">
@@ -179,7 +179,7 @@ const PaymentStep = ({
             )}
             {uploadProgress.proof_of_payment !== undefined && (
               <div className="mt-2">
-                <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                <div className="flex justify-between text-sm text-foreground mb-1">
                   <span>Uploading...</span>
                   <span>{uploadProgress.proof_of_payment}%</span>
                 </div>

@@ -49,7 +49,7 @@ export default function EmailNotifications() {
       
       <div className="divide-y divide-border max-h-96 overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="px-6 py-8 text-center text-muted-foreground">
+          <div className="px-6 py-8 text-center text-foreground">
             No email notifications found
           </div>
         ) : (
@@ -68,15 +68,15 @@ export default function EmailNotifications() {
                     {sanitizeForDisplay(notification.subject)}
                   </h4>
                   
-                  <p className="text-sm text-muted-foreground mb-2">
+                  <p className="text-sm text-foreground mb-2">
                     To: {sanitizeForDisplay(notification.recipient_email)}
                   </p>
                   
-                  <p className="text-xs text-muted-foreground mb-2">
+                  <p className="text-xs text-foreground mb-2">
                     {sanitizeForDisplay(notification.body)}
                   </p>
                   
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-foreground">
                     {new Date(notification.created_at).toLocaleString()}
                     {notification.sent_at && (
                       <span className="ml-2">

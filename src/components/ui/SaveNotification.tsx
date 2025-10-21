@@ -66,7 +66,7 @@ export function SaveNotification({
             setIsVisible(false)
             setTimeout(onClose, 300)
           }}
-          className="ml-2 text-muted-foreground hover:text-muted-foreground"
+          className="ml-2 text-foreground hover:text-foreground"
         >
           <X className="h-4 w-4" />
         </button>

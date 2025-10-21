@@ -161,7 +161,7 @@ export default function Applications() {
     updatePaymentStatus
   } = useApplicationsData(filters)
 
-  const { success: showSuccess, error: showError, info: showInfo } = useToast()
+  const { success: showSuccess, error: showError, info: showInfo } = useToastStore()
   const [exportingFormat, setExportingFormat] = useState<'csv' | 'excel' | 'pdf' | null>(null)
   const [selectedApplication, setSelectedApplication] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
@@ -434,7 +434,7 @@ export default function Applications() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-foreground">Applications</h1>
-              <p className="text-xs text-muted-foreground">{stats.total} total applications</p>
+              <p className="text-xs text-foreground">{stats.total} total applications</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -469,7 +469,7 @@ export default function Applications() {
                 <Clock className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Today</p>
+                <p className="text-xs text-foreground">Today</p>
                 <p className="text-lg font-bold text-foreground">{stats.todaySubmissions}</p>
               </div>
             </div>
@@ -480,7 +480,7 @@ export default function Applications() {
                 <AlertCircle className="h-4 w-4 text-accent" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Pending</p>
+                <p className="text-xs text-foreground">Pending</p>
                 <p className="text-lg font-bold text-foreground">{stats.pendingReview}</p>
               </div>
             </div>
@@ -491,7 +491,7 @@ export default function Applications() {
                 <CheckCircle className="h-4 w-4 text-accent" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Approved</p>
+                <p className="text-xs text-foreground">Approved</p>
                 <p className="text-lg font-bold text-foreground">{stats.approved}</p>
               </div>
             </div>
@@ -502,7 +502,7 @@ export default function Applications() {
                 <XCircle className="h-4 w-4 text-destructive" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Rejected</p>
+                <p className="text-xs text-foreground">Rejected</p>
                 <p className="text-lg font-bold text-foreground">{stats.rejected}</p>
               </div>
             </div>
@@ -513,7 +513,7 @@ export default function Applications() {
         <div className="bg-card rounded-xl p-4 shadow-sm border border-border mb-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-foreground">Export Data</h3>
-            <Download className="h-4 w-4 text-muted-foreground" />
+            <Download className="h-4 w-4 text-foreground" />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <Button

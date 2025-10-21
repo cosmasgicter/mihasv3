@@ -128,7 +128,7 @@ export function EnhancedApplicationsManager({
       case 'submitted':
         return <Zap className="h-4 w-4 text-warning" />
       default:
-        return <Clock className="h-4 w-4 text-muted-foreground" />
+        return <Clock className="h-4 w-4 text-foreground" />
     }
   }
 
@@ -201,7 +201,7 @@ export function EnhancedApplicationsManager({
                 <button
                   onClick={() => setViewMode('cards')}
                   className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'cards' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground'
+                    viewMode === 'cards' ? 'bg-card text-primary shadow-sm' : 'text-foreground'
                   }`}
                 >
                   Cards
@@ -209,7 +209,7 @@ export function EnhancedApplicationsManager({
                 <button
                   onClick={() => setViewMode('table')}
                   className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'table' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground'
+                    viewMode === 'table' ? 'bg-card text-primary shadow-sm' : 'text-foreground'
                   }`}
                 >
                   Table
@@ -221,7 +221,7 @@ export function EnhancedApplicationsManager({
           {/* Search and Filters */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground" />
               <input
                 type="text"
                 placeholder="Search applications..."
@@ -281,7 +281,7 @@ export function EnhancedApplicationsManager({
             >
               <div className="flex items-center justify-between mb-4">
                 <h4 className="font-bold text-foreground"><Zap className="w-5 h-5" /> Bulk Actions</h4>
-                <span className="text-sm text-muted-foreground">{selectedApplications.length} selected</span>
+                <span className="text-sm text-foreground">{selectedApplications.length} selected</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -335,7 +335,7 @@ export function EnhancedApplicationsManager({
         >
           <div className="text-6xl mb-4"><FileText className="w-5 h-5" /></div>
           <h3 className="text-xl font-bold text-foreground mb-2">No Applications Found</h3>
-          <p className="text-muted-foreground">Try adjusting your search filters</p>
+          <p className="text-foreground">Try adjusting your search filters</p>
         </motion.div>
       ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -362,7 +362,7 @@ export function EnhancedApplicationsManager({
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-lg text-foreground truncate" title={application.full_name}>{application.full_name}</h3>
-                      <p className="text-sm text-muted-foreground font-mono truncate">#{application.application_number}</p>
+                      <p className="text-sm text-foreground font-mono truncate">#{application.application_number}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -374,13 +374,13 @@ export function EnhancedApplicationsManager({
                 </div>
 
                 <div className="space-y-3 mb-4">
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground min-w-0">
+                  <div className="flex items-center space-x-2 text-sm text-foreground min-w-0">
                     <span className="truncate" title={application.email}>{application.email}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground min-w-0">
+                  <div className="flex items-center space-x-2 text-sm text-foreground min-w-0">
                     <span className="truncate" title={application.program}>{application.program}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-2 text-sm text-foreground">
                     <Calendar className="h-4 w-4" />
                     <span>Created {new Date(application.created_at).toLocaleDateString()}</span>
                   </div>
@@ -488,8 +488,8 @@ export function EnhancedApplicationsManager({
                     <td className="px-6 py-4">
                       <div className="min-w-0 max-w-xs">
                         <div className="font-bold text-foreground truncate" title={application.full_name}>{application.full_name}</div>
-                        <div className="text-sm text-muted-foreground truncate" title={application.email}>{application.email}</div>
-                        <div className="text-xs text-muted-foreground font-mono truncate">#{application.application_number}</div>
+                        <div className="text-sm text-foreground truncate" title={application.email}>{application.email}</div>
+                        <div className="text-xs text-foreground font-mono truncate">#{application.application_number}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -503,7 +503,7 @@ export function EnhancedApplicationsManager({
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                    <td className="px-6 py-4 text-sm text-foreground">
                       {new Date(application.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">

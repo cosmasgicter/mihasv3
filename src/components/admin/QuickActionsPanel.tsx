@@ -97,7 +97,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
       >
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-bold text-foreground"><Zap className="w-5 h-5" /> Quick Actions</h3>
-          <p className="text-sm text-muted-foreground mt-1">Manage your system efficiently</p>
+          <p className="text-sm text-foreground mt-1">Manage your system efficiently</p>
         </div>
         
         <div className="p-6">
@@ -168,7 +168,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                     <Icon className="h-4 w-4 mr-3" />
                     <div className="text-left">
                       <div className="font-medium">{action.title}</div>
-                      <div className="text-xs text-muted-foreground">{action.description}</div>
+                      <div className="text-xs text-foreground">{action.description}</div>
                     </div>
                   </Button>
                 </motion.div>
@@ -194,7 +194,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
               <Download className="h-4 w-4 mr-3" />
               <div className="text-left">
                 <div className="font-medium">Export Data</div>
-                <div className="text-xs text-muted-foreground">Download reports</div>
+                <div className="text-xs text-foreground">Download reports</div>
               </div>
             </Button>
           </motion.div>
@@ -212,11 +212,11 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-primary">{stats.pendingApplications}</div>
-            <div className="text-sm text-muted-foreground">Pending</div>
+            <div className="text-sm text-foreground">Pending</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-secondary">{stats.totalPrograms}</div>
-            <div className="text-sm text-muted-foreground">Programs</div>
+            <div className="text-sm text-foreground">Programs</div>
           </div>
         </div>
       </motion.div>
