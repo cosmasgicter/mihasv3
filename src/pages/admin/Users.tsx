@@ -427,7 +427,7 @@ export default function AdminUsers() {
                             <p className="text-sm text-foreground truncate" title={user.phone}>{sanitizeForDisplay(user.phone)}</p>
                           )}
                           <p className="text-xs text-foreground mt-1">
-                            ID: {user.user_id.slice(0, 8)}...
+                            ID: {user.user_id?.slice(0, 8) || 'N/A'}...
                           </p>
                         </div>
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
@@ -541,7 +541,7 @@ export default function AdminUsers() {
                                   {sanitizeForDisplay(user.full_name) || 'No name provided'}
                                 </div>
                                 <div className="text-xs text-foreground font-mono truncate">
-                                  ID: {user.user_id.slice(0, 8)}...
+                                  ID: {user.user_id?.slice(0, 8) || 'N/A'}...
                                 </div>
                               </div>
                             </div>
