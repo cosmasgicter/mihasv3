@@ -122,7 +122,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
               <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-                <User className="h-4 w-4 sm:h-5 sm:w-5 text-foreground" />
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div className="min-w-0 flex-1">
                 <h1 className="text-sm sm:text-lg font-bold text-foreground truncate">

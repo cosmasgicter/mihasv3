@@ -97,8 +97,8 @@ export function ApplicationsCards({
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-base sm:text-lg text-secondary truncate">{application.full_name}</h3>
-                        <p className="text-xs sm:text-sm text-secondary/70 font-mono">#{application.application_number}</p>
+                        <h3 className="font-bold text-foreground truncate">{application.full_name}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 font-mono">#{application.application_number}</p>
                       </div>
                     </div>
                     <div className="flex flex-col items-end space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">

@@ -535,7 +535,7 @@ export default function AdminDashboard() {
                 <div className="text-sm text-foreground">Applications This Week</div>
               </div>
               <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-secondary break-words">{stats.avgProcessingTime}</div>
+                <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.avgProcessingTime}</div>
                 <div className="text-sm text-foreground">Avg Processing Days</div>
                 <div className="text-xs text-accent mt-1">-12% improvement</div>
               </div>

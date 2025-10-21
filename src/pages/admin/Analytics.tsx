@@ -411,7 +411,7 @@ export default function Analytics() {
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm font-medium text-foreground mb-1">Eligibility Success</p>
- <p className="text-2xl sm:text-3xl font-bold text-secondary break-words">{avgEligibilitySuccess}%</p>
+ <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">{avgEligibilitySuccess}%</p>
  <p className="text-xs text-foreground mt-1">+8% from last month</p>
  </div>
  <div className="p-3 bg-secondary/10 rounded-2xl">
@@ -424,7 +424,7 @@ export default function Analytics() {
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm font-medium text-foreground mb-1">Active Users</p>
- <p className="text-2xl sm:text-3xl font-bold text-secondary break-words">{uniqueUsers}</p>
+ <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">{uniqueUsers}</p>
  <p className="text-xs text-foreground mt-1">+15% from last month</p>
  </div>
  <div className="p-3 bg-primary/10 rounded-2xl">

@@ -1216,7 +1216,7 @@ export function ApplicationDetailModal({
  <Button
  loading={updating === application.id}
  onClick={() => onUpdateStatus(application.id, 'under_review')}
- className="bg-primary hover:bg-primary"
+ className="bg-primary hover:bg-primary/90 text-white font-semibold"
  >
  Start Review
  </Button>
@@ -1233,10 +1233,9 @@ export function ApplicationDetailModal({
  Approve
  </Button>
  <Button
- variant="outline"
  loading={updating === application.id}
  onClick={() => onUpdateStatus(application.id, 'rejected')}
- className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
+ className="bg-error hover:bg-error/90 text-white font-semibold"
  >
  <XCircle className="h-4 w-4 mr-2" />
  Reject

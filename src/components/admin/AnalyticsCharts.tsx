@@ -127,7 +127,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm font-medium text-foreground">Processing Time</p>
- <p className="text-2xl font-bold text-secondary">3.2 days</p>
+ <p className="text-2xl font-bold text-foreground">3.2 days</p>
  <div className="flex items-center mt-2 text-xs">
  <TrendingDown className="h-3 w-3 text-success mr-1" />
  <span className="text-accent">15% faster</span>
@@ -146,7 +146,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm font-medium text-foreground">Active Users</p>
- <p className="text-2xl font-bold text-secondary">{activeUsersDisplay}</p>
+ <p className="text-2xl font-bold text-foreground">{activeUsersDisplay}</p>
  <div className="flex items-center mt-2 text-xs">
  <Users className={`h-3 w-3 mr-1 ${isAnalyticsError ? 'text-error' : 'text-indigo-500'}`} />
  <span className={activeUsersStatusClass}>{activeUsersStatus}</span>

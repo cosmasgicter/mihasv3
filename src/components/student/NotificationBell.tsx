@@ -74,7 +74,7 @@ export function NotificationBell() {
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-destructive/5/300 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold"
+            className="absolute -top-1 -right-1 bg-error text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold"
             data-testid="unread-count"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -177,7 +177,7 @@ export function NotificationBell() {
                                     {formatDate(notification.created_at)}
                                   </span>
                                   {!notification.read && (
-                                    <span className="inline-flex h-2 w-2 rounded-full bg-primary/5/300"></span>
+                                    <span className="inline-flex h-2 w-2 rounded-full bg-primary"></span>
                                   )}
                                 </div>
                               </div>
