@@ -51,7 +51,7 @@ export async function onRequestGet(context) {
     const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
       .select('*')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .eq('is_active', true)
       .order('created_at', { ascending: false })
       .limit(1)
