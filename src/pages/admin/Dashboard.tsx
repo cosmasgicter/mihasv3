@@ -170,7 +170,10 @@ export default function AdminDashboard() {
   }, [trackPageView])
 
   useEffect(() => {
+    console.log('[Dashboard] useEffect triggered', { hasUser: !!user, hasProfile: !!profile, userId: user?.id, profileId: profile?.id })
+    
     if (!user || !profile) {
+      console.log('[Dashboard] Skipping load - missing user or profile')
       return
     }
 
@@ -178,6 +181,7 @@ export default function AdminDashboard() {
 
     const load = async () => {
       if (mounted) {
+        console.log('[Dashboard] Loading dashboard stats...')
         await loadDashboardStats()
       }
     }

@@ -130,8 +130,11 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       const accessToken = session?.access_token
 
       if (!accessToken) {
+        console.log('[ProfileQuery] No access token found')
         return null
       }
+      
+      console.log('[ProfileQuery] Fetching profile for user:', user.id)
 
       // Try direct Supabase query first (for students)
       const { data: profileData, error: profileError } = await supabase
