@@ -181,7 +181,7 @@ export default function StudentDashboard() {
       case 'approved':
         return <CheckCircle className="h-5 w-5 text-success" />
       case 'rejected':
-        return <XCircle className="h-5 w-5 text-error" />
+        return <XCircle className="h-5 w-5 text-red-800" />
       case 'under_review':
         return <Clock className="h-5 w-5 text-primary" />
       default:
@@ -241,9 +241,9 @@ export default function StudentDashboard() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="rounded-full bg-card/80 px-6 py-3 shadow-lg"
+                  className="rounded-full bg-white px-6 py-3 shadow-lg"
                 >
-                  <div className="h-1 w-full overflow-hidden rounded-full bg-primary/5/300/10">
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-blue-100">
                     <motion.div
                       className="h-full w-1/3 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800"
                       animate={{ x: ['-100%', '100%'] }}
@@ -295,7 +295,7 @@ export default function StudentDashboard() {
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border border-destructive/30/70 bg-destructive/5/30/90 px-6 py-5 text-error shadow-lg"
+                className="rounded-2xl border border-red-300 bg-red-50 px-6 py-5 text-red-800 shadow-lg"
               >
                 <div className="flex items-start gap-3">
                   <XCircle className="h-6 w-6 flex-shrink-0" />
@@ -305,7 +305,7 @@ export default function StudentDashboard() {
                   </div>
                   <button
                     onClick={() => setError('')}
-                    className="flex-shrink-0 p-1 rounded-md hover:bg-destructive/10 transition-colors"
+                    className="flex-shrink-0 p-1 rounded-md hover:bg-red-100 transition-colors"
                     aria-label="Dismiss error"
                   >
                     <X className="h-5 w-5" />
@@ -349,14 +349,14 @@ export default function StudentDashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="px-6 py-5 transition-colors hover:bg-warning/10"
+                        className="px-6 py-5 transition-colors hover:bg-yellow-50"
                       >
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between min-w-0">
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-accent" />
                               <h4 className="text-base font-semibold text-foreground break-all">Draft application #{application.application_number}</h4>
-                              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-accent">Draft</span>
+                              <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800 border border-yellow-300">Draft</span>
                             </div>
                             <dl className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
                               <div className="flex gap-2">
@@ -386,7 +386,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-destructive/30 text-destructive hover:bg-destructive/5/30"
+                              className="w-full sm:w-auto border-red-300 text-red-700 hover:bg-red-50"
                               onClick={async () => {
                                 const confirmed = await confirmDialog.confirm({
                                   title: 'Delete Draft',
@@ -428,7 +428,7 @@ export default function StudentDashboard() {
                             <div className="flex items-center gap-3">
                               <Clock className="h-5 w-5 text-accent" />
                               <h4 className="text-base font-semibold text-foreground truncate">Local draft in progress</h4>
-                              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-accent">Draft</span>
+                              <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800 border border-yellow-300">Draft</span>
                             </div>
                             <p className="text-sm text-foreground">Progress: {getDraftProgress()}</p>
                             <p className="text-sm text-foreground">Last saved: {getDraftTimestamp()}</p>
@@ -449,7 +449,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-destructive/30 text-destructive hover:bg-destructive/5/30"
+                              className="w-full sm:w-auto border-red-300 text-red-700 hover:bg-red-50"
                               onClick={async () => {
                                 const confirmed = await confirmDialog.confirm({
                                   title: 'Delete Draft',
@@ -489,7 +489,7 @@ export default function StudentDashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 + index * 0.05 }}
-                        className="px-6 py-5 transition-colors hover:bg-primary/5/30/60"
+                        className="px-6 py-5 transition-colors hover:bg-blue-50"
                       >
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between min-w-0">
                           <div className="space-y-2 min-w-0 flex-1">
@@ -584,10 +584,10 @@ export default function StudentDashboard() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 * index }}
-                        className="rounded-xl border border-destructive/30 bg-destructive/5/30 px-4 py-3"
+                        className="rounded-xl border border-orange-300 bg-orange-50 px-4 py-3"
                       >
                         <p className="text-sm font-semibold text-foreground">{intake.name}</p>
-                        <p className="text-xs font-semibold text-destructive">Deadline: {formatDate(intake.application_deadline)}</p>
+                        <p className="text-xs font-semibold text-orange-700">Deadline: {formatDate(intake.application_deadline)}</p>
                       </motion.div>
                     ))}
                     {intakes.length === 0 && (
@@ -609,7 +609,7 @@ export default function StudentDashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full justify-start border-warning/30 bg-warning/10 text-accent hover:bg-amber-100"
+                          className="w-full justify-start border-yellow-300 bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
                         >
                           <FileText className="mr-2 h-4 w-4" />
                           Continue draft
@@ -631,7 +631,7 @@ export default function StudentDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full justify-start border-destructive/30 text-destructive hover:bg-destructive/5/30"
+                        className="w-full justify-start border-red-300 text-red-700 hover:bg-red-50"
                         disabled={isClearingAllDrafts}
                         onClick={async () => {
                           const confirmed = await confirmDialog.confirm({
