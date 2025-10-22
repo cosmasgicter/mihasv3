@@ -48,9 +48,9 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-xl font-bold bg-gradient-to-r from-gradient-from to-gradient-to bg-clip-text text-transparent truncate max-w-[150px]"
+              className="text-xl font-bold text-gray-900 truncate max-w-[150px]"
             >
-              MIHAS
+              MIHAS-KATC
             </motion.h1>
           )}
         </AnimatePresence>
