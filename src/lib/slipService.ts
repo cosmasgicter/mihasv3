@@ -31,6 +31,60 @@ export async function createApplicationSlip(
   const toast = options.toast
 
   try {
+    // Use API endpoint if we have application_number
+    if (data.application_number && !options.sendEmail) {
+      toast?.showInfo?.('Generating slip', 'Preparing your official application slip...')
+      
+      const response = await fetch('/applications/generate/slip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ applicationNumber: data.application_number })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate slip')
+      }
+
+      const blob = await response.blob()
+      toast?.showSuccess?.('Slip ready', 'Your application slip has been generated successfully.')
+      
+      return { blob }
+    }
+
+    // Use email endpoint if sendEmail is true
+    if (options.sendEmail && data.application_number) {
+      toast?.showInfo?.('Sending email', 'Emailing your application slip...')
+      
+      const response = await fetch('/applications/email/slip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ 
+          applicationNumber: data.application_number,
+          email: data.email
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to send email')
+      }
+
+      const result = await response.json()
+      
+      if (result.success) {
+        toast?.showSuccess?.('Email sent', 'We emailed a copy of your application slip.')
+        return { publicUrl: result.slipUrl }
+      } else {
+        throw new Error(result.error || 'Failed to send email')
+      }
+    }
+
+    // Fallback to local generation
     toast?.showInfo?.('Generating slip', 'Preparing your official application slip...')
     const blob = await generateApplicationSlip(data)
 
