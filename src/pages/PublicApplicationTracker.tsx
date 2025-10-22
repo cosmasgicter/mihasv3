@@ -52,7 +52,9 @@ import {
   Copy,
   ExternalLink,
   GraduationCap,
-  CreditCard
+  CreditCard,
+  BarChart3,
+  PartyPopper
 } from 'lucide-react'
 
 interface PublicApplicationStatus {
