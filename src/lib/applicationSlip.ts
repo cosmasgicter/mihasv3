@@ -242,7 +242,7 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
       margin: 1,
       width: 240,
       color: {
-        dark: '#231F54',  // QR code foreground color
+        dark: '#1f2937',  // QR code foreground color
         light: '#FFFFFF'  // QR code background color
       }
     })

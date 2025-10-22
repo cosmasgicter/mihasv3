@@ -104,14 +104,14 @@ const ApplicationWizardContent = () => {
         ]
       case 1:
         return [
-          { label: 'At least 5 subjects added', completed: (values.grades?.length || 0) >= 5 },
-          { label: 'Result slip uploaded', completed: !!resultSlipFile }
+          { label: `${values.grades?.length || 0} subjects added (min 5)`, completed: (values.grades?.length || 0) >= 5 },
+          { label: 'Result slip uploaded', completed: !!resultSlipFile || !!uploadedFiles.result_slip }
         ]
       case 2:
         return [
           { label: 'Payment method selected', completed: !!values.payment_method },
           { label: 'Payment reference provided', completed: !!values.payment_reference },
-          { label: 'Proof of payment uploaded', completed: !!popFile }
+          { label: 'Proof of payment uploaded', completed: !!popFile || !!uploadedFiles.proof_of_payment }
         ]
       case 3:
         return [

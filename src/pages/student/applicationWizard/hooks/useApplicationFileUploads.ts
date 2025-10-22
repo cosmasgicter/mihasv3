@@ -200,16 +200,27 @@ export function useApplicationFileUploads({
 
   const createFileHandler = useCallback(
     (fileType: ApplicationFileType, setter: (file: File | null) => void) =>
-      (event: ChangeEvent<HTMLInputElement>) => {
+      async (event: ChangeEvent<HTMLInputElement>) => {
         const target = event.target
         const file = target.files?.[0] ?? null
 
         const isValid = validateFileSelection(file, fileType, target)
         if (!isValid) {
           setter(null)
+          return
+        }
+
+        // Auto-upload after selection
+        if (file) {
+          try {
+            await startUpload(file, fileType)
+          } catch (error) {
+            console.error('Auto-upload failed:', error)
+            onValidationError?.(error instanceof Error ? error.message : 'Upload failed')
+          }
         }
       },
-    [validateFileSelection]
+    [validateFileSelection, startUpload, onValidationError]
   )
 
   const handleResultSlipUpload = useCallback(

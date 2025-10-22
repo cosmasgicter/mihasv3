@@ -26,19 +26,20 @@ export const useStepValidation = (
   return useMemo(() => {
     const validations: Record<number, () => StepValidation> = {
       0: () => {
+        const hasNrcOrPassport = isFieldComplete(values.nrc_number) || isFieldComplete(values.passport_number)
         const fields = [
-          { key: 'program', label: 'Program', value: values.program },
-          { key: 'intake', label: 'Intake', value: values.intake },
-          { key: 'full_name', label: 'Full Name', value: values.full_name },
-          { key: 'email', label: 'Email', value: values.email },
-          { key: 'phone', label: 'Phone', value: values.phone },
-          { key: 'nrc', label: 'NRC', value: values.nrc },
-          { key: 'date_of_birth', label: 'Date of Birth', value: values.date_of_birth },
-          { key: 'sex', label: 'Gender', value: values.sex },
-          { key: 'residence_town', label: 'Address', value: values.residence_town }
+          { label: 'Program', complete: isFieldComplete(values.program) },
+          { label: 'Intake', complete: isFieldComplete(values.intake) },
+          { label: 'Full Name', complete: isFieldComplete(values.full_name) },
+          { label: 'Email', complete: isFieldComplete(values.email) },
+          { label: 'Phone', complete: isFieldComplete(values.phone) },
+          { label: 'NRC or Passport', complete: hasNrcOrPassport },
+          { label: 'Date of Birth', complete: isFieldComplete(values.date_of_birth) },
+          { label: 'Gender', complete: isFieldComplete(values.sex) },
+          { label: 'Address', complete: isFieldComplete(values.residence_town) }
         ]
-        const completed = fields.filter(f => isFieldComplete(f.value))
-        const missing = fields.filter(f => !isFieldComplete(f.value)).map(f => f.label)
+        const completed = fields.filter(f => f.complete)
+        const missing = fields.filter(f => !f.complete).map(f => f.label)
         return {
           isValid: completed.length === fields.length,
           completedFields: completed.length,
@@ -47,25 +48,23 @@ export const useStepValidation = (
         }
       },
       1: () => {
-        const fields = [
-          { key: 'grades', label: 'At least 5 subjects', value: values.grades?.length >= 5 }
-        ]
-        const completed = fields.filter(f => f.value)
-        const missing = fields.filter(f => !f.value).map(f => f.label)
+        const validGrades = values.grades?.filter(g => g.subject_id && g.grade >= 1 && g.grade <= 9) || []
+        const hasEnoughGrades = validGrades.length >= 5
         return {
-          isValid: completed.length === fields.length,
-          completedFields: completed.length,
-          totalFields: fields.length,
-          missingFields: missing
+          isValid: hasEnoughGrades,
+          completedFields: hasEnoughGrades ? 1 : 0,
+          totalFields: 1,
+          missingFields: hasEnoughGrades ? [] : ['At least 5 subjects']
         }
       },
       2: () => {
         const fields = [
-          { key: 'payment_method', label: 'Payment Method', value: values.payment_method },
-          { key: 'payment_reference', label: 'Payment Reference', value: values.payment_reference }
+          { label: 'Payment Method', complete: isFieldComplete(values.payment_method) },
+          { label: 'Payer Name', complete: isFieldComplete(values.payer_name) },
+          { label: 'Amount', complete: values.amount && values.amount >= 153 }
         ]
-        const completed = fields.filter(f => isFieldComplete(f.value))
-        const missing = fields.filter(f => !isFieldComplete(f.value)).map(f => f.label)
+        const completed = fields.filter(f => f.complete)
+        const missing = fields.filter(f => !f.complete).map(f => f.label)
         return {
           isValid: completed.length === fields.length,
           completedFields: completed.length,
