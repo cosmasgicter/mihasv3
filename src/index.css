@@ -35,4 +35,58 @@
   .text-vibrant {
     @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
   }
+  
+  /* Mobile-friendly utilities */
+  .container-mobile {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .space-responsive {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+  
+  .space-responsive-lg {
+    @apply p-6 sm:p-8 lg:p-12;
+  }
+  
+  .text-responsive-3xl {
+    @apply text-2xl sm:text-3xl lg:text-4xl;
+  }
+  
+  .text-responsive-2xl {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+  
+  .card-mobile {
+    @apply p-6 sm:p-8 lg:p-12;
+  }
+  
+  .btn-responsive {
+    @apply px-6 py-3 sm:px-8 sm:py-4;
+  }
+  
+  .btn-mobile {
+    @apply text-sm sm:text-base;
+  }
+  
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .mobile-scroll {
+    @apply overflow-x-hidden;
+  }
+  
+  .form-input-mobile {
+    @apply text-base;
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
 }
