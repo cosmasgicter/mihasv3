@@ -73,7 +73,7 @@ export default function RoleManagement() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
         <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-6 text-white">
             <h1 className="text-2xl sm:text-3xl font-bold">👥 Role Management</h1>
             <p className="text-white/90 text-sm sm:text-base">Manage user roles and permissions</p>
           </div>

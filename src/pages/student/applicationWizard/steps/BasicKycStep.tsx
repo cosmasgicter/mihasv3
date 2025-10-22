@@ -6,6 +6,7 @@ import type { UseFormReturn } from 'react-hook-form'
 
 import { Input } from '@/components/ui/Input'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
+import { FieldHelp } from '../components/FieldHelp'
 
 import type { WizardFormData, WizardProgram, WizardIntake } from '../types'
 
@@ -100,13 +101,23 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <Input
+          <div className="flex items-center gap-2 mb-1">
+            <label className="block text-sm font-medium text-foreground">
+              NRC Number
+            </label>
+            <FieldHelp
+              title="National Registration Card"
+              description="Your Zambian National Registration Card number. Required for Zambian citizens."
+              example="123456/78/9"
+            />
+          </div>
+          <input
             {...register('nrc_number')}
-            label="NRC Number"
-            error={errors.nrc_number?.message}
             placeholder="e.g., 123456/78/9"
-            helperText="Provide either NRC or Passport (one is sufficient)"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
           />
+          {errors.nrc_number && <p className="mt-1 text-sm text-destructive">{errors.nrc_number.message}</p>}
+          <p className="mt-1 text-xs text-muted-foreground">Provide either NRC or Passport (one is sufficient)</p>
         </div>
 
         <div>
@@ -146,13 +157,22 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <Input
+          <div className="flex items-center gap-2 mb-1">
+            <label className="block text-sm font-medium text-foreground">
+              Phone Number <span className="text-error">*</span>
+            </label>
+            <FieldHelp
+              title="Contact Phone Number"
+              description="Your primary phone number for communication. Include country code for international numbers."
+              example="+260 97 123 4567"
+            />
+          </div>
+          <input
             {...register('phone')}
-            label="Phone Number"
-            error={errors.phone?.message}
             placeholder="e.g., +260 97 123 4567"
-            required
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
           />
+          {errors.phone && <p className="mt-1 text-sm text-destructive">{errors.phone.message}</p>}
         </div>
 
         <div>
