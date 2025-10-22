@@ -86,7 +86,7 @@ const SubmissionSuccess = ({
         )}
 
         <motion.div
-          className="bg-accent/10/30 border border-accent/30 rounded-lg p-4 mb-6"
+          className="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
