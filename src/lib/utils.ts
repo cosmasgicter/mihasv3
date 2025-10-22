@@ -58,17 +58,17 @@ export function safeJsonParse<T>(value: string | null | undefined, fallback: T):
 // Consistent status badge styling helper
 const STATUS_COLOR_MAP: Record<string, string> = {
   draft: 'bg-muted text-foreground border border-border',
-  pending: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
-  pending_review: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
-  under_review: 'bg-blue-100 text-blue-800 border border-blue-200',
-  in_progress: 'bg-blue-100 text-blue-800 border border-blue-200',
-  approved: 'bg-green-100 text-green-800 border border-green-200',
-  verified: 'bg-green-100 text-green-800 border border-green-200',
-  completed: 'bg-green-100 text-green-800 border border-green-200',
-  rejected: 'bg-red-100 text-red-800 border border-red-200',
-  declined: 'bg-red-100 text-red-800 border border-red-200',
-  cancelled: 'bg-red-100 text-red-800 border border-red-200',
-  expired: 'bg-slate-200 text-slate-700 border border-slate-300'
+  pending: 'bg-yellow-200 text-yellow-900 border border-yellow-300',
+  pending_review: 'bg-yellow-200 text-yellow-900 border border-yellow-300',
+  under_review: 'bg-blue-200 text-blue-900 border border-blue-300',
+  in_progress: 'bg-blue-200 text-blue-900 border border-blue-300',
+  approved: 'bg-green-200 text-green-900 border border-green-300',
+  verified: 'bg-green-200 text-green-900 border border-green-300',
+  completed: 'bg-green-200 text-green-900 border border-green-300',
+  rejected: 'bg-red-200 text-red-900 border border-red-300',
+  declined: 'bg-red-200 text-red-900 border border-red-300',
+  cancelled: 'bg-red-200 text-red-900 border border-red-300',
+  expired: 'bg-slate-300 text-slate-900 border border-slate-400'
 }
 
 export function getStatusColor(status?: string | null): string {
