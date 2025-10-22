@@ -94,3 +94,10 @@ export interface SubjectGrade {
   subject_id: string
   grade: number
 }
+
+export interface ApplicationFormData extends WizardFormData {
+  grades?: SubjectGrade[]
+  nrc?: string
+  passport_number?: string
+  payment_reference?: string
+}

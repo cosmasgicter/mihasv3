@@ -121,6 +121,58 @@ export async function onRequest(context) {
     }
   }
   
+  if (request.method === 'PUT' || request.method === 'PATCH') {
+    try {
+      const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) });
+      if (authContext.error || !authContext.user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const body = await request.json();
+      
+      // Check ownership
+      const { data: app } = await supabaseAdminClient
+        .from('applications')
+        .select('user_id')
+        .eq('id', id)
+        .single();
+      
+      if (!app || (app.user_id !== authContext.user.id && !authContext.isAdmin)) {
+        return new Response(JSON.stringify({ error: 'Access denied' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { data, error } = await supabaseAdminClient
+        .from('applications')
+        .update(body)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, data }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+  }
+  
   return new Response(JSON.stringify({ error: 'Method not allowed' }), {
     status: 405,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }

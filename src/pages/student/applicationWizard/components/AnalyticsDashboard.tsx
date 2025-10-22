@@ -22,17 +22,26 @@ export const AnalyticsDashboard = memo(({ userId }: AnalyticsDashboardProps) => 
     if (!userId) return
     
     try {
-      const { data, error } = await supabase.rpc('get_application_completion_stats', {
-        p_user_id: userId
-      })
+      const { data: applications, error } = await supabase
+        .from('applications')
+        .select('status, created_at, updated_at')
+        .eq('user_id', userId)
 
       if (error) {
-        console.error('Analytics RPC error:', error)
+        console.error('Analytics query error:', error)
         return
       }
-      if (data && data.length > 0) {
-        setStats(data[0])
-      }
+
+      const completed = applications?.filter(app => app.status === 'submitted').length || 0
+      const drafts = applications?.filter(app => app.status === 'draft').length || 0
+      const total = applications?.length || 0
+
+      setStats({
+        completed_applications: completed,
+        total_drafts: drafts,
+        avg_time_per_step: 0,
+        most_common_drop_off_step: null
+      })
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
     } finally {
@@ -46,8 +55,9 @@ export const AnalyticsDashboard = memo(({ userId }: AnalyticsDashboardProps) => 
 
   if (loading || !stats) return null
 
-  const completionRate = stats.total_drafts > 0
-    ? Math.round((stats.completed_applications / (stats.total_drafts + stats.completed_applications)) * 100)
+  const total = stats.total_drafts + stats.completed_applications
+  const completionRate = total > 0
+    ? Math.round((stats.completed_applications / total) * 100)
     : 0
 
   return (
