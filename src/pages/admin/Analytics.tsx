@@ -217,7 +217,7 @@ export default function Analytics() {
  
  <main className="container mx-auto px-4 py-6">
  {/* Header */}
- <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl mb-8">
+ <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-2xl p-6 text-white shadow-xl mb-8">
  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
  <div>
  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold break-words"><BarChart3 className="w-5 h-5" /> Analytics & Reporting</h1>

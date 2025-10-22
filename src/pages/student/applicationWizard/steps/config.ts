@@ -8,6 +8,7 @@ export interface WizardStepConfig {
   key: StepKey
   progressTitle: string
   title: string
+  description: string
   icon: LucideIcon
   nextButtonLabel: string
 }
@@ -16,8 +17,9 @@ export const wizardSteps: WizardStepConfig[] = [
   {
     id: 1,
     key: 'basicKyc',
-    progressTitle: 'Basic KYC',
+    progressTitle: 'Basic Info',
     title: 'Step 1: Basic KYC Information',
+    description: 'Provide your personal details and select your program',
     icon: FileText,
     nextButtonLabel: 'Next Step'
   },
@@ -26,6 +28,7 @@ export const wizardSteps: WizardStepConfig[] = [
     key: 'education',
     progressTitle: 'Education',
     title: 'Step 2: Education & Documents',
+    description: 'Enter your grades and upload required documents',
     icon: Sparkles,
     nextButtonLabel: 'Next Step'
   },
@@ -34,14 +37,16 @@ export const wizardSteps: WizardStepConfig[] = [
     key: 'payment',
     progressTitle: 'Payment',
     title: 'Step 3: Payment Information',
+    description: 'Submit your payment details and proof of payment',
     icon: CreditCard,
     nextButtonLabel: 'Next Step'
   },
   {
     id: 4,
     key: 'submit',
-    progressTitle: 'Submit',
+    progressTitle: 'Review',
     title: 'Step 4: Review & Submit',
+    description: 'Review your application and submit for processing',
     icon: Send,
     nextButtonLabel: 'Submit Application'
   }

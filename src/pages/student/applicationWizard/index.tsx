@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CheckCircle, Send, Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
 
 import { AIAssistant } from '@/components/application/AIAssistant'
 import { Button } from '@/components/ui/Button'
@@ -13,6 +14,7 @@ import EducationStep from './steps/EducationStep'
 import PaymentStep from './steps/PaymentStep'
 import SubmitStep from './steps/SubmitStep'
 import useWizardController from './hooks/useWizardController'
+import { useStepValidation } from './hooks/useStepValidation'
 import { previousButtonLabel, saveNowLabel, wizardSteps } from './steps/config'
 import type { SubjectGrade } from './types'
 
@@ -70,6 +72,28 @@ const ApplicationWizardContent = () => {
     saveDraft,
     watchValues
   } = useWizardController()
+
+  const stepValidation = useStepValidation(form, currentStepIndex)
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !loading && !uploading) {
+        if (e.key === 'ArrowRight' && !isLastStep) {
+          e.preventDefault()
+          handleNextStep()
+        } else if (e.key === 'ArrowLeft' && currentStepIndex > 0) {
+          e.preventDefault()
+          handlePrevStep()
+        } else if (e.key === 's') {
+          e.preventDefault()
+          saveDraft()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [currentStepIndex, isLastStep, loading, uploading, handleNextStep, handlePrevStep, saveDraft])
 
   if (authLoading || restoringDraft) {
     return (
@@ -131,33 +155,78 @@ const ApplicationWizardContent = () => {
             Back to Dashboard
           </Link>
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 break-words">Student Application</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">Student Application</h1>
             <p className="text-foreground">Complete the {totalSteps}-step application process</p>
-            <div className="mt-2 text-sm text-foreground break-all">Logged in as: {user.email}</div>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              <span className="break-all">Logged in as: {user.email}</span>
+              <span className="hidden sm:inline text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                Tip: Use Ctrl+→/← to navigate steps
+              </span>
+            </div>
           </motion.div>
         </div>
 
         <div className="mb-6 lg:mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base sm:text-lg font-semibold text-foreground break-words">
-              Step {currentStepConfig.id} of {totalSteps}: {currentStepConfig.progressTitle}
-            </h2>
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div className="flex-1">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground">
+                {currentStepConfig.title}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {currentStepConfig.description}
+              </p>
+              <div className="mt-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-border rounded-full h-2 overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-primary to-success"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(currentStepIndex / (totalSteps - 1)) * 100}%` }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                    {Math.round((currentStepIndex / (totalSteps - 1)) * 100)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    {stepValidation.isValid ? (
+                      <CheckCircle className="h-3.5 w-3.5 text-success" />
+                    ) : (
+                      <div className="h-3.5 w-3.5 rounded-full border-2 border-muted-foreground" />
+                    )}
+                    <span className={`font-medium ${
+                      stepValidation.isValid ? 'text-success' : 'text-muted-foreground'
+                    }`}>
+                      {stepValidation.completedFields}/{stepValidation.totalFields} fields completed
+                    </span>
+                  </div>
+                  {!stepValidation.isValid && stepValidation.missingFields.length > 0 && (
+                    <span className="text-muted-foreground">
+                      • Missing: {stepValidation.missingFields.slice(0, 2).join(', ')}
+                      {stepValidation.missingFields.length > 2 && ` +${stepValidation.missingFields.length - 2} more`}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
               {isDraftSaving && (
-                <motion.div className="flex items-center space-x-2 text-sm text-primary" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <motion.div className="flex items-center gap-2 text-sm text-primary" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-                  <span>Auto-saving...</span>
+                  <span className="hidden sm:inline">Saving...</span>
                 </motion.div>
               )}
               {draftSaved && (
-                <motion.div className="flex items-center space-x-2 text-sm text-accent" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
+                <motion.div className="flex items-center gap-2 text-sm text-success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
                   <CheckCircle className="h-4 w-4" />
-                  <span>Draft saved</span>
+                  <span className="hidden sm:inline">Saved</span>
                 </motion.div>
               )}
-              <Button type="button" variant="ghost" size="sm" onClick={saveDraft} disabled={isDraftSaving} className="hover:bg-primary/5/30">
-                <Send className="h-4 w-4 mr-2" />
-                {saveNowLabel}
+              <Button type="button" variant="ghost" size="sm" onClick={saveDraft} disabled={isDraftSaving} className="hover:bg-primary/10">
+                <Send className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{saveNowLabel}</span>
               </Button>
             </div>
           </div>
@@ -261,25 +330,44 @@ const ApplicationWizardContent = () => {
         </div>
 
         {error && (
-          <motion.div className="rounded-md bg-destructive/5/30 border border-destructive/30 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div className="rounded-md bg-destructive/10 border border-destructive/30 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-5 w-5 text-destructive" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
               </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-destructive-foreground">Error</h3>
-                <div className="text-sm text-error mt-1">{error}</div>
-                <div className="mt-2">
-                  <button
-                    type="button"
-                    onClick={() => setError('')}
-                    className="text-xs text-destructive hover:text-error underline"
-                  >
-                    Dismiss
-                  </button>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-destructive">Error</h3>
+                <div className="text-sm text-foreground mt-1">{error}</div>
+                <button
+                  type="button"
+                  onClick={() => setError('')}
+                  className="mt-2 text-xs text-destructive hover:text-destructive/80 underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {!stepValidation.isValid && !isLastStep && (
+          <motion.div className="rounded-md bg-warning/10 border border-warning/30 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="flex items-start">
+              <Info className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-warning">Incomplete Step</h3>
+                <div className="text-sm text-foreground mt-1">
+                  You can proceed, but we recommend completing all fields for a better application.
                 </div>
+                {stepValidation.missingFields.length > 0 && (
+                  <ul className="mt-2 text-xs text-muted-foreground list-disc list-inside space-y-1">
+                    {stepValidation.missingFields.map((field, idx) => (
+                      <li key={idx}>{field}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           </motion.div>
