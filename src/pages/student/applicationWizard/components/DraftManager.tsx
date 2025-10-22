@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import {, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FileText, Plus, Trash2, Edit2, Clock, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -11,7 +11,7 @@ interface DraftManagerProps {
   onCreateNew: () => void
 }
 
-export const DraftManager = memo(({ userId, currentDraftId, onLoadDraft, onCreateNew }: DraftManagerProps) => {
+export const DraftManager = (({ userId, currentDraftId, onLoadDraft, onCreateNew }: DraftManagerProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
@@ -233,4 +233,3 @@ export const DraftManager = memo(({ userId, currentDraftId, onLoadDraft, onCreat
   )
 })
 
-DraftManager.displayName = 'DraftManager'

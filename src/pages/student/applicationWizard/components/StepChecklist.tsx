@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { } from 'react'
 import { CheckCircle, Circle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -12,7 +12,7 @@ interface StepChecklistProps {
   title?: string
 }
 
-export const StepChecklist = memo(({ items, title = 'Step Checklist' }: StepChecklistProps) => {
+export const StepChecklist = (({ items, title = 'Step Checklist' }: StepChecklistProps) => {
   const completedCount = items.filter(item => item.completed).length
   const allCompleted = completedCount === items.length
 
@@ -52,4 +52,3 @@ export const StepChecklist = memo(({ items, title = 'Step Checklist' }: StepChec
   )
 })
 
-StepChecklist.displayName = 'StepChecklist'

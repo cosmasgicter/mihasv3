@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { } from 'react'
 import { motion } from 'framer-motion'
 import { FileText, User, GraduationCap, CreditCard } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
@@ -10,7 +10,7 @@ interface ApplicationPreviewProps {
   intakeName?: string
 }
 
-export const ApplicationPreview = memo(({ form, programName, intakeName }: ApplicationPreviewProps) => {
+export const ApplicationPreview = (({ form, programName, intakeName }: ApplicationPreviewProps) => {
   const values = form.watch()
 
   return (
@@ -60,4 +60,3 @@ export const ApplicationPreview = memo(({ form, programName, intakeName }: Appli
   )
 })
 
-ApplicationPreview.displayName = 'ApplicationPreview'
