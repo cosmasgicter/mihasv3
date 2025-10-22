@@ -133,10 +133,13 @@ const ApplicationWizardContent = () => {
           saveDraft()
         }
       }
+      if (e.key === 'Escape') {
+        setError('')
+      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentStepIndex, isLastStep, loading, uploading, handleNextStep, handlePrevStep, saveDraft])
+  }, [currentStepIndex, isLastStep, loading, uploading, handleNextStep, handlePrevStep, saveDraft, setError])
 
   if (authLoading || restoringDraft) {
     return (
