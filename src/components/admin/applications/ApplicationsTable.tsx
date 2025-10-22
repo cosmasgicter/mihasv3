@@ -102,11 +102,11 @@ export function ApplicationsTable({
 
  const getStatusBadge = useCallback((status: string) => {
  const statusConfig = {
- draft: { color: 'bg-accent text-foreground', icon: Clock },
- submitted: { color: 'bg-primary/10 text-primary-foreground', icon: AlertTriangle },
- under_review: { color: 'bg-accent/10 text-accent-foreground', icon: Eye },
- approved: { color: 'bg-accent/10 text-accent-foreground', icon: CheckCircle },
- rejected: { color: 'bg-destructive/10 text-destructive-foreground', icon: XCircle }
+ draft: { color: 'bg-gray-100 text-gray-800 border border-gray-300', icon: Clock },
+ submitted: { color: 'bg-blue-100 text-blue-800 border border-blue-300', icon: AlertTriangle },
+ under_review: { color: 'bg-yellow-100 text-yellow-800 border border-yellow-300', icon: Eye },
+ approved: { color: 'bg-green-100 text-green-800 border border-green-300', icon: CheckCircle },
+ rejected: { color: 'bg-red-100 text-red-800 border border-red-300', icon: XCircle }
  }
 
  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft
@@ -122,9 +122,9 @@ export function ApplicationsTable({
 
  const getPaymentBadge = useCallback((paymentStatus: string) => {
  const paymentConfig = {
- pending_review: { color: 'bg-accent/10 text-accent-foreground', icon: Clock },
- verified: { color: 'bg-accent/10 text-accent-foreground', icon: CheckCircle },
- rejected: { color: 'bg-destructive/10 text-destructive-foreground', icon: XCircle }
+ pending_review: { color: 'bg-orange-100 text-orange-800 border border-orange-300', icon: Clock },
+ verified: { color: 'bg-emerald-100 text-emerald-800 border border-emerald-300', icon: CheckCircle },
+ rejected: { color: 'bg-rose-100 text-rose-800 border border-rose-300', icon: XCircle }
  }
 
  const config = paymentConfig[paymentStatus as keyof typeof paymentConfig] || paymentConfig.pending_review
