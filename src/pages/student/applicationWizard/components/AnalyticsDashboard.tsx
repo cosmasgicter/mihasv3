@@ -1,4 +1,4 @@
-import { memo, useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { BarChart3, Clock, TrendingUp, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -14,7 +14,7 @@ interface AnalyticsDashboardProps {
   userId: string | undefined
 }
 
-export const AnalyticsDashboard = memo(({ userId }: AnalyticsDashboardProps) => {
+export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
   const [stats, setStats] = useState<AnalyticsStats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -103,6 +103,4 @@ export const AnalyticsDashboard = memo(({ userId }: AnalyticsDashboardProps) => 
       </div>
     </motion.div>
   )
-})
-
-AnalyticsDashboard.displayName = 'AnalyticsDashboard'
+}
