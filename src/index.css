@@ -9,13 +9,26 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light;
+  color-scheme: light only !important;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+}
+
+html {
+  color-scheme: light only !important;
+}
+
+html.dark,
+html[data-theme="dark"],
+body.dark,
+body[data-theme="dark"] {
+  color-scheme: light only !important;
+  background-color: #f8fafc !important;
+  color: #1f2937 !important;
 }
 
 a {

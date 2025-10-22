@@ -144,7 +144,7 @@ export function useApplicationSlip({
       cancelled = true
       setPersistingSlip(false)
     }
-  }, [success, slipPayload, toast])
+  }, [success, slipPayload, toast, createApplicationSlip])
 
   const triggerDownload = useCallback((url: string, filename: string) => {
     const link = document.createElement('a')
@@ -180,6 +180,7 @@ export function useApplicationSlip({
       if (slipCache?.publicUrl && !slipCache.objectUrl) {
         const response = await fetch(slipCache.publicUrl)
         if (!response.ok) {
+          console.error('Slip download failed:', response.status)
           throw new Error('Unable to download stored application slip')
         }
 
@@ -245,8 +246,12 @@ export function useApplicationSlip({
 
     let emailAddress = submittedApplication.email?.trim() || slipPayload.email?.trim() || ''
     if (!emailAddress) {
-      const promptResult = window.prompt('Enter the email address to send your application slip to:')
-      emailAddress = promptResult?.trim() || ''
+      try {
+        const promptResult = window.prompt('Enter the email address to send your application slip to:')
+        emailAddress = promptResult?.trim() || ''
+      } catch (error) {
+        console.error('Prompt error:', error)
+      }
     }
 
     if (!emailAddress) {

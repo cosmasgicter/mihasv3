@@ -32,7 +32,12 @@ const PaymentStep = ({
   const [paymentTarget, setPaymentTarget] = useState('Loading...')
 
   useEffect(() => {
-    getPaymentTarget().then(setPaymentTarget)
+    getPaymentTarget()
+      .then(setPaymentTarget)
+      .catch((error) => {
+        console.error('Failed to load payment target:', error)
+        setPaymentTarget('Payment information unavailable')
+      })
   }, [getPaymentTarget])
 
   return (

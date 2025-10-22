@@ -39,13 +39,11 @@ export const useAnalytics = (
     // Track step enter
     if (currentStep !== previousStep.current) {
       // Track exit from previous step
-      if (previousStep.current !== currentStep) {
-        trackEvent({
-          event_type: 'step_exit',
-          step_number: previousStep.current,
-          step_name: stepName
-        })
-      }
+      trackEvent({
+        event_type: 'step_exit',
+        step_number: previousStep.current,
+        step_name: stepName
+      })
 
       // Track enter to new step
       trackEvent({
@@ -65,7 +63,7 @@ export const useAnalytics = (
           event_type: 'step_exit',
           step_number: currentStep,
           step_name: stepName
-        })
+        }).catch(err => console.error('Cleanup tracking error:', err))
       }
     }
   }, [userId, applicationId, currentStep, stepName])

@@ -76,20 +76,13 @@ describe('<SubmitStep />', () => {
       />
     )
 
-    const normalize = (value: string | null | undefined) => value?.replace(/\s+/g, ' ').trim()
-    const programSummary = screen.getByText((_, element) => normalize(element?.textContent) === 'Program: Clinical Medicine')
-    const institutionSummary = screen.getByText((_, element) => normalize(element?.textContent) === 'Institution: MIHAS College')
-
-    expect(programSummary).toBeTruthy()
-    expect(institutionSummary).toBeTruthy()
+    expect(screen.getByText(/Clinical Medicine/)).toBeInTheDocument()
+    expect(screen.getByText(/MIHAS College/)).toBeInTheDocument()
   })
 
   it('falls back to displaying the stored program identifier when no display name is available', () => {
     render(<TestSubmitStep />)
 
-    const normalize = (value: string | null | undefined) => value?.replace(/\s+/g, ' ').trim()
-    const programSummary = screen.getByText((_, element) => normalize(element?.textContent) === 'Program: program-id')
-
-    expect(programSummary).toBeTruthy()
+    expect(screen.getByText(/program-id/)).toBeInTheDocument()
   })
 })

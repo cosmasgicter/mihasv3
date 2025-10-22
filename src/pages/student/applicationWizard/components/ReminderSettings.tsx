@@ -35,13 +35,17 @@ export const ReminderSettings = memo(({ email, fullName, draftName }: ReminderSe
         })
       })
 
-      if (!response.ok) throw new Error('Failed to send reminder')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to send reminder')
+      }
 
       setSent(true)
       showSuccess('Reminder email sent!')
       setTimeout(() => setSent(false), 3000)
     } catch (error) {
-      showError('Failed to send reminder')
+      console.error('Reminder send error:', error)
+      showError(error instanceof Error ? error.message : 'Failed to send reminder')
     } finally {
       setSending(false)
     }

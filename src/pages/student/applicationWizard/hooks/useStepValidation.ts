@@ -9,6 +9,14 @@ export interface StepValidation {
   missingFields: string[]
 }
 
+const isFieldComplete = (value: unknown): boolean => {
+  try {
+    return value != null && String(value).trim() !== ''
+  } catch {
+    return false
+  }
+}
+
 export const useStepValidation = (
   form: UseFormReturn<ApplicationFormData>,
   currentStep: number
@@ -19,19 +27,18 @@ export const useStepValidation = (
     const validations: Record<number, () => StepValidation> = {
       0: () => {
         const fields = [
-          { key: 'program_id', label: 'Program', value: values.program_id },
-          { key: 'intake_id', label: 'Intake', value: values.intake_id },
-          { key: 'first_name', label: 'First Name', value: values.first_name },
-          { key: 'last_name', label: 'Last Name', value: values.last_name },
+          { key: 'program', label: 'Program', value: values.program },
+          { key: 'intake', label: 'Intake', value: values.intake },
+          { key: 'full_name', label: 'Full Name', value: values.full_name },
           { key: 'email', label: 'Email', value: values.email },
           { key: 'phone', label: 'Phone', value: values.phone },
           { key: 'nrc', label: 'NRC', value: values.nrc },
           { key: 'date_of_birth', label: 'Date of Birth', value: values.date_of_birth },
-          { key: 'gender', label: 'Gender', value: values.gender },
-          { key: 'address', label: 'Address', value: values.address }
+          { key: 'sex', label: 'Gender', value: values.sex },
+          { key: 'residence_town', label: 'Address', value: values.residence_town }
         ]
-        const completed = fields.filter(f => f.value && String(f.value).trim() !== '')
-        const missing = fields.filter(f => !f.value || String(f.value).trim() === '').map(f => f.label)
+        const completed = fields.filter(f => isFieldComplete(f.value))
+        const missing = fields.filter(f => !isFieldComplete(f.value)).map(f => f.label)
         return {
           isValid: completed.length === fields.length,
           completedFields: completed.length,
@@ -57,8 +64,8 @@ export const useStepValidation = (
           { key: 'payment_method', label: 'Payment Method', value: values.payment_method },
           { key: 'payment_reference', label: 'Payment Reference', value: values.payment_reference }
         ]
-        const completed = fields.filter(f => f.value && String(f.value).trim() !== '')
-        const missing = fields.filter(f => !f.value || String(f.value).trim() === '').map(f => f.label)
+        const completed = fields.filter(f => isFieldComplete(f.value))
+        const missing = fields.filter(f => !isFieldComplete(f.value)).map(f => f.label)
         return {
           isValid: completed.length === fields.length,
           completedFields: completed.length,

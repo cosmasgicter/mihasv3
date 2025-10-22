@@ -13,6 +13,15 @@ import { connectionManager } from '@/lib/connectionFix'
 if (typeof window !== 'undefined') {
   connectionManager.suppressExtensionErrors()
   
+  // Force light mode - prevent any dark mode
+  document.documentElement.classList.remove('dark')
+  document.documentElement.classList.add('light')
+  document.documentElement.style.colorScheme = 'light'
+  document.documentElement.setAttribute('data-theme', 'light')
+  document.body.classList.remove('dark')
+  document.body.classList.add('light')
+  document.body.style.colorScheme = 'light'
+  
   // Register service worker for offline support
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {

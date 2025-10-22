@@ -1,5 +1,11 @@
 @layer base {
-  :root {
+  :root,
+  html,
+  html.light,
+  html[data-theme="light"],
+  body,
+  body.light,
+  body[data-theme="light"] {
     --background: 0 0% 100%;
     --foreground: 0 0% 15%;
     --card: 0 0% 100%;
@@ -25,7 +31,7 @@
     --skeleton: 0 0% 93%;
     --skeleton-highlight: 0 0% 88%;
     
-    /* Status colors - Fixed values for both modes */
+    /* Status colors */
     --error: 0 84.2% 60.2%;
     --error-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
@@ -57,7 +63,19 @@
     --tooltip-foreground: 0 0% 98%;
   }
 
-
+  /* Force light mode - override any dark mode */
+  html.dark,
+  html[data-theme="dark"],
+  body.dark,
+  body[data-theme="dark"],
+  .dark {
+    --background: 0 0% 100% !important;
+    --foreground: 0 0% 15% !important;
+    --card: 0 0% 100% !important;
+    --card-foreground: 0 0% 9% !important;
+    background-color: hsl(0 0% 100%) !important;
+    color: hsl(0 0% 15%) !important;
+  }
 }
 
 @layer base {
