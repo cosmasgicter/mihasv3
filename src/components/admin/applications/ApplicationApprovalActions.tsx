@@ -86,7 +86,7 @@ export function ApplicationApprovalActions({
             <button
               onClick={() => handleStatusUpdate('under_review')}
               disabled={updatingStatus || disabled}
-              className="flex-1 bg-primary/5/300 hover:bg-primary disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
             >
               {updatingStatus ? (
                 <LoadingSpinner size="sm" />
@@ -104,7 +104,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('approved')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-accent/10/300 hover:bg-success disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingStatus ? (
                   <LoadingSpinner size="sm" />
@@ -118,7 +118,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('rejected')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-destructive/5/300 hover:bg-error disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingStatus ? (
                   <LoadingSpinner size="sm" />
@@ -136,8 +136,8 @@ export function ApplicationApprovalActions({
             <div className="flex-1 text-center py-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 currentStatus === 'approved' 
-                  ? 'bg-accent/10 text-accent-foreground' 
-                  : 'bg-destructive/10 text-destructive-foreground'
+                  ? 'bg-green-100 text-green-800 border border-green-300' 
+                  : 'bg-red-100 text-red-800 border border-red-300'
               }`}>
                 {currentStatus === 'approved' ? (
                   <>
@@ -167,7 +167,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handlePaymentUpdate('verified')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-accent/10/300 hover:bg-success disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingPayment ? (
                   <LoadingSpinner size="sm" />
@@ -181,7 +181,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handlePaymentUpdate('rejected')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-destructive/5/300 hover:bg-error disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingPayment ? (
                   <LoadingSpinner size="sm" />
@@ -199,8 +199,8 @@ export function ApplicationApprovalActions({
             <div className="flex-1 text-center py-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 currentPaymentStatus === 'verified' 
-                  ? 'bg-accent/10 text-accent-foreground' 
-                  : 'bg-destructive/10 text-destructive-foreground'
+                  ? 'bg-green-100 text-green-800 border border-green-300' 
+                  : 'bg-red-100 text-red-800 border border-red-300'
               }`}>
                 {currentPaymentStatus === 'verified' ? (
                   <>
