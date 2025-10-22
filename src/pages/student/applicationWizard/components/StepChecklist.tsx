@@ -50,5 +50,5 @@ export const StepChecklist = ({ items, title = 'Step Checklist' }: StepChecklist
       </div>
     </motion.div>
   )
-})
+}
 
