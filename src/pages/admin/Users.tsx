@@ -261,7 +261,7 @@ export default function AdminUsers() {
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
         <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
           {/* Header - Mobile First */}
-          <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-6 text-white">
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                 <Link to="/admin">
@@ -394,7 +394,7 @@ export default function AdminUsers() {
                 <p className="text-foreground mb-6 max-w-md mx-auto">
                   No users have been registered yet. Users will appear here once they sign up for the system.
                 </p>
-                <Button onClick={() => refetch()} className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold">
+                <Button onClick={() => refetch()} className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white font-semibold">
                   Refresh Users
                 </Button>
               </div>

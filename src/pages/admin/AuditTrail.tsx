@@ -452,7 +452,7 @@ export default function AuditTrailPage() {
       <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3 sm:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl">
+            <div className="p-2 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-xl">
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
