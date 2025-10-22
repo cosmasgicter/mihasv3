@@ -162,36 +162,97 @@ const ApplicationWizardContent = () => {
             </div>
           </div>
           <div className="relative">
-            <div className="absolute top-4 left-0 w-full h-0.5 bg-skeleton hidden sm:block" />
-            <div className="flex items-center justify-between relative overflow-x-auto pb-2 sm:pb-0">
+            {/* Desktop: Horizontal with connecting line */}
+            <div className="hidden md:block">
+              <div className="absolute top-5 left-0 w-full h-0.5 bg-border" />
+              <div className="flex items-start justify-between relative">
+                {wizardSteps.map((step, index) => {
+                  const Icon = step.icon
+                  const isActive = index <= currentStepIndex
+                  const isCompleted = index < currentStepIndex
+                  const isCurrent = index === currentStepIndex
+                  return (
+                    <motion.button
+                      key={step.id}
+                      type="button"
+                      onClick={() => isCompleted && handlePrevStep && currentStepIndex > index && Array.from({ length: currentStepIndex - index }).forEach(() => handlePrevStep())}
+                      disabled={!isCompleted}
+                      className={`flex flex-col items-center relative flex-1 group ${
+                        isCompleted ? 'cursor-pointer' : 'cursor-default'
+                      }`}
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: step.id * 0.1 }}
+                      whileHover={isCompleted ? { scale: 1.02 } : {}}
+                      aria-label={`Step ${step.id}: ${step.progressTitle}`}
+                      aria-current={isCurrent ? 'step' : undefined}
+                    >
+                      <motion.div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-300 z-10 ${
+                          isCompleted
+                            ? 'bg-success border-success text-white shadow-md'
+                            : isCurrent
+                            ? 'bg-primary border-primary text-white shadow-lg ring-4 ring-primary/20'
+                            : 'bg-background border-border text-muted-foreground'
+                        }`}
+                      >
+                        {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                      </motion.div>
+                      <div className={`mt-3 text-xs font-medium text-center leading-tight max-w-[100px] ${
+                        isCurrent ? 'text-primary font-semibold' : isActive ? 'text-foreground' : 'text-muted-foreground'
+                      }`}>
+                        {step.progressTitle}
+                      </div>
+                      {isCompleted && (
+                        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-primary whitespace-nowrap">
+                          Click to return
+                        </div>
+                      )}
+                    </motion.button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Mobile: Vertical stepper */}
+            <div className="md:hidden space-y-3">
               {wizardSteps.map((step, index) => {
                 const Icon = step.icon
                 const isActive = index <= currentStepIndex
                 const isCompleted = index < currentStepIndex
+                const isCurrent = index === currentStepIndex
                 return (
                   <motion.div
                     key={step.id}
-                    className="flex flex-col items-center bg-muted relative min-w-0 flex-shrink-0 px-2 sm:px-0"
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex items-center gap-3"
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: step.id * 0.1 }}
                   >
-                    <motion.div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all duration-300 ${
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 flex-shrink-0 ${
                         isCompleted
-                          ? 'bg-success border-success text-white shadow-lg'
-                          : isActive
-                          ? 'bg-primary border-primary text-white shadow-lg scale-110'
-                          : 'bg-card border-input text-foreground'
+                          ? 'bg-success border-success text-white'
+                          : isCurrent
+                          ? 'bg-primary border-primary text-white ring-4 ring-primary/20'
+                          : 'bg-background border-border text-muted-foreground'
                       }`}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
                     >
                       {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
-                    </motion.div>
-                    <div className={`mt-2 text-xs font-medium text-center truncate max-w-[80px] ${isActive ? 'text-primary' : 'text-foreground'}`}>
-                      {step.title}
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-sm font-semibold ${
+                        isCurrent ? 'text-primary' : isActive ? 'text-foreground' : 'text-muted-foreground'
+                      }`}>
+                        {step.progressTitle}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        Step {step.id} of {wizardSteps.length}
+                      </div>
+                    </div>
+                    {isCompleted && (
+                      <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
+                    )}
                   </motion.div>
                 )
               })}
