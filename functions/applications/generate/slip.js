@@ -30,26 +30,28 @@ export async function onRequest(context) {
       });
     }
 
-    const { applicationId } = await request.json();
-    if (!applicationId) {
-      return new Response(JSON.stringify({ error: 'Application ID required' }), {
+    const { applicationId, applicationNumber } = await request.json();
+    
+    if (!applicationId && !applicationNumber) {
+      return new Response(JSON.stringify({ error: 'Application ID or number required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
     // Fetch application with all required data
-    const { data: application, error: fetchError } = await supabaseAdminClient
+    let query = supabaseAdminClient
       .from('applications')
-      .select(`
-        *,
-        programs:program_id(name),
-        intakes:intake_id(name),
-        user_profiles:user_id(full_name, email, phone)
-      `)
-      .eq('id', applicationId)
-      .eq('user_id', user.id)
-      .single();
+      .select('*')
+      .eq('user_id', user.id);
+    
+    if (applicationId) {
+      query = query.eq('id', applicationId);
+    } else {
+      query = query.eq('application_number', applicationNumber);
+    }
+
+    const { data: application, error: fetchError } = await query.single();
 
     if (fetchError || !application) {
       return new Response(JSON.stringify({ 
@@ -68,14 +70,16 @@ export async function onRequest(context) {
       payment_status: application.payment_status,
       submitted_at: application.submitted_at,
       updated_at: application.updated_at,
-      program_name: application.programs?.name,
-      intake_name: application.intakes?.name,
+      program_name: application.program,
+      intake_name: application.intake,
       institution: application.institution,
-      full_name: application.user_profiles?.full_name,
-      email: application.user_profiles?.email,
-      phone: application.user_profiles?.phone,
+      institution_name: application.institution,
+      full_name: application.full_name,
+      email: application.email,
+      phone: application.phone,
       nationality: application.nationality,
-      admin_feedback: application.admin_feedback
+      admin_feedback: application.admin_feedback,
+      admin_feedback_date: application.admin_feedback_date
     };
 
     // Generate PDF
