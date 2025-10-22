@@ -21,26 +21,38 @@ export const DraftManager = memo(({ userId, currentDraftId, onLoadDraft, onCreat
 
   const handleCreateDraft = async () => {
     if (!newDraftName.trim()) return
-    const draft = await createDraft(newDraftName, {})
-    if (draft) {
-      setNewDraftName('')
-      onCreateNew()
+    try {
+      const draft = await createDraft(newDraftName, {})
+      if (draft) {
+        setNewDraftName('')
+        onCreateNew()
+      }
+    } catch (error) {
+      console.error('Failed to create draft:', error)
     }
   }
 
   const handleLoadDraft = async (draftId: string) => {
-    const data = await loadDraft(draftId)
-    if (data) {
-      onLoadDraft(data, draftId)
-      setIsOpen(false)
+    try {
+      const data = await loadDraft(draftId)
+      if (data) {
+        onLoadDraft(data, draftId)
+        setIsOpen(false)
+      }
+    } catch (error) {
+      console.error('Failed to load draft:', error)
     }
   }
 
   const handleRename = async (draftId: string) => {
     if (!editName.trim()) return
-    await renameDraft(draftId, editName)
-    setEditingId(null)
-    setEditName('')
+    try {
+      await renameDraft(draftId, editName)
+      setEditingId(null)
+      setEditName('')
+    } catch (error) {
+      console.error('Failed to rename draft:', error)
+    }
   }
 
   const formatDate = (date: string) => {
@@ -172,7 +184,13 @@ export const DraftManager = memo(({ userId, currentDraftId, onLoadDraft, onCreat
                                 <Edit2 className="h-3.5 w-3.5" />
                               </button>
                               <button
-                                onClick={() => deleteDraft(draft.id)}
+                                onClick={async () => {
+                                  try {
+                                    await deleteDraft(draft.id)
+                                  } catch (error) {
+                                    console.error('Failed to delete draft:', error)
+                                  }
+                                }}
                                 className="text-muted-foreground hover:text-destructive p-1"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />

@@ -9,11 +9,15 @@ const STEP_TIMES = {
 
 export const useEstimatedTime = (currentStep: number, totalSteps: number) => {
   const estimatedMinutes = useMemo(() => {
-    let total = 0
-    for (let i = currentStep; i < totalSteps; i++) {
-      total += STEP_TIMES[i as keyof typeof STEP_TIMES] || 0
+    try {
+      let total = 0
+      for (let i = currentStep; i < totalSteps; i++) {
+        total += STEP_TIMES[i as keyof typeof STEP_TIMES] || 0
+      }
+      return total
+    } catch {
+      return 0
     }
-    return total
   }, [currentStep, totalSteps])
 
   const formatTime = (minutes: number) => {

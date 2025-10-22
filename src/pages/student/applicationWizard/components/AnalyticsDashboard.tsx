@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { BarChart3, Clock, TrendingUp, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -18,28 +18,31 @@ export const AnalyticsDashboard = memo(({ userId }: AnalyticsDashboardProps) => 
   const [stats, setStats] = useState<AnalyticsStats | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const fetchStats = useCallback(async () => {
     if (!userId) return
+    
+    try {
+      const { data, error } = await supabase.rpc('get_application_completion_stats', {
+        p_user_id: userId
+      })
 
-    const fetchStats = async () => {
-      try {
-        const { data, error } = await supabase.rpc('get_application_completion_stats', {
-          p_user_id: userId
-        })
-
-        if (error) throw error
-        if (data && data.length > 0) {
-          setStats(data[0])
-        }
-      } catch (error) {
-        console.error('Failed to fetch analytics:', error)
-      } finally {
-        setLoading(false)
+      if (error) {
+        console.error('Analytics RPC error:', error)
+        return
       }
+      if (data && data.length > 0) {
+        setStats(data[0])
+      }
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error)
+    } finally {
+      setLoading(false)
     }
-
-    fetchStats()
   }, [userId])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
 
   if (loading || !stats) return null
 

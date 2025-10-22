@@ -189,6 +189,42 @@ export async function onRequest(context) {
     }
   }
   
+  if (request.method === 'POST') {
+    try {
+      const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) });
+      if (authContext.error || !authContext.user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const body = await request.json();
+      const { data, error } = await supabaseAdminClient
+        .from('applications')
+        .insert({ ...body, user_id: authContext.user.id })
+        .select()
+        .single();
+
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      return new Response(JSON.stringify(data), {
+        status: 201,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+  }
+  
   return new Response(JSON.stringify({ error: 'Method not allowed' }), {
     status: 405,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
