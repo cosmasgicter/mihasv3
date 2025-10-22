@@ -201,13 +201,13 @@ export default function PublicApplicationTracker() {
   const getStatusEmoji = (status: string) => {
     switch (status) {
       case 'approved':
-        return '<PartyPopper className="w-5 h-5" />'
+        return '🎉'
       case 'rejected':
         return '💔'
       case 'under_review':
-        return '<Search className="w-5 h-5" />'
+        return '🔍'
       case 'submitted':
-        return '<Rocket className="w-5 h-5" />'
+        return '🚀'
       default:
         return '⏳'
     }
@@ -220,7 +220,7 @@ export default function PublicApplicationTracker() {
       case 'under_review':
         return 'Great news! Your application is currently being carefully reviewed by our expert admissions team. We\'re evaluating all aspects of your submission.'
       case 'approved':
-        return 'Congratulations! <PartyPopper className="w-5 h-5" /> Your application has been approved! You\'ve been accepted into the program. Check your email for detailed next steps and enrollment information.'
+        return 'Congratulations! 🎉 Your application has been approved! You\'ve been accepted into the program. Check your email for detailed next steps and enrollment information.'
       case 'rejected':
         return 'We appreciate your interest in our program. Unfortunately, your application was not successful this time. Don\'t give up - you may apply for future intakes with improved qualifications.'
       default:
@@ -527,7 +527,7 @@ export default function PublicApplicationTracker() {
                   animate={maybeMotion({ scale: 1 })}
                   className="text-responsive-3xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent"
                 >
-                  <Search className="w-5 h-5" /> Track Application
+                  🔍 Track Application
                 </motion.h1>
                 <motion.p
                   initial={maybeMotion({ opacity: 0 })}
@@ -535,7 +535,7 @@ export default function PublicApplicationTracker() {
                   transition={maybeMotion({ delay: 0.2 })}
                   className="text-sm sm:text-xl text-foreground mt-1 sm:mt-2 font-medium"
                 >
-                  <Sparkles className="w-5 h-5" /> Check status instantly - no login required!
+                  ✨ Check status instantly - no login required!
                 </motion.p>
               </div>
             </div>
@@ -544,7 +544,7 @@ export default function PublicApplicationTracker() {
               transition={maybeMotion({ duration: 2, repeat: Infinity })}
               className="text-4xl sm:text-6xl self-center sm:self-auto"
             >
-              <GraduationCap className="w-5 h-5" />
+              🎓
             </motion.div>
           </div>
         </div>
@@ -565,7 +565,7 @@ export default function PublicApplicationTracker() {
                 transition={maybeMotion({ delay: 0.5, type: "spring" })}
                 className="text-6xl sm:text-8xl"
               >
-                <Search className="w-5 h-5" />
+                🔍
               </motion.div>
               
               <div>
@@ -632,7 +632,7 @@ export default function PublicApplicationTracker() {
                   initial={maybeMotion({ opacity: 0, y: 20 })}
                   animate={maybeMotion({ opacity: 1, y: 0 })}
                   transition={maybeMotion({ delay: 0.7 })}
-                  className="bg-primary/5/30 rounded-xl p-4 sm:p-6 border border-primary/30"
+                  className="bg-blue-50 rounded-xl p-4 sm:p-6 border border-blue-200"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">📧</div>
                   <h3 className="font-bold text-foreground mb-2 text-sm sm:text-base">Check Your Email</h3>
@@ -643,7 +643,7 @@ export default function PublicApplicationTracker() {
                   initial={maybeMotion({ opacity: 0, y: 20 })}
                   animate={maybeMotion({ opacity: 1, y: 0 })}
                   transition={maybeMotion({ delay: 0.8 })}
-                  className="bg-accent/10/30 rounded-xl p-4 sm:p-6 border border-accent/30"
+                  className="bg-yellow-50 rounded-xl p-4 sm:p-6 border border-yellow-200"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">🔢</div>
                   <h3 className="font-bold text-foreground mb-2 text-sm sm:text-base">Format Example</h3>
@@ -654,9 +654,9 @@ export default function PublicApplicationTracker() {
                   initial={maybeMotion({ opacity: 0, y: 20 })}
                   animate={maybeMotion({ opacity: 1, y: 0 })}
                   transition={maybeMotion({ delay: 0.9 })}
-                  className="bg-secondary/5 rounded-xl p-4 sm:p-6 border border-input/30 sm:col-span-2 lg:col-span-1"
+                  className="bg-gray-50 rounded-xl p-4 sm:p-6 border border-gray-200 sm:col-span-2 lg:col-span-1"
                 >
-                  <div className="text-2xl sm:text-3xl mb-2 sm:mb-3"><Zap className="w-5 h-5" /></div>
+                  <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">⚡</div>
                   <h3 className="font-bold text-foreground mb-2 text-sm sm:text-base">Instant Results</h3>
                   <p className="text-gray-600 text-xs sm:text-sm">Real-time updates without login</p>
                 </motion.div>
@@ -700,7 +700,7 @@ export default function PublicApplicationTracker() {
                           transition={maybeMotion({ delay: 0.2 })}
                         >
                           <h3 className="text-responsive-2xl font-black mb-3 sm:mb-4 flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                            <span className="text-3xl sm:text-4xl"><FileText className="w-5 h-5" /></span>
+                            <span className="text-3xl sm:text-4xl">📄</span>
                             <span className="break-all">Application #{application.application_number}</span>
                           </h3>
                         </motion.div>
@@ -745,7 +745,7 @@ export default function PublicApplicationTracker() {
                           initial={maybeMotion({ scale: 0 })}
                           animate={maybeMotion({ scale: 1 })}
                           transition={maybeMotion({ delay: 0.5, type: "spring" })}
-                          className="inline-block bg-white/10/25 backdrop-blur-sm px-4 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-foreground font-black text-base sm:text-2xl border-2 border-white/30 shadow-lg"
+                          className="inline-block bg-white/20 backdrop-blur-sm px-4 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-foreground font-black text-base sm:text-2xl border-2 border-white/30 shadow-lg"
                         >
                           {application.status.replace('_', ' ').toUpperCase()}
                         </motion.span>
@@ -760,7 +760,7 @@ export default function PublicApplicationTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => setShowShareModal(true)}
-                            className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30 btn-mobile touch-target"
+                            className="bg-white border-white/30 text-foreground hover:bg-white btn-mobile touch-target"
                           >
                             <Share2 className="h-4 w-4 mr-2" />
                             Share
@@ -769,7 +769,7 @@ export default function PublicApplicationTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => copyToClipboard(application.application_number)}
-                            className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30 btn-mobile touch-target"
+                            className="bg-white border-white/30 text-foreground hover:bg-white btn-mobile touch-target"
                           >
                             <Copy className="h-4 w-4 mr-2" />
                             {copied ? 'Copied!' : 'Copy #'}
@@ -781,7 +781,7 @@ export default function PublicApplicationTracker() {
                             size="sm"
                             onClick={handleDownloadSlip}
                             loading={slipLoading}
-                            className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30 btn-mobile touch-target"
+                            className="bg-white border-white/30 text-foreground hover:bg-white btn-mobile touch-target"
                           >
                             <Download className="h-4 w-4 mr-2" />
                             Download Slip
@@ -791,7 +791,7 @@ export default function PublicApplicationTracker() {
                             size="sm"
                             onClick={handleEmailSlip}
                             loading={emailLoading}
-                            className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30 btn-mobile touch-target"
+                            className="bg-white border-white/30 text-foreground hover:bg-white btn-mobile touch-target"
                           >
                             <Mail className="h-4 w-4 mr-2" />
                             Email Me the Slip
@@ -813,7 +813,7 @@ export default function PublicApplicationTracker() {
                         transition={maybeMotion({ delay: 0.6 })}
                       >
                         <h4 className="text-responsive-2xl font-black text-foreground mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
-                          <span className="text-2xl sm:text-3xl"><BarChart3 className="w-5 h-5" /></span>
+                          <span className="text-2xl sm:text-3xl">📊</span>
                           <span>Current Status</span>
                         </h4>
                         
@@ -887,14 +887,14 @@ export default function PublicApplicationTracker() {
                       className="space-y-4 sm:space-y-6"
                     >
                       <h4 className="text-responsive-2xl font-black text-foreground mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
-                        <span className="text-2xl sm:text-3xl"><FileText className="w-5 h-5" /></span>
+                        <span className="text-2xl sm:text-3xl">📄</span>
                         <span>Details</span>
                       </h4>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <AnimatedCard className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-primary/30" hover3d>
+                        <AnimatedCard className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200" hover3d>
                           <div className="flex items-center space-x-3 sm:space-x-4">
-                            <div className="p-2 sm:p-3 bg-primary/5/300 rounded-lg sm:rounded-xl flex-shrink-0">
+                            <div className="p-2 sm:p-3 bg-blue-500 rounded-lg sm:rounded-xl flex-shrink-0">
                               <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -916,9 +916,9 @@ export default function PublicApplicationTracker() {
                           </div>
                         </AnimatedCard>
 
-                        <AnimatedCard className="bg-gradient-to-r from-purple-50 to-pink-50 border border-input/30" hover3d delay={0.1}>
+                        <AnimatedCard className="bg-gradient-to-r from-purple-50 to-pink-50 border border-gray-200" hover3d delay={0.1}>
                           <div className="flex items-center space-x-3 sm:space-x-4">
-                            <div className="p-2 sm:p-3 bg-secondary/5 rounded-lg sm:rounded-xl flex-shrink-0">
+                            <div className="p-2 sm:p-3 bg-gray-50 rounded-lg sm:rounded-xl flex-shrink-0">
                               <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -928,9 +928,9 @@ export default function PublicApplicationTracker() {
                           </div>
                         </AnimatedCard>
 
-                        <AnimatedCard className="bg-gradient-to-r from-green-50 to-emerald-50 border border-accent/30" hover3d delay={0.15}>
+                        <AnimatedCard className="bg-gradient-to-r from-green-50 to-emerald-50 border border-yellow-200" hover3d delay={0.15}>
                           <div className="flex items-center space-x-3 sm:space-x-4">
-                            <div className="p-2 sm:p-3 bg-accent/10/300 rounded-lg sm:rounded-xl flex-shrink-0">
+                            <div className="p-2 sm:p-3 bg-yellow-500 rounded-lg sm:rounded-xl flex-shrink-0">
                               <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1009,7 +1009,7 @@ export default function PublicApplicationTracker() {
                 </div>
 
                 {/* Enhanced Action Buttons */}
-                <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border-t-2 border-primary/30">
+                <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border-t-2 border-blue-200">
                   <div className="p-10">
                     <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
                       <motion.div
@@ -1083,7 +1083,7 @@ export default function PublicApplicationTracker() {
                     transition={maybeMotion({ duration: 2, repeat: Infinity })}
                     className="text-8xl"
                   >
-                    <Search className="w-5 h-5" />
+                    🔍
                   </motion.div>
                   
                   <div>
@@ -1146,7 +1146,7 @@ export default function PublicApplicationTracker() {
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-              <AnimatedCard className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-primary/30" hover3d>
+              <AnimatedCard className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200" hover3d>
                 <div className="text-center space-y-4">
                   <div className="text-5xl">📍</div>
                   <h4 className="font-black text-foreground text-2xl">
@@ -1169,27 +1169,27 @@ export default function PublicApplicationTracker() {
                 </div>
               </AnimatedCard>
               
-              <AnimatedCard className="bg-gradient-to-br from-green-50 to-emerald-50 border border-accent/30" hover3d delay={0.1}>
+              <AnimatedCard className="bg-gradient-to-br from-green-50 to-emerald-50 border border-yellow-200" hover3d delay={0.1}>
                 <div className="text-center space-y-4">
-                  <div className="text-5xl"><BarChart3 className="w-5 h-5" /></div>
+                  <div className="text-5xl">📊</div>
                   <h4 className="font-black text-foreground text-2xl">
                     Application Status Meanings
                   </h4>
                   <ul className="text-secondary space-y-3 text-lg text-left">
                     <li className="flex items-start space-x-3">
-                      <span className="text-2xl"><Rocket className="w-5 h-5" /></span>
+                      <span className="text-2xl">🚀</span>
                       <div>
                         <strong>Submitted:</strong> Application received and queued
                       </div>
                     </li>
                     <li className="flex items-start space-x-3">
-                      <span className="text-2xl"><Search className="w-5 h-5" /></span>
+                      <span className="text-2xl">🔍</span>
                       <div>
                         <strong>Under Review:</strong> Being carefully evaluated
                       </div>
                     </li>
                     <li className="flex items-start space-x-3">
-                      <span className="text-2xl"><PartyPopper className="w-5 h-5" /></span>
+                      <span className="text-2xl">🎉</span>
                       <div>
                         <strong>Approved:</strong> Congratulations! You're accepted
                       </div>
@@ -1205,7 +1205,7 @@ export default function PublicApplicationTracker() {
               </AnimatedCard>
             </div>
             
-            <AnimatedCard className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-input/30" delay={0.2}>
+            <AnimatedCard className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-gray-200" delay={0.2}>
               <div className="text-center space-y-6">
                 <div className="flex items-center justify-center space-x-4">
                   <Phone className="h-8 w-8 text-secondary" />
@@ -1214,7 +1214,7 @@ export default function PublicApplicationTracker() {
                 </div>
                 
                 <h4 className="text-3xl font-black text-foreground">
-                  <Phone className="w-5 h-5" /> Contact Information
+                  📞 Contact Information
                 </h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">

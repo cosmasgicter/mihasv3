@@ -22,7 +22,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
   const handleCreateDraft = async () => {
     if (!newDraftName.trim()) return
     try {
-      const draft = await createDraft(newDraftName, {}
+      const draft = await createDraft(newDraftName, {})
       if (draft) {
         setNewDraftName('')
         onCreateNew()
@@ -61,7 +61,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    }
+    })
   }
 
   return (
@@ -74,7 +74,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
         className="fixed top-20 right-4 z-40 shadow-lg"
       >
         <FileText className="h-4 w-4 mr-2" />
-        Drafts ({drafts.length}
+        Drafts ({drafts.length})
       </Button>
 
       <AnimatePresence>

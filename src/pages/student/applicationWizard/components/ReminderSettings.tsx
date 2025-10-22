@@ -32,8 +32,8 @@ export const ReminderSettings = ({ email, fullName, draftName }: ReminderSetting
           fullName,
           draftName,
           lastUpdated: new Date().toISOString()
-        }
-      }
+        })
+      })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
