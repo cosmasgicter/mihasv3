@@ -69,7 +69,7 @@ export function NotificationBell() {
         className="relative hover:bg-primary/5/30 flex items-center justify-center"
         data-testid="notification-bell"
       >
-        <Bell className="h-5 w-5 text-foreground" />
+        <Bell className="h-5 w-5 text-gray-700" />
         {unreadCount > 0 && (
           <motion.span
             initial={{ scale: 0 }}
@@ -103,8 +103,8 @@ export function NotificationBell() {
               <div className="p-4 border-b border-border bg-gradient-to-r from-blue-50 to-purple-50">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-foreground flex items-center gap-2"><Bell className="w-5 h-5" /> Notifications</h3>
-                    <p className="text-xs text-foreground">
+                    <h3 className="font-bold text-gray-900 flex items-center gap-2"><Bell className="w-5 h-5" /> Notifications</h3>
+                    <p className="text-xs text-gray-600">
                       {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up!'}
                     </p>
                   </div>
@@ -137,13 +137,13 @@ export function NotificationBell() {
                 {loading ? (
                   <div className="p-6 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-foreground text-sm mt-2">Loading notifications...</p>
+                    <p className="text-gray-700 text-sm mt-2">Loading notifications...</p>
                   </div>
                 ) : notifications.length === 0 ? (
                   <div className="p-8 text-center">
                     <Bell className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                    <p className="font-medium text-foreground">No notifications yet</p>
-                    <p className="text-xs mt-1 text-foreground">We'll notify you about important updates</p>
+                    <p className="font-medium text-gray-900">No notifications yet</p>
+                    <p className="text-xs mt-1 text-gray-600">We'll notify you about important updates</p>
                   </div>
                 ) : (
                   <div className="p-2 space-y-2">
@@ -166,14 +166,14 @@ export function NotificationBell() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <p className={`font-medium text-sm ${!notification.read ? 'text-foreground' : 'text-foreground'}`}>
+                                <p className={`font-medium text-sm ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
                                   {sanitizeText(notification.title)}
                                 </p>
-                                <p className="text-xs mt-1 text-foreground">
+                                <p className="text-xs mt-1 text-gray-600">
                                   {sanitizeText(notification.content)}
                                 </p>
                                 <div className="flex items-center justify-between mt-2">
-                                  <span className="text-xs text-foreground">
+                                  <span className="text-xs text-gray-600">
                                     {formatDate(notification.created_at)}
                                   </span>
                                   {!notification.read && (
@@ -208,7 +208,7 @@ export function NotificationBell() {
               {/* Footer */}
               {notifications.length > 0 && (
                 <div className="p-3 border-t border-border bg-muted">
-                  <p className="text-xs text-foreground text-center flex items-center justify-center gap-1">
+                  <p className="text-xs text-gray-600 text-center flex items-center justify-center gap-1">
                     <Lightbulb className="w-5 h-5" /> Click notifications to mark as read
                   </p>
                 </div>
