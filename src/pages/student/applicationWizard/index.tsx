@@ -13,6 +13,7 @@ import { StepChecklist } from './components/StepChecklist'
 import { ApplicationPreview } from './components/ApplicationPreview'
 import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp'
 import { DraftManager } from './components/DraftManager'
+import { ReminderSettings } from './components/ReminderSettings'
 import BasicKycStep from './steps/BasicKycStep'
 import EducationStep from './steps/EducationStep'
 import PaymentStep from './steps/PaymentStep'
@@ -546,6 +547,12 @@ const ApplicationWizardContent = () => {
               />
               
               <StepChecklist items={getChecklistItems()} />
+              
+              <ReminderSettings
+                email={form.watch('email') || user?.email || ''}
+                fullName={form.watch('full_name') || ''}
+                draftName="Current Application"
+              />
               
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
