@@ -433,8 +433,8 @@ export default function Applications() {
               <Users className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground">Applications</h1>
-              <p className="text-xs text-foreground">{stats.total} total applications</p>
+              <h1 className="text-lg font-bold text-gray-900">Applications</h1>
+              <p className="text-xs text-gray-700">{stats.total} total applications</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -469,8 +469,8 @@ export default function Applications() {
                 <Clock className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-foreground">Today</p>
-                <p className="text-lg font-bold text-foreground">{stats.todaySubmissions}</p>
+                <p className="text-xs text-gray-700">Today</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.todaySubmissions}</p>
               </div>
             </div>
           </div>
@@ -480,8 +480,8 @@ export default function Applications() {
                 <AlertCircle className="h-4 w-4 text-accent" />
               </div>
               <div>
-                <p className="text-xs text-foreground">Pending</p>
-                <p className="text-lg font-bold text-foreground">{stats.pendingReview}</p>
+                <p className="text-xs text-gray-700">Pending</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.pendingReview}</p>
               </div>
             </div>
           </div>
@@ -491,8 +491,8 @@ export default function Applications() {
                 <CheckCircle className="h-4 w-4 text-accent" />
               </div>
               <div>
-                <p className="text-xs text-foreground">Approved</p>
-                <p className="text-lg font-bold text-foreground">{stats.approved}</p>
+                <p className="text-xs text-gray-700">Approved</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.approved}</p>
               </div>
             </div>
           </div>
@@ -502,8 +502,8 @@ export default function Applications() {
                 <XCircle className="h-4 w-4 text-destructive" />
               </div>
               <div>
-                <p className="text-xs text-foreground">Rejected</p>
-                <p className="text-lg font-bold text-foreground">{stats.rejected}</p>
+                <p className="text-xs text-gray-700">Rejected</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.rejected}</p>
               </div>
             </div>
           </div>
@@ -512,8 +512,8 @@ export default function Applications() {
         {/* Mobile Export Actions */}
         <div className="bg-card rounded-xl p-4 shadow-sm border border-border mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-foreground">Export Data</h3>
-            <Download className="h-4 w-4 text-foreground" />
+            <h3 className="text-sm font-semibold text-gray-900">Export Data</h3>
+            <Download className="h-4 w-4 text-gray-700" />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <Button
