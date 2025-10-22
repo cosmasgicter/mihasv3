@@ -201,7 +201,7 @@ export async function onRequest(context) {
         onConflict: 'application_id,document_type'
       });
 
-    // Send email via Supabase Edge Function
+    // Send email via Supabase Edge Function with PDF attachment
     const html = renderApplicationSlipEmail({
       applicantName: application.full_name || recipientEmail,
       applicationNumber: application.application_number,
@@ -216,7 +216,12 @@ export async function onRequest(context) {
       body: {
         to: recipientEmail,
         subject: 'Your MIHAS Application Slip',
-        html
+        html,
+        attachments: [{
+          filename: `application-slip-${application.application_number}.pdf`,
+          content: pdfBuffer.toString('base64'),
+          contentType: 'application/pdf'
+        }]
       }
     });
 
