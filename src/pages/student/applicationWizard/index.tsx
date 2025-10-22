@@ -10,6 +10,8 @@ import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
 
 import SubmissionSuccess from './components/SubmissionSuccess'
 import { StepChecklist } from './components/StepChecklist'
+import { ApplicationPreview } from './components/ApplicationPreview'
+import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp'
 import BasicKycStep from './steps/BasicKycStep'
 import EducationStep from './steps/EducationStep'
 import PaymentStep from './steps/PaymentStep'
@@ -533,6 +535,12 @@ const ApplicationWizardContent = () => {
 
           <div className="lg:col-span-1">
             <div className="sticky top-6 space-y-4">
+              <ApplicationPreview
+                form={form}
+                programName={selectedProgramDetails?.name}
+                intakeName={form.watch('intake')}
+              />
+              
               <StepChecklist items={getChecklistItems()} />
               
               <motion.div
@@ -585,6 +593,8 @@ const ApplicationWizardContent = () => {
         onSuggestionApply={suggestion => {
         }}
       />
+      
+      <KeyboardShortcutsHelp />
     </div>
   )
 }

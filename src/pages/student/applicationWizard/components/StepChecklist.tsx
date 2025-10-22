@@ -11,7 +11,7 @@ interface StepChecklistProps {
   title?: string
 }
 
-export const StepChecklist = ({ items, title = 'Step Checklist' }: StepChecklistProps) => {
+export const StepChecklist = memo(({ items, title = 'Step Checklist' }: StepChecklistProps) => {
   const completedCount = items.filter(item => item.completed).length
   const allCompleted = completedCount === items.length
 
@@ -49,4 +49,6 @@ export const StepChecklist = ({ items, title = 'Step Checklist' }: StepChecklist
       </div>
     </motion.div>
   )
-}
+})
+
+StepChecklist.displayName = 'StepChecklist'
