@@ -164,7 +164,7 @@ const SubmitStep = ({
         </div>
 
         {!confirmSubmission && (
-          <div className="bg-accent/5/30 border border-yellow-200 rounded-lg p-3">
+          <div className="bg-accent/5 border border-yellow-200 rounded-lg p-3">
             <p className="text-sm text-accent-foreground">
               ⚠️ Please confirm that all information is accurate before you can submit your application.
             </p>

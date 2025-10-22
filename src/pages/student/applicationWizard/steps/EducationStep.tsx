@@ -87,7 +87,7 @@ const EducationStep = ({
 
           {selectedProgram && recommendedSubjects.length > 0 && (
             <motion.div
-              className="mb-4 p-3 bg-primary/5/30 border border-primary/30 rounded-lg"
+              className="mb-4 p-3 bg-primary/5 border border-primary/30 rounded-lg"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -206,7 +206,7 @@ const EducationStep = ({
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleResultSlipUpload}
-                className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
+                className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
               />
 
               {resultSlipFile && (
@@ -253,7 +253,7 @@ const EducationStep = ({
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleExtraKycUpload}
-                className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
+                className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
               />
               {extraKycFile && (
                 <div className="mt-2 flex items-center text-sm text-accent">
