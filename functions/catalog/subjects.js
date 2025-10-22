@@ -14,7 +14,7 @@ export async function onRequestGet() {
       });
     }
     
-    return new Response(JSON.stringify(data || []), {
+    return new Response(JSON.stringify({ subjects: data || [] }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
