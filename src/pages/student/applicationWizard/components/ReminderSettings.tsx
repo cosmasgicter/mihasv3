@@ -1,4 +1,4 @@
-import {, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Bell, Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -10,7 +10,7 @@ interface ReminderSettingsProps {
   draftName?: string
 }
 
-export const ReminderSettings = (({ email, fullName, draftName }: ReminderSettingsProps) => {
+export const ReminderSettings = ({ email, fullName, draftName }: ReminderSettingsProps) => {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const showSuccess = (msg: string) => useToastStore.getState().addToast('success', msg)

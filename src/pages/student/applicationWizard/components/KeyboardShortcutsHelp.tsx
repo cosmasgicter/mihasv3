@@ -1,4 +1,4 @@
-import {, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Keyboard, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -10,7 +10,7 @@ const shortcuts = [
   { keys: ['Esc'], description: 'Close dialogs' }
 ]
 
-export const KeyboardShortcutsHelp = (() => {
+export const KeyboardShortcutsHelp = () => {
   const [isOpen, setIsOpen] = useState(false)
 
   return (

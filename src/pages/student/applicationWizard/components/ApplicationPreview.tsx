@@ -10,7 +10,7 @@ interface ApplicationPreviewProps {
   intakeName?: string
 }
 
-export const ApplicationPreview = (({ form, programName, intakeName }: ApplicationPreviewProps) => {
+export const ApplicationPreview = ({ form, programName, intakeName }: ApplicationPreviewProps) => {
   const values = form.watch()
 
   return (
