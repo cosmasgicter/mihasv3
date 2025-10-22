@@ -58,5 +58,5 @@ export const ApplicationPreview = ({ form, programName, intakeName }: Applicatio
       </div>
     </motion.div>
   )
-})
+}
 
