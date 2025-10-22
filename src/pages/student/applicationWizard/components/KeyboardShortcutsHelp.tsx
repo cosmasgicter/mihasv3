@@ -78,5 +78,4 @@ export const KeyboardShortcutsHelp = () => {
       </AnimatePresence>
     </>
   )
-})
-
+}
