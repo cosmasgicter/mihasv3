@@ -14,6 +14,7 @@ import { ApplicationPreview } from './components/ApplicationPreview'
 import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp'
 import { DraftManager } from './components/DraftManager'
 import { ReminderSettings } from './components/ReminderSettings'
+import { AnalyticsDashboard } from './components/AnalyticsDashboard'
 import BasicKycStep from './steps/BasicKycStep'
 import EducationStep from './steps/EducationStep'
 import PaymentStep from './steps/PaymentStep'
@@ -22,6 +23,7 @@ import useWizardController from './hooks/useWizardController'
 import { useStepValidation } from './hooks/useStepValidation'
 import { useSmartAutoSave } from './hooks/useSmartAutoSave'
 import { useEstimatedTime } from './hooks/useEstimatedTime'
+import { useAnalytics } from './hooks/useAnalytics'
 import { previousButtonLabel, saveNowLabel, wizardSteps } from './steps/config'
 import type { SubjectGrade } from './types'
 
@@ -87,6 +89,7 @@ const ApplicationWizardContent = () => {
     enabled: !loading && !uploading
   })
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
+  useAnalytics(user?.id, null, currentStepIndex, currentStepConfig.key)
 
   const getChecklistItems = () => {
     const values = form.watch()
@@ -553,6 +556,8 @@ const ApplicationWizardContent = () => {
                 fullName={form.watch('full_name') || ''}
                 draftName="Current Application"
               />
+              
+              <AnalyticsDashboard userId={user?.id} />
               
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
