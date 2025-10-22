@@ -12,6 +12,7 @@ import SubmissionSuccess from './components/SubmissionSuccess'
 import { StepChecklist } from './components/StepChecklist'
 import { ApplicationPreview } from './components/ApplicationPreview'
 import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp'
+import { DraftManager } from './components/DraftManager'
 import BasicKycStep from './steps/BasicKycStep'
 import EducationStep from './steps/EducationStep'
 import PaymentStep from './steps/PaymentStep'
@@ -598,6 +599,22 @@ const ApplicationWizardContent = () => {
       />
       
       <KeyboardShortcutsHelp />
+      
+      <DraftManager
+        userId={user?.id}
+        currentDraftId={undefined}
+        onLoadDraft={(draftData) => {
+          Object.keys(draftData).forEach(key => {
+            if (draftData[key] !== undefined && draftData[key] !== null) {
+              form.setValue(key as any, draftData[key])
+            }
+          })
+        }}
+        onCreateNew={() => {
+          form.reset()
+          setError('')
+        }}
+      />
     </div>
   )
 }
