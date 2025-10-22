@@ -222,7 +222,7 @@ export default function AdminIntakes() {
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
         <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
           {/* Header - Mobile First */}
-          <div className="bg-gradient-to-r from-secondary to-primary p-6 text-white">
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-6 text-white">
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                 <Link to="/admin">
@@ -274,7 +274,7 @@ export default function AdminIntakes() {
                 <p className="text-foreground mb-6 max-w-md mx-auto">
                   Create admission intakes to define application periods, deadlines, and capacity for student enrollment.
                 </p>
-                <Button onClick={openCreate} className="bg-gradient-to-r from-secondary to-primary text-white font-semibold">
+                <Button onClick={openCreate} className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white font-semibold">
                   <Plus className="h-5 w-5 mr-2" />
                   Create First Intake
                 </Button>

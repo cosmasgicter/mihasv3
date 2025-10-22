@@ -9,12 +9,15 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
 
 import SubmissionSuccess from './components/SubmissionSuccess'
+import { StepChecklist } from './components/StepChecklist'
 import BasicKycStep from './steps/BasicKycStep'
 import EducationStep from './steps/EducationStep'
 import PaymentStep from './steps/PaymentStep'
 import SubmitStep from './steps/SubmitStep'
 import useWizardController from './hooks/useWizardController'
 import { useStepValidation } from './hooks/useStepValidation'
+import { useSmartAutoSave } from './hooks/useSmartAutoSave'
+import { useEstimatedTime } from './hooks/useEstimatedTime'
 import { previousButtonLabel, saveNowLabel, wizardSteps } from './steps/config'
 import type { SubjectGrade } from './types'
 
@@ -74,6 +77,44 @@ const ApplicationWizardContent = () => {
   } = useWizardController()
 
   const stepValidation = useStepValidation(form, currentStepIndex)
+  const { lastSaved, changedFields, timeSinceLastSave } = useSmartAutoSave({
+    onSave: saveDraft,
+    watchValues,
+    enabled: !loading && !uploading
+  })
+  const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
+
+  const getChecklistItems = () => {
+    const values = form.watch()
+    switch (currentStepIndex) {
+      case 0:
+        return [
+          { label: 'Program selected', completed: !!values.program },
+          { label: 'Intake selected', completed: !!values.intake },
+          { label: 'Personal details complete', completed: !!(values.full_name && values.date_of_birth && values.sex) },
+          { label: 'Contact information provided', completed: !!(values.phone && values.email) },
+          { label: 'Address details added', completed: !!values.residence_town }
+        ]
+      case 1:
+        return [
+          { label: 'At least 5 subjects added', completed: (values.grades?.length || 0) >= 5 },
+          { label: 'Result slip uploaded', completed: !!resultSlipFile }
+        ]
+      case 2:
+        return [
+          { label: 'Payment method selected', completed: !!values.payment_method },
+          { label: 'Payment reference provided', completed: !!values.payment_reference },
+          { label: 'Proof of payment uploaded', completed: !!popFile }
+        ]
+      case 3:
+        return [
+          { label: 'Application reviewed', completed: true },
+          { label: 'Terms accepted', completed: confirmSubmission }
+        ]
+      default:
+        return []
+    }
+  }
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -185,9 +226,14 @@ const ApplicationWizardContent = () => {
                       transition={{ duration: 0.5 }}
                     />
                   </div>
-                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
-                    {Math.round((currentStepIndex / (totalSteps - 1)) * 100)}%
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                      {Math.round((currentStepIndex / (totalSteps - 1)) * 100)}%
+                    </span>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap hidden sm:block">
+                      {formattedTime}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="flex items-center gap-1.5">
@@ -218,11 +264,21 @@ const ApplicationWizardContent = () => {
                   <span className="hidden sm:inline">Saving...</span>
                 </motion.div>
               )}
-              {draftSaved && (
-                <motion.div className="flex items-center gap-2 text-sm text-success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
-                  <CheckCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">Saved</span>
+              {!isDraftSaving && (draftSaved || lastSaved) && (
+                <motion.div className="flex flex-col items-end gap-0.5" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
+                  <div className="flex items-center gap-1.5 text-sm text-success">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="hidden sm:inline">Saved</span>
+                  </div>
+                  {timeSinceLastSave && (
+                    <span className="text-xs text-muted-foreground hidden sm:inline">{timeSinceLastSave}</span>
+                  )}
                 </motion.div>
+              )}
+              {changedFields.length > 0 && !isDraftSaving && (
+                <span className="text-xs text-warning hidden md:inline">
+                  {changedFields.length} unsaved change{changedFields.length > 1 ? 's' : ''}
+                </span>
               )}
               <Button type="button" variant="ghost" size="sm" onClick={saveDraft} disabled={isDraftSaving} className="hover:bg-primary/10">
                 <Send className="h-4 w-4 sm:mr-2" />
@@ -373,8 +429,10 @@ const ApplicationWizardContent = () => {
           </motion.div>
         )}
 
-        <form onSubmit={form.handleSubmit(handleSubmitApplication)} className="space-y-6 lg:space-y-8">
-          <AnimatePresence mode="wait">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="lg:col-span-2">
+            <form onSubmit={form.handleSubmit(handleSubmitApplication)} className="space-y-6 lg:space-y-8">
+              <AnimatePresence mode="wait">
             {currentStepConfig.key === 'basicKyc' && (
               <BasicKycStep
                 form={form}
@@ -440,9 +498,9 @@ const ApplicationWizardContent = () => {
                 }
               />
             )}
-          </AnimatePresence>
+              </AnimatePresence>
 
-          <motion.div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-border" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <motion.div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-border" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -468,9 +526,56 @@ const ApplicationWizardContent = () => {
                   </Button>
                 </motion.div>
               )}
+              </div>
+              </motion.div>
+            </form>
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="sticky top-6 space-y-4">
+              <StepChecklist items={getChecklistItems()} />
+              
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-primary/5 border border-primary/20 rounded-lg p-4"
+              >
+                <h3 className="text-sm font-semibold text-primary mb-2">💡 Quick Tips</h3>
+                <ul className="text-xs text-foreground space-y-2">
+                  {currentStepIndex === 0 && (
+                    <>
+                      <li>• Ensure your contact details are accurate</li>
+                      <li>• Double-check your NRC/Passport number</li>
+                      <li>• Select the correct intake period</li>
+                    </>
+                  )}
+                  {currentStepIndex === 1 && (
+                    <>
+                      <li>• Enter at least 5 subject grades</li>
+                      <li>• Upload a clear scan of your result slip</li>
+                      <li>• Ensure grades match your certificate</li>
+                    </>
+                  )}
+                  {currentStepIndex === 2 && (
+                    <>
+                      <li>• Keep your payment reference handy</li>
+                      <li>• Upload proof of payment (receipt/screenshot)</li>
+                      <li>• Ensure payment details are correct</li>
+                    </>
+                  )}
+                  {currentStepIndex === 3 && (
+                    <>
+                      <li>• Review all information carefully</li>
+                      <li>• Ensure all documents are uploaded</li>
+                      <li>• Accept terms to submit application</li>
+                    </>
+                  )}
+                </ul>
+              </motion.div>
             </div>
-          </motion.div>
-        </form>
+          </div>
+        </div>
         </div>
       </div>
 
