@@ -38,7 +38,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       const { data: { session } } = await supabase.auth.getSession()
       const accessToken = session?.access_token
 
-      const response = await fetch(`${apiBaseUrl}/applications/generate-slip`, {
+      const response = await fetch(`${apiBaseUrl}/applications/generate/slip`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       const { data: { session } } = await supabase.auth.getSession()
       const accessToken = session?.access_token
 
-      const response = await fetch(`${apiBaseUrl}/applications/email-slip`, {
+      const response = await fetch(`${apiBaseUrl}/applications/email/slip`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -94,8 +94,13 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         throw new Error(errorData.error || 'Failed to send email')
       }
 
-      setEmailSent(true)
-      setTimeout(() => setEmailSent(false), 5000)
+      const result = await response.json()
+      if (result.success) {
+        setEmailSent(true)
+        setTimeout(() => setEmailSent(false), 5000)
+      } else {
+        throw new Error(result.error || 'Failed to send email')
+      }
     } catch (error) {
       console.error('Email failed:', error)
       alert(`Failed to send email: ${error.message}`)
