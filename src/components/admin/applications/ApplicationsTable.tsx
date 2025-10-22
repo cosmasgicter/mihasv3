@@ -411,7 +411,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
  {/* Documents */}
  {documentsCount > 0 && (
- <div className="flex items-center gap-2 mb-4 p-2 bg-primary/5/30 rounded-lg">
+ <div className="flex items-center gap-2 mb-4 p-2 bg-blue-50 rounded-lg">
  <FileText className="h-4 w-4 text-primary" />
  <span className="text-sm text-primary">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
  </div>
