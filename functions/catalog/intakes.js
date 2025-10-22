@@ -27,7 +27,7 @@ export async function onRequestGet(context) {
       });
     }
     
-    return new Response(JSON.stringify(data || []), {
+    return new Response(JSON.stringify({ intakes: data || [] }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
