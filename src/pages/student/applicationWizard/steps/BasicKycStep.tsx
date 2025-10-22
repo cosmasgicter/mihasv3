@@ -1,4 +1,4 @@
-import { useMemo, memo } from 'react'
+import { useMemo } from 'react'
 
 import { motion } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
@@ -20,7 +20,7 @@ interface BasicKycStepProps {
   title: string
 }
 
-const BasicKycStep = memo(({
+const BasicKycStep = ({
   form,
   hasAutoPopulatedData,
   completionPercentage,
@@ -297,8 +297,6 @@ const BasicKycStep = memo(({
       )}
     </motion.div>
   )
-})
-
-BasicKycStep.displayName = 'BasicKycStep'
+}
 
 export default BasicKycStep
