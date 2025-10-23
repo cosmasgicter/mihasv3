@@ -32,7 +32,7 @@ export async function onRequest(context) {
       const { data, error } = await supabase
         .from('in_app_notifications')
         .select('*')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -49,7 +49,7 @@ export async function onRequest(context) {
         const { error } = await supabase
           .from('in_app_notifications')
           .update({ read: true, read_at: timestamp })
-          .eq('id', user.id)
+          .eq('user_id', user.id)
           .eq('read', false);
 
         if (error) throw error;
@@ -58,7 +58,7 @@ export async function onRequest(context) {
           .from('in_app_notifications')
           .update({ read: true, read_at: timestamp })
           .eq('id', notificationId)
-          .eq('id', user.id);
+          .eq('user_id', user.id);
 
         if (error) throw error;
       }
@@ -72,7 +72,7 @@ export async function onRequest(context) {
         .from('in_app_notifications')
         .delete()
         .eq('id', body.notificationId)
-        .eq('id', user.id);
+        .eq('user_id', user.id);
 
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });
