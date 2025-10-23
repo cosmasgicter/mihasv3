@@ -16,7 +16,7 @@ export async function onRequestGet(context) {
   try {
     const { data, error } = await supabaseAdminClient
       .from('programs')
-      .select('*')
+      .select('*, institutions(id, name, slug, full_name)')
       .order('created_at', { ascending: false });
     
     if (error) {

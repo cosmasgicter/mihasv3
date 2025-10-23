@@ -34,25 +34,6 @@ export async function createApplicationSlip(
     // Always generate locally with jsPDF
     toast?.showInfo?.('Generating slip', 'Preparing your official application slip...')
     const blob = await generateApplicationSlip(data)
-    toast?.showSuccess?.('Slip ready', 'Your application slip has been generated successfully.')
-    
-    // Try to persist
-    try {
-      const uploadResult = await persistSlip(data.application_number, blob, data.userId)
-      if (uploadResult.success) {
-        return { blob, publicUrl: uploadResult.publicUrl, path: uploadResult.path, documentId: uploadResult.documentId }
-      }
-    } catch (e) {
-      console.error('Persist failed:', e)
-    }
-    
-    return { blob }
-
-
-
-    // Fallback to local generation
-    toast?.showInfo?.('Generating slip', 'Preparing your official application slip...')
-    const blob = await generateApplicationSlip(data)
 
     let uploadError: string | undefined
     let documentId: string | undefined
