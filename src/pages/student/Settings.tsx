@@ -21,7 +21,6 @@ const profileSchema = z.object({
   date_of_birth: optionalString(),
   sex: z.enum(['Male', 'Female'], { required_error: 'Please select a sex' }).optional(),
   nationality: optionalString(),
-  address: optionalString(),
   city: optionalString(),
   next_of_kin_name: optionalString(),
   next_of_kin_phone: optionalString()
@@ -54,7 +53,6 @@ export default function StudentSettings() {
       setValue('date_of_birth', getBestValue(profile?.date_of_birth, metadata?.date_of_birth, ''))
       setValue('sex', (getBestValue(profile?.sex, metadata?.sex, '') as 'Male' | 'Female') || undefined)
       setValue('nationality', getBestValue(profile?.nationality, metadata?.nationality, ''))
-      setValue('address', getBestValue(profile?.address, metadata?.address, ''))
       setValue('city', getBestValue(profile?.city, metadata?.city, ''))
       setValue('next_of_kin_name', getBestValue(profile?.next_of_kin_name, metadata?.next_of_kin_name, ''))
       setValue('next_of_kin_phone', getBestValue(profile?.next_of_kin_phone, metadata?.next_of_kin_phone, ''))
@@ -258,25 +256,10 @@ export default function StudentSettings() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Address
-                </label>
-                <textarea
-                  {...register('address')}
-                  rows={4}
-                  placeholder="House number, street, area"
-                  className="w-full rounded-xl border-2 border-border px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary resize-none"
-                />
-                {errors.address && (
-                  <p className="mt-2 text-sm text-destructive bg-destructive/5 px-3 py-1 rounded-lg">{errors.address.message}</p>
-                )}
-              </div>
-              
               <Input
                 {...register('city')}
                 type="text"
-                label="City"
+                label="City/Town"
                 placeholder="Kitwe"
                 error={errors.city?.message}
                 className="form-input-mobile"
