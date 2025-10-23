@@ -17,7 +17,7 @@ export async function onRequestPost(context) {
   }
   
   try {
-    const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) });
+    const authContext = await getUserFromRequest(request);
     if (authContext.error) {
       return new Response(JSON.stringify({ error: authContext.error }), {
         status: 401,

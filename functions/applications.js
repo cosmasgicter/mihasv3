@@ -85,7 +85,7 @@ export async function onRequest(context) {
   
   if (request.method === 'GET') {
     try {
-      const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) });
+      const authContext = await getUserFromRequest(request);
       if (authContext.error) {
         return new Response(JSON.stringify({ error: authContext.error }), {
           status: 401,
@@ -191,7 +191,7 @@ export async function onRequest(context) {
   
   if (request.method === 'POST') {
     try {
-      const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) });
+      const authContext = await getUserFromRequest(request);
       if (authContext.error || !authContext.user) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
           status: 401,

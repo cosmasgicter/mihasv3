@@ -14,7 +14,7 @@ export async function onRequest(context) {
   }
   
   try {
-    const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) });
+    const authContext = await getUserFromRequest(request);
     if (authContext.error || !authContext.isAdmin) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,

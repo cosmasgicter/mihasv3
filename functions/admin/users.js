@@ -17,11 +17,7 @@ export async function onRequestGet(context) {
   }
   
   try {
-    const headers = {};
-    for (const [key, value] of request.headers.entries()) {
-      headers[key.toLowerCase()] = value;
-    }
-    const authContext = await getUserFromRequest({ headers }, { requireAdmin: true });
+    const authContext = await getUserFromRequest(request, { requireAdmin: true });
     
     if (authContext.error) {
       return new Response(JSON.stringify({ error: authContext.error }), {
