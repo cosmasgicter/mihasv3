@@ -217,6 +217,39 @@ export async function onRequest(context) {
             });
           }
           
+          // Send notification to student
+          if (!error && data) {
+            const notificationTitles = {
+              'approved': '🎉 Application Approved!',
+              'rejected': '❌ Application Status Update',
+              'under_review': '👀 Application Under Review',
+              'pending_documents': '📄 Documents Required'
+            };
+            
+            const notificationContents = {
+              'approved': `Congratulations! Your application #${data.application_number} for ${data.program} has been approved. Welcome to our institution!`,
+              'rejected': `Your application #${data.application_number} for ${data.program} has been reviewed. Please check your email for detailed feedback.`,
+              'under_review': `Your application #${data.application_number} for ${data.program} is currently being reviewed by our admissions team.`,
+              'pending_documents': `Your application #${data.application_number} requires additional documents. Please upload them to continue processing.`
+            };
+            
+            const notificationTypes = {
+              'approved': 'success',
+              'rejected': 'error',
+              'under_review': 'info',
+              'pending_documents': 'warning'
+            };
+            
+            await supabaseAdminClient.from('in_app_notifications').insert({
+              user_id: data.user_id,
+              title: notificationTitles[status] || '📋 Application Status Update',
+              content: notificationContents[status] || `Your application #${data.application_number} status has been updated to ${status}.`,
+              type: notificationTypes[status] || 'info',
+              action_url: `/student/application/${id}`,
+              read: false
+            });
+          }
+          
           if (error) throw new Error(error.message);
           return new Response(JSON.stringify({ success: true, data }), {
             status: 200,
