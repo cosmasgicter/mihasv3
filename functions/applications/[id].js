@@ -247,6 +247,39 @@ export async function onRequest(context) {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
+        
+        if (action === 'sync_grades') {
+          const { grades } = payload;
+          if (!Array.isArray(grades)) {
+            throw new Error('Grades must be an array');
+          }
+          
+          // Delete existing grades
+          await supabaseAdminClient
+            .from('application_grades')
+            .delete()
+            .eq('application_id', id);
+          
+          // Insert new grades
+          if (grades.length > 0) {
+            const gradesData = grades.map(g => ({
+              application_id: id,
+              subject_id: g.subject_id,
+              grade: g.grade
+            }));
+            
+            const { error: insertError } = await supabaseAdminClient
+              .from('application_grades')
+              .insert(gradesData);
+            
+            if (insertError) throw new Error(insertError.message);
+          }
+          
+          return new Response(JSON.stringify({ success: true }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
       }
 
       // Regular update

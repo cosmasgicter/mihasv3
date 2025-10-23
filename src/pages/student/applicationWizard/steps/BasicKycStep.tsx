@@ -285,11 +285,11 @@ const BasicKycStep = ({
 
       {selectedProgramDetails && (
         <motion.div
-          className="mt-4 p-4 bg-primary/10 rounded-lg"
+          className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <p className="text-sm text-primary-foreground">
+          <p className="text-sm text-body font-medium">
             <strong>Institution:</strong>{' '}
             {selectedInstitutionLabel || 'MIHAS'}
           </p>
