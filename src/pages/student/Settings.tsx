@@ -20,8 +20,8 @@ const profileSchema = z.object({
   phone: z.string().min(10, 'Please enter a valid phone number').or(z.literal('')).optional(),
   date_of_birth: optionalString(),
   sex: z.enum(['Male', 'Female'], { required_error: 'Please select a sex' }).optional(),
+  residence_town: optionalString(),
   nationality: optionalString(),
-  city: optionalString(),
   next_of_kin_name: optionalString(),
   next_of_kin_phone: optionalString()
 })
@@ -52,8 +52,8 @@ export default function StudentSettings() {
       setValue('phone', getBestValue(profile?.phone, metadata?.phone, ''))
       setValue('date_of_birth', getBestValue(profile?.date_of_birth, metadata?.date_of_birth, ''))
       setValue('sex', (getBestValue(profile?.sex, metadata?.sex, '') as 'Male' | 'Female') || undefined)
+      setValue('residence_town', getBestValue(profile?.residence_town, metadata?.residence_town, ''))
       setValue('nationality', getBestValue(profile?.nationality, metadata?.nationality, ''))
-      setValue('city', getBestValue(profile?.city, metadata?.city, ''))
       setValue('next_of_kin_name', getBestValue(profile?.next_of_kin_name, metadata?.next_of_kin_name, ''))
       setValue('next_of_kin_phone', getBestValue(profile?.next_of_kin_phone, metadata?.next_of_kin_phone, ''))
     }
@@ -246,22 +246,20 @@ export default function StudentSettings() {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Input
+                {...register('residence_town')}
+                type="text"
+                label="City/Town"
+                placeholder="Kitwe"
+                error={errors.residence_town?.message}
+                className="form-input-mobile"
+              />
+              
+              <Input
                 {...register('nationality')}
                 type="text"
                 label="Nationality"
                 placeholder="Zambian"
                 error={errors.nationality?.message}
-                className="form-input-mobile"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              <Input
-                {...register('city')}
-                type="text"
-                label="City/Town"
-                placeholder="Kitwe"
-                error={errors.city?.message}
                 className="form-input-mobile"
               />
             </div>

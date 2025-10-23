@@ -289,7 +289,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
           {!importResult ? (
             <>
               {/* Instructions */}
-              <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-4">
+              <div className="bg-primary/5 border border-primary/30 rounded-lg p-4">
                 <h3 className="font-medium text-primary-foreground mb-2">Import Instructions</h3>
                 <ul className="text-sm text-primary space-y-1">
                   <li>• Upload a CSV file with user data</li>
@@ -305,7 +305,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                 <Button
                   variant="outline"
                   onClick={downloadTemplate}
-                  className="text-primary border-blue-300 hover:bg-primary/5/30"
+                  className="text-primary border-blue-300 hover:bg-primary/5"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Download Template
@@ -408,7 +408,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               </div>
 
               {importResult.errors.length > 0 && (
-                <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-4 max-h-60 overflow-y-auto">
+                <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-4 max-h-60 overflow-y-auto">
                   <h3 className="font-medium text-red-900 mb-3">Import Errors</h3>
                   <div className="space-y-2">
                     {importResult.errors.map((error, index) => (

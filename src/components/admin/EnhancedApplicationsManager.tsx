@@ -287,7 +287,7 @@ export function EnhancedApplicationsManager({
                 <Button
                   size="sm"
                   onClick={() => onBulkAction('under_review', selectedApplications)}
-                  className="bg-primary/5/300 hover:bg-primary"
+                  className="bg-primary hover:bg-primary"
                 >
                   <Clock className="h-4 w-4 mr-2" />
                   Start Review
@@ -295,7 +295,7 @@ export function EnhancedApplicationsManager({
                 <Button
                   size="sm"
                   onClick={() => onBulkAction('approved', selectedApplications)}
-                  className="bg-accent/10/300 hover:bg-success"
+                  className="bg-accent hover:bg-success"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Approve All
@@ -303,7 +303,7 @@ export function EnhancedApplicationsManager({
                 <Button
                   size="sm"
                   onClick={() => onBulkAction('rejected', selectedApplications)}
-                  className="bg-destructive/5/300 hover:bg-error"
+                  className="bg-destructive hover:bg-error"
                 >
                   <XCircle className="h-4 w-4 mr-2" />
                   Reject All
@@ -391,7 +391,7 @@ export function EnhancedApplicationsManager({
                     <Button
                       size="sm"
                       onClick={() => onStatusUpdate(application.id, 'under_review')}
-                      className="flex-1 bg-primary/5/300 hover:bg-primary"
+                      className="flex-1 bg-primary hover:bg-primary"
                     >
                       <Zap className="h-4 w-4 mr-1" />
                       Review
@@ -403,7 +403,7 @@ export function EnhancedApplicationsManager({
                       <Button
                         size="sm"
                         onClick={() => onStatusUpdate(application.id, 'approved')}
-                        className="flex-1 bg-accent/10/300 hover:bg-success"
+                        className="flex-1 bg-accent hover:bg-success"
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
                         Approve
@@ -411,7 +411,7 @@ export function EnhancedApplicationsManager({
                       <Button
                         size="sm"
                         onClick={() => onStatusUpdate(application.id, 'rejected')}
-                        className="flex-1 bg-destructive/5/300 hover:bg-error"
+                        className="flex-1 bg-destructive hover:bg-error"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
                         Reject
@@ -512,7 +512,7 @@ export function EnhancedApplicationsManager({
                           <Button
                             size="sm"
                             onClick={() => onStatusUpdate(application.id, 'under_review')}
-                            className="bg-primary/5/300 hover:bg-primary"
+                            className="bg-primary hover:bg-primary"
                           >
                             <Zap className="h-4 w-4" />
                           </Button>
@@ -523,14 +523,14 @@ export function EnhancedApplicationsManager({
                             <Button
                               size="sm"
                               onClick={() => onStatusUpdate(application.id, 'approved')}
-                              className="bg-accent/10/300 hover:bg-success"
+                              className="bg-accent hover:bg-success"
                             >
                               <CheckCircle className="h-4 w-4" />
                             </Button>
                             <Button
                               size="sm"
                               onClick={() => onStatusUpdate(application.id, 'rejected')}
-                              className="bg-destructive/5/300 hover:bg-error"
+                              className="bg-destructive hover:bg-error"
                             >
                               <XCircle className="h-4 w-4" />
                             </Button>

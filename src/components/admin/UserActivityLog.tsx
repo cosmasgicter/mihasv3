@@ -182,7 +182,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
         {/* Activity List */}
         <div className="flex-1 overflow-y-auto">
           {error && (
-            <div className="p-4 bg-destructive/5/30 border border-destructive/30 rounded-lg mb-4">
+            <div className="p-4 bg-destructive/5 border border-destructive/30 rounded-lg mb-4">
               <p className="text-error">{error}</p>
             </div>
           )}

@@ -242,13 +242,13 @@ export default function AdminPrograms() {
                 </div>
               </div>
             ) : error ? (
-              <div className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-6 text-center">
+              <div className="rounded-xl bg-destructive/5 border border-destructive/30 p-6 text-center">
                 <div className="text-6xl mb-4">😱</div>
                 <p className="text-destructive font-medium text-lg">{error}</p>
                 <Button 
                   onClick={loadPrograms} 
                   variant="outline" 
-                  className="mt-4 text-destructive border-destructive/30 hover:bg-destructive/5/30"
+                  className="mt-4 text-destructive border-destructive/30 hover:bg-destructive/5"
                 >
                   Try Again
                 </Button>
@@ -290,7 +290,7 @@ export default function AdminPrograms() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openEdit(program)}
-                          className="flex-1 text-primary border-blue-300 hover:bg-primary/5/30"
+                          className="flex-1 text-primary border-blue-300 hover:bg-primary/5"
                         >
                           <Pencil className="h-4 w-4 mr-1" />
                           Edit
@@ -299,7 +299,7 @@ export default function AdminPrograms() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openDelete(program)}
-                          className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5/30"
+                          className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5"
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           Delete
@@ -333,7 +333,7 @@ export default function AdminPrograms() {
                     </thead>
                     <tbody className="bg-card divide-y divide-border">
                       {programs.map((program) => (
-                        <tr key={program.id} className="hover:bg-primary/5/30 transition-colors">
+                        <tr key={program.id} className="hover:bg-primary/5 transition-colors">
                           <td className="px-6 py-4">
                             <div className="font-semibold text-foreground">{program.name}</div>
                           </td>
@@ -358,7 +358,7 @@ export default function AdminPrograms() {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openEdit(program)}
-                                className="text-primary border-blue-300 hover:bg-primary/5/30"
+                                className="text-primary border-blue-300 hover:bg-primary/5"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -366,7 +366,7 @@ export default function AdminPrograms() {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openDelete(program)}
-                                className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
+                                className="text-destructive border-destructive/30 hover:bg-destructive/5"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

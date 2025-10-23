@@ -500,7 +500,7 @@ export function ReportsGenerator() {
           <p className="text-sm text-foreground">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6">
-          <div className="rounded-md border border-destructive/30 bg-destructive/5/30 p-4 text-sm text-error">
+          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-error">
             Unable to verify your permissions at this time. Please refresh the page or contact an administrator.
           </div>
         </div>
@@ -1240,7 +1240,7 @@ export function ReportsGenerator() {
           </div>
         ) : (
           <div className="pt-8 border-t border-border">
-            <div className="bg-accent/5/30 border border-yellow-200 rounded-lg p-4 text-sm text-accent-foreground">
+            <div className="bg-accent/5 border border-yellow-200 rounded-lg p-4 text-sm text-accent-foreground">
               Document templates are available to authorised staff members.
             </div>
           </div>

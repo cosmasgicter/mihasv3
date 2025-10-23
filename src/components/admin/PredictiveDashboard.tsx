@@ -382,13 +382,13 @@ export function PredictiveDashboard() {
             <div className="space-y-3 max-h-48 overflow-y-auto">
               {metrics.processingBottlenecks.length > 0 ? (
                 metrics.processingBottlenecks.map((bottleneck, idx) => (
-                  <div key={idx} className="flex items-start p-3 bg-accent/5/30 rounded-lg">
+                  <div key={idx} className="flex items-start p-3 bg-accent/5 rounded-lg">
                     <Clock className="h-4 w-4 text-accent mr-2 mt-0.5 flex-shrink-0" />
                     <span className="text-sm text-accent-foreground">{bottleneck}</span>
                   </div>
                 ))
               ) : (
-                <div className="flex items-center p-3 bg-accent/10/30 rounded-lg">
+                <div className="flex items-center p-3 bg-accent/10 rounded-lg">
                   <CheckCircle className="h-4 w-4 text-accent mr-2" />
                   <span className="text-sm text-accent-foreground">No bottlenecks detected - system running smoothly</span>
                 </div>
@@ -467,7 +467,7 @@ export function PredictiveDashboard() {
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-primary/5/30 rounded-lg border border-primary/30">
+            <div className="p-4 bg-primary/5 rounded-lg border border-primary/30">
               <h4 className="font-medium text-primary-foreground mb-2 flex items-center">
                 <FileText className="h-4 w-4 mr-1" />
                 Workflow Optimization
@@ -478,7 +478,7 @@ export function PredictiveDashboard() {
                   : 'Consider implementing automated document verification for applications with high confidence scores (>90%).'}
               </p>
             </div>
-            <div className="p-4 bg-accent/10/30 rounded-lg border border-accent/30">
+            <div className="p-4 bg-accent/10 rounded-lg border border-accent/30">
               <h4 className="font-medium text-accent-foreground mb-2 flex items-center">
                 <Users className="h-4 w-4 mr-1" />
                 Resource Allocation
@@ -489,7 +489,7 @@ export function PredictiveDashboard() {
                   : 'Application volume is evenly distributed. Current staffing appears adequate.'}
               </p>
             </div>
-            <div className="p-4 bg-secondary/5/30 rounded-lg border border-input/30">
+            <div className="p-4 bg-secondary/5 rounded-lg border border-input/30">
               <h4 className="font-medium text-purple-800 mb-2 flex items-center">
                 <AlertTriangle className="h-4 w-4 mr-1" />
                 Proactive Outreach
@@ -500,7 +500,7 @@ export function PredictiveDashboard() {
                   : 'No high-risk applications detected. Current support processes are effective.'}
               </p>
             </div>
-            <div className="p-4 bg-accent/5/30 rounded-lg border border-yellow-200">
+            <div className="p-4 bg-accent/5 rounded-lg border border-yellow-200">
               <h4 className="font-medium text-accent-foreground mb-2 flex items-center">
                 <Target className="h-4 w-4 mr-1" />
                 Process Improvement

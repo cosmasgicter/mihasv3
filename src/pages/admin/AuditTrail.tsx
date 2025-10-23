@@ -500,7 +500,7 @@ export default function AuditTrailPage() {
                 <p className="text-xs font-medium text-primary uppercase tracking-wide">Total Events</p>
                 <p className="text-2xl font-bold text-primary-foreground">{response?.totalCount || 0}</p>
               </div>
-              <div className="p-3 bg-primary/5/300 rounded-xl">
+              <div className="p-3 bg-primary rounded-xl">
                 <Activity className="h-5 w-5 text-white" />
               </div>
             </div>
@@ -512,7 +512,7 @@ export default function AuditTrailPage() {
                 <p className="text-xs font-medium text-accent uppercase tracking-wide">This Page</p>
                 <p className="text-2xl font-bold text-accent-foreground">{response?.data?.length || 0}</p>
               </div>
-              <div className="p-3 bg-accent/10/300 rounded-xl">
+              <div className="p-3 bg-accent rounded-xl">
                 <FileText className="h-5 w-5 text-white" />
               </div>
             </div>
@@ -524,7 +524,7 @@ export default function AuditTrailPage() {
                 <p className="text-xs font-medium text-secondary uppercase tracking-wide">Page {response?.page || 1}</p>
                 <p className="text-2xl font-bold text-foreground-foreground">of {response?.totalPages || 1}</p>
               </div>
-              <div className="p-3 bg-secondary/5/300 rounded-xl">
+              <div className="p-3 bg-secondary rounded-xl">
                 <BarChart3 className="h-5 w-5 text-white" />
               </div>
             </div>
@@ -697,7 +697,7 @@ export default function AuditTrailPage() {
 
         {/* Error Display */}
         {error && (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5/30 p-4 mb-6">
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 mb-6">
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-5 w-5 text-error flex-shrink-0" />
               <div>
@@ -708,7 +708,7 @@ export default function AuditTrailPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
-                className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/5/30"
+                className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/5"
               >
                 <RefreshCw className="h-4 w-4 mr-1" />
                 Retry

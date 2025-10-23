@@ -21,7 +21,7 @@ export function OfflineIndicator() {
 
   return (
     <div className="fixed top-4 right-4 z-50 max-w-sm">
-      <div className="rounded-lg shadow-lg p-4 bg-destructive/5/30 border border-destructive/30">
+      <div className="rounded-lg shadow-lg p-4 bg-destructive/5 border border-destructive/30">
         <div className="flex items-center space-x-3">
           <WifiOff className="h-5 w-5 text-destructive" />
           <div>

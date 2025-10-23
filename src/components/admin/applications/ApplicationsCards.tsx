@@ -200,7 +200,7 @@ export function ApplicationsCards({
                             e.stopPropagation()
                             onUpdateStatus(application.id, 'under_review')
                           }}
-                          className="btn-responsive text-primary border-blue-300 hover:bg-primary/5/30"
+                          className="btn-responsive text-primary border-blue-300 hover:bg-primary/5"
                         >
                           <Zap className="h-4 w-4 sm:mr-1" />
                           <span className="hidden sm:inline">Start Review</span>
@@ -218,7 +218,7 @@ export function ApplicationsCards({
                               e.stopPropagation()
                               onUpdateStatus(application.id, 'approved')
                             }}
-                            className="flex-1 text-accent border-green-300 hover:bg-accent/10/30 btn-mobile"
+                            className="flex-1 text-accent border-green-300 hover:bg-accent/10 btn-mobile"
                           >
                             <CheckCircle className="h-4 w-4 sm:mr-1" />
                             <span className="hidden sm:inline">Approve</span>
@@ -231,7 +231,7 @@ export function ApplicationsCards({
                               e.stopPropagation()
                               onUpdateStatus(application.id, 'rejected')
                             }}
-                            className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5/30 btn-mobile"
+                            className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5 btn-mobile"
                           >
                             <XCircle className="h-4 w-4 sm:mr-1" />
                             <span className="hidden sm:inline">Reject</span>

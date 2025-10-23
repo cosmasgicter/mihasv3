@@ -197,19 +197,19 @@ For appeals or queries, please contact the admissions office.
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-foreground mb-4">Detailed Score Breakdown</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-primary/5/30 rounded-lg p-4">
+          <div className="bg-primary/5 rounded-lg p-4">
             <div className="text-sm font-medium text-primary">Subject Count</div>
             <div className="text-2xl font-bold text-primary-foreground">
               {Math.round(assessment.detailed_breakdown.subject_count_score)}%
             </div>
           </div>
-          <div className="bg-accent/10/30 rounded-lg p-4">
+          <div className="bg-accent/10 rounded-lg p-4">
             <div className="text-sm font-medium text-accent">Grade Average</div>
             <div className="text-2xl font-bold text-accent-foreground">
               {Math.round(assessment.detailed_breakdown.grade_average_score)}%
             </div>
           </div>
-          <div className="bg-secondary/5/30 rounded-lg p-4">
+          <div className="bg-secondary/5 rounded-lg p-4">
             <div className="text-sm font-medium text-secondary">Core Subjects</div>
             <div className="text-2xl font-bold text-secondary-foreground">
               {Math.round(assessment.detailed_breakdown.core_subjects_score)}%
@@ -257,11 +257,11 @@ For appeals or queries, please contact the admissions office.
       {assessment.recommendations.length > 0 && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-4">Recommendations</h2>
-          <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-4">
+          <div className="bg-primary/5 border border-primary/30 rounded-lg p-4">
             <ul className="space-y-2">
               {assessment.recommendations.map((rec: string, index: number) => (
                 <li key={index} className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-primary/5/300 rounded-full mt-2 flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
                   <span className="text-primary-foreground">{rec}</span>
                 </li>
               ))}

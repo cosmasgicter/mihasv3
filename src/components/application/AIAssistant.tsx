@@ -626,7 +626,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
       >
         <MessageCircle className="h-6 w-6" />
         {hasUnreadSuggestions && (
-          <div className="absolute -top-2 -right-2 bg-destructive/5/300 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+          <div className="absolute -top-2 -right-2 bg-destructive text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
             !
           </div>
         )}
@@ -657,7 +657,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-white hover:bg-white/90/30 p-1 rounded transition-colors"
+                className="text-white hover:bg-white/90 p-1 rounded transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -696,7 +696,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                                 <button
                                   key={idx}
                                   onClick={() => handleSuggestionClick(suggestion)}
-                                  className="block w-full text-left text-xs bg-card/20 hover:bg-white/90/30 rounded-lg p-2 transition-colors border border-white/10"
+                                  className="block w-full text-left text-xs bg-card/20 hover:bg-white/90 rounded-lg p-2 transition-colors border border-white/10"
                                 >
                                   {suggestion}
                                 </button>

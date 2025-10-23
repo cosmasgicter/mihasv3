@@ -328,7 +328,7 @@ export function SystemMonitoring() {
         
         <div className="p-6">
           <div className="space-y-4">
-            <div className="flex items-center space-x-3 p-4 bg-accent/10/30 rounded-xl border border-accent/30">
+            <div className="flex items-center space-x-3 p-4 bg-accent/10 rounded-xl border border-accent/30">
               <CheckCircle className="h-5 w-5 text-accent" />
               <div className="flex-1">
                 <p className="font-medium text-accent-foreground">All Systems Operational</p>
@@ -337,7 +337,7 @@ export function SystemMonitoring() {
               <span className="text-xs text-accent">Just now</span>
             </div>
 
-            <div className="flex items-center space-x-3 p-4 bg-primary/5/30 rounded-xl border border-primary/30">
+            <div className="flex items-center space-x-3 p-4 bg-primary/5 rounded-xl border border-primary/30">
               <Clock className="h-5 w-5 text-primary" />
               <div className="flex-1">
                 <p className="font-medium text-primary-foreground">Scheduled Maintenance</p>
@@ -346,7 +346,7 @@ export function SystemMonitoring() {
               <span className="text-xs text-primary">2 hours</span>
             </div>
 
-            <div className="flex items-center space-x-3 p-4 bg-accent/5/30 rounded-xl border border-yellow-200">
+            <div className="flex items-center space-x-3 p-4 bg-accent/5 rounded-xl border border-yellow-200">
               <TrendingUp className="h-5 w-5 text-accent" />
               <div className="flex-1">
                 <p className="font-medium text-accent-foreground">High Memory Usage</p>

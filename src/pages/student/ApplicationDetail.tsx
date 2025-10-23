@@ -255,7 +255,7 @@ export default function ApplicationDetail() {
             </h3>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-accent/10/300 rounded-full"></div>
+                <div className="w-2 h-2 bg-accent rounded-full"></div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Application Created</p>
                   <p className="text-xs text-foreground">{formatDate(application.created_at)}</p>
@@ -263,7 +263,7 @@ export default function ApplicationDetail() {
               </div>
               {application.submitted_at && (
                 <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-primary/5/300 rounded-full"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Application Submitted</p>
                     <p className="text-xs text-foreground">{formatDate(application.submitted_at)}</p>
@@ -272,7 +272,7 @@ export default function ApplicationDetail() {
               )}
               {application.review_started_at && (
                 <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-accent/5/300 rounded-full"></div>
+                  <div className="w-2 h-2 bg-accent rounded-full"></div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Review Started</p>
                     <p className="text-xs text-foreground">{formatDate(application.review_started_at)}</p>

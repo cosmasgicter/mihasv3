@@ -120,7 +120,7 @@ export function FileUploadTest() {
         </label>
         
         {error && (
-          <div className="mt-2 p-3 bg-destructive/5/30 border border-destructive/30 rounded-lg">
+          <div className="mt-2 p-3 bg-destructive/5 border border-destructive/30 rounded-lg">
             <div className="flex items-center text-sm text-error">
               <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>{error}</span>
@@ -152,7 +152,7 @@ export function FileUploadTest() {
           {files.map((file) => (
             <div 
               key={file.id} 
-              className="bg-accent/10/30 border border-accent/30 rounded-lg p-3"
+              className="bg-accent/10 border border-accent/30 rounded-lg p-3"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -167,7 +167,7 @@ export function FileUploadTest() {
                   variant="ghost"
                   size="sm"
                   onClick={() => removeFile(file.id)}
-                  className="text-destructive hover:text-error hover:bg-destructive/5/30"
+                  className="text-destructive hover:text-error hover:bg-destructive/5"
                 >
                   <X className="h-4 w-4" />
                 </Button>

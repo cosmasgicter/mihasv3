@@ -187,7 +187,7 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
       
       {selectedProgram && (
         <motion.div 
-          className="mt-4 p-4 bg-primary/5/30 rounded-lg"
+          className="mt-4 p-4 bg-primary/5 rounded-lg"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
         >

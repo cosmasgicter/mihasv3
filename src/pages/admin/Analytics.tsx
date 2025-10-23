@@ -465,7 +465,7 @@ export default function Analytics() {
  </thead>
  <tbody className="bg-card divide-y divide-border">
  {programAnalytics.map((program, index) => (
- <tr key={index} className="hover:bg-primary/5/30 transition-colors">
+ <tr key={index} className="hover:bg-primary/5 transition-colors">
  <td className="px-6 py-4">
  <div className="font-semibold text-foreground">{sanitizeForDisplay(program.programName)}</div>
  </td>

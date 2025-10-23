@@ -111,7 +111,7 @@ export function UploadDebugger() {
             type="file"
             accept=".pdf,.jpg,.jpeg,.png"
             onChange={handleFileSelect}
-            className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5/30 file:text-primary hover:file:bg-primary/10"
+            className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
           />
         </div>
 
@@ -155,7 +155,7 @@ export function UploadDebugger() {
         )}
 
         {error && (
-          <div className="p-3 bg-destructive/5/30 border border-destructive/30 rounded">
+          <div className="p-3 bg-destructive/5 border border-destructive/30 rounded">
             <div className="flex items-center text-sm text-error">
               <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>{error}</span>
@@ -164,7 +164,7 @@ export function UploadDebugger() {
         )}
 
         {success && (
-          <div className="p-3 bg-accent/10/30 border border-accent/30 rounded">
+          <div className="p-3 bg-accent/10 border border-accent/30 rounded">
             <div className="flex items-center text-sm text-accent">
               <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>{success}</span>
@@ -184,7 +184,7 @@ export function UploadDebugger() {
         )}
 
         {!user && (
-          <div className="p-3 bg-accent/5/30 border border-yellow-200 rounded">
+          <div className="p-3 bg-accent/5 border border-yellow-200 rounded">
             <p className="text-sm text-yellow-700">
               Please sign in to test file uploads
             </p>

@@ -139,7 +139,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
         </DialogHeader>
         
         <div className="space-y-6">
-          <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-4">
+          <div className="bg-primary/5 border border-primary/30 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
               <Shield className="h-4 w-4 text-primary" />
               <span className="font-medium text-primary-foreground">Current Role: {user.role.replace('_', ' ').toUpperCase()}</span>

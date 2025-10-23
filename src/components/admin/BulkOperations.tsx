@@ -106,7 +106,7 @@ export function BulkOperations({
 
   return (
     <>
-      <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-4">
+      <div className="bg-primary/5 border border-primary/30 rounded-lg p-4">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
             <Users className="w-5 h-5 text-primary mt-1" />

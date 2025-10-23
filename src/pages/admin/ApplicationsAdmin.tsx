@@ -221,7 +221,7 @@ function ApplicationsAdminContent() {
         </div>
 
         {errorMessage && (
-          <div className="rounded-md bg-destructive/5/30 p-4 mb-6">
+          <div className="rounded-md bg-destructive/5 p-4 mb-6">
             <div className="text-sm text-error">{errorMessage}</div>
           </div>
         )}

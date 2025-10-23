@@ -212,7 +212,7 @@ export default function DatabaseMonitoring() {
       </div>
 
       {errorState.hasError && (
-        <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-4">
+        <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-4">
           <div className="flex items-center">
             <AlertTriangle className="w-5 h-5 text-error mr-2" />
             <span className="text-error">

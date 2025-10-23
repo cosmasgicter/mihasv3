@@ -155,7 +155,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
                   </span>
                   <div className="w-20 bg-skeleton rounded-full h-2">
                     <div
-                      className="bg-primary/5/300 h-2 rounded-full"
+                      className="bg-primary h-2 rounded-full"
                       style={{ width: `${(count / stats.total) * 100}%` }}
                     ></div>
                   </div>

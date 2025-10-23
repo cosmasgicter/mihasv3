@@ -158,7 +158,7 @@ export function ContinueApplication() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/5/300/10 text-primary">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <FileText className="h-5 w-5" />
             </div>
             <div>
@@ -205,7 +205,7 @@ export function ContinueApplication() {
               size="sm"
               onClick={handleDeleteDraft}
               disabled={deleting}
-              className="flex-1 text-destructive hover:bg-destructive/5/30"
+              className="flex-1 text-destructive hover:bg-destructive/5"
             >
               {deleting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
               <span className="ml-2">Delete</span>
@@ -214,7 +214,7 @@ export function ContinueApplication() {
               variant="outline"
               size="sm"
               onClick={loadDraftInfo}
-              className="flex-1 text-primary hover:bg-primary/5/300/10"
+              className="flex-1 text-primary hover:bg-primary/10"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh

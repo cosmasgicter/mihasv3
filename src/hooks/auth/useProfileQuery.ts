@@ -78,10 +78,9 @@ async function createUserProfile(user: User): Promise<UserProfile | null> {
       id: user.id,
       full_name: sanitizeForDisplay(fullName),
       phone: sanitizeForDisplay(signupData.phone || metadata.phone || null),
-      sex: signupData.sex || metadata.sex || null,
       date_of_birth: signupData.date_of_birth || metadata.date_of_birth || null,
-      city: signupData.city || metadata.city || null,
-      address: signupData.address || metadata.address || null,
+      sex: signupData.sex || metadata.sex || null,
+      residence_town: signupData.residence_town || metadata.residence_town || null,
       nationality: signupData.nationality || metadata.nationality || null,
       next_of_kin_name: signupData.next_of_kin_name || metadata.next_of_kin_name || null,
       next_of_kin_phone: signupData.next_of_kin_phone || metadata.next_of_kin_phone || null,
@@ -175,9 +174,8 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         'phone',
         'date_of_birth',
         'sex',
+        'residence_town',
         'nationality',
-        'address',
-        'city',
         'next_of_kin_name',
         'next_of_kin_phone'
       ]

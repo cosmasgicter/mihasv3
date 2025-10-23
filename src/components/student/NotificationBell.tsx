@@ -66,7 +66,7 @@ export function NotificationBell() {
         variant="ghost"
         size="sm"
         onClick={() => setShowPanel(!showPanel)}
-        className="relative hover:bg-primary/5/30 flex items-center justify-center"
+        className="relative hover:bg-primary/5 flex items-center justify-center"
         data-testid="notification-bell"
       >
         <Bell className="h-5 w-5 text-gray-700" />
