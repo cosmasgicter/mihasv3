@@ -32,25 +32,18 @@ export default function SignInPage() {
   })
 
   const onSubmit = async (data: SignInForm) => {
-    logger.info('Login attempt:', data.email)
     setLoading(true)
     setError('')
 
     try {
       const result = await signIn(data.email, data.password)
-      logger.info('Sign in result:', result)
       
       if (result?.error) {
         throw new Error(result.error)
       }
 
-      logger.info('Login successful, waiting for auth state...')
-      // Wait for auth state to propagate
-      await new Promise(resolve => setTimeout(resolve, 200))
-      logger.info('Navigating to dashboard')
       navigate('/dashboard')
     } catch (error: unknown) {
-      logger.error('Sign in error:', error)
       setError(error instanceof Error ? error.message : 'Failed to sign in. Please try again.')
     } finally {
       setLoading(false)
@@ -99,6 +92,7 @@ export default function SignInPage() {
           type="email"
           label="Email address"
           error={errors.email?.message}
+          autoComplete="email"
           required
         />
 
@@ -107,6 +101,7 @@ export default function SignInPage() {
           type="password"
           label="Password"
           error={errors.password?.message}
+          autoComplete="current-password"
           required
         />
 

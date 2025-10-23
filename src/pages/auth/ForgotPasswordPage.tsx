@@ -91,6 +91,7 @@ export default function ForgotPasswordPage() {
           type="email"
           label="Email address"
           required
+          autoComplete="email"
           error={errors.email?.message}
         />
 

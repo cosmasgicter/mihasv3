@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { getSupabaseClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
@@ -20,14 +20,9 @@ export function ActiveSessions() {
   const [sessions, setSessions] = useState<DeviceSession[]>([])
   const [loading, setLoading] = useState(true)
   const [terminating, setTerminating] = useState<string | null>(null)
+  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  useEffect(() => {
-    if (user) {
-      loadSessions()
-    }
-  }, [user])
-
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async () => {
     if (!user) return
     
     try {
@@ -59,7 +54,17 @@ export function ActiveSessions() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
+      loadTimeoutRef.current = setTimeout(loadSessions, 300)
+    }
+    return () => {
+      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
+    }
+  }, [user, loadSessions])
 
   const terminateSession = async (deviceId: string) => {
     if (!user) return
