@@ -1,108 +1,109 @@
-import { PDFDocument, StandardFonts } from 'pdf-lib'
-import { sanitizeHtml } from './security'
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import { sanitizeHtml } from './security';
 
 export type DocumentTemplateId =
   | 'offerLetter'
   | 'interviewInvitation'
   | 'rejectionFeedback'
-  | 'paymentBalanceStatement'
+  | 'paymentBalanceStatement';
 
 export interface DocumentTemplateToken {
-  token: string
-  label: string
-  required?: boolean
+  token: string;
+  label: string;
+  required?: boolean;
 }
 
 export interface DocumentTemplateSection {
-  heading?: string
-  paragraphs?: string[]
-  bullets?: string[]
+  heading?: string;
+  paragraphs?: string[];
+  bullets?: string[];
   bulletTokens?: Array<{
-    token: string
-    itemTemplate?: string
-  }>
+    token: string;
+    itemTemplate?: string;
+  }>;
 }
 
 export interface DocumentTemplateDefinition {
-  id: DocumentTemplateId
-  name: string
-  description: string
-  tokens: DocumentTemplateToken[]
-  sections: DocumentTemplateSection[]
+  id: DocumentTemplateId;
+  name: string;
+  description: string;
+  tokens: DocumentTemplateToken[];
+  sections: DocumentTemplateSection[];
 }
 
 export interface DocumentTemplateContext {
   student?: {
-    fullName?: string
-    preferredName?: string
-    email?: string
-    phone?: string
-    program?: string
-    studentId?: string
-  }
+    fullName?: string;
+    preferredName?: string;
+    email?: string;
+    phone?: string;
+    program?: string;
+    studentId?: string;
+  };
   application?: {
-    programName?: string
-    intake?: string
-    startDate?: string | Date
-    responseDeadline?: string | Date
-    orientationDate?: string | Date
-    interviewDate?: string | Date
-    interviewTime?: string
-    interviewLocation?: string
-    interviewMode?: string
-    interviewers?: string[]
-    decisionDate?: string | Date
-    referenceNumber?: string
-    status?: string
-  }
+    programName?: string;
+    intake?: string;
+    startDate?: string | Date;
+    responseDeadline?: string | Date;
+    orientationDate?: string | Date;
+    interviewDate?: string | Date;
+    interviewTime?: string;
+    interviewLocation?: string;
+    interviewMode?: string;
+    interviewers?: string[];
+    decisionDate?: string | Date;
+    referenceNumber?: string;
+    status?: string;
+  };
   staff?: {
-    fullName?: string
-    title?: string
-    department?: string
-    email?: string
-    phone?: string
-  }
+    fullName?: string;
+    title?: string;
+    department?: string;
+    email?: string;
+    phone?: string;
+  };
   feedback?: {
-    summary?: string
-    strengths?: string[]
-    improvements?: string[]
-    recommendation?: string
-  }
+    summary?: string;
+    strengths?: string[];
+    improvements?: string[];
+    recommendation?: string;
+  };
   payment?: {
-    amountDue?: number
-    amountPaid?: number
-    balance?: number
-    dueDate?: string | Date
-    reference?: string
-    lastPaymentDate?: string | Date
-    breakdown?: Array<{ label: string; amount: number }>
-  }
+    amountDue?: number;
+    amountPaid?: number;
+    balance?: number;
+    dueDate?: string | Date;
+    reference?: string;
+    lastPaymentDate?: string | Date;
+    breakdown?: Array<{ label: string; amount: number }>;
+  };
 }
 
 export interface RenderedDocumentTemplate {
-  template: DocumentTemplateDefinition
-  html: string
-  text: string
-  tokens: Record<string, string>
+  template: DocumentTemplateDefinition;
+  html: string;
+  text: string;
+  tokens: Record<string, string>;
   pdf: {
-    bytes: Uint8Array
-    blob: Blob | null
-    fileName: string
-  }
+    bytes: Uint8Array;
+    blob: Blob | null;
+    fileName: string;
+  };
 }
 
 export interface RenderDocumentTemplateOptions {
-  fileName?: string
-  titleOverride?: string
+  fileName?: string;
+  titleOverride?: string;
 }
 
-const TOKEN_REGEX = /{{\s*([^}]+)\s*}}/g
+const TOKEN_REGEX = /\{\{\s*([^}]+)\s*\}\}/g;
 
 const CURRENCY_TOKEN_SET = new Set([
   'payment.amountDue',
   'payment.amountPaid',
   'payment.balance'
-])
+]);
 
 const DATE_LIKE_TOKEN_SET = new Set([
   'application.startDate',
@@ -112,103 +113,77 @@ const DATE_LIKE_TOKEN_SET = new Set([
   'application.decisionDate',
   'payment.dueDate',
   'payment.lastPaymentDate'
-])
+]);
 
-const PAGE_SIZE: [number, number] = [595.28, 841.89]
-const PAGE_MARGIN = 56
-const BODY_FONT_SIZE = 11
-const HEADING_FONT_SIZE = 14
-const LINE_HEIGHT = 16
-
-const escapeHtml = (value: string) => sanitizeHtml(value)
+const escapeHtml = (value: string) => sanitizeHtml(value);
 
 const isIsoLikeDateString = (value: string): boolean => {
-  if (!value) return false
-  const parsed = Date.parse(value)
-  return Number.isFinite(parsed)
-}
+  if (!value) return false;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed);
+};
 
 const getValueAtPath = (source: unknown, path: string): unknown => {
-  if (!source || typeof source !== 'object') return undefined
-  const segments = path.split('.')
-  let current: any = source
+  if (!source || typeof source !== 'object') return undefined;
+  const segments = path.split('.');
+  let current: any = source;
   for (const segment of segments) {
     if (current && typeof current === 'object' && segment in current) {
-      current = current[segment as keyof typeof current]
+      current = current[segment as keyof typeof current];
     } else {
-      return undefined
+      return undefined;
     }
   }
-  return current
-}
+  return current;
+};
 
 const hasTokenValue = (context: DocumentTemplateContext, token: string): boolean => {
-  const value = getValueAtPath(context, token)
-  if (value === null || value === undefined) {
-    return false
-  }
-  if (typeof value === 'string') {
-    return value.trim().length > 0
-  }
-  if (Array.isArray(value)) {
-    return value.length > 0
-  }
-  return true
-}
+  const value = getValueAtPath(context, token);
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
+};
 
 const formatNumber = (value: number, token: string) => {
   if (CURRENCY_TOKEN_SET.has(token)) {
     return value.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    })
+    });
   }
-  return value.toLocaleString()
-}
+  return value.toLocaleString();
+};
 
 const formatDate = (value: string | Date) => {
-  const date = value instanceof Date ? value : new Date(value)
+  const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return typeof value === 'string' ? value : ''
+    return typeof value === 'string' ? value : '';
   }
   return date.toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
-  })
-}
+  });
+};
 
 const formatTokenValue = (token: string, rawValue: unknown): string => {
-  if (rawValue === null || rawValue === undefined) {
-    return ''
-  }
-
+  if (rawValue === null || rawValue === undefined) return '';
   if (Array.isArray(rawValue)) {
-    return rawValue
-      .map(item => formatTokenValue(token, item))
-      .filter(Boolean)
-      .join(', ')
+    return rawValue.map(item => formatTokenValue(token, item)).filter(Boolean).join(', ');
   }
-
-  if (rawValue instanceof Date) {
-    return formatDate(rawValue)
-  }
-
-  if (typeof rawValue === 'number') {
-    return formatNumber(rawValue, token)
-  }
-
+  if (rawValue instanceof Date) return formatDate(rawValue);
+  if (typeof rawValue === 'number') return formatNumber(rawValue, token);
   if (typeof rawValue === 'string') {
-    const trimmed = rawValue.trim()
-    if (!trimmed) return ''
+    const trimmed = rawValue.trim();
+    if (!trimmed) return '';
     if (DATE_LIKE_TOKEN_SET.has(token) || isIsoLikeDateString(trimmed)) {
-      return formatDate(trimmed)
+      return formatDate(trimmed);
     }
-    return trimmed
+    return trimmed;
   }
-
-  return String(rawValue)
-}
+  return String(rawValue);
+};
 
 const fillTemplateString = (
   template: string,
@@ -216,341 +191,226 @@ const fillTemplateString = (
   formatToken?: (token: string, value: unknown) => string
 ) =>
   template.replace(TOKEN_REGEX, (_, rawToken: string) => {
-    const token = rawToken.trim()
-    const value = getValueAtPath(context, token)
-    const formatted = formatToken ? formatToken(token, value) : formatTokenValue(token, value)
-    return formatted
-  })
+    const token = rawToken.trim();
+    const value = getValueAtPath(context, token);
+    const formatted = formatToken ? formatToken(token, value) : formatTokenValue(token, value);
+    return formatted;
+  });
 
 const collectTokens = (template: DocumentTemplateDefinition, context: DocumentTemplateContext) =>
   template.tokens.reduce<Record<string, string>>((acc, token) => {
-    const raw = getValueAtPath(context, token.token)
-    acc[token.token] = formatTokenValue(token.token, raw)
-    return acc
-  }, {})
+    const raw = getValueAtPath(context, token.token);
+    acc[token.token] = formatTokenValue(token.token, raw);
+    return acc;
+  }, {});
 
 const ensureRequiredTokens = (template: DocumentTemplateDefinition, context: DocumentTemplateContext) => {
   const missing = template.tokens
     .filter(token => token.required !== false)
     .filter(token => !hasTokenValue(context, token.token))
-    .map(token => token.token)
+    .map(token => token.token);
 
   if (missing.length > 0) {
-    throw new Error(`Missing required fields: ${missing.join(', ')}`)
+    throw new Error(`Missing required fields: ${missing.join(', ')}`);
   }
-}
+};
 
 const sanitizeFileName = (value: string) =>
   value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'document'
+    .replace(/^-+|-+$/g, '') || 'document';
 
 const computeDefaultFileName = (
   template: DocumentTemplateDefinition,
   context: DocumentTemplateContext
 ) => {
-  const studentName = formatTokenValue('student.fullName', getValueAtPath(context, 'student.fullName'))
-  const base = studentName ? `${template.id}-${studentName}` : template.id
-  return `${sanitizeFileName(base)}.pdf`
-}
+  const studentName = formatTokenValue('student.fullName', getValueAtPath(context, 'student.fullName'));
+  const base = studentName ? `${template.id}-${studentName}` : template.id;
+  return `${sanitizeFileName(base)}.pdf`;
+};
 
 const buildSectionText = (
   template: DocumentTemplateDefinition,
   context: DocumentTemplateContext
 ) => {
-  const textLines: string[] = []
+  const textLines: string[] = [];
 
   template.sections.forEach((section, index) => {
     if (section.heading) {
-      textLines.push(fillTemplateString(section.heading, context))
+      textLines.push(fillTemplateString(section.heading, context));
     }
 
     section.paragraphs?.forEach(paragraph => {
-      textLines.push(fillTemplateString(paragraph, context))
-    })
+      textLines.push(fillTemplateString(paragraph, context));
+    });
 
-    const bulletLines: string[] = []
+    const bulletLines: string[] = [];
     section.bullets?.forEach(bullet => {
-      const filled = fillTemplateString(bullet, context)
-      if (filled.trim()) {
-        bulletLines.push(filled)
-      }
-    })
+      const filled = fillTemplateString(bullet, context);
+      if (filled.trim()) bulletLines.push(filled);
+    });
 
     section.bulletTokens?.forEach(definition => {
-      const rawValue = getValueAtPath(context, definition.token)
-      if (!rawValue) return
+      const rawValue = getValueAtPath(context, definition.token);
+      if (!rawValue) return;
 
-      const values = Array.isArray(rawValue) ? rawValue : [rawValue]
-      const itemTemplate = definition.itemTemplate ?? '{{item}}'
+      const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+      const itemTemplate = definition.itemTemplate ?? '{{item}}';
       values.forEach(item => {
-        const rendered = itemTemplate.replace(/{{\s*item(\.[^}]*)?\s*}}/g, (_, path: string) => {
-          if (!path) {
-            return formatTokenValue(definition.token, item)
-          }
-          const trimmedPath = path.slice(1)
-          const nested = getValueAtPath(item, trimmedPath)
-          return formatTokenValue(trimmedPath, nested)
-        })
-        const normalized = fillTemplateString(rendered, context)
-        if (normalized.trim()) {
-          bulletLines.push(normalized)
-        }
-      })
-    })
+        const rendered = itemTemplate.replace(/\{\{\s*item(\.[^}]*)?\s*\}\}/g, (_, path: string) => {
+          if (!path) return formatTokenValue(definition.token, item);
+          const trimmedPath = path.slice(1);
+          const nested = getValueAtPath(item, trimmedPath);
+          return formatTokenValue(trimmedPath, nested);
+        });
+        const normalized = fillTemplateString(rendered, context);
+        if (normalized.trim()) bulletLines.push(normalized);
+      });
+    });
 
     bulletLines.forEach(line => {
-      textLines.push(`• ${line}`)
-    })
+      textLines.push(`• ${line}`);
+    });
 
     if (index < template.sections.length - 1) {
-      textLines.push('')
+      textLines.push('');
     }
-  })
+  });
 
-  return textLines
-}
+  return textLines;
+};
 
 const buildSectionHtml = (
   template: DocumentTemplateDefinition,
   context: DocumentTemplateContext
 ) => {
-  const parts: string[] = ['<article class="document-template">']
+  const parts: string[] = ['<article class="document-template">'];
 
   template.sections.forEach(section => {
-    parts.push('<section>')
+    parts.push('<section>');
     if (section.heading) {
-      const heading = escapeHtml(fillTemplateString(section.heading, context))
-      parts.push(`<h2>${heading}</h2>`)
+      const heading = escapeHtml(fillTemplateString(section.heading, context));
+      parts.push(`<h2>${heading}</h2>`);
     }
 
     section.paragraphs?.forEach(paragraph => {
-      const htmlParagraph = escapeHtml(fillTemplateString(paragraph, context))
-      parts.push(`<p>${htmlParagraph}</p>`)
-    })
+      const htmlParagraph = escapeHtml(fillTemplateString(paragraph, context));
+      parts.push(`<p>${htmlParagraph}</p>`);
+    });
 
-    const bulletItems: string[] = []
+    const bulletItems: string[] = [];
 
     section.bullets?.forEach(bullet => {
-      const filled = fillTemplateString(bullet, context)
-      if (filled.trim()) {
-        bulletItems.push(escapeHtml(filled))
-      }
-    })
+      const filled = fillTemplateString(bullet, context);
+      if (filled.trim()) bulletItems.push(escapeHtml(filled));
+    });
 
     section.bulletTokens?.forEach(definition => {
-      const rawValue = getValueAtPath(context, definition.token)
-      if (!rawValue) return
-      const values = Array.isArray(rawValue) ? rawValue : [rawValue]
-      const itemTemplate = definition.itemTemplate ?? '{{item}}'
+      const rawValue = getValueAtPath(context, definition.token);
+      if (!rawValue) return;
+      const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+      const itemTemplate = definition.itemTemplate ?? '{{item}}';
       values.forEach(item => {
-        const rendered = itemTemplate.replace(/{{\s*item(\.[^}]*)?\s*}}/g, (_, path: string) => {
-          if (!path) {
-            return formatTokenValue(definition.token, item)
-          }
-          const trimmedPath = path.slice(1)
-          const nested = getValueAtPath(item, trimmedPath)
-          return formatTokenValue(trimmedPath, nested)
-        })
-        const normalized = fillTemplateString(rendered, context)
-        if (normalized.trim()) {
-          bulletItems.push(escapeHtml(normalized))
-        }
-      })
-    })
+        const rendered = itemTemplate.replace(/\{\{\s*item(\.[^}]*)?\s*\}\}/g, (_, path: string) => {
+          if (!path) return formatTokenValue(definition.token, item);
+          const trimmedPath = path.slice(1);
+          const nested = getValueAtPath(item, trimmedPath);
+          return formatTokenValue(trimmedPath, nested);
+        });
+        const normalized = fillTemplateString(rendered, context);
+        if (normalized.trim()) bulletItems.push(escapeHtml(normalized));
+      });
+    });
 
     if (bulletItems.length > 0) {
-      parts.push('<ul>')
+      parts.push('<ul>');
       bulletItems.forEach(item => {
-        parts.push(`<li>${item}</li>`)
-      })
-      parts.push('</ul>')
+        parts.push(`<li>${item}</li>`);
+      });
+      parts.push('</ul>');
     }
 
-    parts.push('</section>')
-  })
+    parts.push('</section>');
+  });
 
-  parts.push('</article>')
-  return parts.join('\n')
-}
-
-const wrapTextForPdf = (
-  text: string,
-  font: import('pdf-lib').PDFFont,
-  fontSize: number,
-  maxWidth: number
-): string[] => {
-  const words = text.split(/\s+/).filter(Boolean)
-  if (!words.length) {
-    return ['']
-  }
-
-  const lines: string[] = []
-  let currentLine = ''
-
-  const pushCurrent = () => {
-    if (currentLine) {
-      lines.push(currentLine)
-      currentLine = ''
-    }
-  }
-
-  for (const word of words) {
-    const candidate = currentLine ? `${currentLine} ${word}` : word
-    const width = font.widthOfTextAtSize(candidate, fontSize)
-    if (width <= maxWidth) {
-      currentLine = candidate
-      continue
-    }
-
-    if (currentLine) {
-      pushCurrent()
-    }
-
-    if (font.widthOfTextAtSize(word, fontSize) <= maxWidth) {
-      currentLine = word
-      continue
-    }
-
-    let chunk = ''
-    for (const char of word) {
-      const tentative = chunk ? `${chunk}${char}` : char
-      if (font.widthOfTextAtSize(tentative, fontSize) <= maxWidth) {
-        chunk = tentative
-      } else {
-        if (chunk) {
-          lines.push(chunk)
-          chunk = char
-        } else {
-          lines.push(char)
-        }
-      }
-    }
-    currentLine = chunk
-  }
-
-  pushCurrent()
-
-  if (!lines.length) {
-    lines.push('')
-  }
-
-  return lines
-}
+  parts.push('</article>');
+  return parts.join('\n');
+};
 
 const generatePdfDocument = async (
   title: string,
   template: DocumentTemplateDefinition,
   context: DocumentTemplateContext
 ) => {
-  const pdfDoc = await PDFDocument.create()
-  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
-
-  const addPage = () => pdfDoc.addPage(PAGE_SIZE)
-  let page = addPage()
-  let cursorY = page.getHeight() - PAGE_MARGIN
-
-  const ensureSpace = (height: number) => {
-    if (cursorY - height < PAGE_MARGIN) {
-      page = addPage()
-      cursorY = page.getHeight() - PAGE_MARGIN
-    }
-  }
-
-  const drawParagraph = (text: string, options: { bullet?: boolean; bold?: boolean } = {}) => {
-    const font = options.bold ? boldFont : regularFont
-    const maxWidth = page.getWidth() - PAGE_MARGIN * 2
-    const prefix = options.bullet ? '• ' : ''
-    const prefixWidth = options.bullet ? font.widthOfTextAtSize(prefix, BODY_FONT_SIZE) : 0
-    const lines = wrapTextForPdf(text, font, BODY_FONT_SIZE, maxWidth - prefixWidth)
-
-    lines.forEach((line, index) => {
-      ensureSpace(LINE_HEIGHT)
-      const isFirstLine = index === 0
-      const xOffset = options.bullet && !isFirstLine ? prefixWidth : 0
-      const textToDraw = options.bullet && isFirstLine ? `${prefix}${line}` : line
-      page.drawText(textToDraw, {
-        x: PAGE_MARGIN + xOffset,
-        y: cursorY,
-        size: BODY_FONT_SIZE,
-        font
-      })
-      cursorY -= LINE_HEIGHT
-    })
-
-    cursorY -= 4
-  }
-
-  const drawHeading = (text: string) => {
-    const maxWidth = page.getWidth() - PAGE_MARGIN * 2
-    const lines = wrapTextForPdf(text, boldFont, HEADING_FONT_SIZE, maxWidth)
-    lines.forEach(line => {
-      ensureSpace(HEADING_FONT_SIZE + 4)
-      page.drawText(line, {
-        x: PAGE_MARGIN,
-        y: cursorY,
-        size: HEADING_FONT_SIZE,
-        font: boldFont
-      })
-      cursorY -= HEADING_FONT_SIZE + 6
-    })
-    cursorY -= 6
-  }
+  const doc = new jsPDF();
+  let yPos = 20;
 
   if (title) {
-    drawHeading(title)
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, 14, yPos);
+    yPos += 10;
   }
 
   template.sections.forEach(section => {
     if (section.heading) {
-      drawHeading(fillTemplateString(section.heading, context))
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(fillTemplateString(section.heading, context), 14, yPos);
+      yPos += 8;
     }
 
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+
     section.paragraphs?.forEach(paragraph => {
-      const text = fillTemplateString(paragraph, context)
+      const text = fillTemplateString(paragraph, context);
       if (text.trim()) {
-        drawParagraph(text)
+        const lines = doc.splitTextToSize(text, 180);
+        doc.text(lines, 14, yPos);
+        yPos += lines.length * 6;
       }
-    })
+    });
 
     section.bullets?.forEach(bullet => {
-      const text = fillTemplateString(bullet, context)
+      const text = fillTemplateString(bullet, context);
       if (text.trim()) {
-        drawParagraph(text, { bullet: true })
+        const lines = doc.splitTextToSize(`• ${text}`, 175);
+        doc.text(lines, 18, yPos);
+        yPos += lines.length * 6;
       }
-    })
+    });
 
     section.bulletTokens?.forEach(definition => {
-      const rawValue = getValueAtPath(context, definition.token)
-      if (!rawValue) return
-      const values = Array.isArray(rawValue) ? rawValue : [rawValue]
-      const itemTemplate = definition.itemTemplate ?? '{{item}}'
+      const rawValue = getValueAtPath(context, definition.token);
+      if (!rawValue) return;
+      const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+      const itemTemplate = definition.itemTemplate ?? '{{item}}';
       values.forEach(item => {
-        const rendered = itemTemplate.replace(/{{\s*item(\.[^}]*)?\s*}}/g, (_, path: string) => {
-          if (!path) {
-            return formatTokenValue(definition.token, item)
-          }
-          const trimmedPath = path.slice(1)
-          const nested = getValueAtPath(item, trimmedPath)
-          return formatTokenValue(trimmedPath, nested)
-        })
-        const text = fillTemplateString(rendered, context)
+        const rendered = itemTemplate.replace(/\{\{\s*item(\.[^}]*)?\s*\}\}/g, (_, path: string) => {
+          if (!path) return formatTokenValue(definition.token, item);
+          const trimmedPath = path.slice(1);
+          const nested = getValueAtPath(item, trimmedPath);
+          return formatTokenValue(trimmedPath, nested);
+        });
+        const text = fillTemplateString(rendered, context);
         if (text.trim()) {
-          drawParagraph(text, { bullet: true })
+          const lines = doc.splitTextToSize(`• ${text}`, 175);
+          doc.text(lines, 18, yPos);
+          yPos += lines.length * 6;
         }
-      })
-    })
+      });
+    });
 
-    cursorY -= 8
-  })
+    yPos += 5;
+  });
 
-  const bytes = await pdfDoc.save()
-  const blob = typeof Blob !== 'undefined' ? new Blob([bytes], { type: 'application/pdf' }) : null
+  const bytes = new Uint8Array(doc.output('arraybuffer'));
+  const blob = new Blob([bytes], { type: 'application/pdf' });
 
-  return { bytes, blob }
-}
+  return { bytes, blob };
+};
 
 const DOCUMENT_TEMPLATES: Record<DocumentTemplateId, DocumentTemplateDefinition> = {
   offerLetter: {
@@ -774,31 +634,31 @@ const DOCUMENT_TEMPLATES: Record<DocumentTemplateId, DocumentTemplateDefinition>
       }
     ]
   }
-}
+};
 
-export const DOCUMENT_TEMPLATE_DEFINITIONS = DOCUMENT_TEMPLATES
+export const DOCUMENT_TEMPLATE_DEFINITIONS = DOCUMENT_TEMPLATES;
 
-export const getDocumentTemplate = (id: DocumentTemplateId) => DOCUMENT_TEMPLATES[id]
+export const getDocumentTemplate = (id: DocumentTemplateId) => DOCUMENT_TEMPLATES[id];
 
 export const renderDocumentTemplate = async (
   templateId: DocumentTemplateId,
   context: DocumentTemplateContext,
   options: RenderDocumentTemplateOptions = {}
 ): Promise<RenderedDocumentTemplate> => {
-  const template = DOCUMENT_TEMPLATES[templateId]
+  const template = DOCUMENT_TEMPLATES[templateId];
   if (!template) {
-    throw new Error(`Template ${templateId} is not defined`)
+    throw new Error(`Template ${templateId} is not defined`);
   }
 
-  ensureRequiredTokens(template, context)
+  ensureRequiredTokens(template, context);
 
-  const title = options.titleOverride ?? template.name
-  const textLines = buildSectionText(template, context)
-  const text = textLines.join('\n')
-  const html = buildSectionHtml(template, context)
-  const { bytes, blob } = await generatePdfDocument(title, template, context)
-  const fileName = options.fileName ?? computeDefaultFileName(template, context)
-  const tokens = collectTokens(template, context)
+  const title = options.titleOverride ?? template.name;
+  const textLines = buildSectionText(template, context);
+  const text = textLines.join('\n');
+  const html = buildSectionHtml(template, context);
+  const { bytes, blob } = await generatePdfDocument(title, template, context);
+  const fileName = options.fileName ?? computeDefaultFileName(template, context);
+  const tokens = collectTokens(template, context);
 
   return {
     template,
@@ -810,31 +670,31 @@ export const renderDocumentTemplate = async (
       blob,
       fileName
     }
-  }
-}
+  };
+};
 
 export const renderOfferLetter = (
   context: DocumentTemplateContext,
   options?: RenderDocumentTemplateOptions
-) => renderDocumentTemplate('offerLetter', context, options)
+) => renderDocumentTemplate('offerLetter', context, options);
 
 export const renderInterviewInvitation = (
   context: DocumentTemplateContext,
   options?: RenderDocumentTemplateOptions
-) => renderDocumentTemplate('interviewInvitation', context, options)
+) => renderDocumentTemplate('interviewInvitation', context, options);
 
 export const renderRejectionFeedback = (
   context: DocumentTemplateContext,
   options?: RenderDocumentTemplateOptions
-) => renderDocumentTemplate('rejectionFeedback', context, options)
+) => renderDocumentTemplate('rejectionFeedback', context, options);
 
 export const renderPaymentBalanceStatement = (
   context: DocumentTemplateContext,
   options?: RenderDocumentTemplateOptions
-) => renderDocumentTemplate('paymentBalanceStatement', context, options)
+) => renderDocumentTemplate('paymentBalanceStatement', context, options);
 
 export const renderTemplateById = (
   templateId: DocumentTemplateId,
   context: DocumentTemplateContext,
   options?: RenderDocumentTemplateOptions
-) => renderDocumentTemplate(templateId, context, options)
+) => renderDocumentTemplate(templateId, context, options);

@@ -90,63 +90,8 @@ export function useApplicationSlip({
     })
   }, [success])
 
-  useEffect(() => {
-    if (!success || !slipPayload || hasPersistedSlipRef.current) {
-      return
-    }
-
-    let cancelled = false
-
-    const persist = async () => {
-      setPersistingSlip(true)
-      try {
-        const result = await createApplicationSlip(slipPayload, { toast })
-
-        if (cancelled) {
-          setPersistingSlip(false)
-          return
-        }
-
-        if (result.error) {
-          console.error('Slip generation error:', result.error)
-          hasPersistedSlipRef.current = true
-          setPersistingSlip(false)
-          return
-        }
-
-        setSlipCache(prev => {
-          if (prev?.objectUrl && result.blob) {
-            URL.revokeObjectURL(prev.objectUrl)
-          }
-
-          const objectUrl = result.blob ? URL.createObjectURL(result.blob) : prev?.objectUrl
-
-          return {
-            objectUrl,
-            publicUrl: result.publicUrl || prev?.publicUrl,
-            path: result.path || prev?.path,
-            documentId: result.documentId || prev?.documentId
-          }
-        })
-
-        hasPersistedSlipRef.current = true
-        setPersistingSlip(false)
-      } catch (error) {
-        if (!cancelled) {
-          console.error('Automatic slip persistence failed:', error)
-          hasPersistedSlipRef.current = true
-          setPersistingSlip(false)
-        }
-      }
-    }
-
-    persist()
-
-    return () => {
-      cancelled = true
-      setPersistingSlip(false)
-    }
-  }, [success, slipPayload, toast, createApplicationSlip])
+  // Disabled automatic slip generation to prevent rate limiting and errors
+  // Slip is now generated only when user clicks download or email buttons
 
   const triggerDownload = useCallback((url: string, filename: string) => {
     const link = document.createElement('a')

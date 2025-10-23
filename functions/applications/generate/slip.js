@@ -1,5 +1,5 @@
 import { supabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js';
-import { generateApplicationSlip } from '../../_lib/applicationSlip.js';
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -83,49 +83,13 @@ export async function onRequest(context) {
       admin_feedback_date: application.admin_feedback_date
     };
 
-    // Generate PDF
-    const pdfBuffer = await generateApplicationSlip(slipData);
-
-    // Store in Supabase Storage
-    const fileName = `${user.id}/${application.application_number}/${Date.now()}-slip.pdf`;
-    const { data: uploadData, error: uploadError } = await supabaseAdminClient.storage
-      .from('app_docs')
-      .upload(fileName, pdfBuffer, {
-        contentType: 'application/pdf',
-        upsert: true
-      });
-
-    if (uploadError) {
-      console.error('Storage upload failed:', uploadError);
-    } else {
-      // Update application_documents table
-      const { data: publicUrl } = supabaseAdminClient.storage
-        .from('app_docs')
-        .getPublicUrl(uploadData.path);
-
-      await supabaseAdminClient
-        .from('application_documents')
-        .upsert({
-          application_id: application.id,
-          document_type: 'application_slip',
-          document_name: `Application Slip - ${application.application_number}.pdf`,
-          file_url: publicUrl.publicUrl,
-          system_generated: true,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'application_id,document_type'
-        });
-    }
-
-    // Return PDF
-    return new Response(pdfBuffer, {
+    // Return slip data for frontend generation
+    return new Response(JSON.stringify({ 
+      success: true,
+      data: slipData
+    }), {
       status: 200,
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="application-slip-${application.application_number}.pdf"`,
-        'Cache-Control': 'no-cache'
-      }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error) {

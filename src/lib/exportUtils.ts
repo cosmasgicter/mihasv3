@@ -250,12 +250,8 @@ export async function exportToPDF(
   source: ApplicationDataSource,
   filename: string = 'applications.pdf'
 ) {
-  const [{ default: jsPDF }, autoTableModule] = await Promise.all([
-    import('jspdf'),
-    import('jspdf-autotable')
-  ])
-
-  const autoTable = autoTableModule.default || autoTableModule
+  const { jsPDF } = await import('jspdf')
+  await import('jspdf-autotable')
 
   const doc = new jsPDF({ orientation: 'landscape' })
   const rows: string[][] = []
@@ -293,7 +289,7 @@ export async function exportToPDF(
 
   const exportTimestamp = new Date().toLocaleString()
 
-  autoTable(doc, {
+  (doc as any).autoTable({
     head: [Array.from(HEADERS)],
     body: rows,
     startY: 25,
@@ -314,7 +310,7 @@ export async function exportToPDF(
     margin: { top: 30, bottom: 15, left: 8, right: 8 },
     theme: 'grid',
     tableWidth: 'auto',
-    didDrawPage: (data) => {
+    didDrawPage: (data: any) => {
       doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
       doc.text('Applications Export', data.settings.margin.left, 15)

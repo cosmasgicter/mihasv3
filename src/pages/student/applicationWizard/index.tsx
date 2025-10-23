@@ -434,7 +434,7 @@ const ApplicationWizardContent = () => {
           </motion.div>
         )}
 
-        {!stepValidation.isValid && !isLastStep && (
+        {!stepValidation.isValid && !isLastStep && stepValidation.completedFields > 0 && (
           <motion.div className="rounded-md bg-warning/10 border border-warning/30 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-start">
               <Info className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
