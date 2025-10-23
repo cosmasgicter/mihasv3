@@ -15,29 +15,80 @@ export async function onRequestPost(context) {
   }
   
   try {
+    console.log('[SIGNUP] Request body:', JSON.stringify(body, null, 2));
     const { email, password, ...userData } = body;
     
-    // Create auth user
-    const { data: authData, error: authError } = await supabaseAdminClient.auth.admin.createUser({
+    // Create auth user using signUp (not admin.createUser)
+    const { data: authData, error: authError } = await supabaseAdminClient.auth.signUp({
       email,
       password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: userData.full_name,
-        phone: userData.phone,
-        date_of_birth: userData.date_of_birth,
-        sex: userData.sex,
-        residence_town: userData.residence_town,
-        nationality: userData.nationality,
-        next_of_kin_name: userData.next_of_kin_name,
-        next_of_kin_phone: userData.next_of_kin_phone
+      options: {
+        data: {
+          full_name: userData.full_name,
+          phone: userData.phone,
+          date_of_birth: userData.date_of_birth,
+          sex: userData.sex,
+          residence_town: userData.residence_town,
+          nationality: userData.nationality,
+          next_of_kin_name: userData.next_of_kin_name,
+          next_of_kin_phone: userData.next_of_kin_phone
+        }
       }
     });
     
     if (authError) {
-      console.error('Auth error:', authError);
-      return new Response(JSON.stringify({ error: authError.message }), {
+      console.error('[SIGNUP] Auth error FULL:', JSON.stringify({
+        message: authError.message,
+        name: authError.name,
+        code: authError.code,
+        status: authError.status,
+        stack: authError.stack
+      }, null, 2));
+      
+      // Check for duplicate email
+      if (authError.message?.includes('already registered') || authError.message?.includes('already exists')) {
+        return new Response(JSON.stringify({ 
+          error: 'This email is already registered. Please sign in instead.'
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      return new Response(JSON.stringify({ 
+        error: authError.message || 'Failed to create account',
+        code: authError.code,
+        status: authError.status,
+        details: authError.message
+      }), {
         status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    console.log('[SIGNUP] User created:', authData.user?.id);
+    
+    if (!authData.user) {
+      return new Response(JSON.stringify({ error: 'User creation failed' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check if profile already exists
+    const { data: existingProfile } = await supabaseAdminClient
+      .from('profiles')
+      .select('id')
+      .eq('id', authData.user.id)
+      .single();
+    
+    if (existingProfile) {
+      console.log('[SIGNUP] Profile already exists, skipping insert');
+      return new Response(JSON.stringify({ 
+        user: authData.user,
+        message: 'Account created successfully'
+      }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -64,7 +115,8 @@ export async function onRequestPost(context) {
       });
     
     if (profileError) {
-      console.error('Profile error FULL:', JSON.stringify(profileError, null, 2));
+      console.error('[SIGNUP] Profile error:', JSON.stringify(profileError, null, 2));
+      console.error('[SIGNUP] Profile data attempted:', JSON.stringify({ id: authData.user.id, email: authData.user.email, role: 'student' }, null, 2));
       await supabaseAdminClient.auth.admin.deleteUser(authData.user.id);
       return new Response(JSON.stringify({ 
         error: 'Failed to create profile',
@@ -86,10 +138,12 @@ export async function onRequestPost(context) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Signup error:', error);
+    console.error('[SIGNUP] Catch error:', error);
+    console.error('[SIGNUP] Error stack:', error.stack);
     return new Response(JSON.stringify({ 
       error: 'Database error creating new user',
-      details: error.message 
+      details: error.message,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n')
     }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
