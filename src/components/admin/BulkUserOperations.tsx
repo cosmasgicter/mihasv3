@@ -75,7 +75,7 @@ export function BulkUserOperations({
         <div className="flex items-center space-x-3">
           <button
             onClick={handleSelectAll}
-            className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-foreground"
+            className="flex items-center space-x-2 text-sm font-medium text-body hover:text-foreground"
           >
             {selectedUsers.length === users.length ? (
               <CheckSquare className="h-4 w-4 text-primary" />
@@ -87,7 +87,7 @@ export function BulkUserOperations({
             </span>
           </button>
           {selectedUsers.length > 0 && (
-            <span className="text-sm text-foreground">
+            <span className="text-sm text-body">
               {selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected
             </span>
           )}
@@ -122,7 +122,7 @@ export function BulkUserOperations({
       {/* User Selection List */}
       {selectedUsers.length > 0 && (
         <div className="bg-card rounded-lg border border-border p-4">
-          <h4 className="font-medium text-foreground mb-3 flex items-center">
+          <h4 className="font-medium text-body mb-3 flex items-center">
             <Users className="h-4 w-4 mr-2" />
             Selected Users ({selectedUsers.length})
           </h4>
@@ -137,11 +137,11 @@ export function BulkUserOperations({
                     <CheckSquare className="h-4 w-4" />
                   </button>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate" title={user.full_name || 'No name'}>{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
-                    <p className="text-xs text-foreground truncate" title={user.email}>{user.email?.replace(/[<>"'&]/g, '')}</p>
+                    <p className="text-sm font-medium text-body truncate" title={user.full_name || 'No name'}>{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
+                    <p className="text-xs text-body truncate" title={user.email}>{user.email?.replace(/[<>"'&]/g, '')}</p>
                   </div>
                 </div>
-                <span className="text-xs px-2 py-1 bg-skeleton text-foreground rounded">
+                <span className="text-xs px-2 py-1 bg-skeleton text-body rounded">
                   {user.role.replace('_', ' ').toUpperCase()}
                 </span>
               </div>
@@ -160,11 +160,11 @@ export function BulkUserOperations({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-foreground">
+            <p className="text-body">
               Update the role for {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}:
             </p>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-body mb-2">
                 New Role
               </label>
               <select
@@ -180,7 +180,7 @@ export function BulkUserOperations({
               </select>
             </div>
             <div className="bg-primary/5 border border-primary/30 rounded-lg p-3">
-              <p className="text-sm text-primary">
+              <p className="text-sm text-info-strong">
                 ℹ️ This will update the role for all selected users. This action cannot be undone.
               </p>
             </div>
@@ -214,7 +214,7 @@ export function BulkUserOperations({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-foreground">
+            <p className="text-body">
               Are you sure you want to delete {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}?
             </p>
             <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-3">
@@ -259,8 +259,8 @@ export function BulkUserOperations({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-3 bg-accent/10 border border-accent/30 rounded-lg">
-                  <p className="text-2xl font-bold text-accent">{operationResult.success}</p>
-                  <p className="text-sm text-accent">Successful</p>
+                  <p className="text-2xl font-bold text-warning-strong">{operationResult.success}</p>
+                  <p className="text-sm text-warning-strong">Successful</p>
                 </div>
                 <div className="text-center p-3 bg-destructive/5 border border-destructive/30 rounded-lg">
                   <p className="text-2xl font-bold text-destructive">{operationResult.failed}</p>

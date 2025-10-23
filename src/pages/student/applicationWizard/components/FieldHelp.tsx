@@ -12,7 +12,7 @@ export const FieldHelp = ({ title, description, example }: FieldHelpProps) => {
     <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger type="button" className="inline-flex items-center">
-          <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+          <HelpCircle className="h-4 w-4 text-caption hover:text-primary transition-colors" />
         </TooltipTrigger>
         <TooltipContent side="right" className="max-w-xs">
           <div className="space-y-1">

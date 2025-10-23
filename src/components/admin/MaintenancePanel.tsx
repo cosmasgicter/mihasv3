@@ -103,7 +103,7 @@ export function MaintenancePanel() {
           <CardContent>
             <div className="space-y-2">
               <p className="font-medium">Version {updateInfo.version}</p>
-              <div className="text-sm text-foreground">
+              <div className="text-sm text-body">
                 <p><strong>Features:</strong> {updateInfo.features.join(', ')}</p>
                 <p><strong>Fixes:</strong> {updateInfo.fixes.join(', ')}</p>
               </div>
@@ -136,8 +136,8 @@ export function MaintenancePanel() {
                       {task.status}
                     </Badge>
                   </div>
-                  <p className="text-sm text-foreground mb-2">{task.description}</p>
-                  <div className="flex items-center space-x-4 text-xs text-foreground">
+                  <p className="text-sm text-body mb-2">{task.description}</p>
+                  <div className="flex items-center space-x-4 text-xs text-body">
                     <span>Schedule: {task.schedule}</span>
                     <span>Next: {task.nextRun.toLocaleString()}</span>
                     {task.lastRun && (
@@ -174,13 +174,13 @@ export function MaintenancePanel() {
         <CardContent>
           <div className="space-y-2">
             {logs.length === 0 ? (
-              <p className="text-foreground text-center py-4">No maintenance logs</p>
+              <p className="text-body text-center py-4">No maintenance logs</p>
             ) : (
               logs.map((log, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border rounded">
                   <div>
                     <span className="font-medium">{log.task_name}</span>
-                    <div className="text-sm text-foreground">
+                    <div className="text-sm text-body">
                       {new Date(log.executed_at).toLocaleString()} • {log.duration}ms
                     </div>
                     {log.error_message && (

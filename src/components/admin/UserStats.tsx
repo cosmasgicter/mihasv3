@@ -70,7 +70,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       case 'academic_head':
         return 'bg-primary/10 text-primary-foreground border-blue-200'
       default:
-        return 'bg-accent text-foreground border-border'
+        return 'bg-accent text-body border-border'
     }
   }
 
@@ -136,7 +136,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
 
       {/* Role Distribution */}
       <div className="bg-card rounded-xl shadow-sm border border-border p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+        <h3 className="text-lg font-semibold text-body mb-4 flex items-center">
           <Shield className="h-5 w-5 mr-2 text-foreground" />
           Role Distribution
         </h3>
@@ -147,7 +147,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
               <div key={role} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted">
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(role)}
-                  <span className="font-medium text-foreground">{getRoleLabel(role)}</span>
+                  <span className="font-medium text-body">{getRoleLabel(role)}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getRoleColor(role)}`}>
@@ -159,7 +159,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
                       style={{ width: `${(count / stats.total) * 100}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm text-foreground w-12 text-right">
+                  <span className="text-sm text-body w-12 text-right">
                     {Math.round((count / stats.total) * 100)}%
                   </span>
                 </div>
@@ -170,7 +170,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
 
       {/* Recent Users */}
       <div className="bg-card rounded-xl shadow-sm border border-border p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+        <h3 className="text-lg font-semibold text-body mb-4 flex items-center">
           <Calendar className="h-5 w-5 mr-2 text-foreground" />
           Recent Users
         </h3>
@@ -181,22 +181,22 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
                 <div className="flex items-center space-x-3">
                   {getRoleIcon(user.role)}
                   <div>
-                    <p className="font-medium text-foreground">{sanitizeForDisplay(user.full_name) || 'No name'}</p>
-                    <p className="text-sm text-foreground">{sanitizeForDisplay(user.email)}</p>
+                    <p className="font-medium text-body">{sanitizeForDisplay(user.full_name) || 'No name'}</p>
+                    <p className="text-sm text-body">{sanitizeForDisplay(user.email)}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                     {getRoleLabel(user.role)}
                   </span>
-                  <p className="text-xs text-foreground mt-1">
+                  <p className="text-xs text-body mt-1">
                     {new Date(user.created_at).toLocaleDateString()}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-foreground text-center py-4">No recent users</p>
+            <p className="text-body text-center py-4">No recent users</p>
           )}
         </div>
       </div>

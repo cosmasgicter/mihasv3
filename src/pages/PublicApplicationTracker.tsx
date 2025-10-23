@@ -569,12 +569,12 @@ export default function PublicApplicationTracker() {
               </motion.div>
               
               <div>
-                <h2 className="text-responsive-3xl font-black text-foreground mb-3 sm:mb-4">
+                <h2 className="text-responsive-3xl font-black text-body mb-3 sm:mb-4">
                   Find Your Application
                 </h2>
                 <p className="text-base sm:text-xl text-gray-800 max-w-2xl mx-auto leading-relaxed px-4 font-medium">
-                  Enter your <span className="font-bold text-primary">application number</span> (e.g., MIHAS123456) or 
-                  <span className="font-bold text-foreground"> tracking code</span> to check status.
+                  Enter your <span className="font-bold text-info-strong">application number</span> (e.g., MIHAS123456) or 
+                  <span className="font-bold text-body"> tracking code</span> to check status.
                 </p>
               </div>
               
@@ -745,7 +745,7 @@ export default function PublicApplicationTracker() {
                           initial={maybeMotion({ scale: 0 })}
                           animate={maybeMotion({ scale: 1 })}
                           transition={maybeMotion({ delay: 0.5, type: "spring" })}
-                          className="inline-block bg-white/20 backdrop-blur-sm px-4 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-foreground font-black text-base sm:text-2xl border-2 border-white/30 shadow-lg"
+                          className="inline-block bg-white/20 backdrop-blur-sm px-4 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-body font-black text-base sm:text-2xl border-2 border-white/30 shadow-lg"
                         >
                           {application.status.replace('_', ' ').toUpperCase()}
                         </motion.span>
@@ -760,7 +760,7 @@ export default function PublicApplicationTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => setShowShareModal(true)}
-                            className="bg-white border-white/30 text-foreground hover:bg-white btn-mobile touch-target"
+                            className="bg-white border-white/30 text-body hover:bg-white btn-mobile touch-target"
                           >
                             <Share2 className="h-4 w-4 mr-2" />
                             Share
@@ -769,7 +769,7 @@ export default function PublicApplicationTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => copyToClipboard(application.application_number)}
-                            className="bg-white border-white/30 text-foreground hover:bg-white btn-mobile touch-target"
+                            className="bg-white border-white/30 text-body hover:bg-white btn-mobile touch-target"
                           >
                             <Copy className="h-4 w-4 mr-2" />
                             {copied ? 'Copied!' : 'Copy #'}
@@ -781,7 +781,7 @@ export default function PublicApplicationTracker() {
                             size="sm"
                             onClick={handleDownloadSlip}
                             loading={slipLoading}
-                            className="bg-white border-white/30 text-foreground hover:bg-white btn-mobile touch-target"
+                            className="bg-white border-white/30 text-body hover:bg-white btn-mobile touch-target"
                           >
                             <Download className="h-4 w-4 mr-2" />
                             Download Slip
@@ -791,7 +791,7 @@ export default function PublicApplicationTracker() {
                             size="sm"
                             onClick={handleEmailSlip}
                             loading={emailLoading}
-                            className="bg-white border-white/30 text-foreground hover:bg-white btn-mobile touch-target"
+                            className="bg-white border-white/30 text-body hover:bg-white btn-mobile touch-target"
                           >
                             <Mail className="h-4 w-4 mr-2" />
                             Email Me the Slip
@@ -812,7 +812,7 @@ export default function PublicApplicationTracker() {
                         animate={maybeMotion({ opacity: 1, y: 0 })}
                         transition={maybeMotion({ delay: 0.6 })}
                       >
-                        <h4 className="text-responsive-2xl font-black text-foreground mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
+                        <h4 className="text-responsive-2xl font-black text-body mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
                           <span className="text-2xl sm:text-3xl">📊</span>
                           <span>Current Status</span>
                         </h4>
@@ -886,7 +886,7 @@ export default function PublicApplicationTracker() {
                       transition={maybeMotion({ delay: 0.8 })}
                       className="space-y-4 sm:space-y-6"
                     >
-                      <h4 className="text-responsive-2xl font-black text-foreground mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
+                      <h4 className="text-responsive-2xl font-black text-body mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
                         <span className="text-2xl sm:text-3xl">📄</span>
                         <span>Details</span>
                       </h4>
@@ -1087,7 +1087,7 @@ export default function PublicApplicationTracker() {
                   </motion.div>
                   
                   <div>
-                    <h3 className="text-4xl font-black text-foreground mb-6">
+                    <h3 className="text-4xl font-black text-body mb-6">
                       No Application Found
                     </h3>
                     <p className="text-xl text-gray-800 max-w-2xl mx-auto leading-relaxed mb-8 font-medium">
@@ -1138,7 +1138,7 @@ export default function PublicApplicationTracker() {
         >
           <AnimatedCard glassEffect>
             <div className="text-center mb-12">
-              <h3 className="text-4xl font-black text-foreground mb-4 flex items-center justify-center space-x-3">
+              <h3 className="text-4xl font-black text-body mb-4 flex items-center justify-center space-x-3">
                 <span>❓</span>
                 <span>Need Help?</span>
               </h3>
@@ -1149,7 +1149,7 @@ export default function PublicApplicationTracker() {
               <AnimatedCard className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200" hover3d>
                 <div className="text-center space-y-4">
                   <div className="text-5xl">📍</div>
-                  <h4 className="font-black text-foreground text-2xl">
+                  <h4 className="font-black text-body text-2xl">
                     Where to find your application number?
                   </h4>
                   <ul className="text-gray-800 space-y-3 text-lg text-left">
@@ -1172,7 +1172,7 @@ export default function PublicApplicationTracker() {
               <AnimatedCard className="bg-gradient-to-br from-green-50 to-emerald-50 border border-yellow-200" hover3d delay={0.1}>
                 <div className="text-center space-y-4">
                   <div className="text-5xl">📊</div>
-                  <h4 className="font-black text-foreground text-2xl">
+                  <h4 className="font-black text-body text-2xl">
                     Application Status Meanings
                   </h4>
                   <ul className="text-gray-800 space-y-3 text-lg text-left">
@@ -1213,7 +1213,7 @@ export default function PublicApplicationTracker() {
                   <MapPin className="h-8 w-8 text-secondary" />
                 </div>
                 
-                <h4 className="text-3xl font-black text-foreground">
+                <h4 className="text-3xl font-black text-body">
                   📞 Contact Information
                 </h4>
                 
@@ -1255,7 +1255,7 @@ export default function PublicApplicationTracker() {
                 className="bg-card rounded-2xl p-8 max-w-md w-full"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h3 className="text-2xl font-bold text-foreground mb-6 text-center">
+                <h3 className="text-2xl font-bold text-body mb-6 text-center">
                   📤 Share Application Status
                 </h3>
                 

@@ -34,7 +34,7 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
           <p className="mt-1 text-sm text-destructive">{error}</p>
         )}
         {helperText && !error && (
-          <p className="mt-1 text-sm text-secondary">{helperText}</p>
+          <p className="mt-1 text-sm text-body-secondary">{helperText}</p>
         )}
       </div>
     )

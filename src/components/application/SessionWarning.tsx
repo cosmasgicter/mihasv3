@@ -60,13 +60,13 @@ export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningP
           ) : (
             <AlertTriangle className="h-6 w-6 text-error" />
           )}
-          <h3 className="text-lg font-semibold text-foreground">
+          <h3 className="text-lg font-semibold text-body">
             Session {warning.type === 'timeout' ? 'Timeout Warning' : 'Expired'}
           </h3>
         </div>
 
         <div className="mb-6">
-          <p className="text-foreground mb-3">{warning.message}</p>
+          <p className="text-body mb-3">{warning.message}</p>
           
           {timeLeft > 0 && (
             <div className="bg-accent/5 border border-yellow-200 rounded-lg p-3">
@@ -112,7 +112,7 @@ export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningP
           </Button>
         </div>
 
-        <div className="mt-4 text-xs text-foreground text-center">
+        <div className="mt-4 text-xs text-body text-center">
           Your progress is automatically saved and will be preserved even if the session expires.
         </div>
       </div>

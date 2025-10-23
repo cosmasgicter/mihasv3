@@ -64,10 +64,10 @@ export function DashboardRedirect() {
               </div>
             </div>
             <div className="text-center space-y-2">
-              <h3 className="text-lg font-semibold text-foreground">
+              <h3 className="text-lg font-semibold text-body">
                 {loading ? 'Loading...' : 'Loading your profile...'}
               </h3>
-              <p className="text-sm text-muted-foreground">Please wait a moment...</p>
+              <p className="text-sm text-caption">Please wait a moment...</p>
             </div>
             <div className="w-full bg-muted rounded-full h-1 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-blue-600 to-purple-600 animate-[loading_2s_ease-in-out_infinite]" style={{ width: '100%' }} />

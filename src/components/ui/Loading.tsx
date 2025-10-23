@@ -37,7 +37,7 @@ export function Loading({ size = 'md', text, fullScreen = false }: LoadingProps)
       </div>
       {text && (
         <motion.p
-          className="text-sm text-foreground"
+          className="text-sm text-body-secondary"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}

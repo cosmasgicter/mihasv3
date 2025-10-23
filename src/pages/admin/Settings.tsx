@@ -399,22 +399,22 @@ export default function AdminSettings() {
           <div className="p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{settings.length}</div>
-                <div className="text-sm text-foreground">Total Settings</div>
+                <div className="text-2xl font-bold text-info-strong">{settings.length}</div>
+                <div className="text-sm text-body">Total Settings</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-accent">{settings.filter(s => s.is_public).length}</div>
-                <div className="text-sm text-foreground">Public</div>
+                <div className="text-2xl font-bold text-warning-strong">{settings.filter(s => s.is_public).length}</div>
+                <div className="text-sm text-body">Public</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-destructive">{settings.filter(s => !s.is_public).length}</div>
-                <div className="text-sm text-foreground">Private</div>
+                <div className="text-sm text-body">Private</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-2xl font-bold text-body">
                   {new Set(settings.map(s => s.setting_type)).size}
                 </div>
-                <div className="text-sm text-foreground">Data Types</div>
+                <div className="text-sm text-body">Data Types</div>
               </div>
             </div>
           </div>
@@ -507,7 +507,7 @@ export default function AdminSettings() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-foreground">Loading settings...</p>
+                  <p className="mt-4 text-lg text-body">Loading settings...</p>
                 </div>
               </div>
             ) : (
@@ -515,7 +515,7 @@ export default function AdminSettings() {
                 {/* Add New Setting Form */}
                 {showAddForm && (
                   <div className="bg-primary/5 border border-primary/30 rounded-xl p-6 mb-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                    <h3 className="text-lg font-semibold text-body mb-4 flex items-center">
                       <Plus className="h-5 w-5 mr-2" />
                       Add New Setting
                     </h3>
@@ -527,7 +527,7 @@ export default function AdminSettings() {
                         placeholder="e.g., max_file_size"
                       />
                       <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Type</label>
+                        <label className="block text-sm font-medium text-body mb-1">Type</label>
                         <select
                           value={newSetting.setting_type}
                           onChange={(e) => setNewSetting({...newSetting, setting_type: e.target.value as any})}
@@ -553,7 +553,7 @@ export default function AdminSettings() {
                           onChange={(e) => setNewSetting({...newSetting, is_public: e.target.checked})}
                           className="rounded border-input text-primary focus:ring-blue-500"
                         />
-                        <label htmlFor="is_public" className="text-sm font-medium text-foreground">
+                        <label htmlFor="is_public" className="text-sm font-medium text-body">
                           Public Setting
                         </label>
                       </div>
@@ -583,7 +583,7 @@ export default function AdminSettings() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {Object.entries(groupedSettings).map(([category, categorySettings]) => (
                       <div key={category} className="space-y-3">
-                        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide px-2">
+                        <h3 className="text-sm font-semibold text-body uppercase tracking-wide px-2">
                           {category}
                         </h3>
                         {categorySettings.map((setting) => (
@@ -592,7 +592,7 @@ export default function AdminSettings() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
                                   <Database className="h-4 w-4 text-foreground" />
-                                  <span className="text-sm font-semibold text-foreground">{setting.setting_key}</span>
+                                  <span className="text-sm font-semibold text-body">{setting.setting_key}</span>
                                 </div>
                                 <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
                                   setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
@@ -610,10 +610,10 @@ export default function AdminSettings() {
                               </span>
                             </div>
                             <div className="mb-3">
-                              <div className="text-lg font-bold text-foreground mb-1">
+                              <div className="text-lg font-bold text-body mb-1">
                                 {formatValue(setting.setting_value, setting.setting_type)}
                               </div>
-                              <p className="text-xs text-foreground">{setting.description || 'No description'}</p>
+                              <p className="text-xs text-body">{setting.description || 'No description'}</p>
                             </div>
                             <div className="flex gap-2">
                               <Button
@@ -645,22 +645,22 @@ export default function AdminSettings() {
                       <table className="min-w-full divide-y divide-border">
                       <thead className="bg-muted">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
                             Setting Key
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
                             Value
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
                             Type
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
                             Visibility
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
                             Description
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-foreground uppercase tracking-wider">
+                          <th className="px-6 py-3 text-right text-xs font-medium text-body uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -670,8 +670,8 @@ export default function AdminSettings() {
                           <tr key={setting.id} className="hover:bg-muted">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                <Database className="h-4 w-4 text-foreground mr-2" />
-                                <span className="text-sm font-medium text-foreground">{setting.setting_key}</span>
+                                <Database className="h-4 w-4 text-body mr-2" />
+                                <span className="text-sm font-medium text-body">{setting.setting_key}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4">
@@ -682,7 +682,7 @@ export default function AdminSettings() {
                                   className="w-full"
                                 />
                               ) : (
-                                <span className="text-sm text-foreground break-words">
+                                <span className="text-sm text-body break-words">
                                   {formatValue(setting.setting_value, setting.setting_type)}
                                 </span>
                               )}
@@ -726,7 +726,7 @@ export default function AdminSettings() {
                                   placeholder="Description"
                                 />
                               ) : (
-                                <span className="text-sm text-foreground break-words">
+                                <span className="text-sm text-body break-words">
                                   {setting.description || 'No description'}
                                 </span>
                               )}
@@ -779,9 +779,9 @@ export default function AdminSettings() {
                   
                   {filteredSettings.length === 0 && (
                     <div className="text-center py-12">
-                      <Database className="h-12 w-12 text-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-foreground mb-2">No settings found</h3>
-                      <p className="text-foreground mb-4">
+                      <Database className="h-12 w-12 text-body mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-body mb-2">No settings found</h3>
+                      <p className="text-body mb-4">
                         {searchTerm ? 'No settings match your search criteria.' : 'No settings configured yet.'}
                       </p>
                       {!searchTerm && (

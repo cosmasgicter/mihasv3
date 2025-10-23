@@ -83,20 +83,20 @@ export function NotificationPreferences() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Notification Preferences</h2>
-        <p className="text-foreground">Choose how you want to receive notifications</p>
+        <h2 className="text-2xl font-bold text-body mb-2">Notification Preferences</h2>
+        <p className="text-body">Choose how you want to receive notifications</p>
       </div>
 
       {/* Channels */}
       <div className="bg-card rounded-lg border border-border p-6 space-y-4">
-        <h3 className="font-semibold text-foreground mb-4">Notification Channels</h3>
+        <h3 className="font-semibold text-body mb-4">Notification Channels</h3>
         
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div className="flex items-center gap-3">
             <Mail className="h-5 w-5 text-primary" />
             <div>
-              <p className="font-medium text-foreground">Email Notifications</p>
-              <p className="text-sm text-foreground">Receive updates via email</p>
+              <p className="font-medium text-body">Email Notifications</p>
+              <p className="text-sm text-body">Receive updates via email</p>
             </div>
           </div>
           <input
@@ -111,8 +111,8 @@ export function NotificationPreferences() {
           <div className="flex items-center gap-3">
             <MessageSquare className="h-5 w-5 text-accent" />
             <div>
-              <p className="font-medium text-foreground">SMS Notifications</p>
-              <p className="text-sm text-foreground">Receive updates via SMS</p>
+              <p className="font-medium text-body">SMS Notifications</p>
+              <p className="text-sm text-body">Receive updates via SMS</p>
             </div>
           </div>
           <input
@@ -127,8 +127,8 @@ export function NotificationPreferences() {
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-secondary" />
             <div>
-              <p className="font-medium text-foreground">Push Notifications</p>
-              <p className="text-sm text-foreground">Receive in-app notifications</p>
+              <p className="font-medium text-body">Push Notifications</p>
+              <p className="text-sm text-body">Receive in-app notifications</p>
             </div>
           </div>
           <input
@@ -142,12 +142,12 @@ export function NotificationPreferences() {
 
       {/* Types */}
       <div className="bg-card rounded-lg border border-border p-6 space-y-4">
-        <h3 className="font-semibold text-foreground mb-4">Notification Types</h3>
+        <h3 className="font-semibold text-body mb-4">Notification Types</h3>
         
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div>
-            <p className="font-medium text-foreground">Application Updates</p>
-            <p className="text-sm text-foreground">Status changes and decisions</p>
+            <p className="font-medium text-body">Application Updates</p>
+            <p className="text-sm text-body">Status changes and decisions</p>
           </div>
           <input
             type="checkbox"
@@ -162,8 +162,8 @@ export function NotificationPreferences() {
 
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div>
-            <p className="font-medium text-foreground">Interview Schedules</p>
-            <p className="text-sm text-foreground">Interview invitations and reminders</p>
+            <p className="font-medium text-body">Interview Schedules</p>
+            <p className="text-sm text-body">Interview invitations and reminders</p>
           </div>
           <input
             type="checkbox"
@@ -178,8 +178,8 @@ export function NotificationPreferences() {
 
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div>
-            <p className="font-medium text-foreground">Document Ready</p>
-            <p className="text-sm text-foreground">Acceptance letters and receipts</p>
+            <p className="font-medium text-body">Document Ready</p>
+            <p className="text-sm text-body">Acceptance letters and receipts</p>
           </div>
           <input
             type="checkbox"

@@ -201,36 +201,36 @@ export default function NotificationSettings() {
               <details.Icon className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">{details.title}</h2>
-              <p className="text-sm text-foreground">{details.description} <span className="text-accent font-medium">(Enabled by default)</span></p>
+              <h2 className="text-lg font-bold text-body">{details.title}</h2>
+              <p className="text-sm text-body">{details.description} <span className="text-accent font-medium">(Enabled by default)</span></p>
             </div>
           </div>
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-accent text-foreground border border-border'
+              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-accent text-body border border-border'
             }`}
           >
             {optedIn ? 'Enabled' : 'Disabled'}
           </span>
         </div>
 
-        <div className="space-y-2 text-sm text-foreground">
+        <div className="space-y-2 text-sm text-body">
           {optedIn && summary.optInAt && (
             <p>
               <span className="font-semibold">Opted in:</span> {summary.optInAt}
-              {summary.source && <span className="text-foreground"> · via {summary.source}</span>}
+              {summary.source && <span className="text-body"> · via {summary.source}</span>}
             </p>
           )}
 
           {!optedIn && summary.optOutAt && (
             <p>
               <span className="font-semibold">Consent revoked:</span> {summary.optOutAt}
-              {summary.optOutReason && <span className="text-foreground"> · {summary.optOutReason}</span>}
+              {summary.optOutReason && <span className="text-body"> · {summary.optOutReason}</span>}
             </p>
           )}
 
           {!optedIn && !summary.optOutAt && (
-            <p className="text-foreground">This channel is enabled by default. You can opt out if you prefer.</p>
+            <p className="text-body">This channel is enabled by default. You can opt out if you prefer.</p>
           )}
 
           {disableGrant && (
@@ -244,15 +244,15 @@ export default function NotificationSettings() {
             </div>
           )}
 
-          <div className="flex flex-col gap-2 text-xs text-foreground">
-            <span className="uppercase tracking-wide text-foreground font-semibold">Current contact</span>
-            <span className="text-sm text-foreground">{preferences?.phone || 'No phone number on file'}</span>
+          <div className="flex flex-col gap-2 text-xs text-body">
+            <span className="uppercase tracking-wide text-body font-semibold">Current contact</span>
+            <span className="text-sm text-body">{preferences?.phone || 'No phone number on file'}</span>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-border">
-          <div className="text-xs text-foreground">
-            Priority: <span className="font-medium text-foreground">{entry.priority}</span>
+          <div className="text-xs text-body">
+            Priority: <span className="font-medium text-body">{entry.priority}</span>
           </div>
           <Button
             type="button"

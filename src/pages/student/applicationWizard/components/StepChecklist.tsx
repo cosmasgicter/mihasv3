@@ -22,7 +22,7 @@ export const StepChecklist = ({ items, title = 'Step Checklist' }: StepChecklist
       className="bg-card border border-border rounded-lg p-4"
     >
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <h3 className="text-sm font-semibold text-body">{title}</h3>
         <span className={`text-xs font-medium ${allCompleted ? 'text-success' : 'text-muted-foreground'}`}>
           {completedCount}/{items.length}
         </span>
@@ -39,7 +39,7 @@ export const StepChecklist = ({ items, title = 'Step Checklist' }: StepChecklist
             {item.completed ? (
               <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
             ) : (
-              <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <Circle className="h-4 w-4 text-caption flex-shrink-0" />
             )}
             <span className={`text-sm ${item.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
               {item.label}

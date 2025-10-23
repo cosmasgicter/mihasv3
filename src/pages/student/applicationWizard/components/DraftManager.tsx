@@ -95,13 +95,13 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                  <h2 className="text-xl font-semibold text-body flex items-center gap-2">
                     <FileText className="h-5 w-5" />
                     My Drafts
                   </h2>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-caption hover:text-foreground"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -129,9 +129,9 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                 </div>
 
                 {loading ? (
-                  <div className="text-center py-8 text-muted-foreground">Loading drafts...</div>
+                  <div className="text-center py-8 text-caption">Loading drafts...</div>
                 ) : drafts.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-caption">
                     <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
                     <p>No drafts yet</p>
                     <p className="text-xs mt-1">Create a new draft to get started</p>
@@ -172,14 +172,14 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                           </div>
                         ) : (
                           <div className="flex items-start justify-between mb-2">
-                            <h3 className="font-medium text-foreground">{draft.draft_name}</h3>
+                            <h3 className="font-medium text-body">{draft.draft_name}</h3>
                             <div className="flex gap-1">
                               <button
                                 onClick={() => {
                                   setEditingId(draft.id)
                                   setEditName(draft.draft_name)
                                 }}
-                                className="text-muted-foreground hover:text-foreground p-1"
+                                className="text-caption hover:text-body p-1"
                               >
                                 <Edit2 className="h-3.5 w-3.5" />
                               </button>
@@ -191,7 +191,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                                     console.error('Failed to delete draft:', error)
                                   }
                                 }}
-                                className="text-muted-foreground hover:text-destructive p-1"
+                                className="text-caption hover:text-destructive p-1"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -199,7 +199,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                           </div>
                         )}
                         
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                        <div className="flex items-center gap-2 text-xs text-caption mb-3">
                           <Clock className="h-3 w-3" />
                           <span>Updated {formatDate(draft.updated_at)}</span>
                         </div>

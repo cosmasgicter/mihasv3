@@ -16,13 +16,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label className="block text-sm font-medium text-body mb-1.5">
             {label}
           </label>
         )}
         <div className="relative">
           {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-body">
               {icon}
             </div>
           )}
@@ -70,7 +70,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </motion.p>
         )}
         {helperText && !error && (
-          <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-foreground">
+          <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-body">
             {helperText}
           </p>
         )}

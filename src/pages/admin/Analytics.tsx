@@ -227,7 +227,7 @@ export default function Analytics() {
  <Button
  onClick={refreshData}
  disabled={refreshing}
- className="bg-card/80 hover:bg-card/80 text-foreground border-white/30"
+ className="bg-card/80 hover:bg-card/80 text-body border-white/30"
  >
  <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
  Refresh
@@ -267,8 +267,8 @@ export default function Analytics() {
  activeTab === tab.key
  ? 'border-success text-success bg-green-50'
  : disabled
- ? 'border-transparent text-foreground cursor-not-allowed'
- : 'border-transparent text-foreground hover:text-foreground hover:border-input'
+ ? 'border-transparent text-body cursor-not-allowed'
+ : 'border-transparent text-body hover:text-body hover:border-input'
  }`}
  >
  <Icon className="h-4 w-4 mr-2" />
@@ -283,7 +283,7 @@ export default function Analytics() {
  {/* Filters & Actions */}
  <div className="bg-card rounded-2xl shadow-lg border border-border p-6 mb-8">
  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-4">
- <h3 className="text-lg font-bold text-foreground flex items-center">
+ <h3 className="text-lg font-bold text-body flex items-center">
  <Filter className="h-5 w-5 mr-2" />
  Filters & Actions
  </h3>
@@ -321,7 +321,7 @@ export default function Analytics() {
  </div>
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Start Date</label>
+ <label className="block text-sm font-medium text-body mb-2">Start Date</label>
  <input
  type="date"
  value={dateRange.start}
@@ -330,7 +330,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">End Date</label>
+ <label className="block text-sm font-medium text-body mb-2">End Date</label>
  <input
  type="date"
  value={dateRange.end}
@@ -339,7 +339,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label htmlFor="quick_range" className="block text-sm font-medium text-foreground mb-2">Quick Range</label>
+ <label htmlFor="quick_range" className="block text-sm font-medium text-body mb-2">Quick Range</label>
  <select
  id="quick_range"
  onChange={(e) => {
@@ -361,7 +361,7 @@ export default function Analytics() {
  </select>
  </div>
  <div>
- <label htmlFor="export_format" className="block text-sm font-medium text-foreground mb-2">Export Format</label>
+ <label htmlFor="export_format" className="block text-sm font-medium text-body mb-2">Export Format</label>
  <select
  id="export_format"
  value={exportFormat}
@@ -384,9 +384,9 @@ export default function Analytics() {
  <div className="bg-card rounded-2xl shadow-lg border border-border p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
  <div className="flex items-center justify-between">
  <div>
- <p className="text-sm font-medium text-foreground mb-1">Total Applications</p>
- <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">{totalApplications}</p>
- <p className="text-xs text-foreground mt-1">+12% from last month</p>
+ <p className="text-sm font-medium text-body mb-1">Total Applications</p>
+ <p className="text-2xl sm:text-3xl font-bold text-body break-words">{totalApplications}</p>
+ <p className="text-xs text-body mt-1">+12% from last month</p>
  </div>
  <div className="p-3 bg-primary/10 rounded-2xl">
  <FileText className="h-8 w-8 text-primary" />
@@ -397,9 +397,9 @@ export default function Analytics() {
  <div className="bg-card rounded-2xl shadow-lg border border-border p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
  <div className="flex items-center justify-between">
  <div>
- <p className="text-sm font-medium text-foreground mb-1">Approval Rate</p>
+ <p className="text-sm font-medium text-body mb-1">Approval Rate</p>
  <p className="text-2xl sm:text-3xl font-bold text-accent break-words">{overallApprovalRate}%</p>
- <p className="text-xs text-foreground mt-1">+5% from last month</p>
+ <p className="text-xs text-body mt-1">+5% from last month</p>
  </div>
  <div className="p-3 bg-accent/10 rounded-2xl">
  <CheckCircle className="h-8 w-8 text-accent" />
@@ -410,9 +410,9 @@ export default function Analytics() {
  <div className="bg-card rounded-2xl shadow-lg border border-border p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
  <div className="flex items-center justify-between">
  <div>
- <p className="text-sm font-medium text-foreground mb-1">Eligibility Success</p>
- <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">{avgEligibilitySuccess}%</p>
- <p className="text-xs text-foreground mt-1">+8% from last month</p>
+ <p className="text-sm font-medium text-body mb-1">Eligibility Success</p>
+ <p className="text-2xl sm:text-3xl font-bold text-body break-words">{avgEligibilitySuccess}%</p>
+ <p className="text-xs text-body mt-1">+8% from last month</p>
  </div>
  <div className="p-3 bg-secondary/10 rounded-2xl">
  <TrendingUp className="h-8 w-8 text-secondary" />
@@ -423,9 +423,9 @@ export default function Analytics() {
  <div className="bg-card rounded-2xl shadow-lg border border-border p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
  <div className="flex items-center justify-between">
  <div>
- <p className="text-sm font-medium text-foreground mb-1">Active Users</p>
- <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">{uniqueUsers}</p>
- <p className="text-xs text-foreground mt-1">+15% from last month</p>
+ <p className="text-sm font-medium text-body mb-1">Active Users</p>
+ <p className="text-2xl sm:text-3xl font-bold text-body break-words">{uniqueUsers}</p>
+ <p className="text-xs text-body mt-1">+15% from last month</p>
  </div>
  <div className="p-3 bg-primary/10 rounded-2xl">
  <Users className="h-8 w-8 text-secondary" />
@@ -437,7 +437,7 @@ export default function Analytics() {
  {/* Program Analytics */}
  <div className="bg-card rounded-2xl shadow-lg border border-border mb-8 overflow-hidden">
  <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border">
- <h3 className="text-xl font-bold text-foreground flex items-center">
+ <h3 className="text-xl font-bold text-body flex items-center">
  <Trophy className="w-5 h-5" /> Program Performance
  </h3>
  </div>
@@ -446,19 +446,19 @@ export default function Analytics() {
  <table className="min-w-full divide-y divide-border">
  <thead className="bg-gradient-to-r from-muted to-blue-50">
  <tr>
- <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
+ <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
  <GraduationCap className="w-5 h-5" /> Program
  </th>
- <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
+ <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
  <FileText className="w-5 h-5" /> Applications
  </th>
- <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
+ <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
  ✅ Approval Rate
  </th>
- <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
+ <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
  ⏱️ Avg Processing
  </th>
- <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
+ <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
  Actions
  </th>
  </tr>
@@ -467,7 +467,7 @@ export default function Analytics() {
  {programAnalytics.map((program, index) => (
  <tr key={index} className="hover:bg-primary/5 transition-colors">
  <td className="px-6 py-4">
- <div className="font-semibold text-foreground">{sanitizeForDisplay(program.programName)}</div>
+ <div className="font-semibold text-body">{sanitizeForDisplay(program.programName)}</div>
  </td>
  <td className="px-6 py-4">
  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary-foreground">
@@ -520,7 +520,7 @@ export default function Analytics() {
  {activeTab === 'applications' && (
  <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
  <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border flex justify-between items-center">
- <h3 className="text-xl font-bold text-foreground"><FileText className="w-5 h-5" /> Application Statistics</h3>
+ <h3 className="text-xl font-bold text-body"><FileText className="w-5 h-5" /> Application Statistics</h3>
  <Button
  onClick={() => {
  setCreateType('application')
@@ -538,24 +538,24 @@ export default function Analytics() {
  <table className="min-w-full divide-y divide-border">
  <thead className="bg-muted">
  <tr>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Date</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Total</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Submitted</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Approved</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Rejected</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Actions</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Date</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Total</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Submitted</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Approved</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Rejected</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Actions</th>
  </tr>
  </thead>
  <tbody className="bg-card divide-y divide-border">
  {applicationStats.map((stat, index) => (
  <tr key={index} className="hover:bg-muted">
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
  {new Date(stat.date).toLocaleDateString()}
  </td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{stat.totalApplications}</td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{stat.submittedApplications}</td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{stat.approvedApplications}</td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{stat.rejectedApplications}</td>
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">{stat.totalApplications}</td>
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">{stat.submittedApplications}</td>
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">{stat.approvedApplications}</td>
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">{stat.rejectedApplications}</td>
  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
  <div className="flex space-x-2">
  <Button
@@ -591,7 +591,7 @@ export default function Analytics() {
  {activeTab === 'eligibility' && (
  <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
  <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border flex justify-between items-center">
- <h3 className="text-xl font-bold text-foreground">✅ Eligibility Analytics</h3>
+ <h3 className="text-xl font-bold text-body">✅ Eligibility Analytics</h3>
  <Button
  onClick={() => {
  setCreateType('eligibility')
@@ -609,22 +609,22 @@ export default function Analytics() {
  <table className="min-w-full divide-y divide-border">
  <thead className="bg-muted">
  <tr>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Date</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Total Checks</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Passed</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Success Rate</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Actions</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Date</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Total Checks</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Passed</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Success Rate</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Actions</th>
  </tr>
  </thead>
  <tbody className="bg-card divide-y divide-border">
  {eligibilityAnalytics.map((analytics, index) => (
  <tr key={index} className="hover:bg-muted">
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
  {new Date(analytics.date).toLocaleDateString()}
  </td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{analytics.totalChecks}</td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{analytics.passedChecks}</td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">{analytics.totalChecks}</td>
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">{analytics.passedChecks}</td>
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
  analytics.successRate >= 70 
  ? 'bg-accent/10 text-accent-foreground'
@@ -670,7 +670,7 @@ export default function Analytics() {
  {activeTab === 'programs' && (
  <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
  <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border flex justify-between items-center">
- <h3 className="text-xl font-bold text-foreground"><GraduationCap className="w-5 h-5" /> Program Analytics</h3>
+ <h3 className="text-xl font-bold text-body"><GraduationCap className="w-5 h-5" /> Program Analytics</h3>
  <Button
  onClick={() => {
  setCreateType('program')
@@ -688,24 +688,24 @@ export default function Analytics() {
  <table className="min-w-full divide-y divide-border">
  <thead className="bg-muted">
  <tr>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Program</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Applications</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Approval Rate</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Completion Rate</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Avg Processing (days)</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">Actions</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Program</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Applications</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Approval Rate</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Completion Rate</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Avg Processing (days)</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">Actions</th>
  </tr>
  </thead>
  <tbody className="bg-card divide-y divide-border">
  {programAnalytics.map((program, index) => (
  <tr key={index} className="hover:bg-muted">
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
  {sanitizeForDisplay(program.programName)}
  </td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{program.applicationsCount}</td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{program.approvalRate}%</td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{program.completionRate}%</td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{program.averageProcessingDays}</td>
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">{program.applicationsCount}</td>
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">{program.approvalRate}%</td>
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">{program.completionRate}%</td>
+ <td className="px-6 py-4 whitespace-nowrap text-sm text-body">{program.averageProcessingDays}</td>
  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
  <div className="flex space-x-2">
  <Button
@@ -740,18 +740,18 @@ export default function Analytics() {
 
  {activeTab === 'reports' && (
  !canManageReports ? (
- <div className="bg-card rounded-2xl shadow-lg border border-border p-6 text-center text-sm text-accent">
+ <div className="bg-card rounded-2xl shadow-lg border border-border p-6 text-center text-sm text-warning-strong">
  You do not have permission to view analytics reports.
  </div>
  ) : (
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
  <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
  <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border">
- <h3 className="text-xl font-bold text-foreground">📄 Automated Reports</h3>
+ <h3 className="text-xl font-bold text-body">📄 Automated Reports</h3>
  </div>
  <div className="p-6">
  {automatedReports.length === 0 ? (
- <div className="text-center text-sm text-foreground py-6">
+ <div className="text-center text-sm text-body py-6">
  No automated reports available yet. Generate a report to populate this list.
  </div>
  ) : (
@@ -760,9 +760,9 @@ export default function Analytics() {
  <div key={index} className="border border-border rounded-lg p-4 hover:bg-muted">
  <div className="flex justify-between items-start">
  <div>
- <h4 className="font-semibold text-foreground">{sanitizeForDisplay(report.reportName)}</h4>
- <p className="text-sm text-foreground">{sanitizeForDisplay(report.reportType)}</p>
- <p className="text-xs text-foreground">{new Date(report.createdAt || '').toLocaleString()}</p>
+ <h4 className="font-semibold text-body">{sanitizeForDisplay(report.reportName)}</h4>
+ <p className="text-sm text-body">{sanitizeForDisplay(report.reportType)}</p>
+ <p className="text-xs text-body">{new Date(report.createdAt || '').toLocaleString()}</p>
  </div>
  <div className="flex space-x-2">
  <Button
@@ -813,7 +813,7 @@ export default function Analytics() {
  >
  <div className="space-y-4">
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Date</label>
+ <label className="block text-sm font-medium text-body mb-2">Date</label>
  <input
  type="date"
  value={formData.date || ''}
@@ -825,7 +825,7 @@ export default function Analytics() {
  {createType === 'application' && (
  <>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Total Applications</label>
+ <label className="block text-sm font-medium text-body mb-2">Total Applications</label>
  <input
  type="number"
  value={formData.totalApplications || ''}
@@ -834,7 +834,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Submitted Applications</label>
+ <label className="block text-sm font-medium text-body mb-2">Submitted Applications</label>
  <input
  type="number"
  value={formData.submittedApplications || ''}
@@ -843,7 +843,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Approved Applications</label>
+ <label className="block text-sm font-medium text-body mb-2">Approved Applications</label>
  <input
  type="number"
  value={formData.approvedApplications || ''}
@@ -852,7 +852,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Rejected Applications</label>
+ <label className="block text-sm font-medium text-body mb-2">Rejected Applications</label>
  <input
  type="number"
  value={formData.rejectedApplications || ''}
@@ -866,7 +866,7 @@ export default function Analytics() {
  {createType === 'program' && (
  <>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Program Name</label>
+ <label className="block text-sm font-medium text-body mb-2">Program Name</label>
  <input
  type="text"
  value={formData.programName || ''}
@@ -875,7 +875,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Program ID (optional)</label>
+ <label className="block text-sm font-medium text-body mb-2">Program ID (optional)</label>
  <input
  type="text"
  value={formData.programId || ''}
@@ -884,7 +884,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Applications Count</label>
+ <label className="block text-sm font-medium text-body mb-2">Applications Count</label>
  <input
  type="number"
  value={formData.applicationsCount || ''}
@@ -894,7 +894,7 @@ export default function Analytics() {
  </div>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Approval Rate (%)</label>
+ <label className="block text-sm font-medium text-body mb-2">Approval Rate (%)</label>
  <input
  type="number"
  value={formData.approvalRate || ''}
@@ -903,7 +903,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Completion Rate (%)</label>
+ <label className="block text-sm font-medium text-body mb-2">Completion Rate (%)</label>
  <input
  type="number"
  value={formData.completionRate || ''}
@@ -913,7 +913,7 @@ export default function Analytics() {
  </div>
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Average Processing Days</label>
+ <label className="block text-sm font-medium text-body mb-2">Average Processing Days</label>
  <input
  type="number"
  value={formData.averageProcessingDays || ''}
@@ -927,7 +927,7 @@ export default function Analytics() {
  {createType === 'eligibility' && (
  <>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Total Checks</label>
+ <label className="block text-sm font-medium text-body mb-2">Total Checks</label>
  <input
  type="number"
  value={formData.totalChecks || ''}
@@ -936,7 +936,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Passed Checks</label>
+ <label className="block text-sm font-medium text-body mb-2">Passed Checks</label>
  <input
  type="number"
  value={formData.passedChecks || ''}
@@ -945,7 +945,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Success Rate (%)</label>
+ <label className="block text-sm font-medium text-body mb-2">Success Rate (%)</label>
  <input
  type="number"
  value={formData.successRate || ''}
@@ -982,7 +982,7 @@ export default function Analytics() {
  >
  <div className="space-y-4">
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Date</label>
+ <label className="block text-sm font-medium text-body mb-2">Date</label>
  <input
  type="date"
  value={formData.date || ''}
@@ -994,7 +994,7 @@ export default function Analytics() {
  {selectedItem?.type === 'application' && (
  <>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Total Applications</label>
+ <label className="block text-sm font-medium text-body mb-2">Total Applications</label>
  <input
  type="number"
  value={formData.totalApplications || ''}
@@ -1003,7 +1003,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Approved Applications</label>
+ <label className="block text-sm font-medium text-body mb-2">Approved Applications</label>
  <input
  type="number"
  value={formData.approvedApplications || ''}
@@ -1012,7 +1012,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Rejected Applications</label>
+ <label className="block text-sm font-medium text-body mb-2">Rejected Applications</label>
  <input
  type="number"
  value={formData.rejectedApplications || ''}
@@ -1026,7 +1026,7 @@ export default function Analytics() {
  {selectedItem?.type === 'program' && (
  <>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Program Name</label>
+ <label className="block text-sm font-medium text-body mb-2">Program Name</label>
  <input
  type="text"
  value={formData.programName || ''}
@@ -1035,7 +1035,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Program ID</label>
+ <label className="block text-sm font-medium text-body mb-2">Program ID</label>
  <input
  type="text"
  value={formData.programId || ''}
@@ -1044,7 +1044,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Applications Count</label>
+ <label className="block text-sm font-medium text-body mb-2">Applications Count</label>
  <input
  type="number"
  value={formData.applicationsCount || ''}
@@ -1054,7 +1054,7 @@ export default function Analytics() {
  </div>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Approval Rate (%)</label>
+ <label className="block text-sm font-medium text-body mb-2">Approval Rate (%)</label>
  <input
  type="number"
  value={formData.approvalRate || ''}
@@ -1063,7 +1063,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Completion Rate (%)</label>
+ <label className="block text-sm font-medium text-body mb-2">Completion Rate (%)</label>
  <input
  type="number"
  value={formData.completionRate || ''}
@@ -1073,7 +1073,7 @@ export default function Analytics() {
  </div>
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Average Processing Days</label>
+ <label className="block text-sm font-medium text-body mb-2">Average Processing Days</label>
  <input
  type="number"
  value={formData.averageProcessingDays || ''}
@@ -1087,7 +1087,7 @@ export default function Analytics() {
  {selectedItem?.type === 'eligibility' && (
  <>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Total Checks</label>
+ <label className="block text-sm font-medium text-body mb-2">Total Checks</label>
  <input
  type="number"
  value={formData.totalChecks || ''}
@@ -1096,7 +1096,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Passed Checks</label>
+ <label className="block text-sm font-medium text-body mb-2">Passed Checks</label>
  <input
  type="number"
  value={formData.passedChecks || ''}
@@ -1105,7 +1105,7 @@ export default function Analytics() {
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-foreground mb-2">Success Rate (%)</label>
+ <label className="block text-sm font-medium text-body mb-2">Success Rate (%)</label>
  <input
  type="number"
  value={formData.successRate || ''}
@@ -1141,7 +1141,7 @@ export default function Analytics() {
  onOpenChange={setShowDeleteDialog}
  >
  <div className="space-y-4">
- <p className="text-foreground">
+ <p className="text-body">
  Are you sure you want to delete this {selectedItem?.type} record? This action cannot be undone.
  </p>
  <div className="flex justify-end space-x-2 pt-4">

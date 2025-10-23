@@ -79,7 +79,7 @@ const SubmissionSuccess = ({
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}>
           <CheckCircle className="h-16 w-16 text-accent mx-auto mb-6" />
         </motion.div>
-        <h2 className="text-2xl font-bold text-foreground mb-4">Application Submitted Successfully!</h2>
+        <h2 className="text-2xl font-bold text-body mb-4">Application Submitted Successfully!</h2>
 
         {persistingSlip && (
           <p className="text-sm text-primary mb-4">Saving a copy of your application slip for admissions records...</p>
@@ -94,19 +94,19 @@ const SubmissionSuccess = ({
           <h3 className="font-semibold text-accent-foreground mb-3">Application Details</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-accent">Application Number:</span>
+              <span className="text-warning-strong">Application Number:</span>
               <span className="font-mono font-bold text-accent-foreground">{submittedApplication.applicationNumber}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-accent">Tracking Code:</span>
+              <span className="text-warning-strong">Tracking Code:</span>
               <span className="font-mono font-bold text-accent-foreground">{submittedApplication.trackingCode}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-accent">Program:</span>
+              <span className="text-warning-strong">Program:</span>
               <span className="font-semibold text-accent-foreground">{submittedApplication.program}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-accent">Institution:</span>
+              <span className="text-warning-strong">Institution:</span>
               <span className="font-semibold text-accent-foreground">{getInstitutionName(submittedApplication.institution)}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -120,11 +120,11 @@ const SubmissionSuccess = ({
                 {formatPaymentStatusLabel(submittedApplication.paymentStatus)}
               </span>
             </div>
-            <p className="text-left text-xs text-accent">{getPaymentStatusDescription(submittedApplication.paymentStatus)}</p>
+            <p className="text-left text-xs text-warning-strong">{getPaymentStatusDescription(submittedApplication.paymentStatus)}</p>
           </div>
         </motion.div>
 
-        <p className="text-foreground mb-6">
+        <p className="text-body mb-6">
           Your application is now under review. You'll receive notifications about status updates.
         </p>
 

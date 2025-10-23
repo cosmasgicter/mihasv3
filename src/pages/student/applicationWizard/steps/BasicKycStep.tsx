@@ -68,7 +68,7 @@ const BasicKycStep = ({
       data-testid="basic-kyc-step"
     >
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        <h2 className="text-lg font-semibold text-body">{title}</h2>
         {hasAutoPopulatedData && (
           <ProfileCompletionBadge completionPercentage={completionPercentage} />
         )}
@@ -84,7 +84,7 @@ const BasicKycStep = ({
             <CheckCircle className="h-4 w-4" />
             <span className="font-medium">Profile data automatically populated</span>
           </div>
-          <p className="text-xs text-foreground mt-1">
+          <p className="text-xs text-body mt-1">
             Some fields have been pre-filled from your profile. Please review and update as needed.
           </p>
         </motion.div>
@@ -102,7 +102,7 @@ const BasicKycStep = ({
 
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <label className="block text-sm font-medium text-foreground">
+            <label className="block text-sm font-medium text-body">
               NRC Number
             </label>
             <FieldHelp
@@ -117,7 +117,7 @@ const BasicKycStep = ({
             className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
           />
           {errors.nrc_number && <p className="mt-1 text-sm text-destructive">{errors.nrc_number.message}</p>}
-          <p className="mt-1 text-xs text-muted-foreground">Provide either NRC or Passport (one is sufficient)</p>
+          <p className="mt-1 text-xs text-caption">Provide either NRC or Passport (one is sufficient)</p>
         </div>
 
         <div>
@@ -141,7 +141,7 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="sex" className="block text-sm font-medium text-foreground mb-1">
+          <label htmlFor="sex" className="block text-sm font-medium text-body mb-1">
             Sex <span className="text-error">*</span>
           </label>
           <select
@@ -158,7 +158,7 @@ const BasicKycStep = ({
 
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <label className="block text-sm font-medium text-foreground">
+            <label className="block text-sm font-medium text-body">
               Phone Number <span className="text-error">*</span>
             </label>
             <FieldHelp
@@ -220,7 +220,7 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="program" className="block text-sm font-medium text-foreground mb-1">
+          <label htmlFor="program" className="block text-sm font-medium text-body mb-1">
             Program <span className="text-error">*</span>
           </label>
           <select
@@ -248,7 +248,7 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="intake" className="block text-sm font-medium text-foreground mb-1">
+          <label htmlFor="intake" className="block text-sm font-medium text-body mb-1">
             Intake <span className="text-error">*</span>
           </label>
           <select
@@ -256,7 +256,7 @@ const BasicKycStep = ({
             id="intake"
             disabled={intakes.length === 0}
             className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary ${
-              intakes.length === 0 ? 'bg-accent text-foreground cursor-not-allowed border-border' : 'bg-card border-input'
+              intakes.length === 0 ? 'bg-accent text-body cursor-not-allowed border-border' : 'bg-card border-input'
             }`}
           >
             <option value="">Select intake</option>
@@ -277,7 +277,7 @@ const BasicKycStep = ({
             })}
           </select>
           {intakes.length === 0 && (
-            <p className="mt-1 text-sm text-foreground">Intakes will appear here once enrollment periods are announced.</p>
+            <p className="mt-1 text-sm text-body">Intakes will appear here once enrollment periods are announced.</p>
           )}
           {errors.intake && <p className="mt-1 text-sm text-destructive">{errors.intake.message}</p>}
         </div>

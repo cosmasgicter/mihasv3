@@ -44,7 +44,7 @@ export function Stepper({ className, steps, currentStep, ...props }: StepperProp
                     {step.label}
                   </p>
                   {step.description && (
-                    <p className="text-xs text-foreground/40 mt-0.5">{step.description}</p>
+                    <p className="text-xs text-caption/40 mt-0.5">{step.description}</p>
                   )}
                 </div>
               </div>

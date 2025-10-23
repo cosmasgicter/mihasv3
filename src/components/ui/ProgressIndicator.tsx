@@ -74,7 +74,7 @@ export function ProgressIndicator({
       case 'completed':
         return cn(baseClasses, 'bg-success border-success text-foreground')
       case 'current':
-        return cn(baseClasses, 'bg-primary border-primary text-foreground animate-pulse')
+        return cn(baseClasses, 'bg-primary border-primary text-body animate-pulse')
       case 'error':
         return cn(baseClasses, 'bg-error border-error text-foreground')
       default:
@@ -125,7 +125,7 @@ export function ProgressIndicator({
                     </div>
                     {step.description && (
                       <div className={cn(
-                        'text-foreground mt-1',
+                        'text-body mt-1',
                         sizeClasses[size].description
                       )}>
                         {step.description}
@@ -169,7 +169,7 @@ export function ProgressIndicator({
                 </div>
                 {step.description && (
                   <div className={cn(
-                    'text-foreground mt-1',
+                    'text-body mt-1',
                     sizeClasses[size].description
                   )}>
                     {step.description}
@@ -219,8 +219,8 @@ export function ProgressBar({
     <div className={cn('w-full', className)}>
       {showPercentage && (
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium text-foreground">Progress</span>
-          <span className="text-sm text-foreground">{percentage}%</span>
+          <span className="text-sm font-medium text-body">Progress</span>
+          <span className="text-sm text-body">{percentage}%</span>
         </div>
       )}
       <div className={cn(

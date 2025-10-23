@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useFeedback, FeedbackData } from '@/hooks/useFeedback'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { TextArea } from '@/components/ui/TextArea'
+import { Textarea } from '@/components/ui/Textarea'
 import { MessageSquare, X, Star } from 'lucide-react'
 
 export function FeedbackWidget() {
@@ -65,7 +65,7 @@ export function FeedbackWidget() {
 
  {submitted ? (
  <div className="text-center py-4">
- <p className="text-accent">Thank you for your feedback!</p>
+ <p className="text-warning-strong">Thank you for your feedback!</p>
  </div>
  ) : (
  <form onSubmit={handleSubmit} className="space-y-4">
@@ -99,7 +99,7 @@ export function FeedbackWidget() {
  </div>
  </div>
 
- <TextArea
+ <Textarea
  placeholder="Your feedback..."
  value={feedback.message || ''}
  onChange={(e) => setFeedback(prev => ({ ...prev, message: e.target.value }))}

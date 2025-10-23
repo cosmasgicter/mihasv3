@@ -66,7 +66,7 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
       animate={{ opacity: 1, y: 0 }}
       className="bg-card border border-border rounded-lg p-4 space-y-3"
     >
-      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+      <h3 className="text-sm font-semibold text-body flex items-center gap-2">
         <BarChart3 className="h-4 w-4" />
         Your Progress
       </h3>
@@ -77,7 +77,7 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
             <TrendingUp className="h-3.5 w-3.5" />
             <span className="text-xs font-medium">Completion</span>
           </div>
-          <p className="text-2xl font-bold text-foreground">{completionRate}%</p>
+          <p className="text-2xl font-bold text-body">{completionRate}%</p>
         </div>
 
         <div className="bg-success/5 rounded p-3">
@@ -85,13 +85,13 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
             <Clock className="h-3.5 w-3.5" />
             <span className="text-xs font-medium">Avg Time</span>
           </div>
-          <p className="text-2xl font-bold text-foreground">
+          <p className="text-2xl font-bold text-body">
             {Math.round(stats.avg_time_per_step || 0)}s
           </p>
         </div>
       </div>
 
-      <div className="text-xs text-muted-foreground space-y-1">
+      <div className="text-xs text-caption space-y-1">
         <p>• {stats.completed_applications} completed</p>
         <p>• {stats.total_drafts} in progress</p>
         {stats.most_common_drop_off_step && (

@@ -255,11 +255,11 @@ export function SimpleFileUpload({
   return (
     <div className="bg-card rounded-lg shadow-lg border border-border p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">
+        <h2 className="text-lg font-semibold text-body">
           Supporting Documents
         </h2>
         {uploadedFiles.length > 0 && (
-          <div className="flex items-center text-sm text-accent">
+          <div className="flex items-center text-sm text-warning-strong">
             <CheckCircle className="h-4 w-4 mr-1" />
             {uploadedFiles.length} file{uploadedFiles.length !== 1 ? 's' : ''} uploaded
           </div>
@@ -309,7 +309,7 @@ export function SimpleFileUpload({
                           color="blue"
                         />
                       {uploadStats.speed > 0 && (
-                        <div className="flex justify-between text-xs text-foreground mt-1">
+                        <div className="flex justify-between text-xs text-body mt-1">
                           <span>{formatFileSize(uploadStats.speed)}/s</span>
                           <span>~{Math.ceil(uploadStats.eta)}s remaining</span>
                         </div>
@@ -329,7 +329,7 @@ export function SimpleFileUpload({
                   )}>
                     {dragActive ? 'Drop files here' : 'Click to upload or drag and drop'}
                   </p>
-                  <p className="text-xs text-foreground">
+                  <p className="text-xs text-body">
                     {acceptedTypes.join(', ').replace(/\./g, '').toUpperCase()} up to {formatFileSize(maxFileSize)}
                   </p>
                   {enableCompression && (
@@ -375,7 +375,7 @@ export function SimpleFileUpload({
                 <p className="text-sm font-medium text-accent-foreground">Image Optimization Complete</p>
                 <div className="mt-2 space-y-1">
                   {compressionResults.map((result, index) => (
-                    <div key={index} className="text-xs text-accent">
+                    <div key={index} className="text-xs text-warning-strong">
                       <span className="font-medium">{result.originalFile.name}</span>: 
                       {formatFileSize(result.originalSize)} → {formatFileSize(result.compressedSize)} 
                       ({result.compressionRatio.toFixed(1)}% smaller)
@@ -433,7 +433,7 @@ export function SimpleFileUpload({
                   />
                 </div>
                 {isComplete && (
-                  <div className="mt-2 text-xs text-accent">
+                  <div className="mt-2 text-xs text-warning-strong">
                     File uploaded successfully!
                   </div>
                 )}
@@ -445,7 +445,7 @@ export function SimpleFileUpload({
 
       {uploadedFiles.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-foreground mb-3">
+          <h3 className="text-sm font-medium text-body mb-3">
             Uploaded Files ({uploadedFiles.length})
           </h3>
           <AnimatePresence>
@@ -471,7 +471,7 @@ export function SimpleFileUpload({
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-accent-foreground truncate">{file.name}</p>
                       <div className="flex items-center space-x-3 mt-1">
-                        <p className="text-xs text-accent">{formatFileSize(file.size)}</p>
+                        <p className="text-xs text-warning-strong">{formatFileSize(file.size)}</p>
                         {file.compressed && file.originalSize && (
                           <div className="flex items-center space-x-1">
                             <Zap className="h-3 w-3 text-primary" />

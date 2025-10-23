@@ -72,9 +72,9 @@ export default function AuthCallbackPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-foreground mb-2">Authentication Failed</h3>
-              <p className="text-sm text-foreground mb-4">{error}</p>
-              <p className="text-xs text-foreground">Redirecting to sign in page...</p>
+              <h3 className="text-lg font-medium text-body mb-2">Authentication Failed</h3>
+              <p className="text-sm text-body mb-4">{error}</p>
+              <p className="text-xs text-body">Redirecting to sign in page...</p>
             </div>
           </div>
           </div>
@@ -90,8 +90,8 @@ export default function AuthCallbackPage() {
         <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="text-center">
             <LoadingSpinner size="lg" className="mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">Completing Authentication</h3>
-            <p className="text-sm text-foreground">Please wait while we verify your account...</p>
+            <h3 className="text-lg font-medium text-body mb-2">Completing Authentication</h3>
+            <p className="text-sm text-body">Please wait while we verify your account...</p>
           </div>
         </div>
         </div>

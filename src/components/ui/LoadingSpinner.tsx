@@ -56,7 +56,7 @@ export function LoadingSpinner({
       {message && (
         <motion.p 
           className={cn(
-            'text-foreground font-medium text-center',
+            'text-body font-medium text-center',
             textSizeClasses[size]
           )}
           initial={{ opacity: 0 }}

@@ -153,7 +153,7 @@ export function ApplicationStatus({
           <h3 className={`text-lg font-semibold ${statusConfig.color}`}>
             {statusConfig.label}
           </h3>
-          <p className="text-sm text-foreground mt-1">
+          <p className="text-sm text-body mt-1">
             {statusConfig.description}
           </p>
           

@@ -54,10 +54,10 @@ export function CommandPalette({ commands }: CommandPaletteProps) {
             </button>
           ))}
           {filtered.length === 0 && (
-            <p className="text-sm text-foreground text-center py-8">No commands found</p>
+            <p className="text-sm text-body text-center py-8">No commands found</p>
           )}
         </div>
-        <div className="mt-4 pt-4 border-t border-border flex items-center justify-center gap-2 text-xs text-foreground">
+        <div className="mt-4 pt-4 border-t border-border flex items-center justify-center gap-2 text-xs text-body">
           <Command className="h-3 w-3" />
           <span>Press Ctrl+K to open</span>
         </div>

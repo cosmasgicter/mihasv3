@@ -50,7 +50,7 @@ const PaymentStep = ({
       className="bg-card rounded-lg shadow-lg p-6 border border-border"
       data-testid="payment-step"
     >
-      <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-body mb-4">{title}</h2>
 
       <div className="space-y-6">
         <motion.div
@@ -66,16 +66,16 @@ const PaymentStep = ({
             </h3>
           </div>
           <div className="space-y-2 text-sm">
-            <p className="text-primary">
+            <p className="text-info-strong">
               <strong>Application Fee:</strong> K153.00
             </p>
-            <p className="text-primary">
+            <p className="text-info-strong">
               <strong>Payment Target:</strong> {paymentTarget}
             </p>
             <div className="bg-card rounded-md p-3 mt-3">
-              <p className="text-foreground font-medium mb-2">Available Payment Methods:</p>
+              <p className="text-body font-medium mb-2">Available Payment Methods:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center text-accent">
+                <div className="flex items-center text-warning-strong">
                   <span className="w-2 h-2 bg-accent/10 rounded-full mr-2"></span>
                   MTN Money
                 </div>
@@ -83,11 +83,11 @@ const PaymentStep = ({
                   <span className="w-2 h-2 bg-destructive/5 rounded-full mr-2"></span>
                   Airtel Money (Cross Network)
                 </div>
-                <div className="flex items-center text-primary">
+                <div className="flex items-center text-info-strong">
                   <span className="w-2 h-2 bg-primary/5 rounded-full mr-2"></span>
                   Zamtel Money (Cross Network)
                 </div>
-                <div className="flex items-center text-secondary">
+                <div className="flex items-center text-body-secondary">
                   <span className="w-2 h-2 bg-secondary/5 rounded-full mr-2"></span>
                   Ewallet
                 </div>
@@ -105,7 +105,7 @@ const PaymentStep = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="payment_method" className="block text-sm font-medium text-foreground mb-1">
+            <label htmlFor="payment_method" className="block text-sm font-medium text-body mb-1">
               Payment Method <span className="text-error">*</span>
             </label>
             <select
@@ -166,7 +166,7 @@ const PaymentStep = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
+          <label className="block text-sm font-medium text-body mb-2">
             Proof of Payment <span className="text-error">*</span>
           </label>
           <div className="relative">
@@ -174,17 +174,17 @@ const PaymentStep = ({
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={handleProofOfPaymentUpload}
-              className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
+              className="w-full text-sm text-body file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
             />
             {proofOfPaymentFile && (
-              <div className="mt-2 flex items-center text-sm text-accent">
+              <div className="mt-2 flex items-center text-sm text-warning-strong">
                 <CheckCircle className="h-4 w-4 mr-1" />
                 {proofOfPaymentFile.name}
               </div>
             )}
             {uploadProgress.proof_of_payment !== undefined && (
               <div className="mt-2">
-                <div className="flex justify-between text-sm text-foreground mb-1">
+                <div className="flex justify-between text-sm text-body mb-1">
                   <span>Uploading...</span>
                   <span>{uploadProgress.proof_of_payment}%</span>
                 </div>

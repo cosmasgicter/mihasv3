@@ -84,7 +84,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                 className={`h-5 w-5 transition-all duration-300 relative z-10 ${
                   isActive
                     ? 'text-primary'
-                    : 'text-foreground group-hover:text-primary'
+                    : 'text-body group-hover:text-primary'
                 }`}
               />
               <AnimatePresence mode="wait">
@@ -96,7 +96,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                     className={`text-sm font-medium transition-colors relative z-10 truncate ${
                       isActive
                         ? 'text-primary'
-                        : 'text-foreground group-hover:text-primary'
+                        : 'text-body group-hover:text-primary'
                     }`}
                   >
                     {label}

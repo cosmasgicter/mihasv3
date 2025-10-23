@@ -112,7 +112,7 @@ export function SystemMonitoring() {
       case 'critical':
         return 'text-error bg-destructive/10'
       default:
-        return 'text-foreground bg-accent'
+        return 'text-body bg-accent'
     }
   }
 
@@ -139,8 +139,8 @@ export function SystemMonitoring() {
               {metrics.database.status.toUpperCase()}
             </span>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">Database</h3>
-          <div className="space-y-1 text-sm text-foreground">
+          <h3 className="font-semibold text-body mb-2">Database</h3>
+          <div className="space-y-1 text-sm text-body">
             <div>Connections: {metrics.database.connections}</div>
             <div>Response: {metrics.database.responseTime}ms</div>
             <div>Uptime: {metrics.database.uptime}</div>
@@ -161,8 +161,8 @@ export function SystemMonitoring() {
               OPTIMAL
             </span>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">Performance</h3>
-          <div className="space-y-1 text-sm text-foreground">
+          <h3 className="font-semibold text-body mb-2">Performance</h3>
+          <div className="space-y-1 text-sm text-body">
             <div>CPU: {metrics.performance.cpu}%</div>
             <div>Memory: {metrics.performance.memory}%</div>
             <div>Storage: {metrics.performance.storage}%</div>
@@ -183,8 +183,8 @@ export function SystemMonitoring() {
               {metrics.security.status.toUpperCase()}
             </span>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">Security</h3>
-          <div className="space-y-1 text-sm text-foreground">
+          <h3 className="font-semibold text-body mb-2">Security</h3>
+          <div className="space-y-1 text-sm text-body">
             <div>Last Scan: {metrics.security.lastScan}</div>
             <div>Threats: {metrics.security.threats}</div>
             <div>Updates: {metrics.security.updates}</div>
@@ -205,8 +205,8 @@ export function SystemMonitoring() {
               ACTIVE
             </span>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">Users</h3>
-          <div className="space-y-1 text-sm text-foreground">
+          <h3 className="font-semibold text-body mb-2">Users</h3>
+          <div className="space-y-1 text-sm text-body">
             <div>Active: {metrics.users.active}</div>
             <div>Sessions: {metrics.users.sessions}</div>
             <div>Avg Time: {metrics.users.avgSessionTime}min</div>
@@ -222,14 +222,14 @@ export function SystemMonitoring() {
         className="bg-card rounded-xl shadow-lg border border-border"
       >
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <h3 className="text-lg font-bold text-foreground flex items-center">
+          <h3 className="text-lg font-bold text-body flex items-center">
             <Zap className="h-5 w-5 mr-2" />
             Performance Metrics
           </h3>
           <button
             onClick={refreshMetrics}
             disabled={refreshing}
-            className="p-2 text-foreground hover:text-foreground transition-colors"
+            className="p-2 text-body hover:text-body transition-colors"
           >
             <Activity className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
@@ -241,9 +241,9 @@ export function SystemMonitoring() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Cpu className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">CPU Usage</span>
+                  <span className="text-sm font-medium text-body">CPU Usage</span>
                 </div>
-                <span className="text-sm font-bold text-foreground">{metrics.performance.cpu}%</span>
+                <span className="text-sm font-bold text-body">{metrics.performance.cpu}%</span>
               </div>
               <div className="w-full bg-skeleton rounded-full h-2">
                 <motion.div 
@@ -259,9 +259,9 @@ export function SystemMonitoring() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <MemoryStick className="h-4 w-4 text-purple-500" />
-                  <span className="text-sm font-medium text-foreground">Memory</span>
+                  <span className="text-sm font-medium text-body">Memory</span>
                 </div>
-                <span className="text-sm font-bold text-foreground">{metrics.performance.memory}%</span>
+                <span className="text-sm font-bold text-body">{metrics.performance.memory}%</span>
               </div>
               <div className="w-full bg-skeleton rounded-full h-2">
                 <motion.div 
@@ -277,9 +277,9 @@ export function SystemMonitoring() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <HardDrive className="h-4 w-4 text-success" />
-                  <span className="text-sm font-medium text-foreground">Storage</span>
+                  <span className="text-sm font-medium text-body">Storage</span>
                 </div>
-                <span className="text-sm font-bold text-foreground">{metrics.performance.storage}%</span>
+                <span className="text-sm font-bold text-body">{metrics.performance.storage}%</span>
               </div>
               <div className="w-full bg-skeleton rounded-full h-2">
                 <motion.div 
@@ -295,9 +295,9 @@ export function SystemMonitoring() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Wifi className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm font-medium text-foreground">Network</span>
+                  <span className="text-sm font-medium text-body">Network</span>
                 </div>
-                <span className="text-sm font-bold text-foreground">{metrics.performance.network}%</span>
+                <span className="text-sm font-bold text-body">{metrics.performance.network}%</span>
               </div>
               <div className="w-full bg-skeleton rounded-full h-2">
                 <motion.div 
@@ -320,7 +320,7 @@ export function SystemMonitoring() {
         className="bg-card rounded-xl shadow-lg border border-border"
       >
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-lg font-bold text-foreground flex items-center">
+          <h3 className="text-lg font-bold text-body flex items-center">
             <AlertTriangle className="h-5 w-5 mr-2" />
             System Health
           </h3>
@@ -332,27 +332,27 @@ export function SystemMonitoring() {
               <CheckCircle className="h-5 w-5 text-accent" />
               <div className="flex-1">
                 <p className="font-medium text-accent-foreground">All Systems Operational</p>
-                <p className="text-sm text-accent">No critical issues detected</p>
+                <p className="text-sm text-warning-strong">No critical issues detected</p>
               </div>
-              <span className="text-xs text-accent">Just now</span>
+              <span className="text-xs text-warning-strong">Just now</span>
             </div>
 
             <div className="flex items-center space-x-3 p-4 bg-primary/5 rounded-xl border border-primary/30">
               <Clock className="h-5 w-5 text-primary" />
               <div className="flex-1">
                 <p className="font-medium text-primary-foreground">Scheduled Maintenance</p>
-                <p className="text-sm text-primary">Database optimization planned for tonight</p>
+                <p className="text-sm text-info-strong">Database optimization planned for tonight</p>
               </div>
-              <span className="text-xs text-primary">2 hours</span>
+              <span className="text-xs text-info-strong">2 hours</span>
             </div>
 
             <div className="flex items-center space-x-3 p-4 bg-accent/5 rounded-xl border border-yellow-200">
               <TrendingUp className="h-5 w-5 text-accent" />
               <div className="flex-1">
                 <p className="font-medium text-accent-foreground">High Memory Usage</p>
-                <p className="text-sm text-accent">Memory usage is above 65% threshold</p>
+                <p className="text-sm text-warning-strong">Memory usage is above 65% threshold</p>
               </div>
-              <span className="text-xs text-accent">5 min ago</span>
+              <span className="text-xs text-warning-strong">5 min ago</span>
             </div>
           </div>
         </div>
@@ -366,7 +366,7 @@ export function SystemMonitoring() {
         className="bg-card rounded-xl shadow-lg border border-border"
       >
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-lg font-bold text-foreground flex items-center">
+          <h3 className="text-lg font-bold text-body flex items-center">
             <Activity className="h-5 w-5 mr-2" />
             Real-time Activity
           </h3>
@@ -375,27 +375,27 @@ export function SystemMonitoring() {
         <div className="p-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-              <div className="text-2xl font-bold text-primary">{metrics.users.active}</div>
-              <div className="text-sm text-foreground">Active Users</div>
-              <div className="flex items-center justify-center mt-2 text-xs text-accent">
+              <div className="text-2xl font-bold text-info-strong">{metrics.users.active}</div>
+              <div className="text-sm text-body">Active Users</div>
+              <div className="flex items-center justify-center mt-2 text-xs text-warning-strong">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 +12% from yesterday
               </div>
             </div>
 
             <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
-              <div className="text-2xl font-bold text-accent">{metrics.database.connections}</div>
-              <div className="text-sm text-foreground">DB Connections</div>
-              <div className="flex items-center justify-center mt-2 text-xs text-primary">
+              <div className="text-2xl font-bold text-warning-strong">{metrics.database.connections}</div>
+              <div className="text-sm text-body">DB Connections</div>
+              <div className="flex items-center justify-center mt-2 text-xs text-info-strong">
                 <Activity className="h-3 w-3 mr-1" />
                 Normal load
               </div>
             </div>
 
             <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
-              <div className="text-2xl font-bold text-foreground">{metrics.database.responseTime}ms</div>
-              <div className="text-sm text-foreground">Response Time</div>
-              <div className="flex items-center justify-center mt-2 text-xs text-accent">
+              <div className="text-2xl font-bold text-body">{metrics.database.responseTime}ms</div>
+              <div className="text-sm text-body">Response Time</div>
+              <div className="flex items-center justify-center mt-2 text-xs text-warning-strong">
                 <TrendingDown className="h-3 w-3 mr-1" />
                 -5ms improvement
               </div>

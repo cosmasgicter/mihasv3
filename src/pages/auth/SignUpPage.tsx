@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { PasswordInput } from '@/components/ui/PasswordInput'
-import { TextArea } from '@/components/ui/TextArea'
+import { Textarea } from '@/components/ui/Textarea'
 import { Turnstile } from '@/components/ui/Turnstile'
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay'
 import { AuthLayout } from './AuthLayout'
@@ -132,12 +132,12 @@ export default function SignUpPage() {
         description={success}
       >
         <div className="space-y-6 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/30 bg-primary/10 text-primary">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/30 bg-primary/10 text-info-strong">
             <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-sm text-foreground">Redirecting to sign in page...</p>
+          <p className="text-sm text-body">Redirecting to sign in page...</p>
           <div className="space-y-3">
             <Link to="/auth/signin" className="block">
               <Button className="w-full" variant="gradient" size="lg">
@@ -237,13 +237,13 @@ export default function SignUpPage() {
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
-            <label htmlFor="sex" className="mb-1 block text-sm font-medium text-foreground">
+            <label htmlFor="sex" className="mb-1 block text-sm font-medium text-body">
               Sex <span className="text-error">*</span>
             </label>
             <select
               {...register('sex')}
               id="sex"
-              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-body placeholder:text-body transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
             >
               <option value="">Select Sex</option>
               <option value="Male">Male</option>
@@ -278,8 +278,8 @@ export default function SignUpPage() {
 
 
         <div className="rounded-2xl border border-border bg-muted/50 p-6">
-          <h3 className="text-lg font-semibold text-foreground">Next of Kin</h3>
-          <p className="mt-1 text-sm text-foreground">
+          <h3 className="text-lg font-semibold text-body">Next of Kin</h3>
+          <p className="mt-1 text-sm text-body">
             Provide the details of a trusted contact we can reach in case of emergencies.
           </p>
           <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -303,8 +303,8 @@ export default function SignUpPage() {
 
         {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
           <div className="rounded-2xl border border-input/10 bg-card/80 p-6">
-            <h3 className="text-lg font-semibold text-foreground">Security Verification</h3>
-            <p className="mt-1 text-sm text-foreground">
+            <h3 className="text-lg font-semibold text-body">Security Verification</h3>
+            <p className="mt-1 text-sm text-body">
               Complete the verification step to keep your account secure.
             </p>
             <div className="mt-4 flex justify-center">
