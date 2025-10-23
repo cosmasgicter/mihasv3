@@ -14,7 +14,7 @@ export function ProfileAutoPopulationIndicator({ isPopulated, fieldName }: Profi
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="inline-flex items-center space-x-1 text-xs text-accent bg-accent/10/30 px-2 py-1 rounded-full"
+      className="inline-flex items-center space-x-1 text-xs text-green-800 bg-green-100 px-2 py-1 rounded-full border border-green-300"
     >
       <CheckCircle className="h-3 w-3" />
       <span>Auto-filled from profile</span>
@@ -28,9 +28,9 @@ interface ProfileCompletionBadgeProps {
 
 export function ProfileCompletionBadge({ completionPercentage }: ProfileCompletionBadgeProps) {
   const getColor = () => {
-    if (completionPercentage >= 80) return 'bg-accent/10 text-accent-foreground border-green-200'
-    if (completionPercentage >= 60) return 'bg-accent/10 text-accent-foreground border-yellow-200'
-    return 'bg-destructive/10 text-destructive-foreground border-red-200'
+    if (completionPercentage >= 80) return 'bg-green-100 text-green-800 border-green-300'
+    if (completionPercentage >= 60) return 'bg-yellow-100 text-yellow-800 border-yellow-300'
+    return 'bg-red-100 text-red-800 border-red-300'
   }
 
   return (
