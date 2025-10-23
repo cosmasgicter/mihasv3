@@ -256,6 +256,8 @@ export function useApplicationFileUploads({
     [incrementActiveTasks, decrementActiveTasks]
   )
 
+  const startUploadRef = useRef<((file: File, fileType: ApplicationFileType, retryCount?: number) => Promise<string>) | null>(null)
+
   const startUpload = useCallback(
     async (file: File, fileType: ApplicationFileType, retryCount = 0): Promise<string> => {
       const MAX_RETRIES = 3
@@ -306,7 +308,7 @@ export function useApplicationFileUploads({
           // Retry logic
           if (retryCount < MAX_RETRIES) {
             await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)))
-            return startUpload(file, fileType, retryCount + 1)
+            return startUploadRef.current!(file, fileType, retryCount + 1)
           }
           
           setUploadedFiles(prev => ({ ...prev, [fileType]: false }))
@@ -322,6 +324,8 @@ export function useApplicationFileUploads({
     },
     [applicationId, clearProgressEntry, scheduleProgressClear, trackUploadTask, userId]
   )
+
+  startUploadRef.current = startUpload
 
   return {
     resultSlipFile,
