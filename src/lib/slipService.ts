@@ -171,7 +171,6 @@ export async function createApplicationSlip(
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create application slip'
     console.error('Application slip generation failed:', sanitizeForLog(message))
-    toast?.showError?.('Something went wrong', 'We could not generate your application slip. Please try again.')
     return { error: message }
   }
 }
