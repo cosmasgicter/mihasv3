@@ -66,7 +66,7 @@ export async function onRequestPost(context) {
     
     const { error: profileError } = await supabaseAdminClient
       .from('profiles')
-      .insert(profileData);
+      .upsert(profileData, { onConflict: 'id' });
     
     if (profileError) {
       console.error('Profile creation error:', profileError);
