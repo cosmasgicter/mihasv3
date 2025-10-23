@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Turnstile } from '@/components/ui/Turnstile'
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay'
 import { AuthLayout } from './AuthLayout'
+import { NotificationService } from '@/lib/notificationService'
 
 const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -111,6 +112,11 @@ export default function SignUpPage() {
       setSuccess('Account created successfully! You are now signed in.')
       setIsRegistering(false)
       setLoading(false)
+      
+      // Send welcome notification
+      if (result.user?.id) {
+        NotificationService.sendWelcomeNotification(result.user.id, userData.full_name).catch(console.error)
+      }
       
       // Redirect to dashboard after 2 seconds
       setTimeout(() => {

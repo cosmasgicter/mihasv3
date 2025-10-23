@@ -1092,7 +1092,15 @@ const useWizardController = (): UseWizardControllerResult => {
         nationality: updatedApp.nationality
       }))
 
-      // Notification is automatically created by database trigger
+      // Send notification
+      const { NotificationService } = await import('@/lib/notificationService')
+      NotificationService.sendApplicationStatusNotification(
+        currentUser.id,
+        applicationId,
+        'submitted',
+        updatedApp.application_number,
+        updatedApp.program
+      ).catch(console.error)
 
       try {
         localStorage.removeItem('applicationWizardDraft')
