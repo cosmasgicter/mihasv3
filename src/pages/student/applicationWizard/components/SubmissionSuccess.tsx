@@ -81,9 +81,7 @@ const SubmissionSuccess = ({
         </motion.div>
         <h2 className="text-2xl font-bold text-body mb-4">Application Submitted Successfully!</h2>
 
-        {persistingSlip && (
-          <p className="text-sm text-primary mb-4">Saving a copy of your application slip for admissions records...</p>
-        )}
+
 
         <motion.div
           className="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-6"
@@ -129,7 +127,7 @@ const SubmissionSuccess = ({
         </p>
 
         <div className="space-y-3 mb-6">
-          <Button onClick={onDownload} loading={slipLoading || persistingSlip} className="w-full bg-emerald-600 hover:bg-emerald-700">
+          <Button onClick={onDownload} loading={slipLoading} className="w-full bg-emerald-600 hover:bg-emerald-700">
             <Download className="h-5 w-5 mr-2" />
             Download Application Slip
           </Button>

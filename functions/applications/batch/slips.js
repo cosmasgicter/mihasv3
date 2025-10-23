@@ -1,5 +1,5 @@
 import { supabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js';
-import { generateApplicationSlip } from '../../_lib/applicationSlip.js';
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -93,39 +93,10 @@ export async function onRequest(context) {
             admin_feedback: application.admin_feedback
           };
 
-          const pdfBuffer = await generateApplicationSlip(slipData);
-          const fileName = `${user.id}/${application.application_number}/${Date.now()}-slip.pdf`;
-          
-          const { data: uploadData, error: uploadError } = await supabaseAdminClient.storage
-            .from('app_docs')
-            .upload(fileName, pdfBuffer, {
-              contentType: 'application/pdf',
-              upsert: true
-            });
-
-          if (uploadError) throw uploadError;
-
-          const { data: publicUrl } = supabaseAdminClient.storage
-            .from('app_docs')
-            .getPublicUrl(uploadData.path);
-
-          await supabaseAdminClient
-            .from('application_documents')
-            .upsert({
-              application_id: application.id,
-              document_type: 'application_slip',
-              document_name: `Application Slip - ${application.application_number}.pdf`,
-              file_url: publicUrl.publicUrl,
-              system_generated: true,
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'application_id,document_type'
-            });
-
           return {
             applicationId: application.id,
             applicationNumber: application.application_number,
-            slipUrl: publicUrl.publicUrl
+            data: slipData
           };
         })
       );

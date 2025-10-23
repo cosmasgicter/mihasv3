@@ -66,7 +66,7 @@ export default defineConfig({
           'forms': ['react-hook-form', 'zod'],
           'charts': ['recharts'],
           'excel': ['xlsx', 'exceljs'],
-          'pdf': ['jspdf', 'jspdf-autotable', 'pdf-lib'],
+          'pdf': ['jspdf', 'jspdf-autotable'],
         },
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.')

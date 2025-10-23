@@ -50,11 +50,12 @@ export const useStepValidation = (
       1: () => {
         const validGrades = values.grades?.filter(g => g.subject_id && g.grade >= 1 && g.grade <= 9) || []
         const hasEnoughGrades = validGrades.length >= 5
+        const hasAnyGrades = validGrades.length > 0
         return {
           isValid: hasEnoughGrades,
-          completedFields: hasEnoughGrades ? 1 : 0,
-          totalFields: 1,
-          missingFields: hasEnoughGrades ? [] : ['At least 5 subjects']
+          completedFields: hasAnyGrades ? validGrades.length : 0,
+          totalFields: 5,
+          missingFields: hasEnoughGrades ? [] : hasAnyGrades ? [`${5 - validGrades.length} more subject${5 - validGrades.length > 1 ? 's' : ''} needed`] : ['At least 5 subjects']
         }
       },
       2: () => {

@@ -1,5 +1,5 @@
 import { supabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js';
-import { generateApplicationSlip } from '../../_lib/applicationSlip.js';
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -161,87 +161,11 @@ export async function onRequest(context) {
       admin_feedback_date: application.admin_feedback_date
     };
 
-    // Generate PDF
-    const pdfBuffer = await generateApplicationSlip(slipData);
-
-    // Store in Supabase Storage
-    const fileName = `${user.id}/${application.application_number}/${Date.now()}-slip.pdf`;
-    const { data: uploadData, error: uploadError } = await supabaseAdminClient.storage
-      .from('app_docs')
-      .upload(fileName, pdfBuffer, {
-        contentType: 'application/pdf',
-        upsert: true
-      });
-
-    if (uploadError) {
-      return new Response(JSON.stringify({ 
-        error: 'Failed to store slip',
-        message: uploadError.message 
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Get public URL
-    const { data: publicUrl } = supabaseAdminClient.storage
-      .from('app_docs')
-      .getPublicUrl(uploadData.path);
-
-    // Update application_documents table
-    await supabaseAdminClient
-      .from('application_documents')
-      .upsert({
-        application_id: application.id,
-        document_type: 'application_slip',
-        document_name: `Application Slip - ${application.application_number}.pdf`,
-        file_url: publicUrl.publicUrl,
-        system_generated: true,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'application_id,document_type'
-      });
-
-    // Send email via Supabase Edge Function with PDF attachment
-    const html = renderApplicationSlipEmail({
-      applicantName: application.full_name || recipientEmail,
-      applicationNumber: application.application_number,
-      trackingCode: application.public_tracking_code,
-      status: application.status,
-      slipUrl: publicUrl.publicUrl,
-      programName: application.program,
-      paymentStatus: application.payment_status
-    });
-
-    const { data: emailResult, error: emailError } = await supabaseAdminClient.functions.invoke('send-email', {
-      body: {
-        to: recipientEmail,
-        subject: 'Your MIHAS Application Slip',
-        html,
-        attachments: [{
-          filename: `application-slip-${application.application_number}.pdf`,
-          content: pdfBuffer.toString('base64'),
-          contentType: 'application/pdf'
-        }]
-      }
-    });
-
-    if (emailError) {
-      return new Response(JSON.stringify({ 
-        success: false,
-        error: 'Failed to send email',
-        message: emailError.message,
-        slipUrl: publicUrl.publicUrl
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
+    // Return data for frontend to generate and email
     return new Response(JSON.stringify({ 
       success: true,
-      message: 'Application slip sent successfully',
-      slipUrl: publicUrl.publicUrl
+      data: slipData,
+      email: recipientEmail
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
