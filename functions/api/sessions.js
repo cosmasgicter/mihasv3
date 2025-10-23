@@ -1,5 +1,17 @@
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
 
+// Auto-cleanup sessions older than 30 days
+async function cleanupOldSessions(userId) {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  await supabaseAdminClient
+    .from('device_sessions')
+    .update({ is_active: false })
+    .eq('user_id', userId)
+    .lt('last_activity', thirtyDaysAgo.toISOString());
+}
+
 export async function onRequestGet(context) {
   const { request } = context;
   
@@ -27,12 +39,15 @@ export async function onRequestGet(context) {
       });
     }
     
+    // Cleanup old sessions before fetching
+    await cleanupOldSessions(authContext.user.id);
+    
     const { data, error } = await supabaseAdminClient
       .from('device_sessions')
       .select('*')
       .eq('user_id', authContext.user.id)
       .eq('is_active', true)
-      .order('last_activity', { ascending: false });
+      .order('last_activity', { ascending: false })
     
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {
