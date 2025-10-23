@@ -4,11 +4,12 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
-import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { TextArea } from '@/components/ui/TextArea'
 import { Turnstile } from '@/components/ui/Turnstile'
+import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay'
 import { AuthLayout } from './AuthLayout'
 
 const signUpSchema = z.object({
@@ -48,6 +49,7 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState('')
   const [turnstileToken, setTurnstileToken] = useState('')
   const [turnstileKey, setTurnstileKey] = useState(0)
+  const [isRegistering, setIsRegistering] = useState(false)
   
   const {
     register,
@@ -83,7 +85,6 @@ export default function SignUpPage() {
   }, [])
 
   const onSubmit = async (data: SignUpForm) => {
-    // Require Turnstile token if site key is configured and not in development
     if (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken && import.meta.env.PROD) {
       setError('Please complete the security verification.')
       return
@@ -94,33 +95,35 @@ export default function SignUpPage() {
     setSuccess('')
 
     try {
-      // Proceed with sign up
       const { confirmPassword, ...userData } = data
       void confirmPassword
+      
+      setIsRegistering(true)
       const result = await signUp(data.email, data.password, {
         ...userData,
         turnstileToken
       })
 
       if (result?.error) {
+        setIsRegistering(false)
         throw new Error(result.error)
       }
 
       setSuccess('Account created successfully! Redirecting to sign in...')
     } catch (error) {
-      logger.error('Sign up error:', error)
-      setError(error instanceof Error ? error.message : 'Failed to create account. Please try again.')
-      // Reset Turnstile on error
+      const message = error instanceof Error ? error.message : 'Failed to create account. Please try again.'
+      setError(message.includes('already registered') ? 'This email is already registered. Please sign in instead.' : message)
       setTurnstileToken('')
       setTurnstileKey(prev => prev + 1)
-    } finally {
       setLoading(false)
     }
   }
 
   if (success) {
     return (
-      <AuthLayout
+      <>
+        {isRegistering && <AuthLoadingOverlay message="Creating your account..." />}
+        <AuthLayout
         title="Account created successfully!"
         description={success}
       >
@@ -148,11 +151,14 @@ export default function SignUpPage() {
           </div>
         </div>
       </AuthLayout>
+      </>
     )
   }
 
   return (
-    <AuthLayout
+    <>
+      {isRegistering && <AuthLoadingOverlay message="Creating your account..." />}
+      <AuthLayout
       title="Create your account"
       description={(
         <>
@@ -187,22 +193,22 @@ export default function SignUpPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <Input
+          <PasswordInput
             {...register('password')}
-            type="password"
             label="Create Password"
             error={errors.password?.message}
             helperText="Must be at least 6 characters"
             autoComplete="new-password"
+            disabled={loading}
             required
           />
 
-          <Input
+          <PasswordInput
             {...register('confirmPassword')}
-            type="password"
             label="Confirm Password"
             error={errors.confirmPassword?.message}
             autoComplete="new-password"
+            disabled={loading}
             required
           />
         </div>
@@ -331,5 +337,6 @@ export default function SignUpPage() {
         </Button>
       </form>
     </AuthLayout>
+    </>
   )
 }

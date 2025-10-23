@@ -132,19 +132,25 @@ export function useSessionListener() {
       })
 
       if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          return { error: 'Invalid email or password' }
+        }
+        if (error.message.includes('Email not confirmed')) {
+          return { error: 'Please verify your email address before signing in' }
+        }
         return { error: error.message }
       }
 
       if (data.session && data.user) {
         setUser(data.user)
         
-        // Track device session
+        // Track device session (non-blocking)
         try {
           const deviceId = localStorage.getItem('device_id') || 
             (crypto?.randomUUID ? crypto.randomUUID() : `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`)
           if (deviceId) localStorage.setItem('device_id', deviceId)
           
-          await fetch('/api/sessions/track', {
+          fetch('/api/sessions/track', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -154,17 +160,23 @@ export function useSessionListener() {
               device_id: deviceId,
               device_info: navigator.userAgent
             })
-          })
+          }).catch(() => {})
         } catch (e) {
-          console.error('Failed to track session:', e)
+          // Silent fail for session tracking
         }
         
         return { session: data.session, user: data.user }
       }
 
-      return { error: 'Login failed' }
+      return { error: 'Unable to sign in. Please try again.' }
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Login failed' }
+      if (error instanceof Error) {
+        if (error.message.includes('fetch')) {
+          return { error: 'Network error. Please check your connection.' }
+        }
+        return { error: error.message }
+      }
+      return { error: 'An unexpected error occurred. Please try again.' }
     }
   }, [])
 
@@ -194,12 +206,24 @@ export function useSessionListener() {
       })
 
       if (error) {
+        if (error.message.includes('already registered')) {
+          return { error: 'This email is already registered. Please sign in instead.' }
+        }
+        if (error.message.includes('Password')) {
+          return { error: 'Password must be at least 6 characters long' }
+        }
         return { error: error.message }
       }
 
       return { user: data.user, session: data.session }
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Registration failed' }
+      if (error instanceof Error) {
+        if (error.message.includes('fetch')) {
+          return { error: 'Network error. Please check your connection.' }
+        }
+        return { error: error.message }
+      }
+      return { error: 'Unable to create account. Please try again.' }
     }
   }, [])
 

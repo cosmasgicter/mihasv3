@@ -4,9 +4,10 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
-import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
+import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay'
 import { AuthLayout } from './AuthLayout'
 
 
@@ -22,6 +23,7 @@ export default function SignInPage() {
   const { signIn } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
   
   const {
     register,
@@ -42,16 +44,20 @@ export default function SignInPage() {
         throw new Error(result.error)
       }
 
+      setIsAuthenticating(true)
+      await new Promise(resolve => setTimeout(resolve, 500))
       navigate('/dashboard')
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Failed to sign in. Please try again.')
-    } finally {
+      const message = error instanceof Error ? error.message : 'Failed to sign in. Please try again.'
+      setError(message.includes('Invalid') ? 'Invalid email or password. Please try again.' : message)
       setLoading(false)
     }
   }
 
   return (
-    <AuthLayout
+    <>
+      {isAuthenticating && <AuthLoadingOverlay message="Signing you in..." />}
+      <AuthLayout
       title="Sign in to your account"
       description={(
         <>
@@ -93,15 +99,16 @@ export default function SignInPage() {
           label="Email address"
           error={errors.email?.message}
           autoComplete="email"
+          disabled={loading}
           required
         />
 
-        <Input
+        <PasswordInput
           {...register('password')}
-          type="password"
           label="Password"
           error={errors.password?.message}
           autoComplete="current-password"
+          disabled={loading}
           required
         />
 
@@ -122,5 +129,6 @@ export default function SignInPage() {
         </Button>
       </form>
     </AuthLayout>
+    </>
   )
 }

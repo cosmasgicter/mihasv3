@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AuthLayout } from './AuthLayout'
-import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
@@ -157,18 +157,16 @@ export default function ResetPasswordPage() {
 
     return (
       <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-        <Input
+        <PasswordInput
           {...register('password')}
-          type="password"
           label="New password"
           required
           autoComplete="new-password"
           error={errors.password?.message}
         />
 
-        <Input
+        <PasswordInput
           {...register('confirmPassword')}
-          type="password"
           label="Confirm password"
           required
           autoComplete="new-password"
