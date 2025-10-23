@@ -111,7 +111,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
   ]
 
   return (
-    <NavigationMenu.Root className={cn("nav-container bg-card/95/95 backdrop-blur-sm shadow-lg border-b border-border/50/50 sticky top-0 z-50 w-full transition-colors duration-500", className)}>
+    <NavigationMenu.Root className={cn("nav-container bg-card/95 backdrop-blur-sm shadow-lg border-b border-border/50 sticky top-0 z-50 w-full transition-colors duration-500", className)}>
       <div className="container-mobile">
         <div className="flex justify-between items-center py-3 sm:py-4">
           {/* User Info - Mobile First */}
@@ -159,7 +159,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex items-center space-x-2 hover:bg-primary/5/30 hover:bg-blue-900/30 hover:text-primary hover:text-blue-400 smooth-transition"
+                      className="flex items-center space-x-2 hover:bg-primary/5 hover:bg-blue-900/30 hover:text-primary hover:text-blue-400 smooth-transition"
                     >
                       <item.icon className="h-4 w-4" />
                       <span className="font-medium">{item.label}</span>
@@ -177,7 +177,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                   variant="outline"
                   size="sm"
                   onClick={handleSignOut}
-                  className="ml-2 text-destructive border-destructive/30 hover:bg-destructive/5/30 hover:border-destructive/30 flex items-center !visible !flex"
+                  className="ml-2 text-destructive border-destructive/30 hover:bg-destructive/5 hover:border-destructive/30 flex items-center !visible !flex"
                   style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
@@ -248,7 +248,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-border/70/70 bg-gradient-to-r from-primary/5 to-secondary/5 backdrop-blur-sm transition-colors duration-500">
+                <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-primary/5 to-secondary/5 backdrop-blur-sm transition-colors duration-500">
                   <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
                       <User className="h-5 w-5 text-foreground" />
@@ -294,7 +294,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                         <Link 
                           to={item.href}
                           onClick={closeMenu}
-                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-card text-foreground border-2 border-border hover:border-primary hover:border-purple-500 hover:bg-primary/5/30 opacity-100 visible transition-all duration-200"
+                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-card text-foreground border-2 border-border hover:border-primary hover:border-purple-500 hover:bg-primary/5 opacity-100 visible transition-all duration-200"
                         >
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center space-x-3">

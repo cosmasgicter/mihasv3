@@ -42,7 +42,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
             variant="outline"
             onClick={() => handleAction('approve')}
             loading={loading === 'approve'}
-            className="text-accent border-green-300 hover:bg-accent/10/30"
+            className="text-accent border-green-300 hover:bg-accent/10"
           >
             <CheckCircle className="h-4 w-4 mr-1" />
             Approve
@@ -53,7 +53,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
             variant="outline"
             onClick={() => handleAction('reject')}
             loading={loading === 'reject'}
-            className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
+            className="text-destructive border-destructive/30 hover:bg-destructive/5"
           >
             <XCircle className="h-4 w-4 mr-1" />
             Reject
@@ -64,7 +64,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
             variant="outline"
             onClick={() => handleAction('review')}
             loading={loading === 'review'}
-            className="text-primary border-blue-300 hover:bg-primary/5/30"
+            className="text-primary border-blue-300 hover:bg-primary/5"
           >
             <Clock className="h-4 w-4 mr-1" />
             Review

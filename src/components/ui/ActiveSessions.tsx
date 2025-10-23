@@ -170,7 +170,7 @@ export function ActiveSessions() {
                     size="sm"
                     onClick={() => terminateSession(session.device_id)}
                     disabled={terminating === session.device_id}
-                    className="text-destructive hover:text-error hover:bg-destructive/5/30"
+                    className="text-destructive hover:text-error hover:bg-destructive/5"
                   >
                     {terminating === session.device_id ? 'Terminating...' : 'Terminate'}
                   </Button>

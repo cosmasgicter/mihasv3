@@ -346,7 +346,7 @@ export function SimpleFileUpload({
         
         {displayError && (
           <motion.div 
-            className="mt-4 p-4 bg-destructive/5/30 border border-destructive/30 rounded-lg"
+            className="mt-4 p-4 bg-destructive/5 border border-destructive/30 rounded-lg"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -364,7 +364,7 @@ export function SimpleFileUpload({
         {/* Compression Stats */}
         {showCompressionStats && compressionResults.length > 0 && (
           <motion.div 
-            className="mt-4 p-4 bg-accent/10/30 border border-accent/30 rounded-lg"
+            className="mt-4 p-4 bg-accent/10 border border-accent/30 rounded-lg"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
@@ -487,7 +487,7 @@ export function SimpleFileUpload({
                     variant="ghost"
                     size="sm"
                     onClick={() => onRemoveFile(file.id)}
-                    className="text-destructive hover:text-error hover:bg-destructive/5/30 min-h-[44px] min-w-[44px] touch-target opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-destructive hover:text-error hover:bg-destructive/5 min-h-[44px] min-w-[44px] touch-target opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label={`Remove ${file.name}`}
                   >
                     <X className="h-4 w-4" />

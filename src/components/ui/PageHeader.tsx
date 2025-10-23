@@ -30,8 +30,8 @@ const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
 }
 
 const statAccentStyles: Record<StatAccent, string> = {
- primary: 'bg-primary/5/30 border-primary/30 text-primary',
- secondary: 'bg-secondary/5/30 border-input/30 text-purple-700',
+ primary: 'bg-primary/5 border-primary/30 text-primary',
+ secondary: 'bg-secondary/5 border-input/30 text-purple-700',
  success: 'bg-success/10 border-success/30 text-success',
  warning: 'bg-warning/10 border-warning/30 text-accent',
  neutral: 'bg-muted border-border text-foreground'

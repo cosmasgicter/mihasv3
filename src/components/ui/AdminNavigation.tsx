@@ -189,7 +189,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="ml-2 text-destructive border-destructive/30 hover:bg-destructive/5/30 hover:border-destructive/30 whitespace-nowrap flex items-center logout-button"
+                className="ml-2 text-destructive border-destructive/30 hover:bg-destructive/5 hover:border-destructive/30 whitespace-nowrap flex items-center logout-button"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out

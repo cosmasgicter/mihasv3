@@ -99,7 +99,7 @@ export function BulkUserOperations({
               variant="outline"
               size="sm"
               onClick={() => setShowRoleDialog(true)}
-              className="text-primary border-blue-300 hover:bg-primary/5/30"
+              className="text-primary border-blue-300 hover:bg-primary/5"
             >
               <Shield className="h-4 w-4 mr-1" />
               Update Roles
@@ -109,7 +109,7 @@ export function BulkUserOperations({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowDeleteDialog(true)}
-                className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
+                className="text-destructive border-destructive/30 hover:bg-destructive/5"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
                 Delete Users
@@ -179,7 +179,7 @@ export function BulkUserOperations({
                 ))}
               </select>
             </div>
-            <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-3">
+            <div className="bg-primary/5 border border-primary/30 rounded-lg p-3">
               <p className="text-sm text-primary">
                 ℹ️ This will update the role for all selected users. This action cannot be undone.
               </p>
@@ -217,7 +217,7 @@ export function BulkUserOperations({
             <p className="text-foreground">
               Are you sure you want to delete {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}?
             </p>
-            <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-3">
+            <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-3">
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
                 <div className="text-sm text-error">
@@ -258,17 +258,17 @@ export function BulkUserOperations({
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-accent/10/30 border border-accent/30 rounded-lg">
+                <div className="text-center p-3 bg-accent/10 border border-accent/30 rounded-lg">
                   <p className="text-2xl font-bold text-accent">{operationResult.success}</p>
                   <p className="text-sm text-accent">Successful</p>
                 </div>
-                <div className="text-center p-3 bg-destructive/5/30 border border-destructive/30 rounded-lg">
+                <div className="text-center p-3 bg-destructive/5 border border-destructive/30 rounded-lg">
                   <p className="text-2xl font-bold text-destructive">{operationResult.failed}</p>
                   <p className="text-sm text-error">Failed</p>
                 </div>
               </div>
               {operationResult.errors.length > 0 && (
-                <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-3">
+                <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-3">
                   <p className="text-sm font-medium text-error mb-2">Errors:</p>
                   <ul className="text-xs text-destructive space-y-1">
                     {operationResult.errors.map((error: string, index: number) => (

@@ -29,9 +29,8 @@ const signUpSchema = z.object({
       message: 'Please enter a valid date of birth (must be at least 16 years old)'
     }),
   sex: z.enum(['Male', 'Female'], { required_error: 'Please select a sex' }),
+  residence_town: z.string().min(2, 'City is required'),
   nationality: z.string().min(2, 'Nationality is required'),
-  address: z.string().min(10, 'Please enter your full address'),
-  city: z.string().min(2, 'City is required'),
   next_of_kin_name: z.string().min(2, 'Next of kin name is required'),
   next_of_kin_phone: z.string().min(10, 'Next of kin phone is required'),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -93,6 +92,7 @@ export default function SignUpPage() {
     setLoading(true)
     setError('')
     setSuccess('')
+    setIsRegistering(false)
 
     try {
       const { confirmPassword, ...userData } = data
@@ -109,13 +109,17 @@ export default function SignUpPage() {
         throw new Error(result.error)
       }
 
+      // Wait a bit before showing success
+      await new Promise(resolve => setTimeout(resolve, 500))
       setSuccess('Account created successfully! Redirecting to sign in...')
+      setLoading(false)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create account. Please try again.'
       setError(message.includes('already registered') ? 'This email is already registered. Please sign in instead.' : message)
       setTurnstileToken('')
       setTurnstileKey(prev => prev + 1)
       setLoading(false)
+      setIsRegistering(false)
     }
   }
 
@@ -128,7 +132,7 @@ export default function SignUpPage() {
         description={success}
       >
         <div className="space-y-6 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/30 bg-primary/5/300/10 text-primary">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/30 bg-primary/10 text-primary">
             <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -251,31 +255,27 @@ export default function SignUpPage() {
           </div>
 
           <Input
+            {...register('residence_town')}
+            type="text"
+            label="City/Town"
+            placeholder="Kitwe"
+            error={errors.residence_town?.message}
+            disabled={loading}
+            required
+          />
+          
+          <Input
             {...register('nationality')}
             type="text"
             label="Nationality"
+            placeholder="Zambian"
             error={errors.nationality?.message}
+            disabled={loading}
             required
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <TextArea
-            {...register('address')}
-            label="Full Address"
-            error={errors.address?.message}
-            rows={3}
-            required
-          />
 
-          <Input
-            {...register('city')}
-            type="text"
-            label="City"
-            error={errors.city?.message}
-            required
-          />
-        </div>
 
         <div className="rounded-2xl border border-border bg-muted/50 p-6">
           <h3 className="text-lg font-semibold text-foreground">Next of Kin</h3>
@@ -320,7 +320,7 @@ export default function SignUpPage() {
         )}
 
         {error && (
-          <div className="rounded-xl border border-destructive/30/70 bg-destructive/5/30/80 p-4 text-left shadow-sm">
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-left shadow-sm">
             <div className="text-sm font-medium text-error">{error}</div>
           </div>
         )}

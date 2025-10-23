@@ -44,7 +44,7 @@ export default function OfflineAdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl bg-accent/5/30 border border-yellow-200 p-4 mb-6 shadow-lg"
+          className="rounded-xl bg-accent/5 border border-yellow-200 p-4 mb-6 shadow-lg"
         >
           <div className="flex items-center space-x-3">
             <AlertTriangle className="h-6 w-6 text-warning flex-shrink-0" />

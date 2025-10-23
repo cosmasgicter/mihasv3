@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useRoleQuery, isAdminRole } from '@/hooks/auth/useRoleQuery'
@@ -55,7 +56,7 @@ export function DashboardRedirect() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-secondary/5">
         <div className="bg-card rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 border border-border">
-          <div className="flex flex-col items-center space-y-4">
+          <div className="flex flex-col items-center space-y-6">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur-xl opacity-50 animate-pulse" />
               <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-full p-4">
@@ -67,6 +68,9 @@ export function DashboardRedirect() {
                 {loading ? 'Loading...' : 'Loading your profile...'}
               </h3>
               <p className="text-sm text-muted-foreground">Please wait a moment...</p>
+            </div>
+            <div className="w-full bg-muted rounded-full h-1 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-600 to-purple-600 animate-[loading_2s_ease-in-out_infinite]" style={{ width: '100%' }} />
             </div>
           </div>
         </div>

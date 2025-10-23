@@ -69,7 +69,7 @@ export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningP
           <p className="text-foreground mb-3">{warning.message}</p>
           
           {timeLeft > 0 && (
-            <div className="bg-accent/5/30 border border-yellow-200 rounded-lg p-3">
+            <div className="bg-accent/5 border border-yellow-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-accent-foreground">
                   Time remaining:

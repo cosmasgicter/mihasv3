@@ -133,7 +133,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
           </div>
 
           {/* Important Information */}
-          <div className="bg-primary/5/30 border border-primary/30 rounded-lg p-4 mb-6">
+          <div className="bg-primary/5 border border-primary/30 rounded-lg p-4 mb-6">
             <h3 className="font-medium text-primary-foreground mb-2">Important Information</h3>
             <ul className="text-sm text-primary space-y-1">
               <li>• Keep your reference number and tracking code safe for future reference</li>

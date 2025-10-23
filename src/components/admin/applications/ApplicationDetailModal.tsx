@@ -720,7 +720,7 @@ export function ApplicationDetailModal({
  variant="ghost"
  size="sm"
  onClick={onClose}
- className="hover:bg-white/90/30"
+ className="hover:bg-white/90"
  >
  <XCircle className="h-5 w-5" />
  </Button>
@@ -1137,7 +1137,7 @@ export function ApplicationDetailModal({
  variant="outline"
  loading={isCancellingInterview}
  onClick={() => { void handleInterviewCancel() }}
- className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
+ className="text-destructive border-destructive/30 hover:bg-destructive/5"
  >
  <XCircle className="h-4 w-4 mr-2" />
  Cancel interview

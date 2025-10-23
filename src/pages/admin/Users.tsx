@@ -363,7 +363,7 @@ export default function AdminUsers() {
 
           {/* Bulk Operations */}
           {selectedUsers.length > 0 && (
-            <div className="p-6 border-b border-border bg-primary/5/30">
+            <div className="p-6 border-b border-border bg-primary/5">
               <BulkUserOperations
                 users={filteredUsers}
                 selectedUsers={selectedUsers}
@@ -377,7 +377,7 @@ export default function AdminUsers() {
           <div className="p-6">
 
             {error && (
-              <div className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-6 mb-6">
+              <div className="rounded-xl bg-destructive/5 border border-destructive/30 p-6 mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="text-4xl">😱</div>
                   <div className="text-error font-medium">{error}</div>
@@ -446,7 +446,7 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={() => openEditDialog(user)}
-                            className="text-primary border-blue-300 hover:bg-primary/5/30"
+                            className="text-primary border-blue-300 hover:bg-primary/5"
                           >
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
@@ -455,7 +455,7 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={() => openPermissionsDialog(user)}
-                            className="text-secondary border-purple-300 hover:bg-secondary/5/30"
+                            className="text-secondary border-purple-300 hover:bg-secondary/5"
                           >
                             <Lock className="h-3 w-3 mr-1" />
                             Permissions
@@ -474,7 +474,7 @@ export default function AdminUsers() {
                               variant="outline"
                               size="sm"
                               onClick={() => openDeleteDialog(user)}
-                              className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
+                              className="text-destructive border-destructive/30 hover:bg-destructive/5"
                             >
                               <Trash2 className="h-3 w-3 mr-1" />
                               Delete
@@ -522,7 +522,7 @@ export default function AdminUsers() {
                     </thead>
                     <tbody className="bg-card divide-y divide-border">
                       {filteredUsers.map((user) => (
-                        <tr key={user.user_id} className="hover:bg-secondary/5/30 transition-colors">
+                        <tr key={user.user_id} className="hover:bg-secondary/5 transition-colors">
                           <td className="px-6 py-4">
                             <div className="flex items-center">
                               <button
@@ -570,7 +570,7 @@ export default function AdminUsers() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openEditDialog(user)}
-                                className="text-primary border-blue-300 hover:bg-primary/5/30"
+                                className="text-primary border-blue-300 hover:bg-primary/5"
                                 disabled={selectedUsers.length > 0}
                               >
                                 <Edit className="h-3 w-3 mr-1" />
@@ -580,7 +580,7 @@ export default function AdminUsers() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openPermissionsDialog(user)}
-                                className="text-secondary border-purple-300 hover:bg-secondary/5/30"
+                                className="text-secondary border-purple-300 hover:bg-secondary/5"
                                 disabled={selectedUsers.length > 0}
                               >
                                 <Lock className="h-3 w-3 mr-1" />
@@ -601,7 +601,7 @@ export default function AdminUsers() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => openDeleteDialog(user)}
-                                  className="text-destructive border-destructive/30 hover:bg-destructive/5/30"
+                                  className="text-destructive border-destructive/30 hover:bg-destructive/5"
                                   disabled={selectedUsers.length > 0}
                                 >
                                   <Trash2 className="h-3 w-3 mr-1" />
@@ -792,7 +792,7 @@ export default function AdminUsers() {
               Are you sure you want to delete <strong>{sanitizeForDisplay(selectedUser?.full_name)}</strong>? 
               This action cannot be undone and will remove all user data.
             </p>
-            <div className="mt-4 p-3 bg-destructive/5/30 border border-destructive/30 rounded-lg">
+            <div className="mt-4 p-3 bg-destructive/5 border border-destructive/30 rounded-lg">
               <p className="text-sm text-error">
                 ⚠️ This will permanently delete the user profile and cannot be reversed.
               </p>

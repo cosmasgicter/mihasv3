@@ -142,7 +142,7 @@ export default function EnhancedAdminDashboard() {
                       size="sm"
                       onClick={refreshDashboard}
                       loading={isFetching}
-                      className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30"
+                      className="bg-card/80 border-white/30 text-foreground hover:bg-white/90"
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Refresh
@@ -152,7 +152,7 @@ export default function EnhancedAdminDashboard() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsFullscreen(!isFullscreen)}
-                      className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30"
+                      className="bg-card/80 border-white/30 text-foreground hover:bg-white/90"
                     >
                       {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </Button>

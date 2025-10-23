@@ -52,9 +52,9 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
  >
  {/* Header */}
  <div className={`p-6 ${
- variant === 'danger' ? 'bg-destructive/5/30' :
- variant === 'warning' ? 'bg-accent/5/30' :
- 'bg-primary/5/30'
+ variant === 'danger' ? 'bg-destructive/5' :
+ variant === 'warning' ? 'bg-accent/5' :
+ 'bg-primary/5'
  }`}>
  <div className="flex items-start justify-between">
  <div className="flex items-center gap-3">

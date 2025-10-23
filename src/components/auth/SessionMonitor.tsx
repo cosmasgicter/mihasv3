@@ -36,7 +36,7 @@ export function SessionMonitor() {
   return (
     <>
       {showWarning && (
-        <div className="fixed top-4 right-4 z-50 bg-accent/5/30 border border-yellow-200 rounded-lg p-4 shadow-lg max-w-sm">
+        <div className="fixed top-4 right-4 z-50 bg-accent/5 border border-yellow-200 rounded-lg p-4 shadow-lg max-w-sm">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
               <svg className="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 20 20">

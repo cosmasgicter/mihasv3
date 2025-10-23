@@ -234,7 +234,7 @@ export default function NotificationSettings() {
           )}
 
           {disableGrant && (
-            <div className="rounded-xl bg-accent/5/30 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
+            <div className="rounded-xl bg-accent/5 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
               <p className="font-medium">Add a valid phone number in your profile to enable this channel.</p>
               <p>
                 <Link to="/settings" className="underline font-semibold text-accent-foreground">
@@ -297,7 +297,7 @@ export default function NotificationSettings() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
+            className="rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="text-3xl">⚠️</div>

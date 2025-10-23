@@ -175,7 +175,7 @@ export function FixedAdminDashboard() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-destructive/5/30 border border-destructive/30 rounded-xl p-4 flex items-center space-x-3"
+            className="bg-destructive/5 border border-destructive/30 rounded-xl p-4 flex items-center space-x-3"
           >
             <AlertTriangle className="h-5 w-5 text-error" />
             <div>
@@ -546,7 +546,7 @@ export function FixedAdminDashboard() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 bg-primary/5/30 rounded-xl">
+              <div className="p-3 bg-primary/5 rounded-xl">
                 <div className="flex items-center space-x-2 text-xs text-primary">
                   <Activity className="h-4 w-4" />
                   <span>Decision velocity (24h)</span>
@@ -555,7 +555,7 @@ export function FixedAdminDashboard() {
                   {formatCount(processingMetrics.decisionVelocity24h)} decisions
                 </p>
               </div>
-              <div className="p-3 bg-secondary/5/30 rounded-xl">
+              <div className="p-3 bg-secondary/5 rounded-xl">
                 <div className="flex items-center space-x-2 text-xs text-purple-700">
                   <Users className="h-4 w-4" />
                   <span>Total students</span>

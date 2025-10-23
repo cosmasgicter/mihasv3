@@ -3,14 +3,16 @@ import { Link } from 'react-router-dom'
 import { User, Settings, LogOut, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
+import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { cn } from '@/lib/utils'
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const { user, signOut } = useAuth()
+  const { profile } = useProfileQuery()
   const menuRef = useRef<HTMLDivElement>(null)
   
-  const fullName = user?.user_metadata?.full_name || 'User'
+  const fullName = profile?.full_name || user?.user_metadata?.full_name || 'User'
   const firstName = fullName.split(' ')[0] || 'User'
 
   useEffect(() => {
@@ -37,9 +39,9 @@ export function UserMenu() {
         className="flex items-center space-x-2 hover:bg-muted"
         data-testid="user-menu-trigger"
       >
-        {user?.user_metadata?.avatar_url ? (
+        {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
           <img
-            src={user.user_metadata.avatar_url}
+            src={profile?.avatar_url || user.user_metadata.avatar_url}
             alt="Profile"
             className="w-8 h-8 rounded-full border border-border"
           />

@@ -314,7 +314,7 @@ export default function AdminDashboard() {
                     size="sm"
                     onClick={refreshDashboard}
                     loading={isRefreshing}
-                    className="bg-card/80 border-white/30 text-foreground hover:bg-white/90/30"
+                    className="bg-card/80 border-white/30 text-foreground hover:bg-white/90"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Refresh
@@ -332,7 +332,7 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
+              className="rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
             >
               <div className="flex items-center space-x-3">
                 <AlertTriangle className="h-6 w-6 text-error flex-shrink-0" />
@@ -346,7 +346,7 @@ export default function AdminDashboard() {
 
         {isRefreshing && (
           <div className="mb-6">
-            <div className="rounded-2xl border border-primary/30 bg-primary/5/30 px-4 py-3 shadow-sm">
+            <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium text-primary">
                   <LoadingSpinner size="sm" />

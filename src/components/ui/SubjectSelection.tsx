@@ -145,7 +145,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
 
       {/* Minimum requirement warning */}
       {selectedSubjects.length < 5 && (
-        <div className="bg-destructive/5/30 border border-destructive/30 rounded-lg p-4 flex items-start space-x-3">
+        <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-4 flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-error mt-0.5" />
           <div>
             <p className="text-sm font-medium text-destructive-foreground">

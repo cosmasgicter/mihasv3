@@ -216,7 +216,7 @@ export function EnhancedDashboard({
           </div>
           
           <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between p-3 bg-accent/10/30 rounded-xl">
+            <div className="flex items-center justify-between p-3 bg-accent/10 rounded-xl">
               <div className="flex items-center space-x-2">
                 <Database className="h-4 w-4 text-accent" />
                 <span className="text-sm font-medium text-foreground">Database</span>
@@ -228,22 +228,22 @@ export function EnhancedDashboard({
               </span>
             </div>
             
-            <div className="flex items-center justify-between p-3 bg-accent/10/30 rounded-xl">
+            <div className="flex items-center justify-between p-3 bg-accent/10 rounded-xl">
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-accent" />
                 <span className="text-sm font-medium text-foreground">Security</span>
               </div>
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-accent/10/300 text-white">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-accent text-white">
                 ✓ {systemHealth?.security || 'Secure'}
               </span>
             </div>
             
-            <div className="flex items-center justify-between p-3 bg-primary/5/30 rounded-xl">
+            <div className="flex items-center justify-between p-3 bg-primary/5 rounded-xl">
               <div className="flex items-center space-x-2">
                 <Activity className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium text-foreground">Performance</span>
               </div>
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-primary/5/300 text-white">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-primary text-white">
                 ✓ {systemHealth?.performance || 'Optimal'}
               </span>
             </div>

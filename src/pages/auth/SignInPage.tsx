@@ -36,6 +36,7 @@ export default function SignInPage() {
   const onSubmit = async (data: SignInForm) => {
     setLoading(true)
     setError('')
+    setIsAuthenticating(false)
 
     try {
       const result = await signIn(data.email, data.password)
@@ -44,13 +45,17 @@ export default function SignInPage() {
         throw new Error(result.error)
       }
 
+      // Show loading overlay and wait for auth state to settle
       setIsAuthenticating(true)
-      await new Promise(resolve => setTimeout(resolve, 500))
-      navigate('/dashboard')
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      // Navigate to dashboard
+      navigate('/dashboard', { replace: true })
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to sign in. Please try again.'
       setError(message.includes('Invalid') ? 'Invalid email or password. Please try again.' : message)
       setLoading(false)
+      setIsAuthenticating(false)
     }
   }
 

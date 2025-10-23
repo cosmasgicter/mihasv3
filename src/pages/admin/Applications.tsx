@@ -579,7 +579,7 @@ export default function Applications() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5/30 p-4 mb-6">
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 mb-6">
             <div className="flex items-center gap-3">
               <XCircle className="h-5 w-5 text-error flex-shrink-0" />
               <div>
@@ -590,7 +590,7 @@ export default function Applications() {
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
-                className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/5/30"
+                className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/5"
               >
                 <RefreshCw className="h-4 w-4 mr-1" />
                 Retry
@@ -600,7 +600,7 @@ export default function Applications() {
         )}
 
         {isRefreshing && (
-          <div className="flex items-center gap-2 rounded-xl bg-primary/5/30 px-4 py-3 text-sm text-primary mb-6">
+          <div className="flex items-center gap-2 rounded-xl bg-primary/5 px-4 py-3 text-sm text-primary mb-6">
             <LoadingSpinner size="sm" />
             <span>Refreshing latest applications…</span>
           </div>

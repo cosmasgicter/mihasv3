@@ -119,7 +119,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                     >
                       {action.urgent && (
                         <div className="absolute top-2 right-2">
-                          <div className="w-3 h-3 bg-destructive/5/300 rounded-full animate-pulse"></div>
+                          <div className="w-3 h-3 bg-destructive rounded-full animate-pulse"></div>
                         </div>
                       )}
                       <Icon className="h-6 w-6 group-hover:scale-110 transition-transform" />

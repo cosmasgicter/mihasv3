@@ -374,13 +374,13 @@ export default function AdminSettings() {
                   <Button 
                     onClick={exportSettings}
                     variant="outline"
-                    className="bg-white/10/10 hover:bg-white/20 text-white border-white/30"
+                    className="bg-white/10 hover:bg-white/20 text-white border-white/30"
                     size="sm"
                   >
                     Export
                   </Button>
                   <label className="cursor-pointer">
-                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm bg-white/10/10 hover:bg-white/20 text-white border-white/30">
+                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm bg-white/10 hover:bg-white/20 text-white border-white/30">
                       Import
                     </span>
                     <input
@@ -486,7 +486,7 @@ export default function AdminSettings() {
           <div className="p-6">
 
             {error && (
-              <div className="rounded-xl bg-destructive/5/30 border border-destructive/30 p-4 mb-6">
+              <div className="rounded-xl bg-destructive/5 border border-destructive/30 p-4 mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="text-2xl">⚠️</div>
                   <div className="text-error font-medium">{error}</div>
@@ -495,7 +495,7 @@ export default function AdminSettings() {
             )}
 
             {success && (
-              <div className="rounded-xl bg-accent/10/30 border border-accent/30 p-4 mb-6">
+              <div className="rounded-xl bg-accent/10 border border-accent/30 p-4 mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="text-2xl">✅</div>
                   <div className="text-accent font-medium">{success}</div>
@@ -514,7 +514,7 @@ export default function AdminSettings() {
               <>
                 {/* Add New Setting Form */}
                 {showAddForm && (
-                  <div className="bg-primary/5/30 border border-primary/30 rounded-xl p-6 mb-6">
+                  <div className="bg-primary/5 border border-primary/30 rounded-xl p-6 mb-6">
                     <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                       <Plus className="h-5 w-5 mr-2" />
                       Add New Setting

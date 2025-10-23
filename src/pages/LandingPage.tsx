@@ -171,7 +171,7 @@ export default function LandingPageNew() {
 
  {!supabaseAvailable && supabaseStatusMessage && (
  <div className="mt-20 px-4 sm:px-6 lg:px-8">
- <div className="max-w-4xl mx-auto rounded-2xl border border-warning/30 bg-warning/10/95 p-4 shadow-sm">
+ <div className="max-w-4xl mx-auto rounded-2xl border border-warning/30 bg-warning/10 p-4 shadow-sm">
  <div className="flex items-start gap-3 text-amber-900">
  <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
  <div>

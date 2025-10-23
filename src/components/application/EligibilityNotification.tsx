@@ -70,7 +70,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           )}
 
           {!eligible && canProceed && (
-            <div className="mb-3 p-3 bg-primary/5/30 border border-primary/30 rounded-md">
+            <div className="mb-3 p-3 bg-primary/5 border border-primary/30 rounded-md">
               <div className="flex items-start gap-2">
                 <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
                 <div className="text-xs text-primary-foreground">
@@ -98,7 +98,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           )}
           
           {eligibility.alternativePathways && eligibility.alternativePathways.length > 0 && (
-            <div className="mt-2 p-2 bg-secondary/5/30 border border-input/30 rounded">
+            <div className="mt-2 p-2 bg-secondary/5 border border-input/30 rounded">
               <p className="text-xs font-medium text-purple-800 mb-1">Alternative Entry Routes:</p>
               <ul className="space-y-1">
                 {eligibility.alternativePathways.map((pathway, index) => (
