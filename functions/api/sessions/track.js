@@ -14,12 +14,7 @@ export async function onRequestPost(context) {
   }
   
   try {
-    const headers = {};
-    for (const [key, value] of request.headers.entries()) {
-      headers[key.toLowerCase()] = value;
-    }
-    
-    const authContext = await getUserFromRequest({ headers });
+    const authContext = await getUserFromRequest(request);
     if (authContext.error) {
       return new Response(JSON.stringify({ error: authContext.error }), {
         status: 401,
@@ -37,13 +32,14 @@ export async function onRequestPost(context) {
       });
     }
     
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization') || '';
     const { error } = await supabaseAdminClient
       .from('device_sessions')
       .upsert({
         user_id: authContext.user.id,
         device_id,
         device_info: device_info || 'Unknown',
-        session_token: headers.authorization?.split(' ')[1] || '',
+        session_token: authHeader.split(' ')[1] || '',
         last_activity: new Date().toISOString(),
         is_active: true
       }, {
