@@ -35,47 +35,43 @@ export async function onRequestPost(context) {
     });
     
     if (authError) {
+      console.error('Auth error:', authError);
       return new Response(JSON.stringify({ error: authError.message }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     
-    // Create profile
-    const profileData = {
-      id: authData.user.id,
-      email: authData.user.email,
-      role: 'student',
-      is_active: true
-    };
-    
-    // Add all available fields
-    if (userData.full_name) {
-      profileData.full_name = userData.full_name;
-      const nameParts = userData.full_name.split(' ');
-      profileData.first_name = nameParts[0] || '';
-      profileData.last_name = nameParts.slice(1).join(' ') || '';
-    }
-    if (userData.phone) profileData.phone = userData.phone;
-    if (userData.date_of_birth) profileData.date_of_birth = userData.date_of_birth;
-    if (userData.sex) profileData.sex = userData.sex;
-    if (userData.nationality) profileData.nationality = userData.nationality;
-    if (userData.residence_town) profileData.residence_town = userData.residence_town;
-    if (userData.next_of_kin_name) profileData.next_of_kin_name = userData.next_of_kin_name;
-    if (userData.next_of_kin_phone) profileData.next_of_kin_phone = userData.next_of_kin_phone;
-    
+    // Create profile manually
+    const nameParts = (userData.full_name || '').split(' ');
     const { error: profileError } = await supabaseAdminClient
       .from('profiles')
-      .upsert(profileData, { onConflict: 'id' });
+      .insert({
+        id: authData.user.id,
+        email: authData.user.email,
+        full_name: userData.full_name || '',
+        first_name: nameParts[0] || '',
+        last_name: nameParts.slice(1).join(' ') || '',
+        phone: userData.phone || '',
+        date_of_birth: userData.date_of_birth || null,
+        sex: userData.sex || '',
+        residence_town: userData.residence_town || '',
+        nationality: userData.nationality || '',
+        next_of_kin_name: userData.next_of_kin_name || '',
+        next_of_kin_phone: userData.next_of_kin_phone || '',
+        role: 'student',
+        is_active: true
+      });
     
     if (profileError) {
-      console.error('Profile creation error:', profileError);
-      // Rollback: delete auth user if profile creation fails
+      console.error('Profile error FULL:', JSON.stringify(profileError, null, 2));
       await supabaseAdminClient.auth.admin.deleteUser(authData.user.id);
       return new Response(JSON.stringify({ 
-        error: 'Database error creating new user',
-        details: profileError.message,
-        code: profileError.code 
+        error: 'Failed to create profile',
+        message: profileError.message,
+        code: profileError.code,
+        details: profileError.details,
+        hint: profileError.hint
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
