@@ -1,5 +1,15 @@
 import { supabaseAdminClient } from './_lib/supabaseClient.js';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type'
+};
+
+export async function onRequestOptions() {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
+
 export async function onRequestGet() {
   let dbTest = 'not-tested';
   try {
@@ -19,6 +29,6 @@ export async function onRequestGet() {
     database: dbTest
   }), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   });
 }
