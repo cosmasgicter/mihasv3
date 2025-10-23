@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useRoleQuery, isAdminRole } from '@/hooks/auth/useRoleQuery'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { Loader2 } from 'lucide-react'
 
 export function DashboardRedirect() {
   const { user, loading } = useAuth()
@@ -53,12 +53,22 @@ export function DashboardRedirect() {
 
   if (loading || !redirectPath) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-foreground">
-            {loading ? 'Loading...' : 'Loading your profile...'}
-          </p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-secondary/5">
+        <div className="bg-card rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 border border-border">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur-xl opacity-50 animate-pulse" />
+              <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-full p-4">
+                <Loader2 className="h-8 w-8 text-white animate-spin" />
+              </div>
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold text-foreground">
+                {loading ? 'Loading...' : 'Loading your profile...'}
+              </h3>
+              <p className="text-sm text-muted-foreground">Please wait a moment...</p>
+            </div>
+          </div>
         </div>
       </div>
     )

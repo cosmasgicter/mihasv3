@@ -1,5 +1,4 @@
-import type { LucideIcon } from 'lucide-react'
-import { FileText, Sparkles, CreditCard, Send } from 'lucide-react'
+import { FileText, Sparkles, CreditCard, Send, type LucideIcon } from 'lucide-react'
 
 export type StepKey = 'basicKyc' | 'education' | 'payment' | 'submit'
 
