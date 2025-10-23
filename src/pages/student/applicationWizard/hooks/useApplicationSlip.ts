@@ -108,7 +108,8 @@ export function useApplicationSlip({
         }
 
         if (result.error) {
-          toast.showError?.('Slip unavailable', result.error)
+          console.error('Slip generation error:', result.error)
+          hasPersistedSlipRef.current = true
           setPersistingSlip(false)
           return
         }
@@ -133,6 +134,7 @@ export function useApplicationSlip({
       } catch (error) {
         if (!cancelled) {
           console.error('Automatic slip persistence failed:', error)
+          hasPersistedSlipRef.current = true
           setPersistingSlip(false)
         }
       }
