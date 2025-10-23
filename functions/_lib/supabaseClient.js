@@ -172,7 +172,10 @@ async function processProfile(req, profile, payload) {
 
 async function getUserFromRequest(req, { requireAdmin = false } = {}) {
   const headers = req.headers || {}
-  const authHeader = headers.authorization || headers.Authorization
+  // Handle both plain objects and Headers instances
+  const authHeader = typeof headers.get === 'function' 
+    ? headers.get('authorization') || headers.get('Authorization')
+    : headers.authorization || headers.Authorization
   if (!authHeader) {
     return { error: 'No authorization header provided' }
   }

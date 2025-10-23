@@ -69,7 +69,7 @@ export async function onRequest(context) {
   
   if (request.method === 'GET') {
     try {
-      const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) });
+      const authContext = await getUserFromRequest(request);
       if (authContext.error) {
         return new Response(JSON.stringify({ error: authContext.error }), {
           status: 401,
@@ -123,7 +123,7 @@ export async function onRequest(context) {
   
   if (request.method === 'DELETE') {
     try {
-      const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) });
+      const authContext = await getUserFromRequest(request);
       if (authContext.error || !authContext.user) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
           status: 401,
@@ -170,7 +170,7 @@ export async function onRequest(context) {
   
   if (request.method === 'PUT' || request.method === 'PATCH') {
     try {
-      const authContext = await getUserFromRequest({ headers: Object.fromEntries(request.headers) });
+      const authContext = await getUserFromRequest(request);
       if (authContext.error || !authContext.user) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
           status: 401,
@@ -194,6 +194,62 @@ export async function onRequest(context) {
         });
       }
 
+      // Handle PATCH actions
+      if (request.method === 'PATCH' && body.action) {
+        const { action, ...payload } = body;
+        
+        if (action === 'update_status') {
+          const { status, notes } = payload;
+          const { data, error } = await supabaseAdminClient
+            .from('applications')
+            .update({ status, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select()
+            .single();
+          
+          if (!error && notes) {
+            await supabaseAdminClient.from('application_status_history').insert({
+              application_id: id,
+              status,
+              changed_by: authContext.user.id,
+              notes,
+              created_at: new Date().toISOString()
+            });
+          }
+          
+          if (error) throw new Error(error.message);
+          return new Response(JSON.stringify({ success: true, data }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        if (action === 'update_payment_status') {
+          const { paymentStatus, verificationNotes } = payload;
+          const updateData = { 
+            payment_status: paymentStatus, 
+            updated_at: new Date().toISOString() 
+          };
+          if (paymentStatus === 'verified') {
+            updateData.payment_verified_at = new Date().toISOString();
+          }
+          
+          const { data, error } = await supabaseAdminClient
+            .from('applications')
+            .update(updateData)
+            .eq('id', id)
+            .select()
+            .single();
+          
+          if (error) throw new Error(error.message);
+          return new Response(JSON.stringify({ success: true, data }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
+
+      // Regular update
       const { data, error } = await supabaseAdminClient
         .from('applications')
         .update(body)

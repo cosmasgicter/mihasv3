@@ -26,12 +26,7 @@ export async function onRequestGet(context) {
   }
   
   try {
-    const headers = {};
-    for (const [key, value] of request.headers.entries()) {
-      headers[key.toLowerCase()] = value;
-    }
-    
-    const authContext = await getUserFromRequest({ headers });
+    const authContext = await getUserFromRequest(request);
     if (authContext.error) {
       return new Response(JSON.stringify({ error: authContext.error }), {
         status: 401,
@@ -78,12 +73,7 @@ export async function onRequestDelete(context) {
   };
   
   try {
-    const headers = {};
-    for (const [key, value] of request.headers.entries()) {
-      headers[key.toLowerCase()] = value;
-    }
-    
-    const authContext = await getUserFromRequest({ headers });
+    const authContext = await getUserFromRequest(request);
     if (authContext.error) {
       return new Response(JSON.stringify({ error: authContext.error }), {
         status: 401,

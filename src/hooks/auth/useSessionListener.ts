@@ -186,36 +186,22 @@ export function useSessionListener() {
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: userData.full_name,
-            phone: userData.phone,
-            date_of_birth: userData.date_of_birth,
-            sex: userData.sex,
-            nationality: userData.nationality,
-            address: userData.address,
-            city: userData.city,
-            next_of_kin_name: userData.next_of_kin_name,
-            next_of_kin_phone: userData.next_of_kin_phone
-          }
-        }
+      const response = await fetch(`${apiBaseUrl}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, ...userData })
       })
 
-      if (error) {
-        if (error.message.includes('already registered')) {
+      const result = await response.json()
+
+      if (!response.ok) {
+        if (result.error?.includes('already registered')) {
           return { error: 'This email is already registered. Please sign in instead.' }
         }
-        if (error.message.includes('Password')) {
-          return { error: 'Password must be at least 6 characters long' }
-        }
-        return { error: error.message }
+        return { error: result.error || 'Unable to create account' }
       }
 
-      return { user: data.user, session: data.session }
+      return { user: result.user }
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes('fetch')) {
@@ -225,7 +211,7 @@ export function useSessionListener() {
       }
       return { error: 'Unable to create account. Please try again.' }
     }
-  }, [])
+  }, [apiBaseUrl])
 
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured) {
