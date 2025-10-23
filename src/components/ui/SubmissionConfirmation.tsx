@@ -41,22 +41,22 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-accent/10 mb-4">
               <CheckCircle className="h-10 w-10 text-accent" />
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 break-words px-2">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-body mb-2 break-words px-2">
               Application Submitted Successfully!
             </h1>
-            <p className="text-foreground">
+            <p className="text-body">
               Your application has been received and is being processed.
             </p>
           </div>
 
           {/* Application Details */}
           <div className="bg-muted rounded-lg p-6 mb-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
+            <h2 className="text-lg font-semibold text-body mb-4">
               Application Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-foreground">
+                <label className="block text-sm font-medium text-body">
                   Reference Number
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
@@ -65,7 +65,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   </span>
                   <button
                     onClick={() => copyToClipboard(referenceNumber, 'Reference number')}
-                    className="p-1 text-foreground hover:text-foreground"
+                    className="p-1 text-body hover:text-foreground"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
@@ -73,7 +73,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground">
+                <label className="block text-sm font-medium text-body">
                   Tracking Code
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
@@ -82,7 +82,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   </span>
                   <button
                     onClick={() => copyToClipboard(trackingCode, 'Tracking code')}
-                    className="p-1 text-foreground hover:text-foreground"
+                    className="p-1 text-body hover:text-foreground"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
@@ -90,23 +90,23 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground">
+                <label className="block text-sm font-medium text-body">
                   Program
                 </label>
-                <p className="mt-1 text-foreground">{programName}</p>
+                <p className="mt-1 text-body">{programName}</p>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground">
+                <label className="block text-sm font-medium text-body">
                   Submission Date
                 </label>
-                <p className="mt-1 text-foreground">
+                <p className="mt-1 text-body">
                   {new Date(submissionDate).toLocaleDateString()}
                 </p>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground">
+                <label className="block text-sm font-medium text-body">
                   Payment Status
                 </label>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -121,12 +121,12 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground">
+                <label className="block text-sm font-medium text-body">
                   Email Confirmation
                 </label>
                 <div className="flex items-center space-x-2 mt-1">
                   <Mail className="h-4 w-4 text-success" />
-                  <span className="text-sm text-foreground">Sent to {userEmail}</span>
+                  <span className="text-sm text-body">Sent to {userEmail}</span>
                 </div>
               </div>
             </div>

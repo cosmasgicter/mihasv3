@@ -96,8 +96,8 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         className="bg-card rounded-2xl shadow-lg border border-border"
       >
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-lg font-bold text-foreground"><Zap className="w-5 h-5" /> Quick Actions</h3>
-          <p className="text-sm text-foreground mt-1">Manage your system efficiently</p>
+          <h3 className="text-lg font-bold text-body"><Zap className="w-5 h-5" /> Quick Actions</h3>
+          <p className="text-sm text-body mt-1">Manage your system efficiently</p>
         </div>
         
         <div className="p-6">
@@ -146,7 +146,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         className="bg-card rounded-2xl shadow-lg border border-border"
       >
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-lg font-bold text-foreground">🛠️ System Tools</h3>
+          <h3 className="text-lg font-bold text-body">🛠️ System Tools</h3>
         </div>
         
         <div className="p-6 space-y-3">
@@ -168,7 +168,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                     <Icon className="h-4 w-4 mr-3" />
                     <div className="text-left">
                       <div className="font-medium">{action.title}</div>
-                      <div className="text-xs text-foreground">{action.description}</div>
+                      <div className="text-xs text-body">{action.description}</div>
                     </div>
                   </Button>
                 </motion.div>
@@ -194,7 +194,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
               <Download className="h-4 w-4 mr-3" />
               <div className="text-left">
                 <div className="font-medium">Export Data</div>
-                <div className="text-xs text-foreground">Download reports</div>
+                <div className="text-xs text-body">Download reports</div>
               </div>
             </Button>
           </motion.div>
@@ -208,15 +208,15 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         transition={{ delay: 0.4 }}
         className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-primary/30"
       >
-        <h3 className="text-lg font-bold text-foreground mb-4"><BarChart3 className="w-5 h-5" /> Quick Stats</h3>
+        <h3 className="text-lg font-bold text-body mb-4"><BarChart3 className="w-5 h-5" /> Quick Stats</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary">{stats.pendingApplications}</div>
-            <div className="text-sm text-foreground">Pending</div>
+            <div className="text-2xl font-bold text-info-strong">{stats.pendingApplications}</div>
+            <div className="text-sm text-body">Pending</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-foreground">{stats.totalPrograms}</div>
-            <div className="text-sm text-foreground">Programs</div>
+            <div className="text-2xl font-bold text-body">{stats.totalPrograms}</div>
+            <div className="text-sm text-body">Programs</div>
           </div>
         </div>
       </motion.div>

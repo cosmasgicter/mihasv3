@@ -87,8 +87,8 @@ export default function RoleManagement() {
                   <div key={user.id} className="bg-muted rounded-xl p-4 border border-border">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h3 className="font-bold text-foreground">{fullName}</h3>
-                        <p className="text-sm text-foreground truncate">{user.email}</p>
+                        <h3 className="font-bold text-body">{fullName}</h3>
+                        <p className="text-sm text-body truncate">{user.email}</p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRoleColor(user.role)}`}>
                         {user.role.replace('_', ' ').toUpperCase()}
@@ -143,10 +143,10 @@ export default function RoleManagement() {
               <table className="min-w-full divide-y divide-border">
                 <thead className="bg-gradient-to-r from-muted to-purple-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase">User</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase">Email</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase">Role</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase">Actions</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase">User</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase">Email</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase">Role</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-card divide-y divide-border">
@@ -154,8 +154,8 @@ export default function RoleManagement() {
                     const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
                     return (
                       <tr key={user.id} className="hover:bg-primary/5 transition-colors">
-                        <td className="px-6 py-4 text-sm font-medium text-foreground">{fullName}</td>
-                        <td className="px-6 py-4 text-sm text-foreground">{user.email}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-body">{fullName}</td>
+                        <td className="px-6 py-4 text-sm text-body">{user.email}</td>
                         <td className="px-6 py-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRoleColor(user.role)}`}>
                             {user.role.replace('_', ' ').toUpperCase()}

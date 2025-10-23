@@ -41,7 +41,7 @@ export default function EmailNotifications() {
   return (
     <div className="bg-card rounded-lg shadow">
       <div className="px-6 py-4 border-b border-border">
-        <h3 className="text-lg font-medium text-foreground flex items-center">
+        <h3 className="text-lg font-medium text-body flex items-center">
           <Mail className="h-5 w-5 mr-2" />
           Email Notifications
         </h3>
@@ -49,7 +49,7 @@ export default function EmailNotifications() {
       
       <div className="divide-y divide-border max-h-96 overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="px-6 py-8 text-center text-foreground">
+          <div className="px-6 py-8 text-center text-body">
             No email notifications found
           </div>
         ) : (
@@ -64,19 +64,19 @@ export default function EmailNotifications() {
                     </span>
                   </div>
                   
-                  <h4 className="text-sm font-medium text-foreground mb-1">
+                  <h4 className="text-sm font-medium text-body mb-1">
                     {sanitizeForDisplay(notification.subject)}
                   </h4>
                   
-                  <p className="text-sm text-foreground mb-2">
+                  <p className="text-sm text-body mb-2">
                     To: {sanitizeForDisplay(notification.recipient_email)}
                   </p>
                   
-                  <p className="text-xs text-foreground mb-2">
+                  <p className="text-xs text-body mb-2">
                     {sanitizeForDisplay(notification.body)}
                   </p>
                   
-                  <p className="text-xs text-foreground">
+                  <p className="text-xs text-body">
                     {new Date(notification.created_at).toLocaleString()}
                     {notification.sent_at && (
                       <span className="ml-2">

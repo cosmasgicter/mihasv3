@@ -77,14 +77,14 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                   className={`h-5 w-5 transition-all duration-300 ${
                     isActive
                       ? 'text-primary scale-110'
-                      : 'text-foreground group-hover:text-primary group-hover:scale-105'
+                      : 'text-body group-hover:text-primary group-hover:scale-105'
                   }`}
                 />
                 <span
                   className={`text-xs mt-1 transition-all duration-300 truncate max-w-[60px] ${
                     isActive
                       ? 'text-primary font-medium'
-                      : 'text-foreground group-hover:text-primary'
+                      : 'text-body group-hover:text-primary'
                   }`}
                 >
                   {label}
@@ -98,8 +98,8 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
               aria-label="More options"
               className="relative flex flex-col items-center justify-center flex-1 h-full group min-w-[60px]"
             >
-              <MoreHorizontal className="h-5 w-5 text-foreground group-hover:text-primary transition-all duration-300" />
-              <span className="text-xs mt-1 text-foreground group-hover:text-primary transition-all duration-300">
+              <MoreHorizontal className="h-5 w-5 text-body group-hover:text-primary transition-all duration-300" />
+              <span className="text-xs mt-1 text-body group-hover:text-primary transition-all duration-300">
                 More
               </span>
             </button>
@@ -128,7 +128,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
               <div className="py-2">
                 {adminMoreSections.map((section) => (
                   <div key={section.title}>
-                    <div className="px-3 py-1.5 text-[10px] font-medium text-foreground uppercase tracking-wide">
+                    <div className="px-3 py-1.5 text-[10px] font-medium text-body uppercase tracking-wide">
                       {section.title}
                     </div>
                     {section.links.map(({ to, icon: Icon, label }) => {
@@ -141,7 +141,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                           className={`flex items-center gap-2.5 px-3 py-2 transition-colors ${
                             isActive
                               ? 'bg-primary/10 text-primary'
-                              : 'text-foreground hover:bg-accent'
+                              : 'text-body hover:bg-accent'
                           }`}
                         >
                           <Icon className="h-4 w-4" />

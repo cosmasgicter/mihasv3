@@ -238,8 +238,9 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
 
       return sanitizeProfile(data) as UserProfile
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(PROFILE_QUERY_KEY(user?.id), data)
+      await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY(user?.id) })
     }
   })
 

@@ -35,12 +35,12 @@ export function DataPopulationConfirmation({
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-4">
             <CheckCircle className="h-6 w-6 text-success" />
-            <h3 className="text-lg font-semibold text-foreground">
+            <h3 className="text-lg font-semibold text-body">
               Auto-Fill Detected
             </h3>
           </div>
           
-          <p className="text-sm text-foreground mb-4">
+          <p className="text-sm text-body mb-4">
             We found information in your profile that can be used to pre-fill this application. 
             Please review and confirm the accuracy of this data:
           </p>
@@ -48,8 +48,8 @@ export function DataPopulationConfirmation({
           <div className="space-y-2 mb-6">
             {populatedFields.map((field, index) => (
               <div key={index} className="flex justify-between text-sm">
-                <span className="font-medium text-foreground">{field.label}:</span>
-                <span className="text-foreground">{field.value}</span>
+                <span className="font-medium text-body">{field.label}:</span>
+                <span className="text-body">{field.value}</span>
               </div>
             ))}
           </div>

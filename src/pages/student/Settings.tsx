@@ -78,7 +78,7 @@ export default function StudentSettings() {
 
       console.log('Updating profile with data:', cleanData)
       await updateProfile(cleanData)
-      setSuccess('Profile updated successfully! Please sign out and sign back in to see the changes.')
+      setSuccess('Profile updated successfully!')
     } catch (error) {
       console.error('Error updating profile:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
@@ -128,19 +128,11 @@ export default function StudentSettings() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-accent/10 border border-accent/30 p-4 sm:p-6 mb-6 shadow-lg"
+            className="rounded-xl bg-green-50 dark:bg-green-900/20 border-2 border-green-500 p-4 sm:p-6 mb-6 shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">✅</div>
-              <div className="flex-1">
-                <div className="text-accent font-medium">{success}</div>
-                <button
-                  onClick={() => window.location.href = '/auth/signin'}
-                  className="mt-2 text-sm text-accent underline hover:text-success"
-                >
-                  Sign out now
-                </button>
-              </div>
+              <div className="text-green-700 dark:text-green-300 font-semibold text-lg">{success}</div>
             </div>
           </motion.div>
         )}
@@ -157,7 +149,7 @@ export default function StudentSettings() {
               <div className="p-2 bg-primary/10 rounded-lg">
                 <User className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-foreground">
+              <h2 className="text-lg sm:text-xl font-bold text-body">
                 <User className="w-5 h-5" /> Basic Information
               </h2>
             </div>
@@ -173,7 +165,7 @@ export default function StudentSettings() {
               />
               
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-sm font-medium text-body mb-2">
                   Email Address
                 </label>
                 <div className="relative">
@@ -182,10 +174,10 @@ export default function StudentSettings() {
                     type="email"
                     value={profile?.email || ''}
                     disabled
-                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-foreground cursor-not-allowed truncate"
+                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-body cursor-not-allowed truncate"
                   />
                 </div>
-                <p className="mt-2 text-xs text-foreground bg-accent px-3 py-1 rounded-lg inline-block">
+                <p className="mt-2 text-xs text-body bg-accent px-3 py-1 rounded-lg inline-block">
                   🔒 Email cannot be changed
                 </p>
               </div>
@@ -210,7 +202,7 @@ export default function StudentSettings() {
               />
               
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-sm font-medium text-body mb-2">
                   Sex
                 </label>
                 <select
@@ -239,7 +231,7 @@ export default function StudentSettings() {
               <div className="p-2 bg-accent/10 rounded-lg">
                 <MapPin className="h-5 w-5 text-accent" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-foreground">
+              <h2 className="text-lg sm:text-xl font-bold text-body">
                 📍 Address Information
               </h2>
             </div>
@@ -276,7 +268,7 @@ export default function StudentSettings() {
               <div className="p-2 bg-destructive/10 rounded-lg">
                 <Phone className="h-5 w-5 text-destructive" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-foreground">
+              <h2 className="text-lg sm:text-xl font-bold text-body">
                 👥 Next of Kin
               </h2>
             </div>
@@ -313,7 +305,7 @@ export default function StudentSettings() {
               <div className="p-2 bg-muted rounded-lg">
                 <Shield className="h-5 w-5 text-secondary" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-foreground">
+              <h2 className="text-lg sm:text-xl font-bold text-body">
                 🔐 Security & Active Sessions
               </h2>
             </div>

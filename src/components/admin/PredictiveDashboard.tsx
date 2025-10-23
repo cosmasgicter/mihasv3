@@ -231,8 +231,8 @@ export function PredictiveDashboard() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-foreground">AI Predictive Dashboard</h2>
-                <p className="text-sm text-foreground">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">AI Predictive Dashboard</h2>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
                   Predictive insights will load once the dashboard is ready.
                 </p>
               </div>
@@ -263,11 +263,11 @@ export function PredictiveDashboard() {
       {/* Header with refresh */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">AI Predictive Dashboard</h1>
-          <p className="text-foreground">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Predictive Dashboard</h1>
+          <p className="text-gray-700 dark:text-gray-300">
             Real-time insights and automation analytics
             {lastUpdated && (
-              <span className="ml-2 text-sm text-foreground">
+              <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
@@ -334,7 +334,7 @@ export function PredictiveDashboard() {
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">Trend Direction</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Trend Direction</span>
                 <div className="flex items-center">
                   {metrics.trendDirection === 'up' && (
                     <TrendingUp className="h-4 w-4 text-accent mr-1" />
@@ -342,9 +342,9 @@ export function PredictiveDashboard() {
                   {metrics.trendDirection === 'down' && (
                     <TrendingUp className="h-4 w-4 text-destructive mr-1 rotate-180" />
                   )}
-                  <span className={`text-sm font-medium ${
-                    metrics.trendDirection === 'up' ? 'text-success' : 
-                    metrics.trendDirection === 'down' ? 'text-error' : 'text-foreground'
+                  <span className={`text-sm font-semibold ${
+                    metrics.trendDirection === 'up' ? 'text-green-700 dark:text-green-400' : 
+                    metrics.trendDirection === 'down' ? 'text-red-700 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'
                   }`}>
                     {metrics.trendDirection === 'up' ? 'Increasing' : 
                      metrics.trendDirection === 'down' ? 'Decreasing' : 'Stable'}
@@ -352,16 +352,16 @@ export function PredictiveDashboard() {
                 </div>
               </div>
               <div>
-                <span className="text-sm text-foreground block mb-2">Peak Application Times</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium block mb-2">Peak Application Times</span>
                 <div className="flex flex-wrap gap-2">
                   {metrics.peakApplicationTimes.length > 0 ? (
                     metrics.peakApplicationTimes.slice(0, 4).map((time, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-primary/10 text-primary-foreground text-xs rounded">
+                      <span key={idx} className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded">
                         {time}
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-foreground">No peak times identified</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400">No peak times identified</span>
                   )}
                 </div>
               </div>
@@ -382,15 +382,15 @@ export function PredictiveDashboard() {
             <div className="space-y-3 max-h-48 overflow-y-auto">
               {metrics.processingBottlenecks.length > 0 ? (
                 metrics.processingBottlenecks.map((bottleneck, idx) => (
-                  <div key={idx} className="flex items-start p-3 bg-accent/5 rounded-lg">
-                    <Clock className="h-4 w-4 text-accent mr-2 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-accent-foreground">{bottleneck}</span>
+                  <div key={idx} className="flex items-start p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                    <Clock className="h-4 w-4 text-yellow-700 dark:text-yellow-400 mr-2 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-800 dark:text-gray-200 font-medium">{bottleneck}</span>
                   </div>
                 ))
               ) : (
-                <div className="flex items-center p-3 bg-accent/10 rounded-lg">
-                  <CheckCircle className="h-4 w-4 text-accent mr-2" />
-                  <span className="text-sm text-accent-foreground">No bottlenecks detected - system running smoothly</span>
+                <div className="flex items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-green-700 dark:text-green-400 mr-2" />
+                  <span className="text-sm text-gray-800 dark:text-gray-200 font-medium">No bottlenecks detected - system running smoothly</span>
                 </div>
               )}
             </div>
@@ -412,32 +412,32 @@ export function PredictiveDashboard() {
               {metrics.workflowStats ? (
                 <>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground">Total Executions (7 days)</span>
-                    <span className="text-lg font-semibold">{metrics.workflowStats.totalExecutions}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Total Executions (7 days)</span>
+                    <span className="text-lg font-bold text-gray-900 dark:text-white">{metrics.workflowStats.totalExecutions}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground">Success Rate</span>
-                    <span className={`text-lg font-semibold ${
+                    <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Success Rate</span>
+                    <span className={`text-lg font-bold ${
                       metrics.workflowStats.totalExecutions > 0 
                         ? (metrics.workflowStats.successfulExecutions / metrics.workflowStats.totalExecutions) > 0.9 
-                          ? 'text-success' : 'text-warning'
-                        : 'text-foreground'
+                          ? 'text-green-700 dark:text-green-400' : 'text-yellow-700 dark:text-yellow-400'
+                        : 'text-gray-900 dark:text-white'
                     }`}>
                       {metrics.workflowStats.totalExecutions > 0 
                         ? Math.round((metrics.workflowStats.successfulExecutions / metrics.workflowStats.totalExecutions) * 100)
                         : 0}%
                     </span>
                   </div>
-                  <div className="pt-2 border-t">
-                    <span className="text-xs text-foreground">Most Active Rules</span>
+                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <span className="text-xs text-gray-700 dark:text-gray-300 font-semibold">Most Active Rules</span>
                     <div className="mt-1 space-y-1">
                       {Object.entries(metrics.workflowStats.ruleStats)
                         .sort(([,a], [,b]) => (b as number) - (a as number))
                         .slice(0, 3)
                         .map(([ruleId, count]) => (
                           <div key={ruleId} className="flex justify-between text-xs">
-                            <span className="text-foreground truncate">{ruleId.replace(/_/g, ' ')}</span>
-                            <span className="text-foreground font-medium">{count as number}</span>
+                            <span className="text-gray-700 dark:text-gray-300 truncate">{ruleId.replace(/_/g, ' ')}</span>
+                            <span className="text-gray-900 dark:text-white font-bold">{count as number}</span>
                           </div>
                         ))
                       }
@@ -445,7 +445,7 @@ export function PredictiveDashboard() {
                   </div>
                 </>
               ) : (
-                <div className="text-sm text-foreground">Loading workflow statistics...</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Loading workflow statistics...</div>
               )}
             </div>
           </Card>
@@ -462,50 +462,50 @@ export function PredictiveDashboard() {
           <div className="flex items-center mb-6">
             <Brain className="h-6 w-6 mr-2 text-secondary" />
             <h3 className="text-lg font-semibold">AI Recommendations</h3>
-            <span className="ml-auto text-xs text-foreground bg-accent px-2 py-1 rounded">
+            <span className="ml-auto text-xs font-semibold text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-900 px-3 py-1 rounded-full">
               Updated {refreshing ? 'now' : 'recently'}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-primary/5 rounded-lg border border-primary/30">
-              <h4 className="font-medium text-primary-foreground mb-2 flex items-center">
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center">
                 <FileText className="h-4 w-4 mr-1" />
                 Workflow Optimization
               </h4>
-              <p className="text-sm text-primary">
+              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
                 {metrics.workflowStats?.successfulExecutions > 50 
                   ? 'Automation is performing well. Consider expanding auto-approval rules for high-confidence applications.'
                   : 'Consider implementing automated document verification for applications with high confidence scores (>90%).'}
               </p>
             </div>
-            <div className="p-4 bg-accent/10 rounded-lg border border-accent/30">
-              <h4 className="font-medium text-accent-foreground mb-2 flex items-center">
+            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-2 flex items-center">
                 <Users className="h-4 w-4 mr-1" />
                 Resource Allocation
               </h4>
-              <p className="text-sm text-accent">
+              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
                 {metrics.peakApplicationTimes.length > 0 
                   ? `Peak times identified: ${metrics.peakApplicationTimes.slice(0, 2).join(', ')}. Consider increasing staff during these hours.`
                   : 'Application volume is evenly distributed. Current staffing appears adequate.'}
               </p>
             </div>
-            <div className="p-4 bg-secondary/5 rounded-lg border border-input/30">
-              <h4 className="font-medium text-purple-800 mb-2 flex items-center">
+            <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+              <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-2 flex items-center">
                 <AlertTriangle className="h-4 w-4 mr-1" />
                 Proactive Outreach
               </h4>
-              <p className="text-sm text-purple-700">
+              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
                 {metrics.riskApplications > 0 
                   ? `${metrics.riskApplications} applications identified as high-risk. Consider proactive support outreach.`
                   : 'No high-risk applications detected. Current support processes are effective.'}
               </p>
             </div>
-            <div className="p-4 bg-accent/5 rounded-lg border border-yellow-200">
-              <h4 className="font-medium text-accent-foreground mb-2 flex items-center">
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2 flex items-center">
                 <Target className="h-4 w-4 mr-1" />
                 Process Improvement
               </h4>
-              <p className="text-sm text-yellow-700">
+              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
                 Current efficiency: {Math.round(metrics.efficiencyScore)}%. 
                 {metrics.efficiencyScore >= 90 
                   ? 'Excellent performance! Maintain current processes.'

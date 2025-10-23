@@ -85,11 +85,11 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
 
           {recommendations && recommendations.length > 0 && (
             <div className="space-y-1 mb-2">
-              <p className="text-xs font-medium text-foreground">Recommendations:</p>
+              <p className="text-xs font-medium text-body">Recommendations:</p>
               <ul className="space-y-1">
                 {recommendations.map((rec, index) => (
-                  <li key={index} className="flex items-start gap-2 text-xs text-foreground">
-                    <span className="text-foreground mt-0.5">•</span>
+                  <li key={index} className="flex items-start gap-2 text-xs text-body">
+                    <span className="text-body mt-0.5">•</span>
                     <span>{rec}</span>
                   </li>
                 ))}

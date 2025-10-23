@@ -157,11 +157,11 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
  <div>
  <p className="text-sm font-medium text-gray-900">{grades.length} Subjects</p>
- <p className="text-xs text-primary">Grade 12 Results</p>
+ <p className="text-xs text-info-strong">Grade 12 Results</p>
  </div>
  <div className="text-right">
  <p className="text-lg font-bold text-gray-900">{totalPoints}</p>
- <p className="text-xs text-primary">Points (Best 5)</p>
+ <p className="text-xs text-info-strong">Points (Best 5)</p>
  </div>
  </div>
 
@@ -923,7 +923,7 @@ export function ApplicationDetailModal({
  </div>
  <div>
  <p className="text-sm text-gray-900 mb-1">Amount Paid</p>
- <p className="text-2xl font-bold text-accent">
+ <p className="text-2xl font-bold text-warning-strong">
  K{application.amount || 0} / K{application.application_fee || 0}
  </p>
  </div>
@@ -942,7 +942,7 @@ export function ApplicationDetailModal({
  Verified on {formatDate(application.payment_verified_at)}
  </p>
  {(application.payment_verified_by_name || application.payment_verified_by_email) && (
- <p className="text-sm text-accent">
+ <p className="text-sm text-warning-strong">
  By: {application.payment_verified_by_name || application.payment_verified_by_email}
  </p>
  )}
@@ -968,7 +968,7 @@ export function ApplicationDetailModal({
  />
  
  <div className="flex items-center justify-between">
- <div className="text-sm text-primary">
+ <div className="text-sm text-info-strong">
  {application.admin_feedback_date && (
  <span>Last updated: {formatDate(application.admin_feedback_date)}</span>
  )}

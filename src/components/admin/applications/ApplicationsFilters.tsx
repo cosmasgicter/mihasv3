@@ -59,7 +59,7 @@ export function ApplicationsFilters({
       {/* Top Controls */}
       <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
         <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground"><Search className="w-5 h-5" /> Search & Filter</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-body"><Search className="w-5 h-5" /> Search & Filter</h2>
           {selectedCount > 0 && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
@@ -181,7 +181,7 @@ export function ApplicationsFilters({
             className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-primary/30 rounded-xl p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-foreground"><Target className="w-5 h-5" /> Advanced Filters</h3>
+              <h3 className="text-lg font-bold text-body"><Target className="w-5 h-5" /> Advanced Filters</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -195,7 +195,7 @@ export function ApplicationsFilters({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Date Range */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground"><Calendar className="w-5 h-5" /> Date Range</label>
+                <label className="text-sm font-medium text-body"><Calendar className="w-5 h-5" /> Date Range</label>
                 <div className="space-y-2">
                   <input
                     type="date"
@@ -216,7 +216,7 @@ export function ApplicationsFilters({
               
               {/* Program Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground"><GraduationCap className="w-5 h-5" /> Program</label>
+                <label className="text-sm font-medium text-body"><GraduationCap className="w-5 h-5" /> Program</label>
                 <select
                   value={programFilter}
                   onChange={(e) => onProgramFilterChange(e.target.value)}
@@ -231,7 +231,7 @@ export function ApplicationsFilters({
               
               {/* Institution Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">🏢 Institution</label>
+                <label className="text-sm font-medium text-body">🏢 Institution</label>
                 <select
                   value={institutionFilter}
                   onChange={(e) => onInstitutionFilterChange(e.target.value)}
@@ -245,7 +245,7 @@ export function ApplicationsFilters({
               
               {/* Payment Status Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground"><CreditCard className="w-5 h-5" /> Payment Status</label>
+                <label className="text-sm font-medium text-body"><CreditCard className="w-5 h-5" /> Payment Status</label>
                 <select
                   value={paymentStatusFilter}
                   onChange={(e) => onPaymentStatusFilterChange(e.target.value)}

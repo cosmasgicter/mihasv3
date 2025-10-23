@@ -13,18 +13,18 @@ interface BreadcrumbsProps {
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
   return (
     <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-sm">
-      <Link to="/" className="text-foreground hover:text-foreground transition-colors">
+      <Link to="/" className="text-body hover:text-body transition-colors">
         <Home className="h-4 w-4" aria-label="Home" />
       </Link>
       {items.map((item, index) => (
         <div key={index} className="flex items-center space-x-2">
           <ChevronRight className="h-4 w-4 text-foreground" aria-hidden="true" />
           {item.href ? (
-            <Link to={item.href} className="text-foreground hover:text-foreground transition-colors">
+            <Link to={item.href} className="text-body hover:text-body transition-colors">
               {item.label}
             </Link>
           ) : (
-            <span className="text-foreground font-medium" aria-current="page">{item.label}</span>
+            <span className="text-body font-medium" aria-current="page">{item.label}</span>
           )}
         </div>
       ))}

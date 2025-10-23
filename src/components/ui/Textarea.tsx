@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const textareaVariants = cva(
-  'w-full px-3 py-2 rounded-lg bg-background border text-foreground placeholder:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-ring resize-none',
+  'w-full px-3 py-2 rounded-lg bg-background border text-body placeholder:text-body transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-ring resize-none',
   {
     variants: {
       variant: {
@@ -30,7 +30,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label className="block text-sm font-medium text-body mb-1.5">
             {label}
           </label>
         )}
@@ -43,7 +43,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           <p className="mt-1.5 text-sm text-destructive">{error}</p>
         )}
         {helperText && !error && (
-          <p className="mt-1.5 text-sm text-foreground">{helperText}</p>
+          <p className="mt-1.5 text-sm text-body">{helperText}</p>
         )}
       </div>
     )

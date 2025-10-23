@@ -1,0 +1,94 @@
+/* Legibility Framework - WCAG AA Compliant Text Colors */
+
+/* Primary Text Hierarchy */
+.text-heading {
+  @apply text-gray-900 dark:text-white font-semibold;
+}
+
+.text-subheading {
+  @apply text-gray-800 dark:text-gray-100 font-medium;
+}
+
+.text-body {
+  @apply text-gray-800 dark:text-gray-200;
+}
+
+.text-body-secondary {
+  @apply text-gray-700 dark:text-gray-300;
+}
+
+.text-caption {
+  @apply text-gray-600 dark:text-gray-400 text-sm;
+}
+
+.text-muted {
+  @apply text-gray-500 dark:text-gray-500;
+}
+
+/* Status Colors - High Contrast */
+.text-success-strong {
+  @apply text-green-700 dark:text-green-400 font-semibold;
+}
+
+.text-warning-strong {
+  @apply text-yellow-700 dark:text-yellow-400 font-semibold;
+}
+
+.text-error-strong {
+  @apply text-red-700 dark:text-red-400 font-semibold;
+}
+
+.text-info-strong {
+  @apply text-blue-700 dark:text-blue-400 font-semibold;
+}
+
+/* Background + Text Combinations */
+.bg-success-subtle {
+  @apply bg-green-50 dark:bg-green-900/20 text-gray-800 dark:text-gray-200;
+}
+
+.bg-warning-subtle {
+  @apply bg-yellow-50 dark:bg-yellow-900/20 text-gray-800 dark:text-gray-200;
+}
+
+.bg-error-subtle {
+  @apply bg-red-50 dark:bg-red-900/20 text-gray-800 dark:text-gray-200;
+}
+
+.bg-info-subtle {
+  @apply bg-blue-50 dark:bg-blue-900/20 text-gray-800 dark:text-gray-200;
+}
+
+/* Badge/Pill Styles */
+.badge-primary {
+  @apply bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-medium;
+}
+
+.badge-success {
+  @apply bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 font-medium;
+}
+
+.badge-warning {
+  @apply bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 font-medium;
+}
+
+.badge-error {
+  @apply bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 font-medium;
+}
+
+/* Card Variants */
+.card-primary {
+  @apply bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800;
+}
+
+.card-success {
+  @apply bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800;
+}
+
+.card-warning {
+  @apply bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800;
+}
+
+.card-error {
+  @apply bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800;
+}

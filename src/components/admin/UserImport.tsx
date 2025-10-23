@@ -321,11 +321,11 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-                <FileText className="h-12 w-12 text-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">
+                <FileText className="h-12 w-12 text-body mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-body mb-2">
                   {file ? file.name : 'Select CSV File'}
                 </h3>
-                <p className="text-foreground mb-4">
+                <p className="text-body mb-4">
                   {file ? 'File selected. Click Import to proceed.' : 'Choose a CSV file to import users'}
                 </p>
                 <Button
@@ -346,24 +346,24 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               {/* Preview */}
               {showPreview && previewData.length > 0 && (
                 <div className="bg-muted border border-border rounded-lg p-4">
-                  <h3 className="font-medium text-foreground mb-3">Preview (First 5 rows)</h3>
+                  <h3 className="font-medium text-body mb-3">Preview (First 5 rows)</h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-border">
                       <thead className="bg-accent">
                         <tr>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Name</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Email</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Phone</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Role</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-body uppercase">Name</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-body uppercase">Email</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-body uppercase">Phone</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-body uppercase">Role</th>
                         </tr>
                       </thead>
                       <tbody className="bg-card divide-y divide-border">
                         {previewData.map((user, index) => (
                           <tr key={index}>
-                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.full_name)}</td>
-                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.email)}</td>
-                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.phone) || '-'}</td>
-                            <td className="px-3 py-2 text-sm text-foreground">
+                            <td className="px-3 py-2 text-sm text-body">{sanitizeText(user.full_name)}</td>
+                            <td className="px-3 py-2 text-sm text-body">{sanitizeText(user.email)}</td>
+                            <td className="px-3 py-2 text-sm text-body">{sanitizeText(user.phone) || '-'}</td>
+                            <td className="px-3 py-2 text-sm text-body">
                               <span className="px-2 py-1 bg-primary/10 text-primary-foreground rounded text-xs">
                                 {sanitizeText(user.role)}
                               </span>
@@ -385,23 +385,23 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                     <div className="flex items-center justify-center w-12 h-12 bg-accent/10 rounded-full mb-2">
                       <CheckCircle className="h-6 w-6 text-accent" />
                     </div>
-                    <p className="text-2xl font-bold text-accent">{importResult.success}</p>
-                    <p className="text-sm text-foreground">Successful</p>
+                    <p className="text-2xl font-bold text-warning-strong">{importResult.success}</p>
+                    <p className="text-sm text-body">Successful</p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center w-12 h-12 bg-destructive/10 rounded-full mb-2">
                       <XCircle className="h-6 w-6 text-destructive" />
                     </div>
                     <p className="text-2xl font-bold text-destructive">{importResult.failed}</p>
-                    <p className="text-sm text-foreground">Failed</p>
+                    <p className="text-sm text-body">Failed</p>
                   </div>
                   {importResult.duplicates > 0 && (
                     <div className="text-center">
                       <div className="flex items-center justify-center w-12 h-12 bg-accent/10 rounded-full mb-2">
                         <AlertTriangle className="h-6 w-6 text-accent" />
                       </div>
-                      <p className="text-2xl font-bold text-accent">{importResult.duplicates}</p>
-                      <p className="text-sm text-foreground">Duplicates</p>
+                      <p className="text-2xl font-bold text-warning-strong">{importResult.duplicates}</p>
+                      <p className="text-sm text-body">Duplicates</p>
                     </div>
                   )}
                 </div>

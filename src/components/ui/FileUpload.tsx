@@ -71,7 +71,7 @@ export function FileUpload({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-foreground mb-2">
+        <label className="block text-sm font-medium text-body mb-2">
           {label}
         </label>
       )}
@@ -84,10 +84,10 @@ export function FileUpload({
                 <File className="h-8 w-8 text-primary" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-foreground truncate" title={currentFile.name}>
+                <p className="text-sm font-medium text-body truncate" title={currentFile.name}>
                   {currentFile.name}
                 </p>
-                <p className="text-xs text-foreground">
+                <p className="text-xs text-body">
                   {formatFileSize(currentFile.size)}
                 </p>
               </div>
@@ -132,10 +132,10 @@ export function FileUpload({
             aria-label={label || 'File upload'}
           />
           <Upload className="h-10 w-10 mx-auto mb-3 text-foreground" />
-          <p className="text-sm font-medium text-foreground mb-1">
+          <p className="text-sm font-medium text-body mb-1">
             Drop file here or click to browse
           </p>
-          <p className="text-xs text-foreground">
+          <p className="text-xs text-body">
             {accept.split(',').join(', ')} • Max {formatFileSize(maxSize)}
           </p>
         </div>
@@ -149,7 +149,7 @@ export function FileUpload({
       )}
 
       {helperText && !error && (
-        <p className="mt-2 text-xs text-foreground">{helperText}</p>
+        <p className="mt-2 text-xs text-body">{helperText}</p>
       )}
     </div>
   )

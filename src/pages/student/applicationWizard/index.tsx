@@ -151,11 +151,11 @@ const ApplicationWizardContent = () => {
       <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner />
-          <p className="mt-4 text-foreground">
+          <p className="mt-4 text-body">
             {authLoading ? 'Loading...' : 'Restoring your saved progress...'}
           </p>
           {restoringDraft && (
-            <p className="mt-2 text-sm text-primary">
+            <p className="mt-2 text-sm text-info-strong">
               We found a saved draft of your application
             </p>
           )}
@@ -206,9 +206,9 @@ const ApplicationWizardContent = () => {
             Back to Dashboard
           </Link>
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">Student Application</h1>
-            <p className="text-foreground">Complete the {totalSteps}-step application process</p>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-body mb-2">Student Application</h1>
+            <p className="text-body">Complete the {totalSteps}-step application process</p>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-caption">
               <span className="break-all">Logged in as: {user.email}</span>
               <span className="hidden sm:inline text-xs bg-primary/10 text-primary px-2 py-1 rounded">
                 Tip: Use Ctrl+→/← to navigate steps
@@ -220,10 +220,10 @@ const ApplicationWizardContent = () => {
         <div className="mb-6 lg:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex-1">
-              <h2 className="text-base sm:text-lg font-semibold text-foreground">
+              <h2 className="text-base sm:text-lg font-semibold text-body">
                 {currentStepConfig.title}
               </h2>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-caption mt-1">
                 {currentStepConfig.description}
               </p>
               <div className="mt-2 space-y-2">
@@ -237,10 +237,10 @@ const ApplicationWizardContent = () => {
                     />
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                    <span className="text-xs font-medium text-caption whitespace-nowrap">
                       {Math.round((currentStepIndex / (totalSteps - 1)) * 100)}%
                     </span>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap hidden sm:block">
+                    <span className="text-xs text-caption whitespace-nowrap hidden sm:block">
                       {formattedTime}
                     </span>
                   </div>
@@ -259,7 +259,7 @@ const ApplicationWizardContent = () => {
                     </span>
                   </div>
                   {!stepValidation.isValid && stepValidation.missingFields.length > 0 && (
-                    <span className="text-muted-foreground">
+                    <span className="text-caption">
                       • Missing: {stepValidation.missingFields.slice(0, 2).join(', ')}
                       {stepValidation.missingFields.length > 2 && ` +${stepValidation.missingFields.length - 2} more`}
                     </span>
@@ -281,7 +281,7 @@ const ApplicationWizardContent = () => {
                     <span className="hidden sm:inline">Saved</span>
                   </div>
                   {timeSinceLastSave && (
-                    <span className="text-xs text-muted-foreground hidden sm:inline">{timeSinceLastSave}</span>
+                    <span className="text-xs text-caption hidden sm:inline">{timeSinceLastSave}</span>
                   )}
                 </motion.div>
               )}
@@ -381,7 +381,7 @@ const ApplicationWizardContent = () => {
                       }`}>
                         {step.progressTitle}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
+                      <div className="text-xs text-caption mt-0.5">
                         Step {step.id} of {wizardSteps.length}
                       </div>
                     </div>
@@ -405,7 +405,7 @@ const ApplicationWizardContent = () => {
               </div>
               <div className="ml-3 flex-1">
                 <h3 className="text-sm font-medium text-destructive">Error</h3>
-                <div className="text-sm text-foreground mt-1">{error}</div>
+                <div className="text-sm text-body mt-1">{error}</div>
                 <button
                   type="button"
                   onClick={() => setError('')}
@@ -424,11 +424,11 @@ const ApplicationWizardContent = () => {
               <Info className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
               <div className="ml-3 flex-1">
                 <h3 className="text-sm font-medium text-warning">Incomplete Step</h3>
-                <div className="text-sm text-foreground mt-1">
+                <div className="text-sm text-body mt-1">
                   You can proceed, but we recommend completing all fields for a better application.
                 </div>
                 {stepValidation.missingFields.length > 0 && (
-                  <ul className="mt-2 text-xs text-muted-foreground list-disc list-inside space-y-1">
+                  <ul className="mt-2 text-xs text-caption list-disc list-inside space-y-1">
                     {stepValidation.missingFields.map((field, idx) => (
                       <li key={idx}>{field}</li>
                     ))}
@@ -566,7 +566,7 @@ const ApplicationWizardContent = () => {
                 className="bg-primary/5 border border-primary/20 rounded-lg p-4"
               >
                 <h3 className="text-sm font-semibold text-primary mb-2">💡 Quick Tips</h3>
-                <ul className="text-xs text-foreground space-y-2">
+                <ul className="text-xs text-body space-y-2">
                   {currentStepIndex === 0 && (
                     <>
                       <li>• Ensure your contact details are accurate</li>

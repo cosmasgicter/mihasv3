@@ -179,14 +179,14 @@ export function ApplicationsTable({
  onChange={handleSelectAll}
  className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
  />
- <span className="text-sm font-medium text-foreground">
+ <span className="text-sm font-medium text-body">
  {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'Select all'}
  </span>
  </div>
  {selectedIds.length > 0 && (
  <button
  onClick={() => onSelectionChange([])}
- className="text-sm text-foreground hover:text-foreground"
+ className="text-sm text-body hover:text-foreground"
  >
  Clear selection
  </button>
@@ -215,12 +215,12 @@ export function ApplicationsTable({
  
  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-card rounded-xl p-6 border border-border shadow-sm">
  <div className="flex items-center gap-4">
- <div className="text-sm text-foreground">
- Showing <span className="font-semibold text-foreground">{loadedCount}</span>
+ <div className="text-sm text-body">
+ Showing <span className="font-semibold text-body">{loadedCount}</span>
  {totalCount > 0 && (
  <>
  {' '}of{' '}
- <span className="font-semibold text-foreground">{totalCount}</span>
+ <span className="font-semibold text-body">{totalCount}</span>
  </>
  )}{' '}
  applications
@@ -228,7 +228,7 @@ export function ApplicationsTable({
  {totalCount > 0 && (
  <div className="h-4 w-px bg-muted" />
  )}
- <div className="text-xs text-foreground">
+ <div className="text-xs text-body">
  {Math.round((loadedCount / Math.max(totalCount, 1)) * 100)}% loaded
  </div>
  </div>
@@ -245,7 +245,7 @@ export function ApplicationsTable({
  </button>
  ) : (
  totalCount > 0 && (
- <div className="flex items-center gap-2 text-sm text-foreground">
+ <div className="flex items-center gap-2 text-sm text-body">
  <CheckCircle className="h-4 w-4 text-success" />
  All applications loaded
  </div>
@@ -258,8 +258,8 @@ export function ApplicationsTable({
  <div className="mx-auto w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
  <FileText className="h-8 w-8 text-foreground" />
  </div>
- <h3 className="text-lg font-medium text-foreground mb-2">No applications found</h3>
- <p className="text-sm text-foreground">Try adjusting your filters to see more results.</p>
+ <h3 className="text-lg font-medium text-body mb-2">No applications found</h3>
+ <p className="text-sm text-body">Try adjusting your filters to see more results.</p>
  </div>
  )}
  </div>
@@ -331,12 +331,12 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  <div className="flex items-start justify-between mb-4">
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2 mb-1">
- <User className="h-4 w-4 text-foreground flex-shrink-0" />
- <h3 className="font-semibold text-foreground truncate">{app.full_name}</h3>
+ <User className="h-4 w-4 text-body flex-shrink-0" />
+ <h3 className="font-semibold text-body truncate">{app.full_name}</h3>
  </div>
- <div className="flex items-center gap-2 text-sm text-foreground">
+ <div className="flex items-center gap-2 text-sm text-body">
  <span className="font-mono">#{app.application_number}</span>
- <span className="text-foreground">•</span>
+ <span className="text-body">•</span>
  <Calendar className="h-3 w-3" />
  <span>{formatDate(app.submitted_at || app.created_at)}</span>
  </div>
@@ -346,12 +346,12 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
  {/* Contact Info */}
  <div className="space-y-2 mb-4">
- <div className="flex items-center gap-2 text-sm text-foreground">
+ <div className="flex items-center gap-2 text-sm text-body">
  <Mail className="h-3 w-3 text-foreground" />
  <span className="truncate">{app.email}</span>
  </div>
  {app.phone && (
- <div className="flex items-center gap-2 text-sm text-foreground">
+ <div className="flex items-center gap-2 text-sm text-body">
  <Phone className="h-3 w-3 text-foreground" />
  <span>{app.phone}</span>
  </div>
@@ -362,12 +362,12 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  <div className="bg-muted rounded-lg p-3 mb-4">
  <div className="flex items-center gap-2 mb-1">
  <GraduationCap className="h-4 w-4 text-primary" />
- <span className="font-medium text-foreground text-sm">{app.program}</span>
+ <span className="font-medium text-body text-sm">{app.program}</span>
  </div>
- <div className="flex items-center gap-2 text-sm text-foreground">
+ <div className="flex items-center gap-2 text-sm text-body">
  <Building className="h-3 w-3 text-foreground" />
  <span>{getInstitutionName(app.institution)}</span>
- <span className="text-foreground">•</span>
+ <span className="text-body">•</span>
  <span>{app.intake}</span>
  </div>
  </div>
@@ -375,18 +375,18 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  {/* Payment & Grades */}
  <div className="grid grid-cols-2 gap-4 mb-4">
  <div>
- <div className="text-xs text-foreground mb-1">Payment Status</div>
+ <div className="text-xs text-body mb-1">Payment Status</div>
  {getPaymentBadge(app.payment_status)}
- <div className="text-sm font-medium text-foreground mt-1">
+ <div className="text-sm font-medium text-body mt-1">
  K{app.paid_amount || 0} / K{app.application_fee}
  </div>
  </div>
  
  {app.total_subjects > 0 && (
  <div>
- <div className="text-xs text-foreground mb-1">Academic</div>
+ <div className="text-xs text-body mb-1">Academic</div>
  <div className="text-sm">
- <span className="text-foreground">{app.total_subjects} subjects</span>
+ <span className="text-body">{app.total_subjects} subjects</span>
  {app.points > 0 && (
  <div className={`font-medium ${getPointsColor(app.points)}`}>
  Points: {app.points}
@@ -399,11 +399,11 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
  {app.grades_summary && (
  <div className="mb-4 rounded-lg border border-border bg-muted p-3">
- <div className="text-xs font-medium uppercase tracking-wide text-foreground mb-2">
+ <div className="text-xs font-medium uppercase tracking-wide text-body mb-2">
  Grades Summary
  </div>
  <div
- className="prose prose-sm max-w-none text-foreground [&_p]:mb-2"
+ className="prose prose-sm max-w-none text-body [&_p]:mb-2"
  dangerouslySetInnerHTML={{ __html: sanitizedGradesSummary }}
  />
  </div>
@@ -413,7 +413,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  {documentsCount > 0 && (
  <div className="flex items-center gap-2 mb-4 p-2 bg-blue-50 rounded-lg">
  <FileText className="h-4 w-4 text-primary" />
- <span className="text-sm text-primary">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
+ <span className="text-sm text-info-strong">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
  </div>
  )}
 
@@ -444,7 +444,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  href={app.result_slip_url}
  target="_blank"
  rel="noopener noreferrer"
- className="bg-accent hover:bg-skeleton text-foreground p-2.5 rounded-lg transition-colors"
+ className="bg-accent hover:bg-skeleton text-body p-2.5 rounded-lg transition-colors"
  title="Result Slip"
  >
  <FileText className="h-4 w-4" />
@@ -455,7 +455,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  href={app.pop_url}
  target="_blank"
  rel="noopener noreferrer"
- className="bg-accent hover:bg-skeleton text-foreground p-2.5 rounded-lg transition-colors"
+ className="bg-accent hover:bg-skeleton text-body p-2.5 rounded-lg transition-colors"
  title="Proof of Payment"
  >
  <CreditCard className="h-4 w-4" />
@@ -468,7 +468,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  {/* Loading Overlays */}
  {(updatingStatus || updatingPayment) && (
  <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-card/80">
- <div className="flex items-center gap-2 text-sm text-foreground">
+ <div className="flex items-center gap-2 text-sm text-body">
  <LoadingSpinner size="sm" />
  <span>Updating...</span>
  </div>

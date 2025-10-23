@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './styles/legibility.css';
+
 @layer base {
   html {
     color-scheme: light only !important;

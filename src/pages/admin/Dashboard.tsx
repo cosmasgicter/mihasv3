@@ -227,8 +227,8 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-foreground mb-2">Authentication Required</h2>
-          <p className="text-foreground mb-4">Please sign in to access the admin dashboard.</p>
+          <h2 className="text-xl font-semibold text-body mb-2">Authentication Required</h2>
+          <p className="text-body mb-4">Please sign in to access the admin dashboard.</p>
           <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
         </div>
       </div>
@@ -239,8 +239,8 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-foreground mb-2">Profile Loading</h2>
-          <p className="text-foreground mb-4">Setting up your profile...</p>
+          <h2 className="text-xl font-semibold text-body mb-2">Profile Loading</h2>
+          <p className="text-body mb-4">Setting up your profile...</p>
           <LoadingSpinner size="lg" />
         </div>
       </div>
@@ -314,7 +314,7 @@ export default function AdminDashboard() {
                     size="sm"
                     onClick={refreshDashboard}
                     loading={isRefreshing}
-                    className="bg-card/80 border-white/30 text-foreground hover:bg-white/90"
+                    className="bg-card/80 border-white/30 text-body hover:bg-white/90"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Refresh
@@ -348,7 +348,7 @@ export default function AdminDashboard() {
           <div className="mb-6">
             <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                <div className="flex items-center gap-2 text-sm font-medium text-info-strong">
                   <LoadingSpinner size="sm" />
                   <span>Refreshing dashboard metrics…</span>
                 </div>
@@ -383,15 +383,15 @@ export default function AdminDashboard() {
                   <Calendar className="h-6 w-6 text-primary" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.todayApplications}</div>
-                  <div className="text-xs text-foreground">Today</div>
+                  <div className="text-xl sm:text-2xl font-bold text-body break-words">{stats.todayApplications}</div>
+                  <div className="text-xs text-body">Today</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-foreground">New Applications</div>
+              <div className="text-sm font-medium text-body">New Applications</div>
               {stats.todayApplications > 0 && (
                 <div className="flex items-center mt-2 text-xs">
                   <ArrowUp className="h-3 w-3 text-success mr-1" />
-                  <span className="text-accent">Today</span>
+                  <span className="text-warning-strong">Today</span>
                 </div>
               )}
             </div>
@@ -412,11 +412,11 @@ export default function AdminDashboard() {
                   <Clock className="h-6 w-6 text-accent" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.pendingApplications}</div>
-                  <div className="text-xs text-foreground">Pending</div>
+                  <div className="text-xl sm:text-2xl font-bold text-body break-words">{stats.pendingApplications}</div>
+                  <div className="text-xs text-body">Pending</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-foreground">Awaiting Review</div>
+              <div className="text-sm font-medium text-body">Awaiting Review</div>
               {stats.pendingApplications > 0 && (
                 <Link to="/admin/applications?status=submitted" className="text-xs text-primary hover:underline mt-2 block">
                   Review now →
@@ -440,14 +440,14 @@ export default function AdminDashboard() {
                   <Zap className="h-6 w-6 text-secondary" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.avgProcessingTime}</div>
-                  <div className="text-xs text-foreground">Days</div>
+                  <div className="text-xl sm:text-2xl font-bold text-body break-words">{stats.avgProcessingTime}</div>
+                  <div className="text-xs text-body">Days</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-foreground">Avg Processing</div>
+              <div className="text-sm font-medium text-body">Avg Processing</div>
               <div className="flex items-center mt-2 text-xs">
                 <ArrowDown className="h-3 w-3 text-success mr-1" />
-                <span className="text-accent">Improved by 15%</span>
+                <span className="text-warning-strong">Improved by 15%</span>
               </div>
             </div>
           </motion.div>
@@ -467,18 +467,18 @@ export default function AdminDashboard() {
                   <CheckCircle className="h-6 w-6 text-accent" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-foreground break-words">
+                  <div className="text-xl sm:text-2xl font-bold text-body break-words">
                     {stats.approvedApplications + stats.rejectedApplications > 0 
                       ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                       : 0}%
                   </div>
-                  <div className="text-xs text-foreground">Rate</div>
+                  <div className="text-xs text-body">Rate</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-foreground">Approval Rate</div>
+              <div className="text-sm font-medium text-body">Approval Rate</div>
               <div className="flex items-center mt-2 text-xs">
                 <TrendingUp className="h-3 w-3 text-success mr-1" />
-                <span className="text-accent">Stable performance</span>
+                <span className="text-warning-strong">Stable performance</span>
               </div>
             </div>
           </motion.div>
@@ -522,7 +522,7 @@ export default function AdminDashboard() {
           className="mt-8 bg-card rounded-2xl shadow-lg border border-border"
         >
           <div className="px-6 py-4 border-b border-border">
-            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <h3 className="text-lg font-bold text-body flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
               Weekly Overview
             </h3>
@@ -532,11 +532,11 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-xl sm:text-2xl font-bold text-primary break-words">{stats.weekApplications}</div>
-                <div className="text-sm text-foreground">Applications This Week</div>
+                <div className="text-sm text-body">Applications This Week</div>
               </div>
               <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.avgProcessingTime}</div>
-                <div className="text-sm text-foreground">Avg Processing Days</div>
+                <div className="text-xl sm:text-2xl font-bold text-body break-words">{stats.avgProcessingTime}</div>
+                <div className="text-sm text-body">Avg Processing Days</div>
                 <div className="text-xs text-accent mt-1">-12% improvement</div>
               </div>
               <div className="text-center">
@@ -545,7 +545,7 @@ export default function AdminDashboard() {
                     ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                     : 0}%
                 </div>
-                <div className="text-sm text-foreground">Success Rate</div>
+                <div className="text-sm text-body">Success Rate</div>
                 <div className="text-xs text-primary mt-1">Stable performance</div>
               </div>
             </div>
