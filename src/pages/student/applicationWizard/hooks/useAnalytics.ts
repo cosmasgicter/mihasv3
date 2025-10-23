@@ -32,7 +32,7 @@ export const useAnalytics = (
           time_spent_seconds: Math.floor((Date.now() - stepStartTime.current) / 1000)
         })
       } catch (error) {
-        console.error('Analytics tracking error:', error)
+        // Silently fail - analytics should not block user flow
       }
     }
 
@@ -81,7 +81,7 @@ export const useAnalytics = (
         time_spent_seconds: Math.floor((Date.now() - stepStartTime.current) / 1000)
       })
     } catch (error) {
-      console.error('Analytics tracking error:', error)
+      // Silently fail - analytics should not block user flow
     }
   }
 
@@ -98,7 +98,7 @@ export const useAnalytics = (
         time_spent_seconds: Math.floor((Date.now() - stepStartTime.current) / 1000)
       })
     } catch (error) {
-      console.error('Analytics tracking error:', error)
+      // Silently fail - analytics should not block user flow
     }
   }
 
