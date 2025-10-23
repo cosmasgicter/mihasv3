@@ -79,15 +79,7 @@ export async function uploadApplicationFile(
       }
     }
 
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      console.error('Auth error during upload:', authError)
-      return {
-        success: false,
-        error: 'Please sign in again to upload files'
-      }
-    }
+    // Auth is already checked in the hook, skip redundant check
 
     // Generate filename with better sanitization
     const timestamp = Date.now()
