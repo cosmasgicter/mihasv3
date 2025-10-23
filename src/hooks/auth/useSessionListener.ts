@@ -201,7 +201,19 @@ export function useSessionListener() {
         return { error: result.error || 'Unable to create account' }
       }
 
-      return { user: result.user }
+      // Auto sign in after successful signup
+      const supabase = getSupabaseClient()
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (signInError || !signInData.session) {
+        return { user: result.user, error: 'Account created but auto sign-in failed. Please sign in manually.' }
+      }
+
+      setUser(signInData.user)
+      return { user: signInData.user, session: signInData.session }
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes('fetch')) {
