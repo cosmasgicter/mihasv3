@@ -249,9 +249,11 @@ export async function onRequest(context) {
 
   } catch (error) {
     console.error('Email slip error:', error);
+    console.error('Error stack:', error.stack);
     return new Response(JSON.stringify({ 
       error: 'Failed to email slip',
-      message: error.message 
+      message: error.message,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n')
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
