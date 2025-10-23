@@ -148,17 +148,33 @@ const ApplicationWizardContent = () => {
 
   if (authLoading || restoringDraft) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
           <LoadingSpinner />
-          <p className="mt-4 text-body">
-            {authLoading ? 'Loading...' : 'Restoring your saved progress...'}
+          <p className="mt-4 text-body font-medium">
+            {authLoading ? 'Loading application...' : 'Restoring your saved progress...'}
           </p>
           {restoringDraft && (
             <p className="mt-2 text-sm text-info-strong">
               We found a saved draft of your application
             </p>
           )}
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-gray-800 dark:text-gray-200 mb-3">
+              Taking longer than expected?
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            >
+              Refresh Page
+            </Button>
+            <p className="text-xs text-caption mt-2">
+              Please check your internet connection
+            </p>
+          </div>
         </div>
       </div>
     )
