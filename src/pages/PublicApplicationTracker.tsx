@@ -533,7 +533,7 @@ export default function PublicApplicationTracker() {
                   initial={maybeMotion({ opacity: 0 })}
                   animate={maybeMotion({ opacity: 1 })}
                   transition={maybeMotion({ delay: 0.2 })}
-                  className="text-sm sm:text-xl text-foreground mt-1 sm:mt-2 font-medium"
+                  className="text-sm sm:text-xl text-gray-700 mt-1 sm:mt-2 font-semibold"
                 >
                   ✨ Check status instantly - no login required!
                 </motion.p>
@@ -572,7 +572,7 @@ export default function PublicApplicationTracker() {
                 <h2 className="text-responsive-3xl font-black text-foreground mb-3 sm:mb-4">
                   Find Your Application
                 </h2>
-                <p className="text-base sm:text-xl text-foreground max-w-2xl mx-auto leading-relaxed px-4">
+                <p className="text-base sm:text-xl text-gray-800 max-w-2xl mx-auto leading-relaxed px-4 font-medium">
                   Enter your <span className="font-bold text-primary">application number</span> (e.g., MIHAS123456) or 
                   <span className="font-bold text-foreground"> tracking code</span> to check status.
                 </p>
@@ -635,8 +635,8 @@ export default function PublicApplicationTracker() {
                   className="bg-blue-50 rounded-xl p-4 sm:p-6 border border-blue-200"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">📧</div>
-                  <h3 className="font-bold text-foreground mb-2 text-sm sm:text-base">Check Your Email</h3>
-                  <p className="text-gray-600 text-xs sm:text-sm">Application number sent after submission</p>
+                  <h3 className="font-bold text-gray-900 mb-2 text-sm sm:text-base">Check Your Email</h3>
+                  <p className="text-gray-700 text-xs sm:text-sm font-medium">Application number sent after submission</p>
                 </motion.div>
                 
                 <motion.div
@@ -646,8 +646,8 @@ export default function PublicApplicationTracker() {
                   className="bg-yellow-50 rounded-xl p-4 sm:p-6 border border-yellow-200"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">🔢</div>
-                  <h3 className="font-bold text-foreground mb-2 text-sm sm:text-base">Format Example</h3>
-                  <p className="text-gray-600 font-mono text-xs sm:text-sm">MIHAS123456</p>
+                  <h3 className="font-bold text-gray-900 mb-2 text-sm sm:text-base">Format Example</h3>
+                  <p className="text-gray-800 font-mono text-xs sm:text-sm font-bold">MIHAS123456</p>
                 </motion.div>
                 
                 <motion.div
@@ -657,8 +657,8 @@ export default function PublicApplicationTracker() {
                   className="bg-gray-50 rounded-xl p-4 sm:p-6 border border-gray-200 sm:col-span-2 lg:col-span-1"
                 >
                   <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">⚡</div>
-                  <h3 className="font-bold text-foreground mb-2 text-sm sm:text-base">Instant Results</h3>
-                  <p className="text-gray-600 text-xs sm:text-sm">Real-time updates without login</p>
+                  <h3 className="font-bold text-gray-900 mb-2 text-sm sm:text-base">Instant Results</h3>
+                  <p className="text-gray-700 text-xs sm:text-sm font-medium">Real-time updates without login</p>
                 </motion.div>
               </div>
             </div>
@@ -711,11 +711,11 @@ export default function PublicApplicationTracker() {
                           transition={maybeMotion({ delay: 0.3 })}
                           className="space-y-2 sm:space-y-3"
                         >
-                          <p className="text-white/95 text-base sm:text-2xl font-bold flex items-start sm:items-center space-x-2 sm:space-x-3">
+                          <p className="text-white text-base sm:text-2xl font-bold flex items-start sm:items-center space-x-2 sm:space-x-3">
                             <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 mt-0.5 sm:mt-0" />
                             <span className="break-words">{application.program_name}</span>
                           </p>
-                          <p className="text-white/85 text-sm sm:text-xl font-semibold flex items-start sm:items-center space-x-2 sm:space-x-3">
+                          <p className="text-white text-sm sm:text-xl font-semibold flex items-start sm:items-center space-x-2 sm:space-x-3">
                             <Calendar className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5 sm:mt-0" />
                             <span className="break-words">{application.intake_name}</span>
                           </p>
@@ -750,7 +750,7 @@ export default function PublicApplicationTracker() {
                           {application.status.replace('_', ' ').toUpperCase()}
                         </motion.span>
                         
-                        <p className="text-white/85 text-sm sm:text-lg font-medium flex items-center justify-center lg:justify-end space-x-2">
+                        <p className="text-white text-sm sm:text-lg font-semibold flex items-center justify-center lg:justify-end space-x-2">
                           <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                           <span className="text-xs sm:text-base">Updated: {formatDisplayDate(application.updated_at)}</span>
                         </p>
@@ -838,10 +838,10 @@ export default function PublicApplicationTracker() {
                               {getStatusEmoji(application.status)}
                             </motion.div>
                             <div className="flex-1 text-center sm:text-left">
-                              <p className="font-black text-xl sm:text-2xl lg:text-3xl text-secondary mb-3 sm:mb-4">
+                              <p className="font-black text-xl sm:text-2xl lg:text-3xl text-gray-900 mb-3 sm:mb-4">
                                 {application.status.replace('_', ' ').toUpperCase()}
                               </p>
-                              <p className="text-secondary text-base sm:text-lg lg:text-xl leading-relaxed">
+                              <p className="text-gray-800 text-base sm:text-lg lg:text-xl leading-relaxed font-medium">
                                 {getStatusMessage(application.status)}
                               </p>
                             </div>
@@ -859,17 +859,17 @@ export default function PublicApplicationTracker() {
                             transition={maybeMotion({ delay: 0.7 })}
                             className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-2 border-green-300 rounded-2xl space-responsive shadow-2xl"
                           >
-                            <h5 className="font-black text-accent-foreground mb-4 sm:mb-6 text-lg sm:text-xl lg:text-2xl flex items-center space-x-2 sm:space-x-3">
+                            <h5 className="font-black text-gray-900 mb-4 sm:mb-6 text-lg sm:text-xl lg:text-2xl flex items-center space-x-2 sm:space-x-3">
                               <span className="text-xl sm:text-2xl">💬</span>
                               <span>Message from Admissions</span>
                             </h5>
-                            <div className="bg-card/70 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
-                              <p className="text-accent-foreground text-base sm:text-lg lg:text-xl leading-relaxed font-medium">
+                            <div className="bg-white/80 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 border border-green-200">
+                              <p className="text-gray-900 text-base sm:text-lg lg:text-xl leading-relaxed font-semibold">
                                 {application.admin_feedback}
                               </p>
                             </div>
                             {application.admin_feedback_date && (
-                              <p className="text-accent font-bold text-sm sm:text-base lg:text-lg flex items-center space-x-2">
+                              <p className="text-gray-900 font-bold text-sm sm:text-base lg:text-lg flex items-center space-x-2">
                                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                                 <span>Provided on {formatDate(application.admin_feedback_date)}</span>
                               </p>
@@ -898,8 +898,8 @@ export default function PublicApplicationTracker() {
                               <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Application Number</p>
-                              <p className="text-secondary font-mono text-base sm:text-lg lg:text-xl break-all">{application.application_number}</p>
+                              <p className="font-bold text-gray-900 text-sm sm:text-base lg:text-lg">Application Number</p>
+                              <p className="text-gray-900 font-mono text-base sm:text-lg lg:text-xl break-all font-bold">{application.application_number}</p>
                             </div>
                           </div>
                         </AnimatedCard>
@@ -910,8 +910,8 @@ export default function PublicApplicationTracker() {
                               <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Applicant</p>
-                              <p className="text-secondary text-base sm:text-lg lg:text-xl break-words">{displayValue(application.full_name)}</p>
+                              <p className="font-bold text-gray-900 text-sm sm:text-base lg:text-lg">Applicant</p>
+                              <p className="text-gray-900 text-base sm:text-lg lg:text-xl break-words font-semibold">{displayValue(application.full_name)}</p>
                             </div>
                           </div>
                         </AnimatedCard>
@@ -922,8 +922,8 @@ export default function PublicApplicationTracker() {
                               <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Program</p>
-                              <p className="text-secondary text-base sm:text-lg lg:text-xl break-words">{displayValue(application.program_name, 'Program unavailable')}</p>
+                              <p className="font-bold text-gray-900 text-sm sm:text-base lg:text-lg">Program</p>
+                              <p className="text-gray-900 text-base sm:text-lg lg:text-xl break-words font-semibold">{displayValue(application.program_name, 'Program unavailable')}</p>
                             </div>
                           </div>
                         </AnimatedCard>
@@ -934,8 +934,8 @@ export default function PublicApplicationTracker() {
                               <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Intake Period</p>
-                              <p className="text-secondary text-base sm:text-lg lg:text-xl break-words">{displayValue(application.intake_name, 'Intake unavailable')}</p>
+                              <p className="font-bold text-gray-900 text-sm sm:text-base lg:text-lg">Intake Period</p>
+                              <p className="text-gray-900 text-base sm:text-lg lg:text-xl break-words font-semibold">{displayValue(application.intake_name, 'Intake unavailable')}</p>
                             </div>
                           </div>
                         </AnimatedCard>
@@ -946,8 +946,8 @@ export default function PublicApplicationTracker() {
                               <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Submitted On</p>
-                              <p className="text-secondary text-base sm:text-lg lg:text-xl">{application.submitted_at ? formatDisplayDate(application.submitted_at) : 'Not submitted yet'}</p>
+                              <p className="font-bold text-gray-900 text-sm sm:text-base lg:text-lg">Submitted On</p>
+                              <p className="text-gray-900 text-base sm:text-lg lg:text-xl font-semibold">{application.submitted_at ? formatDisplayDate(application.submitted_at) : 'Not submitted yet'}</p>
                             </div>
                           </div>
                         </AnimatedCard>
@@ -958,8 +958,8 @@ export default function PublicApplicationTracker() {
                               <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Institution</p>
-                              <p className="text-secondary text-base sm:text-lg lg:text-xl break-words">{getInstitutionName(application.institution)}</p>
+                              <p className="font-bold text-gray-900 text-sm sm:text-base lg:text-lg">Institution</p>
+                              <p className="text-gray-900 text-base sm:text-lg lg:text-xl break-words font-semibold">{getInstitutionName(application.institution)}</p>
                             </div>
                           </div>
                         </AnimatedCard>
@@ -970,16 +970,16 @@ export default function PublicApplicationTracker() {
                               <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Email</p>
+                              <p className="font-bold text-gray-900 text-sm sm:text-base lg:text-lg">Email</p>
                               {application.email ? (
                                 <a
                                   href={`mailto:${application.email}`}
-                                  className="text-primary text-base sm:text-lg lg:text-xl break-all hover:underline"
+                                  className="text-blue-700 text-base sm:text-lg lg:text-xl break-all hover:underline font-semibold"
                                 >
                                   {application.email}
                                 </a>
                               ) : (
-                                <p className="text-secondary text-base sm:text-lg lg:text-xl">{displayValue(application.email)}</p>
+                                <p className="text-gray-900 text-base sm:text-lg lg:text-xl font-semibold">{displayValue(application.email)}</p>
                               )}
                             </div>
                           </div>
@@ -991,13 +991,13 @@ export default function PublicApplicationTracker() {
                               <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-foreground text-sm sm:text-base lg:text-lg">Payment Status</p>
+                              <p className="font-bold text-gray-900 text-sm sm:text-base lg:text-lg">Payment Status</p>
                               <span
                                 className={`inline-flex items-center px-3 py-1 mt-1 rounded-full text-xs sm:text-sm font-bold border ${getPaymentStatusStyles(application.payment_status)}`}
                               >
                                 {formatPaymentStatus(application.payment_status)}
                               </span>
-                              <p className="text-gray-600 text-xs sm:text-sm mt-2">
+                              <p className="text-gray-800 text-xs sm:text-sm mt-2 font-medium">
                                 {getPaymentStatusDescription(application.payment_status)}
                               </p>
                             </div>
@@ -1018,11 +1018,11 @@ export default function PublicApplicationTracker() {
                         transition={maybeMotion({ delay: 0.9 })}
                         className="text-center lg:text-left"
                       >
-                        <p className="text-2xl text-secondary font-bold mb-2 flex items-center justify-center lg:justify-start space-x-2">
+                        <p className="text-2xl text-gray-900 font-bold mb-2 flex items-center justify-center lg:justify-start space-x-2">
                           <Phone className="h-6 w-6" />
                           <span>Need Help?</span>
                         </p>
-                        <p className="text-lg text-foreground">
+                        <p className="text-lg text-gray-800 font-medium">
                           Contact our admissions office for assistance and support.
                         </p>
                       </motion.div>
@@ -1090,7 +1090,7 @@ export default function PublicApplicationTracker() {
                     <h3 className="text-4xl font-black text-foreground mb-6">
                       No Application Found
                     </h3>
-                    <p className="text-xl text-foreground max-w-2xl mx-auto leading-relaxed mb-8">
+                    <p className="text-xl text-gray-800 max-w-2xl mx-auto leading-relaxed mb-8 font-medium">
                       We couldn't find an application with that number or tracking code. 
                       Please double-check your information and try again.
                     </p>
@@ -1142,7 +1142,7 @@ export default function PublicApplicationTracker() {
                 <span>❓</span>
                 <span>Need Help?</span>
               </h3>
-              <p className="text-xl text-foreground">Everything you need to know about tracking your application</p>
+              <p className="text-xl text-gray-800 font-medium">Everything you need to know about tracking your application</p>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
@@ -1152,18 +1152,18 @@ export default function PublicApplicationTracker() {
                   <h4 className="font-black text-foreground text-2xl">
                     Where to find your application number?
                   </h4>
-                  <ul className="text-secondary space-y-3 text-lg text-left">
+                  <ul className="text-gray-800 space-y-3 text-lg text-left">
                     <li className="flex items-start space-x-3">
-                      <span className="text-primary font-bold">•</span>
-                      <span>Check your email confirmation after submitting</span>
+                      <span className="text-blue-600 font-bold text-xl">•</span>
+                      <span className="font-medium">Check your email confirmation after submitting</span>
                     </li>
                     <li className="flex items-start space-x-3">
-                      <span className="text-primary font-bold">•</span>
-                      <span>Look for format: <code className="bg-primary/10 px-2 py-1 rounded font-mono">MIHAS123456</code></span>
+                      <span className="text-blue-600 font-bold text-xl">•</span>
+                      <span className="font-medium">Look for format: <code className="bg-blue-100 px-2 py-1 rounded font-mono font-bold text-gray-900">MIHAS123456</code></span>
                     </li>
                     <li className="flex items-start space-x-3">
-                      <span className="text-primary font-bold">•</span>
-                      <span>Contact admissions if you can't find it</span>
+                      <span className="text-blue-600 font-bold text-xl">•</span>
+                      <span className="font-medium">Contact admissions if you can't find it</span>
                     </li>
                   </ul>
                 </div>
@@ -1175,29 +1175,29 @@ export default function PublicApplicationTracker() {
                   <h4 className="font-black text-foreground text-2xl">
                     Application Status Meanings
                   </h4>
-                  <ul className="text-secondary space-y-3 text-lg text-left">
+                  <ul className="text-gray-800 space-y-3 text-lg text-left">
                     <li className="flex items-start space-x-3">
                       <span className="text-2xl">🚀</span>
-                      <div>
-                        <strong>Submitted:</strong> Application received and queued
+                      <div className="font-medium">
+                        <strong className="text-gray-900">Submitted:</strong> Application received and queued
                       </div>
                     </li>
                     <li className="flex items-start space-x-3">
                       <span className="text-2xl">🔍</span>
-                      <div>
-                        <strong>Under Review:</strong> Being carefully evaluated
+                      <div className="font-medium">
+                        <strong className="text-gray-900">Under Review:</strong> Being carefully evaluated
                       </div>
                     </li>
                     <li className="flex items-start space-x-3">
                       <span className="text-2xl">🎉</span>
-                      <div>
-                        <strong>Approved:</strong> Congratulations! You're accepted
+                      <div className="font-medium">
+                        <strong className="text-gray-900">Approved:</strong> Congratulations! You're accepted
                       </div>
                     </li>
                     <li className="flex items-start space-x-3">
                       <span className="text-2xl">💔</span>
-                      <div>
-                        <strong>Rejected:</strong> Not accepted this time
+                      <div className="font-medium">
+                        <strong className="text-gray-900">Rejected:</strong> Not accepted this time
                       </div>
                     </li>
                   </ul>
@@ -1218,18 +1218,18 @@ export default function PublicApplicationTracker() {
                 </h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
-                  <div className="bg-card/70 rounded-xl p-6">
-                    <p className="font-bold text-foreground mb-2">📧 Email Support</p>
-                    <a href="mailto:info@mihas.edu.zm" className="text-primary font-bold hover:underline">
+                  <div className="bg-white/80 rounded-xl p-6 border border-purple-200">
+                    <p className="font-bold text-gray-900 mb-2 text-xl">📧 Email Support</p>
+                    <a href="mailto:info@mihas.edu.zm" className="text-blue-700 font-bold hover:underline text-lg">
                       info@mihas.edu.zm
                     </a>
                   </div>
                   
-                  <div className="bg-card/70 rounded-xl p-6">
-                    <p className="font-bold text-foreground mb-2">📱 Phone Support</p>
-                    <div className="space-y-1">
-                      <p><strong>KATC:</strong> <a href="tel:0966992299" className="text-primary font-bold hover:underline">0966992299</a></p>
-                      <p><strong>MIHAS:</strong> <a href="tel:0961515151" className="text-primary font-bold hover:underline">0961515151</a></p>
+                  <div className="bg-white/80 rounded-xl p-6 border border-purple-200">
+                    <p className="font-bold text-gray-900 mb-2 text-xl">📱 Phone Support</p>
+                    <div className="space-y-1 text-gray-800 font-medium">
+                      <p><strong className="text-gray-900">KATC:</strong> <a href="tel:0966992299" className="text-blue-700 font-bold hover:underline">0966992299</a></p>
+                      <p><strong className="text-gray-900">MIHAS:</strong> <a href="tel:0961515151" className="text-blue-700 font-bold hover:underline">0961515151</a></p>
                     </div>
                   </div>
                 </div>
