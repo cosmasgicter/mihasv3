@@ -90,13 +90,14 @@ export async function onRequest(context) {
   }
 
   try {
-    const user = await getUserFromRequest(request);
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    const authResult = await getUserFromRequest(request);
+    if (authResult.error) {
+      return new Response(JSON.stringify({ error: authResult.error }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+    const { user } = authResult;
 
     const { applicationId, applicationNumber, email } = await request.json();
     
