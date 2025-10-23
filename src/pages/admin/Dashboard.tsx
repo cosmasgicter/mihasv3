@@ -227,8 +227,8 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-body mb-2">Authentication Required</h2>
-          <p className="text-body mb-4">Please sign in to access the admin dashboard.</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Authentication Required</h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">Please sign in to access the admin dashboard.</p>
           <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
         </div>
       </div>
@@ -239,8 +239,8 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-body mb-2">Profile Loading</h2>
-          <p className="text-body mb-4">Setting up your profile...</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Profile Loading</h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">Setting up your profile...</p>
           <LoadingSpinner size="lg" />
         </div>
       </div>
@@ -307,8 +307,8 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 <div className="text-right space-y-2 flex-shrink-0">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold break-words">{stats.totalApplications}</div>
-                  <div className="text-sm sm:text-base text-white/80">Total Applications</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold break-words text-white">{stats.totalApplications}</div>
+                  <div className="text-sm sm:text-base text-white/90">Total Applications</div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -383,11 +383,11 @@ export default function AdminDashboard() {
                   <Calendar className="h-6 w-6 text-primary" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-body break-words">{stats.todayApplications}</div>
-                  <div className="text-xs text-body">Today</div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">{stats.todayApplications}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Today</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-body">New Applications</div>
+              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">New Applications</div>
               {stats.todayApplications > 0 && (
                 <div className="flex items-center mt-2 text-xs">
                   <ArrowUp className="h-3 w-3 text-success mr-1" />
@@ -412,11 +412,11 @@ export default function AdminDashboard() {
                   <Clock className="h-6 w-6 text-accent" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-body break-words">{stats.pendingApplications}</div>
-                  <div className="text-xs text-body">Pending</div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">{stats.pendingApplications}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Pending</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-body">Awaiting Review</div>
+              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Awaiting Review</div>
               {stats.pendingApplications > 0 && (
                 <Link to="/admin/applications?status=submitted" className="text-xs text-primary hover:underline mt-2 block">
                   Review now →
@@ -440,11 +440,11 @@ export default function AdminDashboard() {
                   <Zap className="h-6 w-6 text-secondary" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-body break-words">{stats.avgProcessingTime}</div>
-                  <div className="text-xs text-body">Days</div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">{stats.avgProcessingTime}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Days</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-body">Avg Processing</div>
+              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Avg Processing</div>
               <div className="flex items-center mt-2 text-xs">
                 <ArrowDown className="h-3 w-3 text-success mr-1" />
                 <span className="text-warning-strong">Improved by 15%</span>
@@ -467,15 +467,15 @@ export default function AdminDashboard() {
                   <CheckCircle className="h-6 w-6 text-accent" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-body break-words">
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">
                     {stats.approvedApplications + stats.rejectedApplications > 0 
                       ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                       : 0}%
                   </div>
-                  <div className="text-xs text-body">Rate</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Rate</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-body">Approval Rate</div>
+              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Approval Rate</div>
               <div className="flex items-center mt-2 text-xs">
                 <TrendingUp className="h-3 w-3 text-success mr-1" />
                 <span className="text-warning-strong">Stable performance</span>
@@ -522,7 +522,7 @@ export default function AdminDashboard() {
           className="mt-8 bg-card rounded-2xl shadow-lg border border-border"
         >
           <div className="px-6 py-4 border-b border-border">
-            <h3 className="text-lg font-bold text-body flex items-center gap-2">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
               Weekly Overview
             </h3>
@@ -532,11 +532,11 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-xl sm:text-2xl font-bold text-primary break-words">{stats.weekApplications}</div>
-                <div className="text-sm text-body">Applications This Week</div>
+                <div className="text-sm text-gray-700 dark:text-gray-300">Applications This Week</div>
               </div>
               <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-body break-words">{stats.avgProcessingTime}</div>
-                <div className="text-sm text-body">Avg Processing Days</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">{stats.avgProcessingTime}</div>
+                <div className="text-sm text-gray-700 dark:text-gray-300">Avg Processing Days</div>
                 <div className="text-xs text-accent mt-1">-12% improvement</div>
               </div>
               <div className="text-center">
@@ -545,7 +545,7 @@ export default function AdminDashboard() {
                     ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                     : 0}%
                 </div>
-                <div className="text-sm text-body">Success Rate</div>
+                <div className="text-sm text-gray-700 dark:text-gray-300">Success Rate</div>
                 <div className="text-xs text-primary mt-1">Stable performance</div>
               </div>
             </div>
