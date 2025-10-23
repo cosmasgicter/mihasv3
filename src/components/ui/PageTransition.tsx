@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 
 interface PageTransitionProps {
   children: React.ReactNode
@@ -8,42 +7,39 @@ interface PageTransitionProps {
 
 export function PageTransition({ children, className }: PageTransitionProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
+    <div
       className={className}
+      style={{
+        animation: 'fadeInUp 0.3s ease-in-out'
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
 
 export function FadeTransition({ children, className }: PageTransitionProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       className={className}
+      style={{
+        animation: 'fadeIn 0.2s ease-in-out'
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
 
 export function SlideTransition({ children, className }: PageTransitionProps) {
   return (
-    <motion.div
-      initial={{ x: -20, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 20, opacity: 0 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
+    <div
       className={className}
+      style={{
+        animation: 'slideInLeft 0.3s ease-in-out'
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }

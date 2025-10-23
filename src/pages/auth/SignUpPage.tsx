@@ -181,6 +181,7 @@ export default function SignUpPage() {
             type="email"
             label="Email Address"
             error={errors.email?.message}
+            autoComplete="email"
             required
           />
         </div>
@@ -192,6 +193,7 @@ export default function SignUpPage() {
             label="Create Password"
             error={errors.password?.message}
             helperText="Must be at least 6 characters"
+            autoComplete="new-password"
             required
           />
 
@@ -200,6 +202,7 @@ export default function SignUpPage() {
             type="password"
             label="Confirm Password"
             error={errors.confirmPassword?.message}
+            autoComplete="new-password"
             required
           />
         </div>

@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
 
 interface AnimatedPageProps {
   children: React.ReactNode
@@ -7,21 +6,20 @@ interface AnimatedPageProps {
 }
 
 export function AnimatedPage({ children, className = '' }: AnimatedPageProps) {
-  const shouldReduceMotion = useReducedMotion()
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  if (shouldReduceMotion) {
+  if (prefersReducedMotion) {
     return <div className={className}>{children}</div>
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className={className}
+    <div 
+      className={`animate-fade-in ${className}`}
+      style={{
+        animation: 'fadeInUp 0.3s ease-out'
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
