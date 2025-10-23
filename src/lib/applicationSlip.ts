@@ -155,7 +155,8 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     doc.text(`© ${year} MIHAS. All rights reserved.`, 105, 289, { align: 'center' });
     doc.text(`Generated: ${formatDateTime(new Date().toISOString())}`, 105, 294, { align: 'center' });
     
-    return doc.output('blob');
+    const pdfBlob = doc.output('blob');
+    return new Blob([pdfBlob], { type: 'application/pdf' });
   } catch (error) {
     console.error('Failed to generate application slip:', sanitizeForLog(error instanceof Error ? error.message : String(error)));
     throw error;

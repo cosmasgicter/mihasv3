@@ -97,9 +97,11 @@ export function useApplicationSlip({
     const link = document.createElement('a')
     link.href = url
     link.download = filename
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    setTimeout(() => document.body.removeChild(link), 100)
   }, [])
 
   const handleDownloadSlip = useCallback(async () => {
@@ -155,27 +157,26 @@ export function useApplicationSlip({
         return
       }
 
-      const objectUrl = result.blob ? URL.createObjectURL(result.blob) : undefined
-      const downloadUrl = objectUrl || result.publicUrl
-
-      if (!downloadUrl) {
+      if (!result.blob) {
         toast.showError?.('Download failed', 'We could not prepare the application slip for download.')
         return
       }
 
+      const objectUrl = URL.createObjectURL(result.blob)
+
       setSlipCache(prev => {
-        if (prev?.objectUrl && objectUrl && prev.objectUrl !== objectUrl) {
+        if (prev?.objectUrl && prev.objectUrl !== objectUrl) {
           URL.revokeObjectURL(prev.objectUrl)
         }
         return {
-          objectUrl: objectUrl || prev?.objectUrl,
+          objectUrl,
           publicUrl: result.publicUrl || prev?.publicUrl,
           path: result.path || prev?.path,
           documentId: result.documentId || prev?.documentId
         }
       })
 
-      triggerDownload(downloadUrl, filename)
+      triggerDownload(objectUrl, filename)
     } catch (error) {
       console.error('Slip download failed:', error)
       const message = error instanceof Error ? error.message : 'Unable to download slip'

@@ -248,13 +248,13 @@ const ApplicationWizardContent = () => {
                     <motion.div
                       className="h-full bg-gradient-to-r from-primary to-success"
                       initial={{ width: 0 }}
-                      animate={{ width: `${(currentStepIndex / (totalSteps - 1)) * 100}%` }}
+                      animate={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
                       transition={{ duration: 0.5 }}
                     />
                   </div>
                   <div className="flex flex-col items-end">
                     <span className="text-xs font-medium text-caption whitespace-nowrap">
-                      {Math.round((currentStepIndex / (totalSteps - 1)) * 100)}%
+                      {Math.round(((currentStepIndex + 1) / totalSteps) * 100)}%
                     </span>
                     <span className="text-xs text-caption whitespace-nowrap hidden sm:block">
                       {formattedTime}
