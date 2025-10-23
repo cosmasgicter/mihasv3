@@ -58,14 +58,7 @@ export default function SignUpPage() {
     resolver: zodResolver(signUpSchema),
   })
 
-  useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => {
-        navigate('/auth/signin')
-      }, 2000)
-      return () => clearTimeout(timer)
-    }
-  }, [success, navigate])
+  // Removed auto-redirect to signin - now goes to dashboard
 
   const handleTurnstileVerify = useCallback((token: string) => {
     setTurnstileToken(token)
@@ -109,10 +102,20 @@ export default function SignUpPage() {
         throw new Error(result.error)
       }
 
-      // Wait a bit before showing success
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setSuccess('Account created successfully! Redirecting to sign in...')
+      if (!result?.user) {
+        setIsRegistering(false)
+        throw new Error('Account created but user data not returned')
+      }
+
+      // Success - user is now logged in
+      setSuccess('Account created successfully! You are now signed in.')
+      setIsRegistering(false)
       setLoading(false)
+      
+      // Redirect to dashboard after 2 seconds
+      setTimeout(() => {
+        navigate('/student/dashboard')
+      }, 2000)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create account. Please try again.'
       setError(message.includes('already registered') ? 'This email is already registered. Please sign in instead.' : message)
@@ -137,19 +140,11 @@ export default function SignUpPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-sm text-body">Redirecting to sign in page...</p>
+          <p className="text-sm text-body">Redirecting to your dashboard...</p>
           <div className="space-y-3">
-            <Link to="/auth/signin" className="block">
+            <Link to="/student/dashboard" className="block">
               <Button className="w-full" variant="gradient" size="lg">
-                Go to Sign In Now
-              </Button>
-            </Link>
-            <Link
-              to="/"
-              className="block"
-            >
-              <Button variant="outline" className="w-full" size="lg">
-                Back to Home
+                Go to Dashboard Now
               </Button>
             </Link>
           </div>
