@@ -55,8 +55,17 @@ async function fetchApplicationDetails(id, includeParam, supabase) {
 export async function onRequest(context) {
   const { request } = context;
   const url = new URL(request.url);
-  const id = url.pathname.split('/').pop();
+  // Extract ID from URL path - handle both /applications/[id] and /student/application/[id]
+  const pathParts = url.pathname.split('/');
+  const id = pathParts[pathParts.length - 1] || context.params?.id;
   const include = url.searchParams.get('include');
+  
+  if (!id || id === 'applications') {
+    return new Response(JSON.stringify({ error: 'Application ID required' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
   
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
