@@ -5,10 +5,10 @@ import './dnsConfig.js'
 const ADMIN_ROLES = new Set(['admin', 'super_admin', 'admissions_officer'])
 const REQUEST_ROLE_CACHE_SYMBOL = Symbol.for('mihas.roleCache')
 
-// Hardcoded credentials for Cloudflare Workers
-const supabaseUrl = 'https://mylgegkqoddcrxtwcclb.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MTIwODMsImV4cCI6MjA3MzA4ODA4M30.7f-TwYz7E6Pp07oH5Lkkfw9c8d8JkeE81EXJqpCWiLw';
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzUxMjA4MywiZXhwIjoyMDczMDg4MDgzfQ.FsspKE5bjcG4TW8IvG-N0o7W0E7ljxznwlzJCm50ZRE';
+// Default values as fallbacks
+const DEFAULT_SUPABASE_URL = 'https://mylgegkqoddcrxtwcclb.supabase.co';
+const DEFAULT_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MTIwODMsImV4cCI6MjA3MzA4ODA4M30.7f-TwYz7E6Pp07oH5Lkkfw9c8d8JkeE81EXJqpCWiLw';
+const DEFAULT_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzUxMjA4MywiZXhwIjoyMDczMDg4MDgzfQ.FsspKE5bjcG4TW8IvG-N0o7W0E7ljxznwlzJCm50ZRE';
 
 const clientOptions = {
   auth: {
@@ -25,10 +25,16 @@ const clientOptions = {
   }
 }
 
-const supabaseAdminClient = createClient(supabaseUrl, supabaseServiceKey, clientOptions)
-const supabaseAnonClient = supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey, clientOptions)
-  : null
+// Function to create admin client with environment variables
+function supabaseAdminClient(url, serviceKey) {
+  const supabaseUrl = url || DEFAULT_SUPABASE_URL;
+  const supabaseServiceKey = serviceKey || DEFAULT_SERVICE_KEY;
+  return createClient(supabaseUrl, supabaseServiceKey, clientOptions);
+}
+
+// Default client for backward compatibility
+const defaultAdminClient = supabaseAdminClient();
+const supabaseAnonClient = createClient(DEFAULT_SUPABASE_URL, DEFAULT_ANON_KEY, clientOptions);
 
 function getRequestRoleCache(req) {
   if (!req || typeof req !== 'object') {
@@ -88,7 +94,7 @@ function extractRolesFromUserToken(user) {
 
 async function fetchRolesFromDatabase(userId) {
   try {
-    const { data: rolesData, error: rolesError } = await supabaseAdminClient
+    const { data: rolesData, error: rolesError } = await defaultAdminClient
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
@@ -97,7 +103,7 @@ async function fetchRolesFromDatabase(userId) {
     if (rolesError) {
       console.log('[fetchRolesFromDatabase] Database error:', rolesError.message)
       // If user_roles table doesn't exist or has issues, check profiles table
-      const { data: profileData, error: profileError } = await supabaseAdminClient
+      const { data: profileData, error: profileError } = await defaultAdminClient
         .from('profiles')
         .select('role')
         .eq('id', userId)
@@ -215,7 +221,7 @@ async function getUserFromRequest(req, { requireAdmin = false } = {}) {
     console.log('[getUserFromRequest] Supabase URL:', supabaseUrl)
     console.log('[getUserFromRequest] Service key exists:', !!supabaseServiceKey)
     
-    const { data: profile, error: userError } = await supabaseAdminClient
+    const { data: profile, error: userError } = await defaultAdminClient
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -235,7 +241,7 @@ async function getUserFromRequest(req, { requireAdmin = false } = {}) {
       const userName = payload.user_metadata?.full_name || payload.user_metadata?.name || 'User'
       const nameParts = userName.split(' ')
       
-      const { error: createError } = await supabaseAdminClient
+      const { error: createError } = await defaultAdminClient
         .from('profiles')
         .insert({
           id: userId,
@@ -251,7 +257,7 @@ async function getUserFromRequest(req, { requireAdmin = false } = {}) {
       }
       
       // Fetch the newly created profile
-      const { data: newProfile } = await supabaseAdminClient
+      const { data: newProfile } = await defaultAdminClient
         .from('profiles')
         .select('*')
         .eq('id', userId)
