@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { supabaseAdminClient } from '../_lib/supabaseClient.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -20,12 +21,7 @@ export async function onRequestPost(context) {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const supabase = supabaseAdminClient(
-      env.VITE_SUPABASE_URL,
-      env.SUPABASE_SERVICE_ROLE_KEY
-    );
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabaseAdminClient.auth.getUser(token);
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), {
         status: 401,
@@ -42,19 +38,19 @@ export async function onRequestPost(context) {
       });
     }
 
-    const { data: existingRole } = await supabase
+    const { data: existingRole } = await supabaseAdminClient
       .from('user_roles')
       .select('*')
       .eq('id', userId)
       .maybeSingle();
 
     if (existingRole) {
-      await supabase
+      await supabaseAdminClient
         .from('user_roles')
         .update({ role, updated_at: new Date().toISOString() })
         .eq('id', userId);
     } else {
-      await supabase
+      await supabaseAdminClient
         .from('user_roles')
         .insert({
           user_id: userId,
@@ -63,7 +59,7 @@ export async function onRequestPost(context) {
         });
     }
 
-    await supabase
+    await supabaseAdminClient
       .from('profiles')
       .update({ role })
       .eq('id', userId);

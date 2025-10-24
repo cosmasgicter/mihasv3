@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { supabaseAdminClient } from '../_lib/supabaseClient.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -21,15 +22,14 @@ export async function onRequest(context) {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const supabase = supabaseAdminClient(env.VITE_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabaseAdminClient.auth.getUser(token);
     
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers });
     }
 
     if (request.method === 'GET') {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdminClient
         .from('in_app_notifications')
         .select('*')
         .eq('user_id', user.id)
@@ -46,7 +46,7 @@ export async function onRequest(context) {
       const timestamp = new Date().toISOString();
 
       if (markAll) {
-        const { error } = await supabase
+        const { error } = await supabaseAdminClient
           .from('in_app_notifications')
           .update({ read: true, read_at: timestamp })
           .eq('user_id', user.id)
@@ -54,7 +54,7 @@ export async function onRequest(context) {
 
         if (error) throw error;
       } else if (notificationId) {
-        const { error } = await supabase
+        const { error } = await supabaseAdminClient
           .from('in_app_notifications')
           .update({ read: true, read_at: timestamp })
           .eq('id', notificationId)
@@ -68,7 +68,7 @@ export async function onRequest(context) {
 
     if (request.method === 'DELETE') {
       const body = await request.json();
-      const { error } = await supabase
+      const { error } = await supabaseAdminClient
         .from('in_app_notifications')
         .delete()
         .eq('id', body.notificationId)
