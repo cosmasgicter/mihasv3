@@ -11,7 +11,7 @@ const ADMIN_EMAIL = 'alexisstar8@gmail.com'
 const ADMIN_PASSWORD = 'Skyl3rL0m1s'
 
 // Initialize Supabase client
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+const supabase = supabaseAdminClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 let testApplicationId = null
 const testResults = { passed: 0, failed: 0, tests: [] }

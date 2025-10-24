@@ -11,7 +11,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
   process.exit(1)
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+const supabase = supabaseAdminClient(supabaseUrl, supabaseServiceKey)
 
 async function fixMissingProfile() {
   const userId = '6e147ead-e34d-41e2-bc05-358a653ff633'
