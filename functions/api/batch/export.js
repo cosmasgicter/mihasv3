@@ -23,7 +23,7 @@ export async function onRequestGet(context) {
   try {
     const { data: users, error } = await supabase
       .from('profiles')
-      .select('id, email, full_name, role, phone_number, created_at')
+      .select('id, email, full_name, role, phone, created_at')
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -35,7 +35,7 @@ export async function onRequestGet(context) {
         u.email,
         `"${u.full_name || ''}"`,
         u.role,
-        u.phone_number || '',
+        u.phone || '',
         new Date(u.created_at).toISOString()
       ].join(','))
     ].join('\n')

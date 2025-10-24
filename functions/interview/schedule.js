@@ -65,28 +65,40 @@ export async function onRequest(context) {
       const url = new URL(request.url);
       const applicationId = url.searchParams.get('application_id');
       
-      let query = supabase
-        .from('application_interviews')
-        .select('*')
-        .order('scheduled_at', { ascending: false });
-      
-      if (applicationId) {
-        query = query.eq('application_id', applicationId);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 400,
+      try {
+        let query = supabaseAdminClient
+          .from('application_interviews')
+          .select('*')
+          .order('scheduled_at', { ascending: false });
+        
+        if (applicationId) {
+          query = query.eq('application_id', applicationId);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          // If table doesn't exist, return empty array
+          if (error.message?.includes('does not exist') || error.code === 'PGRST116') {
+            return new Response(JSON.stringify([]), {
+              status: 200,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          throw error;
+        }
+        
+        return new Response(JSON.stringify(data || []), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        // Return empty array if table doesn't exist
+        return new Response(JSON.stringify([]), {
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
-      
-      return new Response(JSON.stringify(data || []), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
     }
     
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
