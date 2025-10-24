@@ -38,7 +38,8 @@ export async function onRequest(context) {
       });
     }
     
-    const { data: application, error: appError } = await supabaseAdminClient
+    const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+    const { data: application, error: appError } = await supabase
       .from('applications')
       .select('*')
       .eq('id', applicationId)
@@ -71,7 +72,7 @@ export async function onRequest(context) {
       const random = Math.random().toString(36).substring(2, 6).toUpperCase();
       receiptNumber = `RCP-${timestamp}-${random}`;
       
-      await supabaseAdminClient
+      await supabase
         .from('applications')
         .update({ receipt_number: receiptNumber })
         .eq('id', applicationId);
@@ -79,7 +80,7 @@ export async function onRequest(context) {
     
     let verifierName = 'System';
     if (application.payment_verified_by) {
-      const { data: verifier } = await supabaseAdminClient
+      const { data: verifier } = await supabase
         .from('profiles')
         .select('full_name')
         .eq('id', application.payment_verified_by)

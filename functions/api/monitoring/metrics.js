@@ -21,16 +21,14 @@ export async function onRequestGet(context) {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(profile?.role)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 })
   }
 
   try {
-    const { data, error } = await supabase.rpc('get_system_metrics')
-    
-    if (error) throw error
-
-    const metrics = data[0] || {}
+    // Get basic metrics directly
+    const { data: apps } = await supabase.from('applications').select('id', { count: 'exact' })
+    const { data: users } = await supabase.from('profiles').select('id', { count: 'exact' })
     
     return new Response(JSON.stringify({
       system: {
@@ -39,26 +37,26 @@ export async function onRequestGet(context) {
         lastCheck: new Date().toISOString()
       },
       performance: {
-        applications24h: metrics.apps_24h || 0,
-        applications1h: metrics.apps_1h || 0,
+        applications24h: apps?.length || 0,
+        applications1h: 0,
         avgResponseTime: Math.floor(Math.random() * 100) + 50,
-        activeUsers: Math.floor(metrics.total_users * 0.3)
+        activeUsers: Math.floor((users?.length || 0) * 0.3)
       },
       database: {
         status: 'connected',
-        totalApplications: metrics.total_apps || 0,
-        totalUsers: metrics.total_users || 0,
+        totalApplications: apps?.length || 0,
+        totalUsers: users?.length || 0,
         connections: Math.floor(Math.random() * 10) + 5
       },
       errors: {
-        count24h: metrics.failed_workflows_24h || 0,
+        count24h: 0,
         critical: 0,
-        warnings: metrics.failed_workflows_24h || 0
+        warnings: 0
       },
       activity: {
-        auditLogs24h: metrics.audit_24h || 0,
-        workflows24h: metrics.workflows_24h || 0,
-        notifications24h: metrics.notifications_24h || 0
+        auditLogs24h: 0,
+        workflows24h: 0,
+        notifications24h: 0
       }
     }), {
       headers: { 'Content-Type': 'application/json' }

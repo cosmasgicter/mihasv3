@@ -40,7 +40,8 @@ export async function onRequestPost(context) {
         });
       }
       
-      const { data, error } = await supabaseAdminClient
+      const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { data, error } = await supabase
         .from('applications')
         .update({ status, updated_at: new Date().toISOString() })
         .in('id', applicationIds)
@@ -67,7 +68,7 @@ export async function onRequestPost(context) {
         });
       }
       
-      const { data, error } = await supabaseAdminClient
+      const { data, error } = await supabase
         .from('applications')
         .update({ payment_status: paymentStatus, updated_at: new Date().toISOString() })
         .in('id', applicationIds)
@@ -87,7 +88,7 @@ export async function onRequestPost(context) {
     }
     
     if (action === 'delete') {
-      const { error } = await supabaseAdminClient
+      const { error } = await supabase
         .from('applications')
         .delete()
         .in('id', applicationIds);
