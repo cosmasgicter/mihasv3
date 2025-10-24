@@ -3,7 +3,7 @@
  * Uses Resend API for reliable email delivery
  */
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '***REMOVED***';
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || 'MIHAS Admissions <***REMOVED***>';
 
 /**
