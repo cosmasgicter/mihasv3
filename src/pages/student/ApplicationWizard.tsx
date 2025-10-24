@@ -1,1 +1,1 @@
-export { default } from './applicationWizard/index'
+export { default } from './applicationWizard/index.tsx'
