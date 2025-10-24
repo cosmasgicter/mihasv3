@@ -1,8 +1,8 @@
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
 import { AuditLogger } from '../_lib/auditLogger.js';
 
-async function fetchApplicationDetails(id, includeParam) {
-  const { data: application, error } = await supabaseAdminClient
+async function fetchApplicationDetails(id, includeParam, supabase) {
+  const { data: application, error } = await supabase
     .from('applications')
     .select('*')
     .eq('id', id)
@@ -15,14 +15,14 @@ async function fetchApplicationDetails(id, includeParam) {
   const includes = includeParam ? String(includeParam).split(',') : ['grades', 'documents', 'statusHistory'];
 
   if (includes.includes('grades')) {
-    const { data: grades } = await supabaseAdminClient
+    const { data: grades } = await supabase
       .from('application_grades')
       .select('id, grade, subject_id')
       .eq('application_id', id);
     
     let subjectNames = {};
     if (grades?.length > 0) {
-      const { data: subjects } = await supabaseAdminClient
+      const { data: subjects } = await supabase
         .from('subjects')
         .select('id, name')
         .in('id', [...new Set(grades.map(g => g.subject_id))]);
@@ -33,7 +33,7 @@ async function fetchApplicationDetails(id, includeParam) {
   }
 
   if (includes.includes('documents')) {
-    const { data: documents } = await supabaseAdminClient
+    const { data: documents } = await supabase
       .from('application_documents')
       .select('*')
       .eq('application_id', id);
@@ -41,7 +41,7 @@ async function fetchApplicationDetails(id, includeParam) {
   }
 
   if (includes.includes('statusHistory')) {
-    const { data: statusHistory } = await supabaseAdminClient
+    const { data: statusHistory } = await supabase
       .from('application_status_history')
       .select('*')
       .eq('application_id', id)
@@ -78,9 +78,11 @@ export async function onRequest(context) {
         });
       }
       
+      const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+      
       // Check access
       if (!authContext.isAdmin) {
-        const { data: app } = await supabaseAdminClient
+        const { data: app } = await supabase
           .from('applications')
           .select('user_id')
           .eq('id', id)
@@ -94,7 +96,7 @@ export async function onRequest(context) {
         }
       }
       
-      const data = await fetchApplicationDetails(id, include);
+      const data = await fetchApplicationDetails(id, include, supabase);
       if (!data) {
         return new Response(JSON.stringify({ error: 'Application not found' }), {
           status: 404,
@@ -132,7 +134,8 @@ export async function onRequest(context) {
         });
       }
 
-      const { data: app } = await supabaseAdminClient
+      const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { data: app } = await supabase
         .from('applications')
         .select('user_id')
         .eq('id', id)
@@ -145,7 +148,7 @@ export async function onRequest(context) {
         });
       }
 
-      const { error } = await supabaseAdminClient
+      const { error } = await supabase
         .from('applications')
         .delete()
         .eq('id', id);
@@ -181,8 +184,9 @@ export async function onRequest(context) {
 
       const body = await request.json();
       
+      const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
       // Check ownership
-      const { data: app } = await supabaseAdminClient
+      const { data: app } = await supabase
         .from('applications')
         .select('user_id')
         .eq('id', id)
@@ -201,7 +205,7 @@ export async function onRequest(context) {
         
         if (action === 'update_status') {
           const { status, notes } = payload;
-          const { data, error } = await supabaseAdminClient
+          const { data, error } = await supabase
             .from('applications')
             .update({ status, updated_at: new Date().toISOString() })
             .eq('id', id)
@@ -209,7 +213,7 @@ export async function onRequest(context) {
             .single();
           
           if (!error && notes) {
-            await supabaseAdminClient.from('application_status_history').insert({
+            await supabase.from('application_status_history').insert({
               application_id: id,
               status,
               changed_by: authContext.user.id,
@@ -246,7 +250,7 @@ export async function onRequest(context) {
             const type = notificationTypes[status] || 'info';
             
             // In-app notification
-            await supabaseAdminClient.from('in_app_notifications').insert({
+            await supabase.from('in_app_notifications').insert({
               user_id: data.user_id,
               title,
               content,
@@ -315,7 +319,7 @@ export async function onRequest(context) {
             updateData.payment_verified_at = new Date().toISOString();
           }
           
-          const { data, error } = await supabaseAdminClient
+          const { data, error } = await supabase
             .from('applications')
             .update(updateData)
             .eq('id', id)
@@ -345,7 +349,7 @@ export async function onRequest(context) {
             const notification = paymentNotifications[paymentStatus];
             if (notification) {
               // In-app notification
-              await supabaseAdminClient.from('in_app_notifications').insert({
+              await supabase.from('in_app_notifications').insert({
                 user_id: data.user_id,
                 title: notification.title,
                 content: notification.content,
@@ -391,7 +395,7 @@ export async function onRequest(context) {
           }
           
           // Delete existing grades
-          await supabaseAdminClient
+          await supabase
             .from('application_grades')
             .delete()
             .eq('application_id', id);
@@ -404,7 +408,7 @@ export async function onRequest(context) {
               grade: g.grade
             }));
             
-            const { error: insertError } = await supabaseAdminClient
+            const { error: insertError } = await supabase
               .from('application_grades')
               .insert(gradesData);
             
@@ -419,7 +423,7 @@ export async function onRequest(context) {
       }
 
       // Regular update
-      const { data, error } = await supabaseAdminClient
+      const { data, error } = await supabase
         .from('applications')
         .update(body)
         .eq('id', id)
