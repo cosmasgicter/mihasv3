@@ -1,18 +1,27 @@
 {
   "version": 1,
-  "include": ["/*"],
-  "exclude": [
-    "/assets/*",
-    "/images/*",
-    "/*.html",
-    "/*.css",
-    "/*.json",
-    "/*.ico",
-    "/*.png",
-    "/*.jpg",
-    "/*.svg",
-    "/*.woff*",
-    "/*.ttf",
-    "/*.webmanifest"
-  ]
+  "include": [
+    "/api/*",
+    "/applications/*",
+    "/admin/*",
+    "/auth/*",
+    "/catalog/*",
+    "/cron/*",
+    "/debug/*",
+    "/documents/*",
+    "/generate/*",
+    "/interview/*",
+    "/mcp/*",
+    "/notifications/*",
+    "/payments/*",
+    "/push/*",
+    "/send/*",
+    "/analytics/*",
+    "/health",
+    "/applications",
+    "/notifications",
+    "/send-email",
+    "/test-email"
+  ],
+  "exclude": []
 }
