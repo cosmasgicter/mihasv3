@@ -33,7 +33,8 @@ export async function onRequest(context) {
         });
       }
       
-      const { data, error } = await supabaseAdminClient
+      const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { data, error } = await supabase
         .from('application_interviews')
         .insert({
           application_id,
@@ -64,7 +65,7 @@ export async function onRequest(context) {
       const url = new URL(request.url);
       const applicationId = url.searchParams.get('application_id');
       
-      let query = supabaseAdminClient
+      let query = supabase
         .from('application_interviews')
         .select('*')
         .order('scheduled_at', { ascending: false });
