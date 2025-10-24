@@ -19,7 +19,7 @@ export async function onRequestGet(context) {
       })
     }
 
-    const supabase = supabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
+    const supabase = supabaseAdminClient
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     
@@ -91,7 +91,7 @@ export async function onRequestPut(context) {
       })
     }
 
-    const supabase = supabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
+    const supabase = supabaseAdminClient
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     

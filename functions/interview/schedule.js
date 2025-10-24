@@ -33,7 +33,7 @@ export async function onRequest(context) {
         });
       }
       
-      const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+      const supabase = supabaseAdminClient;
       const { data, error } = await supabase
         .from('application_interviews')
         .insert({
