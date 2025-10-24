@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { AuditLogger } from './_lib/auditLogger.js';
+import { AuditLogger } from '../_lib/auditLogger.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
