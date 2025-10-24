@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { supabaseAdminClient } from '../_lib/supabaseClient.js';
 import { AuditLogger } from '../_lib/auditLogger.js';
 
 export async function onRequest(context) {
@@ -22,14 +23,13 @@ export async function onRequest(context) {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const supabase = supabaseAdminClient(env.VITE_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabaseAdminClient.auth.getUser(token);
     
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers });
     }
 
-    const { data: roleData } = await supabase
+    const { data: roleData } = await supabaseAdminClient
       .from('user_roles')
       .select('role')
       .eq('id', user.id)
@@ -43,7 +43,7 @@ export async function onRequest(context) {
     }
 
     if (request.method === 'GET') {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdminClient
         .from('system_settings')
         .select('*')
         .order('setting_key');
@@ -54,7 +54,7 @@ export async function onRequest(context) {
 
     if (request.method === 'POST') {
       const body = await request.json();
-      const { error } = await supabase
+      const { error } = await supabaseAdminClient
         .from('system_settings')
         .insert([body]);
 
@@ -67,13 +67,13 @@ export async function onRequest(context) {
       const { id, ...updates } = body;
       
       // Get old settings
-      const { data: oldSettings } = await supabase
+      const { data: oldSettings } = await supabaseAdminClient
         .from('system_settings')
         .select('*')
         .eq('id', id)
         .single();
       
-      const { error } = await supabase
+      const { error } = await supabaseAdminClient
         .from('system_settings')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id);
@@ -81,7 +81,7 @@ export async function onRequest(context) {
       if (error) throw error;
       
       // Audit log
-      const auditLogger = new AuditLogger(supabase);
+      const auditLogger = new AuditLogger(supabaseAdminClient);
       await auditLogger.log({
         actorId: user.id,
         action: 'system_settings_update',
@@ -97,7 +97,7 @@ export async function onRequest(context) {
 
     if (request.method === 'DELETE') {
       const body = await request.json();
-      const { error } = await supabase
+      const { error } = await supabaseAdminClient
         .from('system_settings')
         .delete()
         .eq('id', body.id);

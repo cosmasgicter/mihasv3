@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { supabaseAdminClient } from '../../_lib/supabaseClient.js'
 import { CloudflareAI } from '../../_lib/cloudflareAI.js'
 
 export async function onRequestPost(context) {
@@ -15,11 +16,8 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
     }
 
-    const supabase = supabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } }
-    })
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseAdminClient.auth.getUser(token)
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
     }
@@ -27,7 +25,7 @@ export async function onRequestPost(context) {
     const { application_id } = await request.json()
 
     // Fetch application data
-    const { data: application, error } = await supabase
+    const { data: application, error } = await supabaseAdminClient
       .from('applications')
       .select('*, grades:application_grades(*)')
       .eq('id', application_id)

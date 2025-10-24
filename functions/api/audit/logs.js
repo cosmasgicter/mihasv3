@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { supabaseAdminClient } from '../../_lib/supabaseClient.js'
 
 export async function onRequestGet(context) {
   const { request, env } = context
@@ -14,17 +15,14 @@ export async function onRequestGet(context) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
     }
 
-    const supabase = supabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } }
-    })
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseAdminClient.auth.getUser(token)
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
     }
 
     // Admin only
-    const { data: profile } = await supabase
+    const { data: profile } = await supabaseAdminClient
       .from('user_profiles')
       .select('role')
       .eq('id', user.id)
@@ -43,7 +41,7 @@ export async function onRequestGet(context) {
 
     const offset = (page - 1) * limit
 
-    let query = supabase
+    let query = supabaseAdminClient
       .from('audit_logs')
       .select('*, actor:user_profiles!actor_id(email, full_name)', { count: 'exact' })
       .order('created_at', { ascending: false })
