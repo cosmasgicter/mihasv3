@@ -286,10 +286,10 @@ export default function AdminDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                 <div>
                   <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-2 break-words">
-                    Welcome back, {sanitizeForDisplay(profile?.full_name?.split(' ')[0] || profile?.first_name || 'Admin')}
+                    Welcome back, {profile?.full_name?.split(' ')[0] || profile?.first_name || 'Admin'}
                   </h1>
                   <p className="text-sm sm:text-base md:text-lg text-white/90 mb-4 break-words">
-                    Here's your system overview for today
+                    Here&apos;s your system overview for today
                   </p>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
                     <div className="flex items-center space-x-2">
@@ -391,7 +391,7 @@ export default function AdminDashboard() {
               {stats.todayApplications > 0 && (
                 <div className="flex items-center mt-2 text-xs">
                   <ArrowUp className="h-3 w-3 text-success mr-1" />
-                  <span className="text-warning-strong">Today</span>
+                  <span className="text-success">Active today</span>
                 </div>
               )}
             </div>
@@ -417,10 +417,12 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Awaiting Review</div>
-              {stats.pendingApplications > 0 && (
-                <Link to="/admin/applications?status=submitted" className="text-xs text-primary hover:underline mt-2 block">
-                  Review now →
+              {stats.pendingApplications > 0 ? (
+                <Link to="/admin/applications?status=submitted" className="text-xs text-orange-600 hover:underline mt-2 block font-medium">
+                  Requires attention
                 </Link>
+              ) : (
+                <div className="text-xs text-green-600 mt-2">All caught up</div>
               )}
             </div>
           </motion.div>
@@ -446,8 +448,8 @@ export default function AdminDashboard() {
               </div>
               <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Avg Processing</div>
               <div className="flex items-center mt-2 text-xs">
-                <ArrowDown className="h-3 w-3 text-success mr-1" />
-                <span className="text-warning-strong">Improved by 15%</span>
+                <ArrowDown className="h-3 w-3 text-green-600 mr-1" />
+                <span className="text-green-600">Improved by 15%</span>
               </div>
             </div>
           </motion.div>
@@ -477,8 +479,8 @@ export default function AdminDashboard() {
               </div>
               <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Approval Rate</div>
               <div className="flex items-center mt-2 text-xs">
-                <TrendingUp className="h-3 w-3 text-success mr-1" />
-                <span className="text-warning-strong">Stable performance</span>
+                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
+                <span className="text-green-600">Stable performance</span>
               </div>
             </div>
           </motion.div>
