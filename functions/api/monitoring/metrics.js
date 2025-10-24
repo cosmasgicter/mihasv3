@@ -1,28 +1,35 @@
 import { supabaseAdminClient } from '../../_lib/supabaseClient.js'
 
 export async function onRequestGet(context) {
-  const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY)
-  
   const authHeader = context.request.headers.get('Authorization')
   if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    })
   }
 
   const token = authHeader.replace('Bearer ', '')
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+  const { data: { user }, error: authError } = await supabaseAdminClient.auth.getUser(token)
   
   if (authError || !user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    })
   }
 
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseAdminClient
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .single()
 
   if (!['admin', 'super_admin'].includes(profile?.role)) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 })
+    return new Response(JSON.stringify({ error: 'Forbidden' }), { 
+      status: 403,
+      headers: { 'Content-Type': 'application/json' }
+    })
   }
 
   try {
