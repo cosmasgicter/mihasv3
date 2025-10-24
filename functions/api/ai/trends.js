@@ -24,7 +24,7 @@ export async function onRequestGet(context) {
 
     // Admin only
     const { data: profile } = await supabaseAdminClient
-      .from('user_profiles')
+      .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single()
