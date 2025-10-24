@@ -10,7 +10,7 @@ import ResetPasswordPage from '@/pages/auth/ResetPasswordPage'
 // Lazy load non-critical pages
 const StudentDashboard = React.lazy(() => import('@/pages/student/Dashboard'))
 const AuthCallbackPage = React.lazy(() => import('@/pages/auth/AuthCallbackPage'))
-const ApplicationWizard = React.lazy(() => import('@/pages/student/applicationWizard'))
+const ApplicationWizard = React.lazy(() => import('@/pages/student/applicationWizard/index'))
 const ApplicationStatus = React.lazy(() => import('@/pages/student/ApplicationStatus'))
 const ApplicationDetail = React.lazy(() => import('@/pages/student/ApplicationDetail'))
 const StudentSettings = React.lazy(() => import('@/pages/student/Settings'))
@@ -27,7 +27,7 @@ const AIInsights = React.lazy(() => import('@/pages/admin/AIInsights'))
 const WorkflowAutomation = React.lazy(() => import('@/pages/admin/WorkflowAutomation'))
 const AuditTrail = React.lazy(() => import('@/pages/admin/AuditTrail'))
 const RoleManagement = React.lazy(() => import('@/pages/admin/RoleManagement'))
-const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker'))
+const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index'))
 const AdminTest = React.lazy(() => import('@/pages/AdminTest'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
 
