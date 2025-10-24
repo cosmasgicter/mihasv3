@@ -32,8 +32,9 @@ export async function onRequestPost(context) {
       });
     }
     
+    const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
     const authHeader = request.headers.get('authorization') || request.headers.get('Authorization') || '';
-    const { error } = await supabaseAdminClient
+    const { error } = await supabase
       .from('device_sessions')
       .upsert({
         user_id: authContext.user.id,
