@@ -24,7 +24,7 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
     }
 
-    const auditLogger = new AuditLogger(supabase)
+    const auditLogger = new AuditLogger(supabaseAdminClient)
     
     if (action === 'login') {
       await auditLogger.log({
