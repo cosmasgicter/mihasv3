@@ -37,9 +37,8 @@ export async function onRequestGet(context) {
         created_at,
         application_grades (
           id,
-          subject,
-          grade,
-          points
+          subject_id,
+          grade
         )
       `);
 
@@ -112,12 +111,12 @@ export async function onRequestGet(context) {
 
     applications.forEach(app => {
       if (app.application_grades) {
-        app.application_grades.forEach(grade => {
+        app.application_grades.forEach(gradeRecord => {
           totalSubjects++;
-          if (grade.points) {
-            totalPoints += grade.points;
+          if (gradeRecord.grade) {
+            totalPoints += gradeRecord.grade;
           }
-          const gradeValue = grade.grade || 'Unknown';
+          const gradeValue = gradeRecord.grade || 'Unknown';
           gradeDistribution[gradeValue] = (gradeDistribution[gradeValue] || 0) + 1;
         });
       }
@@ -140,7 +139,7 @@ export async function onRequestGet(context) {
         hasResultSlip: !!app.result_slip_url,
         gradeCount: app.application_grades?.length || 0,
         averagePoints: app.application_grades?.length > 0 
-          ? Math.round((app.application_grades.reduce((sum, g) => sum + (g.points || 0), 0) / app.application_grades.length) * 100) / 100
+          ? Math.round((app.application_grades.reduce((sum, g) => sum + (g.grade || 0), 0) / app.application_grades.length) * 100) / 100
           : 0,
         created_at: app.created_at
       }))
