@@ -13,11 +13,19 @@ interface LoginData {
 }
 
 export const authService = {
-  register: (data: RegisterData) =>
-    apiClient.request('/auth/register', {
+  register: (data: RegisterData) => {
+    const [firstName, ...lastNameParts] = data.fullName.split(' ')
+    return apiClient.request('/auth/register', {
       method: 'POST',
-      body: JSON.stringify(data)
-    }),
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+        firstName: firstName || '',
+        lastName: lastNameParts.join(' ') || '',
+        turnstileToken: data.turnstileToken
+      })
+    })
+  },
   login: (data: LoginData) =>
     apiClient.request('/auth/login', {
       method: 'POST',
