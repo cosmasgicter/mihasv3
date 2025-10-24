@@ -1,0 +1,44 @@
+import { FileText, Download } from 'lucide-react'
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+
+interface DocumentItem {
+  id: string
+  document_name: string
+  file_url: string
+  file_size?: number
+  verification_status: string
+  system_generated: boolean
+}
+
+export function DocumentsTab({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: any }) {
+  if (loading) return <div className="flex items-center gap-2"><LoadingSpinner size="sm" /><span>Loading...</span></div>
+  
+  const all = [...documents]
+  if (application) {
+    const urls = new Set(documents.map(d => d.file_url))
+    if (application.result_slip_url && !urls.has(application.result_slip_url)) all.push({ id: 'result_slip', document_name: 'Result Slip', file_url: application.result_slip_url, verification_status: 'pending', system_generated: false } as DocumentItem)
+    if (application.extra_kyc_url && !urls.has(application.extra_kyc_url)) all.push({ id: 'extra_kyc', document_name: 'Extra KYC', file_url: application.extra_kyc_url, verification_status: 'pending', system_generated: false } as DocumentItem)
+    if (application.pop_url && !urls.has(application.pop_url)) all.push({ id: 'pop', document_name: 'Proof of Payment', file_url: application.pop_url, verification_status: 'pending', system_generated: false } as DocumentItem)
+  }
+  
+  if (all.length === 0) return <div className="text-center py-8"><FileText className="h-8 w-8 mx-auto mb-2" /><p>No documents</p></div>
+  
+  return (
+    <div className="space-y-3">
+      {all.map(d => (
+        <div key={d.id} className="flex items-center justify-between p-4 bg-card border rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${d.verification_status === 'verified' ? 'bg-green-100' : 'bg-yellow-100'}`}>
+              <FileText className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-medium">{d.document_name}</p>
+              <span className={`text-xs px-2 py-1 rounded-full ${d.verification_status === 'verified' ? 'bg-green-100' : 'bg-yellow-100'}`}>{d.verification_status.toUpperCase()}</span>
+            </div>
+          </div>
+          <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-3 py-2 text-sm hover:bg-blue-50 rounded-lg"><Download className="h-4 w-4" />View</a>
+        </div>
+      ))}
+    </div>
+  )
+}

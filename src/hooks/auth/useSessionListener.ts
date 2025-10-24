@@ -232,6 +232,22 @@ export function useSessionListener() {
     }
 
     const supabase = getSupabaseClient()
+    
+    // Log logout event before signing out
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        fetch('/api/auth/session', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ action: 'logout' })
+        }).catch(() => {}) // Silent fail
+      }
+    } catch {}
+    
     await supabase.auth.signOut()
     setUser(null)
   }, [])

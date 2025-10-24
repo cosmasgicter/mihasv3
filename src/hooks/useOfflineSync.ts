@@ -1,77 +1,35 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
-import { offlineSyncService } from '@/services/offlineSync'
-import { OfflineDataPayloadMap, OfflineRecordType } from '@/types/offline'
+import { useEffect, useState } from 'react'
+import { OfflineManager } from '@/lib/offlineManager'
 
 export function useOfflineSync() {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
-  const [offlineDataCount, setOfflineDataCount] = useState(0)
-  const [isSyncing, setIsSyncing] = useState(false)
-  const { user } = useAuth()
-
-  const updateOfflineDataCount = useCallback(async () => {
-    if (user) {
-      const count = await offlineSyncService.getOfflineDataCount(user.id)
-      setOfflineDataCount(count)
-    }
-  }, [user])
+  const [queueSize, setQueueSize] = useState(0)
+  const [syncing, setSyncing] = useState(false)
 
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true)
-      if (user) {
-        setIsSyncing(true)
-        offlineSyncService.processOfflineData().finally(() => {
-          setIsSyncing(false)
-          updateOfflineDataCount()
-        })
-      }
+    const updateOnlineStatus = () => {
+      setIsOnline(navigator.onLine)
+      setQueueSize(OfflineManager.getQueue().length)
     }
 
-    const handleOffline = () => {
-      setIsOnline(false)
+    const handleOnline = async () => {
+      updateOnlineStatus()
+      if (OfflineManager.getQueue().length > 0) {
+        setSyncing(true)
+        await OfflineManager.syncQueue()
+        setSyncing(false)
+        setQueueSize(0)
+      }
     }
 
     window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    window.addEventListener('offline', updateOnlineStatus)
 
     return () => {
       window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('offline', updateOnlineStatus)
     }
-  }, [updateOfflineDataCount, user])
+  }, [])
 
-  useEffect(() => {
-    updateOfflineDataCount()
-  }, [updateOfflineDataCount])
-
-  const storeOffline = async <TType extends OfflineRecordType>(
-    type: TType,
-    data: OfflineDataPayloadMap[TType]
-  ) => {
-    if (user) {
-      await offlineSyncService.storeOffline(user.id, type, data)
-      await updateOfflineDataCount()
-    }
-  }
-
-  const syncNow = async () => {
-    if (isOnline && user && !isSyncing) {
-      setIsSyncing(true)
-      try {
-        await offlineSyncService.processOfflineData()
-        await updateOfflineDataCount()
-      } finally {
-        setIsSyncing(false)
-      }
-    }
-  }
-
-  return {
-    isOnline,
-    offlineDataCount,
-    isSyncing,
-    storeOffline,
-    syncNow
-  }
+  return { isOnline, queueSize, syncing }
 }

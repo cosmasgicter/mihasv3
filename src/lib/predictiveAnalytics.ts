@@ -22,7 +22,7 @@ export interface TrendAnalysis {
 
 export class PredictiveAnalytics {
   private static instance: PredictiveAnalytics
-  private readonly MODEL_VERSION = 'v2.0'
+  private readonly MODEL_VERSION = 'cloudflare-ai-v1'
   
   static getInstance(): PredictiveAnalytics {
     if (!PredictiveAnalytics.instance) {
@@ -33,28 +33,37 @@ export class PredictiveAnalytics {
 
   async predictAdmissionSuccess(applicationData: any): Promise<PredictionResult> {
     try {
-      // Validate session
       const isValid = await sessionManager.isSessionValid()
       if (!isValid) {
         throw new Error('Session expired')
       }
 
-      const historicalData = await this.getHistoricalData(applicationData.program)
-      const score = this.calculateProbabilityScore(applicationData, historicalData)
-      const riskFactors = this.identifyRiskFactors(applicationData)
-      const recommendations = this.generateRecommendations(applicationData, score)
-      const confidence = this.calculateConfidence(applicationData, historicalData)
-      
-      const result: PredictionResult = {
-        admissionProbability: score,
-        processingTimeEstimate: this.estimateProcessingTime(applicationData),
-        riskFactors,
-        recommendations,
-        confidence,
-        modelVersion: this.MODEL_VERSION
+      // Call Cloudflare AI API
+      const response = await fetch('/api/ai/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ application_id: applicationData.id })
+      })
+
+      if (!response.ok) {
+        throw new Error('AI prediction failed')
       }
 
-      // Store prediction results
+      const aiResult = await response.json()
+      const riskFactors = this.identifyRiskFactors(applicationData)
+      
+      const result: PredictionResult = {
+        admissionProbability: aiResult.admission_probability,
+        processingTimeEstimate: aiResult.processing_time_estimate,
+        riskFactors,
+        recommendations: aiResult.recommendations,
+        confidence: aiResult.confidence,
+        modelVersion: aiResult.model_version
+      }
+
       if (applicationData.id) {
         await this.storePredictionResults(applicationData.id, result)
       }
@@ -66,8 +75,8 @@ export class PredictiveAnalytics {
       return {
         admissionProbability: 0.5,
         processingTimeEstimate: 5,
-        riskFactors: ['Prediction service unavailable'],
-        recommendations: ['Please try again later'],
+        riskFactors: ['AI service temporarily unavailable'],
+        recommendations: ['Complete all required documents', 'Ensure grades are entered correctly'],
         confidence: 0.1,
         modelVersion: this.MODEL_VERSION
       }
@@ -76,26 +85,32 @@ export class PredictiveAnalytics {
 
   async analyzeTrends(): Promise<TrendAnalysis> {
     try {
-      // Validate session
       const isValid = await sessionManager.isSessionValid()
       if (!isValid) {
         throw new Error('Session expired')
       }
 
-      const { data: applications } = await supabase
-        .from('applications')
-        .select('created_at, status, program, updated_at')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      // Call Cloudflare AI API
+      const response = await fetch('/api/ai/trends', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      })
 
-      const apps = applications || []
+      if (!response.ok) {
+        throw new Error('AI trends analysis failed')
+      }
+
+      const aiResult = await response.json()
       
       return {
-        applicationTrend: this.calculateTrend(apps),
-        peakTimes: this.identifyPeakTimes(apps),
-        bottlenecks: this.identifyBottlenecks(apps),
-        efficiency: this.calculateEfficiency(apps),
-        totalApplications: apps.length,
-        avgProcessingTime: this.calculateAvgProcessingTime(apps)
+        applicationTrend: aiResult.trend || 'stable',
+        peakTimes: this.identifyPeakTimes([]),
+        bottlenecks: aiResult.insights || [],
+        efficiency: this.calculateEfficiency([]),
+        totalApplications: aiResult.total || 0,
+        avgProcessingTime: aiResult.avgProcessingDays || 0
       }
     } catch (error) {
       const sanitizedError = error instanceof Error ? error.message : 'Unknown error'
@@ -103,7 +118,7 @@ export class PredictiveAnalytics {
       return {
         applicationTrend: 'stable',
         peakTimes: [],
-        bottlenecks: ['Analysis unavailable'],
+        bottlenecks: ['AI analysis temporarily unavailable'],
         efficiency: 0,
         totalApplications: 0,
         avgProcessingTime: 0

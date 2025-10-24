@@ -36,6 +36,37 @@ const NOTIFICATION_TEMPLATES = {
 } as const
 
 export class NotificationService {
+  private static async checkDuplicate(
+    userId: string,
+    title: string,
+    content: string,
+    type: string
+  ): Promise<boolean> {
+    try {
+      const { data } = await supabase.rpc('generate_notification_dedup_hash', {
+        p_user_id: userId,
+        p_title: title,
+        p_message: content,
+        p_type: type
+      })
+
+      if (!data) return false
+
+      const { data: existing } = await supabase
+        .from('in_app_notifications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('dedup_hash', data)
+        .gte('created_at', new Date(Date.now() - 60000).toISOString())
+        .limit(1)
+        .maybeSingle()
+
+      return !!existing
+    } catch {
+      return false
+    }
+  }
+
   static async sendNotification(data: NotificationData): Promise<boolean> {
     if (!data.userId || !data.title || !data.content) {
       console.error('Missing required notification data')
@@ -43,13 +74,29 @@ export class NotificationService {
     }
 
     try {
+      const sanitizedTitle = sanitizeText(data.title)
+      const sanitizedContent = sanitizeText(data.content)
+      const notifType = data.type || 'info'
+
+      // Check for duplicates in last 60 seconds
+      const isDuplicate = await this.checkDuplicate(
+        data.userId,
+        sanitizedTitle,
+        sanitizedContent,
+        notifType
+      )
+
+      if (isDuplicate) {
+        return true // Silent success - duplicate prevented
+      }
+
       const { error } = await supabase
         .from('in_app_notifications')
         .insert({
           user_id: data.userId,
-          title: sanitizeText(data.title),
-          content: sanitizeText(data.content),
-          type: data.type || 'info',
+          title: sanitizedTitle,
+          content: sanitizedContent,
+          type: notifType,
           action_url: data.actionUrl,
           read: false
         })

@@ -1,4 +1,5 @@
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
+import { AuditLogger } from '../_lib/auditLogger.js';
 
 async function fetchApplicationDetails(id, includeParam) {
   const { data: application, error } = await supabaseAdminClient
@@ -240,17 +241,63 @@ export async function onRequest(context) {
               'pending_documents': 'warning'
             };
             
+            const title = notificationTitles[status] || '📋 Application Status Update';
+            const content = notificationContents[status] || `Your application #${data.application_number} status has been updated to ${status}.`;
+            const type = notificationTypes[status] || 'info';
+            
+            // In-app notification
             await supabaseAdminClient.from('in_app_notifications').insert({
               user_id: data.user_id,
-              title: notificationTitles[status] || '📋 Application Status Update',
-              content: notificationContents[status] || `Your application #${data.application_number} status has been updated to ${status}.`,
-              type: notificationTypes[status] || 'info',
+              title,
+              content,
+              type,
               action_url: `/student/application/${id}`,
               read: false
             });
+            
+            // Email notification (if configured)
+            if (data.email && context.env.RESEND_API_KEY) {
+              const { sendEmail } = await import('./_lib/emailService.js');
+              await sendEmail({
+                to: data.email,
+                subject: title,
+                html: `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};">${title}</h2>
+                    <p style="color: #374151; line-height: 1.6;">${content}</p>
+                    ${notes ? `<div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;"><p style="margin: 0; color: #374151;"><strong>Note:</strong> ${notes}</p></div>` : ''}
+                    <a href="${context.env.VITE_APP_URL || 'https://mihas.edu.zm'}/student/application/${id}" 
+                       style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+                      View Application
+                    </a>
+                    <hr style="border: 1px solid #e5e7eb; margin: 20px 0;">
+                    <p style="color: #6b7280; font-size: 12px;">MIHAS Application System</p>
+                  </div>
+                `
+              });
+            }
           }
           
           if (error) throw new Error(error.message);
+          
+          // Audit log
+          if (!error && data) {
+            const auditLogger = new AuditLogger(supabaseAdminClient);
+            await auditLogger.logApplicationAction(
+              authContext.user.id,
+              `update_status_${status}`,
+              id,
+              { old_status: app.status, new_status: status, notes },
+              request
+            );
+          }
+          
+          // Execute workflows
+          if (!error && data) {
+            const { executeWorkflows } = await import('./_lib/workflowEngine.js');
+            await executeWorkflows('status_changed', data);
+          }
+          
           return new Response(JSON.stringify({ success: true, data }), {
             status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -261,7 +308,8 @@ export async function onRequest(context) {
           const { paymentStatus, verificationNotes } = payload;
           const updateData = { 
             payment_status: paymentStatus, 
-            updated_at: new Date().toISOString() 
+            updated_at: new Date().toISOString(),
+            payment_verified_by: authContext.user.id
           };
           if (paymentStatus === 'verified') {
             updateData.payment_verified_at = new Date().toISOString();
@@ -273,6 +321,61 @@ export async function onRequest(context) {
             .eq('id', id)
             .select()
             .single();
+          
+          // Send notification to student
+          if (!error && data) {
+            const paymentNotifications = {
+              'verified': {
+                title: '✅ Payment Verified',
+                content: `Your payment of K${data.amount || 153} for application #${data.application_number} has been verified. You can now download your payment receipt from your application details.`,
+                type: 'success'
+              },
+              'rejected': {
+                title: '❌ Payment Verification Failed',
+                content: `Your payment for application #${data.application_number} could not be verified. Please contact admissions or resubmit proof of payment.`,
+                type: 'error'
+              },
+              'pending_review': {
+                title: '⏳ Payment Under Review',
+                content: `Your payment for application #${data.application_number} is being reviewed. You will be notified once verification is complete.`,
+                type: 'info'
+              }
+            };
+            
+            const notification = paymentNotifications[paymentStatus];
+            if (notification) {
+              // In-app notification
+              await supabaseAdminClient.from('in_app_notifications').insert({
+                user_id: data.user_id,
+                title: notification.title,
+                content: notification.content,
+                type: notification.type,
+                action_url: `/student/application/${id}`,
+                read: false
+              });
+              
+              // Email notification (if configured)
+              if (data.email && context.env.RESEND_API_KEY) {
+                const { sendEmail } = await import('./_lib/emailService.js');
+                await sendEmail({
+                  to: data.email,
+                  subject: notification.title,
+                  html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                      <h2 style="color: ${notification.type === 'success' ? '#10b981' : notification.type === 'error' ? '#ef4444' : '#3b82f6'};">${notification.title}</h2>
+                      <p style="color: #374151; line-height: 1.6;">${notification.content}</p>
+                      <a href="${context.env.VITE_APP_URL || 'https://mihas.edu.zm'}/student/application/${id}" 
+                         style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+                        View Application
+                      </a>
+                      <hr style="border: 1px solid #e5e7eb; margin: 20px 0;">
+                      <p style="color: #6b7280; font-size: 12px;">MIHAS Application System</p>
+                    </div>
+                  `
+                });
+              }
+            }
+          }
           
           if (error) throw new Error(error.message);
           return new Response(JSON.stringify({ success: true, data }), {

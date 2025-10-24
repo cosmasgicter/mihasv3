@@ -22,6 +22,24 @@ interface WizardFormData {
   momo_ref?: string
 }
 
+// Retry helper for large file uploads
+const retryWithBackoff = async <T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 1000
+): Promise<T> => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn()
+    } catch (error) {
+      if (i === maxRetries - 1) throw error
+      const delay = baseDelay * Math.pow(2, i)
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+  throw new Error('Max retries exceeded')
+}
+
 export function useApplicationSubmitFixed() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -52,14 +70,16 @@ export function useApplicationSubmitFixed() {
         submitted_at: new Date().toISOString()
       }
 
-      // Update the application
-      const { data: updatedApp, error: updateError } = await supabase
-        .from('applications')
-        .update(updateData)
-        .eq('id', applicationId)
-        .eq('id', user.id)
-        .select()
-        .single()
+      // Update the application with retry logic
+      const { data: updatedApp, error: updateError } = await retryWithBackoff(
+        () => supabase
+          .from('applications')
+          .update(updateData)
+          .eq('id', applicationId)
+          .eq('user_id', user.id)
+          .select()
+          .single()
+      )
       
       if (updateError) {
         console.error('Database update error:', updateError)

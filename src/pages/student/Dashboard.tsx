@@ -5,6 +5,7 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import type { Application, Intake } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { ContinueApplication } from '@/components/application/ContinueApplication'
+import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { formatDate, getStatusColor } from '@/lib/utils'
 import { draftManager } from '@/lib/draftManager'
 import { sanitizeForLog, safeJsonParse, sanitizeForDisplay } from '@/lib/sanitize'
@@ -515,15 +516,22 @@ export default function StudentDashboard() {
                               </div>
                             </dl>
                           </div>
-                          <Link to={`/student/application/${application.id}`} className="w-full sm:w-auto">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white"
-                            >
-                              View Details
-                            </Button>
-                          </Link>
+                          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <DocumentButtons 
+                              applicationId={application.id}
+                              status={application.status}
+                              paymentStatus={application.payment_status}
+                            />
+                            <Link to={`/student/application/${application.id}`} className="w-full sm:w-auto">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white"
+                              >
+                                View Details
+                              </Button>
+                            </Link>
+                          </div>
                         </div>
                       </motion.div>
                     ))}

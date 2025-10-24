@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { AuditLogger } from './_lib/auditLogger.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -65,12 +66,32 @@ export async function onRequest(context) {
       const body = await request.json();
       const { id, ...updates } = body;
       
+      // Get old settings
+      const { data: oldSettings } = await supabase
+        .from('system_settings')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
       const { error } = await supabase
         .from('system_settings')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id);
 
       if (error) throw error;
+      
+      // Audit log
+      const auditLogger = new AuditLogger(supabase);
+      await auditLogger.log({
+        actorId: user.id,
+        action: 'system_settings_update',
+        entityType: 'system_settings',
+        entityId: id,
+        changes: { old: oldSettings, new: updates },
+        ipAddress: request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for'),
+        userAgent: request.headers.get('user-agent')
+      });
+      
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }
 
