@@ -257,7 +257,7 @@ export async function onRequest(context) {
             
             // Email notification (if configured)
             if (data.email && context.env.RESEND_API_KEY) {
-              const { sendEmail } = await import('./_lib/emailService.js');
+              const { sendEmail } = await import('../_lib/emailService.js');
               await sendEmail({
                 to: data.email,
                 subject: title,
@@ -294,7 +294,7 @@ export async function onRequest(context) {
           
           // Execute workflows
           if (!error && data) {
-            const { executeWorkflows } = await import('./_lib/workflowEngine.js');
+            const { executeWorkflows } = await import('../_lib/workflowEngine.js');
             await executeWorkflows('status_changed', data);
           }
           
@@ -356,7 +356,7 @@ export async function onRequest(context) {
               
               // Email notification (if configured)
               if (data.email && context.env.RESEND_API_KEY) {
-                const { sendEmail } = await import('./_lib/emailService.js');
+                const { sendEmail } = await import('../_lib/emailService.js');
                 await sendEmail({
                   to: data.email,
                   subject: notification.title,
