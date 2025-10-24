@@ -29,7 +29,7 @@ export async function onRequestGet(context) {
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    if (!profile?.role || !['admin', 'super_admin', 'admissions_officer'].includes(profile.role)) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), { status: 403 })
     }
 
