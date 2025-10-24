@@ -1,7 +1,7 @@
 import { supabaseAdminClient } from '../_lib/supabaseClient.js';
 
 export async function onRequestPost(context) {
-  const { request } = context;
+  const { request, env } = context;
   const body = await request.json();
   
   const corsHeaders = {
@@ -15,7 +15,8 @@ export async function onRequestPost(context) {
   }
   
   try {
-    const { data, error } = await supabaseAdminClient.auth.signUp({
+    const supabase = supabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const { data, error } = await supabase.auth.signUp({
       email: body.email,
       password: body.password,
       options: {
