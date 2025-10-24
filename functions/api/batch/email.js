@@ -7,8 +7,6 @@ export async function onRequestPost(context) {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   }
 
-  const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY)
-  
   const authHeader = context.request.headers.get('Authorization')
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
@@ -18,7 +16,7 @@ export async function onRequestPost(context) {
   }
 
   const token = authHeader.replace('Bearer ', '')
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+  const { data: { user }, error: authError } = await supabaseAdminClient.auth.getUser(token)
   
   if (authError || !user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
@@ -27,7 +25,7 @@ export async function onRequestPost(context) {
     })
   }
 
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const { data: profile } = await supabaseAdminClient.from('profiles').select('role').eq('id', user.id).single()
   if (!['admin', 'super_admin'].includes(profile?.role)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { 
       status: 403,
