@@ -63,6 +63,29 @@ export async function onRequestGet(context) {
       });
     }
 
+    // Handle empty results
+    if (!applications || applications.length === 0) {
+      const emptySummary = {
+        totalApplications: 0,
+        applicationsWithGrades: 0,
+        applicationsWithResultSlips: 0,
+        programDistribution: {},
+        gradeStatistics: {
+          totalSubjects: 0,
+          averagePoints: 0,
+          gradeDistribution: {}
+        }
+      };
+      
+      return new Response(JSON.stringify({
+        success: true,
+        summary: emptySummary,
+        applications: []
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Calculate academic summary statistics
     const summary = {
       totalApplications: applications.length,
