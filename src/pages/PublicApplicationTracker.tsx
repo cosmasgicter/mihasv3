@@ -4,4 +4,4 @@
 // - 10 modular components created
 // - Improved maintainability and testability
 
-export { default } from './public/tracker/index.tsx'
+export { default } from '@/pages/public/tracker'
