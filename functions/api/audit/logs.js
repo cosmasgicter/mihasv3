@@ -16,19 +16,20 @@ export async function onRequestGet(context) {
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabaseAdminClient.auth.getUser(token)
+    const supabase = supabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
     }
 
     // Admin only
-    const { data: profile } = await supabaseAdminClient
-      .from('user_profiles')
+    const { data: profile } = await supabase
+      .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    if (!['admin', 'super_admin'].includes(profile?.role)) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), { status: 403 })
     }
 
@@ -41,9 +42,9 @@ export async function onRequestGet(context) {
 
     const offset = (page - 1) * limit
 
-    let query = supabaseAdminClient
+    let query = supabase
       .from('audit_logs')
-      .select('*, actor:user_profiles!actor_id(email, full_name)', { count: 'exact' })
+      .select('*, actor:profiles!actor_id(email, full_name)', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
