@@ -15,7 +15,7 @@ export async function onRequestPost(context) {
   }
   
   try {
-    const supabase = supabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = supabaseAdminClient;
     const { data, error } = await supabase.auth.signUp({
       email: body.email,
       password: body.password,

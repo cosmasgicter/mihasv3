@@ -18,7 +18,7 @@ export async function onRequestGet(context) {
       });
     }
 
-    const supabase = supabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = supabaseAdminClient;
     const url = new URL(request.url);
     const applicationId = url.searchParams.get('application_id');
     const userId = url.searchParams.get('user_id');
