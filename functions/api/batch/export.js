@@ -16,7 +16,7 @@ export async function onRequestGet(context) {
   }
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(profile?.role)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 })
   }
 
