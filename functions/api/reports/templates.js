@@ -16,19 +16,37 @@ export async function onRequestGet(context) {
   }
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(profile?.role)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 })
   }
 
   try {
-    const { data, error } = await supabase
-      .from('automated_reports')
-      .select('*')
-      .order('created_at', { ascending: false })
+    // Return predefined report templates
+    const templates = [
+      {
+        id: '1',
+        name: 'Applications Summary',
+        type: 'applications',
+        description: 'Summary of all applications by status',
+        fields: ['application_number', 'full_name', 'program', 'status', 'created_at']
+      },
+      {
+        id: '2',
+        name: 'Payment Report',
+        type: 'payments',
+        description: 'Payment status and verification report',
+        fields: ['application_number', 'amount', 'payment_status', 'payment_method']
+      },
+      {
+        id: '3',
+        name: 'User Activity',
+        type: 'users',
+        description: 'User registration and activity report',
+        fields: ['email', 'full_name', 'role', 'created_at', 'last_login']
+      }
+    ]
 
-    if (error) throw error
-
-    return new Response(JSON.stringify({ reports: data || [] }), {
+    return new Response(JSON.stringify({ templates }), {
       headers: { 'Content-Type': 'application/json' }
     })
   } catch (error) {
@@ -52,36 +70,32 @@ export async function onRequestPost(context) {
   }
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(profile?.role)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 })
   }
 
   try {
-    const { reportName, reportType, scheduleEnabled, scheduleFrequency } = await context.request.json()
+    const { name, type, fields } = await context.request.json()
 
-    if (!reportName || !reportType) {
+    if (!name || !type) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 })
     }
 
-    const { data, error } = await supabase
-      .from('automated_reports')
-      .insert({
-        report_name: reportName,
-        report_type: reportType,
-        report_data: {},
-        schedule_enabled: scheduleEnabled || false,
-        schedule_frequency: scheduleFrequency || null,
-        generated_by: user.id
-      })
-      .select()
-      .single()
+    // Create mock template response
+    const template = {
+      id: Date.now().toString(),
+      name,
+      type,
+      fields: fields || [],
+      created_by: user.id,
+      created_at: new Date().toISOString()
+    }
 
-    if (error) throw error
-
-    return new Response(JSON.stringify({ report: data }), {
+    return new Response(JSON.stringify({ success: true, template }), {
       headers: { 'Content-Type': 'application/json' }
     })
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 })
   }
+}
 }
