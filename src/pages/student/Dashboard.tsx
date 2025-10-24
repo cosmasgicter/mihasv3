@@ -350,44 +350,56 @@ export default function StudentDashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="px-6 py-5 transition-colors hover:bg-yellow-50"
+                        className="px-6 py-6 transition-colors hover:bg-yellow-50 border-l-4 border-l-yellow-400"
                       >
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between min-w-0">
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                              <Clock className="h-5 w-5 text-accent" />
-                              <h4 className="text-base font-semibold text-body break-all">Draft application #{application.application_number}</h4>
-                              <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800 border border-yellow-300">Draft</span>
+                        <div className="space-y-4">
+                          {/* Header */}
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <Clock className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-lg font-bold text-body break-words leading-tight">
+                                  {application.program || 'Draft Application'}
+                                </h4>
+                                <p className="text-sm font-medium text-gray-600 mt-1">
+                                  Application #{application.application_number}
+                                </p>
+                              </div>
                             </div>
-                            <dl className="grid gap-2 text-sm text-body sm:grid-cols-2">
-                              <div className="flex gap-2">
-                                <dt className="font-medium text-body">Program:</dt>
-                                <dd className="text-body break-words">{application.program}</dd>
-                              </div>
-                              <div className="flex gap-2">
-                                <dt className="font-medium text-body">Intake:</dt>
-                                <dd className="text-body break-words">{application.intake}</dd>
-                              </div>
-                              <div className="flex gap-2">
-                                <dt className="font-medium text-body">Created:</dt>
-                                <dd className="text-body">{formatDate(application.created_at)}</dd>
-                              </div>
-                            </dl>
+                            <span className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-bold text-yellow-800 border border-yellow-300">
+                              DRAFT
+                            </span>
                           </div>
-                          <div className="flex flex-col gap-2 sm:flex-row">
-                            <Link to="/student/application-wizard" className="w-full sm:w-auto">
+
+                          {/* Details Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-700">Intake:</span>
+                              <span className="text-body break-words">{application.intake || 'Not selected'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-700">Created:</span>
+                              <span className="text-body">{formatDate(application.created_at)}</span>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
+                            <Link to="/student/application-wizard" className="flex-1">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full sm:w-auto border-warning/30 text-accent hover:bg-amber-100"
+                                className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-100 font-medium"
                               >
-                                Continue draft
+                                Continue Draft
                               </Button>
                             </Link>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-red-300 text-red-700 hover:bg-red-50"
+                              className="sm:w-auto border-red-300 text-red-700 hover:bg-red-50 font-medium"
                               onClick={async () => {
                                 const confirmed = await confirmDialog.confirm({
                                   title: 'Delete Draft',
@@ -423,34 +435,46 @@ export default function StudentDashboard() {
                     ))}
 
                     {hasLocalDraftOnly && (
-                      <div className="px-6 py-5">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-3">
-                              <Clock className="h-5 w-5 text-accent" />
-                              <h4 className="text-base font-semibold text-body truncate">Local draft in progress</h4>
-                              <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800 border border-yellow-300">Draft</span>
+                      <div className="px-6 py-6 transition-colors hover:bg-yellow-50 border-l-4 border-l-yellow-400">
+                        <div className="space-y-4">
+                          {/* Header */}
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <Clock className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-lg font-bold text-body leading-tight">
+                                  {draftData?.formData?.program || 'Local Draft in Progress'}
+                                </h4>
+                                <p className="text-sm font-medium text-gray-600 mt-1">
+                                  {getDraftProgress()}
+                                </p>
+                              </div>
                             </div>
-                            <p className="text-sm text-body">Progress: {getDraftProgress()}</p>
-                            <p className="text-sm text-body">Last saved: {getDraftTimestamp()}</p>
-                            {draftData?.formData?.program && (
-                              <p className="text-sm text-body break-words">Program: {draftData.formData.program}</p>
-                            )}
+                            <span className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-bold text-yellow-800 border border-yellow-300">
+                              DRAFT
+                            </span>
                           </div>
-                          <div className="flex flex-col gap-2 sm:flex-row">
-                            <Link to="/student/application-wizard" className="w-full sm:w-auto">
+
+                          {/* Details */}
+                          <div className="text-sm text-gray-600">
+                            <p>Last saved: {getDraftTimestamp()}</p>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
+                            <Link to="/student/application-wizard" className="flex-1">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full sm:w-auto border-warning/30 text-accent hover:bg-amber-100"
+                                className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-100 font-medium"
                               >
-                                Continue draft
+                                Continue Draft
                               </Button>
                             </Link>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto border-red-300 text-red-700 hover:bg-red-50"
+                              className="sm:w-auto border-red-300 text-red-700 hover:bg-red-50 font-medium"
                               onClick={async () => {
                                 const confirmed = await confirmDialog.confirm({
                                   title: 'Delete Draft',
@@ -490,43 +514,55 @@ export default function StudentDashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 + index * 0.05 }}
-                        className="px-6 py-5 transition-colors hover:bg-blue-50"
+                        className="px-6 py-6 transition-colors hover:bg-blue-50 border-l-4 border-l-transparent hover:border-l-blue-500"
                       >
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between min-w-0">
-                          <div className="space-y-2 min-w-0 flex-1">
-                            <div className="flex items-start gap-2 flex-wrap">
-                              <div className="flex-shrink-0">{getStatusIcon(application.status)}</div>
-                              <h4 className="text-base font-semibold text-body break-words min-w-0 flex-1">{getProgramName(application.program)}</h4>
-                              <span className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap ${getStatusColor(application.status)}`}>
-                                {application.status.replace('_', ' ').toUpperCase()}
-                              </span>
+                        <div className="space-y-4">
+                          {/* Header */}
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <div className="flex-shrink-0 mt-1">{getStatusIcon(application.status)}</div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-lg font-bold text-body break-words leading-tight">
+                                  {getProgramName(application.program)}
+                                </h4>
+                                <p className="text-sm font-medium text-gray-600 mt-1">
+                                  Application #{application.application_number}
+                                </p>
+                              </div>
                             </div>
-                            <dl className="grid gap-2 text-sm text-body grid-cols-1 sm:grid-cols-2">
-                              <div className="flex gap-2 min-w-0">
-                                <dt className="font-medium text-body flex-shrink-0">Application:</dt>
-                                <dd className="text-body break-all min-w-0">#{application.application_number}</dd>
-                              </div>
-                              <div className="flex gap-2 min-w-0">
-                                <dt className="font-medium text-body flex-shrink-0">Intake:</dt>
-                                <dd className="text-body break-words min-w-0">{getIntakeName(application.intake)}</dd>
-                              </div>
-                              <div className="flex gap-2 min-w-0">
-                                <dt className="font-medium text-body flex-shrink-0">Submitted:</dt>
-                                <dd className="text-body min-w-0">{formatDate(application.submitted_at)}</dd>
-                              </div>
-                            </dl>
+                            <span className={`rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap ${getStatusColor(application.status)}`}>
+                              {application.status.replace('_', ' ').toUpperCase()}
+                            </span>
                           </div>
-                          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                            <DocumentButtons 
-                              applicationId={application.id}
-                              status={application.status}
-                              paymentStatus={application.payment_status}
-                            />
-                            <Link to={`/student/application/${application.id}`} className="w-full sm:w-auto">
+
+                          {/* Details Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-700">Intake:</span>
+                              <span className="text-body break-words">{getIntakeName(application.intake)}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-700">Submitted:</span>
+                              <span className="text-body">{formatDate(application.submitted_at)}</span>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
+                            <div className="flex-1">
+                              <DocumentButtons 
+                                applicationId={application.id}
+                                status={application.status}
+                                paymentStatus={application.payment_status}
+                              />
+                            </div>
+                            <Link to={`/student/application/${application.id}`} className="sm:w-auto">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white"
+                                className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white font-medium"
                               >
                                 View Details
                               </Button>
