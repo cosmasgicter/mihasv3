@@ -79,13 +79,20 @@ export async function createApplicationSlip(
             paymentStatus: data.payment_status || 'pending_review'
           })
 
-          const { data: result, error } = await supabase.functions.invoke('send-email', {
-            body: {
+          const response = await fetch('/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+            },
+            body: JSON.stringify({
               to: data.email,
               subject: options.subject || 'Your MIHAS application slip',
               html
-            }
+            })
           })
+          const result = await response.json()
+          const error = !response.ok ? new Error(result.error || 'Failed to send email') : null
 
           if (error) {
             emailError = error.message || 'Failed to send slip email'

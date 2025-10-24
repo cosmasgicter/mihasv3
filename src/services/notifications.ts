@@ -33,9 +33,16 @@ type SendNotificationApiResponse = SendNotificationResponse & {
 
 export const notificationService = {
   send: async (payload: SendNotificationPayload): Promise<boolean> => {
+    // Transform payload to match backend expectations
+    const backendPayload = {
+      user_id: payload.to,
+      title: payload.subject,
+      message: payload.message,
+      type: 'info'
+    }
     const response = await apiClient.request<SendNotificationApiResponse>('/notifications/send', {
       method: 'POST',
-      body: JSON.stringify(payload)
+      body: JSON.stringify(backendPayload)
     })
 
     if (!response) {
