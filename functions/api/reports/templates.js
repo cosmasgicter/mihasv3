@@ -1,7 +1,7 @@
-import { createClient } from '../../_lib/supabaseClient.js'
+import { supabaseAdminClient } from '../../_lib/supabaseClient.js'
 
 export async function onRequestGet(context) {
-  const supabase = createClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY)
+  const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY)
   
   const authHeader = context.request.headers.get('Authorization')
   if (!authHeader) {
@@ -37,7 +37,7 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  const supabase = createClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY)
+  const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY)
   
   const authHeader = context.request.headers.get('Authorization')
   if (!authHeader) {

@@ -22,7 +22,7 @@ export async function onRequestGet(context) {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const supabase = createClient(
+    const supabase = supabaseAdminClient(
       env.VITE_SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE_KEY
     );
