@@ -1,11 +1,19 @@
 import { apiClient } from './client'
 
 export const documentService = {
-  upload: (data: { fileName: string; fileData: any; documentType: string; applicationId: string }) =>
-    apiClient.request('/documents/upload', {
+  upload: (data: { file: File; fileType: string; applicationId: string; userId?: string }) => {
+    const formData = new FormData()
+    formData.append('file', data.file)
+    formData.append('fileType', data.fileType)
+    formData.append('applicationId', data.applicationId)
+    if (data.userId) formData.append('userId', data.userId)
+    
+    return apiClient.request('/documents/upload', {
       method: 'POST',
-      body: JSON.stringify(data)
-    }),
+      body: formData,
+      headers: {} // Let browser set Content-Type for FormData
+    })
+  },
 
   generateAcceptanceLetter: (applicationId: string) =>
     apiClient.request('/documents/acceptance-letter', {
