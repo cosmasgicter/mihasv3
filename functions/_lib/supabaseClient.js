@@ -32,8 +32,8 @@ function supabaseAdminClient(url, serviceKey) {
   return createClient(supabaseUrl, supabaseServiceKey, clientOptions);
 }
 
-// Default client for backward compatibility
-const defaultAdminClient = supabaseAdminClient();
+// Create default clients
+const defaultAdminClient = createClient(DEFAULT_SUPABASE_URL, DEFAULT_SERVICE_KEY, clientOptions);
 const supabaseAnonClient = createClient(DEFAULT_SUPABASE_URL, DEFAULT_ANON_KEY, clientOptions);
 
 function getRequestRoleCache(req) {
@@ -218,8 +218,8 @@ async function getUserFromRequest(req, { requireAdmin = false } = {}) {
     }
     
     console.log('[getUserFromRequest] Fetching profile for user:', userId)
-    console.log('[getUserFromRequest] Supabase URL:', supabaseUrl)
-    console.log('[getUserFromRequest] Service key exists:', !!supabaseServiceKey)
+    console.log('[getUserFromRequest] Supabase URL:', DEFAULT_SUPABASE_URL)
+    console.log('[getUserFromRequest] Service key exists:', !!DEFAULT_SERVICE_KEY)
     
     const { data: profile, error: userError } = await defaultAdminClient
       .from('profiles')
@@ -299,7 +299,7 @@ function clearRequestRoleCache(req) {
 }
 
 export {
-  supabaseAdminClient,
+  defaultAdminClient as supabaseAdminClient,
   supabaseAnonClient,
   getUserFromRequest,
   requireUser,
