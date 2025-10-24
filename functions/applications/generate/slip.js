@@ -41,8 +41,7 @@ export async function onRequest(context) {
     }
 
     // Fetch application with all required data
-    const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
-    let query = supabase
+    let query = supabaseAdminClient
       .from('applications')
       .select('*')
       .eq('user_id', user.id);
