@@ -4,7 +4,7 @@
  */
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'MIHAS <noreply@mihas.edu.zm>';
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || 'MIHAS Admissions <admissions@mihas.edu.zm>';
 
 /**
  * Send email with optional attachments

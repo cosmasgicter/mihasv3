@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ApplicationSlipActions } from '@/components/student/ApplicationSlipActions'
+import { DocumentButtons } from '@/components/student/DocumentButtons'
+import { InterviewDetails } from '@/components/student/InterviewDetails'
 import { Button } from '@/components/ui/Button'
 import { formatDate, getStatusColor } from '@/lib/utils'
 import { applicationService } from '@/services/applications'
@@ -27,6 +29,7 @@ type ApplicationRecord = ApplicationDetailResponse['application']
 export default function ApplicationDetail() {
   const { id } = useParams<{ id: string }>()
   const [application, setApplication] = useState<ApplicationRecord | null>(null)
+  const [interview, setInterview] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -57,6 +60,13 @@ export default function ApplicationDetail() {
       }
 
       setApplication(applicationRecord)
+      
+      // Load interview if exists
+      const interviewRes = await fetch(`/api/applications/interview/${id}`)
+      if (interviewRes.ok) {
+        const { data } = await interviewRes.json()
+        setInterview(data)
+      }
     } catch (error) {
       console.error('Error loading application:', error)
       setError('Failed to load application details')
@@ -147,21 +157,34 @@ export default function ApplicationDetail() {
           </div>
         </motion.div>
 
-        {/* Application Slip Actions */}
+        {/* Interview */}
+        {interview && interview.status !== 'cancelled' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-8"
+          >
+            <InterviewDetails interview={interview} />
+          </motion.div>
+        )}
+
+        {/* Documents */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.15 }}
           className="bg-card rounded-2xl shadow-lg border border-border p-6 mb-8"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h3 className="text-lg font-semibold text-body mb-1">Application Slip</h3>
-              <p className="text-body text-sm">Download or email your official application slip</p>
+              <h3 className="text-lg font-semibold text-body mb-1">Documents</h3>
+              <p className="text-body text-sm">Download your application documents</p>
             </div>
-            <ApplicationSlipActions 
-              applicationId={application.id} 
-              applicationNumber={application.application_number}
+            <DocumentButtons 
+              applicationId={application.id}
+              status={application.status}
+              paymentStatus={application.payment_status}
             />
           </div>
         </motion.div>

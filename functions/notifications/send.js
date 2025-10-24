@@ -32,6 +32,32 @@ export async function onRequestPost(context) {
       });
     }
     
+    // Check for duplicates in last 60 seconds
+    const { data: dedupHash } = await supabaseAdminClient.rpc('generate_notification_dedup_hash', {
+      p_user_id: user_id,
+      p_title: title,
+      p_message: message,
+      p_type: type || 'info'
+    });
+    
+    if (dedupHash) {
+      const { data: existing } = await supabaseAdminClient
+        .from('notifications')
+        .select('id')
+        .eq('user_id', user_id)
+        .eq('dedup_hash', dedupHash)
+        .gte('created_at', new Date(Date.now() - 60000).toISOString())
+        .limit(1)
+        .maybeSingle();
+      
+      if (existing) {
+        return new Response(JSON.stringify({ success: true, duplicate_prevented: true }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+    
     const { data, error } = await supabaseAdminClient
       .from('notifications')
       .insert({

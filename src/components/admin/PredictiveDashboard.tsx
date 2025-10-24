@@ -8,6 +8,7 @@ import { useRoleQuery, isAdminRole } from '@/hooks/auth/useRoleQuery'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { fetchPredictiveDashboardMetrics } from '@/lib/predictiveDashboardApi'
+import { AITrendsPanel } from './AITrendsPanel'
 
 interface PredictiveMetrics {
   avgAdmissionProbability: number
@@ -451,6 +452,9 @@ export function PredictiveDashboard() {
           </Card>
         </motion.div>
       </div>
+
+      {/* AI Trends Panel */}
+      <AITrendsPanel />
 
       {/* AI Recommendations */}
       <motion.div
