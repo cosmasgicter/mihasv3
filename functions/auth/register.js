@@ -20,7 +20,11 @@ export async function onRequestPost(context) {
       email: body.email,
       password: body.password,
       options: {
-        data: body.user_metadata || {}
+        data: {
+          first_name: body.firstName || '',
+          last_name: body.lastName || '',
+          ...body.user_metadata
+        }
       }
     });
     
@@ -29,6 +33,24 @@ export async function onRequestPost(context) {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
+    }
+
+    // Create profile if user was created successfully
+    if (data.user) {
+      try {
+        await supabase.from('profiles').insert({
+          id: data.user.id,
+          email: body.email,
+          first_name: body.firstName || '',
+          last_name: body.lastName || '',
+          full_name: `${body.firstName || ''} ${body.lastName || ''}`.trim(),
+          role: 'student',
+          is_active: true
+        });
+      } catch (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Don't fail the registration if profile creation fails
+      }
     }
     
     return new Response(JSON.stringify(data), {
