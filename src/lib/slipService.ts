@@ -33,7 +33,10 @@ export async function createApplicationSlip(
   try {
     // Always generate locally with jsPDF
     toast?.showInfo?.('Generating slip', 'Preparing your official application slip...')
-    const blob = await generateApplicationSlip(data)
+    const blob = await generateApplicationSlip(data).catch(err => {
+      console.error('Slip generation error:', err)
+      throw new Error(`Failed to generate PDF: ${err.message || 'Unknown error'}`)
+    })
 
     let uploadError: string | undefined
     let documentId: string | undefined
