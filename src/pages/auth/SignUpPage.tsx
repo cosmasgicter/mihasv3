@@ -86,42 +86,39 @@ export default function SignUpPage() {
     setLoading(true)
     setError('')
     setSuccess('')
-    setIsRegistering(false)
+    setIsRegistering(true)
 
     try {
       const { confirmPassword, ...userData } = data
       void confirmPassword
       
-      setIsRegistering(true)
       const result = await signUp(data.email, data.password, {
         ...userData,
         turnstileToken
       })
 
       if (result?.error) {
-        setIsRegistering(false)
         throw new Error(result.error)
       }
 
-      if (!result?.user) {
-        setIsRegistering(false)
-        throw new Error('Account created but user data not returned')
+      if (!result?.session) {
+        throw new Error('Account created but login failed. Please sign in manually.')
       }
 
-      // Success - user is now logged in
+      // Success - user is now logged in with session
       setSuccess('Account created successfully! You are now signed in.')
-      setIsRegistering(false)
       setLoading(false)
+      setIsRegistering(false)
       
       // Send welcome notification
       if (result.user?.id) {
         NotificationService.sendWelcomeNotification(result.user.id, userData.full_name).catch(console.error)
       }
       
-      // Redirect to dashboard after 2 seconds
+      // Redirect to dashboard
       setTimeout(() => {
         navigate('/student/dashboard')
-      }, 2000)
+      }, 1500)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create account. Please try again.'
       setError(message.includes('already registered') ? 'This email is already registered. Please sign in instead.' : message)

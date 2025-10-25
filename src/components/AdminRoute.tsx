@@ -13,8 +13,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   const { user, loading } = useAuth()
   const { profile, isLoading: profileLoading } = useProfileQuery()
   const { isAdmin: hasAdminRole, isLoading: roleLoading } = useRoleQuery()
-  const isAdmin = hasAdminRole || isAdminRole(profile?.role)
-
+  
   if (loading || roleLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -28,15 +27,15 @@ export function AdminRoute({ children }: AdminRouteProps) {
   }
 
   // Super admin override
-  if (user?.email === 'cosmas@beanola.com') {
+  if (user.email === 'cosmas@beanola.com') {
     return <>{children}</>
   }
 
-  // Check admin role
+  // Check admin role - must have user AND admin role
+  const isAdmin = user && (hasAdminRole || isAdminRole(profile?.role))
   if (!isAdmin) {
     return <Navigate to="/student/dashboard" replace />
   }
-  
 
   return <>{children}</>
 }
