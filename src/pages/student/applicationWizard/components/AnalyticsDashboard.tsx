@@ -32,14 +32,26 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
         return
       }
 
-      const completed = applications?.filter(app => app.status === 'submitted').length || 0
       const drafts = applications?.filter(app => app.status === 'draft').length || 0
-      const total = applications?.length || 0
+      const completed = applications?.filter(app => app.status !== 'draft').length || 0
+      
+      // Calculate average time from creation to update (in minutes)
+      let avgTime = 0
+      if (applications && applications.length > 0) {
+        const times = applications
+          .filter(app => app.created_at && app.updated_at)
+          .map(app => {
+            const created = new Date(app.created_at).getTime()
+            const updated = new Date(app.updated_at).getTime()
+            return Math.round((updated - created) / 1000 / 60) // minutes
+          })
+        avgTime = times.length > 0 ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0
+      }
 
       setStats({
         completed_applications: completed,
         total_drafts: drafts,
-        avg_time_per_step: 0,
+        avg_time_per_step: avgTime,
         most_common_drop_off_step: null
       })
     } catch (error) {
@@ -86,7 +98,7 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
             <span className="text-xs font-medium">Avg Time</span>
           </div>
           <p className="text-2xl font-bold text-body">
-            {Math.round(stats.avg_time_per_step || 0)}s
+            {stats.avg_time_per_step > 0 ? `${stats.avg_time_per_step}m` : '0m'}
           </p>
         </div>
       </div>
