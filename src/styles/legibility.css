@@ -6,23 +6,23 @@
 }
 
 .text-subheading {
-  @apply text-gray-800 dark:text-gray-100 font-medium;
+  @apply text-gray-900 dark:text-gray-100 font-medium;
 }
 
 .text-body {
-  @apply text-gray-800 dark:text-gray-200;
+  @apply text-gray-900 dark:text-gray-200;
 }
 
 .text-body-secondary {
-  @apply text-gray-700 dark:text-gray-300;
+  @apply text-gray-800 dark:text-gray-300;
 }
 
 .text-caption {
-  @apply text-gray-600 dark:text-gray-400 text-sm;
+  @apply text-gray-700 dark:text-gray-400 text-sm;
 }
 
 .text-muted {
-  @apply text-gray-500 dark:text-gray-500;
+  @apply text-gray-600 dark:text-gray-500;
 }
 
 /* Status Colors - High Contrast */
