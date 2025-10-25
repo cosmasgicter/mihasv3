@@ -44,9 +44,12 @@ export async function createApplicationSlip(
     let path: string | undefined
 
     try {
+      console.log('[slipService] Attempting to persist slip for:', data.application_number)
       const uploadResult = await persistSlip(data.application_number, blob, data.userId)
+      console.log('[slipService] Persist result:', uploadResult)
       if (!uploadResult.success) {
         uploadError = uploadResult.error || 'Unable to store application slip'
+        console.error('[slipService] Upload failed:', uploadError)
         toast?.showWarning?.('Slip not stored', 'We could not store your slip automatically. You can still download it below.')
       } else {
         publicUrl = uploadResult.publicUrl
