@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { getSupabaseClient, isSupabaseConfigured, SUPABASE_MISSING_CONFIG_MESSAGE } from '@/lib/supabase'
 import { getApiBaseUrl } from '@/lib/apiConfig'
+import { generateApplicationSlip } from '@/lib/applicationSlip'
 
 interface ApplicationSlipActionsProps {
   applicationId: string
@@ -52,7 +53,12 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         throw new Error(errorData.error || 'Failed to generate slip')
       }
 
-      const blob = await response.blob()
+      const result = await response.json()
+      if (!result.success || !result.data) {
+        throw new Error('Invalid response from server')
+      }
+
+      const blob = await generateApplicationSlip({ ...result.data, email: user?.email || '', userId: user?.id })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
