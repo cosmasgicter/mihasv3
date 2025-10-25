@@ -300,7 +300,8 @@ export async function onRequest(context) {
                     <hr style="border: 1px solid #e5e7eb; margin: 20px 0;">
                     <p style="color: #6b7280; font-size: 12px;">MIHAS Application System</p>
                   </div>
-                `
+                `,
+                env: context.env
               });
             }
           }
@@ -398,7 +399,8 @@ export async function onRequest(context) {
                       <hr style="border: 1px solid #e5e7eb; margin: 20px 0;">
                       <p style="color: #6b7280; font-size: 12px;">MIHAS Application System</p>
                     </div>
-                  `
+                  `,
+                  env: context.env
                 });
               }
             }

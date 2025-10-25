@@ -1,7 +1,7 @@
 import { supabaseAdminClient } from './supabaseClient.js'
 import { sendEmail } from './emailService.js'
 
-export async function executeWorkflows(triggerEvent, applicationData) {
+export async function executeWorkflows(triggerEvent, applicationData, env = {}) {
   try {
     const { data: rules } = await supabaseAdminClient
       .from('workflow_rules')
@@ -80,7 +80,8 @@ async function executeActions(actions, data, ruleId) {
             await sendEmail({
               to: data.email,
               subject: action.params.subject,
-              html: action.params.body
+              html: action.params.body,
+              env
             })
             executed.push({ type: action.type, success: true })
           }

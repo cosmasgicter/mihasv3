@@ -54,7 +54,8 @@ export async function onRequest(context) {
             MIHAS Application System - Automated Email Test
           </p>
         </div>
-      `
+      `,
+      env
     });
     
     if (!result.success) {
