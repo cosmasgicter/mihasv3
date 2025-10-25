@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
 
 import { getApiBaseUrl } from './apiConfig';
@@ -101,7 +101,7 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     doc.text('Thank you for submitting your application. We have received the', 14, 52);
     doc.text('details below and will notify you once they have been reviewed.', 14, 58);
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 65,
       head: [],
       body: [
@@ -127,7 +127,7 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     doc.setTextColor(17, 24, 39);
     doc.text('Applicant Information', 14, finalY);
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: finalY + 5,
       head: [],
       body: [
