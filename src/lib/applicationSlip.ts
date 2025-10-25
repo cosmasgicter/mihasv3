@@ -65,6 +65,7 @@ function buildTrackingUrl(code: string): string {
 async function loadImageAsBase64(url: string): Promise<string> {
   try {
     const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
     const blob = await response.blob();
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -73,7 +74,7 @@ async function loadImageAsBase64(url: string): Promise<string> {
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error('Failed to load image:', url);
+    console.error('Failed to load image:', url, error);
     return '';
   }
 }
