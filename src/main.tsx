@@ -19,15 +19,18 @@ if (typeof window !== 'undefined') {
   document.body.classList.add('light')
   document.body.style.colorScheme = 'light'
   
-  // Register service worker for offline support
+  // Register service worker for offline support - defer to avoid blocking
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => {})
+      setTimeout(() => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {})
+      }, 2000)
     })
   }
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const root = document.getElementById('root')!
+ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
