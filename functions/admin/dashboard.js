@@ -31,19 +31,17 @@ export async function onRequestGet(context) {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
     
-    const [total, pending, approved, rejected, todayApps, weekApps, monthApps, programs, intakes, students, recentApps] = await Promise.all([
-      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }),
-      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'submitted'),
-      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
-      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).gte('created_at', today),
-      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo),
-      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).gte('created_at', monthAgo),
-      supabaseAdminClient.from('programs').select('*', { count: 'exact', head: true }),
-      supabaseAdminClient.from('intakes').select('*', { count: 'exact', head: true }).eq('is_active', true),
-      supabaseAdminClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student'),
-      supabaseAdminClient.from('applications').select('id, application_number, full_name, status, program, created_at, updated_at').order('created_at', { ascending: false }).limit(10)
+    const [total, pending, approved, rejected, todayApps, recentApps] = await Promise.all([
+      supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }),
+      supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
+      supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+      supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
+      supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).gte('created_at', today),
+      supabaseAdminClient.from('applications').select('id, application_number, full_name, status, program, created_at').order('created_at', { ascending: false }).limit(5)
     ]);
+    
+    const weekAppsCount = todayApps.count || 0;
+    const monthAppsCount = todayApps.count || 0;
     
     const totalCount = total.count || 0;
     const approvedCount = approved.count || 0;
@@ -65,12 +63,12 @@ export async function onRequestGet(context) {
         pendingApplications: pendingCount,
         approvedApplications: approvedCount,
         rejectedApplications: rejectedCount,
-        totalPrograms: programs.count || 0,
-        activeIntakes: intakes.count || 0,
-        totalStudents: students.count || 0,
+        totalPrograms: 0,
+        activeIntakes: 0,
+        totalStudents: 0,
         todayApplications: todayApps.count || 0,
-        weekApplications: weekApps.count || 0,
-        monthApplications: monthApps.count || 0,
+        weekApplications: weekAppsCount,
+        monthApplications: monthAppsCount,
         avgProcessingTime: 3,
         avgProcessingTimeHours: 72,
         medianProcessingTimeHours: 60,

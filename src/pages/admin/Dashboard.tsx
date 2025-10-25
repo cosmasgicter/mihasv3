@@ -192,7 +192,7 @@ export default function AdminDashboard() {
       if (mounted) {
         void loadDashboardStats({ refresh: true })
       }
-    }, 180000)
+    }, 300000)
 
     return () => {
       mounted = false
@@ -387,7 +387,7 @@ export default function AdminDashboard() {
                   <div className="text-xs text-gray-600 dark:text-gray-400">Today</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">New Applications</div>
+              <div className="text-sm font-semibold text-foreground">New Applications</div>
               {stats.todayApplications > 0 && (
                 <div className="flex items-center mt-2 text-xs">
                   <ArrowUp className="h-3 w-3 text-success mr-1" />
@@ -416,7 +416,7 @@ export default function AdminDashboard() {
                   <div className="text-xs text-gray-600 dark:text-gray-400">Pending</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Awaiting Review</div>
+              <div className="text-sm font-semibold text-foreground">Awaiting Review</div>
               {stats.pendingApplications > 0 ? (
                 <Link to="/admin/applications?status=submitted" className="text-xs text-orange-600 hover:underline mt-2 block font-medium">
                   Requires attention
@@ -446,7 +446,7 @@ export default function AdminDashboard() {
                   <div className="text-xs text-gray-600 dark:text-gray-400">Days</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Avg Processing</div>
+              <div className="text-sm font-semibold text-foreground">Avg Processing</div>
               <div className="flex items-center mt-2 text-xs">
                 <ArrowDown className="h-3 w-3 text-green-600 mr-1" />
                 <span className="text-green-600">Improved by 15%</span>
@@ -477,7 +477,7 @@ export default function AdminDashboard() {
                   <div className="text-xs text-gray-600 dark:text-gray-400">Rate</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Approval Rate</div>
+              <div className="text-sm font-semibold text-foreground">Approval Rate</div>
               <div className="flex items-center mt-2 text-xs">
                 <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
                 <span className="text-green-600">Stable performance</span>
