@@ -73,3 +73,7 @@ STATIC_CACHE_TTL_SECONDS = "31536000"
 
 [ai]
 binding = "AI"
+
+# Cron Triggers
+[triggers]
+crons = ["* * * * *"]
