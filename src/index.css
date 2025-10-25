@@ -1,3 +1,5 @@
+@import './styles/legibility.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -150,5 +152,3 @@
     font-size: 16px !important; /* Prevents zoom on iOS */
   }
 }
-
-@import './styles/legibility.css';
