@@ -86,7 +86,8 @@ export async function onRequest(context) {
     const emailResult = await sendEmail({
       to: email,
       subject,
-      html: emailHtml
+      html: emailHtml,
+      env
     });
 
     // Update email_queue status

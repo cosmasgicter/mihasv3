@@ -107,7 +107,8 @@ export async function onRequest(context) {
       subject,
       html,
       pdfBuffer,
-      pdfFilename: `Application-Slip-${application.application_number}.pdf`
+      pdfFilename: `Application-Slip-${application.application_number}.pdf`,
+      env
     });
 
     // Update email_queue status
