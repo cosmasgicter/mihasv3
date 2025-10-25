@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { supabase } from '@/lib/supabase'
 import { predictiveAnalytics } from '@/lib/predictiveAnalytics'
-import { localAI } from '@/lib/localAI'
+import { cloudflareAI } from '@/lib/cloudflareAI'
 
 
 interface Message {
@@ -155,8 +155,8 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
     return `<Lightbulb className="w-5 h-5" /> **Personalized Tips for You**:\n\n${tips.map((tip, idx) => `${idx + 1}. ${tip}`).join('\n')}\n\n**Pro Tip**: The AI can auto-fill information from your documents - just upload clear, readable files!`
   }
 
-  const generateContextualSuggestions = (userMessage: string, appData: any): string[] => {
-    return localAI.generateSuggestions(userMessage, { applicationData: appData, currentStep })
+  const generateContextualSuggestions = async (userMessage: string, appData: any): Promise<string[]> => {
+    return await cloudflareAI.generateSuggestions(userMessage, { applicationData: appData, currentStep })
   }
 
   const saveConversation = async (messages: Message[]): Promise<void> => {
@@ -288,8 +288,7 @@ export function AIAssistant({ applicationData, currentStep, onSuggestionApply, o
 
   const generateResponse = async (userMessage: string): Promise<string> => {
     try {
-      // Generate intelligent response using local AI
-      return localAI.generateResponse(userMessage, {
+      return await cloudflareAI.generateResponse(userMessage, {
         applicationData,
         currentStep,
         profile
@@ -544,12 +543,14 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
     try {
       const response = await generateResponse(currentInput)
       
+      const suggestions = await generateContextualSuggestions(currentInput, applicationData)
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
         content: response,
         timestamp: new Date(),
-        suggestions: generateContextualSuggestions(currentInput, applicationData)
+        suggestions
       }
 
       const updatedMessages = [...messages, userMessage, assistantMessage]
