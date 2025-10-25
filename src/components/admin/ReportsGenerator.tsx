@@ -482,8 +482,8 @@ export function ReportsGenerator() {
     return (
       <div className="bg-card rounded-lg shadow">
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-lg font-medium text-body">Generate Reports</h3>
-          <p className="text-sm text-body">Create automated reports for analysis and compliance</p>
+          <h3 className="text-lg font-medium text-gray-900">Generate Reports</h3>
+          <p className="text-sm text-gray-900">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6 flex justify-center">
           <LoadingSpinner size="lg" />
@@ -496,8 +496,8 @@ export function ReportsGenerator() {
     return (
       <div className="bg-card rounded-lg shadow">
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-lg font-medium text-body">Generate Reports</h3>
-          <p className="text-sm text-body">Create automated reports for analysis and compliance</p>
+          <h3 className="text-lg font-medium text-gray-900">Generate Reports</h3>
+          <p className="text-sm text-gray-900">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6">
           <div className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-error">
@@ -512,8 +512,8 @@ export function ReportsGenerator() {
     return (
       <div className="bg-card rounded-lg shadow">
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-lg font-medium text-body">Generate Reports</h3>
-          <p className="text-sm text-body">Create automated reports for analysis and compliance</p>
+          <h3 className="text-lg font-medium text-gray-900">Generate Reports</h3>
+          <p className="text-sm text-gray-900">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6">
           <div className="rounded-md border border-warning/30 bg-warning/10 p-4 text-sm text-warning-strong">
@@ -527,14 +527,14 @@ export function ReportsGenerator() {
   return (
     <div className="bg-card rounded-lg shadow">
       <div className="px-6 py-4 border-b border-border">
-        <h3 className="text-lg font-medium text-body">Generate Reports</h3>
-        <p className="text-sm text-body">Create automated reports for analysis and compliance</p>
+        <h3 className="text-lg font-medium text-gray-900">Generate Reports</h3>
+        <p className="text-sm text-gray-900">Create automated reports for analysis and compliance</p>
       </div>
 
       <div className="p-6 space-y-6">
         {/* Report Type Selection */}
         <div>
-          <label className="block text-sm font-medium text-body mb-3">Report Type</label>
+          <label className="block text-sm font-medium text-gray-900 mb-3">Report Type</label>
           <div className="grid grid-cols-2 gap-3">
             {reportTypes.map((type) => {
               const Icon = type.icon
@@ -561,7 +561,7 @@ export function ReportsGenerator() {
         {/* Date Range */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-body mb-1">Start Date</label>
+            <label className="block text-sm font-medium text-gray-900 mb-1">Start Date</label>
             <input
               type="date"
               value={config.startDate}
@@ -570,7 +570,7 @@ export function ReportsGenerator() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-body mb-1">End Date</label>
+            <label className="block text-sm font-medium text-gray-900 mb-1">End Date</label>
             <input
               type="date"
               value={config.endDate}
@@ -582,7 +582,7 @@ export function ReportsGenerator() {
 
         {/* Report Sections */}
         <div>
-          <label className="block text-sm font-medium text-body mb-3">Include Sections</label>
+          <label className="block text-sm font-medium text-gray-900 mb-3">Include Sections</label>
           <div className="space-y-2">
             <label className="flex items-center">
               <input
@@ -591,7 +591,7 @@ export function ReportsGenerator() {
                 onChange={(e) => setConfig(prev => ({ ...prev, includePrograms: e.target.checked }))}
                 className="rounded border-input text-primary focus:ring-blue-500"
               />
-              <span className="ml-2 text-sm text-body">Program Analytics</span>
+              <span className="ml-2 text-sm text-gray-900">Program Analytics</span>
             </label>
             <label className="flex items-center">
               <input
@@ -600,7 +600,7 @@ export function ReportsGenerator() {
                 onChange={(e) => setConfig(prev => ({ ...prev, includeEngagement: e.target.checked }))}
                 className="rounded border-input text-primary focus:ring-blue-500"
               />
-              <span className="ml-2 text-sm text-body">User Engagement Metrics</span>
+              <span className="ml-2 text-sm text-gray-900">User Engagement Metrics</span>
             </label>
             <label className="flex items-center">
               <input
@@ -609,14 +609,14 @@ export function ReportsGenerator() {
                 onChange={(e) => setConfig(prev => ({ ...prev, includeEligibility: e.target.checked }))}
                 className="rounded border-input text-primary focus:ring-blue-500"
               />
-              <span className="ml-2 text-sm text-body">Eligibility Success Rates</span>
+              <span className="ml-2 text-sm text-gray-900">Eligibility Success Rates</span>
             </label>
           </div>
         </div>
 
         {/* Output Format */}
         <div>
-          <label className="block text-sm font-medium text-body mb-3">Output Format</label>
+          <label className="block text-sm font-medium text-gray-900 mb-3">Output Format</label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {reportFormats.map((format) => {
               const Icon = format.icon
@@ -636,7 +636,7 @@ export function ReportsGenerator() {
                     <Icon className="h-4 w-4" />
                     <span className="text-sm font-medium">{format.label}</span>
                   </div>
-                  <p className="mt-2 text-xs text-body">{format.description}</p>
+                  <p className="mt-2 text-xs text-gray-900">{format.description}</p>
                 </button>
               )
             })}
@@ -667,11 +667,11 @@ export function ReportsGenerator() {
         {isAdmin ? (
           <div className="pt-8 border-t border-border space-y-6">
             <div>
-              <h4 className="text-lg font-semibold text-body flex items-center space-x-2">
+              <h4 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
                 <FileText className="h-4 w-4 text-primary" />
                 <span>Official Document Templates</span>
               </h4>
-              <p className="text-sm text-body">
+              <p className="text-sm text-gray-900">
                 Generate structured admissions, interview and finance communications using the details provided below.
               </p>
             </div>
@@ -680,7 +680,7 @@ export function ReportsGenerator() {
               <div className="space-y-4">
                 <div>
                   <label
-                    className="block text-sm font-medium text-body mb-1"
+                    className="block text-sm font-medium text-gray-900 mb-1"
                     htmlFor="document-template-select"
                   >
                     Template
@@ -700,14 +700,14 @@ export function ReportsGenerator() {
                 </div>
 
                 <div className="bg-muted border border-border rounded-lg p-4">
-                  <h5 className="text-sm font-semibold text-body">Required placeholders</h5>
-                  <ul className="mt-2 space-y-2 text-xs text-body">
+                  <h5 className="text-sm font-semibold text-gray-900">Required placeholders</h5>
+                  <ul className="mt-2 space-y-2 text-xs text-gray-900">
                     {selectedTemplateDefinition.tokens.map(token => (
                       <li key={token.token} className="border-b border-border pb-2 last:border-b-0 last:pb-0">
-                        <div className="font-mono text-[11px] text-body">{`{{${token.token}}}`}</div>
-                        <div className="text-body">
+                        <div className="font-mono text-[11px] text-gray-900">{`{{${token.token}}}`}</div>
+                        <div className="text-gray-900">
                           {token.label}
-                          {token.required === false && <span className="text-body"> (optional)</span>}
+                          {token.required === false && <span className="text-gray-900"> (optional)</span>}
                         </div>
                       </li>
                     ))}
@@ -745,19 +745,19 @@ export function ReportsGenerator() {
                   </Button>
                 </div>
                 {documentGenerating && (
-                  <div className="flex items-center text-sm text-body">
+                  <div className="flex items-center text-sm text-gray-900">
                     <LoadingSpinner size="sm" className="mr-2" />
                     Preparing document…
                   </div>
                 )}
-                <p className="text-xs text-body">
+                <p className="text-xs text-gray-900">
                   Fill in the relevant sections below. Optional placeholders will be skipped automatically when left blank.
                 </p>
               </div>
             </div>
 
             <div className="bg-muted border border-border rounded-lg p-4 space-y-3">
-              <h5 className="text-sm font-semibold text-body">Prefill from an application</h5>
+              <h5 className="text-sm font-semibold text-gray-900">Prefill from an application</h5>
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
@@ -789,10 +789,10 @@ export function ReportsGenerator() {
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-4">
                 <div>
-                  <h5 className="text-sm font-semibold text-body mb-2">Student & Programme</h5>
+                  <h5 className="text-sm font-semibold text-gray-900 mb-2">Student & Programme</h5>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-student-name">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-student-name">
                         Student full name
                       </label>
                       <input
@@ -805,7 +805,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-student-email">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-student-email">
                         Student email
                       </label>
                       <input
@@ -818,7 +818,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-student-phone">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-student-phone">
                         Student phone (optional)
                       </label>
                       <input
@@ -831,7 +831,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-program-name">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-program-name">
                         Programme
                       </label>
                       <input
@@ -844,7 +844,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-intake">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-intake">
                         Intake period
                       </label>
                       <input
@@ -857,7 +857,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-start-date">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-start-date">
                         Programme start date
                       </label>
                       <input
@@ -869,7 +869,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-response-deadline">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-response-deadline">
                         Acceptance deadline
                       </label>
                       <input
@@ -881,7 +881,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-orientation-date">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-orientation-date">
                         Orientation date
                       </label>
                       <input
@@ -893,7 +893,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-reference-number">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-reference-number">
                         Reference number
                       </label>
                       <input
@@ -906,7 +906,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-decision-date">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-decision-date">
                         Decision date (optional)
                       </label>
                       <input
@@ -921,10 +921,10 @@ export function ReportsGenerator() {
                 </div>
 
                 <div>
-                  <h5 className="text-sm font-semibold text-body mb-2">Interview Details</h5>
+                  <h5 className="text-sm font-semibold text-gray-900 mb-2">Interview Details</h5>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-interview-date">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-interview-date">
                         Interview date
                       </label>
                       <input
@@ -936,7 +936,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-interview-time">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-interview-time">
                         Interview time
                       </label>
                       <input
@@ -948,7 +948,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-interview-mode">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-interview-mode">
                         Interview mode
                       </label>
                       <input
@@ -961,7 +961,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-interview-location">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-interview-location">
                         Location or link
                       </label>
                       <input
@@ -979,10 +979,10 @@ export function ReportsGenerator() {
 
               <div className="space-y-4">
                 <div>
-                  <h5 className="text-sm font-semibold text-body mb-2">Feedback Notes</h5>
+                  <h5 className="text-sm font-semibold text-gray-900 mb-2">Feedback Notes</h5>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-feedback-summary">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-feedback-summary">
                         Summary
                       </label>
                       <textarea
@@ -995,7 +995,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-feedback-strengths">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-feedback-strengths">
                         Strengths (one per line)
                       </label>
                       <textarea
@@ -1008,7 +1008,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-feedback-improvements">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-feedback-improvements">
                         Areas for improvement (one per line)
                       </label>
                       <textarea
@@ -1021,7 +1021,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-feedback-recommendation">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-feedback-recommendation">
                         Recommended next steps (optional)
                       </label>
                       <textarea
@@ -1037,10 +1037,10 @@ export function ReportsGenerator() {
                 </div>
 
                 <div>
-                  <h5 className="text-sm font-semibold text-body mb-2">Payment Summary</h5>
+                  <h5 className="text-sm font-semibold text-gray-900 mb-2">Payment Summary</h5>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-amount-due">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-amount-due">
                         Total charges (K)
                       </label>
                       <input
@@ -1053,7 +1053,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-amount-paid">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-amount-paid">
                         Payments received (K)
                       </label>
                       <input
@@ -1066,7 +1066,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-balance">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-balance">
                         Outstanding balance (K)
                       </label>
                       <input
@@ -1079,7 +1079,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-payment-due">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-payment-due">
                         Payment due date
                       </label>
                       <input
@@ -1091,7 +1091,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-payment-reference">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-payment-reference">
                         Payment reference
                       </label>
                       <input
@@ -1104,7 +1104,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-payment-last">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-payment-last">
                         Last payment date (optional)
                       </label>
                       <input
@@ -1117,7 +1117,7 @@ export function ReportsGenerator() {
                     </div>
                   </div>
                   <div className="mt-3">
-                    <label className="block text-sm font-medium text-body mb-1" htmlFor="document-payment-breakdown">
+                    <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-payment-breakdown">
                       Itemised breakdown (one item per line e.g. Tuition - 950)
                     </label>
                     <textarea
@@ -1132,10 +1132,10 @@ export function ReportsGenerator() {
                 </div>
 
                 <div>
-                  <h5 className="text-sm font-semibold text-body mb-2">Staff Contact</h5>
+                  <h5 className="text-sm font-semibold text-gray-900 mb-2">Staff Contact</h5>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-staff-name">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-staff-name">
                         Staff name
                       </label>
                       <input
@@ -1148,7 +1148,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-staff-title">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-staff-title">
                         Title / role
                       </label>
                       <input
@@ -1161,7 +1161,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-staff-department">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-staff-department">
                         Department (optional)
                       </label>
                       <input
@@ -1174,7 +1174,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-staff-email">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-staff-email">
                         Contact email
                       </label>
                       <input
@@ -1187,7 +1187,7 @@ export function ReportsGenerator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-body mb-1" htmlFor="document-staff-phone">
+                      <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="document-staff-phone">
                         Contact phone (optional)
                       </label>
                       <input
@@ -1208,10 +1208,10 @@ export function ReportsGenerator() {
               <div className="bg-muted border border-border rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-body">
+                    <p className="text-sm font-semibold text-gray-900">
                       {DOCUMENT_TEMPLATE_DEFINITIONS[documentPreview.templateId].name} preview
                     </p>
-                    <p className="text-xs text-body">
+                    <p className="text-xs text-gray-900">
                       Showing {previewMode === 'html' ? 'HTML markup' : 'plain text'} output ready for review.
                     </p>
                   </div>

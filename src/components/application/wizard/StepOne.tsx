@@ -33,7 +33,7 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
       transition={{ duration: 0.3 }}
       className="bg-card rounded-lg shadow-lg p-6 border border-border"
     >
-      <h2 className="text-lg font-semibold text-body mb-4">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">
         Step 1: Basic KYC Information
       </h2>
       
@@ -80,7 +80,7 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-body mb-1">
+          <label className="block text-sm font-medium text-gray-900 mb-1">
             Sex <span className="text-error">*</span>
           </label>
           <select
@@ -148,7 +148,7 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-body mb-1">
+          <label className="block text-sm font-medium text-gray-900 mb-1">
             Program <span className="text-error">*</span>
           </label>
           <select
@@ -166,7 +166,7 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-body mb-1">
+          <label className="block text-sm font-medium text-gray-900 mb-1">
             Intake <span className="text-error">*</span>
           </label>
           <select

@@ -281,7 +281,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
         <div className="space-y-6">
           {/* Export Format */}
           <div>
-            <h3 className="text-lg font-medium text-body mb-3">Export Format</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-3">Export Format</h3>
             <div className="grid grid-cols-3 gap-4">
               {[
                 { value: 'csv', label: 'CSV', icon: <FileSpreadsheet className="h-5 w-5" />, description: 'Comma-separated values' },
@@ -303,7 +303,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                     </div>
                     <div>
                       <h4 className="font-medium">{format.label}</h4>
-                      <p className="text-sm text-body">{format.description}</p>
+                      <p className="text-sm text-gray-900">{format.description}</p>
                     </div>
                   </div>
                 </div>
@@ -314,7 +314,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
           {/* Fields Selection */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-medium text-body">Fields to Export</h3>
+              <h3 className="text-lg font-medium text-gray-900">Fields to Export</h3>
               <Button
                 variant="outline"
                 size="sm"
@@ -353,7 +353,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                     )}
                     <div>
                       <p className="text-sm font-medium">{field.label}</p>
-                      <p className="text-xs text-body">{field.description}</p>
+                      <p className="text-xs text-gray-900">{field.description}</p>
                     </div>
                   </div>
                 </div>
@@ -363,7 +363,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
 
           {/* Filters */}
           <div>
-            <h3 className="text-lg font-medium text-body mb-3 flex items-center">
+            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
               <Filter className="h-5 w-5 mr-2" />
               Filters
             </h3>
@@ -371,7 +371,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
             {/* Role Filter */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-body">User Roles</label>
+                <label className="text-sm font-medium text-gray-900">User Roles</label>
                 <Button
                   variant="outline"
                   size="sm"
@@ -389,7 +389,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                     className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors ${
                       exportOptions.filters.roles.includes(role)
                         ? 'bg-primary/10 text-primary-foreground border-blue-300'
-                        : 'bg-accent text-body border-input hover:bg-skeleton'
+                        : 'bg-accent text-gray-900 border-input hover:bg-skeleton'
                     }`}
                   >
                     {role.replace(/_/g, ' ').toUpperCase()}
@@ -401,7 +401,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
             {/* Date Range Filter */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-body mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Registration Date From
                 </label>
                 <input
@@ -418,7 +418,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-body mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Registration Date To
                 </label>
                 <input
@@ -440,15 +440,15 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
           {/* Preview */}
           <div className="bg-muted border border-border rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-body flex items-center">
+              <h4 className="font-medium text-gray-900 flex items-center">
                 <Users className="h-4 w-4 mr-2" />
                 Export Preview
               </h4>
-              <span className="text-sm text-body">
+              <span className="text-sm text-gray-900">
                 {filteredUsers.length} users will be exported
               </span>
             </div>
-            <div className="text-sm text-body">
+            <div className="text-sm text-gray-900">
               <p>Format: {exportOptions.format.toUpperCase()}</p>
               <p>Fields: {exportOptions.fields.length} selected</p>
               {exportOptions.filters.roles.length > 0 && (

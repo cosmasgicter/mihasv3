@@ -69,13 +69,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
  'text-primary'
  }`} />
  </div>
- <h3 className="text-lg font-semibold text-body">
+ <h3 className="text-lg font-semibold text-gray-900">
  {title}
  </h3>
  </div>
  <button
  onClick={onClose}
- className="text-body hover:text-body hover:text-body transition-colors"
+ className="text-gray-900 hover:text-gray-900 hover:text-gray-900 transition-colors"
  >
  <X className="h-5 w-5" />
  </button>
@@ -84,7 +84,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
  {/* Content */}
  <div className="p-6">
- <p className="text-body">
+ <p className="text-gray-900">
  {message}
  </p>
  </div>

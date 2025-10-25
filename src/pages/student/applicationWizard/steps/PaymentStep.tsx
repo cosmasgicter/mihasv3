@@ -50,7 +50,7 @@ const PaymentStep = ({
       className="bg-card rounded-lg shadow-lg p-6 border border-border"
       data-testid="payment-step"
     >
-      <h2 className="text-lg font-semibold text-body mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
 
       <div className="space-y-6">
         <motion.div
@@ -105,7 +105,7 @@ const PaymentStep = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="payment_method" className="block text-sm font-medium text-body mb-1">
+            <label htmlFor="payment_method" className="block text-sm font-medium text-gray-900 mb-1">
               Payment Method <span className="text-error">*</span>
             </label>
             <select
@@ -166,7 +166,7 @@ const PaymentStep = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-body mb-2">
+          <label className="block text-sm font-medium text-gray-900 mb-2">
             Proof of Payment <span className="text-error">*</span>
           </label>
           <div className="relative">
@@ -174,7 +174,7 @@ const PaymentStep = ({
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={handleProofOfPaymentUpload}
-              className="w-full text-sm text-body file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
+              className="w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
             />
             {proofOfPaymentFile && (
               <div className="mt-2 flex items-center text-sm text-warning-strong">
@@ -184,7 +184,7 @@ const PaymentStep = ({
             )}
             {uploadProgress.proof_of_payment !== undefined && (
               <div className="mt-2">
-                <div className="flex justify-between text-sm text-body mb-1">
+                <div className="flex justify-between text-sm text-gray-900 mb-1">
                   <span>Uploading...</span>
                   <span>{uploadProgress.proof_of_payment}%</span>
                 </div>

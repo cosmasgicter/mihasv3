@@ -79,7 +79,7 @@ const SubmissionSuccess = ({
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}>
           <CheckCircle className="h-16 w-16 text-accent mx-auto mb-6" />
         </motion.div>
-        <h2 className="text-2xl font-bold text-body mb-4">Application Submitted Successfully!</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Application Submitted Successfully!</h2>
 
 
 
@@ -122,7 +122,7 @@ const SubmissionSuccess = ({
           </div>
         </motion.div>
 
-        <p className="text-body mb-6">
+        <p className="text-gray-900 mb-6">
           Your application is now under review. You'll receive notifications about status updates.
         </p>
 

@@ -172,7 +172,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 variant="outline"
                 size="md"
                 onClick={handleSignOut}
-                className="border-card/70 text-body hover:bg-card/10"
+                className="border-card/70 text-gray-900 hover:bg-card/10"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
@@ -183,7 +183,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
         {/* Mobile Menu Button */}
         <motion.button
-          className="md:hidden p-3 rounded-xl text-body bg-card hover:bg-muted backdrop-blur-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-ring shadow-lg hover:shadow-xl border-2 border-border min-h-[48px] min-w-[48px] z-[102] touch-target"
+          className="md:hidden p-3 rounded-xl text-gray-900 bg-card hover:bg-muted backdrop-blur-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-ring shadow-lg hover:shadow-xl border-2 border-border min-h-[48px] min-w-[48px] z-[102] touch-target"
           onClick={toggleMenu}
           whileTap={{ scale: 0.95 }}
           aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -241,10 +241,10 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 <div className="flex items-center justify-between p-6 border-b border-border bg-muted backdrop-blur-sm">
                   <div className="flex items-center space-x-3">
                     <GraduationCap className="h-7 w-7 text-primary" />
-                    <span className="text-xl font-bold text-body">MIHAS-KATC</span>
+                    <span className="text-xl font-bold text-gray-900">MIHAS-KATC</span>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-body hover:bg-muted transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] min-w-[44px] touch-target"
+                    className="p-2 rounded-lg text-gray-900 hover:bg-muted transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] min-w-[44px] touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -268,7 +268,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                           to={item.to}
                           onClick={closeMenu}
                           className={cn(
-                            'flex items-center px-4 py-4 rounded-xl text-body transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
+                            'flex items-center px-4 py-4 rounded-xl text-gray-900 transition-all duration-200 font-bold shadow-lg hover:shadow-xl min-h-[48px] touch-target',
                             item.variant === 'accent'
                               ? 'bg-primary/10 hover:bg-primary/20'
                               : 'hover:bg-muted',
@@ -306,7 +306,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 {/* Footer */}
                 {!user && (
                   <div className="p-6 border-t border-border bg-muted backdrop-blur-sm">
-                    <p className="text-body text-base text-center font-medium">
+                    <p className="text-gray-900 text-base text-center font-medium">
                       Your Future Starts Here
                     </p>
                   </div>

@@ -18,7 +18,7 @@ export function LoadingState({ message = 'Loading...', size = 'md', fullScreen =
   const content = (
     <div className="flex flex-col items-center justify-center gap-3">
       <Loader2 className={cn('animate-spin text-primary', sizeClasses[size])} aria-hidden="true" />
-      <p className="text-sm text-body-secondary" role="status" aria-live="polite">
+      <p className="text-sm text-gray-900-secondary" role="status" aria-live="polite">
         {message}
       </p>
     </div>

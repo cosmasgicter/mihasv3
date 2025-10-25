@@ -179,10 +179,10 @@ export default function EligibilityManagement() {
     <div className="min-h-screen bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-body mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Eligibility Management System
           </h1>
-          <p className="text-body">
+          <p className="text-gray-900">
             Manage course requirements, regulatory compliance, and eligibility assessments
           </p>
         </div>
@@ -202,7 +202,7 @@ export default function EligibilityManagement() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     activeTab === tab.id
                       ? 'border-primary text-primary'
-                      : 'border-transparent text-body hover:text-body hover:border-input'
+                      : 'border-transparent text-gray-900 hover:text-gray-900 hover:border-input'
                   }`}
                 >
                   <tab.icon className="h-5 w-5" />
@@ -221,7 +221,7 @@ export default function EligibilityManagement() {
         {activeTab === 'rules' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-body">Eligibility Rules</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Eligibility Rules</h2>
               <Button
                 onClick={() => {
                   resetRuleForm()
@@ -238,22 +238,22 @@ export default function EligibilityManagement() {
               <table className="min-w-full divide-y divide-border">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                       Rule Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                       Program
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                       Weight
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -261,16 +261,16 @@ export default function EligibilityManagement() {
                 <tbody className="bg-card divide-y divide-border">
                   {rules.map((rule) => (
                     <tr key={rule.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-body">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {rule.rule_name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {(rule as any).programs?.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {rule.rule_type}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {rule.weight}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -308,8 +308,8 @@ export default function EligibilityManagement() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-semibold text-body">Regulatory Guidelines</h2>
-                <p className="text-body mt-1">
+                <h2 className="text-xl font-semibold text-gray-900">Regulatory Guidelines</h2>
+                <p className="text-gray-900 mt-1">
                   HPCZ, NMCZ, and ECZ compliance requirements for health and education programs
                 </p>
               </div>
@@ -331,7 +331,7 @@ export default function EligibilityManagement() {
                     setShowRuleForm(false)
                     setEditingRule(null)
                   }}
-                  className="text-body hover:text-foreground"
+                  className="text-gray-900 hover:text-foreground"
                 >
                   <X className="h-6 w-6" />
                 </button>
@@ -339,7 +339,7 @@ export default function EligibilityManagement() {
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="program" className="block text-sm font-medium text-body mb-1">
+                  <label htmlFor="program" className="block text-sm font-medium text-gray-900 mb-1">
                     Program
                   </label>
                   <select
@@ -364,7 +364,7 @@ export default function EligibilityManagement() {
                 />
 
                 <div>
-                  <label htmlFor="rule_type" className="block text-sm font-medium text-body mb-1">
+                  <label htmlFor="rule_type" className="block text-sm font-medium text-gray-900 mb-1">
                     Rule Type
                   </label>
                   <select
@@ -404,7 +404,7 @@ export default function EligibilityManagement() {
                     onChange={(e) => setRuleForm({ ...ruleForm, is_active: e.target.checked })}
                     className="mr-2"
                   />
-                  <label htmlFor="is_active" className="text-sm font-medium text-body">
+                  <label htmlFor="is_active" className="text-sm font-medium text-gray-900">
                     Active
                   </label>
                 </div>

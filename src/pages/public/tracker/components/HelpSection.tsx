@@ -16,7 +16,7 @@ export const HelpSection: React.FC = () => {
     >
       <AnimatedCard glassEffect>
         <div className="text-center mb-12">
-          <h3 className="text-4xl font-black text-body mb-4 flex items-center justify-center space-x-3">
+          <h3 className="text-4xl font-black text-gray-900 mb-4 flex items-center justify-center space-x-3">
             <span>❓</span>
             <span>Need Help?</span>
           </h3>
@@ -27,7 +27,7 @@ export const HelpSection: React.FC = () => {
           <AnimatedCard className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200" hover3d>
             <div className="text-center space-y-4">
               <div className="text-5xl">📍</div>
-              <h4 className="font-black text-body text-2xl">
+              <h4 className="font-black text-gray-900 text-2xl">
                 Where to find your application number?
               </h4>
               <ul className="text-gray-800 space-y-3 text-lg text-left">
@@ -50,7 +50,7 @@ export const HelpSection: React.FC = () => {
           <AnimatedCard className="bg-gradient-to-br from-green-50 to-emerald-50 border border-yellow-200" hover3d delay={0.1}>
             <div className="text-center space-y-4">
               <div className="text-5xl">📊</div>
-              <h4 className="font-black text-body text-2xl">
+              <h4 className="font-black text-gray-900 text-2xl">
                 Application Status Meanings
               </h4>
               <ul className="text-gray-800 space-y-3 text-lg text-left">
@@ -91,7 +91,7 @@ export const HelpSection: React.FC = () => {
               <MapPin className="h-8 w-8 text-secondary" />
             </div>
             
-            <h4 className="text-3xl font-black text-body">
+            <h4 className="text-3xl font-black text-gray-900">
               📞 Contact Information
             </h4>
             

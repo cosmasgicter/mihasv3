@@ -168,7 +168,7 @@ export default function ApplicationStatus() {
       
           <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <SectionCard className="mx-auto max-w-xl text-center" title="Application not found" icon={<AlertCircle className="h-5 w-5" />}>
-            <p className="text-body">
+            <p className="text-gray-900">
               {error || 'The application you are looking for does not exist or you do not have permission to view it.'}
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -217,7 +217,7 @@ export default function ApplicationStatus() {
               }
             ]}
           >
-            <p className="text-sm text-body">Intake: {application.intake}</p>
+            <p className="text-sm text-gray-900">Intake: {application.intake}</p>
           </PageHeader>
 
           {hasActiveInterview && interview && (
@@ -228,19 +228,19 @@ export default function ApplicationStatus() {
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-body">{formatInterviewDateTime(interview.scheduled_at)}</p>
-                  <p className="text-sm text-body">{interview.mode?.replace('_', ' ') || 'Interview'}</p>
+                  <p className="text-sm font-semibold text-gray-900">{formatInterviewDateTime(interview.scheduled_at)}</p>
+                  <p className="text-sm text-gray-900">{interview.mode?.replace('_', ' ') || 'Interview'}</p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-info-strong">Location / Link</p>
-                    <p className="text-sm text-body">
+                    <p className="text-sm text-gray-900">
                       {interview.location || 'You will receive the meeting details shortly.'}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-info-strong">Important notes</p>
-                    <p className="text-sm text-body">
+                    <p className="text-sm text-gray-900">
                       {interview.notes || 'Please arrive 10 minutes early and bring your identification.'}
                     </p>
                   </div>
@@ -255,7 +255,7 @@ export default function ApplicationStatus() {
               description="Our admissions team will contact you if a new interview is required."
               icon={<Calendar className="h-5 w-5" />}
             >
-              <p className="text-sm text-body">
+              <p className="text-sm text-gray-900">
                 If you have questions, please reach out to admissions support.
               </p>
             </SectionCard>
@@ -291,7 +291,7 @@ export default function ApplicationStatus() {
                           {step.description}
                         </p>
                         {step.date && (
-                          <p className="text-sm text-body">{formatDate(step.date)}</p>
+                          <p className="text-sm text-gray-900">{formatDate(step.date)}</p>
                         )}
                       </div>
                     </motion.div>
@@ -306,68 +306,68 @@ export default function ApplicationStatus() {
               >
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <div className="rounded-xl border border-primary/30 bg-primary/5 px-5 py-4">
-                    <h3 className="text-sm font-bold text-body mb-3"><User className="w-5 h-5" /> Personal information</h3>
-                    <div className="space-y-2 text-sm text-body">
+                    <h3 className="text-sm font-bold text-gray-900 mb-3"><User className="w-5 h-5" /> Personal information</h3>
+                    <div className="space-y-2 text-sm text-gray-900">
                       <div className="flex justify-between">
-                        <span className="text-body">Full name:</span>
+                        <span className="text-gray-900">Full name:</span>
                         <span className="font-semibold break-words">{application.full_name}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-body">Date of birth:</span>
+                        <span className="text-gray-900">Date of birth:</span>
                         <span className="font-semibold">{application.date_of_birth}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-body">Sex:</span>
+                        <span className="text-gray-900">Sex:</span>
                         <span className="font-semibold">{application.sex}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-body">Phone:</span>
+                        <span className="text-gray-900">Phone:</span>
                         <span className="font-semibold">{application.phone}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-body">Email:</span>
+                        <span className="text-gray-900">Email:</span>
                         <span className="font-semibold truncate">{application.email}</span>
                       </div>
                     </div>
                   </div>
                   <div className="rounded-xl border border-accent/30 bg-accent/10 px-5 py-4">
-                    <h3 className="text-sm font-bold text-body mb-3"><Phone className="w-5 h-5" /> Contact information</h3>
-                    <div className="space-y-2 text-sm text-body">
+                    <h3 className="text-sm font-bold text-gray-900 mb-3"><Phone className="w-5 h-5" /> Contact information</h3>
+                    <div className="space-y-2 text-sm text-gray-900">
                       <div className="flex justify-between">
-                        <span className="text-body">Residence:</span>
+                        <span className="text-gray-900">Residence:</span>
                         <span className="font-semibold break-words">{application.residence_town}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-body">NRC:</span>
+                        <span className="text-gray-900">NRC:</span>
                         <span className="font-semibold break-all">{application.nrc_number || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-body">Guardian:</span>
+                        <span className="text-gray-900">Guardian:</span>
                         <span className="font-semibold">{application.guardian_name || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-body">Guardian phone:</span>
+                        <span className="text-gray-900">Guardian phone:</span>
                         <span className="font-semibold">{application.guardian_phone || 'Not provided'}</span>
                       </div>
                     </div>
                   </div>
                   <div className="rounded-xl border border-input/30 bg-secondary/5 px-5 py-4 lg:col-span-2">
-                    <h3 className="text-sm font-bold text-body mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
-                    <div className="grid gap-2 text-sm text-body sm:grid-cols-2">
+                    <h3 className="text-sm font-bold text-gray-900 mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
+                    <div className="grid gap-2 text-sm text-gray-900 sm:grid-cols-2">
                       <div className="flex justify-between">
-                        <span className="text-body">Payment reference:</span>
+                        <span className="text-gray-900">Payment reference:</span>
                         <span className="font-semibold">{application.payment_reference || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-body">Payment method:</span>
+                        <span className="text-gray-900">Payment method:</span>
                         <span className="font-semibold">{application.payment_method || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-body">Amount paid:</span>
+                        <span className="text-gray-900">Amount paid:</span>
                         <span className="font-semibold">K{application.amount || application.application_fee || 'Not provided'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-body">Payment status:</span>
+                        <span className="text-gray-900">Payment status:</span>
                         <span className="font-semibold">{application.payment_status}</span>
                       </div>
                     </div>
@@ -392,7 +392,7 @@ export default function ApplicationStatus() {
                           <FileText className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-body">Result slip</p>
+                          <p className="text-sm font-semibold text-gray-900">Result slip</p>
                           <p className="text-xs font-medium text-info-strong">✓ Uploaded</p>
                         </div>
                       </div>
@@ -420,7 +420,7 @@ export default function ApplicationStatus() {
                           <FileText className="h-5 w-5 text-accent" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-body">Extra KYC documents</p>
+                          <p className="text-sm font-semibold text-gray-900">Extra KYC documents</p>
                           <p className="text-xs font-medium text-warning-strong">✓ Uploaded</p>
                         </div>
                       </div>
@@ -448,15 +448,15 @@ export default function ApplicationStatus() {
                           <FileText className="h-5 w-5 text-secondary" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-body">Proof of payment</p>
-                          <p className="text-xs font-medium text-body">✓ Uploaded</p>
+                          <p className="text-sm font-semibold text-gray-900">Proof of payment</p>
+                          <p className="text-xs font-medium text-gray-900">✓ Uploaded</p>
                         </div>
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(application.pop_url as string, '_blank')}
-                        className="border-purple-300 text-body hover:bg-muted"
+                        className="border-purple-300 text-gray-900 hover:bg-muted"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View
@@ -465,7 +465,7 @@ export default function ApplicationStatus() {
                   )}
 
                   {!application.result_slip_url && !application.extra_kyc_url && !application.pop_url && (
-                    <p className="rounded-xl bg-muted px-4 py-6 text-center text-sm text-body">
+                    <p className="rounded-xl bg-muted px-4 py-6 text-center text-sm text-gray-900">
                       No supporting documents uploaded.
                     </p>
                   )}
@@ -481,23 +481,23 @@ export default function ApplicationStatus() {
               >
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-body">Application ID</span>
+                    <span className="text-gray-900">Application ID</span>
                     <span className="font-semibold">#{application.application_number}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-body">Program</span>
+                    <span className="text-gray-900">Program</span>
                     <span className="font-semibold break-words">{application.program}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-body">Intake</span>
+                    <span className="text-gray-900">Intake</span>
                     <span className="font-semibold">{application.intake}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-body">Submitted</span>
+                    <span className="text-gray-900">Submitted</span>
                     <span className="font-semibold">{formatDate(application.submitted_at)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-body">Last updated</span>
+                    <span className="text-gray-900">Last updated</span>
                     <span className="font-semibold">{formatDate(application.updated_at)}</span>
                   </div>
                 </div>

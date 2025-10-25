@@ -57,7 +57,7 @@ export function safeJsonParse<T>(value: string | null | undefined, fallback: T):
 
 // Consistent status badge styling helper
 const STATUS_COLOR_MAP: Record<string, string> = {
-  draft: 'bg-muted text-body border border-border',
+  draft: 'bg-muted text-gray-900 border border-border',
   pending: 'bg-yellow-200 text-yellow-900 border border-yellow-300',
   pending_review: 'bg-yellow-200 text-yellow-900 border border-yellow-300',
   under_review: 'bg-blue-200 text-blue-900 border border-blue-300',
@@ -73,10 +73,10 @@ const STATUS_COLOR_MAP: Record<string, string> = {
 
 export function getStatusColor(status?: string | null): string {
   if (!status) {
-    return 'bg-muted text-body border border-border'
+    return 'bg-muted text-gray-900 border border-border'
   }
 
-  return STATUS_COLOR_MAP[status.toLowerCase()] ?? 'bg-muted text-body border border-border'
+  return STATUS_COLOR_MAP[status.toLowerCase()] ?? 'bg-muted text-gray-900 border border-border'
 }
 
 // Network status utilities

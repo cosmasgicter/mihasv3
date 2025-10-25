@@ -326,7 +326,7 @@ export default function AdminUsers() {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-body h-4 w-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-900 h-4 w-4" />
                   <input
                     type="text"
                     placeholder="Search users by name, email, or phone..."
@@ -338,7 +338,7 @@ export default function AdminUsers() {
               </div>
               <div className="sm:w-48">
                 <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-body h-4 w-4" />
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-900 h-4 w-4" />
                   <select
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
@@ -390,10 +390,10 @@ export default function AdminUsers() {
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-8xl mb-6">👥</div>
-                <h3 className="text-2xl font-bold text-body mb-2">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
                   {searchTerm || roleFilter ? 'No Matching Users' : 'No Users Found'}
                 </h3>
-                <p className="text-body mb-6 max-w-md mx-auto">
+                <p className="text-gray-900 mb-6 max-w-md mx-auto">
                   {searchTerm || roleFilter 
                     ? 'Try adjusting your search or filter criteria.'
                     : 'No users have been registered yet. Users will appear here once they sign up for the system.'}
@@ -415,7 +415,7 @@ export default function AdminUsers() {
                   </Button>
                 </div>
                 {users.length > 0 && (
-                  <p className="text-sm text-body mt-4">
+                  <p className="text-sm text-gray-900 mt-4">
                     Total users in system: {users.length}
                   </p>
                 )}
@@ -441,14 +441,14 @@ export default function AdminUsers() {
                           {getRoleIcon(user.role)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-lg text-body truncate" title={user.full_name || 'No name provided'}>
+                          <h3 className="font-bold text-lg text-gray-900 truncate" title={user.full_name || 'No name provided'}>
                             {sanitizeForDisplay(user.full_name) || 'No name provided'}
                           </h3>
-                          <p className="text-sm text-body truncate" title={user.email}>{sanitizeForDisplay(user.email)}</p>
+                          <p className="text-sm text-gray-900 truncate" title={user.email}>{sanitizeForDisplay(user.email)}</p>
                           {user.phone && (
-                            <p className="text-sm text-body truncate" title={user.phone}>{sanitizeForDisplay(user.phone)}</p>
+                            <p className="text-sm text-gray-900 truncate" title={user.phone}>{sanitizeForDisplay(user.phone)}</p>
                           )}
-                          <p className="text-xs text-body mt-1">
+                          <p className="text-xs text-gray-900 mt-1">
                             ID: {user.user_id?.slice(0, 8) || 'N/A'}...
                           </p>
                         </div>
@@ -460,7 +460,7 @@ export default function AdminUsers() {
                       </div>
                       
                       <div className="flex items-center justify-between pt-3 border-t border-border">
-                        <div className="text-xs text-body">
+                        <div className="text-xs text-gray-900">
                           Joined: {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -486,7 +486,7 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={() => openActivityLog(user.user_id)}
-                            className="text-body border-input hover:bg-muted"
+                            className="text-gray-900 border-input hover:bg-muted"
                           >
                             <Clock className="h-3 w-3 mr-1" />
                             Activity
@@ -513,7 +513,7 @@ export default function AdminUsers() {
                   <table className="min-w-full divide-y divide-border">
                     <thead className="bg-gradient-to-r from-muted to-purple-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={handleSelectAll}
@@ -528,16 +528,16 @@ export default function AdminUsers() {
                             <span><User className="w-5 h-5" /> User</span>
                           </div>
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           <Phone className="w-5 h-5" /> Contact
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           <Trophy className="w-5 h-5" /> Role
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           <Calendar className="w-5 h-5" /> Joined
                         </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-900 uppercase tracking-wider">
                           ⚙️ Actions
                         </th>
                       </tr>
@@ -559,10 +559,10 @@ export default function AdminUsers() {
                               </button>
                               {getRoleIcon(user.role)}
                               <div className="ml-3 min-w-0">
-                                <div className="text-sm font-semibold text-body truncate" title={user.full_name || 'No name provided'}>
+                                <div className="text-sm font-semibold text-gray-900 truncate" title={user.full_name || 'No name provided'}>
                                   {sanitizeForDisplay(user.full_name) || 'No name provided'}
                                 </div>
-                                <div className="text-xs text-body font-mono truncate">
+                                <div className="text-xs text-gray-900 font-mono truncate">
                                   ID: {user.user_id?.slice(0, 8) || 'N/A'}...
                                 </div>
                               </div>
@@ -570,9 +570,9 @@ export default function AdminUsers() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="min-w-0 max-w-xs">
-                              <div className="text-sm text-body truncate" title={user.email}>{sanitizeForDisplay(user.email)}</div>
+                              <div className="text-sm text-gray-900 truncate" title={user.email}>{sanitizeForDisplay(user.email)}</div>
                               {user.phone && (
-                                <div className="text-sm text-body truncate" title={user.phone}>{sanitizeForDisplay(user.phone)}</div>
+                                <div className="text-sm text-gray-900 truncate" title={user.phone}>{sanitizeForDisplay(user.phone)}</div>
                               )}
                             </div>
                           </td>
@@ -583,7 +583,7 @@ export default function AdminUsers() {
                               {getRoleLabel(user.role)}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-body">
+                          <td className="px-6 py-4 text-sm text-gray-900">
                             {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                           </td>
                           <td className="px-6 py-4 text-right">
@@ -612,7 +612,7 @@ export default function AdminUsers() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openActivityLog(user.user_id)}
-                                className="text-body border-input hover:bg-muted"
+                                className="text-gray-900 border-input hover:bg-muted"
                                 disabled={selectedUsers.length > 0}
                               >
                                 <Clock className="h-3 w-3 mr-1" />
@@ -679,7 +679,7 @@ export default function AdminUsers() {
               />
               <button
                 type="button"
-                className="absolute right-3 top-8 text-body hover:text-foreground"
+                className="absolute right-3 top-8 text-gray-900 hover:text-foreground"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -692,7 +692,7 @@ export default function AdminUsers() {
               placeholder="Enter phone number"
             />
             <div>
-              <label className="block text-sm font-medium text-body mb-1">
+              <label className="block text-sm font-medium text-gray-900 mb-1">
                 Role <span className="text-error">*</span>
               </label>
               <select
@@ -760,7 +760,7 @@ export default function AdminUsers() {
               placeholder="Enter phone number"
             />
             <div>
-              <label className="block text-sm font-medium text-body mb-1">
+              <label className="block text-sm font-medium text-gray-900 mb-1">
                 Role <span className="text-error">*</span>
               </label>
               <select
@@ -777,7 +777,7 @@ export default function AdminUsers() {
                 ))}
               </select>
               {selectedUser?.role === 'super_admin' && (
-                <p className="text-xs text-body mt-1">Super admin role cannot be changed</p>
+                <p className="text-xs text-gray-900 mt-1">Super admin role cannot be changed</p>
               )}
             </div>
           </div>
@@ -810,7 +810,7 @@ export default function AdminUsers() {
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p className="text-body">
+            <p className="text-gray-900">
               Are you sure you want to delete <strong>{sanitizeForDisplay(selectedUser?.full_name)}</strong>? 
               This action cannot be undone and will remove all user data.
             </p>

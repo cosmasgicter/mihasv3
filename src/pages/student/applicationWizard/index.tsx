@@ -151,7 +151,7 @@ const ApplicationWizardContent = () => {
       <div className="min-h-screen bg-muted flex items-center justify-center p-4">
         <div className="text-center max-w-md">
           <LoadingSpinner />
-          <p className="mt-4 text-body font-medium">
+          <p className="mt-4 text-gray-900 font-medium">
             {authLoading ? 'Loading application...' : 'Restoring your saved progress...'}
           </p>
           {restoringDraft && (
@@ -222,8 +222,8 @@ const ApplicationWizardContent = () => {
             Back to Dashboard
           </Link>
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-body mb-2">Student Application</h1>
-            <p className="text-body">Complete the {totalSteps}-step application process</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Student Application</h1>
+            <p className="text-gray-900">Complete the {totalSteps}-step application process</p>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-caption">
               <span className="break-all">Logged in as: {user.email}</span>
               <span className="hidden sm:inline text-xs bg-primary/10 text-primary px-2 py-1 rounded">
@@ -236,7 +236,7 @@ const ApplicationWizardContent = () => {
         <div className="mb-6 lg:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex-1">
-              <h2 className="text-base sm:text-lg font-semibold text-body">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">
                 {currentStepConfig.title}
               </h2>
               <p className="text-sm text-caption mt-1">
@@ -421,7 +421,7 @@ const ApplicationWizardContent = () => {
               </div>
               <div className="ml-3 flex-1">
                 <h3 className="text-sm font-medium text-destructive">Error</h3>
-                <div className="text-sm text-body mt-1">{error}</div>
+                <div className="text-sm text-gray-900 mt-1">{error}</div>
                 <button
                   type="button"
                   onClick={() => setError('')}
@@ -440,7 +440,7 @@ const ApplicationWizardContent = () => {
               <Info className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
               <div className="ml-3 flex-1">
                 <h3 className="text-sm font-medium text-warning">Incomplete Step</h3>
-                <div className="text-sm text-body mt-1">
+                <div className="text-sm text-gray-900 mt-1">
                   You can proceed, but we recommend completing all fields for a better application.
                 </div>
                 {stepValidation.missingFields.length > 0 && (
@@ -582,7 +582,7 @@ const ApplicationWizardContent = () => {
                 className="bg-primary/5 border border-primary/20 rounded-lg p-4"
               >
                 <h3 className="text-sm font-semibold text-primary mb-2">💡 Quick Tips</h3>
-                <ul className="text-xs text-body space-y-2">
+                <ul className="text-xs text-gray-900 space-y-2">
                   {currentStepIndex === 0 && (
                     <>
                       <li>• Ensure your contact details are accurate</li>

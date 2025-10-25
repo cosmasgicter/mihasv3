@@ -73,7 +73,7 @@ export default function EnhancedAdminDashboard() {
           className="text-center"
         >
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-lg text-body font-medium">Loading dashboard...</p>
+          <p className="mt-4 text-lg text-gray-900 font-medium">Loading dashboard...</p>
         </motion.div>
       </div>
     )
@@ -83,8 +83,8 @@ export default function EnhancedAdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-body mb-2">Authentication Required</h2>
-          <p className="text-body mb-4">Please sign in to access the admin dashboard.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentication Required</h2>
+          <p className="text-gray-900 mb-4">Please sign in to access the admin dashboard.</p>
           <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
         </div>
       </div>
@@ -142,7 +142,7 @@ export default function EnhancedAdminDashboard() {
                       size="sm"
                       onClick={refreshDashboard}
                       loading={isFetching}
-                      className="bg-card/80 border-white/30 text-body hover:bg-white/90"
+                      className="bg-card/80 border-white/30 text-gray-900 hover:bg-white/90"
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Refresh
@@ -152,7 +152,7 @@ export default function EnhancedAdminDashboard() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsFullscreen(!isFullscreen)}
-                      className="bg-card/80 border-white/30 text-body hover:bg-white/90"
+                      className="bg-card/80 border-white/30 text-gray-900 hover:bg-white/90"
                     >
                       {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </Button>
@@ -180,7 +180,7 @@ export default function EnhancedAdminDashboard() {
                     className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                       activeTab === tab.id
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                        : 'text-body hover:bg-muted'
+                        : 'text-gray-900 hover:bg-muted'
                     }`}
                   >
                     <Icon className="h-5 w-5" />
@@ -283,8 +283,8 @@ export default function EnhancedAdminDashboard() {
               className="text-center py-12"
             >
               <div className="text-6xl mb-4"><BarChart3 className="w-5 h-5" /></div>
-              <h3 className="text-2xl font-bold text-body mb-2">Advanced Analytics</h3>
-              <p className="text-body mb-6">Detailed analytics and reporting features coming soon</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Advanced Analytics</h3>
+              <p className="text-gray-900 mb-6">Detailed analytics and reporting features coming soon</p>
               <Button onClick={() => window.location.href = '/admin/analytics'}>
                 View Current Analytics
               </Button>
@@ -299,7 +299,7 @@ export default function EnhancedAdminDashboard() {
           transition={{ delay: 0.8 }}
           className="mt-8 bg-card rounded-xl shadow-lg border border-border p-6"
         >
-          <h3 className="text-lg font-bold text-body mb-4"><TrendingUp className="w-5 h-5" /> Quick Insights</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4"><TrendingUp className="w-5 h-5" /> Quick Insights</h3>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-info-strong">
@@ -307,19 +307,19 @@ export default function EnhancedAdminDashboard() {
                   ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                   : 0}%
               </div>
-              <div className="text-sm text-body">Approval Rate</div>
+              <div className="text-sm text-gray-900">Approval Rate</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-warning-strong">{stats.avgProcessingTime} days</div>
-              <div className="text-sm text-body">Avg Processing</div>
+              <div className="text-sm text-gray-900">Avg Processing</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-body">{stats.activeIntakes}</div>
-              <div className="text-sm text-body">Active Intakes</div>
+              <div className="text-2xl font-bold text-gray-900">{stats.activeIntakes}</div>
+              <div className="text-sm text-gray-900">Active Intakes</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">99.9%</div>
-              <div className="text-sm text-body">System Uptime</div>
+              <div className="text-sm text-gray-900">System Uptime</div>
             </div>
           </div>
         </motion.div>

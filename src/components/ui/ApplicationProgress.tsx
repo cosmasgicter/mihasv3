@@ -13,10 +13,10 @@ export function ApplicationProgress({ currentStep, totalSteps, completedSteps, h
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-body">
+        <span className="text-sm font-medium text-gray-900">
           Step {currentStep} of {totalSteps}
         </span>
-        <span className="text-sm text-body">
+        <span className="text-sm text-gray-900">
           {Math.round(progressPercentage)}% Complete
         </span>
       </div>
@@ -30,7 +30,7 @@ export function ApplicationProgress({ currentStep, totalSteps, completedSteps, h
         />
       </div>
       
-      <div className="flex items-center gap-4 text-xs text-body">
+      <div className="flex items-center gap-4 text-xs text-gray-900">
         <div className="flex items-center gap-1">
           <CheckCircle className="h-3 w-3 text-success" />
           <span>{completedSteps.filter(Boolean).length} completed</span>

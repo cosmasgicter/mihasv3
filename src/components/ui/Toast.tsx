@@ -55,8 +55,8 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
         toast.type === 'success' ? 'text-green-500' :
         toast.type === 'error' ? 'text-destructive' : 'text-blue-500'
       }`} />
-      <p className="text-sm text-body flex-1">{toast.message}</p>
-      <button onClick={onClose} className="text-body hover:text-body">
+      <p className="text-sm text-gray-900 flex-1">{toast.message}</p>
+      <button onClick={onClose} className="text-gray-900 hover:text-gray-900">
         <X className="h-4 w-4" />
       </button>
     </div>

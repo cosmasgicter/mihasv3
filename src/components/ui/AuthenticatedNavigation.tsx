@@ -125,7 +125,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                 <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-sm sm:text-lg font-bold text-body truncate">
+                <h1 className="text-sm sm:text-lg font-bold text-gray-900 truncate">
                   {profile?.full_name ? (
                     isMobile ? profile.full_name.split(' ')[0] : `Welcome, ${profile.full_name}`
                   ) : (
@@ -134,7 +134,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                     </span>
                   )}
                 </h1>
-                <p className="text-xs sm:text-sm text-body truncate max-w-[200px]">
+                <p className="text-xs sm:text-sm text-gray-900 truncate max-w-[200px]">
                   {profile?.email || (
                     <span className="inline-flex items-center">
                       <span className="h-3 w-24 bg-skeleton rounded animate-pulse" />
@@ -254,14 +254,14 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                       <User className="h-5 w-5 text-foreground" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-body text-lg truncate">
+                      <p className="font-bold text-gray-900 text-lg truncate">
                         {profile?.full_name || (
                           <span className="inline-flex items-center">
                             <span className="h-5 w-24 bg-skeleton rounded animate-pulse" />
                           </span>
                         )}
                       </p>
-                      <p className="text-sm text-body truncate max-w-[180px]">
+                      <p className="text-sm text-gray-900 truncate max-w-[180px]">
                         {profile?.email || (
                           <span className="inline-flex items-center">
                             <span className="h-4 w-32 bg-skeleton rounded animate-pulse" />
@@ -271,7 +271,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                     </div>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-body hover:bg-accent smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
+                    className="p-2 rounded-lg text-gray-900 hover:bg-accent smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -294,12 +294,12 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                         <Link 
                           to={item.href}
                           onClick={closeMenu}
-                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-card text-body border-2 border-border hover:border-primary hover:border-purple-500 hover:bg-primary/5 opacity-100 visible transition-all duration-200"
+                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-card text-gray-900 border-2 border-border hover:border-primary hover:border-purple-500 hover:bg-primary/5 opacity-100 visible transition-all duration-200"
                         >
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center space-x-3">
                               <item.icon className="h-5 w-5 flex-shrink-0 text-foreground" />
-                              <span className="mobile-nav-text text-body font-semibold">{item.label}</span>
+                              <span className="mobile-nav-text text-gray-900 font-semibold">{item.label}</span>
                             </div>
                             <div className="w-2 h-2 rounded-full bg-primary"></div>
                           </div>
@@ -319,7 +319,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
                       custom={navigationItems.length}
                       initial="closed"
                       animate="open"
-                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 text-body rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel logout-button"
+                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 text-gray-900 rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel logout-button"
                     >
                       <LogOut className="h-5 w-5" />
                       <span>Sign Out</span>

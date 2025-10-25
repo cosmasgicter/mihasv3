@@ -17,7 +17,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-body mb-1.5">
+          <label className="block text-sm font-medium text-gray-900 mb-1.5">
             {label}
             {props.required && <span className="text-destructive ml-1">*</span>}
           </label>
@@ -47,7 +47,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-0 top-0 h-10 w-10 flex items-center justify-center text-caption hover:text-body transition-colors focus:outline-none focus:ring-2 focus:ring-ring rounded-r-lg"
+            className="absolute right-0 top-0 h-10 w-10 flex items-center justify-center text-caption hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-ring rounded-r-lg"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             tabIndex={-1}
           >

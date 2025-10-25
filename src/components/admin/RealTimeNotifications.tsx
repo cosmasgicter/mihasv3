@@ -99,7 +99,7 @@ export function RealTimeNotifications() {
           >
             <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-body">Notifications</h3>
+                <h3 className="font-bold text-gray-900">Notifications</h3>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -112,7 +112,7 @@ export function RealTimeNotifications() {
 
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="p-6 text-center text-body">
+                <div className="p-6 text-center text-gray-900">
                   <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>No notifications</p>
                 </div>
@@ -132,14 +132,14 @@ export function RealTimeNotifications() {
                       <div className="flex items-start space-x-3">
                         {getIcon(notification.type)}
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-body text-sm">
+                          <p className="font-medium text-gray-900 text-sm">
                             {notification.title}
                           </p>
-                          <p className="text-body text-xs mt-1">
+                          <p className="text-gray-900 text-xs mt-1">
                             {notification.message}
                           </p>
                           <div className="flex items-center justify-between mt-2">
-                            <span className="text-xs text-body">
+                            <span className="text-xs text-gray-900">
                               {notification.timestamp.toLocaleTimeString()}
                             </span>
                             <Button

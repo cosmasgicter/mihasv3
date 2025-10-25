@@ -35,12 +35,12 @@ export class SimpleErrorBoundary extends React.Component<Props, State> {
       return this.props.fallback || (
         <div className="min-h-screen flex items-center justify-center bg-muted">
           <div className="text-center p-8">
-            <h2 className="text-xl font-semibold text-body mb-4">Something went wrong</h2>
-            <p className="text-body mb-4">{this.state.error?.message || 'Unknown error'}</p>
-            <p className="text-xs text-body mb-4">{this.state.error?.stack?.substring(0, 200)}</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Something went wrong</h2>
+            <p className="text-gray-900 mb-4">{this.state.error?.message || 'Unknown error'}</p>
+            <p className="text-xs text-gray-900 mb-4">{this.state.error?.stack?.substring(0, 200)}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-primary text-body rounded-lg hover:bg-primary"
+              className="px-4 py-2 bg-primary text-gray-900 rounded-lg hover:bg-primary"
             >
               Refresh Page
             </button>

@@ -140,13 +140,13 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-foreground" />
               </div>
               <div>
-                <h1 className="text-sm sm:text-lg font-bold text-body truncate max-w-[150px] sm:max-w-[200px]">
+                <h1 className="text-sm sm:text-lg font-bold text-gray-900 truncate max-w-[150px] sm:max-w-[200px]">
                   {isMobile ? 'Admin' : 'Admin Dashboard'}
                 </h1>
-                <p className="text-xs sm:text-sm text-body hidden sm:block truncate max-w-[200px]">
+                <p className="text-xs sm:text-sm text-gray-900 hidden sm:block truncate max-w-[200px]">
                   Welcome, {profile?.full_name || 'Admin'}
                 </p>
-                <p className="text-xs text-body sm:hidden truncate max-w-[120px]">
+                <p className="text-xs text-gray-900 sm:hidden truncate max-w-[120px]">
                   {profile?.full_name || 'Admin'}
                 </p>
               </div>
@@ -166,7 +166,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                       className={cn(
                         "flex items-center space-x-2 transition-all duration-200",
                         isActive 
-                          ? "bg-primary text-body shadow-md" 
+                          ? "bg-primary text-gray-900 shadow-md" 
                           : "hover:bg-accent text-foreground"
                       )}
                     >
@@ -179,7 +179,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             })}
             
             <NavigationMenu.Item>
-              <div className="hidden xl:flex items-center text-xs text-body px-3 py-2 bg-muted rounded-lg ml-2">
+              <div className="hidden xl:flex items-center text-xs text-gray-900 px-3 py-2 bg-muted rounded-lg ml-2">
                 <span className="font-medium truncate max-w-[100px]">{userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}</span>
               </div>
             </NavigationMenu.Item>
@@ -199,7 +199,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
           {/* Mobile Menu Button */}
           <motion.button
-            className="lg:hidden p-3 rounded-xl bg-foreground hover:bg-foreground/80 text-body transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-h-[48px] min-w-[48px] touch-target border-2 border-border hover:border-primary shadow-lg nav-toggle-button"
+            className="lg:hidden p-3 rounded-xl bg-foreground hover:bg-foreground/80 text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-h-[48px] min-w-[48px] touch-target border-2 border-border hover:border-primary shadow-lg nav-toggle-button"
             onClick={toggleMenu}
             whileTap={{ scale: 0.95 }}
             aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -267,12 +267,12 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                       <Shield className="h-5 w-5 text-foreground" />
                     </div>
                     <div>
-                      <p className="font-bold text-body text-lg truncate max-w-[150px]">Admin Panel</p>
-                      <p className="text-sm text-body truncate max-w-[150px]">{profile?.full_name || 'Administrator'}</p>
+                      <p className="font-bold text-gray-900 text-lg truncate max-w-[150px]">Admin Panel</p>
+                      <p className="text-sm text-gray-900 truncate max-w-[150px]">{profile?.full_name || 'Administrator'}</p>
                     </div>
                   </div>
                   <motion.button
-                    className="p-2 rounded-lg text-body hover:bg-accent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
+                    className="p-2 rounded-lg text-gray-900 hover:bg-accent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
                     onClick={closeMenu}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Close menu"
@@ -299,8 +299,8 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                             className={cn(
                               "mobile-nav-item mobile-nav-focus transition-all duration-300",
                               isActive 
-                                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-body shadow-lg" 
-                                : "text-body hover:bg-accent border border-border hover:border-input"
+                                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-gray-900 shadow-lg" 
+                                : "text-gray-900 hover:bg-accent border border-border hover:border-input"
                             )}
                             style={{
                               backgroundColor: isActive ? undefined : '#ffffff',
@@ -338,8 +338,8 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                   {/* Role Badge */}
                   <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-primary/30">
                     <div className="text-center">
-                      <div className="text-sm font-medium text-body mb-1">Current Role</div>
-                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-body truncate max-w-[150px]">
+                      <div className="text-sm font-medium text-gray-900 mb-1">Current Role</div>
+                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-gray-900 truncate max-w-[150px]">
                         {userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}
                       </div>
                     </div>
@@ -358,7 +358,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                           closeMenu()
                           await handleSignOut()
                         }}
-                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-600 to-red-700 text-body hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-error logout-button"
+                        className="mobile-nav-item mobile-nav-focus w-full bg-gradient-to-r from-red-600 to-red-700 text-gray-900 hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl border-2 border-red-400 hover:border-error logout-button"
                       >
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center space-x-3">
@@ -375,10 +375,10 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                 {/* Footer */}
                 <div className="p-6 border-t border-border/70 bg-muted/80 backdrop-blur-sm">
                   <div className="text-center">
-                    <p className="text-sm font-medium text-body mb-1">
+                    <p className="text-sm font-medium text-gray-900 mb-1">
                       MIHAS-KATC Admin Portal
                     </p>
-                    <p className="text-xs text-body">
+                    <p className="text-xs text-gray-900">
                       Secure Administrative Access
                     </p>
                   </div>

@@ -195,7 +195,7 @@ export function EnhancedApplicationsManager({
         <div className="space-y-4">
           {/* Top Controls */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <h3 className="text-lg font-bold text-body"><Search className="w-5 h-5" /> Search & Filter</h3>
+            <h3 className="text-lg font-bold text-gray-900"><Search className="w-5 h-5" /> Search & Filter</h3>
             <div className="flex items-center space-x-2">
               <div className="flex bg-accent rounded-lg p-1">
                 <button
@@ -280,8 +280,8 @@ export function EnhancedApplicationsManager({
               className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-primary/30 rounded-xl p-4"
             >
               <div className="flex items-center justify-between mb-4">
-                <h4 className="font-bold text-body"><Zap className="w-5 h-5" /> Bulk Actions</h4>
-                <span className="text-sm text-body">{selectedApplications.length} selected</span>
+                <h4 className="font-bold text-gray-900"><Zap className="w-5 h-5" /> Bulk Actions</h4>
+                <span className="text-sm text-gray-900">{selectedApplications.length} selected</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -334,8 +334,8 @@ export function EnhancedApplicationsManager({
           className="text-center py-12 bg-card rounded-xl shadow-lg"
         >
           <div className="text-6xl mb-4"><FileText className="w-5 h-5" /></div>
-          <h3 className="text-xl font-bold text-body mb-2">No Applications Found</h3>
-          <p className="text-body">Try adjusting your search filters</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No Applications Found</h3>
+          <p className="text-gray-900">Try adjusting your search filters</p>
         </motion.div>
       ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -361,8 +361,8 @@ export function EnhancedApplicationsManager({
                       className="h-5 w-5 mt-1 text-primary focus:ring-blue-500 border-input rounded"
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-lg text-body truncate" title={application.full_name}>{application.full_name}</h3>
-                      <p className="text-sm text-body font-mono truncate">#{application.application_number}</p>
+                      <h3 className="font-bold text-lg text-gray-900 truncate" title={application.full_name}>{application.full_name}</h3>
+                      <p className="text-sm text-gray-900 font-mono truncate">#{application.application_number}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -374,13 +374,13 @@ export function EnhancedApplicationsManager({
                 </div>
 
                 <div className="space-y-3 mb-4">
-                  <div className="flex items-center space-x-2 text-sm text-body min-w-0">
+                  <div className="flex items-center space-x-2 text-sm text-gray-900 min-w-0">
                     <span className="truncate" title={application.email}>{application.email}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-body min-w-0">
+                  <div className="flex items-center space-x-2 text-sm text-gray-900 min-w-0">
                     <span className="truncate" title={application.program}>{application.program}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-body">
+                  <div className="flex items-center space-x-2 text-sm text-gray-900">
                     <Calendar className="h-4 w-4" />
                     <span>Created {new Date(application.created_at).toLocaleDateString()}</span>
                   </div>
@@ -449,19 +449,19 @@ export function EnhancedApplicationsManager({
                       className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
                     />
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase">
                     <User className="w-5 h-5" /> Applicant
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase">
                     <GraduationCap className="w-5 h-5" /> Program
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase">
                     <BarChart3 className="w-5 h-5" /> Status
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase">
                     <Calendar className="w-5 h-5" /> Date
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-bold text-body uppercase">
+                  <th className="px-6 py-4 text-right text-sm font-bold text-gray-900 uppercase">
                     <Zap className="w-5 h-5" /> Actions
                   </th>
                 </tr>
@@ -487,13 +487,13 @@ export function EnhancedApplicationsManager({
                     </td>
                     <td className="px-6 py-4">
                       <div className="min-w-0 max-w-xs">
-                        <div className="font-bold text-body truncate" title={application.full_name}>{application.full_name}</div>
-                        <div className="text-sm text-body truncate" title={application.email}>{application.email}</div>
-                        <div className="text-xs text-body font-mono truncate">#{application.application_number}</div>
+                        <div className="font-bold text-gray-900 truncate" title={application.full_name}>{application.full_name}</div>
+                        <div className="text-sm text-gray-900 truncate" title={application.email}>{application.email}</div>
+                        <div className="text-xs text-gray-900 font-mono truncate">#{application.application_number}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-body">{application.program}</div>
+                      <div className="font-medium text-gray-900">{application.program}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
@@ -503,7 +503,7 @@ export function EnhancedApplicationsManager({
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-body">
+                    <td className="px-6 py-4 text-sm text-gray-900">
                       {new Date(application.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">

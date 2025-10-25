@@ -68,7 +68,7 @@ const BasicKycStep = ({
       data-testid="basic-kyc-step"
     >
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-body">{title}</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
         {hasAutoPopulatedData && (
           <ProfileCompletionBadge completionPercentage={completionPercentage} />
         )}
@@ -84,7 +84,7 @@ const BasicKycStep = ({
             <CheckCircle className="h-4 w-4" />
             <span className="font-medium">Profile data automatically populated</span>
           </div>
-          <p className="text-xs text-body mt-1">
+          <p className="text-xs text-gray-900 mt-1">
             Some fields have been pre-filled from your profile. Please review and update as needed.
           </p>
         </motion.div>
@@ -102,7 +102,7 @@ const BasicKycStep = ({
 
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <label className="block text-sm font-medium text-body">
+            <label className="block text-sm font-medium text-gray-900">
               NRC Number
             </label>
             <FieldHelp
@@ -140,7 +140,7 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="sex" className="block text-sm font-medium text-body mb-1">
+          <label htmlFor="sex" className="block text-sm font-medium text-gray-900 mb-1">
             Sex <span className="text-error">*</span>
           </label>
           <select
@@ -157,7 +157,7 @@ const BasicKycStep = ({
 
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <label className="block text-sm font-medium text-body">
+            <label className="block text-sm font-medium text-gray-900">
               Phone Number <span className="text-error">*</span>
             </label>
             <FieldHelp
@@ -219,7 +219,7 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="program" className="block text-sm font-medium text-body mb-1">
+          <label htmlFor="program" className="block text-sm font-medium text-gray-900 mb-1">
             Program <span className="text-error">*</span>
           </label>
           <select
@@ -247,7 +247,7 @@ const BasicKycStep = ({
         </div>
 
         <div>
-          <label htmlFor="intake" className="block text-sm font-medium text-body mb-1">
+          <label htmlFor="intake" className="block text-sm font-medium text-gray-900 mb-1">
             Intake <span className="text-error">*</span>
           </label>
           <select
@@ -255,7 +255,7 @@ const BasicKycStep = ({
             id="intake"
             disabled={intakes.length === 0}
             className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary ${
-              intakes.length === 0 ? 'bg-accent text-body cursor-not-allowed border-border' : 'bg-card border-input'
+              intakes.length === 0 ? 'bg-accent text-gray-900 cursor-not-allowed border-border' : 'bg-card border-input'
             }`}
           >
             <option value="">Select intake</option>
@@ -276,7 +276,7 @@ const BasicKycStep = ({
             })}
           </select>
           {intakes.length === 0 && (
-            <p className="mt-1 text-sm text-body">Intakes will appear here once enrollment periods are announced.</p>
+            <p className="mt-1 text-sm text-gray-900">Intakes will appear here once enrollment periods are announced.</p>
           )}
           {errors.intake && <p className="mt-1 text-sm text-destructive">{errors.intake.message}</p>}
         </div>
@@ -288,7 +288,7 @@ const BasicKycStep = ({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <p className="text-sm text-body font-medium">
+          <p className="text-sm text-gray-900 font-medium">
             <strong>Institution:</strong>{' '}
             {selectedInstitutionLabel || 'MIHAS'}
           </p>

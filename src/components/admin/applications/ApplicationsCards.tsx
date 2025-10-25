@@ -97,7 +97,7 @@ export function ApplicationsCards({
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-body truncate">{application.full_name}</h3>
+                        <h3 className="font-bold text-gray-900 truncate">{application.full_name}</h3>
                         <p className="text-xs sm:text-sm text-gray-600 font-mono">#{application.application_number}</p>
                       </div>
                     </div>
@@ -118,26 +118,26 @@ export function ApplicationsCards({
                   
                   {/* Content - Mobile Optimized */}
                   <div className="space-y-2 sm:space-y-3">
-                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-body-secondary">
+                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-900-secondary">
                       <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                       <span className="truncate">{application.email}</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-body-secondary">
+                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-900-secondary">
                       <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                       <span className="truncate">{application.program}</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-body-secondary">
+                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-900-secondary">
                       <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                       <span className="truncate">{application.intake}</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-body-secondary">
+                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-900-secondary">
                       <Clock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                       <span>Submitted {formatDate(application.submitted_at)}</span>
                     </div>
                     
                     {/* Documents - Mobile Optimized */}
                     <div className="flex items-center justify-between pt-2 border-t border-border">
-                      <div className="flex items-center space-x-2 text-xs sm:text-sm text-body-secondary">
+                      <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-900-secondary">
                         <FileCheck className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>{(application.result_slip_url ? 1 : 0) + (application.extra_kyc_url ? 1 : 0) + (application.pop_url ? 1 : 0)} docs</span>
                       </div>

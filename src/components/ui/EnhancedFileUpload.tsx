@@ -225,13 +225,13 @@ export function EnhancedFileUpload({
           )} />
           
           <div className="space-y-1">
-            <p className="text-sm font-medium text-body">
+            <p className="text-sm font-medium text-gray-900">
               {isDragActive || dzIsDragActive
                 ? 'Drop files here'
                 : 'Drop files here or click to browse'
               }
             </p>
-            <p className="text-xs text-body">
+            <p className="text-xs text-gray-900">
               {accept.join(', ')} up to {formatFileSize(maxSize)}
               {autoCompress && ' (Images will be compressed)'}
             </p>
@@ -252,7 +252,7 @@ export function EnhancedFileUpload({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-body">
+          <h4 className="text-sm font-medium text-gray-900">
             Files ({files.length}/{maxFiles})
           </h4>
           
@@ -270,7 +270,7 @@ export function EnhancedFileUpload({
                 {/* File Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-body truncate">
+                    <p className="text-sm font-medium text-gray-900 truncate">
                       {fileWithProgress.file.name}
                     </p>
                     <div className="flex items-center space-x-2">
@@ -286,7 +286,7 @@ export function EnhancedFileUpload({
                   </div>
                   
                   <div className="mt-1 space-y-1">
-                    <div className="flex items-center justify-between text-xs text-body">
+                    <div className="flex items-center justify-between text-xs text-gray-900">
                       <span>
                         {formatFileSize(fileWithProgress.file.size)}
                         {fileWithProgress.compressed && fileWithProgress.originalSize && (

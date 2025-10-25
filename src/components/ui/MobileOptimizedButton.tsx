@@ -61,12 +61,12 @@ export function MobileOptimizedButton({
   // Color variants with better contrast for mobile
   const variantClasses = {
     primary: cn(
-      'bg-primary text-body shadow-sm',
+      'bg-primary text-gray-900 shadow-sm',
       'hover:bg-primary active:bg-blue-800',
       'focus-visible:ring-blue-500'
     ),
     secondary: cn(
-      'bg-accent text-body shadow-sm',
+      'bg-accent text-gray-900 shadow-sm',
       'hover:bg-skeleton active:bg-muted',
       'focus-visible:ring-ring'
     ),
@@ -77,11 +77,11 @@ export function MobileOptimizedButton({
       'focus-visible:ring-ring'
     ),
     ghost: cn(
-      'text-body hover:bg-accent active:bg-skeleton',
+      'text-gray-900 hover:bg-accent active:bg-skeleton',
       'focus-visible:ring-ring'
     ),
     danger: cn(
-      'bg-error text-body shadow-sm',
+      'bg-error text-gray-900 shadow-sm',
       'hover:bg-error active:bg-red-800',
       'focus-visible:ring-red-500'
     )
@@ -247,12 +247,12 @@ export function QuickActionButton({
       <div className="relative">
         {icon}
         {count !== undefined && count > 0 && (
-          <span className="absolute -top-2 -right-2 bg-destructive text-body text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="absolute -top-2 -right-2 bg-destructive text-gray-900 text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {count > 99 ? '99+' : count}
           </span>
         )}
       </div>
-      <span className="text-xs font-medium text-body mt-1 text-center">
+      <span className="text-xs font-medium text-gray-900 mt-1 text-center">
         {label}
       </span>
     </button>

@@ -29,7 +29,7 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
         </motion.div>
         
         <div>
-          <h3 className="text-4xl font-black text-body mb-6">
+          <h3 className="text-4xl font-black text-gray-900 mb-6">
             No Application Found
           </h3>
           <p className="text-xl text-gray-800 max-w-2xl mx-auto leading-relaxed mb-8 font-medium">

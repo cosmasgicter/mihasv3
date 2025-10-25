@@ -5,7 +5,7 @@
 
 export const buttonVariants = {
   primary: 'bg-primary hover:bg-primary/90 text-white font-semibold',
-  secondary: 'bg-secondary hover:bg-secondary/90 text-body font-semibold',
+  secondary: 'bg-secondary hover:bg-secondary/90 text-gray-900 font-semibold',
   success: 'bg-success hover:bg-success/90 text-white font-semibold',
   error: 'bg-error hover:bg-error/90 text-white font-semibold',
   outline: 'border-2 border-primary text-primary hover:bg-primary/5 font-semibold',
@@ -37,7 +37,7 @@ export const badgeVariants = {
   error: 'bg-error/10 text-error-foreground border border-error/30 px-2 py-1 rounded-full text-xs font-semibold',
   warning: 'bg-warning/10 text-warning-foreground border border-warning/30 px-2 py-1 rounded-full text-xs font-semibold',
   info: 'bg-primary/10 text-primary-foreground border border-primary/30 px-2 py-1 rounded-full text-xs font-semibold',
-  neutral: 'bg-muted text-body border border-border px-2 py-1 rounded-full text-xs font-semibold',
+  neutral: 'bg-muted text-gray-900 border border-border px-2 py-1 rounded-full text-xs font-semibold',
 } as const
 
 export const layoutPatterns = {

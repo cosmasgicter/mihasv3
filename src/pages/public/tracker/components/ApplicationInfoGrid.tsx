@@ -20,7 +20,7 @@ export const ApplicationInfoGrid: React.FC<ApplicationInfoGridProps> = ({ applic
       transition={maybeMotion({ delay: 0.8 })}
       className="space-y-4 sm:space-y-6"
     >
-      <h4 className="text-responsive-2xl font-black text-body mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
+      <h4 className="text-responsive-2xl font-black text-gray-900 mb-6 sm:mb-8 flex items-center space-x-2 sm:space-x-3">
         <span className="text-2xl sm:text-3xl">📄</span>
         <span>Details</span>
       </h4>

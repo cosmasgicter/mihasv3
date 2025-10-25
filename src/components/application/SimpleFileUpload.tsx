@@ -255,7 +255,7 @@ export function SimpleFileUpload({
   return (
     <div className="bg-card rounded-lg shadow-lg border border-border p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-body">
+        <h2 className="text-lg font-semibold text-gray-900">
           Supporting Documents
         </h2>
         {uploadedFiles.length > 0 && (
@@ -309,7 +309,7 @@ export function SimpleFileUpload({
                           color="blue"
                         />
                       {uploadStats.speed > 0 && (
-                        <div className="flex justify-between text-xs text-body mt-1">
+                        <div className="flex justify-between text-xs text-gray-900 mt-1">
                           <span>{formatFileSize(uploadStats.speed)}/s</span>
                           <span>~{Math.ceil(uploadStats.eta)}s remaining</span>
                         </div>
@@ -329,7 +329,7 @@ export function SimpleFileUpload({
                   )}>
                     {dragActive ? 'Drop files here' : 'Click to upload or drag and drop'}
                   </p>
-                  <p className="text-xs text-body">
+                  <p className="text-xs text-gray-900">
                     {acceptedTypes.join(', ').replace(/\./g, '').toUpperCase()} up to {formatFileSize(maxFileSize)}
                   </p>
                   {enableCompression && (
@@ -445,7 +445,7 @@ export function SimpleFileUpload({
 
       {uploadedFiles.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-body mb-3">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">
             Uploaded Files ({uploadedFiles.length})
           </h3>
           <AnimatePresence>

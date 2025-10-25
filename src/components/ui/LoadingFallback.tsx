@@ -48,11 +48,11 @@ export function LoadingFallback({
           <div className="w-16 h-16 mx-auto mb-4 bg-accent/10 rounded-full flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
           </div>
-          <h3 className="text-lg font-semibold text-body mb-2">Taking longer than expected</h3>
-          <p className="text-body mb-4">Please check your internet connection and try refreshing the page.</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Taking longer than expected</h3>
+          <p className="text-gray-900 mb-4">Please check your internet connection and try refreshing the page.</p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary text-body rounded-lg hover:bg-primary/90 transition-colors"
+            className="px-4 py-2 bg-primary text-gray-900 rounded-lg hover:bg-primary/90 transition-colors"
           >
             Refresh Page
           </button>
@@ -82,7 +82,7 @@ export function LoadingFallback({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <div className="flex justify-between text-sm text-body mb-2">
+            <div className="flex justify-between text-sm text-gray-900 mb-2">
               <span>Loading</span>
               <span>{Math.round(progress)}%</span>
             </div>

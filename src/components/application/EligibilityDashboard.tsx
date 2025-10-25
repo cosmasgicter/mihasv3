@@ -228,7 +228,7 @@ export function EligibilityDashboard() {
   if (!metrics) {
     return (
       <div className="text-center py-12">
-        <p className="text-body">No eligibility data available</p>
+        <p className="text-gray-900">No eligibility data available</p>
       </div>
     )
   }
@@ -241,7 +241,7 @@ export function EligibilityDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-body">Eligibility Metrics Dashboard</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Eligibility Metrics Dashboard</h2>
         <select
           value={selectedProgram}
           onChange={(e) => setSelectedProgram(e.target.value)}
@@ -260,8 +260,8 @@ export function EligibilityDashboard() {
           <div className="flex items-center">
             <Users className="h-8 w-8 text-primary" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-body">Total Applications</p>
-              <p className="text-2xl font-bold text-body">{metrics.totalApplications}</p>
+              <p className="text-sm font-medium text-gray-900">Total Applications</p>
+              <p className="text-2xl font-bold text-gray-900">{metrics.totalApplications}</p>
             </div>
           </div>
         </div>
@@ -270,9 +270,9 @@ export function EligibilityDashboard() {
           <div className="flex items-center">
             <CheckCircle className="h-8 w-8 text-accent" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-body">Eligible</p>
-              <p className="text-2xl font-bold text-body">{metrics.eligibleCount}</p>
-              <p className="text-xs text-body">
+              <p className="text-sm font-medium text-gray-900">Eligible</p>
+              <p className="text-2xl font-bold text-gray-900">{metrics.eligibleCount}</p>
+              <p className="text-xs text-gray-900">
                 {metrics.totalApplications > 0 ? Math.round((metrics.eligibleCount / metrics.totalApplications) * 100) : 0}%
               </p>
             </div>
@@ -283,8 +283,8 @@ export function EligibilityDashboard() {
           <div className="flex items-center">
             <Target className="h-8 w-8 text-orange-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-body">Average Score</p>
-              <p className="text-2xl font-bold text-body">{Math.round(metrics.averageScore)}%</p>
+              <p className="text-sm font-medium text-gray-900">Average Score</p>
+              <p className="text-2xl font-bold text-gray-900">{Math.round(metrics.averageScore)}%</p>
             </div>
           </div>
         </div>
@@ -293,8 +293,8 @@ export function EligibilityDashboard() {
           <div className="flex items-center">
             <TrendingUp className="h-8 w-8 text-secondary" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-body">Eligibility Rate</p>
-              <p className="text-2xl font-bold text-body">{Math.round(eligibilityRate)}%</p>
+              <p className="text-sm font-medium text-gray-900">Eligibility Rate</p>
+              <p className="text-2xl font-bold text-gray-900">{Math.round(eligibilityRate)}%</p>
             </div>
           </div>
         </div>
@@ -304,7 +304,7 @@ export function EligibilityDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Eligibility Status Distribution */}
         <div className="bg-card rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-body mb-4">Eligibility Status Distribution</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Eligibility Status Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -336,7 +336,7 @@ export function EligibilityDashboard() {
 
         {/* Score Distribution */}
         <div className="bg-card rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-body mb-4">Score Distribution</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Score Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={metrics.scoreDistribution}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -352,27 +352,27 @@ export function EligibilityDashboard() {
       {/* Program Breakdown */}
       {metrics.programBreakdown.length > 0 && (
         <div className="bg-card rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-body mb-4">Program Breakdown</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Program Breakdown</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     Program
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     Total
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     Eligible
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     Conditional
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     Not Eligible
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     Success Rate
                   </th>
                 </tr>
@@ -380,10 +380,10 @@ export function EligibilityDashboard() {
               <tbody className="bg-card divide-y divide-border">
                 {metrics.programBreakdown.map((program, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-body">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {program.program}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {program.total}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-warning-strong">
@@ -395,7 +395,7 @@ export function EligibilityDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-destructive">
                       {program.not_eligible}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {program.total > 0 ? Math.round(((program.eligible + program.conditional) / program.total) * 100) : 0}%
                     </td>
                   </tr>
@@ -409,16 +409,16 @@ export function EligibilityDashboard() {
       {/* Common Missing Requirements */}
       {metrics.commonMissingRequirements.length > 0 && (
         <div className="bg-card rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-body mb-4">Most Common Missing Requirements</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Most Common Missing Requirements</h3>
           <div className="space-y-3">
             {metrics.commonMissingRequirements.map((req, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-body">{req.requirement}</p>
-                  <p className="text-xs text-body">{req.count} applications affected</p>
+                  <p className="text-sm font-medium text-gray-900">{req.requirement}</p>
+                  <p className="text-xs text-gray-900">{req.count} applications affected</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-medium text-body">
+                  <span className="text-sm font-medium text-gray-900">
                     {Math.round(req.percentage)}%
                   </span>
                 </div>

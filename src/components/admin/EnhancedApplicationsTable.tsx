@@ -252,41 +252,41 @@ export function EnhancedApplicationsTable({
         <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center">
             <Users className="w-5 h-5 text-primary" />
-            <span className="ml-2 text-sm font-medium text-body">Total</span>
+            <span className="ml-2 text-sm font-medium text-gray-900">Total</span>
           </div>
-          <p className="text-2xl font-bold text-body mt-1">{stats.total}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
         </div>
         
         <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center">
             <FileText className="w-5 h-5 text-accent" />
-            <span className="ml-2 text-sm font-medium text-body">Submitted</span>
+            <span className="ml-2 text-sm font-medium text-gray-900">Submitted</span>
           </div>
-          <p className="text-2xl font-bold text-body mt-1">{stats.submitted}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.submitted}</p>
         </div>
         
         <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center">
             <Clock className="w-5 h-5 text-accent" />
-            <span className="ml-2 text-sm font-medium text-body">Review</span>
+            <span className="ml-2 text-sm font-medium text-gray-900">Review</span>
           </div>
-          <p className="text-2xl font-bold text-body mt-1">{stats.underReview}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.underReview}</p>
         </div>
         
         <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center">
             <CheckCircle className="w-5 h-5 text-accent" />
-            <span className="ml-2 text-sm font-medium text-body">Approved</span>
+            <span className="ml-2 text-sm font-medium text-gray-900">Approved</span>
           </div>
-          <p className="text-2xl font-bold text-body mt-1">{stats.approved}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.approved}</p>
         </div>
         
         <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center">
             <Clock className="w-5 h-5 text-orange-600" />
-            <span className="ml-2 text-sm font-medium text-body">Payment</span>
+            <span className="ml-2 text-sm font-medium text-gray-900">Payment</span>
           </div>
-          <p className="text-2xl font-bold text-body mt-1">{stats.pendingPayment}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.pendingPayment}</p>
         </div>
       </div>
 
@@ -416,7 +416,7 @@ export function EnhancedApplicationsTable({
                   />
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider cursor-pointer hover:bg-accent"
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider cursor-pointer hover:bg-accent"
                     onClick={() => handleSort('fullName')}>
                   <div className="flex items-center space-x-1">
                     <span>Name</span>
@@ -426,11 +426,11 @@ export function EnhancedApplicationsTable({
                   </div>
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                   Contact
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider cursor-pointer hover:bg-accent"
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider cursor-pointer hover:bg-accent"
                     onClick={() => handleSort('program')}>
                   <div className="flex items-center space-x-1">
                     <span>Program</span>
@@ -440,7 +440,7 @@ export function EnhancedApplicationsTable({
                   </div>
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider cursor-pointer hover:bg-accent"
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider cursor-pointer hover:bg-accent"
                     onClick={() => handleSort('status')}>
                   <div className="flex items-center space-x-1">
                     <span>Status</span>
@@ -450,11 +450,11 @@ export function EnhancedApplicationsTable({
                   </div>
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                   Payment
                 </th>
                 
-                <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider cursor-pointer hover:bg-accent"
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider cursor-pointer hover:bg-accent"
                     onClick={() => handleSort('submittedAt')}>
                   <div className="flex items-center space-x-1">
                     <span>Submitted</span>
@@ -465,7 +465,7 @@ export function EnhancedApplicationsTable({
                 </th>
                 
                 {/* Eligibility Score Column */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider cursor-pointer hover:bg-accent"
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider cursor-pointer hover:bg-accent"
                     onClick={() => handleSort('eligibilityScore')}>
                   <div className="flex items-center space-x-1">
                     <span>Score</span>
@@ -491,25 +491,25 @@ export function EnhancedApplicationsTable({
                   
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-body">
+                      <div className="text-sm font-medium text-gray-900">
                         {application.fullName}
                       </div>
-                      <div className="text-sm text-body">
+                      <div className="text-sm text-gray-900">
                         {application.trackingCode}
                       </div>
                     </div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-body">{application.email}</div>
-                    <div className="text-sm text-body">{application.phone}</div>
+                    <div className="text-sm text-gray-900">{application.email}</div>
+                    <div className="text-sm text-gray-900">{application.phone}</div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-body">
+                    <div className="text-sm text-gray-900">
                       {application.program.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </div>
-                    <div className="text-sm text-body">{getInstitutionName(application.institution)}</div>
+                    <div className="text-sm text-gray-900">{getInstitutionName(application.institution)}</div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -520,7 +520,7 @@ export function EnhancedApplicationsTable({
                     {getPaymentBadge(application.paymentStatus)}
                   </td>
                   
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(application.submittedAt).toLocaleDateString()}
                   </td>
                   
@@ -537,12 +537,12 @@ export function EnhancedApplicationsTable({
                             style={{ width: `${application.eligibilityScore}%` }}
                           />
                         </div>
-                        <span className="text-sm font-medium text-body">
+                        <span className="text-sm font-medium text-gray-900">
                           {application.eligibilityScore}%
                         </span>
                       </div>
                     ) : (
-                      <span className="text-sm text-body">Not calculated</span>
+                      <span className="text-sm text-gray-900">Not calculated</span>
                     )}
                   </td>
                 </tr>
@@ -552,9 +552,9 @@ export function EnhancedApplicationsTable({
           
           {filteredAndSortedApplications.length === 0 && (
             <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-body mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-body mb-2">No applications found</h3>
-              <p className="text-body">
+              <FileText className="w-12 h-12 text-gray-900 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
+              <p className="text-gray-900">
                 {applications.length === 0 
                   ? 'No applications have been submitted yet.'
                   : 'Try adjusting your search or filter criteria.'
