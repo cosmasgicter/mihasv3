@@ -31,22 +31,25 @@ export async function onRequestGet(context) {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
     
-    const [total, pending, approved, rejected, todayApps, recentApps] = await Promise.all([
+    const [total, submitted, underReview, approved, rejected, todayApps, weekApps, recentApps] = await Promise.all([
       supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }),
       supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
+      supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'under_review'),
       supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
       supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
       supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).gte('created_at', today),
+      supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo),
       supabaseAdminClient.from('applications').select('id, application_number, full_name, status, program, created_at').order('created_at', { ascending: false }).limit(5)
     ]);
     
-    const weekAppsCount = todayApps.count || 0;
-    const monthAppsCount = todayApps.count || 0;
+    const monthAppsCount = weekApps.count || 0;
     
     const totalCount = total.count || 0;
     const approvedCount = approved.count || 0;
     const rejectedCount = rejected.count || 0;
-    const pendingCount = pending.count || 0;
+    const submittedCount = submitted.count || 0;
+    const underReviewCount = underReview.count || 0;
+    const pendingCount = submittedCount + underReviewCount;
     
     const recentActivity = (recentApps.data || []).map(app => ({
       id: app.id,
@@ -67,7 +70,7 @@ export async function onRequestGet(context) {
         activeIntakes: 0,
         totalStudents: 0,
         todayApplications: todayApps.count || 0,
-        weekApplications: weekAppsCount,
+        weekApplications: weekApps.count || 0,
         monthApplications: monthAppsCount,
         avgProcessingTime: 3,
         avgProcessingTimeHours: 72,
@@ -80,14 +83,15 @@ export async function onRequestGet(context) {
       },
       recentActivity,
       statusBreakdown: {
-        submitted: pendingCount,
+        submitted: submittedCount,
+        under_review: underReviewCount,
         approved: approvedCount,
         rejected: rejectedCount
       },
       periodTotals: {
         today: todayApps.count || 0,
         week: weekApps.count || 0,
-        month: monthApps.count || 0
+        month: monthAppsCount
       },
       totalsSnapshot: {
         total: totalCount,
