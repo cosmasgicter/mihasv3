@@ -66,40 +66,40 @@ const PaymentStep = ({
             </h3>
           </div>
           <div className="space-y-2 text-sm">
-            <p className="text-info-strong">
+            <p className="text-foreground font-semibold">
               <strong>Application Fee:</strong> K153.00
             </p>
-            <p className="text-info-strong">
+            <p className="text-foreground font-semibold">
               <strong>Payment Target:</strong> {paymentTarget}
             </p>
             <div className="bg-card rounded-md p-3 mt-3">
-              <p className="text-body font-medium mb-2">Available Payment Methods:</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center text-warning-strong">
-                  <span className="w-2 h-2 bg-accent/10 rounded-full mr-2"></span>
+              <p className="text-foreground font-medium mb-2">Available Payment Methods:</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                <div className="flex items-center text-foreground font-medium">
+                  <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
                   MTN Money
                 </div>
-                <div className="flex items-center text-destructive">
-                  <span className="w-2 h-2 bg-destructive/5 rounded-full mr-2"></span>
+                <div className="flex items-center text-foreground font-medium">
+                  <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
                   Airtel Money (Cross Network)
                 </div>
-                <div className="flex items-center text-info-strong">
-                  <span className="w-2 h-2 bg-primary/5 rounded-full mr-2"></span>
+                <div className="flex items-center text-foreground font-medium">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                   Zamtel Money (Cross Network)
                 </div>
-                <div className="flex items-center text-body-secondary">
-                  <span className="w-2 h-2 bg-secondary/5 rounded-full mr-2"></span>
+                <div className="flex items-center text-foreground font-medium">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                   Ewallet
                 </div>
-                <div className="flex items-center text-orange-600">
+                <div className="flex items-center text-foreground font-medium">
                   <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
                   Bank To Cell
                 </div>
               </div>
             </div>
-            <p className="text-accent font-medium">✓ Secure payment processing</p>
-            <p className="text-accent font-medium">✓ Instant payment verification</p>
-            <p className="text-accent font-medium">✓ Automated receipt generation</p>
+            <p className="text-foreground font-medium">✓ Secure payment processing</p>
+            <p className="text-foreground font-medium">✓ Instant payment verification</p>
+            <p className="text-foreground font-medium">✓ Automated receipt generation</p>
           </div>
         </motion.div>
 
