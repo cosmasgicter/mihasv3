@@ -22,7 +22,7 @@ export interface TrendAnalysis {
 
 export class PredictiveAnalytics {
   private static instance: PredictiveAnalytics
-  private readonly MODEL_VERSION = 'cloudflare-ai-v1'
+  private readonly MODEL_VERSION = 'cloudflare-ai-llama-3.1'
   
   static getInstance(): PredictiveAnalytics {
     if (!PredictiveAnalytics.instance) {
@@ -38,7 +38,6 @@ export class PredictiveAnalytics {
         throw new Error('Session expired')
       }
 
-      // Call Cloudflare AI API
       const response = await fetch('/api/ai/predict', {
         method: 'POST',
         headers: {
@@ -52,17 +51,7 @@ export class PredictiveAnalytics {
         throw new Error('AI prediction failed')
       }
 
-      const aiResult = await response.json()
-      const riskFactors = this.identifyRiskFactors(applicationData)
-      
-      const result: PredictionResult = {
-        admissionProbability: aiResult.admission_probability,
-        processingTimeEstimate: aiResult.processing_time_estimate,
-        riskFactors,
-        recommendations: aiResult.recommendations,
-        confidence: aiResult.confidence,
-        modelVersion: aiResult.model_version
-      }
+      const result = await response.json()
 
       if (applicationData.id) {
         await this.storePredictionResults(applicationData.id, result)
@@ -90,7 +79,6 @@ export class PredictiveAnalytics {
         throw new Error('Session expired')
       }
 
-      // Call Cloudflare AI API
       const response = await fetch('/api/ai/trends', {
         method: 'GET',
         headers: {
@@ -102,15 +90,15 @@ export class PredictiveAnalytics {
         throw new Error('AI trends analysis failed')
       }
 
-      const aiResult = await response.json()
+      const result = await response.json()
       
       return {
-        applicationTrend: aiResult.trend || 'stable',
+        applicationTrend: result.trend || 'stable',
         peakTimes: this.identifyPeakTimes([]),
-        bottlenecks: aiResult.insights || [],
+        bottlenecks: result.insights || [],
         efficiency: this.calculateEfficiency([]),
-        totalApplications: aiResult.total || 0,
-        avgProcessingTime: aiResult.avgProcessingDays || 0
+        totalApplications: result.total || 0,
+        avgProcessingTime: result.avgProcessingDays || 0
       }
     } catch (error) {
       const sanitizedError = error instanceof Error ? error.message : 'Unknown error'
