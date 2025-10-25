@@ -50,6 +50,8 @@ export default function SignUpPage() {
   const [turnstileToken, setTurnstileToken] = useState('')
   const [turnstileKey, setTurnstileKey] = useState(0)
   const [isRegistering, setIsRegistering] = useState(false)
+  const [emailChecking, setEmailChecking] = useState(false)
+  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null)
   
   const {
     register,
@@ -77,9 +79,41 @@ export default function SignUpPage() {
     setError('Security verification expired. Please verify again.')
   }, [])
 
+  const checkEmailAvailability = useCallback(async (email: string) => {
+    if (!email || !email.includes('@')) {
+      setEmailAvailable(null)
+      return
+    }
+
+    setEmailChecking(true)
+    try {
+      const response = await fetch('/api/auth/check-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      const result = await response.json()
+      setEmailAvailable(result.available)
+      if (!result.available) {
+        setError('This email is already registered. Please sign in instead.')
+      } else {
+        setError('')
+      }
+    } catch (err) {
+      setEmailAvailable(null)
+    } finally {
+      setEmailChecking(false)
+    }
+  }, [])
+
   const onSubmit = async (data: SignUpForm) => {
     if (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken && import.meta.env.PROD) {
       setError('Please complete the security verification.')
+      return
+    }
+
+    if (emailAvailable === false) {
+      setError('This email is already registered. Please sign in instead.')
       return
     }
 
@@ -184,14 +218,23 @@ export default function SignUpPage() {
             required
           />
 
-          <Input
-            {...register('email')}
-            type="email"
-            label="Email Address"
-            error={errors.email?.message}
-            autoComplete="email"
-            required
-          />
+          <div>
+            <Input
+              {...register('email')}
+              type="email"
+              label="Email Address"
+              error={errors.email?.message || (emailAvailable === false ? 'This email is already registered' : undefined)}
+              autoComplete="email"
+              required
+              onBlur={(e) => checkEmailAvailability(e.target.value)}
+            />
+            {emailChecking && (
+              <p className="mt-1 text-xs text-body">Checking availability...</p>
+            )}
+            {emailAvailable === true && (
+              <p className="mt-1 text-xs text-success">✓ Email is available</p>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
