@@ -46,6 +46,7 @@ export default function ApplicationDetail() {
       setError('')
 
       const response = await applicationService.getById(id!)
+      console.log('[ApplicationDetail] Raw response:', response)
       const normalizedResponse = response as ApplicationDetailResponse & {
         data?: ApplicationRecord | null
       }
@@ -53,7 +54,10 @@ export default function ApplicationDetail() {
       const applicationRecord =
         normalizedResponse?.application ?? normalizedResponse?.data ?? null
 
+      console.log('[ApplicationDetail] Normalized application:', applicationRecord)
+      
       if (!applicationRecord) {
+        console.error('[ApplicationDetail] No application found in response')
         setApplication(null)
         setError('Application not found')
         return
