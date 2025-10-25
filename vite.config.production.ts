@@ -55,18 +55,23 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react/jsx-runtime'],
-          'router': ['react-router-dom'],
-          'ui': ['@radix-ui/react-navigation-menu', '@radix-ui/react-dialog', '@radix-ui/react-select'],
-          'supabase': ['@supabase/supabase-js'],
-          'query': ['@tanstack/react-query'],
-          'motion': ['framer-motion'],
-          'icons': ['lucide-react'],
-          'forms': ['react-hook-form', 'zod'],
-          'charts': ['recharts'],
-          'excel': ['xlsx', 'exceljs'],
-          'pdf': ['jspdf', 'jspdf-autotable'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('react-router')) return 'router';
+            if (id.includes('@radix-ui')) return 'ui';
+            if (id.includes('supabase')) return 'supabase';
+            if (id.includes('@tanstack')) return 'query';
+            if (id.includes('framer-motion')) return 'motion';
+            if (id.includes('lucide-react')) return 'icons';
+            if (id.includes('react-hook-form') || id.includes('zod')) return 'forms';
+            if (id.includes('recharts')) return 'charts';
+            if (id.includes('xlsx') || id.includes('exceljs')) return 'excel';
+            if (id.includes('jspdf')) return 'pdf';
+            return 'vendor';
+          }
         },
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.')
