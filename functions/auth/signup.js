@@ -34,22 +34,20 @@ export async function onRequestPost(context) {
       });
     }
     
-    // Create auth user using signUp (auto-confirms in production)
-    const { data: authData, error: authError } = await supabaseAdminClient.auth.signUp({
+    // Create auth user using admin API (bypasses email confirmation)
+    const { data: authData, error: authError } = await supabaseAdminClient.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: {
-          full_name: userData.full_name,
-          phone: userData.phone,
-          date_of_birth: userData.date_of_birth,
-          sex: userData.sex,
-          residence_town: userData.residence_town,
-          nationality: userData.nationality,
-          next_of_kin_name: userData.next_of_kin_name,
-          next_of_kin_phone: userData.next_of_kin_phone
-        },
-        emailRedirectTo: undefined
+      email_confirm: true,
+      user_metadata: {
+        full_name: userData.full_name,
+        phone: userData.phone,
+        date_of_birth: userData.date_of_birth,
+        sex: userData.sex,
+        residence_town: userData.residence_town,
+        nationality: userData.nationality,
+        next_of_kin_name: userData.next_of_kin_name,
+        next_of_kin_phone: userData.next_of_kin_phone
       }
     });
     
