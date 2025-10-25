@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
+import { getSupabaseClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { PasswordInput } from '@/components/ui/PasswordInput'
@@ -80,11 +81,6 @@ export default function SignUpPage() {
   }, [])
 
   const checkEmailAvailability = useCallback(async (email: string) => {
-    // Temporarily disabled - Cloudflare deployment issue
-    // Backend will still catch duplicate emails on submission
-    return
-    
-    /* ENABLE AFTER CLOUDFLARE DEPLOYS
     if (!email || !email.includes('@')) {
       setEmailAvailable(null)
       return
@@ -92,25 +88,24 @@ export default function SignUpPage() {
 
     setEmailChecking(true)
     try {
-      const response = await fetch('/api/auth/check-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      })
+      const supabase = getSupabaseClient()
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .maybeSingle()
       
-      if (!response.ok) {
-        console.warn('Email check failed:', response.status)
+      if (error) {
+        console.warn('Email check error:', error)
         setEmailAvailable(null)
-        setEmailChecking(false)
-        return
-      }
-      
-      const result = await response.json()
-      setEmailAvailable(result.available)
-      if (!result.available) {
-        setError('This email is already registered. Please sign in instead.')
       } else {
-        setError('')
+        const emailExists = !!data
+        setEmailAvailable(!emailExists)
+        if (emailExists) {
+          setError('This email is already registered. Please sign in instead.')
+        } else {
+          setError('')
+        }
       }
     } catch (err) {
       console.warn('Email check error:', err)
@@ -118,7 +113,6 @@ export default function SignUpPage() {
     } finally {
       setEmailChecking(false)
     }
-    */
   }, [])
 
   const onSubmit = async (data: SignUpForm) => {
