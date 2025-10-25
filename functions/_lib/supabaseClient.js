@@ -299,6 +299,7 @@ function clearRequestRoleCache(req) {
 }
 
 export {
+  supabaseAdminClient,
   defaultAdminClient as supabaseAdminClient,
   supabaseAnonClient,
   getUserFromRequest,
