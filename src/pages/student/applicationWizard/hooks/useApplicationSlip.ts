@@ -201,32 +201,17 @@ export function useApplicationSlip({
         await handleDownloadSlip()
       }
 
-      // Get application ID from submitted application
-      const response = await fetch(`/applications?application_number=${submittedApplication.applicationNumber}`, {
-        headers: {
-          'Authorization': `Bearer ${(await import('@/lib/supabase').then(m => m.supabase.auth.getSession())).data.session?.access_token}`
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch application details')
-      }
-
-      const { data: applications } = await response.json()
-      const applicationId = applications?.[0]?.id
-
-      if (!applicationId) {
-        throw new Error('Application not found')
-      }
-
-      // Call new endpoint with attachment
+      // Call endpoint with application number
+      const session = await import('@/lib/supabase').then(m => m.supabase.auth.getSession())
       const emailResponse = await fetch('/applications/email/slip-with-attachment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await import('@/lib/supabase').then(m => m.supabase.auth.getSession())).data.session?.access_token}`
+          'Authorization': `Bearer ${session.data.session?.access_token}`
         },
-        body: JSON.stringify({ applicationId })
+        body: JSON.stringify({ 
+          applicationNumber: submittedApplication.applicationNumber 
+        })
       })
 
       const result = await emailResponse.json()

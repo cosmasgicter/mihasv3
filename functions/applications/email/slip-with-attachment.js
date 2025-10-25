@@ -30,9 +30,9 @@ export async function onRequest(context) {
       });
     }
 
-    const { applicationId } = await request.json();
-    if (!applicationId) {
-      return new Response(JSON.stringify({ error: 'Application ID required' }), {
+    const { applicationId, applicationNumber } = await request.json();
+    if (!applicationId && !applicationNumber) {
+      return new Response(JSON.stringify({ error: 'Application ID or Number required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -41,12 +41,15 @@ export async function onRequest(context) {
     const supabaseAdmin = createSupabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
     // Fetch application
-    const { data: application, error: fetchError } = await supabaseAdmin
-      .from('applications')
-      .select('*')
-      .eq('id', applicationId)
-      .eq('user_id', authResult.user.id)
-      .single();
+    let query = supabaseAdmin.from('applications').select('*').eq('user_id', authResult.user.id);
+    
+    if (applicationId) {
+      query = query.eq('id', applicationId);
+    } else {
+      query = query.eq('application_number', applicationNumber);
+    }
+    
+    const { data: application, error: fetchError } = await query.single();
 
     if (fetchError || !application) {
       return new Response(JSON.stringify({ error: 'Application not found' }), {
