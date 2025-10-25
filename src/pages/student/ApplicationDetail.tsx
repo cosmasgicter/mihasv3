@@ -61,12 +61,8 @@ export default function ApplicationDetail() {
 
       setApplication(applicationRecord)
       
-      // Load interview if exists
-      const interviewRes = await fetch(`/api/applications/interview/${id}`)
-      if (interviewRes.ok) {
-        const { data } = await interviewRes.json()
-        setInterview(data)
-      }
+      // Interview data is included in application response
+      setInterview(normalizedResponse?.interview ?? null)
     } catch (error) {
       console.error('Error loading application:', error)
       setError('Failed to load application details')
