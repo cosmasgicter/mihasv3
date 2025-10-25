@@ -31,7 +31,7 @@ export async function onRequest(context) {
       });
     }
     
-    const result = await sendEmail({ to, subject, html });
+    const result = await sendEmail({ to, subject, html, env });
     
     if (!result.success) {
       return new Response(JSON.stringify({ error: result.error }), {

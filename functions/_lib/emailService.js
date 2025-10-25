@@ -3,8 +3,8 @@
  * Uses Resend API for reliable email delivery
  */
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_cT8PNR7g_HT72NPZNFRpYmvPnZLYa5n1e';
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || 'MIHAS Admissions <admissions@mihas.edu.zm>';
+const DEFAULT_RESEND_KEY = 're_cT8PNR7g_HT72NPZNFRpYmvPnZLYa5n1e';
+const DEFAULT_FROM_EMAIL = 'MIHAS Admissions <admissions@mihas.edu.zm>';
 
 /**
  * Send email with optional attachments
@@ -13,9 +13,13 @@ const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || 'M
  * @param {string} options.subject - Email subject
  * @param {string} options.html - HTML content
  * @param {Array<{filename: string, content: Buffer|string, contentType: string}>} options.attachments - Optional attachments
+ * @param {Object} options.env - Cloudflare env object (optional)
  * @returns {Promise<{success: boolean, id?: string, error?: string}>}
  */
-export async function sendEmail({ to, subject, html, attachments = [] }) {
+export async function sendEmail({ to, subject, html, attachments = [], env = {} }) {
+  const RESEND_API_KEY = env?.RESEND_API_KEY || DEFAULT_RESEND_KEY;
+  const FROM_EMAIL = env?.RESEND_FROM_EMAIL || env?.EMAIL_FROM || DEFAULT_FROM_EMAIL;
+  
   if (!RESEND_API_KEY) {
     console.warn('RESEND_API_KEY not configured, email not sent');
     return { success: false, error: 'Email service not configured' };
@@ -70,9 +74,10 @@ export async function sendEmail({ to, subject, html, attachments = [] }) {
  * @param {string} options.html - HTML content
  * @param {Buffer} options.pdfBuffer - PDF file buffer
  * @param {string} options.pdfFilename - PDF filename
+ * @param {Object} options.env - Cloudflare env object (optional)
  * @returns {Promise<{success: boolean, id?: string, error?: string}>}
  */
-export async function sendEmailWithPDF({ to, subject, html, pdfBuffer, pdfFilename }) {
+export async function sendEmailWithPDF({ to, subject, html, pdfBuffer, pdfFilename, env }) {
   return sendEmail({
     to,
     subject,
@@ -81,6 +86,7 @@ export async function sendEmailWithPDF({ to, subject, html, pdfBuffer, pdfFilena
       filename: pdfFilename,
       content: pdfBuffer,
       contentType: 'application/pdf'
-    }]
+    }],
+    env
   });
 }
