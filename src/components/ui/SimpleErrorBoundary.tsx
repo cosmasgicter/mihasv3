@@ -27,7 +27,7 @@ export class SimpleErrorBoundary extends React.Component<Props, State> {
     console.error('Error stack:', error.stack)
     console.error('Component stack:', errorInfo.componentStack)
     console.error('===================================')
-    alert('ERROR: ' + error.message)
+    console.error('ERROR:', error.message)
   }
 
   render() {

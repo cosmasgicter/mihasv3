@@ -95,10 +95,10 @@ export function EligibilityChecker({
       )
       setShowAppealForm(false)
       setAppealReason('')
-      alert('Appeal submitted successfully')
+      toast.success('Success', 'Appeal submitted successfully')
     } catch (error) {
       console.error('Appeal submission failed:', error)
-      alert('Failed to submit appeal')
+      toast.error('Error', 'Failed to submit appeal')
     }
   }
 

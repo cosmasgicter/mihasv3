@@ -145,7 +145,7 @@ export function ApplicationsTable({
  } catch (error) {
  console.error('Failed to update status:', error)
  // Show user-friendly error message
- alert(`Failed to update application status: ${error instanceof Error ? error.message : 'Unknown error'}`)
+ toast.error('Update Failed', error instanceof Error ? error.message : 'Unknown error')
  } finally {
  setUpdatingStatus(null)
  }
@@ -158,7 +158,7 @@ export function ApplicationsTable({
  } catch (error) {
  console.error('Failed to update payment status:', error)
  // Show user-friendly error message
- alert(`Failed to update payment status: ${error instanceof Error ? error.message : 'Unknown error'}`)
+ toast.error('Update Failed', error instanceof Error ? error.message : 'Unknown error')
  } finally {
  setUpdatingPayment(null)
  }

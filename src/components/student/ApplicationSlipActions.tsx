@@ -30,7 +30,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
 
   const handleDownload = async () => {
     if (!supabase) {
-      alert(SUPABASE_MISSING_CONFIG_MESSAGE)
+      toast.error('Error', SUPABASE_MISSING_CONFIG_MESSAGE)
       return
     }
 
@@ -69,7 +69,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       document.body.removeChild(a)
     } catch (error) {
       console.error('Download failed:', error)
-      alert(`Failed to download application slip: ${error.message}`)
+      toast.error('Download Failed', error.message)
     } finally {
       setIsDownloading(false)
     }
@@ -77,7 +77,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
 
   const handleEmailRequest = async () => {
     if (!supabase) {
-      alert(SUPABASE_MISSING_CONFIG_MESSAGE)
+      toast.error('Error', SUPABASE_MISSING_CONFIG_MESSAGE)
       return
     }
 
@@ -109,7 +109,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       }
     } catch (error) {
       console.error('Email failed:', error)
-      alert(`Failed to send email: ${error.message}`)
+      toast.error('Email Failed', error.message)
     } finally {
       setIsEmailing(false)
     }

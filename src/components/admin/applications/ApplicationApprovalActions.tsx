@@ -32,7 +32,7 @@ export function ApplicationApprovalActions({
     if (newStatus === 'rejected') {
       const confirmed = await confirmDialog.confirm({
         title: 'Reject Application',
-        message: 'This application will be rejected.',
+        message: 'This application will be rejected. The applicant will be notified.',
         confirmText: 'Reject',
         variant: 'danger'
       })
@@ -42,7 +42,7 @@ export function ApplicationApprovalActions({
     if (newStatus === 'approved') {
       const confirmed = await confirmDialog.confirm({
         title: 'Approve Application',
-        message: 'The applicant will be notified of approval.',
+        message: 'The applicant will be notified of approval. This action cannot be undone.',
         confirmText: 'Approve',
         variant: 'info'
       })
@@ -54,7 +54,6 @@ export function ApplicationApprovalActions({
       await onStatusUpdate(applicationId, newStatus)
     } catch (error) {
       console.error('Status update failed:', error)
-      alert(`Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setUpdatingStatus(false)
     }
@@ -63,12 +62,32 @@ export function ApplicationApprovalActions({
   const handlePaymentUpdate = async (newStatus: string) => {
     if (updatingPayment || disabled) return
     
+    // Confirm payment actions
+    if (newStatus === 'verified') {
+      const confirmed = await confirmDialog.confirm({
+        title: 'Verify Payment',
+        message: 'Confirm that payment has been received and verified.',
+        confirmText: 'Verify',
+        variant: 'info'
+      })
+      if (!confirmed) return
+    }
+    
+    if (newStatus === 'rejected') {
+      const confirmed = await confirmDialog.confirm({
+        title: 'Reject Payment',
+        message: 'The payment will be marked as rejected. The applicant will be notified.',
+        confirmText: 'Reject',
+        variant: 'danger'
+      })
+      if (!confirmed) return
+    }
+    
     try {
       setUpdatingPayment(true)
       await onPaymentStatusUpdate(applicationId, newStatus)
     } catch (error) {
       console.error('Payment status update failed:', error)
-      alert(`Failed to update payment status: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setUpdatingPayment(false)
     }

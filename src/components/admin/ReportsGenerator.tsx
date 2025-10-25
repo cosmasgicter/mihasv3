@@ -353,7 +353,7 @@ export function ReportsGenerator() {
             : bytes
           const blob = generatedBlob ?? new Blob([byteSource], { type: 'application/pdf' })
           downloadPdfDocument(blob, result.pdf.fileName)
-        alert('Document generated and downloaded successfully!')
+        toast.success('Success', 'Document generated and downloaded')
         setPreviewMode('html')
         return
       }
@@ -363,14 +363,14 @@ export function ReportsGenerator() {
 
       if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(content)
-        alert(action === 'html' ? 'Template HTML copied to clipboard.' : 'Template text copied to clipboard.')
+        toast.success('Copied', action === 'html' ? 'Template HTML copied' : 'Template text copied')
       } else {
-        alert('Preview updated below. Copy the contents manually.')
+        toast.info('Preview Updated', 'Copy the contents manually')
       }
     } catch (error) {
       console.error('Failed to generate document template:', error)
       const message = error instanceof Error ? error.message : 'Failed to generate document template.'
-      alert(message)
+      toast.error('Error', message)
     } finally {
       setDocumentGenerating(false)
     }
@@ -455,11 +455,11 @@ export function ReportsGenerator() {
 
       await exportReport(reportData, config.format, reportName)
 
-      alert('Report generated and downloaded successfully!')
+      toast.success('Success', 'Report generated and downloaded')
     } catch (error) {
       console.error('Failed to generate report:', error)
       const message = error instanceof Error ? error.message : 'Failed to generate report. Please try again.'
-      alert(message)
+      toast.error('Error', message)
     } finally {
       setLoading(false)
     }
