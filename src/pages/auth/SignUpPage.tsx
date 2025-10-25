@@ -80,6 +80,11 @@ export default function SignUpPage() {
   }, [])
 
   const checkEmailAvailability = useCallback(async (email: string) => {
+    // Temporarily disabled - Cloudflare deployment issue
+    // Backend will still catch duplicate emails on submission
+    return
+    
+    /* ENABLE AFTER CLOUDFLARE DEPLOYS
     if (!email || !email.includes('@')) {
       setEmailAvailable(null)
       return
@@ -113,6 +118,7 @@ export default function SignUpPage() {
     } finally {
       setEmailChecking(false)
     }
+    */
   }, [])
 
   const onSubmit = async (data: SignUpForm) => {
