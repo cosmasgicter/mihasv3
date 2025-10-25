@@ -39,7 +39,7 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
       let avgTime = 0
       if (applications && applications.length > 0) {
         const times = applications
-          .filter(app => app.created_at && app.updated_at)
+          .filter(app => app.created_at && app.updated_at && app.status !== 'draft')
           .map(app => {
             const created = new Date(app.created_at).getTime()
             const updated = new Date(app.updated_at).getTime()
@@ -98,7 +98,12 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
             <span className="text-xs font-medium">Avg Time</span>
           </div>
           <p className="text-2xl font-bold text-body">
-            {stats.avg_time_per_step > 0 ? `${stats.avg_time_per_step}m` : '0m'}
+            {stats.avg_time_per_step > 60 
+              ? `${Math.round(stats.avg_time_per_step / 60)}h` 
+              : stats.avg_time_per_step > 0 
+                ? `${stats.avg_time_per_step}m` 
+                : '0m'
+            }
           </p>
         </div>
       </div>
