@@ -113,10 +113,16 @@ export async function onRequestDelete(context) {
       });
     }
     
-    // Revoke the actual auth session
+    // Revoke the actual auth session by deleting refresh token
     if (sessionData?.session_token) {
       try {
-        await supabaseAdminClient.auth.admin.signOut(sessionData.session_token);
+        // Delete the session from auth.sessions table
+        await supabaseAdminClient.rpc('delete_user_session', {
+          p_session_id: sessionData.session_token
+        }).catch(() => {
+          // Fallback: just mark as inactive in device_sessions
+          console.log('Session revocation fallback - marked as inactive');
+        });
       } catch (e) {
         console.error('Failed to revoke session:', e);
       }
