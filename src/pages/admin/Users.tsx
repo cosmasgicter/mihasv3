@@ -390,13 +390,35 @@ export default function AdminUsers() {
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-8xl mb-6">👥</div>
-                <h3 className="text-2xl font-bold text-body mb-2">No Users Found</h3>
+                <h3 className="text-2xl font-bold text-body mb-2">
+                  {searchTerm || roleFilter ? 'No Matching Users' : 'No Users Found'}
+                </h3>
                 <p className="text-body mb-6 max-w-md mx-auto">
-                  No users have been registered yet. Users will appear here once they sign up for the system.
+                  {searchTerm || roleFilter 
+                    ? 'Try adjusting your search or filter criteria.'
+                    : 'No users have been registered yet. Users will appear here once they sign up for the system.'}
                 </p>
-                <Button onClick={() => refetch()} className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white font-semibold">
-                  Refresh Users
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  {(searchTerm || roleFilter) && (
+                    <Button 
+                      onClick={() => {
+                        setSearchTerm('')
+                        setRoleFilter('')
+                      }} 
+                      variant="outline"
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
+                  <Button onClick={() => refetch()} className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white font-semibold">
+                    Refresh Users
+                  </Button>
+                </div>
+                {users.length > 0 && (
+                  <p className="text-sm text-body mt-4">
+                    Total users in system: {users.length}
+                  </p>
+                )}
               </div>
             ) : (
               <>
