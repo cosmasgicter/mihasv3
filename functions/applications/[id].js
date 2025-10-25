@@ -54,6 +54,12 @@ async function fetchApplicationDetails(id, includeParam, supabase) {
 }
 
 export async function onRequest(context) {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  };
+  
   const { request } = context;
   const url = new URL(request.url);
   // Extract ID from URL path - handle both /applications/[id] and /student/application/[id]
@@ -67,12 +73,6 @@ export async function onRequest(context) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
-  
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-  };
   
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
