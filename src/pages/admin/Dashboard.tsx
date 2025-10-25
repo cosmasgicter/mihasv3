@@ -383,8 +383,8 @@ export default function AdminDashboard() {
                   <Calendar className="h-6 w-6 text-primary" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">{stats.todayApplications}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Today</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{stats.todayApplications}</div>
+                  <div className="text-xs font-medium text-muted-foreground">Today</div>
                 </div>
               </div>
               <div className="text-sm font-semibold text-foreground">New Applications</div>
@@ -412,8 +412,8 @@ export default function AdminDashboard() {
                   <Clock className="h-6 w-6 text-accent" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">{stats.pendingApplications}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Pending</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{stats.pendingApplications}</div>
+                  <div className="text-xs font-medium text-muted-foreground">Pending</div>
                 </div>
               </div>
               <div className="text-sm font-semibold text-foreground">Awaiting Review</div>
@@ -442,8 +442,8 @@ export default function AdminDashboard() {
                   <Zap className="h-6 w-6 text-secondary" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">{stats.avgProcessingTime}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Days</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{stats.avgProcessingTime}</div>
+                  <div className="text-xs font-medium text-muted-foreground">Days</div>
                 </div>
               </div>
               <div className="text-sm font-semibold text-foreground">Avg Processing</div>
@@ -469,12 +469,12 @@ export default function AdminDashboard() {
                   <CheckCircle className="h-6 w-6 text-accent" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">
                     {stats.approvedApplications + stats.rejectedApplications > 0 
                       ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                       : 0}%
                   </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Rate</div>
+                  <div className="text-xs font-medium text-muted-foreground">Rate</div>
                 </div>
               </div>
               <div className="text-sm font-semibold text-foreground">Approval Rate</div>
@@ -524,7 +524,7 @@ export default function AdminDashboard() {
           className="mt-8 bg-card rounded-2xl shadow-lg border border-border"
         >
           <div className="px-6 py-4 border-b border-border">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
               Weekly Overview
             </h3>
@@ -533,22 +533,22 @@ export default function AdminDashboard() {
           <div className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary break-words">{stats.weekApplications}</div>
-                <div className="text-sm text-gray-700 dark:text-gray-300">Applications This Week</div>
+                <div className="text-2xl sm:text-3xl font-bold text-primary">{stats.weekApplications}</div>
+                <div className="text-sm font-semibold text-foreground">Applications This Week</div>
               </div>
               <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">{stats.avgProcessingTime}</div>
-                <div className="text-sm text-gray-700 dark:text-gray-300">Avg Processing Days</div>
-                <div className="text-xs text-accent mt-1">-12% improvement</div>
+                <div className="text-2xl sm:text-3xl font-bold text-foreground">{stats.avgProcessingTime}</div>
+                <div className="text-sm font-semibold text-foreground">Avg Processing Days</div>
+                <div className="text-xs font-medium text-success mt-1">-12% improvement</div>
               </div>
               <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-accent break-words">
+                <div className="text-2xl sm:text-3xl font-bold text-success">
                   {stats.approvedApplications + stats.rejectedApplications > 0 
                     ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
                     : 0}%
                 </div>
-                <div className="text-sm text-gray-700 dark:text-gray-300">Success Rate</div>
-                <div className="text-xs text-primary mt-1">Stable performance</div>
+                <div className="text-sm font-semibold text-foreground">Success Rate</div>
+                <div className="text-xs font-medium text-primary mt-1">Stable performance</div>
               </div>
             </div>
           </div>
