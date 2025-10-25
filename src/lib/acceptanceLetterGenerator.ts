@@ -15,7 +15,7 @@ interface AcceptanceLetterData {
 function getFullInstitutionName(code: string): string {
   const names: Record<string, string> = {
     'KATC': 'Kalulushi Training Centre',
-    'MIHAS': 'Medical Institute of Health and Allied Sciences'
+    'MIHAS': 'Mukuba Institute of Health and Allied Sciences'
   };
   return names[code] || code;
 }

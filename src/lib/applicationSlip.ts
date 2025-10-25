@@ -65,7 +65,7 @@ function buildTrackingUrl(code: string): string {
 function getFullInstitutionName(code: string | null | undefined): string {
   const names: Record<string, string> = {
     'KATC': 'Kalulushi Training Centre',
-    'MIHAS': 'Medical Institute of Health and Allied Sciences'
+    'MIHAS': 'Mukuba Institute of Health and Allied Sciences'
   };
   return names[code || ''] || code || 'MIHAS';
 }
@@ -156,7 +156,7 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
       tracking: data.public_tracking_code,
       institution: data.institution,
       program: data.program_name,
-      verify_url: buildTrackingUrl(data.public_tracking_code)
+      student: data.full_name
     });
     const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 240, errorCorrectionLevel: 'M' });
     doc.addImage(qrDataUrl, 'PNG', 150, finalY + 10, 40, 40);
