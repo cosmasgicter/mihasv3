@@ -220,13 +220,14 @@ export default function SignUpPage() {
 
           <div className="relative">
             <Input
-              {...register('email')}
+              {...register('email', {
+                onBlur: (e) => checkEmailAvailability(e.target.value)
+              })}
               type="email"
               label="Email Address"
               error={errors.email?.message || (emailAvailable === false ? 'This email is already registered' : undefined)}
               autoComplete="email"
               required
-              onBlur={(e) => checkEmailAvailability(e.target.value)}
               className={emailAvailable === true ? 'border-green-500 focus:ring-green-500' : emailAvailable === false ? 'border-red-500 focus:ring-red-500' : ''}
             />
             
