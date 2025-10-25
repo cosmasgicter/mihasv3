@@ -18,20 +18,38 @@ export async function onRequestPost(context) {
     console.log('[SIGNUP] Request body:', JSON.stringify(body, null, 2));
     const { email, password, ...userData } = body;
     
-    // Create auth user with admin client (auto-confirms email)
-    const { data: authData, error: authError } = await supabaseAdminClient.auth.admin.createUser({
+    // Check if email already exists
+    const { data: existingUser } = await supabaseAdminClient
+      .from('profiles')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
+    
+    if (existingUser) {
+      return new Response(JSON.stringify({ 
+        error: 'This email is already registered. Please sign in instead.'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Create auth user using signUp (auto-confirms in production)
+    const { data: authData, error: authError } = await supabaseAdminClient.auth.signUp({
       email,
       password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: userData.full_name,
-        phone: userData.phone,
-        date_of_birth: userData.date_of_birth,
-        sex: userData.sex,
-        residence_town: userData.residence_town,
-        nationality: userData.nationality,
-        next_of_kin_name: userData.next_of_kin_name,
-        next_of_kin_phone: userData.next_of_kin_phone
+      options: {
+        data: {
+          full_name: userData.full_name,
+          phone: userData.phone,
+          date_of_birth: userData.date_of_birth,
+          sex: userData.sex,
+          residence_town: userData.residence_town,
+          nationality: userData.nationality,
+          next_of_kin_name: userData.next_of_kin_name,
+          next_of_kin_phone: userData.next_of_kin_phone
+        },
+        emailRedirectTo: undefined
       }
     });
     
