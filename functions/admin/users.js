@@ -39,7 +39,13 @@ export async function onRequestGet(context) {
       });
     }
     
-    return new Response(JSON.stringify({ data: data || [] }), {
+    // Map id to user_id for frontend compatibility
+    const users = (data || []).map(user => ({
+      ...user,
+      user_id: user.id
+    }));
+    
+    return new Response(JSON.stringify({ data: users }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
