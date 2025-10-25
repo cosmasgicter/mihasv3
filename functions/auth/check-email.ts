@@ -1,24 +1,21 @@
 import { supabaseAdminClient } from '../_lib/supabaseClient.js';
 
-export async function onRequest(context) {
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
+};
+
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders
+  });
+}
+
+export async function onRequestPost(context) {
   const { request } = context;
-  
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
-  
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders });
-  }
-  
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
   
   try {
     const { email } = await request.json();
@@ -33,7 +30,6 @@ export async function onRequest(context) {
       });
     }
     
-    // Check if email exists in profiles table
     const { data: existingUser, error } = await supabaseAdminClient
       .from('profiles')
       .select('id')
@@ -43,7 +39,7 @@ export async function onRequest(context) {
     if (error) {
       console.error('[CHECK_EMAIL] Error:', error);
       return new Response(JSON.stringify({ 
-        available: true // Fail open to not block registration
+        available: true
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -62,7 +58,7 @@ export async function onRequest(context) {
   } catch (error) {
     console.error('[CHECK_EMAIL] Catch error:', error);
     return new Response(JSON.stringify({ 
-      available: true, // Fail open
+      available: true,
       error: 'Unable to check email availability'
     }), {
       status: 200,
