@@ -187,54 +187,55 @@ export function useApplicationSlip({
   }, [submittedApplication, slipCache, persistingSlip, slipPayload, toast, triggerDownload, createApplicationSlip])
 
   const handleEmailSlip = useCallback(async () => {
-    if (!slipPayload || !submittedApplication) {
+    if (!submittedApplication?.applicationNumber) {
       toast.showError?.('Slip unavailable', 'Missing application details for slip delivery.')
       return
     }
 
-    let emailAddress = submittedApplication.email?.trim() || slipPayload.email?.trim() || ''
-    if (!emailAddress) {
-      try {
-        const promptResult = window.prompt('Enter the email address to send your application slip to:')
-        emailAddress = promptResult?.trim() || ''
-      } catch (error) {
-        console.error('Prompt error:', error)
-      }
-    }
-
-    if (!emailAddress) {
-      toast.showError?.('Email required', 'Please provide an email address to receive the slip.')
-      return
-    }
-
-    const payload: ApplicationSlipData = { ...slipPayload, email: emailAddress }
-
     try {
       setEmailLoading(true)
-      const result = await createApplicationSlip(payload, { toast, sendEmail: true })
+      toast.showInfo?.('Sending email', 'Preparing to send your application slip...')
 
-      if (result.error || result.emailError) {
-        const message = result.error || result.emailError || 'We could not email the slip.'
-        toast.showError?.('Email failed', message)
-        return
+      // First ensure slip is downloaded/generated
+      if (!slipCache?.publicUrl && !slipCache?.objectUrl) {
+        await handleDownloadSlip()
       }
 
-      setSlipCache(prev => {
-        if (prev?.objectUrl && result.blob) {
-          URL.revokeObjectURL(prev.objectUrl)
-        }
-
-        const objectUrl = result.blob ? URL.createObjectURL(result.blob) : prev?.objectUrl
-
-        return {
-          objectUrl,
-          publicUrl: result.publicUrl || prev?.publicUrl,
-          path: result.path || prev?.path,
-          documentId: result.documentId || prev?.documentId
+      // Get application ID from submitted application
+      const response = await fetch(`/applications?application_number=${submittedApplication.applicationNumber}`, {
+        headers: {
+          'Authorization': `Bearer ${(await import('@/lib/supabase').then(m => m.supabase.auth.getSession())).data.session?.access_token}`
         }
       })
 
-      onEmailUpdate?.(emailAddress)
+      if (!response.ok) {
+        throw new Error('Failed to fetch application details')
+      }
+
+      const { data: applications } = await response.json()
+      const applicationId = applications?.[0]?.id
+
+      if (!applicationId) {
+        throw new Error('Application not found')
+      }
+
+      // Call new endpoint with attachment
+      const emailResponse = await fetch('/applications/email/slip-with-attachment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await import('@/lib/supabase').then(m => m.supabase.auth.getSession())).data.session?.access_token}`
+        },
+        body: JSON.stringify({ applicationId })
+      })
+
+      const result = await emailResponse.json()
+
+      if (!emailResponse.ok || !result.success) {
+        throw new Error(result.error || 'Failed to send email')
+      }
+
+      toast.showSuccess?.('Email sent', `Application slip has been sent to ${submittedApplication.email}`)
     } catch (error) {
       console.error('Slip email failed:', error)
       const message = error instanceof Error ? error.message : 'Unable to email slip'
@@ -242,7 +243,7 @@ export function useApplicationSlip({
     } finally {
       setEmailLoading(false)
     }
-  }, [slipPayload, submittedApplication, toast, createApplicationSlip, onEmailUpdate])
+  }, [submittedApplication, slipCache, toast, handleDownloadSlip])
 
   return {
     slipCache,
