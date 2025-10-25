@@ -92,6 +92,14 @@ export default function SignUpPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       })
+      
+      if (!response.ok) {
+        console.warn('Email check failed:', response.status)
+        setEmailAvailable(null)
+        setEmailChecking(false)
+        return
+      }
+      
       const result = await response.json()
       setEmailAvailable(result.available)
       if (!result.available) {
@@ -100,6 +108,7 @@ export default function SignUpPage() {
         setError('')
       }
     } catch (err) {
+      console.warn('Email check error:', err)
       setEmailAvailable(null)
     } finally {
       setEmailChecking(false)
