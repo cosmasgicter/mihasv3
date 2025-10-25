@@ -1,11 +1,11 @@
-import { createSupabaseAdminClient } from '../_lib/supabaseClient.js';
+import { supabaseAdminClient } from '../_lib/supabaseClient.js';
 import { sendEmail } from '../_lib/emailService.js';
 
 export async function onRequest(context) {
   const { env } = context;
 
   try {
-    const supabaseAdmin = createSupabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabaseAdmin = supabaseAdminClient;
 
     const { data: emails } = await supabaseAdmin
       .from('email_queue')

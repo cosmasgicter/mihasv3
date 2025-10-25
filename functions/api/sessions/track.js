@@ -1,4 +1,4 @@
-import { createSupabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js';
+import { supabaseAdminClient, getUserFromRequest } from '../../_lib/supabaseClient.js';
 
 export async function onRequestPost(context) {
   const { request } = context;
@@ -32,7 +32,7 @@ export async function onRequestPost(context) {
       });
     }
     
-    const supabase = createSupabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = supabaseAdminClient;
     const authHeader = request.headers.get('authorization') || request.headers.get('Authorization') || '';
     const { error } = await supabase
       .from('device_sessions')
