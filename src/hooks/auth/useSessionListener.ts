@@ -189,20 +189,24 @@ export function useSessionListener() {
       // Remove fields that shouldn't be sent to backend
       const { confirmPassword, turnstileToken, ...cleanUserData } = userData
       
+      const payload = { email, password, ...cleanUserData }
+      console.log('[SignUp] Sending payload:', { ...payload, password: '***' })
+      
       // Create account via API
       const response = await fetch(`${apiBaseUrl}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, ...cleanUserData })
+        body: JSON.stringify(payload)
       })
 
       const result = await response.json()
 
       if (!response.ok) {
+        console.error('[SignUp] API Error:', { status: response.status, result })
         if (result.error?.includes('already registered')) {
           return { error: 'This email is already registered. Please sign in instead.' }
         }
-        return { error: result.error || 'Unable to create account' }
+        return { error: result.error || result.message || result.details || 'Unable to create account' }
       }
 
       // Auto sign in after successful signup
