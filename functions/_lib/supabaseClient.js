@@ -299,8 +299,8 @@ function clearRequestRoleCache(req) {
 }
 
 export {
-  supabaseAdminClient,
-  defaultAdminClient as supabaseAdminClient,
+  supabaseAdminClient,  // The function to create clients
+  defaultAdminClient,   // The default instance
   supabaseAnonClient,
   getUserFromRequest,
   requireUser,
