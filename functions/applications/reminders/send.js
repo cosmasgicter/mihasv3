@@ -1,3 +1,6 @@
+import { sendEmail } from '../../_lib/emailService.js';
+import { createSupabaseAdminClient } from '../../_lib/supabaseClient.js';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -66,24 +69,42 @@ export async function onRequest(context) {
       </html>
     `
 
-    const supabaseUrl = env.SUPABASE_URL
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY
+    const subject = 'Complete Your MIHAS Application';
+    
+    // Log to Supabase email_queue
+    const supabaseAdmin = createSupabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    await supabaseAdmin.from('email_queue').insert({
+      to_email: email,
+      subject,
+      template: 'application_reminder',
+      template_data: { full_name: fullName, draft_name: draftName, last_updated: lastUpdated },
+      status: 'sending',
+      priority: 'normal'
+    });
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseKey}`
-      },
-      body: JSON.stringify({
-        to: email,
-        subject: 'Complete Your MIHAS Application',
-        html: emailHtml
-      })
-    })
+    // Send email via Resend
+    const emailResult = await sendEmail({
+      to: email,
+      subject,
+      html: emailHtml
+    });
 
-    if (!response.ok) {
-      throw new Error('Failed to send email')
+    // Update email_queue status
+    if (emailResult.success) {
+      await supabaseAdmin.from('email_queue')
+        .update({ status: 'sent', sent_at: new Date().toISOString() })
+        .eq('to_email', email)
+        .eq('subject', subject)
+        .order('created_at', { ascending: false })
+        .limit(1);
+    } else {
+      await supabaseAdmin.from('email_queue')
+        .update({ status: 'failed', error_message: emailResult.error })
+        .eq('to_email', email)
+        .eq('subject', subject)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      throw new Error(emailResult.error || 'Failed to send email');
     }
 
     return new Response(JSON.stringify({ 
