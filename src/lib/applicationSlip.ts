@@ -88,8 +88,9 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     const doc = new jsPDF();
     
     // Load logos
-    const mihasLogo = await loadImageAsBase64('/images/logos/mihas-logo.png');
-    const katcLogo = await loadImageAsBase64('/images/logos/katc-logo.png');
+    const baseUrl = window.location.origin;
+    const mihasLogo = await loadImageAsBase64(`${baseUrl}/images/logos/mihas-logo.png`);
+    const katcLogo = await loadImageAsBase64(`${baseUrl}/images/logos/katc-logo.png`);
     
     // Header with logos
     doc.setFillColor(14, 165, 233);
