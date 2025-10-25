@@ -14,12 +14,14 @@ export function useDocumentGeneration() {
     setError(null)
 
     try {
+      console.log('[useDocumentGeneration] Starting generation for type:', type)
       const supabase = getSupabaseClient()
       const { data: { session } } = await supabase.auth.getSession()
       
       if (!session?.access_token) {
         throw new Error('Not authenticated')
       }
+      console.log('[useDocumentGeneration] Authenticated')
 
       // Fetch application data
       const response = await fetch(
@@ -37,6 +39,7 @@ export function useDocumentGeneration() {
 
       const result = await response.json()
       const application = result.application || result.data
+      console.log('[useDocumentGeneration] Application data:', application)
       
       if (!application) {
         console.error('No application data in response:', result)
@@ -53,6 +56,7 @@ export function useDocumentGeneration() {
 
       switch (type) {
         case 'slip':
+          console.log('[useDocumentGeneration] Generating slip PDF...')
           pdfBlob = await generateApplicationSlip({
             public_tracking_code: application.public_tracking_code,
             application_number: application.application_number,
@@ -67,6 +71,7 @@ export function useDocumentGeneration() {
             email: application.email || '',
             phone: application.phone
           })
+          console.log('[useDocumentGeneration] Slip PDF generated successfully')
           filename = `application_slip_${application.application_number}.pdf`
           break
 
