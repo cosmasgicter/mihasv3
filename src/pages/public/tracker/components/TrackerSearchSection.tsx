@@ -45,12 +45,12 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
           </motion.div>
           
           <div>
-            <h2 className="text-responsive-3xl font-black text-body mb-3 sm:mb-4">
+            <h2 className="text-responsive-3xl font-black text-gray-900 mb-3 sm:mb-4">
               Find Your Application
             </h2>
             <p className="text-base sm:text-xl text-gray-800 max-w-2xl mx-auto leading-relaxed px-4 font-medium">
               Enter your <span className="font-bold text-info-strong">application number</span> (e.g., MIHAS123456) or 
-              <span className="font-bold text-body"> tracking code</span> to check status.
+              <span className="font-bold text-gray-900"> tracking code</span> to check status.
             </p>
           </div>
           

@@ -238,7 +238,7 @@ export default function AdminPrograms() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-body">Loading programs...</p>
+                  <p className="mt-4 text-lg text-gray-900">Loading programs...</p>
                 </div>
               </div>
             ) : error ? (
@@ -256,8 +256,8 @@ export default function AdminPrograms() {
             ) : programs.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-8xl mb-6"><GraduationCap className="w-5 h-5" /></div>
-                <h3 className="text-2xl font-bold text-body mb-2">No Programs Yet</h3>
-                <p className="text-body mb-6 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">No Programs Yet</h3>
+                <p className="text-gray-900 mb-6 max-w-md mx-auto">
                   Start by creating your first academic program. Programs define the courses and duration for student applications.
                 </p>
                 <Button onClick={openCreate} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
@@ -273,15 +273,15 @@ export default function AdminPrograms() {
                     <div key={program.id} className="bg-muted rounded-xl p-4 border border-border">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg text-body">{program.name}</h3>
-                          <p className="text-sm text-body mt-1">
+                          <h3 className="font-bold text-lg text-gray-900">{program.name}</h3>
+                          <p className="text-sm text-gray-900 mt-1">
                             Duration: {program.duration_years} year{program.duration_years !== 1 ? 's' : ''}
                           </p>
                           <p className="text-sm text-primary font-medium mt-1">
                             {program.institutions?.name || 'Unknown Institution'}
                           </p>
                           {program.description && (
-                            <p className="text-sm text-body mt-2 line-clamp-2">{program.description}</p>
+                            <p className="text-sm text-gray-900 mt-2 line-clamp-2">{program.description}</p>
                           )}
                         </div>
                       </div>
@@ -314,19 +314,19 @@ export default function AdminPrograms() {
                   <table className="min-w-full divide-y divide-border">
                     <thead className="bg-gradient-to-r from-muted to-blue-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           <GraduationCap className="w-5 h-5" /> Program Name
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           🏫 Institution
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           🕰️ Duration
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           <FileEdit className="w-5 h-5" /> Description
                         </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-900 uppercase tracking-wider">
                           ⚙️ Actions
                         </th>
                       </tr>
@@ -335,7 +335,7 @@ export default function AdminPrograms() {
                       {programs.map((program) => (
                         <tr key={program.id} className="hover:bg-primary/5 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-body">{program.name}</div>
+                            <div className="font-semibold text-gray-900">{program.name}</div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent/10 text-accent-foreground">
@@ -348,7 +348,7 @@ export default function AdminPrograms() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm text-body max-w-xs truncate">
+                            <div className="text-sm text-gray-900 max-w-xs truncate">
                               {program.description || 'No description provided'}
                             </div>
                           </td>
@@ -393,7 +393,7 @@ export default function AdminPrograms() {
           <div className="space-y-4 py-4">
             <Input label="Name" name="name" value={form.name} onChange={handleChange} required />
             <div>
-              <label className="block text-sm font-medium text-body mb-2">Institution</label>
+              <label className="block text-sm font-medium text-gray-900 mb-2">Institution</label>
               <select
                 name="institution_id"
                 value={form.institution_id}
@@ -429,7 +429,7 @@ export default function AdminPrograms() {
           <div className="space-y-4 py-4">
             <Input label="Name" name="name" value={form.name} onChange={handleChange} required />
             <div>
-              <label className="block text-sm font-medium text-body mb-2">Institution</label>
+              <label className="block text-sm font-medium text-gray-900 mb-2">Institution</label>
               <select
                 name="institution_id"
                 value={form.institution_id}

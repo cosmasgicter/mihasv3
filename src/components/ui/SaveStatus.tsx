@@ -37,7 +37,7 @@ export function SaveStatus({ isSaving, lastSaved, isOnline, pendingChanges, erro
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm text-body">
+    <div className="flex items-center gap-2 text-sm text-gray-900">
       {getStatusIcon()}
       <span>{getStatusText()}</span>
     </div>

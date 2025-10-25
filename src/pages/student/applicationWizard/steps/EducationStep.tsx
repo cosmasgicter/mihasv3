@@ -57,12 +57,12 @@ const EducationStep = ({
       className="bg-card rounded-lg shadow-lg p-6 border border-border"
       data-testid="education-step"
     >
-      <h2 className="text-lg font-semibold text-body mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
 
       <div className="space-y-6">
         <div>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h3 className="text-md font-medium text-body">Grade 12 Subjects (Minimum 5 required)</h3>
+            <h3 className="text-md font-medium text-gray-900">Grade 12 Subjects (Minimum 5 required)</h3>
             <Button
               type="button"
               onClick={event => {
@@ -105,7 +105,7 @@ const EducationStep = ({
           )}
 
           {selectedGrades.length > 0 && (
-            <div className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-body uppercase tracking-wide">
+            <div className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-gray-900 uppercase tracking-wide">
               <div className="col-span-8">Subject</div>
               <div className="col-span-2">Grade</div>
               <div className="col-span-2">Action</div>
@@ -122,7 +122,7 @@ const EducationStep = ({
                   transition={{ delay: index * 0.1 }}
                 >
                   <div className="flex-1 min-w-0">
-                    <label className="block text-xs font-medium text-body mb-1 sm:hidden">
+                    <label className="block text-xs font-medium text-gray-900 mb-1 sm:hidden">
                       Subject
                     </label>
                     <select
@@ -144,7 +144,7 @@ const EducationStep = ({
                   </div>
 
                   <div className="w-full sm:w-24">
-                    <label className="block text-xs font-medium text-body mb-1 sm:hidden">Grade</label>
+                    <label className="block text-xs font-medium text-gray-900 mb-1 sm:hidden">Grade</label>
                     <select
                       value={grade.grade}
                       onChange={event => updateGrade(index, 'grade', parseInt(event.target.value))}
@@ -198,7 +198,7 @@ const EducationStep = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-body mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               Result Slip <span className="text-error">*</span>
             </label>
             <div className="relative">
@@ -206,7 +206,7 @@ const EducationStep = ({
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleResultSlipUpload}
-                className="w-full text-sm text-body file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
+                className="w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
               />
 
               {resultSlipFile && (
@@ -217,7 +217,7 @@ const EducationStep = ({
               )}
               {uploadProgress.result_slip !== undefined && (
                 <div className="mt-2">
-                  <div className="flex justify-between text-sm text-body mb-1">
+                  <div className="flex justify-between text-sm text-gray-900 mb-1">
                     <span>Uploading...</span>
                     <span>{uploadProgress.result_slip}%</span>
                   </div>
@@ -245,7 +245,7 @@ const EducationStep = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-body mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               Extra KYC Documents (Optional)
             </label>
             <div className="relative">
@@ -253,7 +253,7 @@ const EducationStep = ({
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleExtraKycUpload}
-                className="w-full text-sm text-body file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
+                className="w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
               />
               {extraKycFile && (
                 <div className="mt-2 flex items-center text-sm text-warning-strong">
@@ -263,7 +263,7 @@ const EducationStep = ({
               )}
               {uploadProgress.extra_kyc !== undefined && (
                 <div className="mt-2">
-                  <div className="flex justify-between text-sm text-body mb-1">
+                  <div className="flex justify-between text-sm text-gray-900 mb-1">
                     <span>Uploading...</span>
                     <span>{uploadProgress.extra_kyc}%</span>
                   </div>

@@ -52,7 +52,7 @@ export function EnhancedDashboard({
   if (!metrics) {
     return (
       <div className="bg-card rounded-xl p-6 shadow-lg border border-border">
-        <p className="text-sm text-body">Dashboard metrics are not available right now.</p>
+        <p className="text-sm text-gray-900">Dashboard metrics are not available right now.</p>
       </div>
     )
   }
@@ -73,11 +73,11 @@ export function EnhancedDashboard({
                 <Calendar className="h-6 w-6 text-primary" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-body">{metrics.todayApplications}</div>
-                <div className="text-xs text-body">Today</div>
+                <div className="text-2xl font-bold text-gray-900">{metrics.todayApplications}</div>
+                <div className="text-xs text-gray-900">Today</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-body">New Applications</div>
+            <div className="text-sm font-medium text-gray-900">New Applications</div>
           </div>
         </motion.div>
 
@@ -94,11 +94,11 @@ export function EnhancedDashboard({
                 <Clock className="h-6 w-6 text-accent" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-body">{metrics.pendingApplications}</div>
-                <div className="text-xs text-body">Pending</div>
+                <div className="text-2xl font-bold text-gray-900">{metrics.pendingApplications}</div>
+                <div className="text-xs text-gray-900">Pending</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-body">Awaiting Review</div>
+            <div className="text-sm font-medium text-gray-900">Awaiting Review</div>
             {metrics.pendingApplications > 0 && (
               <div className="text-xs text-accent mt-2">Requires attention</div>
             )}
@@ -118,11 +118,11 @@ export function EnhancedDashboard({
                 <CheckCircle className="h-6 w-6 text-accent" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-body">{metrics.approvalRate}%</div>
-                <div className="text-xs text-body">Rate</div>
+                <div className="text-2xl font-bold text-gray-900">{metrics.approvalRate}%</div>
+                <div className="text-xs text-gray-900">Rate</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-body">Approval Rate</div>
+            <div className="text-sm font-medium text-gray-900">Approval Rate</div>
             <div className="flex items-center mt-2 text-xs">
               <TrendingUp className="h-3 w-3 text-success mr-1" />
               <span className="text-warning-strong">Stable performance</span>
@@ -143,11 +143,11 @@ export function EnhancedDashboard({
                 <Zap className="h-6 w-6 text-secondary" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-body">{metrics.avgProcessingTime}</div>
-                <div className="text-xs text-body">Days</div>
+                <div className="text-2xl font-bold text-gray-900">{metrics.avgProcessingTime}</div>
+                <div className="text-xs text-gray-900">Days</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-body">Avg Processing</div>
+            <div className="text-sm font-medium text-gray-900">Avg Processing</div>
             <div className="flex items-center mt-2 text-xs">
               <ArrowDown className="h-3 w-3 text-success mr-1" />
               <span className="text-warning-strong">Improved by 15%</span>
@@ -165,7 +165,7 @@ export function EnhancedDashboard({
           className="bg-card rounded-xl shadow-lg border border-border"
         >
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h3 className="text-lg font-bold text-body"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
+            <h3 className="text-lg font-bold text-gray-900"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -192,12 +192,12 @@ export function EnhancedDashboard({
                   'bg-primary'
                 }`}></div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-body truncate">{activity.message}</p>
-                  <p className="text-xs text-body">{new Date(activity.timestamp).toLocaleString()}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">{activity.message}</p>
+                  <p className="text-xs text-gray-900">{new Date(activity.timestamp).toLocaleString()}</p>
                 </div>
               </motion.div>
             )) : (
-              <div className="text-center py-8 text-body">
+              <div className="text-center py-8 text-gray-900">
                 <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No recent activity</p>
               </div>
@@ -212,14 +212,14 @@ export function EnhancedDashboard({
           className="bg-card rounded-xl shadow-lg border border-border"
         >
           <div className="px-6 py-4 border-b border-border">
-            <h3 className="text-lg font-bold text-body">🛡️ System Health</h3>
+            <h3 className="text-lg font-bold text-gray-900">🛡️ System Health</h3>
           </div>
           
           <div className="p-6 space-y-4">
             <div className="flex items-center justify-between p-3 bg-accent/10 rounded-xl">
               <div className="flex items-center space-x-2">
                 <Database className="h-4 w-4 text-accent" />
-                <span className="text-sm font-medium text-body">Database</span>
+                <span className="text-sm font-medium text-gray-900">Database</span>
               </div>
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
                 systemHealth?.database === 'healthy' ? 'bg-success text-white' : 'bg-error text-white'
@@ -231,7 +231,7 @@ export function EnhancedDashboard({
             <div className="flex items-center justify-between p-3 bg-accent/10 rounded-xl">
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-accent" />
-                <span className="text-sm font-medium text-body">Security</span>
+                <span className="text-sm font-medium text-gray-900">Security</span>
               </div>
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-accent text-white">
                 ✓ {systemHealth?.security || 'Secure'}
@@ -241,7 +241,7 @@ export function EnhancedDashboard({
             <div className="flex items-center justify-between p-3 bg-primary/5 rounded-xl">
               <div className="flex items-center space-x-2">
                 <Activity className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-body">Performance</span>
+                <span className="text-sm font-medium text-gray-900">Performance</span>
               </div>
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-primary text-white">
                 ✓ {systemHealth?.performance || 'Optimal'}
@@ -251,7 +251,7 @@ export function EnhancedDashboard({
             <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-body">Active Users</p>
+                  <p className="text-sm font-medium text-gray-900">Active Users</p>
                   <p className="text-2xl font-bold text-info-strong">{metrics.activeUsers}</p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />

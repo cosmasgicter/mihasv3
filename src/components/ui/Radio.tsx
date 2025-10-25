@@ -21,7 +21,7 @@ export const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
           {...props}
         />
         {label && (
-          <label className="text-sm text-body cursor-pointer select-none">
+          <label className="text-sm text-gray-900 cursor-pointer select-none">
             {label}
           </label>
         )}

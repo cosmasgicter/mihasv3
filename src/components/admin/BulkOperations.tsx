@@ -249,12 +249,12 @@ export function BulkOperations({
           <div className="bg-card rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center space-x-3 mb-4">
               <AlertCircle className="w-6 h-6 text-accent" />
-              <h3 className="text-lg font-medium text-body">
+              <h3 className="text-lg font-medium text-gray-900">
                 Confirm Bulk Action
               </h3>
             </div>
             
-            <p className="text-sm text-body mb-6">
+            <p className="text-sm text-gray-900 mb-6">
               Are you sure you want to {getActionDescription()} for {selectedCount} selected application{selectedCount !== 1 ? 's' : ''}?
             </p>
             

@@ -212,10 +212,10 @@ function ApplicationsAdminContent() {
     <div className="min-h-screen bg-muted py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-body mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Applications Management
           </h1>
-          <p className="text-body">
+          <p className="text-gray-900">
             Manage student applications and review submissions
           </p>
         </div>
@@ -255,7 +255,7 @@ function ApplicationsAdminContent() {
                 
                 {selectedApplications.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm text-body">
+                    <span className="text-sm text-gray-900">
                       {selectedApplications.length} selected
                     </span>
                     <div className="h-4 w-px bg-muted" />
@@ -385,7 +385,7 @@ function ApplicationsAdminContent() {
                         <button
                           onClick={selectAll}
                           aria-label={selectedApplications.length === filteredApplications.length && filteredApplications.length > 0 ? 'Deselect all applications' : 'Select all applications'}
-                          className="flex items-center gap-2 text-xs font-medium text-body uppercase tracking-wider hover:text-foreground"
+                          className="flex items-center gap-2 text-xs font-medium text-gray-900 uppercase tracking-wider hover:text-foreground"
                         >
                           {selectedApplications.length === filteredApplications.length && filteredApplications.length > 0 ? (
                             <CheckSquare className="h-4 w-4" />
@@ -394,25 +394,25 @@ function ApplicationsAdminContent() {
                           )}
                         </button>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                         Application
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                         Student
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                         Program
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                         Payment
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                         Subjects
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -424,7 +424,7 @@ function ApplicationsAdminContent() {
                           <button
                             onClick={() => toggleSelection(app.id)}
                             aria-label={selectedApplications.includes(app.id) ? `Deselect ${app.full_name}` : `Select ${app.full_name}`}
-                            className="text-body hover:text-foreground"
+                            className="text-gray-900 hover:text-foreground"
                           >
                             {selectedApplications.includes(app.id) ? (
                               <CheckSquare className="h-5 w-5 text-primary" />
@@ -434,29 +434,29 @@ function ApplicationsAdminContent() {
                           </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-body">
+                          <div className="text-sm font-medium text-gray-900">
                             {app.application_number}
                           </div>
-                          <div className="text-sm text-body">
+                          <div className="text-sm text-gray-900">
                             {new Date(app.submitted_at || app.created_at).toLocaleDateString()}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-body">
+                          <div className="text-sm font-medium text-gray-900">
                             {app.full_name}
                           </div>
-                          <div className="text-sm text-body">
+                          <div className="text-sm text-gray-900">
                             {app.email}
                           </div>
-                          <div className="text-sm text-body">
+                          <div className="text-sm text-gray-900">
                             {app.phone}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-body">
+                          <div className="text-sm font-medium text-gray-900">
                             {app.program}
                           </div>
-                          <div className="text-sm text-body">
+                          <div className="text-sm text-gray-900">
                             {app.institution} • {app.intake}
                           </div>
                         </td>
@@ -488,7 +488,7 @@ function ApplicationsAdminContent() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="space-y-2">
                             {getPaymentBadge(app.payment_status)}
-                            <div className="text-xs text-body">
+                            <div className="text-xs text-gray-900">
                               K{app.paid_amount || 0} / K{app.application_fee}
                             </div>
                             <div className="relative">
@@ -512,11 +512,11 @@ function ApplicationsAdminContent() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-body">
+                          <div className="text-sm text-gray-900">
                             {app.total_subjects} subjects
                           </div>
                           {app.grades_summary && (
-                            <div className="text-xs text-body max-w-xs truncate" title={app.grades_summary}>
+                            <div className="text-xs text-gray-900 max-w-xs truncate" title={app.grades_summary}>
                               {app.grades_summary}
                             </div>
                           )}
@@ -544,20 +544,20 @@ function ApplicationsAdminContent() {
           
             {filteredApplications.length === 0 && (
               <div className="text-center py-12">
-                <div className="text-body">No applications found matching your criteria.</div>
+                <div className="text-gray-900">No applications found matching your criteria.</div>
               </div>
             )}
             <div className="border-t border-border bg-muted px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm text-body">
+              <div className="text-sm text-gray-900">
                 Showing{' '}
-                <span className="font-semibold text-body">{filteredApplications.length}</span>
+                <span className="font-semibold text-gray-900">{filteredApplications.length}</span>
                 {' '}of{' '}
-                <span className="font-semibold text-body">{pagination.loadedCount}</span>{' '}
+                <span className="font-semibold text-gray-900">{pagination.loadedCount}</span>{' '}
                 loaded
                 {pagination.totalCount > 0 && (
                   <>
                     {' '}•{' '}
-                    <span className="font-semibold text-body">{pagination.totalCount}</span>{' '}
+                    <span className="font-semibold text-gray-900">{pagination.totalCount}</span>{' '}
                     total
                   </>
                 )}{' '}
@@ -576,7 +576,7 @@ function ApplicationsAdminContent() {
                 </button>
               ) : (
                 pagination.totalCount > 0 && (
-                  <span className="text-sm text-body">All applications loaded.</span>
+                  <span className="text-sm text-gray-900">All applications loaded.</span>
                 )
               )}
             </div>
@@ -585,32 +585,32 @@ function ApplicationsAdminContent() {
             {/* Summary Stats */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-card rounded-lg shadow p-6">
-                <div className="text-2xl font-bold text-body">
+                <div className="text-2xl font-bold text-gray-900">
                   {pagination.totalCount}
                 </div>
-                <div className="text-sm text-body">Total Applications</div>
-                <div className="text-xs text-body mt-1">Loaded: {applications.length}</div>
+                <div className="text-sm text-gray-900">Total Applications</div>
+                <div className="text-xs text-gray-900 mt-1">Loaded: {applications.length}</div>
               </div>
 
               <div className="bg-card rounded-lg shadow p-6">
                 <div className="text-2xl font-bold text-info-strong">
                   {applications.filter(app => app.status === 'submitted').length}
                 </div>
-                <div className="text-sm text-body">Submitted (loaded)</div>
+                <div className="text-sm text-gray-900">Submitted (loaded)</div>
               </div>
 
               <div className="bg-card rounded-lg shadow p-6">
                 <div className="text-2xl font-bold text-warning-strong">
                   {applications.filter(app => app.payment_status === 'pending_review').length}
                 </div>
-                <div className="text-sm text-body">Pending Payment Review (loaded)</div>
+                <div className="text-sm text-gray-900">Pending Payment Review (loaded)</div>
               </div>
 
               <div className="bg-card rounded-lg shadow p-6">
                 <div className="text-2xl font-bold text-warning-strong">
                   {applications.filter(app => app.status === 'approved').length}
                 </div>
-                <div className="text-sm text-body">Approved (loaded)</div>
+                <div className="text-sm text-gray-900">Approved (loaded)</div>
               </div>
             </div>
           </>

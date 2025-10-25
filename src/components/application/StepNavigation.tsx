@@ -11,10 +11,10 @@ export function StepNavigation({ currentStep, totalSteps, stepTitles, onStepClic
   return (
     <div className="bg-card rounded-lg shadow p-6 mb-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-body-secondary">
+        <h2 className="text-lg font-semibold text-gray-900-secondary">
           Step {currentStep} of {totalSteps}: {stepTitles[currentStep - 1]}
         </h2>
-        <div className="text-sm text-body-secondary">
+        <div className="text-sm text-gray-900-secondary">
           {Math.round((currentStep / totalSteps) * 100)}% Complete
         </div>
       </div>

@@ -94,7 +94,7 @@ export default function SignInPage() {
               <div className="w-full border-t border-input/20" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-card/80 px-3 py-0.5 text-body">Need help?</span>
+              <span className="bg-card/80 px-3 py-0.5 text-gray-900">Need help?</span>
             </div>
           </div>
 

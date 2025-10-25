@@ -162,8 +162,8 @@ export function ContinueApplication() {
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-body">Continue your application</h2>
-              <p className="text-sm text-body">Jump back in where you left off—your progress is saved securely.</p>
+              <h2 className="text-lg font-semibold text-gray-900">Continue your application</h2>
+              <p className="text-sm text-gray-900">Jump back in where you left off—your progress is saved securely.</p>
             </div>
           </div>
 
@@ -174,18 +174,18 @@ export function ContinueApplication() {
             </div>
           )}
 
-          <dl className="mt-4 grid gap-3 text-sm text-body sm:max-w-md">
-            <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-body shadow-sm">
-              <dt className="text-body">Progress</dt>
+          <dl className="mt-4 grid gap-3 text-sm text-gray-900 sm:max-w-md">
+            <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-gray-900 shadow-sm">
+              <dt className="text-gray-900">Progress</dt>
               <dd>{draftInfo.progress}</dd>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-body shadow-sm">
-              <dt className="text-body">Last saved</dt>
+            <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-gray-900 shadow-sm">
+              <dt className="text-gray-900">Last saved</dt>
               <dd>{draftInfo.lastSaved ? formatDate(draftInfo.lastSaved) : 'Unknown'}</dd>
             </div>
             {draftInfo.expiresAt && (
-              <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-body shadow-sm">
-                <dt className="text-body">Expires in</dt>
+              <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-gray-900 shadow-sm">
+                <dt className="text-gray-900">Expires in</dt>
                 <dd className={cn(isExpiringSoon() ? 'text-accent' : 'text-foreground')}>{getTimeUntilExpiry()}</dd>
               </div>
             )}

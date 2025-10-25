@@ -73,19 +73,19 @@ export function Modal({
                 <div className="flex items-start justify-between p-4 md:p-6 border-b border-border">
                   <div className="flex-1">
                     {title && (
-                      <h2 className="text-lg md:text-xl font-semibold text-body">
+                      <h2 className="text-lg md:text-xl font-semibold text-gray-900">
                         {title}
                       </h2>
                     )}
                     {description && (
-                      <p className="mt-1 text-sm text-body">
+                      <p className="mt-1 text-sm text-gray-900">
                         {description}
                       </p>
                     )}
                   </div>
                   <button
                     onClick={onClose}
-                    className="ml-4 p-2 rounded-lg text-body hover:text-body hover:text-body hover:bg-accent transition-colors"
+                    className="ml-4 p-2 rounded-lg text-gray-900 hover:text-gray-900 hover:text-gray-900 hover:bg-accent transition-colors"
                     aria-label="Close modal"
                   >
                     <X className="w-5 h-5" />

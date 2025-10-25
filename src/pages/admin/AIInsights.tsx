@@ -79,8 +79,8 @@ export default function AIInsights() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-error mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-body mb-2">Access Denied</h2>
-          <p className="text-body">You don't have permission to access AI insights.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-900">You don't have permission to access AI insights.</p>
         </div>
       </div>
     )
@@ -93,11 +93,11 @@ export default function AIInsights() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-body flex items-center">
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
                 <Brain className="h-8 w-8 mr-3 text-secondary" />
                 AI Insights & Automation
               </h1>
-              <p className="text-body mt-2">
+              <p className="text-gray-900 mt-2">
                 Monitor AI performance, predictive analytics, and automation workflows
               </p>
             </div>
@@ -137,8 +137,8 @@ export default function AIInsights() {
                   <Brain className="h-6 w-6 text-primary" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-body">AI Predictions</p>
-                  <p className="text-2xl font-bold text-body">{stats.totalPredictions}</p>
+                  <p className="text-sm font-medium text-gray-900">AI Predictions</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalPredictions}</p>
                 </div>
               </div>
             </Card>
@@ -155,8 +155,8 @@ export default function AIInsights() {
                   <Zap className="h-6 w-6 text-secondary" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-body">Automation Runs</p>
-                  <p className="text-2xl font-bold text-body">{stats.automationRuns}</p>
+                  <p className="text-sm font-medium text-gray-900">Automation Runs</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.automationRuns}</p>
                 </div>
               </div>
             </Card>
@@ -173,8 +173,8 @@ export default function AIInsights() {
                   <FileText className="h-6 w-6 text-accent" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-body">Notifications Sent</p>
-                  <p className="text-2xl font-bold text-body">{stats.notificationsSent}</p>
+                  <p className="text-sm font-medium text-gray-900">Notifications Sent</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.notificationsSent}</p>
                 </div>
               </div>
             </Card>
@@ -191,8 +191,8 @@ export default function AIInsights() {
                   <TrendingUp className="h-6 w-6 text-accent" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-body">Avg Accuracy</p>
-                  <p className="text-2xl font-bold text-body">{stats.avgAccuracy}%</p>
+                  <p className="text-sm font-medium text-gray-900">Avg Accuracy</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.avgAccuracy}%</p>
                 </div>
               </div>
             </Card>
@@ -214,7 +214,7 @@ export default function AIInsights() {
                   className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-purple-500 text-secondary'
-                      : 'border-transparent text-body hover:text-body hover:border-input'
+                      : 'border-transparent text-gray-900 hover:text-gray-900 hover:border-input'
                   }`}
                 >
                   <tab.icon className="h-4 w-4 mr-2" />
@@ -245,8 +245,8 @@ export default function AIInsights() {
                   {workflowAutomation.getRules().map((rule) => (
                     <div key={rule.id} className="flex items-center justify-between p-4 bg-muted rounded-lg">
                       <div>
-                        <h4 className="font-medium text-body">{rule.name}</h4>
-                        <p className="text-sm text-body">Trigger: {rule.trigger}</p>
+                        <h4 className="font-medium text-gray-900">{rule.name}</h4>
+                        <p className="text-sm text-gray-900">Trigger: {rule.trigger}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${
@@ -287,7 +287,7 @@ export default function AIInsights() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-medium text-body mb-3">Channel Status</h4>
+                    <h4 className="font-medium text-gray-900 mb-3">Channel Status</h4>
                     <div className="space-y-2">
                       {[
                         { name: 'Email', status: 'active', count: 45 },
@@ -298,7 +298,7 @@ export default function AIInsights() {
                         <div key={channel.name} className="flex items-center justify-between p-3 bg-muted rounded">
                           <span className="font-medium">{channel.name}</span>
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm text-body">{channel.count} sent</span>
+                            <span className="text-sm text-gray-900">{channel.count} sent</span>
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               channel.status === 'active' 
                                 ? 'bg-accent/10 text-accent-foreground' 
@@ -312,7 +312,7 @@ export default function AIInsights() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-medium text-body mb-3">Recent Activity</h4>
+                    <h4 className="font-medium text-gray-900 mb-3">Recent Activity</h4>
                     <div className="space-y-2">
                       {[
                         { type: 'Application Submitted', time: '2 minutes ago', status: 'sent' },
@@ -323,7 +323,7 @@ export default function AIInsights() {
                         <div key={index} className="flex items-center justify-between p-3 bg-muted rounded">
                           <div>
                             <span className="font-medium text-sm">{activity.type}</span>
-                            <p className="text-xs text-body">{activity.time}</p>
+                            <p className="text-xs text-gray-900">{activity.time}</p>
                           </div>
                           <span className="px-2 py-1 text-xs bg-accent/10 text-accent-foreground rounded-full">
                             {activity.status}

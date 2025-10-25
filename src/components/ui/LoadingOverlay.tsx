@@ -16,7 +16,7 @@ export function LoadingOverlay({ className, message, ...props }: LoadingOverlayP
       {...props}
     >
       <Spinner size="lg" />
-      {message && <p className="mt-4 text-sm text-body">{message}</p>}
+      {message && <p className="mt-4 text-sm text-gray-900">{message}</p>}
     </div>
   )
 }

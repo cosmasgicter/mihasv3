@@ -50,7 +50,7 @@ export function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTa
   return (
     <th
       className={cn(
-        'px-4 py-3 text-left text-xs font-medium text-body uppercase tracking-wider',
+        'px-4 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider',
         className
       )}
       {...props}
@@ -78,8 +78,8 @@ export function MobileCard({ data, fields, actions }: MobileCardProps) {
     <div className="bg-card border border-border rounded-lg p-4 space-y-3">
       {fields.map(field => (
         <div key={field.key}>
-          <dt className="text-xs font-medium text-body uppercase">{field.label}</dt>
-          <dd className="mt-1 text-sm text-body">
+          <dt className="text-xs font-medium text-gray-900 uppercase">{field.label}</dt>
+          <dd className="mt-1 text-sm text-gray-900">
             {field.render ? field.render(data[field.key]) : data[field.key]}
           </dd>
         </div>

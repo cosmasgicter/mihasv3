@@ -18,7 +18,7 @@ export function TouchButton({
 
   const variantClasses = {
     primary: 'bg-gradient-to-r from-blue-600 to-purple-600 text-foreground',
-    secondary: 'bg-card text-body border border-border',
+    secondary: 'bg-card text-gray-900 border border-border',
     ghost: 'text-foreground'
   }
 

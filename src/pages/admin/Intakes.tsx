@@ -252,7 +252,7 @@ export default function AdminIntakes() {
               <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-body">Loading intakes...</p>
+                  <p className="mt-4 text-lg text-gray-900">Loading intakes...</p>
                 </div>
               </div>
             ) : error ? (
@@ -270,8 +270,8 @@ export default function AdminIntakes() {
             ) : intakes.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-8xl mb-6"><Calendar className="w-5 h-5" /></div>
-                <h3 className="text-2xl font-bold text-body mb-2">No Intakes Yet</h3>
-                <p className="text-body mb-6 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">No Intakes Yet</h3>
+                <p className="text-gray-900 mb-6 max-w-md mx-auto">
                   Create admission intakes to define application periods, deadlines, and capacity for student enrollment.
                 </p>
                 <Button onClick={openCreate} className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white font-semibold">
@@ -287,8 +287,8 @@ export default function AdminIntakes() {
                     <div key={intake.id} className="bg-muted rounded-xl p-4 border border-border">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg text-body">{intake.name}</h3>
-                          <p className="text-sm text-body">Year: {intake.year}</p>
+                          <h3 className="font-bold text-lg text-gray-900">{intake.name}</h3>
+                          <p className="text-sm text-gray-900">Year: {intake.year}</p>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                           intake.available_spots > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
@@ -299,15 +299,15 @@ export default function AdminIntakes() {
                       
                       <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
                         <div>
-                          <span className="text-body">Start:</span>
+                          <span className="text-gray-900">Start:</span>
                           <div className="font-medium">{formatDate(intake.start_date)}</div>
                         </div>
                         <div>
-                          <span className="text-body">End:</span>
+                          <span className="text-gray-900">End:</span>
                           <div className="font-medium">{formatDate(intake.end_date)}</div>
                         </div>
                         <div className="col-span-2">
-                          <span className="text-body">Application Deadline:</span>
+                          <span className="text-gray-900">Application Deadline:</span>
                           <div className="font-medium text-destructive">{formatDate(intake.application_deadline)}</div>
                         </div>
                       </div>
@@ -341,28 +341,28 @@ export default function AdminIntakes() {
                   <table className="min-w-full divide-y divide-border">
                     <thead className="bg-gradient-to-r from-muted to-purple-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           <Calendar className="w-5 h-5" /> Name
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           📆 Year
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           🟢 Start
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           🔴 End
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           ⏰ Deadline
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           <BarChart3 className="w-5 h-5" /> Capacity
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">
                           <Target className="w-5 h-5" /> Available
                         </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-body uppercase tracking-wider">
+                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-900 uppercase tracking-wider">
                           ⚙️ Actions
                         </th>
                       </tr>
@@ -371,17 +371,17 @@ export default function AdminIntakes() {
                       {intakes.map((intake) => (
                         <tr key={intake.id} className="hover:bg-secondary/5 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-body">{intake.name}</div>
+                            <div className="font-semibold text-gray-900">{intake.name}</div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-secondary/10 text-purple-800">
                               {intake.year}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-body">
+                          <td className="px-6 py-4 text-sm text-gray-900">
                             {formatDate(intake.start_date)}
                           </td>
-                          <td className="px-6 py-4 text-sm text-body">
+                          <td className="px-6 py-4 text-sm text-gray-900">
                             {formatDate(intake.end_date)}
                           </td>
                           <td className="px-6 py-4">

@@ -39,7 +39,7 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
       <AnimatedCard className="bg-gradient-to-br from-muted-foreground to-foreground text-white" hover3d delay={0.1}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-body text-xs sm:text-sm font-medium">Draft</p>
+            <p className="text-gray-900 text-xs sm:text-sm font-medium">Draft</p>
             <p className="text-xl sm:text-3xl font-bold">{stats.draft}</p>
           </div>
           <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-foreground" />

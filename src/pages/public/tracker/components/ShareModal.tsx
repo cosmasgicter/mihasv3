@@ -38,7 +38,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             className="bg-card rounded-2xl p-8 max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-2xl font-bold text-body mb-6 text-center">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
               📤 Share Application Status
             </h3>
             

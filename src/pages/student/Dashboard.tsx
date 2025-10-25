@@ -328,10 +328,10 @@ export default function StudentDashboard() {
               >
                 {submittedApplications.length === 0 && draftApplications.length === 0 && !hasLocalDraftOnly ? (
                   <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-                    <div className="text-body"><FileText className="w-16 h-16" /></div>
+                    <div className="text-gray-900"><FileText className="w-16 h-16" /></div>
                     <div className="space-y-2">
-                      <h3 className="text-xl sm:text-2xl font-semibold text-body">No applications yet</h3>
-                      <p className="text-body">
+                      <h3 className="text-xl sm:text-2xl font-semibold text-gray-900">No applications yet</h3>
+                      <p className="text-gray-900">
                         Start your journey by submitting your first application. We'll guide you every step of the way.
                       </p>
                     </div>
@@ -358,7 +358,7 @@ export default function StudentDashboard() {
                             <div className="flex items-start gap-3 flex-1 min-w-0">
                               <Clock className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-lg font-bold text-body break-words leading-tight">
+                                <h4 className="text-lg font-bold text-gray-900 break-words leading-tight">
                                   {application.program || 'Draft Application'}
                                 </h4>
                                 <p className="text-sm font-medium text-gray-600 mt-1">
@@ -376,12 +376,12 @@ export default function StudentDashboard() {
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
                               <span className="font-medium text-gray-700">Intake:</span>
-                              <span className="text-body break-words">{application.intake || 'Not selected'}</span>
+                              <span className="text-gray-900 break-words">{application.intake || 'Not selected'}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
                               <span className="font-medium text-gray-700">Created:</span>
-                              <span className="text-body">{formatDate(application.created_at)}</span>
+                              <span className="text-gray-900">{formatDate(application.created_at)}</span>
                             </div>
                           </div>
 
@@ -444,7 +444,7 @@ export default function StudentDashboard() {
                             <div className="flex items-start gap-3 flex-1 min-w-0">
                               <Clock className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-lg font-bold text-body leading-tight">
+                                <h4 className="text-lg font-bold text-gray-900 leading-tight">
                                   {draftData?.formData?.program || 'Local Draft in Progress'}
                                 </h4>
                                 <p className="text-sm font-medium text-gray-600 mt-1">
@@ -524,7 +524,7 @@ export default function StudentDashboard() {
                             <div className="flex items-start gap-3 flex-1 min-w-0">
                               <div className="flex-shrink-0 mt-1">{getStatusIcon(application.status)}</div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-lg font-bold text-body break-words leading-tight">
+                                <h4 className="text-lg font-bold text-gray-900 break-words leading-tight">
                                   {getProgramName(application.program)}
                                 </h4>
                                 <p className="text-sm font-medium text-gray-600 mt-1">
@@ -542,12 +542,12 @@ export default function StudentDashboard() {
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
                               <span className="font-medium text-gray-700">Intake:</span>
-                              <span className="text-body break-words">{getIntakeName(application.intake)}</span>
+                              <span className="text-gray-900 break-words">{getIntakeName(application.intake)}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
                               <span className="font-medium text-gray-700">Submitted:</span>
-                              <span className="text-body">{formatDate(application.submitted_at)}</span>
+                              <span className="text-gray-900">{formatDate(application.submitted_at)}</span>
                             </div>
                           </div>
 
@@ -585,24 +585,24 @@ export default function StudentDashboard() {
                 >
                   <div className="grid gap-3">
                     <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-body">Full name</p>
-                      <p className="text-sm font-semibold text-body break-words overflow-wrap-anywhere">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-900">Full name</p>
+                      <p className="text-sm font-semibold text-gray-900 break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
                       </p>
                     </div>
                     <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-body">Email</p>
-                      <p className="text-sm font-semibold text-body break-all overflow-wrap-anywhere">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-900">Email</p>
+                      <p className="text-sm font-semibold text-gray-900 break-all overflow-wrap-anywhere">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
                     </div>
                     <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-body">Phone</p>
-                      <p className="text-sm font-semibold text-body break-words overflow-wrap-anywhere">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-900">Phone</p>
+                      <p className="text-sm font-semibold text-gray-900 break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
                       </p>
                     </div>
                     <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-body">Residence</p>
-                      <p className="text-sm font-semibold text-body break-words overflow-wrap-anywhere">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-900">Residence</p>
+                      <p className="text-sm font-semibold text-gray-900 break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}
                       </p>
                     </div>
@@ -632,12 +632,12 @@ export default function StudentDashboard() {
                         transition={{ delay: 0.1 * index }}
                         className="rounded-xl border border-orange-300 bg-orange-50 px-4 py-3"
                       >
-                        <p className="text-sm font-semibold text-body">{intake.name}</p>
+                        <p className="text-sm font-semibold text-gray-900">{intake.name}</p>
                         <p className="text-xs font-semibold text-orange-700">Deadline: {formatDate(intake.application_deadline)}</p>
                       </motion.div>
                     ))}
                     {intakes.length === 0 && (
-                      <p className="rounded-xl bg-muted px-4 py-4 text-center text-sm text-body">
+                      <p className="rounded-xl bg-muted px-4 py-4 text-center text-sm text-gray-900">
                         No upcoming deadlines yet. Check back soon.
                       </p>
                     )}
@@ -730,7 +730,7 @@ export default function StudentDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full justify-start border-border text-body hover:bg-muted"
+                        className="w-full justify-start border-border text-gray-900 hover:bg-muted"
                       >
                         <User className="mr-2 h-4 w-4" />
                         Profile settings

@@ -15,19 +15,19 @@ export function ApplicationsTable() {
       <table className="min-w-full bg-card border border-border">
         <thead className="bg-muted">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">
               Application #
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">
               Student Name
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">
               Program
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-body uppercase">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">
               Actions
             </th>
           </tr>
@@ -35,13 +35,13 @@ export function ApplicationsTable() {
         <tbody className="divide-y divide-border">
           {applications.map((app: Application) => (
             <tr key={app.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-body">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {app.application_number}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {app.full_name}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-body">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {app.program}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">

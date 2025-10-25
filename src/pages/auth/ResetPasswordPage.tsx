@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
     if (status === 'verifying') {
       return (
         <div className="space-y-4 text-center">
-          <p className="text-sm text-body">Verifying your password reset link...</p>
+          <p className="text-sm text-gray-900">Verifying your password reset link...</p>
         </div>
       )
     }
@@ -118,7 +118,7 @@ export default function ResetPasswordPage() {
         <div className="space-y-4 text-center">
           <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/80 p-6">
             <h3 className="text-lg font-semibold text-emerald-700">Password updated successfully</h3>
-            <p className="mt-2 text-sm text-body">
+            <p className="mt-2 text-sm text-gray-900">
               Your password has been reset. You can now sign in with your new password.
             </p>
           </div>
@@ -140,7 +140,7 @@ export default function ResetPasswordPage() {
         <div className="space-y-4 text-center">
           <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6">
             <h3 className="text-lg font-semibold text-error">Unable to reset password</h3>
-            <p className="mt-2 text-sm text-body">{error}</p>
+            <p className="mt-2 text-sm text-gray-900">{error}</p>
           </div>
           <Button
             type="button"

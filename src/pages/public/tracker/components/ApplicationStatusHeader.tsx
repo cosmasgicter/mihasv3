@@ -109,7 +109,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
               initial={maybeMotion({ scale: 0 })}
               animate={maybeMotion({ scale: 1 })}
               transition={maybeMotion({ delay: 0.5, type: "spring" })}
-              className="inline-block bg-white/20 backdrop-blur-sm px-4 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-body font-black text-base sm:text-2xl border-2 border-white/30 shadow-lg"
+              className="inline-block bg-white/20 backdrop-blur-sm px-4 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-gray-900 font-black text-base sm:text-2xl border-2 border-white/30 shadow-lg"
             >
               {application.status.replace('_', ' ').toUpperCase()}
             </motion.span>
@@ -124,7 +124,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
                 variant="outline"
                 size="sm"
                 onClick={onShare}
-                className="bg-white border-white/30 text-body hover:bg-white btn-mobile touch-target"
+                className="bg-white border-white/30 text-gray-900 hover:bg-white btn-mobile touch-target"
               >
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
@@ -133,7 +133,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
                 variant="outline"
                 size="sm"
                 onClick={onCopy}
-                className="bg-white border-white/30 text-body hover:bg-white btn-mobile touch-target"
+                className="bg-white border-white/30 text-gray-900 hover:bg-white btn-mobile touch-target"
               >
                 <Copy className="h-4 w-4 mr-2" />
                 {copied ? 'Copied!' : 'Copy #'}
@@ -145,7 +145,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
                 size="sm"
                 onClick={onDownloadSlip}
                 loading={slipLoading}
-                className="bg-white border-white/30 text-body hover:bg-white btn-mobile touch-target"
+                className="bg-white border-white/30 text-gray-900 hover:bg-white btn-mobile touch-target"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download Slip
@@ -155,7 +155,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
                 size="sm"
                 onClick={onEmailSlip}
                 loading={emailLoading}
-                className="bg-white border-white/30 text-body hover:bg-white btn-mobile touch-target"
+                className="bg-white border-white/30 text-gray-900 hover:bg-white btn-mobile touch-target"
               >
                 <Mail className="h-4 w-4 mr-2" />
                 Email Me the Slip

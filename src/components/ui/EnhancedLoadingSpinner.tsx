@@ -117,9 +117,9 @@ export function FullScreenLoader({
       <div className="text-center space-y-4">
         <EnhancedLoadingSpinner size="xl" variant={variant} color="primary" />
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-body">{text}</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{text}</h3>
           {subtext && (
-            <p className="text-sm text-body">{subtext}</p>
+            <p className="text-sm text-gray-900">{subtext}</p>
           )}
         </div>
       </div>
@@ -192,7 +192,7 @@ export function LoadingButton({
           'h-10 px-4': size === 'md', 
           'h-12 px-6 text-lg': size === 'lg'
         },
-        'bg-primary text-body hover:bg-primary focus-visible:ring-blue-500',
+        'bg-primary text-gray-900 hover:bg-primary focus-visible:ring-blue-500',
         className
       )}
     >

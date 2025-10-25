@@ -42,7 +42,7 @@ export const KeyboardShortcutsHelp = () => {
               className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-lg shadow-xl p-6 z-50 w-full max-w-md"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-body flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                   <Keyboard className="h-5 w-5" />
                   Keyboard Shortcuts
                 </h3>
@@ -56,7 +56,7 @@ export const KeyboardShortcutsHelp = () => {
               <div className="space-y-3">
                 {shortcuts.map((shortcut, index) => (
                   <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm text-body">{shortcut.description}</span>
+                    <span className="text-sm text-gray-900">{shortcut.description}</span>
                     <div className="flex items-center gap-1">
                       {shortcut.keys.map((key, i) => (
                         <span key={i}>

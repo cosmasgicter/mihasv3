@@ -314,7 +314,7 @@ export default function AdminDashboard() {
                     size="sm"
                     onClick={refreshDashboard}
                     loading={isRefreshing}
-                    className="bg-card/80 border-white/30 text-body hover:bg-white/90"
+                    className="bg-card/80 border-white/30 text-gray-900 hover:bg-white/90"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Refresh

@@ -162,9 +162,9 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
               return (
                 <div key={category} className="border border-border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-body flex items-center space-x-2">
+                  <h3 className="font-semibold text-gray-900 flex items-center space-x-2">
                     <span>{category}</span>
-                    <span className="text-sm text-body">({selectedInCategory}/{categoryPermissions.length})</span>
+                    <span className="text-sm text-gray-900">({selectedInCategory}/{categoryPermissions.length})</span>
                   </h3>
                   <Button
                     variant="outline"
@@ -233,7 +233,7 @@ export function UserPermissions({ user, isOpen, onClose, onSave, initialPermissi
 
         <DialogFooter>
           <div className="flex items-center justify-between w-full">
-            <div className="text-sm text-body">
+            <div className="text-sm text-gray-900">
               {selectedPermissions.length} of {AVAILABLE_PERMISSIONS.length} permissions selected
             </div>
             <div className="flex space-x-2">

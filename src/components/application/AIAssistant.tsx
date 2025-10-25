@@ -669,7 +669,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  <span className="ml-2 text-body">Loading conversation...</span>
+                  <span className="ml-2 text-gray-900">Loading conversation...</span>
                 </div>
               ) : (
                 messages.map((message) => (
@@ -725,7 +725,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                         <div className="w-2 h-2 bg-primary/80 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                         <div className="w-2 h-2 bg-primary/80 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
-                      <span className="text-xs text-body">AI is thinking...</span>
+                      <span className="text-xs text-gray-900">AI is thinking...</span>
                     </div>
                   </div>
                 </motion.div>
@@ -759,7 +759,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
                 </Button>
               </div>
               {currentStep && (
-                <p className="text-xs text-body mt-2 text-center">
+                <p className="text-xs text-gray-900 mt-2 text-center">
                   <Lightbulb className="w-5 h-5" /> Currently on Step {currentStep} - I can help with this step specifically
                 </p>
               )}

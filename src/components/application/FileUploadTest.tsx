@@ -131,7 +131,7 @@ export function FileUploadTest() {
 
       {uploading && (
         <div className="mb-4">
-          <div className="flex justify-between text-sm text-body mb-1">
+          <div className="flex justify-between text-sm text-gray-900 mb-1">
             <span>Uploading...</span>
             <span>{progress}%</span>
           </div>
@@ -146,7 +146,7 @@ export function FileUploadTest() {
 
       {files.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-body mb-2">
+          <h3 className="text-sm font-medium text-gray-900 mb-2">
             Uploaded Files ({files.length})
           </h3>
           {files.map((file) => (

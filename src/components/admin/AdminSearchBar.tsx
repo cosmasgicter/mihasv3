@@ -175,7 +175,7 @@ export function AdminSearchBar() {
             </div>
             
             {results.length === 0 && query.length > 2 && (
-              <div className="p-6 text-center text-body">
+              <div className="p-6 text-center text-gray-900">
                 <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No results found for "{query}"</p>
               </div>

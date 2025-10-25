@@ -26,7 +26,7 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
           <Button
             onClick={onRefresh}
             disabled={refreshing}
-            className="bg-card/80 hover:bg-card/80 text-body border-white/30"
+            className="bg-card/80 hover:bg-card/80 text-gray-900 border-white/30"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
