@@ -35,7 +35,18 @@ export function useDocumentGeneration() {
         throw new Error('Failed to fetch application data')
       }
 
-      const { data: application } = await response.json()
+      const result = await response.json()
+      const application = result.application || result.data
+      
+      if (!application) {
+        console.error('No application data in response:', result)
+        throw new Error('No application data received')
+      }
+
+      if (!application.application_number || !application.public_tracking_code) {
+        console.error('Missing required fields:', application)
+        throw new Error('Missing required application fields')
+      }
       
       let pdfBlob: Blob
       let filename: string
@@ -53,7 +64,7 @@ export function useDocumentGeneration() {
             intake_name: application.intake,
             institution: application.institution,
             full_name: application.full_name,
-            email: application.email,
+            email: application.email || '',
             phone: application.phone
           })
           filename = `application_slip_${application.application_number}.pdf`
