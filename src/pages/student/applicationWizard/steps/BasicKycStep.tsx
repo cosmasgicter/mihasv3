@@ -125,7 +125,6 @@ const BasicKycStep = ({
             {...register('passport_number')}
             label="Passport Number"
             error={errors.passport_number?.message}
-            placeholder="e.g., ZM1234567"
             helperText="Provide either NRC or Passport (one is sufficient)"
           />
         </div>
