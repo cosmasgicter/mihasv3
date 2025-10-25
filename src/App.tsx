@@ -87,7 +87,7 @@ function App() {
               <AnalyticsTracker>
                 <SessionMonitor />
                 <SimpleErrorBoundary>
-                  <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 transition-colors duration-500">
+                  <div className="min-h-screen bg-background transition-colors duration-500">
                     <ParticleBackground />
                     <AppLayout>
                       <Routes>
