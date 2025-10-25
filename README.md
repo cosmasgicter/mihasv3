@@ -2,7 +2,7 @@
 
 ## 🎯 Project Overview
 
-MIHAS (Medical Institute of Health and Allied Sciences) Application System V3 - A complete TypeScript/React application system for student admissions with enterprise-grade eligibility checking.
+MIHAS (Mukuba Institute of Health and Allied Sciences) Application System V3 - A complete TypeScript/React application system for student admissions with enterprise-grade eligibility checking.
 
 ## 📁 Project Structure
 

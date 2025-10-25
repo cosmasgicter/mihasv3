@@ -113,7 +113,7 @@ function buildPasswordResetEmail({ actionLink, appName, supportEmail }) {
           <tr>
             <td style="background:${COLORS.primaryBlue};padding:24px 40px;text-align:center;">
               <h1 style="margin:0;color:${COLORS.white};font-size:24px;font-weight:600;">MIHAS</h1>
-              <p style="margin:4px 0 0;color:${COLORS.white};font-size:14px;opacity:0.9;">Medical Institute of Health and Allied Sciences</p>
+              <p style="margin:4px 0 0;color:${COLORS.white};font-size:14px;opacity:0.9;">Mukuba Institute of Health and Allied Sciences</p>
             </td>
           </tr>
           <tr>

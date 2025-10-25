@@ -61,7 +61,7 @@ export async function onRequest(context) {
             <p>If you have any questions, please contact us at admissions@mihas.edu.zm</p>
           </div>
           <div class="footer">
-            <p>Medical Institute of Health and Allied Sciences</p>
+            <p>Mukuba Institute of Health and Allied Sciences</p>
             <p>This is an automated reminder. Please do not reply to this email.</p>
           </div>
         </div>
