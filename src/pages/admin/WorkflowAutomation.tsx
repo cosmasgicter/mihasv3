@@ -6,6 +6,7 @@ import { useRoleQuery, isAdminRole } from '@/hooks/auth/useRoleQuery'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { workflowAutomation, WorkflowRule } from '@/lib/workflowAutomation'
+import { toast } from '@/lib/toast'
 
 interface WorkflowStats {
   totalRules: number
@@ -78,7 +79,7 @@ export default function WorkflowAutomation() {
   const runManualWorkflow = async () => {
     try {
       const result = await workflowAutomation.runScheduledWorkflows()
-      toast.success('Workflow Complete', `Processed: ${result.processed}, Errors: ${result.errors}`).\nProcessed: ${result.processed}\nErrors: ${result.errors}`)
+      toast.success('Workflow Complete', `Processed: ${result.processed}, Errors: ${result.errors}`)
       await loadWorkflowData()
     } catch (error) {
       console.error('Manual workflow execution failed:', error)
