@@ -285,10 +285,10 @@ export async function onRequest(context) {
               read: false
             });
             
-            // Email notification (if configured)
+            // Email notification (send immediately)
             if (data.email && context.env.RESEND_API_KEY) {
               const { sendEmail } = await import('../_lib/emailService.js');
-              await sendEmail({
+              sendEmail({
                 to: data.email,
                 subject: title,
                 html: `
@@ -305,7 +305,7 @@ export async function onRequest(context) {
                   </div>
                 `,
                 env: context.env
-              });
+              }).catch(err => console.error('Email send error:', err));
             }
           }
           
@@ -385,10 +385,10 @@ export async function onRequest(context) {
                 read: false
               });
               
-              // Email notification (if configured)
+              // Email notification (send immediately)
               if (data.email && context.env.RESEND_API_KEY) {
                 const { sendEmail } = await import('../_lib/emailService.js');
-                await sendEmail({
+                sendEmail({
                   to: data.email,
                   subject: notification.title,
                   html: `
@@ -404,7 +404,7 @@ export async function onRequest(context) {
                     </div>
                   `,
                   env: context.env
-                });
+                }).catch(err => console.error('Email send error:', err));
               }
             }
           }
