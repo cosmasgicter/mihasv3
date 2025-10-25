@@ -23,13 +23,19 @@ export function useTokenRefresh() {
 
     checkToken()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
 
       if (event === 'TOKEN_REFRESHED' && session?.expires_at) {
         setLastRefresh(new Date())
         setTokenExpiry(new Date(session.expires_at * 1000))
         setRefreshCount(prev => prev + 1)
+      }
+      
+      if (event === 'SIGNED_OUT') {
+        setTokenExpiry(null)
+        setLastRefresh(null)
+        setRefreshCount(0)
       }
     })
 
