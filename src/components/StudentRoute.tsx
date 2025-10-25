@@ -25,8 +25,8 @@ export function StudentRoute({ children }: StudentRouteProps) {
     return <Navigate to="/auth/signin" replace />
   }
 
-  // Redirect admins to admin dashboard
-  if (isAdmin) {
+  // Redirect admins to admin dashboard (double-check user exists)
+  if (user && isAdmin) {
     return <Navigate to="/admin/dashboard" replace />
   }
 

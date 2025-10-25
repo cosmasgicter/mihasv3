@@ -18,21 +18,20 @@ export async function onRequestPost(context) {
     console.log('[SIGNUP] Request body:', JSON.stringify(body, null, 2));
     const { email, password, ...userData } = body;
     
-    // Create auth user using signUp (not admin.createUser)
-    const { data: authData, error: authError } = await supabaseAdminClient.auth.signUp({
+    // Create auth user with admin client (auto-confirms email)
+    const { data: authData, error: authError } = await supabaseAdminClient.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: {
-          full_name: userData.full_name,
-          phone: userData.phone,
-          date_of_birth: userData.date_of_birth,
-          sex: userData.sex,
-          residence_town: userData.residence_town,
-          nationality: userData.nationality,
-          next_of_kin_name: userData.next_of_kin_name,
-          next_of_kin_phone: userData.next_of_kin_phone
-        }
+      email_confirm: true,
+      user_metadata: {
+        full_name: userData.full_name,
+        phone: userData.phone,
+        date_of_birth: userData.date_of_birth,
+        sex: userData.sex,
+        residence_town: userData.residence_town,
+        nationality: userData.nationality,
+        next_of_kin_name: userData.next_of_kin_name,
+        next_of_kin_phone: userData.next_of_kin_phone
       }
     });
     
@@ -130,9 +129,11 @@ export async function onRequestPost(context) {
       });
     }
     
+    // Return success - frontend will auto-login with credentials
     return new Response(JSON.stringify({ 
       user: authData.user,
-      message: 'Account created successfully'
+      message: 'Account created successfully',
+      autoLogin: true
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

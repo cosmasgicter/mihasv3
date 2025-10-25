@@ -186,6 +186,7 @@ export function useSessionListener() {
     }
 
     try {
+      // Create account via API
       const response = await fetch(`${apiBaseUrl}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -208,10 +209,16 @@ export function useSessionListener() {
         password
       })
 
-      if (signInError || !signInData.session) {
+      if (signInError) {
+        console.error('[SignUp] Auto-login error:', signInError)
         return { user: result.user, error: 'Account created but auto sign-in failed. Please sign in manually.' }
       }
 
+      if (!signInData.session || !signInData.user) {
+        return { user: result.user, error: 'Account created but session not established. Please sign in manually.' }
+      }
+
+      // Set user state and return session
       setUser(signInData.user)
       return { user: signInData.user, session: signInData.session }
     } catch (error) {
@@ -226,8 +233,10 @@ export function useSessionListener() {
   }, [apiBaseUrl])
 
   const signOut = useCallback(async () => {
+    // Clear user state immediately to prevent stale data
+    setUser(null)
+    
     if (!isSupabaseConfigured) {
-      setUser(null)
       return
     }
 
@@ -249,7 +258,6 @@ export function useSessionListener() {
     } catch {}
     
     await supabase.auth.signOut()
-    setUser(null)
   }, [])
 
   const requestPasswordReset = useCallback(async (
