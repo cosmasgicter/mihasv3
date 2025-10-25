@@ -122,6 +122,15 @@ export async function onRequest(context) {
         .eq('subject', subject)
         .order('created_at', { ascending: false })
         .limit(1);
+      
+      // Create in-app notification
+      await supabaseAdmin.from('in_app_notifications').insert({
+        user_id: application.user_id,
+        title: 'Application Slip Sent',
+        message: `Your application slip for ${application.application_number} has been sent to ${application.email}`,
+        type: 'info',
+        priority: 'normal'
+      });
     } else {
       await supabaseAdmin.from('email_queue')
         .update({ status: 'failed', error_message: emailResult.error })
