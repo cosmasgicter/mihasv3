@@ -104,7 +104,7 @@ const ApplicationWizardContent = () => {
         ]
       case 1:
         return [
-          { label: `${values.grades?.length || 0} subjects added (min 5)`, completed: (values.grades?.length || 0) >= 5 },
+          { label: `${selectedGrades.length} subjects added (min 5)`, completed: selectedGrades.length >= 5 },
           { label: 'Result slip uploaded', completed: !!resultSlipFile || !!uploadedFiles.result_slip }
         ]
       case 2:
