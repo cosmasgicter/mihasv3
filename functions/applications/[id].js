@@ -248,6 +248,7 @@ export async function onRequest(context) {
           // Send notification to student
           if (!error && data) {
             const notificationTitles = {
+              'submitted': '✅ Application Submitted Successfully',
               'approved': '🎉 Application Approved!',
               'rejected': '❌ Application Status Update',
               'under_review': '👀 Application Under Review',
@@ -255,6 +256,7 @@ export async function onRequest(context) {
             };
             
             const notificationContents = {
+              'submitted': `Your application #${data.application_number} for ${data.program} has been submitted successfully and is under review.`,
               'approved': `Congratulations! Your application #${data.application_number} for ${data.program} has been approved. Welcome to our institution!`,
               'rejected': `Your application #${data.application_number} for ${data.program} has been reviewed. Please check your email for detailed feedback.`,
               'under_review': `Your application #${data.application_number} for ${data.program} is currently being reviewed by our admissions team.`,
@@ -262,6 +264,7 @@ export async function onRequest(context) {
             };
             
             const notificationTypes = {
+              'submitted': 'success',
               'approved': 'success',
               'rejected': 'error',
               'under_review': 'info',
