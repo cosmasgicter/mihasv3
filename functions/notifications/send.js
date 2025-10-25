@@ -1,4 +1,5 @@
 import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
+import { sendEmail } from '../_lib/emailService.js';
 
 export async function onRequestPost(context) {
   const { request } = context;
@@ -66,7 +67,8 @@ export async function onRequestPost(context) {
         message,
         type: type || 'info',
         action_url,
-        is_read: false
+        is_read: false,
+        dedup_hash: dedupHash
       })
       .select()
       .single();
@@ -78,7 +80,42 @@ export async function onRequestPost(context) {
       });
     }
     
-    return new Response(JSON.stringify({ success: true, notification: data }), {
+    // Send email notification
+    let emailResult = null;
+    try {
+      const { data: profile } = await supabaseAdminClient
+        .from('profiles')
+        .select('email, full_name')
+        .eq('id', user_id)
+        .single();
+      
+      if (profile?.email) {
+        const emailHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">${title}</h2>
+            <p style="font-size: 16px; line-height: 1.6; color: #374151;">${message}</p>
+            ${action_url ? `<p style="margin-top: 20px;"><a href="${action_url}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Details</a></p>` : ''}
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+            <p style="font-size: 14px; color: #6b7280;">MIHAS - Mukuba Institute of Health and Allied Sciences</p>
+          </div>
+        `;
+        
+        emailResult = await sendEmail({
+          to: profile.email,
+          subject: title,
+          html: emailHtml,
+          env: context.env
+        });
+      }
+    } catch (emailError) {
+      console.error('Email send error:', emailError);
+    }
+    
+    return new Response(JSON.stringify({ 
+      success: true, 
+      notification: data,
+      email_sent: emailResult?.success || false
+    }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

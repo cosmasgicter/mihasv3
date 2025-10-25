@@ -101,7 +101,7 @@ export async function onRequest(context) {
           <tr>
             <td style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
               <p style="color: #6b7280; font-size: 12px; margin: 0;">MIHAS Application System</p>
-              <p style="color: #9ca3af; font-size: 11px; margin: 5px 0 0 0;">Medical Institute of Health and Allied Sciences</p>
+              <p style="color: #9ca3af; font-size: 11px; margin: 5px 0 0 0;">Mukuba Institute of Health and Allied Sciences</p>
             </td>
           </tr>
         </table>
