@@ -186,11 +186,14 @@ export function useSessionListener() {
     }
 
     try {
+      // Remove fields that shouldn't be sent to backend
+      const { confirmPassword, turnstileToken, ...cleanUserData } = userData
+      
       // Create account via API
       const response = await fetch(`${apiBaseUrl}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, ...userData })
+        body: JSON.stringify({ email, password, ...cleanUserData })
       })
 
       const result = await response.json()
