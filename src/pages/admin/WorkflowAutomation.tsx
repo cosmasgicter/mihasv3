@@ -6,7 +6,7 @@ import { useRoleQuery, isAdminRole } from '@/hooks/auth/useRoleQuery'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { workflowAutomation, WorkflowRule } from '@/lib/workflowAutomation'
-import { toast } from '@/lib/toast'
+import { useToastStore } from '@/components/ui/Toast'
 
 interface WorkflowStats {
   totalRules: number
@@ -19,6 +19,7 @@ export default function WorkflowAutomation() {
   const { profile } = useProfileQuery()
   const { isAdmin: hasAdminRole } = useRoleQuery()
   const isAdmin = hasAdminRole || isAdminRole(profile?.role)
+  const toast = useToastStore()
   const [rules, setRules] = useState<WorkflowRule[]>([])
   const [stats, setStats] = useState<WorkflowStats>({
     totalRules: 0,
@@ -79,11 +80,11 @@ export default function WorkflowAutomation() {
   const runManualWorkflow = async () => {
     try {
       const result = await workflowAutomation.runScheduledWorkflows()
-      toast.success('Workflow Complete', `Processed: ${result.processed}, Errors: ${result.errors}`)
+      toast.addToast('success', `Workflow Complete: Processed ${result.processed}, Errors ${result.errors}`)
       await loadWorkflowData()
     } catch (error) {
       console.error('Manual workflow execution failed:', error)
-      toast.error('Error', 'Manual workflow execution failed')
+      toast.addToast('error', 'Manual workflow execution failed')
     }
   }
 
@@ -353,7 +354,7 @@ export default function WorkflowAutomation() {
             <h3 className="text-lg font-semibold text-body mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button
-                onClick={() => toast.info('Coming Soon', 'Create custom workflow rule')}
+                onClick={() => toast.addToast('info', 'Coming Soon: Create custom workflow rule')}
                 variant="outline"
                 className="flex items-center justify-center gap-2 p-4 h-auto"
               >
@@ -365,7 +366,7 @@ export default function WorkflowAutomation() {
               </Button>
               
               <Button
-                onClick={() => toast.info('Coming Soon', 'Export workflow configuration')}
+                onClick={() => toast.addToast('info', 'Coming Soon: Export workflow configuration')}
                 variant="outline"
                 className="flex items-center justify-center gap-2 p-4 h-auto"
               >
@@ -377,7 +378,7 @@ export default function WorkflowAutomation() {
               </Button>
               
               <Button
-                onClick={() => toast.info('Coming Soon', 'View detailed analytics')}
+                onClick={() => toast.addToast('info', 'Coming Soon: View detailed analytics')}
                 variant="outline"
                 className="flex items-center justify-center gap-2 p-4 h-auto"
               >
