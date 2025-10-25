@@ -188,3 +188,17 @@ export function SkeletonText({ lines = 3 }: { lines?: number }) {
     </div>
   )
 }
+
+// Dashboard Skeleton
+export function SkeletonDashboard() {
+  return (
+    <div className="space-y-6">
+      <PageHeaderSkeleton />
+      <StatsGridSkeleton />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ChartSkeleton />
+        <ChartSkeleton />
+      </div>
+    </div>
+  )
+}
