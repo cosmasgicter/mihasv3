@@ -413,11 +413,13 @@ export default function StudentDashboard() {
                                   setApplications(prev => prev.filter(app => app.id !== application.id))
                                   setError('')
                                   useToastStore.getState().addToast('success', 'Draft deleted successfully')
+                                  loadDashboardData() // Reload to clear cache
                                 } catch (error) {
                                   console.error('Delete error:', error)
                                   if (error instanceof Error && (error.message.includes('404') || error.message.includes('not found'))) {
                                     setApplications(prev => prev.filter(app => app.id !== application.id))
                                     useToastStore.getState().addToast('success', 'Draft removed')
+                                    loadDashboardData() // Reload to clear cache
                                   } else {
                                     const errorMsg = error instanceof Error ? error.message : 'Failed to delete draft'
                                     setError(errorMsg)
