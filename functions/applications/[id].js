@@ -313,7 +313,7 @@ export async function onRequest(context) {
           if (error) throw new Error(error.message);
           
           // Audit log
-          if (!error && data) {
+          try {
             const auditLogger = new AuditLogger(supabase);
             await auditLogger.logApplicationAction(
               authContext.user.id,
@@ -322,12 +322,16 @@ export async function onRequest(context) {
               { old_status: app.status, new_status: status, notes },
               request
             );
+          } catch (auditError) {
+            console.error('Audit log error:', auditError);
           }
           
           // Execute workflows
-          if (!error && data) {
+          try {
             const { executeWorkflows } = await import('../_lib/workflowEngine.js');
             await executeWorkflows('status_changed', data);
+          } catch (workflowError) {
+            console.error('Workflow execution error:', workflowError);
           }
           
           return new Response(JSON.stringify({ success: true, data }), {
@@ -354,8 +358,13 @@ export async function onRequest(context) {
             .select()
             .single();
           
+          if (error) {
+            console.error('Payment status update error:', error);
+            throw new Error(error.message);
+          }
+          
           // Send notification to student
-          if (!error && data) {
+          if (data) {
             const paymentNotifications = {
               'verified': {
                 title: '✅ Payment Verified',
@@ -377,14 +386,18 @@ export async function onRequest(context) {
             const notification = paymentNotifications[paymentStatus];
             if (notification) {
               // In-app notification
-              await supabase.from('in_app_notifications').insert({
-                user_id: data.user_id,
-                title: notification.title,
-                content: notification.content,
-                type: notification.type,
-                action_url: `/student/application/${id}`,
-                read: false
-              });
+              try {
+                await supabase.from('in_app_notifications').insert({
+                  user_id: data.user_id,
+                  title: notification.title,
+                  content: notification.content,
+                  type: notification.type,
+                  action_url: `/student/application/${id}`,
+                  read: false
+                });
+              } catch (notifError) {
+                console.error('Notification insert error:', notifError);
+              }
               
               // Email notification (send immediately)
               if (data.email && context.env.RESEND_API_KEY) {
@@ -410,7 +423,6 @@ export async function onRequest(context) {
             }
           }
           
-          if (error) throw new Error(error.message);
           return new Response(JSON.stringify({ success: true, data }), {
             status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }

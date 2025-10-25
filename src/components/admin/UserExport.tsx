@@ -212,7 +212,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
       const filteredUsers = getFilteredUsers()
 
       if (filteredUsers.length === 0) {
-        alert('No users match the selected filters.')
+        toast.info('No Results', 'No users match the selected filters')
         return
       }
 
@@ -260,7 +260,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
       }
     } catch (error) {
       console.error('Export failed:', error)
-      alert('Export failed. Please try again.')
+      toast.error('Export Failed', 'Please try again')
     } finally {
       setExporting(false)
     }

@@ -78,11 +78,11 @@ export default function WorkflowAutomation() {
   const runManualWorkflow = async () => {
     try {
       const result = await workflowAutomation.runScheduledWorkflows()
-      alert(`Manual workflow execution completed.\nProcessed: ${result.processed}\nErrors: ${result.errors}`)
+      toast.success('Workflow Complete', `Processed: ${result.processed}, Errors: ${result.errors}`).\nProcessed: ${result.processed}\nErrors: ${result.errors}`)
       await loadWorkflowData()
     } catch (error) {
       console.error('Manual workflow execution failed:', error)
-      alert('Manual workflow execution failed. Please try again.')
+      toast.error('Error', 'Manual workflow execution failed')
     }
   }
 
@@ -352,7 +352,7 @@ export default function WorkflowAutomation() {
             <h3 className="text-lg font-semibold text-body mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button
-                onClick={() => alert('Feature coming soon: Create custom workflow rule')}
+                onClick={() => toast.info('Coming Soon', 'Create custom workflow rule')}
                 variant="outline"
                 className="flex items-center justify-center gap-2 p-4 h-auto"
               >
@@ -364,7 +364,7 @@ export default function WorkflowAutomation() {
               </Button>
               
               <Button
-                onClick={() => alert('Feature coming soon: Export workflow configuration')}
+                onClick={() => toast.info('Coming Soon', 'Export workflow configuration')}
                 variant="outline"
                 className="flex items-center justify-center gap-2 p-4 h-auto"
               >
@@ -376,7 +376,7 @@ export default function WorkflowAutomation() {
               </Button>
               
               <Button
-                onClick={() => alert('Feature coming soon: View detailed analytics')}
+                onClick={() => toast.info('Coming Soon', 'View detailed analytics')}
                 variant="outline"
                 className="flex items-center justify-center gap-2 p-4 h-auto"
               >

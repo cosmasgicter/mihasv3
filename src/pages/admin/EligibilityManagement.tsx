@@ -116,7 +116,7 @@ export default function EligibilityManagement() {
       resetRuleForm()
     } catch (error) {
       console.error('Error saving rule:', error)
-      alert('Failed to save rule')
+      toast.error('Error', 'Failed to save rule')
     }
   }
 
@@ -139,7 +139,7 @@ export default function EligibilityManagement() {
       await loadRules()
     } catch (error) {
       console.error('Error deleting rule:', error)
-      alert('Failed to delete rule')
+      toast.error('Error', 'Failed to delete rule')
     }
   }
 

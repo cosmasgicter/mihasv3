@@ -115,7 +115,7 @@ export default function DatabaseMonitoring() {
     )
     
     if (result) {
-      alert('Maintenance completed successfully')
+      toast.success('Success', 'Maintenance completed successfully')
       await loadDashboardData()
     }
     
@@ -135,7 +135,7 @@ export default function DatabaseMonitoring() {
     )
     
     if (result) {
-      alert(`Archived ${result} old applications`)
+      toast.success('Success', `Archived ${result} old applications`)
       await loadDashboardData()
     }
     

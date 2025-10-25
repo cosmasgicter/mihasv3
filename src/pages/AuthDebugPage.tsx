@@ -57,7 +57,7 @@ export function AuthDebugPage() {
       }
     })
     sessionStorage.clear()
-    alert('Cleared all auth data. Please refresh the page.')
+    toast.success('Cleared', 'All auth data cleared. Please refresh the page.')
   }
 
   return (

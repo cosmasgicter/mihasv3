@@ -79,11 +79,11 @@ export function ContinueApplication() {
         window.dispatchEvent(new CustomEvent('draftCleared'))
       } else {
         console.error('Failed to delete draft:', result.error)
-        alert('Failed to delete draft: ' + (result.error || 'Unknown error'))
+        toast.error('Delete Failed', result.error || 'Unknown error')
       }
     } catch (error) {
       console.error('Error deleting draft:', error)
-      alert('Failed to delete draft. Please try again.')
+      toast.error('Delete Failed', 'Please try again')
     } finally {
       setDeleting(false)
     }

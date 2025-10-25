@@ -48,7 +48,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
       if (selectedFile.type === 'text/csv' || selectedFile.name.endsWith('.csv')) {
         parseCSVFile(selectedFile)
       } else {
-        alert('Please select a CSV file.')
+        toast.error('Error', 'Please select a CSV file')
         setFile(null)
       }
     }
@@ -61,7 +61,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
       const lines = text.split('\n').filter(line => line.trim())
       
       if (lines.length < 2) {
-        alert('CSV file must have at least a header row and one data row.')
+        toast.error('Error', 'CSV file must have at least a header row and one data row')
         setFile(null)
         return
       }
@@ -75,7 +75,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
       )
       
       if (missingFields.length > 0) {
-        alert(`Missing required fields: ${missingFields.join(', ')}`)
+        toast.error('Missing Fields', missingFields.join(', '))
         setFile(null)
         return
       }
@@ -241,7 +241,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
       reader.readAsText(file)
     } catch (error) {
       console.error('Import failed:', sanitizeForLog(error))
-      alert('Import failed. Please try again.')
+      toast.error('Import Failed', 'Please try again')
     } finally {
       setImporting(false)
     }
