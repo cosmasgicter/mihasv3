@@ -14,7 +14,8 @@ async function fetchApplicationDetails(id, includeParam, supabase) {
   const result = { ...application };
   const includes = includeParam ? String(includeParam).split(',') : ['grades', 'documents', 'statusHistory'];
 
-  if (includes.includes('grades')) {
+  // Always fetch grades
+  if (true) {
     const { data: grades } = await supabase
       .from('application_grades')
       .select('id, grade, subject_id')
