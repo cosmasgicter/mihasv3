@@ -79,75 +79,112 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     const doc = new jsPDF();
     const institutionName = getFullInstitutionName(data.institution);
     
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
     // Header
     doc.setFillColor(14, 165, 233);
-    doc.rect(0, 0, 210, 45, 'F');
+    doc.rect(0, 0, pageWidth, 40, 'F');
     
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(18);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(institutionName, 105, 15, { align: 'center' });
+    doc.text(institutionName, pageWidth / 2, 15, { align: 'center' });
     
-    doc.setFontSize(20);
-    doc.text('Application Received', 105, 26, { align: 'center' });
-    
-    doc.setFontSize(11);
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
-    doc.text('Official Application Slip', 105, 36, { align: 'center' });
+    doc.text('Application Slip', pageWidth / 2, 28, { align: 'center' });
     
-    // Content
-    doc.setTextColor(75, 85, 99);
+    // Date and Status
+    doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
-    doc.text('Thank you for submitting your application. We have received the', 14, 52);
-    doc.text('details below and will notify you once they have been reviewed.', 14, 58);
+    doc.text(`Date: ${formatDateTime(data.submitted_at)}`, pageWidth - 20, 50, { align: 'right' });
+    
+    // Line separator
+    doc.setLineWidth(0.5);
+    doc.line(20, 55, pageWidth - 20, 55);
+    
+    // Introduction
+    let y = 65;
+    doc.setFontSize(10);
+    doc.setTextColor(75, 85, 99);
+    doc.text('Thank you for submitting your application. Below are your application details.', 20, y);
+    doc.text('Please keep this slip for your records.', 20, y + 5);
+    
+    // Application Details Section
+    y += 15;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('APPLICATION DETAILS', 20, y);
     
     autoTable(doc, {
-      startY: 65,
+      startY: y + 5,
       head: [],
       body: [
-        ['Application number', safeText(data.application_number)],
-        ['Tracking code', safeText(data.public_tracking_code)],
+        ['Application Number', safeText(data.application_number)],
+        ['Tracking Code', safeText(data.public_tracking_code)],
         ['Programme', safeText(data.program_name, 'Not specified')],
-        ['Submission date', formatDateTime(data.submitted_at)],
-        ['Payment status', formatStatusLabel(data.payment_status, 'Pending Review')]
+        ['Intake', safeText(data.intake_name, 'Not specified')],
+        ['Institution', institutionName],
+        ['Application Status', formatStatusLabel(data.status, 'Pending')],
+        ['Payment Status', formatStatusLabel(data.payment_status, 'Pending Review')]
       ],
-      theme: 'grid',
+      theme: 'striped',
       headStyles: { fillColor: [249, 250, 251], textColor: [17, 24, 39] },
-      bodyStyles: { textColor: [17, 24, 39] },
+      bodyStyles: { textColor: [17, 24, 39], fontSize: 10 },
       columnStyles: {
         0: { fillColor: [249, 250, 251], fontStyle: 'bold', cellWidth: 60 },
         1: { cellWidth: 'auto' }
       }
     });
     
-    let finalY = (doc as any).lastAutoTable.finalY + 10;
+    let finalY = (doc as any).lastAutoTable.finalY + 12;
     
-    doc.setFontSize(12);
+    // Applicant Information Section
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(17, 24, 39);
-    doc.text('Applicant Information', 14, finalY);
+    doc.setTextColor(0, 0, 0);
+    doc.text('APPLICANT INFORMATION', 20, finalY);
     
     autoTable(doc, {
       startY: finalY + 5,
       head: [],
       body: [
-        ['Full name', safeText(data.full_name)],
+        ['Full Name', safeText(data.full_name)],
         ['Email', safeText(data.email)],
-        ['Phone', safeText(data.phone)]
+        ['Phone', safeText(data.phone)],
+        ['Nationality', safeText(data.nationality, 'Not provided')]
       ],
-      theme: 'grid',
+      theme: 'striped',
+      bodyStyles: { textColor: [17, 24, 39], fontSize: 10 },
       columnStyles: {
         0: { fillColor: [249, 250, 251], fontStyle: 'bold', cellWidth: 60 },
         1: { cellWidth: 'auto' }
       }
     });
     
-    finalY = (doc as any).lastAutoTable.finalY + 10;
+    finalY = (doc as any).lastAutoTable.finalY + 12;
     
+    // Important Notice
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('IMPORTANT NOTICE', 20, finalY);
+    
+    finalY += 6;
     doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
     doc.setTextColor(75, 85, 99);
-    doc.text('Keep this information for your records. You can use your tracking code to', 14, finalY);
-    doc.text('check the status of your application at any time.', 14, finalY + 5);
+    const notices = [
+      '• Keep this slip safe for your records',
+      '• Use your tracking code to check application status online',
+      '• You will be notified via email once your application is reviewed',
+      '• For inquiries, contact: ***REMOVED***'
+    ];
+    notices.forEach(notice => {
+      doc.text(notice, 20, finalY);
+      finalY += 5;
+    });
     
     // QR Code with verification data
     const qrData = JSON.stringify({
@@ -161,7 +198,8 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 240, errorCorrectionLevel: 'M' });
     doc.addImage(qrDataUrl, 'PNG', 150, finalY + 10, 40, 40);
     
-    doc.setFontSize(8);
+    doc.setFontSize(7);
+    doc.setTextColor(107, 114, 128);
     doc.text('Scan to verify', 170, finalY + 55, { align: 'center' });
     
     // Footer
