@@ -144,13 +144,27 @@ export async function onRequest(context) {
       }
 
       const supabase = createSupabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
-      const { data: app } = await supabase
+      const { data: app, error: fetchError } = await supabase
         .from('applications')
-        .select('user_id')
+        .select('user_id, status')
         .eq('id', id)
-        .single();
+        .maybeSingle();
       
-      if (!app || (app.user_id !== authContext.user.id && !authContext.isAdmin)) {
+      if (fetchError) {
+        return new Response(JSON.stringify({ error: fetchError.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      if (!app) {
+        return new Response(JSON.stringify({ error: 'Application not found' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      if (app.user_id !== authContext.user.id && !authContext.isAdmin) {
         return new Response(JSON.stringify({ error: 'Access denied' }), {
           status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
