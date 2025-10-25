@@ -12,45 +12,29 @@ interface AcceptanceLetterData {
   startDate?: string
 }
 
-async function loadImageAsBase64(url: string): Promise<string> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    console.error('Failed to load image:', url, error);
-    return '';
-  }
+function getFullInstitutionName(code: string): string {
+  const names: Record<string, string> = {
+    'KATC': 'Kalulushi Training Centre',
+    'MIHAS': 'Medical Institute of Health and Allied Sciences'
+  };
+  return names[code] || code;
 }
 
 export async function generateAcceptanceLetter(data: AcceptanceLetterData): Promise<Blob> {
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
+  const institutionName = getFullInstitutionName(data.institution)
   
-  // Load logos
-  const baseUrl = window.location.origin;
-  const mihasLogo = await loadImageAsBase64(`${baseUrl}/images/logos/mihas-logo.png`);
-  const katcLogo = await loadImageAsBase64(`${baseUrl}/images/logos/katc-logo.png`);
-  
-  // Header with logos
+  // Header
   doc.setFillColor(14, 165, 233)
   doc.rect(0, 0, pageWidth, 40, 'F')
   
-  if (mihasLogo) doc.addImage(mihasLogo, 'PNG', 15, 8, 25, 25);
-  if (katcLogo) doc.addImage(katcLogo, 'PNG', pageWidth - 40, 8, 25, 25);
-  
   doc.setTextColor(255, 255, 255)
-  doc.setFontSize(20)
+  doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
-  doc.text(data.institution, pageWidth / 2, 18, { align: 'center' })
+  doc.text(institutionName, pageWidth / 2, 15, { align: 'center' })
   
-  doc.setFontSize(12)
+  doc.setFontSize(14)
   doc.setFont('helvetica', 'normal')
   doc.text('Letter of Acceptance', pageWidth / 2, 28, { align: 'center' })
   

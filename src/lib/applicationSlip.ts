@@ -62,21 +62,12 @@ function buildTrackingUrl(code: string): string {
   return `${baseUrl}/track-application?code=${encodeURIComponent(code)}`;
 }
 
-async function loadImageAsBase64(url: string): Promise<string> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    console.error('Failed to load image:', url, error);
-    return '';
-  }
+function getFullInstitutionName(code: string | null | undefined): string {
+  const names: Record<string, string> = {
+    'KATC': 'Kalulushi Training Centre',
+    'MIHAS': 'Medical Institute of Health and Allied Sciences'
+  };
+  return names[code || ''] || code || 'MIHAS';
 }
 
 export async function generateApplicationSlip(data: ApplicationSlipData): Promise<Blob> {
@@ -86,37 +77,32 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
 
   try {
     const doc = new jsPDF();
+    const institutionName = getFullInstitutionName(data.institution);
     
-    // Load logos
-    const baseUrl = window.location.origin;
-    const mihasLogo = await loadImageAsBase64(`${baseUrl}/images/logos/mihas-logo.png`);
-    const katcLogo = await loadImageAsBase64(`${baseUrl}/images/logos/katc-logo.png`);
-    
-    // Header with logos
+    // Header
     doc.setFillColor(14, 165, 233);
     doc.rect(0, 0, 210, 45, 'F');
     
-    if (mihasLogo) doc.addImage(mihasLogo, 'PNG', 15, 8, 25, 25);
-    if (katcLogo) doc.addImage(katcLogo, 'PNG', 170, 8, 25, 25);
-    
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
+    doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text('Application Received', 105, 20, { align: 'center' });
+    doc.text(institutionName, 105, 15, { align: 'center' });
     
-    doc.setFontSize(12);
+    doc.setFontSize(20);
+    doc.text('Application Received', 105, 26, { align: 'center' });
+    
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
-    doc.text('Official Application Slip', 105, 30, { align: 'center' });
-    doc.text(data.institution || 'MIHAS', 105, 38, { align: 'center' });
+    doc.text('Official Application Slip', 105, 36, { align: 'center' });
     
     // Content
     doc.setTextColor(75, 85, 99);
     doc.setFontSize(10);
-    doc.text('Thank you for submitting your application. We have received the', 14, 55);
-    doc.text('details below and will notify you once they have been reviewed.', 14, 61);
+    doc.text('Thank you for submitting your application. We have received the', 14, 52);
+    doc.text('details below and will notify you once they have been reviewed.', 14, 58);
     
     (doc as any).autoTable({
-      startY: 70,
+      startY: 65,
       head: [],
       body: [
         ['Application number', safeText(data.application_number)],
