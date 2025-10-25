@@ -84,18 +84,23 @@ export function useSessionListener() {
 
     initializeSession()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
-
 
       if (event === 'SIGNED_OUT') {
         setUser(null)
         setLoading(false)
+        localStorage.removeItem('supabase.auth.token')
         return
       }
 
-      if (event === 'TOKEN_REFRESHED' && session?.user) {
-        setUser(session.user)
+      if (event === 'TOKEN_REFRESHED') {
+        if (session?.user) {
+          setUser(session.user)
+        } else {
+          await supabase.auth.signOut()
+          setUser(null)
+        }
         return
       }
 
