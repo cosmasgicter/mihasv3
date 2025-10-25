@@ -74,25 +74,58 @@ export async function onRequest(context) {
     const arrayBuffer = await slipFile.arrayBuffer();
     const pdfBuffer = Buffer.from(arrayBuffer);
 
-    // Send email with PDF attachment
+    const subject = `Your MIHAS Application Slip - ${application.application_number}`;
+    const html = `
+      <h2>Your Application Slip</h2>
+      <p>Dear ${application.full_name},</p>
+      <p>Please find your application slip attached to this email.</p>
+      <p><strong>Application Number:</strong> ${application.application_number}</p>
+      <p><strong>Tracking Code:</strong> ${application.public_tracking_code}</p>
+      <p><strong>Program:</strong> ${application.program}</p>
+      <p>Keep this slip for your records.</p>
+      <p>Best regards,<br>MIHAS Admissions Team</p>
+    `;
+
+    // Log to Supabase email_queue
+    await supabaseAdmin.from('email_queue').insert({
+      to_email: application.email,
+      subject,
+      template: 'application_slip',
+      template_data: {
+        application_number: application.application_number,
+        tracking_code: application.public_tracking_code,
+        full_name: application.full_name,
+        program: application.program
+      },
+      status: 'sending',
+      priority: 'high'
+    });
+
+    // Send email with PDF attachment via Resend
     const emailResult = await sendEmailWithPDF({
       to: application.email,
-      subject: `Your MIHAS Application Slip - ${application.application_number}`,
-      html: `
-        <h2>Your Application Slip</h2>
-        <p>Dear ${application.full_name},</p>
-        <p>Please find your application slip attached to this email.</p>
-        <p><strong>Application Number:</strong> ${application.application_number}</p>
-        <p><strong>Tracking Code:</strong> ${application.public_tracking_code}</p>
-        <p><strong>Program:</strong> ${application.program}</p>
-        <p>Keep this slip for your records.</p>
-        <p>Best regards,<br>MIHAS Admissions Team</p>
-      `,
+      subject,
+      html,
       pdfBuffer,
       pdfFilename: `Application-Slip-${application.application_number}.pdf`
     });
 
-    if (!emailResult.success) {
+    // Update email_queue status
+    if (emailResult.success) {
+      await supabaseAdmin.from('email_queue')
+        .update({ status: 'sent', sent_at: new Date().toISOString() })
+        .eq('to_email', application.email)
+        .eq('subject', subject)
+        .order('created_at', { ascending: false })
+        .limit(1);
+    } else {
+      await supabaseAdmin.from('email_queue')
+        .update({ status: 'failed', error_message: emailResult.error })
+        .eq('to_email', application.email)
+        .eq('subject', subject)
+        .order('created_at', { ascending: false })
+        .limit(1);
+        
       return new Response(JSON.stringify({ error: emailResult.error }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
