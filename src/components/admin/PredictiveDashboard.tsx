@@ -476,7 +476,7 @@ export function PredictiveDashboard() {
                 <FileText className="h-4 w-4 mr-1" />
                 Workflow Optimization
               </h4>
-              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+              <p className="text-sm font-medium text-foreground leading-relaxed">
                 {metrics.workflowStats?.successfulExecutions > 50 
                   ? 'Automation is performing well. Consider expanding auto-approval rules for high-confidence applications.'
                   : 'Consider implementing automated document verification for applications with high confidence scores (>90%).'}
@@ -487,7 +487,7 @@ export function PredictiveDashboard() {
                 <Users className="h-4 w-4 mr-1" />
                 Resource Allocation
               </h4>
-              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+              <p className="text-sm font-medium text-foreground leading-relaxed">
                 {metrics.peakApplicationTimes.length > 0 
                   ? `Peak times identified: ${metrics.peakApplicationTimes.slice(0, 2).join(', ')}. Consider increasing staff during these hours.`
                   : 'Application volume is evenly distributed. Current staffing appears adequate.'}
@@ -498,7 +498,7 @@ export function PredictiveDashboard() {
                 <AlertTriangle className="h-4 w-4 mr-1" />
                 Proactive Outreach
               </h4>
-              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+              <p className="text-sm font-medium text-foreground leading-relaxed">
                 {metrics.riskApplications > 0 
                   ? `${metrics.riskApplications} applications identified as high-risk. Consider proactive support outreach.`
                   : 'No high-risk applications detected. Current support processes are effective.'}
@@ -509,7 +509,7 @@ export function PredictiveDashboard() {
                 <Target className="h-4 w-4 mr-1" />
                 Process Improvement
               </h4>
-              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+              <p className="text-sm font-medium text-foreground leading-relaxed">
                 Current efficiency: {Math.round(metrics.efficiencyScore)}%. 
                 {metrics.efficiencyScore >= 90 
                   ? 'Excellent performance! Maintain current processes.'
