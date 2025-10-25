@@ -1,4 +1,4 @@
-import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
+import { createSupabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
 import { AuditLogger } from '../_lib/auditLogger.js';
 
 async function fetchApplicationDetails(id, includeParam, supabase) {
@@ -87,7 +87,7 @@ export async function onRequest(context) {
         });
       }
       
-      const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+      const supabase = createSupabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
       
       // Check access
       if (!authContext.isAdmin) {
@@ -143,7 +143,7 @@ export async function onRequest(context) {
         });
       }
 
-      const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+      const supabase = createSupabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
       const { data: app } = await supabase
         .from('applications')
         .select('user_id')
@@ -193,7 +193,7 @@ export async function onRequest(context) {
 
       const body = await request.json();
       
-      const supabase = supabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+      const supabase = createSupabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
       // Check ownership
       const { data: app } = await supabase
         .from('applications')
