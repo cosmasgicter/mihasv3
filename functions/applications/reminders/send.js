@@ -1,5 +1,5 @@
 import { sendEmail } from '../../_lib/emailService.js';
-import { createSupabaseAdminClient } from '../../_lib/supabaseClient.js';
+import { supabaseAdminClient } from '../../_lib/supabaseClient.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -72,7 +72,7 @@ export async function onRequest(context) {
     const subject = 'Complete Your MIHAS Application';
     
     // Log to Supabase email_queue
-    const supabaseAdmin = createSupabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabaseAdmin = supabaseAdminClient;
     await supabaseAdmin.from('email_queue').insert({
       to_email: email,
       subject,

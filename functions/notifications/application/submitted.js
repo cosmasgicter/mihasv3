@@ -1,4 +1,4 @@
-import { createSupabaseAdminClient } from '../../_lib/supabaseClient.js';
+import { supabaseAdminClient } from '../../_lib/supabaseClient.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,7 +30,7 @@ export async function onRequest(context) {
       });
     }
 
-    const supabaseAdmin = createSupabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabaseAdmin = supabaseAdminClient;
 
     // Get application details
     const { data: application, error: appError } = await supabaseAdmin

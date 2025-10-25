@@ -1,4 +1,4 @@
-import { getUserFromRequest, createSupabaseAdminClient } from '../../_lib/supabaseClient.js';
+import { getUserFromRequest, supabaseAdminClient } from '../../_lib/supabaseClient.js';
 import { sendEmailWithPDF } from '../../_lib/emailService.js';
 
 const corsHeaders = {
@@ -38,7 +38,7 @@ export async function onRequest(context) {
       });
     }
 
-    const supabaseAdmin = createSupabaseAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabaseAdmin = supabaseAdminClient;
 
     // Fetch application
     let query = supabaseAdmin.from('applications').select('*').eq('user_id', authResult.user.id);

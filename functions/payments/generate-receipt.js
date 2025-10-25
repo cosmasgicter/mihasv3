@@ -1,4 +1,4 @@
-import { createSupabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
+import { supabaseAdminClient, getUserFromRequest } from '../_lib/supabaseClient.js';
 
 export async function onRequest(context) {
   const { request } = context;
@@ -38,7 +38,7 @@ export async function onRequest(context) {
       });
     }
     
-    const supabase = createSupabaseAdminClient(context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = supabaseAdminClient;
     const { data: application, error: appError } = await supabase
       .from('applications')
       .select('*')
