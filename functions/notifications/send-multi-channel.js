@@ -66,7 +66,8 @@ export async function onRequest(context) {
       results.email = await sendEmail({
         to: profile.email,
         subject: title,
-        html: `<div style="font-family: Arial, sans-serif;"><h2>${title}</h2><p>${message}</p></div>`
+        html: `<div style="font-family: Arial, sans-serif;"><h2>${title}</h2><p>${message}</p></div>`,
+        env: context.env
       })
     }
 
