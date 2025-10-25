@@ -62,6 +62,22 @@ function buildTrackingUrl(code: string): string {
   return `${baseUrl}/track-application?code=${encodeURIComponent(code)}`;
 }
 
+async function loadImageAsBase64(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Failed to load image:', url);
+    return '';
+  }
+}
+
 export async function generateApplicationSlip(data: ApplicationSlipData): Promise<Blob> {
   if (!data || !data.application_number || !data.public_tracking_code) {
     throw new Error('Missing application data for slip generation');
@@ -70,27 +86,35 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
   try {
     const doc = new jsPDF();
     
-    // Header
+    // Load logos
+    const mihasLogo = await loadImageAsBase64('/images/logos/mihas-logo.png');
+    const katcLogo = await loadImageAsBase64('/images/logos/katc-logo.png');
+    
+    // Header with logos
     doc.setFillColor(14, 165, 233);
-    doc.rect(0, 0, 210, 40, 'F');
+    doc.rect(0, 0, 210, 45, 'F');
+    
+    if (mihasLogo) doc.addImage(mihasLogo, 'PNG', 15, 8, 25, 25);
+    if (katcLogo) doc.addImage(katcLogo, 'PNG', 170, 8, 25, 25);
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text('Application received', 105, 18, { align: 'center' });
+    doc.text('Application Received', 105, 20, { align: 'center' });
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
     doc.text('Official Application Slip', 105, 30, { align: 'center' });
+    doc.text(data.institution || 'MIHAS', 105, 38, { align: 'center' });
     
     // Content
     doc.setTextColor(75, 85, 99);
     doc.setFontSize(10);
-    doc.text('Thank you for submitting your application to MIHAS. We have received the', 14, 50);
-    doc.text('details below and will notify you once they have been reviewed.', 14, 56);
+    doc.text('Thank you for submitting your application. We have received the', 14, 55);
+    doc.text('details below and will notify you once they have been reviewed.', 14, 61);
     
     (doc as any).autoTable({
-      startY: 65,
+      startY: 70,
       head: [],
       body: [
         ['Application number', safeText(data.application_number)],
@@ -137,13 +161,20 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     doc.text('Keep this information for your records. You can use your tracking code to', 14, finalY);
     doc.text('check the status of your application at any time.', 14, finalY + 5);
     
-    // QR Code
-    const trackingUrl = buildTrackingUrl(data.public_tracking_code);
-    const qrDataUrl = await QRCode.toDataURL(trackingUrl, { margin: 1, width: 240 });
+    // QR Code with verification data
+    const qrData = JSON.stringify({
+      type: 'application_slip',
+      app_no: data.application_number,
+      tracking: data.public_tracking_code,
+      institution: data.institution,
+      program: data.program_name,
+      verify_url: buildTrackingUrl(data.public_tracking_code)
+    });
+    const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 240, errorCorrectionLevel: 'M' });
     doc.addImage(qrDataUrl, 'PNG', 150, finalY + 10, 40, 40);
     
     doc.setFontSize(8);
-    doc.text('Scan to track', 170, finalY + 55, { align: 'center' });
+    doc.text('Scan to verify', 170, finalY + 55, { align: 'center' });
     
     // Footer
     doc.setFillColor(249, 250, 251);
