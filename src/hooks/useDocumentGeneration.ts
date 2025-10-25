@@ -126,6 +126,7 @@ export function useDocumentGeneration() {
       return true
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to generate document'
+      console.error('[useDocumentGeneration] Error:', err)
       setError(message)
       return false
     } finally {
