@@ -834,21 +834,21 @@ export function ApplicationDetailModal({
  <Mail className="h-4 w-4 text-gray-900" />
  <div>
  <p className="text-sm text-gray-900">Email</p>
- <p className="font-medium text-gray-900">{application.email}</p>
+ <p className="font-medium text-gray-900">{applicationData?.application?.email || application.email}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <Phone className="h-4 w-4 text-gray-900" />
  <div>
  <p className="text-sm text-gray-900">Phone</p>
- <p className="font-medium text-gray-900">{application.phone || 'Not provided'}</p>
+ <p className="font-medium text-gray-900">{applicationData?.application?.phone || application.phone || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <Calendar className="h-4 w-4 text-gray-900" />
  <div>
  <p className="text-sm text-gray-900">Date of Birth</p>
- <p className="font-medium text-gray-900">{application.date_of_birth || 'Not provided'}</p>
+ <p className="font-medium text-gray-900">{applicationData?.application?.date_of_birth ? formatDate(applicationData.application.date_of_birth) : (application.date_of_birth ? formatDate(application.date_of_birth) : 'Not provided')}</p>
  </div>
  </div>
  </div>
@@ -857,21 +857,21 @@ export function ApplicationDetailModal({
  <MapPin className="h-4 w-4 text-gray-900" />
  <div>
  <p className="text-sm text-gray-900">Residence</p>
- <p className="font-medium text-gray-900">{application.residence_town || 'Not provided'}</p>
+ <p className="font-medium text-gray-900">{applicationData?.application?.residence_town || application.residence_town || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <Users className="h-4 w-4 text-gray-900" />
  <div>
  <p className="text-sm text-gray-900">Next of Kin</p>
- <p className="font-medium text-gray-900">{application.next_of_kin_name || 'Not provided'}</p>
+ <p className="font-medium text-gray-900">{applicationData?.application?.next_of_kin_name || application.next_of_kin_name || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <FileText className="h-4 w-4 text-gray-900" />
  <div>
  <p className="text-sm text-gray-900">NRC Number</p>
- <p className="font-medium text-gray-900">{application.nrc_number || 'Not provided'}</p>
+ <p className="font-medium text-gray-900">{applicationData?.application?.nrc_number || application.nrc_number || applicationData?.application?.passport_number || application.passport_number || 'Not provided'}</p>
  </div>
  </div>
  </div>
