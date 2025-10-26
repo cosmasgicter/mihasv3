@@ -194,12 +194,21 @@ export function useApplicationSlip({
 
     try {
       setEmailLoading(true)
-      toast.showInfo?.('Sending email', 'Preparing to send your application slip...')
+      toast.showInfo?.('Preparing slip', 'Generating your application slip...')
 
-      // First ensure slip is downloaded/generated
+      // First ensure slip is downloaded/generated and wait for it to complete
       if (!slipCache?.publicUrl && !slipCache?.objectUrl) {
         await handleDownloadSlip()
+        // Wait a moment for the slip to be fully uploaded to storage
+        await new Promise(resolve => setTimeout(resolve, 1000))
       }
+
+      // Verify slip exists before attempting to email
+      if (!slipCache?.publicUrl && !slipCache?.path) {
+        throw new Error('Slip not yet available. Please try downloading first, then email.')
+      }
+
+      toast.showInfo?.('Sending email', 'Sending your application slip...')
 
       // Call endpoint with application number
       const session = await import('@/lib/supabase').then(m => m.supabase.auth.getSession())
@@ -214,9 +223,24 @@ export function useApplicationSlip({
         })
       })
 
-      const result = await emailResponse.json()
+      // Handle non-JSON responses (like 405 errors)
+      let result
+      const contentType = emailResponse.headers.get('content-type')
+      if (contentType?.includes('application/json')) {
+        result = await emailResponse.json()
+      } else {
+        const text = await emailResponse.text()
+        result = { error: text || 'Server error' }
+      }
 
-      if (!emailResponse.ok || !result.success) {
+      if (!emailResponse.ok) {
+        if (emailResponse.status === 405) {
+          throw new Error('Email service temporarily unavailable. Please try downloading the slip instead.')
+        }
+        throw new Error(result.error || `Server error (${emailResponse.status})`)
+      }
+
+      if (!result.success) {
         throw new Error(result.error || 'Failed to send email')
       }
 
