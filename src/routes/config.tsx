@@ -29,6 +29,7 @@ const AuditTrail = React.lazy(() => import('@/pages/admin/AuditTrail'))
 const RoleManagement = React.lazy(() => import('@/pages/admin/RoleManagement'))
 const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index.tsx'))
 const AdminTest = React.lazy(() => import('@/pages/AdminTest'))
+const SentryTest = React.lazy(() => import('@/pages/SentryTest'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
 
 // Special components that don't need lazy loading
@@ -47,6 +48,7 @@ export interface RouteConfig {
 export const routes: RouteConfig[] = [
   // Public routes
   { path: '/', element: LandingPage, guard: 'public' },
+  { path: '/sentry-test', element: SentryTest, guard: 'public', lazy: true },
   { path: '/track-application', element: PublicApplicationTracker, guard: 'public', lazy: true },
   { path: '/auth/signin', element: SignInPage, guard: 'public' },
   { path: '/signin', element: SignInPage, guard: 'public' },
