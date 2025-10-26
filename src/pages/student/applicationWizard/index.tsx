@@ -1,10 +1,11 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, CheckCircle, Send, Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect } from 'react'
 
 import { AIAssistant } from '@/components/application/AIAssistant'
 import { Button } from '@/components/ui/Button'
+import { Container } from '@/components/ui/Container'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
 
@@ -212,18 +213,29 @@ const ApplicationWizardContent = () => {
 
   const handleGetUsedSubjects = () => getUsedSubjects()
 
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="w-full">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+        <Container size="md" className="py-8">
+          <div className="mb-8">
           <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
             Back to Dashboard
           </Link>
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Student Application</h1>
-            <p className="text-gray-900">Complete the {totalSteps}-step application process</p>
+            {prefersReducedMotion ? (
+              <div>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Student Application</h1>
+                <p className="text-gray-900">Complete the {totalSteps}-step application process</p>
+              </div>
+            ) : (
+              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Student Application</h1>
+                <p className="text-gray-900">Complete the {totalSteps}-step application process</p>
+              </motion.div>
+            )}
+            
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-caption">
               <span className="break-all">Logged in as: {user.email}</span>
               <span className="hidden sm:inline text-xs bg-primary/10 text-primary px-2 py-1 rounded">
@@ -339,16 +351,16 @@ const ApplicationWizardContent = () => {
                       aria-current={isCurrent ? 'step' : undefined}
                     >
                       <motion.div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-300 z-10 ${
+                          className={`rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-300 z-10 ${
                           isCompleted
                             ? 'bg-success border-success text-white shadow-md'
                             : isCurrent
                             ? 'bg-primary border-primary text-white shadow-lg ring-4 ring-primary/20'
                             : 'bg-background border-border text-muted-foreground'
                         }`}
-                      >
-                        {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
-                      </motion.div>
+                        style={{ width: 'var(--touch-target)', height: 'var(--touch-target)' }}>
+                          {isCompleted ? <CheckCircle style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} /> : <Icon style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />}
+                        </motion.div>
                       <div className={`mt-3 text-xs font-medium text-center leading-tight max-w-[100px] ${
                         isCurrent ? 'text-primary font-semibold' : isActive ? 'text-foreground' : 'text-muted-foreground'
                       }`}>
