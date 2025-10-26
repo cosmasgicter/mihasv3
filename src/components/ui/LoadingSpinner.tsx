@@ -1,5 +1,5 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface LoadingSpinnerProps {
@@ -37,36 +37,54 @@ export function LoadingSpinner({
     xl: 'text-lg'
   }
 
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className="flex flex-col items-center justify-center space-y-2">
-      <motion.div 
-        className={cn(
-          'animate-spin rounded-full border-2',
-          sizeClasses[size],
-          colorClasses[color],
-          className
-        )}
-        animate={{ rotate: 360 }}
-        transition={{
-          duration: 1,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-      />
-      {message && (
-        <motion.p 
+      {prefersReducedMotion ? (
+        <div className={cn('rounded-full border-2', sizeClasses[size], colorClasses[color], className)} />
+      ) : (
+        <motion.div 
           className={cn(
-            'text-gray-900 font-medium text-center',
-            textSizeClasses[size]
+            'animate-spin rounded-full border-2',
+            sizeClasses[size],
+            colorClasses[color],
+            className
           )}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          {message}
-        </motion.p>
+          animate={{ rotate: 360 }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
       )}
-      {showPulse && (
+
+      {message && (
+        prefersReducedMotion ? (
+          <p className={cn('text-gray-900 font-medium text-center', textSizeClasses[size])}>{message}</p>
+        ) : (
+          <motion.p 
+            className={cn(
+              'text-gray-900 font-medium text-center',
+              textSizeClasses[size]
+            )}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            {message}
+          </motion.p>
+        )
+      )}
+
+      {showPulse && (prefersReducedMotion ? (
+        <div className="flex space-x-1">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="w-2 h-2 bg-primary rounded-full opacity-80" />
+          ))}
+        </div>
+      ) : (
         <motion.div
           className="flex space-x-1"
           initial="hidden"
@@ -95,7 +113,7 @@ export function LoadingSpinner({
             />
           ))}
         </motion.div>
-      )}
+      ))}
     </div>
   )
 }

@@ -315,10 +315,10 @@ export async function onRequest(context) {
               read: false
             });
             
-            // Email notification (send immediately)
-            if (data.email && context.env.RESEND_API_KEY) {
-              const { sendEmail } = await import('../_lib/emailService.js');
-              sendEmail({
+            // Queue email notification
+            if (data.email) {
+              const { queueEmail } = await import('../_lib/emailQueue.js');
+              await queueEmail({
                 to: data.email,
                 subject: title,
                 html: `
@@ -334,8 +334,8 @@ export async function onRequest(context) {
                     <p style="color: #6b7280; font-size: 12px;">MIHAS Application System</p>
                   </div>
                 `,
-                env: context.env
-              }).catch(err => console.error('Email send error:', err));
+                priority: status === 'approved' ? 'high' : 'normal'
+              }).catch(err => console.error('Email queue error:', err));
             }
           }
           
@@ -456,10 +456,10 @@ export async function onRequest(context) {
                 console.error('Notification insert error:', notifError);
               }
               
-              // Email notification (send immediately)
-              if (data.email && context.env.RESEND_API_KEY) {
-                const { sendEmail } = await import('../_lib/emailService.js');
-                sendEmail({
+              // Queue email notification
+              if (data.email) {
+                const { queueEmail } = await import('../_lib/emailQueue.js');
+                await queueEmail({
                   to: data.email,
                   subject: notification.title,
                   html: `
@@ -474,8 +474,8 @@ export async function onRequest(context) {
                       <p style="color: #6b7280; font-size: 12px;">MIHAS Application System</p>
                     </div>
                   `,
-                  env: context.env
-                }).catch(err => console.error('Email send error:', err));
+                  priority: paymentStatus === 'verified' ? 'high' : 'normal'
+                }).catch(err => console.error('Email queue error:', err));
               }
             }
           }

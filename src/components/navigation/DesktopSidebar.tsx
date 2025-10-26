@@ -3,7 +3,7 @@ import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, Chevro
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { designTokens } from '@/design-system/tokens'
 
 export const DesktopSidebar = React.memo(function DesktopSidebar() {
@@ -34,18 +34,26 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
     { to: '/admin/settings', icon: Settings, label: 'Settings' },
   ]
 
+  const prefersReducedMotion = useReducedMotion()
+
   const links = isAdmin ? adminLinks : studentLinks
 
+  // Use a MaybeMotion wrapper so we can render a plain <aside> when reduced motion
+  // is requested, otherwise animate the width on collapse/expand.
+  const MaybeAside: any = prefersReducedMotion ? (props: any) => <aside {...props} /> : motion.aside
+
   return (
-    <motion.aside
-      animate={{ width: collapsed ? designTokens.layout.sidebarCollapsed : designTokens.layout.sidebarExpanded }}
+    <MaybeAside
+      animate={prefersReducedMotion ? undefined : { width: collapsed ? designTokens.layout.sidebarCollapsed : designTokens.layout.sidebarExpanded }}
       className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-card/80 backdrop-blur-xl border-r border-border shadow-xl z-40"
-      transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
+      transition={prefersReducedMotion ? undefined : { type: 'spring', bounce: 0, duration: 0.4 }}
       style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
     >
       <div className="flex items-center justify-between p-4 border-b border-border">
         <AnimatePresence mode="wait">
-          {!collapsed && (
+          {!collapsed && (prefersReducedMotion ? (
+            <h1 className="text-xl font-bold text-gray-900 truncate" style={{ maxWidth: '12rem' }}>MIHAS-KATC</h1>
+          ) : (
             <motion.h1
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -55,7 +63,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
             >
               MIHAS-KATC
             </motion.h1>
-          )}
+          ))}
         </AnimatePresence>
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -76,13 +84,15 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
               aria-current={isActive ? 'page' : undefined}
               className="relative flex items-center gap-3 px-3 py-3 rounded-lg group overflow-hidden"
             >
-              {isActive && (
+              {isActive && (prefersReducedMotion ? (
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10" />
+              ) : (
                 <motion.div
                   layoutId="activeSidebar"
                   className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10"
                   transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                 />
-              )}
+              ))}
               <Icon
                 style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }}
                 className={`transition-all duration-300 relative z-10 ${
@@ -92,7 +102,9 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                 }`}
               />
               <AnimatePresence mode="wait">
-                {!collapsed && (
+                {!collapsed && (prefersReducedMotion ? (
+                  <span className={`font-medium relative z-10 truncate ${isActive ? 'text-primary' : 'text-gray-900 group-hover:text-primary'}`} style={{ fontSize: 'var(--type-sm)' }}>{label}</span>
+                ) : (
                   <motion.span
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -106,14 +118,12 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                   >
                     {label}
                   </motion.span>
-                )}
+                ))}
               </AnimatePresence>
             </Link>
           )
         })}
       </nav>
-
-
-    </motion.aside>
+    </MaybeAside>
   )
 })

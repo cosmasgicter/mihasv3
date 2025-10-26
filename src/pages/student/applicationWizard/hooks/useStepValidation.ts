@@ -21,7 +21,17 @@ export const useStepValidation = (
   form: UseFormReturn<ApplicationFormData>,
   currentStep: number
 ): StepValidation => {
-  const values = form.watch()
+  // form.watch() may return undefined in some test setups — default to an empty object
+  // to keep validation logic defensive and avoid throwing during rendering/tests.
+  const values = (() => {
+    try {
+      // watch is a function on the form object — call it if present
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return typeof form?.watch === 'function' ? (form.watch() as Partial<ApplicationFormData> ?? {}) : {}
+    } catch {
+      return {}
+    }
+  })()
 
   return useMemo(() => {
     const validations: Record<number, () => StepValidation> = {

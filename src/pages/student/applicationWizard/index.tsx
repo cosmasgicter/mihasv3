@@ -93,7 +93,15 @@ const ApplicationWizardContent = () => {
   useAnalytics(user?.id, null, currentStepIndex, currentStepConfig.key)
 
   const getChecklistItems = () => {
-    const values = form.watch()
+    // Defensive: some test setups call this component without a populated form.watch()
+    // Ensure we always have an object to read from to avoid runtime errors in tests.
+    const values = (() => {
+      try {
+        return typeof form?.watch === 'function' ? (form.watch() as Record<string, unknown> ?? {}) : {}
+      } catch {
+        return {}
+      }
+    })()
     switch (currentStepIndex) {
       case 0:
         return [
@@ -214,9 +222,10 @@ const ApplicationWizardContent = () => {
   const handleGetUsedSubjects = () => getUsedSubjects()
 
   const prefersReducedMotion = useReducedMotion()
+  const MaybeMotionDiv: any = prefersReducedMotion ? (props: any) => <div {...props} /> : motion.div
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <MaybeMotionDiv className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.36 }}>
       <div className="w-full">
         <Container size="md" className="py-8">
           <div className="mb-8">
@@ -658,7 +667,7 @@ const ApplicationWizardContent = () => {
           setError('')
         }}
       />
-    </div>
+    </MaybeMotionDiv>
   )
 }
 
