@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { motion, AnimatePresence } from 'framer-motion'
+import { designTokens } from '@/design-system/tokens'
 
 export const DesktopSidebar = React.memo(function DesktopSidebar() {
   const location = useLocation()
@@ -37,9 +38,10 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
 
   return (
     <motion.aside
-      animate={{ width: collapsed ? 80 : 256 }}
+      animate={{ width: collapsed ? designTokens.layout.sidebarCollapsed : designTokens.layout.sidebarExpanded }}
       className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-card/80 backdrop-blur-xl border-r border-border shadow-xl z-40"
       transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
+      style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
     >
       <div className="flex items-center justify-between p-4 border-b border-border">
         <AnimatePresence mode="wait">
@@ -48,7 +50,8 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-xl font-bold text-gray-900 truncate max-w-[150px]"
+              className="text-xl font-bold text-gray-900 truncate"
+              style={{ maxWidth: '12rem' }}
             >
               MIHAS-KATC
             </motion.h1>
@@ -59,7 +62,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="p-2 rounded-lg hover:bg-accent transition-colors"
         >
-          {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+          {collapsed ? <ChevronRight style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} /> : <ChevronLeft style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />}
         </button>
       </div>
 
@@ -81,7 +84,8 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                 />
               )}
               <Icon
-                className={`h-5 w-5 transition-all duration-300 relative z-10 ${
+                style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }}
+                className={`transition-all duration-300 relative z-10 ${
                   isActive
                     ? 'text-primary'
                     : 'text-gray-900 group-hover:text-primary'
@@ -93,11 +97,12 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className={`text-sm font-medium transition-colors relative z-10 truncate ${
+                    className={`font-medium transition-colors relative z-10 truncate ${
                       isActive
                         ? 'text-primary'
                         : 'text-gray-900 group-hover:text-primary'
                     }`}
+                    style={{ fontSize: 'var(--type-sm)' }}
                   >
                     {label}
                   </motion.span>

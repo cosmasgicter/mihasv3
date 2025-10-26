@@ -58,13 +58,14 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
         <div className="flex justify-around items-center h-16 px-2">
           {links.map(({ to, icon: Icon, label }) => {
             const isActive = location.pathname === to
-            return (
+              return (
               <Link
                 key={to}
                 to={to}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={label}
-                className="relative flex flex-col items-center justify-center flex-1 h-full group min-w-[60px]"
+                className="relative flex flex-col items-center justify-center flex-1 h-full group"
+                style={{ minWidth: 'var(--nav-min-width)' }}
               >
                 {isActive && (
                   <motion.div
@@ -74,20 +75,20 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                   />
                 )}
                 <Icon
-                  className={`h-5 w-5 transition-all duration-300 ${
+                  style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }}
+                  className={`transition-all duration-300 ${
                     isActive
                       ? 'text-primary scale-110'
                       : 'text-gray-900 group-hover:text-primary group-hover:scale-105'
                   }`}
                 />
                 <span
-                  className={`text-xs mt-1 transition-all duration-300 truncate max-w-[60px] ${
-                    isActive
-                      ? 'text-primary font-medium'
-                      : 'text-gray-900 group-hover:text-primary'
-                  }`}
+                  className={`mt-1 transition-all duration-300 truncate`} 
+                  style={{ fontSize: 'var(--type-xs)', maxWidth: 'var(--nav-min-width)', color: isActive ? undefined : undefined }}
                 >
-                  {label}
+                  <span className={`${isActive ? 'text-primary font-medium' : 'text-gray-900 group-hover:text-primary'}`}>
+                    {label}
+                  </span>
                 </span>
               </Link>
             )

@@ -6,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext'
 import { useResponsive } from '@/hooks/useResponsive'
 import { motion } from 'framer-motion'
+import ParticlesBackground from '@/components/ui/ParticlesBackground'
+import { designTokens } from '@/design-system/tokens'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -20,18 +22,24 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
     return <>{children}</>
   }
 
+  const collapsedWidth = designTokens.layout.sidebarCollapsed
+  const expandedWidth = designTokens.layout.sidebarExpanded
+
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden">
+      {/* Decorative background particles - disabled on mobile inside component */}
+      <ParticlesBackground enabled={!isMobile} />
       <DesktopSidebar />
       <div className="flex flex-col flex-1 min-w-0">
         <Header />
         <motion.main 
           animate={{ 
-            marginLeft: isMobile ? 0 : (collapsed ? 80 : 256),
-            width: isMobile ? '100%' : `calc(100% - ${collapsed ? 80 : 256}px)`
+            marginLeft: isMobile ? 0 : (collapsed ? collapsedWidth : expandedWidth),
+            width: isMobile ? '100%' : `calc(100% - ${collapsed ? collapsedWidth : expandedWidth}px)`
           }}
           transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
-          className="pt-16 pb-20 md:pb-6 min-h-screen overflow-x-hidden"
+          className="pb-20 md:pb-6 min-h-screen overflow-x-hidden"
+          style={{ paddingTop: 'var(--header-height)' }}
         >
           {children}
         </motion.main>

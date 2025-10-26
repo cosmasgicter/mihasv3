@@ -6,6 +6,14 @@
 
 import { supabaseAdminClient } from '../../_lib/supabaseClient.js'
 import { CloudflareAI } from '../../_lib/cloudflareAI.js'
+import { z } from 'zod'
+
+const AnalyzeSchema = z.object({
+  grades: z.array(z.object({ subject: z.string(), grade: z.number() })).optional(),
+  name: z.string().optional(),
+  nrc: z.string().optional(),
+  dateOfBirth: z.string().optional()
+}).passthrough()
 
 export async function onRequest(context) {
   const { request, env } = context
@@ -52,7 +60,13 @@ export async function onRequest(context) {
     const ai = new CloudflareAI(env)
     const result = await ai.analyzeDocument(text, documentType)
 
-    return new Response(JSON.stringify(result), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    const parsed = AnalyzeSchema.safeParse(result)
+    if (!parsed.success) {
+      console.warn('Invalid analyze-document result from model:', parsed.error)
+      return new Response(JSON.stringify({ error: 'invalid_model_response' }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    return new Response(JSON.stringify(parsed.data), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (error) {
     console.error('AI analyze-document error:', error)
     return new Response(JSON.stringify({ error: 'Document analysis failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })

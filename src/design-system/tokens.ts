@@ -40,6 +40,13 @@ export const designTokens = {
       900: '#111827',
     },
   },
+  // Layout sizes (numbers are pixels where appropriate)
+  layout: {
+    sidebarCollapsed: 80,
+    sidebarExpanded: 256,
+    headerHeight: 64,
+    maxContentWidth: 1200,
+  },
 
   spacing: {
     compact: '0.75rem',
@@ -54,5 +61,30 @@ export const designTokens = {
     xl: '1rem',
     '2xl': '1.5rem',
     full: '9999px',
+  },
+  // Typography tokens to keep sizes and line-heights consistent across the app
+  typography: {
+    fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
+    baseFontSize: '16px',
+    scale: {
+      xs: '0.75rem', // 12px
+      sm: '0.875rem', // 14px
+      base: '1rem', // 16px
+      lg: '1.125rem', // 18px
+      xl: '1.25rem', // 20px
+      '2xl': '1.5rem', // 24px
+      '3xl': '1.875rem', // 30px
+      '4xl': '2.25rem', // 36px
+      '5xl': '3rem', // 48px
+    },
+    lineHeight: {
+      compact: 1.2,
+      normal: 1.5,
+      relaxed: 1.75,
+    },
+    heading: {
+      weight: 600,
+      family: "Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI'",
+    },
   },
 } as const

@@ -14,10 +14,13 @@
     font-family: Inter, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-size: 16px; /* Base for accessible text */
+    line-height: 1.5;
   }
   
   h1, h2, h3, h4, h5, h6 {
     @apply text-slate-900 font-semibold;
+    line-height: 1.2;
   }
   
   p {
@@ -31,6 +34,52 @@
   button {
     @apply transition-all duration-200;
   }
+}
+
+/* Root variables for consistent layouts and type scale */
+:root{
+  --max-content-width: 1200px;
+  --content-padding: 1rem;
+  --type-base: 16px;
+}
+
+/* Design-token derived CSS variables */
+:root{
+  --sidebar-collapsed: 80px;
+  --sidebar-expanded: 256px;
+  --header-height: 64px;
+  --icon-size: 1.25rem; /* 20px */
+  --nav-min-width: 60px;
+  --touch-target: 44px;
+
+  /* Type scale (mirrors designTokens.typography.scale) */
+  --type-xs: 0.75rem;
+  --type-sm: 0.875rem;
+  --type-base: 1rem;
+  --type-lg: 1.125rem;
+  --type-xl: 1.25rem;
+  --type-2xl: 1.5rem;
+}
+
+/* Fluid responsive headings using clamp for better legibility */
+h1{font-size:clamp(1.5rem, 2.2vw + 1rem, 3rem)}
+h2{font-size:clamp(1.25rem, 1.8vw + 0.9rem, 2.25rem)}
+h3{font-size:clamp(1.125rem, 1.4vw + 0.8rem, 1.5rem)}
+
+/* Prefer reduced motion respects */
+@media (prefers-reduced-motion: reduce) {
+  :root { --reduced-motion: 1 }
+}
+
+/* App-level helper for safe areas and unified spacing */
+.app-safe-area {
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Ensure form inputs on iOS don't trigger zoom */
+input, textarea, select {
+  font-size: 16px;
 }
 
 @layer utilities {

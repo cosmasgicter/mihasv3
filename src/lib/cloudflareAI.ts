@@ -1,6 +1,19 @@
 
 // Cloudflare Workers AI Client - 100% Free Models
 import { supabase } from './supabase'
+import { z } from 'zod'
+
+const ChatResponseSchema = z.object({
+  response: z.string(),
+  suggestions: z.array(z.string()).optional()
+})
+
+const AnalyzeDocumentSchema = z.object({
+  grades: z.array(z.object({ subject: z.string(), grade: z.number() })).optional(),
+  name: z.string().optional(),
+  nrc: z.string().optional(),
+  dateOfBirth: z.string().optional()
+}).passthrough()
 
 export class CloudflareAI {
   private static instance: CloudflareAI
@@ -34,8 +47,13 @@ export class CloudflareAI {
 
       const data = await response.json().catch(() => null)
       if (!data) return this.fallbackResponse(userMessage, context)
-      // Server should return { response: string }
-      return data.response ?? this.fallbackResponse(userMessage, context)
+      // Validate shape
+      const parsed = ChatResponseSchema.safeParse(data)
+      if (!parsed.success) {
+        console.warn('Invalid chat response shape:', parsed.error)
+        return this.fallbackResponse(userMessage, context)
+      }
+      return parsed.data.response
     } catch (error) {
       console.error('AI chat error:', error)
       return this.fallbackResponse(userMessage, context)
@@ -61,7 +79,13 @@ export class CloudflareAI {
       }
 
       const data = await response.json().catch(() => null)
-      return data?.suggestions || []
+      if (!data) return []
+      const parsed = ChatResponseSchema.safeParse(data)
+      if (!parsed.success) {
+        console.warn('Invalid suggestions shape:', parsed.error)
+        return []
+      }
+      return parsed.data.suggestions || []
     } catch (error) {
       return this.fallbackSuggestions(context)
     }
@@ -88,7 +112,13 @@ export class CloudflareAI {
 
       // Return parsed JSON or raw result from server
       const data = await response.json().catch(() => null)
-      return data ?? { error: 'invalid_response' }
+      if (!data) return { error: 'invalid_response' }
+      const parsed = AnalyzeDocumentSchema.safeParse(data)
+      if (!parsed.success) {
+        console.warn('Invalid analyze-document shape:', parsed.error)
+        return { error: 'invalid_response' }
+      }
+      return parsed.data
     } catch (error) {
       console.error('Document analysis error:', error)
       return { error: 'Analysis failed' }
