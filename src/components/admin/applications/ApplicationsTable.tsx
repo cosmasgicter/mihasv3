@@ -3,6 +3,7 @@ import { sanitizeHtml } from '@/lib/sanitizer'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Eye, FileText, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building } from 'lucide-react'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
+import { useToastStore } from '@/components/ui/Toast'
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -82,6 +83,7 @@ export function ApplicationsTable({
 }: ApplicationsTableProps) {
  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
  const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
+ const { error: showError, success: showSuccess } = useToastStore()
 
  const handleSelect = (id: string, selected: boolean) => {
  if (!onSelectionChange) return
@@ -142,27 +144,27 @@ export function ApplicationsTable({
  try {
  setUpdatingStatus(id)
  await onStatusUpdate(id, status)
+ showSuccess('Status Updated', `Application status changed to ${status.replace('_', ' ')}`)
  } catch (error) {
  console.error('Failed to update status:', error)
- // Show user-friendly error message
- toast.error('Update Failed', error instanceof Error ? error.message : 'Unknown error')
+ showError('Update Failed', error instanceof Error ? error.message : 'Failed to update application status')
  } finally {
  setUpdatingStatus(null)
  }
- }, [onStatusUpdate])
+ }, [onStatusUpdate, showSuccess, showError])
 
  const handlePaymentUpdate = useCallback(async (id: string, status: string) => {
  try {
  setUpdatingPayment(id)
  await onPaymentStatusUpdate(id, status)
+ showSuccess('Payment Updated', `Payment status changed to ${status}`)
  } catch (error) {
  console.error('Failed to update payment status:', error)
- // Show user-friendly error message
- toast.error('Update Failed', error instanceof Error ? error.message : 'Unknown error')
+ showError('Update Failed', error instanceof Error ? error.message : 'Failed to update payment status')
  } finally {
  setUpdatingPayment(null)
  }
- }, [onPaymentStatusUpdate])
+ }, [onPaymentStatusUpdate, showSuccess, showError])
 
  return (
  <div className="space-y-6">
