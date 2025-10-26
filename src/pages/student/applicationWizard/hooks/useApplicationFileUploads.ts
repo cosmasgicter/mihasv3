@@ -47,6 +47,7 @@ export function useApplicationFileUploads({
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, boolean>>({})
   const [activeTasks, setActiveTasks] = useState(0)
   const progressCleanupTimeouts = useRef<Record<string, NodeJS.Timeout | undefined>>({})
+  const uploadPromises = useRef<Record<string, Promise<string> | null>>({})
 
   const uploading = activeTasks > 0
 
@@ -250,10 +251,15 @@ export function useApplicationFileUploads({
 
   const startUpload = useCallback(
     async (file: File, fileType: ApplicationFileType, retryCount = 0): Promise<string> => {
+      // Prevent concurrent uploads of same file type
+      if (uploadPromises.current[fileType]) {
+        return uploadPromises.current[fileType]!
+      }
+      
       const MAX_RETRIES = 3
       const RETRY_DELAY = 1000
       
-      return trackUploadTask(async () => {
+      const uploadPromise = trackUploadTask(async () => {
         if (!userId || !applicationId) {
           throw new Error('User or application ID not available')
         }
@@ -298,6 +304,7 @@ export function useApplicationFileUploads({
           // Retry logic
           if (retryCount < MAX_RETRIES) {
             await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)))
+            uploadPromises.current[fileType] = null
             return startUpload(file, fileType, retryCount + 1)
           }
           
@@ -309,8 +316,12 @@ export function useApplicationFileUploads({
             clearInterval(progressInterval)
           }
           scheduleProgressClear(fileType)
+          uploadPromises.current[fileType] = null
         }
       })
+      
+      uploadPromises.current[fileType] = uploadPromise
+      return uploadPromise
     },
     [applicationId, clearProgressEntry, scheduleProgressClear, trackUploadTask, userId]
   )
