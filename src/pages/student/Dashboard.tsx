@@ -229,8 +229,8 @@ export default function StudentDashboard() {
   const totalDraftCount = draftApplications.length + (hasLocalDraftOnly ? 1 : 0)
 
   return (
-    <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-3 sm:px-6 lg:px-8 w-full max-w-full overflow-x-hidden">
-      <div className="max-w-7xl mx-auto w-full">
+    <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 w-full max-w-full overflow-x-hidden">
+      <Container size="lg">
         {isInitialLoading ? (
           <StudentDashboardSkeleton />
         ) : (
@@ -258,7 +258,7 @@ export default function StudentDashboard() {
 
             <PageHeader
               variant="gradient"
-              icon={<User className="h-6 w-6" />}
+              icon={<User style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />}
               title={`Welcome back, ${firstName}`}
               description="Track your applications, manage drafts, and keep your profile information up to date."
               stats={[
@@ -752,7 +752,7 @@ export default function StudentDashboard() {
         cancelText={confirmDialog.options.cancelText}
         variant={confirmDialog.options.variant}
       />
-      </div>
+      </Container>
     </div>
   )
 }

@@ -12,6 +12,7 @@ import { BulkActionsBar } from '@/components/admin/applications/BulkActionsBar'
 import { AdminMetrics } from '@/components/admin/applications/AdminMetrics'
 import { APPLICATION_FILTER_KEYS, useApplicationsData, useApplicationFilters } from '@/hooks/admin'
 import { Button } from '@/components/ui/Button'
+import { Container } from '@/components/ui/Container'
 import { useToastStore } from '@/components/ui/Toast'
 import { supabase } from '@/lib/supabase'
 import { applicationService } from '@/services/applications'
@@ -410,9 +411,7 @@ export default function Applications() {
     const today = new Date().toDateString()
     return {
       total: applications.length,
-      todaySubmissions: applications.filter(app => 
-        new Date(app.submitted_at || app.created_at).toDateString() === today
-      ).length,
+      todaySubmissions: applications.filter(app => new Date(app.submitted_at || app.created_at).toDateString() === today).length,
       pendingReview: applications.filter(app => app.status === 'submitted').length,
       underReview: applications.filter(app => app.status === 'under_review').length,
       approved: applications.filter(app => app.status === 'approved').length,
@@ -456,7 +455,7 @@ export default function Applications() {
           </div>
         </div>
       </div>
-
+  <Container size="lg" className="py-8">
       {/* Enhanced Admin Metrics */}
       <div className="px-4 py-4 sm:px-6">
         <AdminMetrics applications={applications} />
@@ -651,7 +650,7 @@ export default function Applications() {
           onGenerateAcceptanceLetter={handleGenerateAcceptanceLetter}
           onGenerateFinanceReceipt={handleGenerateFinanceReceipt}
         />
-      </div>
+      </Container>
     </div>
   )
 }

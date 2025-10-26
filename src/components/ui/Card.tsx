@@ -1,5 +1,5 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -18,7 +18,15 @@ export function Card({ className, variant = 'default', hover = false, ...props }
     className
   )
 
+  const prefersReducedMotion = useReducedMotion()
+
   if (hover) {
+    if (prefersReducedMotion) {
+      return (
+        <div className={baseClasses} {...props} />
+      )
+    }
+
     return (
       <motion.div
         className={baseClasses}
