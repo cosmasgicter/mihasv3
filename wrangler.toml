@@ -55,6 +55,9 @@ VITE_ANALYTICS_BASE_URL = "https://cloud.umami.is"
 VITE_ANALYTICS_SITE_ID = "a6f829ab-c066-457f-aaa7-bf6ce4cc8ed4"
 VITE_ANALYTICS_SHARE_TOKEN = "api_4EXvHonSvmleHIuNPSelVgFQugvYMZNr"
 
+# Sentry Error Monitoring
+VITE_SENTRY_DSN = "https://8dfca4faf381b57c97d01bcf2fb13351@o4510254223196160.ingest.de.sentry.io/4510254262190160"
+
 # Environment
 VITE_NODE_ENV = "production"
 VITE_DEV_SERVER_PORT = "5173"
