@@ -919,17 +919,17 @@ export function ApplicationDetailModal({
  <div className="space-y-4">
  <div>
  <p className="text-sm text-gray-900 mb-1">Payment Method</p>
- <p className="font-medium text-gray-900">{application.payment_method || 'Not specified'}</p>
+ <p className="font-medium text-gray-900">{applicationData?.application?.payment_method || application.payment_method || 'Not specified'}</p>
  </div>
  <div>
  <p className="text-sm text-gray-900 mb-1">Amount Paid</p>
  <p className="text-2xl font-bold text-warning-strong">
- K{application.amount || 0} / K{application.application_fee || 0}
+ K{applicationData?.application?.amount || application.amount || 0} / K{applicationData?.application?.application_fee || application.application_fee || 153}
  </p>
  </div>
  <div>
  <p className="text-sm text-gray-900 mb-1">Payer Name</p>
- <p className="font-medium text-gray-900">{application.payer_name || 'Not provided'}</p>
+ <p className="font-medium text-gray-900">{applicationData?.application?.payer_name || application.payer_name || 'Not provided'}</p>
  </div>
  </div>
  {application.payment_verified_at && (
