@@ -28,6 +28,18 @@ export function ApplicationApprovalActions({
   const handleStatusUpdate = async (newStatus: string) => {
     if (updatingStatus || disabled) return
     
+    // Prevent approval without verified payment
+    if (newStatus === 'approved' && currentPaymentStatus !== 'verified') {
+      const confirmed = await confirmDialog.confirm({
+        title: 'Payment Not Verified',
+        message: 'This application cannot be approved because payment has not been verified. Please verify payment first.',
+        confirmText: 'OK',
+        variant: 'danger',
+        showCancel: false
+      })
+      return
+    }
+    
     // Confirm critical actions
     if (newStatus === 'rejected') {
       const confirmed = await confirmDialog.confirm({
@@ -122,8 +134,9 @@ export function ApplicationApprovalActions({
             <>
               <button
                 onClick={() => handleStatusUpdate('approved')}
-                disabled={updatingStatus || disabled}
+                disabled={updatingStatus || disabled || currentPaymentStatus !== 'verified'}
                 className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                title={currentPaymentStatus !== 'verified' ? 'Payment must be verified first' : 'Approve application'}
               >
                 {updatingStatus ? (
                   <LoadingSpinner size="sm" />

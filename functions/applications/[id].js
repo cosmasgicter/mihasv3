@@ -212,7 +212,7 @@ export async function onRequest(context) {
       // Check ownership
       const { data: app } = await supabase
         .from('applications')
-        .select('user_id, status')
+        .select('user_id, status, payment_status')
         .eq('id', id)
         .single();
       
@@ -229,6 +229,18 @@ export async function onRequest(context) {
         
         if (action === 'update_status') {
           const { status, notes } = payload;
+          
+          // Prevent approval without verified payment
+          if (status === 'approved' && app.payment_status !== 'verified') {
+            return new Response(JSON.stringify({ 
+              error: 'Cannot approve application without verified payment',
+              details: 'Payment must be verified before approving the application'
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          
           const { data, error } = await supabase
             .from('applications')
             .update({ status, updated_at: new Date().toISOString() })
