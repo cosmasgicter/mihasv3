@@ -388,10 +388,21 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
 
   const updateStatus = useCallback(async (applicationId: string, newStatus: string) => {
     try {
+      // Optimistic update
+      setApplications(prev => prev.map(app => 
+        app.id === applicationId ? { ...app, status: newStatus } : app
+      ))
+      
       await applicationService.updateStatus(applicationId, newStatus)
-      await refreshCurrentPage()
+      
+      // Force refresh after short delay to ensure DB is updated
+      setTimeout(() => {
+        refreshCurrentPage()
+      }, 500)
     } catch (error) {
       console.error('Failed to update status:', error)
+      // Revert optimistic update on error
+      await refreshCurrentPage()
       throw error
     }
   }, [refreshCurrentPage])
@@ -402,10 +413,21 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
     verificationNotes?: string
   ) => {
     try {
+      // Optimistic update
+      setApplications(prev => prev.map(app => 
+        app.id === applicationId ? { ...app, payment_status: newPaymentStatus } : app
+      ))
+      
       await applicationService.updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes)
-      await refreshCurrentPage()
+      
+      // Force refresh after short delay to ensure DB is updated
+      setTimeout(() => {
+        refreshCurrentPage()
+      }, 500)
     } catch (error) {
       console.error('Failed to update payment status:', error)
+      // Revert optimistic update on error
+      await refreshCurrentPage()
       throw error
     }
   }, [refreshCurrentPage])
