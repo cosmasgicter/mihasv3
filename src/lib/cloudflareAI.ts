@@ -1,3 +1,4 @@
+
 // Cloudflare Workers AI Client - 100% Free Models
 import { supabase } from './supabase'
 
@@ -95,25 +96,8 @@ export class CloudflareAI {
   }
 
   private fallbackResponse(message: string, context: any): string {
-    const lower = message.toLowerCase()
-    
-    if (lower.includes('eligibility') || lower.includes('chance')) {
-      return this.eligibilityResponse(context)
-    }
-    
-    if (lower.includes('document') || lower.includes('upload')) {
-      return this.documentResponse(context)
-    }
-    
-    if (lower.includes('subject') || lower.includes('grade')) {
-      return this.subjectResponse(context)
-    }
-    
-    if (lower.includes('payment') || lower.includes('fee')) {
-      return this.paymentResponse(context)
-    }
-    
-    return `I can help with:\n\n🎯 Eligibility checking\n📄 Document uploads\n📚 Subject requirements\n💳 Payment process\n\nWhat would you like to know?`
+    // Minimal fallback so the assistant feels less hardcoded.
+    return `Sorry — the AI service is currently unavailable. I can still help with eligibility checks, document upload guidance, subject/grade questions, or payment instructions. Which would you like help with?`
   }
 
   private eligibilityResponse(context: any): string {
@@ -153,14 +137,8 @@ export class CloudflareAI {
   }
 
   private fallbackSuggestions(context: any): string[] {
-    const { applicationData } = context
-    const suggestions = []
-    
-    if (!applicationData?.program) suggestions.push('Help me choose a program')
-    if (!applicationData?.grades?.length) suggestions.push('Guide me through subjects')
-    if (!applicationData?.result_slip_url) suggestions.push('Document upload help')
-    
-    return suggestions.length > 0 ? suggestions : ['What\'s my next step?', 'Check eligibility']
+    // Minimal, non-specific fallbacks
+    return ['How do I check eligibility?', 'How do I upload documents?', 'What subjects are required?']
   }
 }
 

@@ -50,48 +50,15 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ error: 'Message is required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // Create AI client and run chat prompt
+    // Create AI client and run chat via wrapper which returns structured JSON
     const ai = new CloudflareAI(env)
+    const chatResult = await ai.chat(message, contextObj)
 
-    const systemPrompt = env.AI_SYSTEM_PROMPT || 'You are a helpful admissions assistant for MIHAS. Be concise and kind.'
+    // chatResult expected: { response: string, suggestions: string[] }
+    const responseText = chatResult?.response ?? ''
+    const suggestions = Array.isArray(chatResult?.suggestions) ? chatResult.suggestions : []
 
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: message }
-    ]
-
-    // Attach context as system message if provided
-    if (Object.keys(contextObj).length > 0) {
-      messages.splice(1, 0, { role: 'system', content: `Context: ${JSON.stringify(contextObj)}` })
-    }
-
-    const model = env.AI_CHAT_MODEL || '@cf/meta/llama-2-7b-chat-int8'
-    const resp = await ai.ai.run(model, {
-      messages,
-      max_tokens: 512
-    })
-
-    // Attempt to extract text from response
-    const text = resp?.response || resp?.output?.[0]?.content || (typeof resp === 'string' ? resp : JSON.stringify(resp))
-
-    // Also generate lightweight suggestions using a short prompt (optional)
-    let suggestions = []
-    try {
-      const sugResp = await ai.ai.run(model, {
-        messages: [
-          { role: 'system', content: 'Provide up to 3 short suggestion phrases based on the user message.' },
-          { role: 'user', content: message }
-        ],
-        max_tokens: 60
-      })
-  const sugText = sugResp?.response || sugResp?.output?.[0]?.content || ''
-  // split lines or commas/semicolons
-  suggestions = String(sugText).split(/\n|[,;]/).map(s => s.trim()).filter(Boolean).slice(0, 3)
-    } catch (e) {
-      // ignore suggestion failures
-    }
-
-    return new Response(JSON.stringify({ response: String(text), suggestions }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ response: String(responseText), suggestions }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (error) {
     console.error('AI chat error:', error)
     return new Response(JSON.stringify({ error: 'AI chat failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })

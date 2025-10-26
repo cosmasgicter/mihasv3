@@ -6,6 +6,7 @@
 export class CloudflareAI {
   constructor(env) {
     this.ai = env.AI // Cloudflare AI binding
+    this.env = env || {}
   }
 
   /**
@@ -43,6 +44,37 @@ Provide exactly 3 recommendations as a JSON array of strings. Be specific and he
   }
 
   /**
+   * Chat helper that asks the model to return a structured JSON response
+   * { response: string, suggestions: string[] }
+   */
+  async chat(userMessage, context = {}) {
+    const systemPrompt = this.env.AI_SYSTEM_PROMPT || 'You are a helpful admissions assistant for MIHAS. Provide concise, friendly answers and include up to 3 short suggestions in the response JSON.'
+    const model = this.env.AI_CHAT_MODEL || '@cf/meta/llama-2-7b-chat-int8'
+
+    const userContent = `User message:\n${userMessage}\n\nContext:\n${JSON.stringify(context)}`
+    const prompt = `${userContent}\n\nRespond with a JSON object exactly like: {"response": "<text>", "suggestions": ["s1","s2"]}`
+
+    const response = await this.ai.run(model, {
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 512
+    })
+
+    const raw = response?.response || response?.output?.[0]?.content || ''
+    try {
+      const m = String(raw).match(/\{[\s\S]*\}/)
+      if (m) return JSON.parse(m[0])
+    } catch (e) {
+      // fallthrough
+    }
+
+    // Best-effort fallback: return raw text and empty suggestions
+    return { response: String(raw).trim(), suggestions: [] }
+  }
+
+  /**
    * Predict admission probability using AI
    * Model: @cf/meta/llama-2-7b-chat-int8
    */
@@ -62,6 +94,34 @@ Respond with ONLY a JSON object: {"probability": <number 0-100>, "confidence": <
     })
 
     return this._parsePrediction(response.response)
+  }
+
+  /**
+   * Analyze document text and return structured JSON (attempt).
+   */
+  async analyzeDocument(text, documentType = 'unknown') {
+    const model = this.env.AI_DOC_MODEL || '@cf/meta/llama-2-7b-chat-int8'
+    const system = this.env.AI_DOC_SYSTEM_PROMPT || 'You are a document analysis assistant. Extract structured data and provide a short summary in JSON.'
+
+    const prompt = `DocumentType: ${documentType}\n\n${text}\n\nRespond with a JSON object containing extracted fields and a short summary field named \"summary\".`
+
+    const response = await this.ai.run(model, {
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 512
+    })
+
+    const raw = response?.response || response?.output?.[0]?.content || ''
+    try {
+      const m = String(raw).match(/\{[\s\S]*\}/)
+      if (m) return JSON.parse(m[0])
+    } catch (e) {
+      // ignore parse errors
+    }
+
+    return { type: documentType, summary: String(raw).slice(0, 1000) }
   }
 
   /**
