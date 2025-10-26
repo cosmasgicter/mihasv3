@@ -76,3 +76,8 @@ STATIC_CACHE_TTL_SECONDS = "31536000"
 
 [ai]
 binding = "AI"
+
+# Cron triggers for scheduled tasks
+[[triggers.crons]]
+cron = "*/2 * * * *"  # Every 2 minutes
+path = "/cron/process-email-queue"

@@ -31,12 +31,26 @@ export function Card({ className, variant = 'default', hover = false, ...props }
       <motion.div
         className={baseClasses}
         whileHover={{ y: -4, transition: { duration: 0.2 } }}
+        whileTap={{ scale: 0.995, transition: { duration: 0.08 } }}
         {...(props as any)}
       />
     )
   }
 
-  return <div className={baseClasses} {...props} />
+  // For non-hover cards, provide a gentle mount entrance when motion is allowed.
+  if (prefersReducedMotion) {
+    return <div className={baseClasses} {...props} />
+  }
+
+  return (
+    <motion.div
+      className={baseClasses}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      {...(props as any)}
+    />
+  )
 }
 
 type CardHeaderProps = React.HTMLAttributes<HTMLDivElement>

@@ -3,65 +3,116 @@ import { sendEmail } from '../_lib/emailService.js';
 
 export async function onRequest(context) {
   const { env } = context;
+  
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  };
+
+  if (context.request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
 
   try {
-    const supabaseAdmin = supabaseAdminClient;
-
-    const { data: emails } = await supabaseAdmin
+    // Fetch pending emails (limit to 50 per run to avoid timeouts)
+    const { data: emails, error: fetchError } = await supabaseAdminClient
       .from('email_queue')
       .select('*')
       .eq('status', 'pending')
+      .or(`scheduled_for.is.null,scheduled_for.lte.${new Date().toISOString()}`)
       .order('priority', { ascending: false })
       .order('created_at', { ascending: true })
-      .limit(10);
+      .limit(50);
 
-    const results = [];
+    if (fetchError) throw fetchError;
 
-    for (const email of emails || []) {
-      await supabaseAdmin.from('email_queue').update({ status: 'sending' }).eq('id', email.id);
+    if (!emails || emails.length === 0) {
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'No pending emails',
+        processed: 0 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
-      const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">${email.subject}</h2>
-          <p style="color: #374151; line-height: 1.6;">Dear ${email.template_data?.full_name || 'Student'},</p>
-          <p style="color: #374151; line-height: 1.6;">
-            Your application #${email.template_data?.application_number} for ${email.template_data?.program} has been submitted successfully.
-          </p>
-          <p style="color: #374151; line-height: 1.6;">Our admissions team will review your application and notify you of the outcome.</p>
-          <a href="${env.PUBLIC_URL || 'https://apply.mihas.edu.zm'}/student/applications" 
-             style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
-            View Application
-          </a>
-          <hr style="border: 1px solid #e5e7eb; margin: 20px 0;">
-          <p style="color: #6b7280; font-size: 12px;">MIHAS Application System</p>
-        </div>
-      `;
+    const results = {
+      total: emails.length,
+      sent: 0,
+      failed: 0,
+      errors: []
+    };
 
-      const result = await sendEmail({ to: email.to_email, subject: email.subject, html, env });
+    // Process each email
+    for (const email of emails) {
+      try {
+        // Send email
+        const result = await sendEmail({
+          to: email.to_email,
+          subject: email.subject,
+          html: email.template,
+          env
+        });
 
-      if (result.success) {
-        await supabaseAdmin.from('email_queue').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', email.id);
-        results.push({ id: email.id, status: 'sent' });
-      } else {
-        await supabaseAdmin.from('email_queue').update({ status: 'failed', error_message: result.error }).eq('id', email.id);
-        results.push({ id: email.id, status: 'failed' });
+        if (result.success) {
+          // Mark as sent
+          await supabaseAdminClient
+            .from('email_queue')
+            .update({
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+              error_message: null
+            })
+            .eq('id', email.id);
+          
+          results.sent++;
+        } else {
+          // Mark as failed
+          await supabaseAdminClient
+            .from('email_queue')
+            .update({
+              status: 'failed',
+              error_message: result.error || 'Unknown error'
+            })
+            .eq('id', email.id);
+          
+          results.failed++;
+          results.errors.push({ id: email.id, error: result.error });
+        }
+      } catch (error) {
+        // Mark as failed
+        await supabaseAdminClient
+          .from('email_queue')
+          .update({
+            status: 'failed',
+            error_message: error.message
+          })
+          .eq('id', email.id);
+        
+        results.failed++;
+        results.errors.push({ id: email.id, error: error.message });
       }
     }
 
-    return new Response(JSON.stringify({ success: true, processed: results.length }), {
+    return new Response(JSON.stringify({
+      success: true,
+      message: `Processed ${results.total} emails`,
+      results
+    }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
+
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Email queue processing error:', error);
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error.message 
+    }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 }
-
-export default {
-  async scheduled(event, env, ctx) {
-    ctx.waitUntil(onRequest({ env }));
-  }
-};

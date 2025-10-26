@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useSearchParams } from 'react-router-dom'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import {
@@ -422,7 +423,12 @@ export default function Applications() {
   }, [applications])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    (() => {
+      const prefersReducedMotion = useReducedMotion()
+      const MaybeMotionDiv: any = prefersReducedMotion ? (props: any) => <div {...props} /> : motion.div
+
+      return (
+        <MaybeMotionDiv className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.36 }}>
       
       {/* Mobile-First Header */}
       <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3 sm:px-6">
@@ -653,6 +659,8 @@ export default function Applications() {
         />
       </div>
       </Container>
-    </div>
+        </MaybeMotionDiv>
+      )
+    })()
   )
 }

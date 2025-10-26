@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   Activity,
   TrendingUp,
@@ -14,6 +14,7 @@ import {
   ArrowUp,
   ArrowDown,
   AlertTriangle
+  , BarChart3
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { sanitizeForLog } from '@/lib/sanitize'
@@ -158,6 +159,12 @@ export function FixedAdminDashboard() {
     await loadDashboard({ silent: true, showRefreshing: true })
   }, [loadDashboard])
 
+  // Respect prefers-reduced-motion: when users request reduced motion we render
+  // static divs instead of animated motion.div wrappers to avoid continuous
+  // or entry animations. `MaybeMotion` is a small JSX wrapper used below.
+  const prefersReducedMotion = useReducedMotion()
+  const MaybeMotion: any = prefersReducedMotion ? (props: any) => <div {...props} /> : motion.div
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -195,7 +202,7 @@ export function FixedAdminDashboard() {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div
+        <MaybeMotion
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
@@ -222,9 +229,9 @@ export function FixedAdminDashboard() {
               <span className="text-warning-strong">{formatCount(weekTotal)} this week</span>
             </div>
           </div>
-        </motion.div>
+  </MaybeMotion>
 
-        <motion.div
+        <MaybeMotion
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -251,9 +258,9 @@ export function FixedAdminDashboard() {
               In review: {formatCount(inReviewCount)}
             </div>
           </div>
-        </motion.div>
+  </MaybeMotion>
 
-        <motion.div
+        <MaybeMotion
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -281,9 +288,9 @@ export function FixedAdminDashboard() {
               <span className="text-warning-strong">Approved: {formatCount(stats.approvedApplications)}</span>
             </div>
           </div>
-        </motion.div>
+  </MaybeMotion>
 
-        <motion.div
+        <MaybeMotion
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
@@ -311,11 +318,11 @@ export function FixedAdminDashboard() {
               <span className="text-warning-strong">Median: {formatHours(medianProcessingHours)}h</span>
             </div>
           </div>
-        </motion.div>
+  </MaybeMotion>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        <motion.div
+        <MaybeMotion
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="bg-card rounded-xl shadow-lg border border-border xl:col-span-2"
@@ -355,9 +362,9 @@ export function FixedAdminDashboard() {
               </div>
             )}
           </div>
-        </motion.div>
+  </MaybeMotion>
 
-        <motion.div
+        <MaybeMotion
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="bg-card rounded-xl shadow-lg border border-border xl:col-span-2"
@@ -423,11 +430,11 @@ export function FixedAdminDashboard() {
               </div>
             </div>
           </div>
-        </motion.div>
+  </MaybeMotion>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div
+        <MaybeMotion
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="bg-card rounded-xl shadow-lg border border-border"
@@ -459,7 +466,7 @@ export function FixedAdminDashboard() {
                           : 'bg-primary'
 
                 return (
-                  <motion.div
+                  <MaybeMotion
                     key={activity.id}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -471,7 +478,7 @@ export function FixedAdminDashboard() {
                       <p className="text-sm font-medium text-gray-900 truncate">{activity.message}</p>
                       <p className="text-xs text-gray-900">{formatTimestamp(activity.timestamp)}</p>
                     </div>
-                  </motion.div>
+                  </MaybeMotion>
                 )
               })
             ) : (
@@ -481,9 +488,9 @@ export function FixedAdminDashboard() {
               </div>
             )}
           </div>
-        </motion.div>
+  </MaybeMotion>
 
-        <motion.div
+        <MaybeMotion
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="bg-card rounded-xl shadow-lg border border-border"
@@ -566,7 +573,7 @@ export function FixedAdminDashboard() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </MaybeMotion>
       </div>
     </div>
   )
