@@ -35,7 +35,8 @@ type CardHeaderProps = React.HTMLAttributes<HTMLDivElement>
 
 export function CardHeader({ className, ...props }: CardHeaderProps) {
   return (
-    <div className={cn("flex flex-col space-y-1.5 p-4 md:p-6", className)} {...props} />
+    // Use token-backed padding via `.card-padding` so spacing is centralized
+    <div className={cn('flex flex-col space-y-1.5 card-padding', className)} {...props} />
   )
 }
 
@@ -44,10 +45,8 @@ type CardTitleProps = React.HTMLAttributes<HTMLHeadingElement>
 export function CardTitle({ className, ...props }: CardTitleProps) {
   return (
     <h3
-      className={cn(
-        "text-lg md:text-xl font-semibold text-foreground",
-        className
-      )}
+      className={cn('font-semibold text-foreground', className)}
+      style={{ fontSize: 'var(--type-lg)' }}
       {...props}
     />
   )
@@ -58,7 +57,8 @@ type CardDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
 export function CardDescription({ className, ...props }: CardDescriptionProps) {
   return (
     <p
-      className={cn("text-sm text-foreground", className)}
+      className={cn('text-foreground', className)}
+      style={{ fontSize: 'var(--type-sm)' }}
       {...props}
     />
   )
@@ -67,13 +67,13 @@ export function CardDescription({ className, ...props }: CardDescriptionProps) {
 type CardContentProps = React.HTMLAttributes<HTMLDivElement>
 
 export function CardContent({ className, ...props }: CardContentProps) {
-  return <div className={cn("p-4 md:p-6 pt-0", className)} {...props} />
+  return <div className={cn('card-padding pt-0', className)} {...props} />
 }
 
 type CardFooterProps = React.HTMLAttributes<HTMLDivElement>
 
 export function CardFooter({ className, ...props }: CardFooterProps) {
   return (
-    <div className={cn("flex items-center p-4 md:p-6 pt-0", className)} {...props} />
+    <div className={cn('flex items-center card-padding pt-0', className)} {...props} />
   )
 }

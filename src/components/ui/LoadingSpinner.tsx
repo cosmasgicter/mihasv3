@@ -18,10 +18,10 @@ export function LoadingSpinner({
   showPulse = false
 }: LoadingSpinnerProps) {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8',
-    xl: 'w-12 h-12'
+    sm: 'w-[var(--spinner-sm)] h-[var(--spinner-sm)]',
+    md: 'w-[var(--spinner-md)] h-[var(--spinner-md)]',
+    lg: 'w-[var(--spinner-lg)] h-[var(--spinner-lg)]',
+    xl: 'w-[2.5rem] h-[2.5rem]'
   }
 
   const colorClasses = {
