@@ -212,7 +212,7 @@ export async function onRequest(context) {
       // Check ownership
       const { data: app } = await supabase
         .from('applications')
-        .select('user_id, status')
+        .select('user_id, status, email, application_number, program, payment_status, amount')
         .eq('id', id)
         .single();
       
@@ -236,7 +236,12 @@ export async function onRequest(context) {
             .select()
             .single();
           
-          if (!error && notes) {
+          if (error) {
+            console.error('Status update error:', error);
+            throw new Error(error.message);
+          }
+          
+          if (notes) {
             await supabase.from('application_status_history').insert({
               application_id: id,
               status,
@@ -247,7 +252,7 @@ export async function onRequest(context) {
           }
           
           // Send notification to student
-          if (!error && data) {
+          if (data) {
             const notificationTitles = {
               'submitted': '✅ Application Submitted Successfully',
               'approved': '🎉 Application Approved!',
@@ -310,8 +315,6 @@ export async function onRequest(context) {
             }
           }
           
-          if (error) throw new Error(error.message);
-          
           // Audit log
           try {
             const auditLogger = new AuditLogger(supabase);
@@ -355,7 +358,7 @@ export async function onRequest(context) {
             .from('applications')
             .update(updateData)
             .eq('id', id)
-            .select()
+            .select('*, user_id, email, application_number, program, amount')
             .single();
           
           if (error) {
