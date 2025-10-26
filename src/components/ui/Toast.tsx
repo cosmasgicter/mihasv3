@@ -16,7 +16,7 @@ interface ToastStore {
   removeToast: (id: string) => void;
 }
 
-export const useToastStore = create<ToastStore>((set) => ({
+export const useToastStore = create<ToastStore>((set, get) => ({
   toasts: [],
   addToast: (type, message) => {
     const id = Date.now().toString();
@@ -24,7 +24,10 @@ export const useToastStore = create<ToastStore>((set) => ({
     setTimeout(() => set((state) => ({ toasts: state.toasts.filter(t => t.id !== id) })), 5000);
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter(t => t.id !== id) })),
-}));
+  success: (title, message) => get().addToast('success', message || title),
+  error: (title, message) => get().addToast('error', message || title),
+  info: (title, message) => get().addToast('info', message || title),
+}))
 
 // Export useToast as an alias for backward compatibility
 export const useToast = useToastStore;
