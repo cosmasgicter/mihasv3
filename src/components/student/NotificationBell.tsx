@@ -47,10 +47,16 @@ export function NotificationBell() {
 
   const handleNotificationClick = async (notification: StudentNotification) => {
     try {
+      // Optimistic update - mark as read immediately in UI
       if (!notification.read) {
-        await markAsRead(notification.id)
+        // Update local state first for instant feedback
+        markAsRead(notification.id).catch(error => {
+          console.error('Failed to mark notification as read:', error)
+          // Note: markAsRead already handles rollback via state update
+        })
       }
       
+      // Navigate after optimistic update (don't wait for server)
       if (notification.action_url) {
         window.location.href = notification.action_url
       }

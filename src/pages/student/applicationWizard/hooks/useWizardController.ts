@@ -154,6 +154,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
   const isSavingRef = useRef(false)
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve())
 
   const findProgramId = useCallback(
     (
@@ -556,33 +557,61 @@ const useWizardController = (): UseWizardControllerResult => {
   ])
 
   const saveDraft = useCallback(async () => {
-    if (!user || isDraftSaving || restoringDraft || isSavingRef.current) return
-    try {
-      isSavingRef.current = true
-      setIsDraftSaving(true)
-      const formData = watch()
-      const draft = {
-        formData,
-        selectedGrades,
-        currentStep: currentStepConfig.id,
-        currentStepKey: currentStepConfig.key,
-        applicationId,
-        savedAt: new Date().toISOString(),
-        version: 2
+    if (!user || restoringDraft) return
+    
+    // Queue saves to prevent race conditions
+    saveQueueRef.current = saveQueueRef.current.then(async () => {
+      if (isSavingRef.current) return
+      
+      try {
+        isSavingRef.current = true
+        setIsDraftSaving(true)
+        
+        const formData = watch()
+        const draft = {
+          formData,
+          selectedGrades,
+          currentStep: currentStepConfig.id,
+          currentStepKey: currentStepConfig.key,
+          applicationId,
+          savedAt: new Date().toISOString(),
+          version: 2
+        }
+
+        // Use requestIdleCallback for non-blocking save
+        await new Promise<void>(resolve => {
+          const saveOperation = () => {
+            try {
+              localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
+              sessionStorage.removeItem('applicationWizardDraft')
+              resolve()
+            } catch (error) {
+              console.error('Error saving draft:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+              resolve()
+            }
+          }
+          
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(saveOperation, { timeout: 2000 })
+          } else {
+            setTimeout(saveOperation, 0)
+          }
+        })
+
+        setDraftSaved(true)
+        setTimeout(() => setDraftSaved(false), 2000)
+      } finally {
+        setIsDraftSaving(false)
+        isSavingRef.current = false
       }
-
-      localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
-      sessionStorage.removeItem('applicationWizardDraft')
-
-      setDraftSaved(true)
-      setTimeout(() => setDraftSaved(false), 2000)
-    } catch (error) {
-      console.error('Error saving draft:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
-    } finally {
-      setIsDraftSaving(false)
+    }).catch(error => {
+      console.error('Draft save queue error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
       isSavingRef.current = false
-    }
-  }, [user, isDraftSaving, restoringDraft, selectedGrades, currentStepConfig, applicationId])
+      setIsDraftSaving(false)
+    })
+    
+    return saveQueueRef.current
+  }, [user, restoringDraft, selectedGrades, currentStepConfig, applicationId, watch])
 
   useEffect(() => {
     // Don't start auto-save until draft is loaded and not restoring
@@ -592,35 +621,7 @@ const useWizardController = (): UseWizardControllerResult => {
     const subscription = watch(() => {
       if (timeoutId) clearTimeout(timeoutId)
       timeoutId = setTimeout(() => {
-        // Inline save logic to avoid circular dependency
-        if (!user || isDraftSaving || restoringDraft || isSavingRef.current) return
-        
-        isSavingRef.current = true
-        setIsDraftSaving(true)
-        
-        try {
-          const formData = watch()
-          const draft = {
-            formData,
-            selectedGrades,
-            currentStep: currentStepConfig.id,
-            currentStepKey: currentStepConfig.key,
-            applicationId,
-            savedAt: new Date().toISOString(),
-            version: 2
-          }
-
-          localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
-          sessionStorage.removeItem('applicationWizardDraft')
-
-          setDraftSaved(true)
-          setTimeout(() => setDraftSaved(false), 2000)
-        } catch (error) {
-          console.error('Error saving draft:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
-        } finally {
-          setIsDraftSaving(false)
-          isSavingRef.current = false
-        }
+        saveDraft()
       }, 8000)
     })
 
@@ -628,7 +629,7 @@ const useWizardController = (): UseWizardControllerResult => {
       subscription.unsubscribe()
       if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [draftLoaded, restoringDraft, watch, user, isDraftSaving, selectedGrades, currentStepConfig.id, currentStepConfig.key, applicationId])
+  }, [draftLoaded, restoringDraft, watch, saveDraft])
 
   const addGrade = useCallback(() => {
     setSelectedGrades(prev => (prev.length < 10 ? [...prev, { subject_id: '', grade: 1 }] : prev))
@@ -1092,15 +1093,7 @@ const useWizardController = (): UseWizardControllerResult => {
         nationality: updatedApp.nationality
       }))
 
-      // Send notification
-      const { NotificationService } = await import('@/lib/notificationService')
-      NotificationService.sendApplicationStatusNotification(
-        currentUser.id,
-        applicationId,
-        'submitted',
-        updatedApp.application_number,
-        updatedApp.program
-      ).catch(console.error)
+      // Notification is automatically sent by database trigger on status change
 
       try {
         localStorage.removeItem('applicationWizardDraft')

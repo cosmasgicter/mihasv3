@@ -3,7 +3,7 @@ import { sanitizeForLog, safeJsonParse } from './sanitize'
 
 export class DraftManager {
   private static instance: DraftManager
-  private isClearing = false
+  private clearPromise: Promise<{ success: boolean; error?: string }> | null = null
 
   static getInstance(): DraftManager {
     if (!DraftManager.instance) {
@@ -28,41 +28,48 @@ export class DraftManager {
   }
 
   async clearAllDrafts(userId: string): Promise<{ success: boolean; error?: string }> {
-    if (this.isClearing) {
-      return { success: false, error: 'Clear operation already in progress' }
+    // Return existing promise if already clearing (prevents race condition)
+    if (this.clearPromise) {
+      return this.clearPromise
     }
 
-    this.isClearing = true
-    const removeRefreshHandler = this.preventRefresh()
+    this.clearPromise = (async () => {
+      const removeRefreshHandler = this.preventRefresh()
 
-    try {
-      // Clear all possible draft storage locations
-      const deleteResult = await applicationSessionManager.deleteDraft(userId)
-      
-      // Additional cleanup for any missed items
       try {
-        // Clear all localStorage keys that might contain draft data
-        this.getDraftKeys(localStorage).forEach(key => {
-          localStorage.removeItem(key)
-        })
+        // Invalidate cache BEFORE clearing to prevent stale reads
+        this.draftKeysCache.clear()
+        
+        // Clear all possible draft storage locations
+        const deleteResult = await applicationSessionManager.deleteDraft(userId)
+        
+        // Additional cleanup for any missed items
+        try {
+          // Clear all localStorage keys that might contain draft data
+          this.getDraftKeys(localStorage).forEach(key => {
+            localStorage.removeItem(key)
+          })
 
-        // Clear sessionStorage as well
-        this.getDraftKeys(sessionStorage).forEach(key => {
-          sessionStorage.removeItem(key)
-        })
-      } catch (storageError) {
-      }
+          // Clear sessionStorage as well
+          this.getDraftKeys(sessionStorage).forEach(key => {
+            sessionStorage.removeItem(key)
+          })
+        } catch (storageError) {
+        }
 
-      return deleteResult
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? sanitizeForLog(error.message) : 'Unknown error occurred'
+        return deleteResult
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? sanitizeForLog(error.message) : 'Unknown error occurred'
+        }
+      } finally {
+        removeRefreshHandler()
+        this.clearPromise = null
       }
-    } finally {
-      this.isClearing = false
-      removeRefreshHandler()
-    }
+    })()
+
+    return this.clearPromise
   }
 
   // Helper to check if key is draft-related
