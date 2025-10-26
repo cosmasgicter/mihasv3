@@ -50,27 +50,7 @@ export async function onRequest(context) {
     }
 
     const ai = new CloudflareAI(env)
-    const model = env.AI_DOC_MODEL || '@cf/meta/llama-2-7b-chat-int8'
-
-    const prompt = `You are a document analysis assistant. Given the following ${documentType} content, extract a JSON object with sensible fields. If unable, return {\n  \"type\": \"${documentType}\",\n  \"summary\": \"...\"\n}`
-    const messages = [
-      { role: 'system', content: 'Extract structured information and a short summary in JSON format.' },
-      { role: 'user', content: `${prompt}\n\n${text}` }
-    ]
-
-    const resp = await ai.ai.run(model, { messages, max_tokens: 512 })
-    const raw = resp?.response || resp?.output?.[0]?.content || ''
-
-    // Try to extract first JSON object from response
-    let parsed = null
-    try {
-      const m = String(raw).match(/\{[\s\S]*\}/)
-      if (m) parsed = JSON.parse(m[0])
-    } catch (e) {
-      parsed = null
-    }
-
-    const result = parsed || { type: documentType, summary: String(raw).slice(0, 1000) }
+    const result = await ai.analyzeDocument(text, documentType)
 
     return new Response(JSON.stringify(result), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (error) {
