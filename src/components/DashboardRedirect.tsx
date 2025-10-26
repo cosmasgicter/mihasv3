@@ -42,13 +42,18 @@ export function DashboardRedirect() {
       return
     }
 
-    // Check if user has admin role
-    if (hasAdminRole || isAdminRole(profile?.role)) {
+    // Strict admin check - only redirect to admin if explicitly admin
+    const profileRole = profile?.role?.toLowerCase()
+    const isExplicitAdmin = profileRole === 'admin' || 
+                           profileRole === 'super_admin' || 
+                           profileRole === 'admissions_officer'
+    
+    if (hasAdminRole && isExplicitAdmin) {
       setRedirectPath('/admin')
       return
     }
 
-    // Default to student dashboard
+    // Default to student dashboard for all other users
     setRedirectPath('/student/dashboard')
   }, [loading, user, profile, profileTimeout, hasAdminRole, redirectPath])
 
