@@ -14,8 +14,8 @@ if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
     environment: import.meta.env.VITE_NODE_ENV || 'production',
     tracesSampleRate: 0.1,
     integrations: [
-      new Sentry.BrowserTracing(),
-      new Sentry.Replay({
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration({
         maskAllText: true,
         blockAllMedia: true,
       }),
