@@ -19,8 +19,20 @@ import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { ParticleBackground } from '@/components/effects/ParticleBackground'
 
-
-
+// Sentry test button (remove after testing)
+function SentryTestButton() {
+  if (import.meta.env.DEV) {
+    return (
+      <button
+        onClick={() => { throw new Error('Sentry test error!') }}
+        className="fixed bottom-4 left-4 z-50 bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+      >
+        Test Sentry
+      </button>
+    )
+  }
+  return null
+}
 
 // Optimized query client for better performance
 const queryClient = new QueryClient({
@@ -89,6 +101,7 @@ function App() {
                 <SimpleErrorBoundary>
                   <div className="min-h-screen bg-background transition-colors duration-500">
                     <ParticleBackground />
+                    <SentryTestButton />
                     <AppLayout>
                       <Routes>
                         {routes.map((route) => (
