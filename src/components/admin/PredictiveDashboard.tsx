@@ -265,10 +265,10 @@ export function PredictiveDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Predictive Dashboard</h1>
-          <p className="text-gray-700 dark:text-gray-300">
+          <p className="text-gray-900">
             Real-time insights and automation analytics
             {lastUpdated && (
-              <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+              <span className="ml-2 text-sm text-gray-900 dark:text-gray-800">
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
