@@ -20,13 +20,14 @@ const buttonVariants = cva(
         gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl',
       },
       size: {
-        default: 'h-10 px-4 text-sm min-w-[44px]',
-        xs: 'h-8 px-2 text-xs min-w-[36px]',
-        sm: 'h-9 px-3 text-sm min-w-[44px]',
-        md: 'h-10 px-4 text-base min-w-[44px]',
-        lg: 'h-11 px-6 text-lg min-w-[44px]',
-        xl: 'h-12 px-8 text-xl min-w-[48px]',
-        icon: 'h-10 w-10',
+        // Visual sizing will be applied via inline styles using design tokens / CSS variables
+        default: '',
+        xs: '',
+        sm: '',
+        md: '',
+        lg: '',
+        xl: '',
+        icon: '',
       },
     },
     defaultVariants: {
@@ -77,6 +78,20 @@ export function Button({
     </>
   )
 
+  // Map semantic sizes to CSS token-backed styles
+  const sizeStyles: Record<string, React.CSSProperties> = {
+    default: { height: 'var(--touch-target)', paddingInline: '1rem', fontSize: 'var(--type-sm)', minWidth: '44px' },
+    xs: { height: '2rem', paddingInline: '0.5rem', fontSize: 'var(--type-xs)', minWidth: '36px' },
+    sm: { height: '2.25rem', paddingInline: '0.75rem', fontSize: 'var(--type-sm)', minWidth: '44px' },
+    md: { height: 'var(--touch-target)', paddingInline: '1rem', fontSize: 'var(--type-base)', minWidth: '44px' },
+    lg: { height: '2.75rem', paddingInline: '1.5rem', fontSize: 'var(--type-lg)', minWidth: '44px' },
+    xl: { height: '3rem', paddingInline: '2rem', fontSize: 'var(--type-2xl)', minWidth: '48px' },
+    icon: { width: 'var(--touch-target)', height: 'var(--touch-target)', paddingInline: 0 }
+  }
+
+  const appliedSizeStyle = sizeStyles[size || 'default'] || sizeStyles.default
+  const mergedStyle = { ...(props.style || {}), ...appliedSizeStyle }
+
   if (isTestEnvironment || prefersReducedMotion) {
     return (
       <button
@@ -84,6 +99,7 @@ export function Button({
         disabled={disabled || loading}
         onClick={onClick}
         aria-busy={loading}
+        style={mergedStyle}
         {...props}
       >
         {buttonContent}
@@ -100,6 +116,7 @@ export function Button({
       disabled={disabled || loading}
       onClick={onClick}
       aria-busy={loading}
+      style={mergedStyle}
       {...props}
     >
       {buttonContent}

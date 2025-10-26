@@ -82,14 +82,14 @@ export function PageHeader({
  )
  }
 
- return (
- <header
- className={cn(
- 'relative overflow-hidden rounded-3xl px-6 py-6 sm:px-8 sm:py-8',
- variantStyles[variant],
- className
- )}
- >
+	return (
+	<header
+	className={cn(
+		'relative overflow-hidden rounded-3xl section-padding',
+		variantStyles[variant],
+		className
+	)}
+	>
  <div className="absolute inset-0 pointer-events-none">
  {variant === 'gradient' && (
  <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-white/0 opacity-40" />
@@ -98,7 +98,7 @@ export function PageHeader({
  <div className={cn('relative flex flex-col gap-6 sm:flex-row sm:justify-between', alignmentStyles[align])}>
  <div className="space-y-4 sm:max-w-2xl">
  {eyebrow && (
- <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-foreground/70' : 'text-primary')}>
+ <p className={cn('font-semibold uppercase tracking-wide', isGradient ? 'text-foreground/70' : 'text-primary')} style={{ fontSize: 'var(--type-xs)' }}>
  {eyebrow}
  </p>
  )}
@@ -106,17 +106,18 @@ export function PageHeader({
  {icon && (
  <div
  className={cn(
- 'flex h-14 w-14 items-center justify-center rounded-2xl border text-2xl shadow-inner',
+ 'flex items-center justify-center rounded-2xl border shadow-inner',
  isGradient ? 'border-card/40 bg-card/95 text-gray-900 backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
  )}
+ style={{ width: '3.5rem', height: '3.5rem', fontSize: 'var(--type-2xl)' }}
  >
  {icon}
  </div>
  )}
  <div className="space-y-3">
- <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight break-words">{title}</h1>
+ <h1 style={{ fontSize: 'clamp(1.25rem, 1.8vw + 0.9rem, 2.5rem)', fontWeight: 700 }} className="tracking-tight break-words">{title}</h1>
  {description && (
- <p className={cn('text-base sm:text-lg', isGradient ? 'text-foreground/80' : 'text-foreground')}>{description}</p>
+ <p className={cn('', isGradient ? 'text-foreground/80' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
  )}
  {children}
  </div>
