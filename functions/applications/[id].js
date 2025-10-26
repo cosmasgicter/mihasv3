@@ -230,6 +230,18 @@ export async function onRequest(context) {
         if (action === 'update_status') {
           const { status, notes } = payload;
           
+          // Validate status value
+          const validStatuses = ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'pending_documents'];
+          if (!validStatuses.includes(status)) {
+            return new Response(JSON.stringify({ 
+              error: 'Invalid status value',
+              details: `Status must be one of: ${validStatuses.join(', ')}` 
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          
           // Prevent approval without verified payment
           if (status === 'approved' && app.payment_status !== 'verified') {
             return new Response(JSON.stringify({ 
@@ -357,6 +369,18 @@ export async function onRequest(context) {
         
         if (action === 'update_payment_status') {
           const { paymentStatus, verificationNotes } = payload;
+          
+          // Validate payment status value
+          const validPaymentStatuses = ['pending_review', 'verified', 'rejected'];
+          if (!validPaymentStatuses.includes(paymentStatus)) {
+            return new Response(JSON.stringify({ 
+              error: 'Invalid payment status value',
+              details: `Payment status must be one of: ${validPaymentStatuses.join(', ')}` 
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
           const updateData = { 
             payment_status: paymentStatus, 
             updated_at: new Date().toISOString(),
@@ -376,6 +400,24 @@ export async function onRequest(context) {
           if (error) {
             console.error('Payment status update error:', error);
             throw new Error(error.message);
+          }
+          
+          // Audit log for payment verification
+          try {
+            const auditLogger = new AuditLogger(supabase);
+            await auditLogger.logApplicationAction(
+              authContext.user.id,
+              `payment_${paymentStatus}`,
+              id,
+              { 
+                old_payment_status: app.payment_status, 
+                new_payment_status: paymentStatus, 
+                verification_notes: verificationNotes 
+              },
+              request
+            );
+          } catch (auditError) {
+            console.error('Audit log error:', auditError);
           }
           
           // Send notification to student
