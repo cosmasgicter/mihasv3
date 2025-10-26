@@ -3,6 +3,8 @@
  * Uses Cloudflare Workers AI (free tier: 10,000 neurons/day)
  */
 
+import { z } from 'zod'
+
 export class CloudflareAI {
   constructor(env) {
     this.ai = env.AI // Cloudflare AI binding
@@ -65,7 +67,14 @@ Provide exactly 3 recommendations as a JSON array of strings. Be specific and he
     const raw = response?.response || response?.output?.[0]?.content || ''
     try {
       const m = String(raw).match(/\{[\s\S]*\}/)
-      if (m) return JSON.parse(m[0])
+      if (m) {
+        const parsed = JSON.parse(m[0])
+        // validate shape
+        const ChatSchema = z.object({ response: z.string(), suggestions: z.array(z.string()).optional() })
+        const result = ChatSchema.safeParse(parsed)
+        if (result.success) return result.data
+        // If invalid, fall through to best-effort
+      }
     } catch (e) {
       // fallthrough
     }
@@ -116,7 +125,20 @@ Respond with ONLY a JSON object: {"probability": <number 0-100>, "confidence": <
     const raw = response?.response || response?.output?.[0]?.content || ''
     try {
       const m = String(raw).match(/\{[\s\S]*\}/)
-      if (m) return JSON.parse(m[0])
+      if (m) {
+        const parsed = JSON.parse(m[0])
+        const AnalyzeSchema = z.object({
+          grades: z.array(z.object({ subject: z.string(), grade: z.number() })).optional(),
+          summary: z.string().optional(),
+          nrc: z.string().optional(),
+          name: z.string().optional(),
+          examYear: z.string().optional()
+        }).passthrough()
+
+        const result = AnalyzeSchema.safeParse(parsed)
+        if (result.success) return result.data
+        // else fallthrough to return best-effort
+      }
     } catch (e) {
       // ignore parse errors
     }

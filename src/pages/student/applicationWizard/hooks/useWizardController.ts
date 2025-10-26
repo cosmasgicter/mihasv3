@@ -17,6 +17,7 @@ import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibility'
 import { createApplicationSlip } from '@/lib/slipService'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { sanitizeForLog } from '@/lib/security'
+import { findBestSubjectId } from '@/lib/subjectMatcher'
 import { getSessionToken } from '@/lib/sessionUtils'
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/utils/logger'
@@ -906,6 +907,75 @@ const useWizardController = (): UseWizardControllerResult => {
             id: applicationId,
             data: updateData
           })
+          // Try to auto-extract data from the uploaded result slip and optionally run server-side AI analysis.
+          // This is non-critical: failures must not block the happy path.
+          (async () => {
+            try {
+              if (resultSlipFile) {
+                const { autoFillService } = await import('@/utils/smart-features')
+                const parsed = await autoFillService.extractDataFromFile(resultSlipFile, 'grade12').catch(() => null)
+
+                // If parser returned grades, try to map them to known subject IDs and sync
+                if (parsed && Array.isArray(parsed.grades) && parsed.grades.length > 0) {
+                  try {
+                    const gradesToSync = parsed.grades
+                      .map(g => ({
+                        subject_id: findBestSubjectId((g.subject || '').toString(), subjects) || '',
+                        grade: Number.isFinite(g.grade) ? g.grade : parseInt(String(g.grade), 10)
+                      }))
+                      .filter(g => g.subject_id && g.grade && g.grade > 0)
+
+                    if (gradesToSync.length > 0 && applicationId) {
+                      await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
+                      // Update local selectedGrades state so UI reflects auto-fill
+                      setSelectedGrades(gradesToSync.map(g => ({ subject_id: g.subject_id, grade: g.grade })))
+                      showSuccess('Auto-fill complete', `Detected and synced ${gradesToSync.length} grade(s) from result slip`)
+                    } else if (parsed && parsed.grades && parsed.grades.length > 0) {
+                      // Parser found grades but we couldn't map them to known subjects
+                      showInfo('Auto-fill partial', 'We detected grades but could not match them to subjects. Please review and add any missing subjects.')
+                    }
+                  } catch (e) {
+                    // Non-fatal: log and continue
+                    console.warn('Auto-fill grade sync failed:', e)
+                  }
+                }
+
+                // Send raw extracted text to server-side analyzer for a second opinion / structured JSON
+                try {
+                  const rawText = (parsed && (parsed as any)._rawText) || ''
+                  if (rawText && applicationId) {
+                    const { cloudflareAI } = await import('@/lib/cloudflareAI')
+                    const analysis = await cloudflareAI.analyzeDocument(rawText, 'result_slip')
+                    // If analysis contains grades in expected shape, try to sync them too
+                    if (analysis && Array.isArray(analysis.grades) && analysis.grades.length > 0) {
+                      const aiGrades = analysis.grades
+                        .map((g: any) => ({
+                          subject_id: findBestSubjectId((g.subject || '').toString(), subjects) || '',
+                          grade: Number.isFinite(g.grade) ? g.grade : parseInt(String(g.grade), 10)
+                        }))
+                        .filter((g: any) => g.subject_id && g.grade && g.grade > 0)
+
+                      if (aiGrades.length > 0) {
+                        try {
+                          await syncGrades.mutateAsync({ id: applicationId, grades: aiGrades })
+                          setSelectedGrades(aiGrades.map((g: any) => ({ subject_id: g.subject_id, grade: g.grade })))
+                          showSuccess('AI analysis applied', `Synced ${aiGrades.length} grade(s) suggested by document analysis`)
+                        } catch (e) {
+                          console.warn('AI grade sync failed:', e)
+                          showWarning('AI grade sync failed')
+                        }
+                      }
+                    }
+                  }
+                } catch (e) {
+                  console.warn('Server document analysis failed:', e)
+                  showWarning('Document analysis failed — proceeding without AI suggestions')
+                }
+              }
+            } catch (e) {
+              console.warn('Auto-fill/analysis step failed (non-fatal):', e)
+            }
+          })()
           
         })
         goToStep(currentStepIndex + 1)

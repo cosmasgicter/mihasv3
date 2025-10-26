@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { supabase } from '@/lib/supabase'
+import { useToastStore } from '@/components/ui/Toast'
 import { predictiveAnalytics } from '@/lib/predictiveAnalytics'
 import { cloudflareAI } from '@/lib/cloudflareAI'
 
@@ -542,8 +543,13 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
 
     try {
       const response = await generateResponse(currentInput)
-      
+
       const suggestions = await generateContextualSuggestions(currentInput, applicationData)
+
+      // If the AI indicates service is unavailable, notify the user non-fatally
+      if (typeof response === 'string' && response.toLowerCase().includes('ai service is currently unavailable')) {
+        useToastStore.getState().addToast('info', 'AI service unavailable — showing local fallbacks')
+      }
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -570,6 +576,7 @@ ${currentStep ? `You're currently on Step ${currentStep}. ` : ''}What specific a
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMessage])
+      useToastStore.getState().addToast('error', 'AI assistant failed to respond. Please try again later.')
     } finally {
       setIsTyping(false)
     }

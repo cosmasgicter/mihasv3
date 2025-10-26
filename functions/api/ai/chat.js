@@ -6,6 +6,9 @@
 
 import { supabaseAdminClient } from '../../_lib/supabaseClient.js'
 import { CloudflareAI } from '../../_lib/cloudflareAI.js'
+import { z } from 'zod'
+
+const ChatResponseSchema = z.object({ response: z.string(), suggestions: z.array(z.string()).optional() })
 
 export async function onRequest(context) {
   const { request, env } = context
@@ -54,11 +57,13 @@ export async function onRequest(context) {
     const ai = new CloudflareAI(env)
     const chatResult = await ai.chat(message, contextObj)
 
-    // chatResult expected: { response: string, suggestions: string[] }
-    const responseText = chatResult?.response ?? ''
-    const suggestions = Array.isArray(chatResult?.suggestions) ? chatResult.suggestions : []
+    const parsed = ChatResponseSchema.safeParse(chatResult)
+    if (!parsed.success) {
+      console.warn('Invalid chat result shape from model:', parsed.error)
+      return new Response(JSON.stringify({ error: 'invalid_model_response' }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
 
-    return new Response(JSON.stringify({ response: String(responseText), suggestions }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify(parsed.data), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (error) {
     console.error('AI chat error:', error)
     return new Response(JSON.stringify({ error: 'AI chat failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
