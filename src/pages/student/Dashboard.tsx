@@ -23,6 +23,7 @@ import { SectionCard } from '@/components/ui/SectionCard'
 import { useToastStore } from '@/components/ui/Toast'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
+import { Container } from '@/components/ui/Container'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -154,12 +155,12 @@ export default function StudentDashboard() {
 
       setApplications((applicationsResponse?.applications || []) as Application[])
 
-      const intakesResponse = await catalogService.getIntakes()
+      const intakesResponse = await catalogService.getIntakes() as { intakes: Intake[] }
 
       // Check if request was aborted
       if (signal.aborted) return
 
-      setIntakes((intakesResponse.intakes || []) as Intake[])
+      setIntakes(intakesResponse.intakes || [])
     } catch (error) {
       // Ignore abort errors
       if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted'))) {
@@ -224,7 +225,7 @@ export default function StudentDashboard() {
   const firstName = displayName?.split(' ')[0] || 'Student'
 
   const draftApplications = applications.filter(app => app.status === 'draft')
-  const submittedApplications = applications.filter(app => app.status !== 'draft' && app.status !== 'deleted')
+  const submittedApplications = applications.filter(app => app.status !== 'draft')
   const hasLocalDraftOnly = hasDraft && draftApplications.length === 0
   const totalDraftCount = draftApplications.length + (hasLocalDraftOnly ? 1 : 0)
 

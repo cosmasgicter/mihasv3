@@ -455,7 +455,8 @@ export default function Applications() {
           </div>
         </div>
       </div>
-  <Container size="lg" className="py-8">
+
+      <Container size="lg" className="py-8">
       {/* Enhanced Admin Metrics */}
       <div className="px-4 py-4 sm:px-6">
         <AdminMetrics applications={applications} />
@@ -650,6 +651,7 @@ export default function Applications() {
           onGenerateAcceptanceLetter={handleGenerateAcceptanceLetter}
           onGenerateFinanceReceipt={handleGenerateFinanceReceipt}
         />
+      </div>
       </Container>
     </div>
   )

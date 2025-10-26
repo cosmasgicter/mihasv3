@@ -31,7 +31,7 @@ export function Card({ className, variant = 'default', hover = false, ...props }
       <motion.div
         className={baseClasses}
         whileHover={{ y: -4, transition: { duration: 0.2 } }}
-        {...props}
+        {...(props as any)}
       />
     )
   }

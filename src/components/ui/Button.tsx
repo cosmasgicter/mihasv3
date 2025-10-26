@@ -90,7 +90,8 @@ export function Button({
   }
 
   const appliedSizeStyle = sizeStyles[size || 'default'] || sizeStyles.default
-  const mergedStyle = { ...(props.style || {}), ...appliedSizeStyle }
+  const propsStyle = props.style ? (props.style as React.CSSProperties) : {}
+  const mergedStyle: React.CSSProperties = { ...propsStyle, ...appliedSizeStyle }
 
   if (isTestEnvironment || prefersReducedMotion) {
     return (
@@ -116,7 +117,7 @@ export function Button({
       disabled={disabled || loading}
       onClick={onClick}
       aria-busy={loading}
-      style={mergedStyle}
+      style={mergedStyle as any}
       {...props}
     >
       {buttonContent}

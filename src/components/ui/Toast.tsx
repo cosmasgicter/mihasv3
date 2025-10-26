@@ -14,6 +14,9 @@ interface ToastStore {
   toasts: Toast[];
   addToast: (type: ToastType, message: string) => void;
   removeToast: (id: string) => void;
+  success: (title: string, message?: string) => void;
+  error: (title: string, message?: string) => void;
+  info: (title: string, message?: string) => void;
 }
 
 export const useToastStore = create<ToastStore>((set, get) => ({

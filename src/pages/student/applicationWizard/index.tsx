@@ -111,7 +111,7 @@ const ApplicationWizardContent = () => {
       case 2:
         return [
           { label: 'Payment method selected', completed: !!values.payment_method },
-          { label: 'Payment reference provided', completed: !!values.payment_reference },
+          { label: 'Payment reference provided', completed: !!(values.momo_ref) },
           { label: 'Proof of payment uploaded', completed: !!popFile || !!uploadedFiles.proof_of_payment }
         ]
       case 3:
@@ -220,10 +220,10 @@ const ApplicationWizardContent = () => {
       <div className="w-full">
         <Container size="md" className="py-8">
           <div className="mb-8">
-          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary mb-4">
-            <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
-            Back to Dashboard
-          </Link>
+            <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary mb-4">
+              <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
+              Back to Dashboard
+            </Link>
             {prefersReducedMotion ? (
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Student Application</h1>
@@ -242,10 +242,10 @@ const ApplicationWizardContent = () => {
                 Tip: Use Ctrl+→/← to navigate steps
               </span>
             </div>
-          </motion.div>
-        </div>
+          </div>
+        </Container>
 
-        <div className="mb-6 lg:mb-8">
+        <Container size="md" className="mb-6 lg:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex-1">
               <h2 className="text-base sm:text-lg font-semibold text-gray-900">
@@ -324,6 +324,7 @@ const ApplicationWizardContent = () => {
               </Button>
             </div>
           </div>
+
           <div className="relative">
             {/* Desktop: Horizontal with connecting line */}
             <div className="hidden md:block">
@@ -421,7 +422,9 @@ const ApplicationWizardContent = () => {
               })}
             </div>
           </div>
-        </div>
+        </Container>
+
+        <Container size="md">
 
         {error && (
           <motion.div className="rounded-md bg-destructive/10 border border-destructive/30 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
@@ -508,7 +511,7 @@ const ApplicationWizardContent = () => {
               <PaymentStep
                 title={currentStepConfig.title}
                 form={form}
-                getPaymentTarget={getPaymentTarget}
+                getPaymentTarget={async () => getPaymentTarget()}
                 handleProofOfPaymentUpload={handleProofOfPaymentUpload}
                 proofOfPaymentFile={popFile}
                 uploadProgress={uploadProgress}
@@ -628,7 +631,7 @@ const ApplicationWizardContent = () => {
             </div>
           </div>
         </div>
-        </div>
+        </Container>
       </div>
 
       <AIAssistant
