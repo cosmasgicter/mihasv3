@@ -212,7 +212,7 @@ export async function onRequest(context) {
       // Check ownership
       const { data: app } = await supabase
         .from('applications')
-        .select('user_id, status, email, application_number, program, payment_status, amount')
+        .select('user_id, status')
         .eq('id', id)
         .single();
       
@@ -358,7 +358,7 @@ export async function onRequest(context) {
             .from('applications')
             .update(updateData)
             .eq('id', id)
-            .select('*, user_id, email, application_number, program, amount')
+            .select()
             .single();
           
           if (error) {
