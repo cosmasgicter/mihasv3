@@ -49,6 +49,7 @@
   --sidebar-expanded: 256px;
   --header-height: 64px;
   --icon-size: 1.25rem; /* 20px */
+  --icon-size-sm: 1rem; /* 16px */
   --nav-min-width: 60px;
   --touch-target: 44px;
 

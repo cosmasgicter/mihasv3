@@ -92,8 +92,8 @@ export class ErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div className="p-4 border border-error rounded">
-          <h2 className="text-error">Something went wrong.</h2>
-          <pre className="mt-2 text-sm">{serializeError(this.state.error)}</pre>
+          <h2 className="text-error" style={{ fontSize: 'var(--type-lg)' }}>Something went wrong.</h2>
+          <pre className="mt-2" style={{ fontSize: 'var(--type-sm)', whiteSpace: 'pre-wrap' }}>{serializeError(this.state.error)}</pre>
         </div>
       );
     }

@@ -34,8 +34,8 @@ export const Header = React.memo(function Header() {
     >
       <div className="flex items-center justify-between h-16 px-3 sm:px-4 md:px-6">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 overflow-hidden">
-          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2 min-w-0 max-w-full">
-            <User className="h-5 w-5 flex-shrink-0" />
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2 min-w-0 max-w-full" style={{ fontSize: 'var(--type-sm)' }}>
+            <User style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />
             <span className="truncate">{fullName}</span>
           </h2>
         </div>
