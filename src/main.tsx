@@ -12,15 +12,13 @@ if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.VITE_NODE_ENV || 'production',
-    tracesSampleRate: 0.1,
+    sendDefaultPii: true,
     integrations: [
       Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
+      Sentry.replayIntegration(),
     ],
-    replaysSessionSampleRate: 0.1,
+    tracesSampleRate: 0.1,
+    replaysSessionSampleRate: 1.0,
     replaysOnErrorSampleRate: 1.0,
   });
 }
