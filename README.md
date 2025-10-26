@@ -52,7 +52,7 @@ npm run test:unit
 - **API Structure Guide**: `API_STRUCTURE_GUIDE.md`
 - **API Reference**: `docs/API_REFERENCE.md`
 - **Troubleshooting**: `docs/TROUBLESHOOTING.md`
-- **Changelog**: `CHANGELOG.md`
+- **Changelog**: `docs/CHANGELOG.md`
 
 ### For Users
 - **Student Guide**: `docs/guides/STUDENT_GUIDE.md`
@@ -60,13 +60,14 @@ npm run test:unit
 
 ### For DevOps
 - **Deployment Guide**: `docs/DEPLOYMENT_GUIDE.md` ⭐ **DEPLOY HERE**
-- **Performance Plan**: `PERFORMANCE_OPTIMIZATION_PLAN.md`
-- **Documentation Plan**: `DOCUMENTATION_IMPROVEMENT_PLAN.md`
+- **Performance Plan**: `docs/PERFORMANCE_OPTIMIZATION_PLAN.md`
+- **Documentation Plan**: `docs/DOCUMENTATION_IMPROVEMENT_PLAN.md`
 
-### Technical
-- **Unified Templates System**: `docs/UNIFIED_TEMPLATES_SYSTEM.md`
+### Technical Reports
+- **System Status**: `docs/reports/SYSTEM_STATUS_SUMMARY.md`
 - **Security Audit**: `SECURITY_AUDIT_REPORT.md`
 - **Production Readiness**: `PRODUCTION_READINESS_REPORT.md`
+- **Unified Templates**: `docs/UNIFIED_TEMPLATES_SYSTEM.md`
 - **Complete Source Code**: `COMPLETE_SOURCE_CODE_FINAL.md` (2.6MB, 457 files)
 
 ## 🔧 Technology Stack
