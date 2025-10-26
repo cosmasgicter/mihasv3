@@ -48,16 +48,29 @@ export class PredictiveAnalytics {
       })
 
       if (!response.ok) {
-        throw new Error('AI prediction failed')
+        const err = await response.json().catch(() => null)
+        throw new Error(err?.error || 'AI prediction failed')
       }
 
-      const result = await response.json()
+      const raw = await response.json().catch(() => ({}))
+
+      // Map server snake_case to client camelCase PredictionResult
+      const result: any = {
+        admissionProbability:
+          raw.admission_probability ?? raw.admissionProbability ?? 0,
+        processingTimeEstimate:
+          raw.processing_time_estimate ?? raw.processingTimeEstimate ?? 0,
+        riskFactors: raw.risk_factors ?? raw.riskFactors ?? (raw.key_factor ? [raw.key_factor] : []),
+        recommendations: raw.recommendations ?? raw.recommendations ?? [],
+        confidence: raw.confidence ?? 0,
+        modelVersion: raw.model_version ?? raw.modelVersion ?? this.MODEL_VERSION
+      }
 
       if (applicationData.id) {
         await this.storePredictionResults(applicationData.id, result)
       }
-      
-      return result
+
+      return result as PredictionResult
     } catch (error) {
       const sanitizedError = sanitizeForLog(error instanceof Error ? error.message : 'Unknown error')
       console.error('Prediction failed:', sanitizedError)

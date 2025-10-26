@@ -21,11 +21,20 @@ export class CloudflareAI {
         },
         body: JSON.stringify({ message: userMessage, context })
       })
+      if (!response.ok) {
+        // If server indicates AI not implemented or unauthorized, fall back locally
+        if (response.status === 501 || response.status === 403 || response.status === 401) {
+          return this.fallbackResponse(userMessage, context)
+        }
+        // Try to parse error details
+        const err = await response.json().catch(() => null)
+        throw new Error(err?.error || 'AI chat failed')
+      }
 
-      if (!response.ok) throw new Error('AI chat failed')
-
-      const data = await response.json()
-      return data.response
+      const data = await response.json().catch(() => null)
+      if (!data) return this.fallbackResponse(userMessage, context)
+      // Server should return { response: string }
+      return data.response ?? this.fallbackResponse(userMessage, context)
     } catch (error) {
       console.error('AI chat error:', error)
       return this.fallbackResponse(userMessage, context)
@@ -42,11 +51,16 @@ export class CloudflareAI {
         },
         body: JSON.stringify({ message: userMessage, context })
       })
+      if (!response.ok) {
+        if (response.status === 501 || response.status === 403 || response.status === 401) {
+          return this.fallbackSuggestions(context)
+        }
+        const err = await response.json().catch(() => null)
+        throw new Error(err?.error || 'AI suggestions failed')
+      }
 
-      if (!response.ok) throw new Error('AI suggestions failed')
-
-      const data = await response.json()
-      return data.suggestions || []
+      const data = await response.json().catch(() => null)
+      return data?.suggestions || []
     } catch (error) {
       return this.fallbackSuggestions(context)
     }
@@ -62,10 +76,18 @@ export class CloudflareAI {
         },
         body: JSON.stringify({ text, documentType })
       })
+      if (!response.ok) {
+        if (response.status === 501 || response.status === 403 || response.status === 401) {
+          console.warn('Server document analysis not available, falling back')
+          return { error: 'server_unavailable' }
+        }
+        const err = await response.json().catch(() => null)
+        throw new Error(err?.error || 'Document analysis failed')
+      }
 
-      if (!response.ok) throw new Error('Document analysis failed')
-
-      return await response.json()
+      // Return parsed JSON or raw result from server
+      const data = await response.json().catch(() => null)
+      return data ?? { error: 'invalid_response' }
     } catch (error) {
       console.error('Document analysis error:', error)
       return { error: 'Analysis failed' }

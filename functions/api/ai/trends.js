@@ -9,11 +9,16 @@ import { CloudflareAI } from '../../_lib/cloudflareAI.js'
 
 export async function onRequestGet(context) {
   const { request, env } = context
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  }
 
   try {
     const authHeader = request.headers.get('Authorization')
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const token = authHeader.replace('Bearer ', '')
@@ -30,7 +35,7 @@ export async function onRequestGet(context) {
       .single()
 
     if (!profile?.role || !['admin', 'super_admin', 'admissions_officer'].includes(profile.role)) {
-      return new Response(JSON.stringify({ error: 'Admin access required' }), { status: 403 })
+      return new Response(JSON.stringify({ error: 'Admin access required' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     // Fetch last 30 days of applications
@@ -45,11 +50,12 @@ export async function onRequestGet(context) {
     const analysis = await ai.analyzeTrends(applications || [])
 
     return new Response(JSON.stringify(analysis), {
-      headers: { 'Content-Type': 'application/json' }
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   } catch (error) {
     console.error('AI trends error:', error)
-    return new Response(JSON.stringify({ error: 'Analysis failed' }), { status: 500 })
+    return new Response(JSON.stringify({ error: 'Analysis failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 }
 
