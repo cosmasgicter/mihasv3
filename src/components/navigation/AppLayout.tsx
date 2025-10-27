@@ -5,7 +5,6 @@ import { Header } from './Header'
 import { useAuth } from '@/contexts/AuthContext'
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext'
 import { useResponsive } from '@/hooks/useResponsive'
-import { motion, useReducedMotion } from 'framer-motion'
 import ParticlesBackground from '@/components/ui/ParticlesBackground'
 import { designTokens } from '@/design-system/tokens'
 
@@ -17,7 +16,6 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const { user } = useAuth()
   const { collapsed } = useSidebar()
   const { isMobile } = useResponsive()
-  const prefersReducedMotion = useReducedMotion()
 
   if (!user) {
     return <>{children}</>
@@ -33,30 +31,16 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
       <DesktopSidebar />
       <div className="flex flex-col flex-1 min-w-0">
         <Header />
-        {prefersReducedMotion ? (
-          <main
-            className="pb-20 md:pb-6 min-h-screen overflow-x-hidden"
-            style={{
-              paddingTop: 'var(--header-height)',
-              marginLeft: isMobile ? 0 : (collapsed ? collapsedWidth : expandedWidth),
-              width: isMobile ? '100%' : `calc(100% - ${collapsed ? collapsedWidth : expandedWidth}px)`
-            }}
-          >
-            {children}
-          </main>
-        ) : (
-          <motion.main
-            animate={{
-              marginLeft: isMobile ? 0 : (collapsed ? collapsedWidth : expandedWidth),
-              width: isMobile ? '100%' : `calc(100% - ${collapsed ? collapsedWidth : expandedWidth}px)`
-            }}
-            transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
-            className="pb-20 md:pb-6 min-h-screen overflow-x-hidden"
-            style={{ paddingTop: 'var(--header-height)' }}
-          >
-            {children}
-          </motion.main>
-        )}
+        <main
+          className="pb-20 md:pb-6 min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out"
+          style={{
+            paddingTop: 'var(--header-height)',
+            marginLeft: isMobile ? 0 : (collapsed ? collapsedWidth : expandedWidth),
+            width: isMobile ? '100%' : `calc(100% - ${collapsed ? collapsedWidth : expandedWidth}px)`
+          }}
+        >
+          {children}
+        </main>
       </div>
       <MobileBottomNav />
     </div>

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import { useToastStore } from '@/components/ui/Toast'
 import { AnimatedCard } from '@/components/ui/AnimatedCard'
@@ -234,17 +235,17 @@ export default function PublicApplicationTracker() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
+        <motion.div
           animate={maybeMotion({ x: [0, 100, 0], y: [0, -100, 0], rotate: [0, 180, 360] })}
           transition={maybeMotion({ duration: 20, repeat: Infinity, ease: "linear" })}
           className="absolute top-10 left-10 w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-20"
         />
-        <div
+        <motion.div
           animate={maybeMotion({ x: [0, -150, 0], y: [0, 100, 0], rotate: [360, 180, 0] })}
           transition={maybeMotion({ duration: 25, repeat: Infinity, ease: "linear" })}
           className="absolute top-1/3 right-10 w-32 h-32 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-15"
         />
-        <div
+        <motion.div
           animate={maybeMotion({ x: [0, 80, 0], y: [0, -80, 0], scale: [1, 1.2, 1] })}
           transition={maybeMotion({ duration: 15, repeat: Infinity, ease: "linear" })}
           className="absolute bottom-20 left-1/4 w-16 h-16 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-25"
@@ -281,13 +282,13 @@ export default function PublicApplicationTracker() {
                 </motion.p>
               </div>
             </div>
-            <div
+            <motion.div
               animate={maybeMotion({ rotate: [0, 10, -10, 0] })}
               transition={maybeMotion({ duration: 2, repeat: Infinity })}
               className="text-4xl sm:text-6xl self-center sm:self-auto"
             >
               🎓
-            </div>
+            </motion.div>
           </div>
         </div>
       </motion.header>
@@ -303,9 +304,9 @@ export default function PublicApplicationTracker() {
           onPaste={handlePaste}
         />
 
-        
+        <AnimatePresence initial={!shouldReduceMotion}>
           {application && (
-            <div
+            <motion.div
               initial={maybeMotion({ opacity: 0, scale: 0.9, y: 50 })}
               animate={maybeMotion({ opacity: 1, scale: 1, y: 0 })}
               exit={maybeMotion({ opacity: 0, scale: 0.9, y: -50 })}
@@ -332,21 +333,21 @@ export default function PublicApplicationTracker() {
 
                 <ApplicationActions />
               </AnimatedCard>
-            </div>
+            </motion.div>
           )}
-        
+        </AnimatePresence>
 
-        
+        <AnimatePresence initial={!shouldReduceMotion}>
           {searched && !application && !loading && (
-            <div
+            <motion.div
               initial={maybeMotion({ opacity: 0, scale: 0.9 })}
               animate={maybeMotion({ opacity: 1, scale: 1 })}
               exit={maybeMotion({ opacity: 0, scale: 0.9 })}
             >
               <NoResultsView onTryAgain={handleTryAgain} />
-            </div>
+            </motion.div>
           )}
-        
+        </AnimatePresence>
 
         <HelpSection />
         

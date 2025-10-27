@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { ApplicationSlipActions } from '@/components/student/ApplicationSlipActions'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { InterviewDetails } from '@/components/student/InterviewDetails'
@@ -131,9 +132,9 @@ export default function ApplicationDetail() {
       <main className="w-full">
         <div className="content-wrapper py-8">
         {/* Header */}
-        <div
-          
-          
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
           <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
@@ -154,25 +155,25 @@ export default function ApplicationDetail() {
               </span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Interview */}
         {interview && interview.status !== 'cancelled' && (
-          <div
-            
-            
-            
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
             className="mb-8"
           >
             <InterviewDetails interview={interview} />
-          </div>
+          </motion.div>
         )}
 
         {/* Documents */}
-        <div
-          
-          
-          
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
           className="bg-card rounded-2xl shadow-lg border border-border p-6 mb-8"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -186,14 +187,14 @@ export default function ApplicationDetail() {
               paymentStatus={application.payment_status}
             />
           </div>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Personal Information */}
-          <div
-            
-            
-            
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
             className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -227,13 +228,13 @@ export default function ApplicationDetail() {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Program Information */}
-          <div
-            
-            
-            
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
             className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -262,13 +263,13 @@ export default function ApplicationDetail() {
                 <p className="text-gray-900 font-medium">ZMW {application.application_fee}</p>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Application Timeline */}
-          <div
-            
-            
-            
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
             className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -313,13 +314,13 @@ export default function ApplicationDetail() {
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Payment Information */}
-          <div
-            
-            
-            
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
             className="bg-card rounded-2xl shadow-lg border border-border p-6"
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -347,7 +348,7 @@ export default function ApplicationDetail() {
                 <p className="text-gray-900 font-medium font-mono break-all">{application.public_tracking_code}</p>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
         </div>
       </main>

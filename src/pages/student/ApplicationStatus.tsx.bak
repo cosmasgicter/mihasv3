@@ -6,6 +6,7 @@ import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { formatDate } from '@/lib/utils'
+import { motion } from 'framer-motion'
 import { applicationService } from '@/services/applications'
 import {
   ArrowLeft,
@@ -269,11 +270,11 @@ export default function ApplicationStatus() {
               >
                 <div className="space-y-6">
                   {timeline.map((step, index) => (
-                    <div
+                    <motion.div
                       key={`${step.status}-${index}`}
-                      
-                      
-                      
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + index * 0.05 }}
                       className="flex items-start gap-4"
                     >
                       <div
@@ -293,7 +294,7 @@ export default function ApplicationStatus() {
                           <p className="text-sm text-gray-900">{formatDate(step.date)}</p>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </SectionCard>
@@ -381,9 +382,9 @@ export default function ApplicationStatus() {
               >
                 <div className="space-y-4">
                   {application.result_slip_url && (
-                    <div
-                      
-                      
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
                       className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
@@ -404,14 +405,14 @@ export default function ApplicationStatus() {
                         <Eye className="mr-1 h-4 w-4" />
                         View
                       </Button>
-                    </div>
+                    </motion.div>
                   )}
 
                   {application.extra_kyc_url && (
-                    <div
-                      
-                      
-                      
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
                       className="flex items-center justify-between rounded-xl border border-accent/30 bg-accent/10 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
@@ -432,14 +433,14 @@ export default function ApplicationStatus() {
                         <Eye className="mr-1 h-4 w-4" />
                         View
                       </Button>
-                    </div>
+                    </motion.div>
                   )}
 
                   {application.pop_url && (
-                    <div
-                      
-                      
-                      
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
                       className="flex items-center justify-between rounded-xl border border-input/30 bg-secondary/5 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
@@ -460,7 +461,7 @@ export default function ApplicationStatus() {
                         <Eye className="mr-1 h-4 w-4" />
                         View
                       </Button>
-                    </div>
+                    </motion.div>
                   )}
 
                   {!application.result_slip_url && !application.extra_kyc_url && !application.pop_url && (
