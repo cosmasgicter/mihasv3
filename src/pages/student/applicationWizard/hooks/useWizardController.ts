@@ -314,7 +314,7 @@ const useWizardController = (): UseWizardControllerResult => {
     uploading,
     uploadProgress,
     uploadedFiles,
-    handleResultSlipUpload,
+    handleResultSlipUpload: baseHandleResultSlipUpload,
     handleExtraKycUpload,
     handleProofOfPaymentUpload,
     startUpload,
@@ -325,6 +325,32 @@ const useWizardController = (): UseWizardControllerResult => {
     onValidationError: setError,
     onValidationClear: clearValidationError
   })
+
+  const handleResultSlipUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    baseHandleResultSlipUpload(event, async (file, url) => {
+      if (!applicationId) return
+      try {
+        const { autoFillService } = await import('@/utils/smart-features')
+        const parsed = await autoFillService.extractDataFromFile(file, 'grade12').catch(() => null)
+        if (parsed?.grades?.length > 0) {
+          const gradesToSync = parsed.grades
+            .map((g: any) => ({
+              subject_id: findBestSubjectId(g.subject?.toString() || '', subjects) || '',
+              grade: Number(g.grade) || 0
+            }))
+            .filter((g: any) => g.subject_id && g.grade > 0)
+          if (gradesToSync.length > 0) {
+            await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
+            await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
+            setSelectedGrades(gradesToSync)
+            showSuccess(`Auto-filled ${gradesToSync.length} grades`)
+          }
+        }
+      } catch (e) {
+        console.warn('Auto-fill failed:', e)
+      }
+    })
+  }, [baseHandleResultSlipUpload, applicationId, subjects, syncGrades, updateApplication, showSuccess])
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -877,110 +903,14 @@ const useWizardController = (): UseWizardControllerResult => {
         return
       }
 
+      // Files already uploaded on selection, just sync grades and proceed
       try {
-        await trackUploadTask(async () => {
-          clearValidationError()
-
-          // Upload result slip first (required)
-          const resultSlipUrl = await startUpload(resultSlipFile, 'result_slip')
-          
-          // Upload extra KYC if provided (optional)
-          const extraKycUrl = extraKycFile ? await startUpload(extraKycFile, 'extra_kyc') : null
-          if (extraKycUrl) {
-          }
-
-          // Sync grades to database
-          if (selectedGrades.length > 0) {
-            try {
-              await syncGrades.mutateAsync({ id: applicationId, grades: selectedGrades })
-            } catch (gradesError) {
-            }
-          }
-
-          // Update application with document URLs
-          const updateData: any = { result_slip_url: resultSlipUrl }
-          if (extraKycUrl) {
-            updateData.extra_kyc_url = extraKycUrl
-          }
-          
-          await updateApplication.mutateAsync({
-            id: applicationId,
-            data: updateData
-          })
-          // Try to auto-extract data from the uploaded result slip and optionally run server-side AI analysis.
-          // This is non-critical: failures must not block the happy path.
-          (async () => {
-            try {
-              if (resultSlipFile) {
-                const { autoFillService } = await import('@/utils/smart-features')
-                const parsed = await autoFillService.extractDataFromFile(resultSlipFile, 'grade12').catch(() => null)
-
-                // If parser returned grades, try to map them to known subject IDs and sync
-                if (parsed && Array.isArray(parsed.grades) && parsed.grades.length > 0) {
-                  try {
-                    const gradesToSync = parsed.grades
-                      .map(g => ({
-                        subject_id: findBestSubjectId((g.subject || '').toString(), subjects) || '',
-                        grade: Number.isFinite(g.grade) ? g.grade : parseInt(String(g.grade), 10)
-                      }))
-                      .filter(g => g.subject_id && g.grade && g.grade > 0)
-
-                    if (gradesToSync.length > 0 && applicationId) {
-                      await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
-                      // Update local selectedGrades state so UI reflects auto-fill
-                      setSelectedGrades(gradesToSync.map(g => ({ subject_id: g.subject_id, grade: g.grade })))
-                      showSuccess('Auto-fill complete', `Detected and synced ${gradesToSync.length} grade(s) from result slip`)
-                    } else if (parsed && parsed.grades && parsed.grades.length > 0) {
-                      // Parser found grades but we couldn't map them to known subjects
-                      showInfo('Auto-fill partial', 'We detected grades but could not match them to subjects. Please review and add any missing subjects.')
-                    }
-                  } catch (e) {
-                    // Non-fatal: log and continue
-                    console.warn('Auto-fill grade sync failed:', e)
-                  }
-                }
-
-                // Send raw extracted text to server-side analyzer for a second opinion / structured JSON
-                try {
-                  const rawText = (parsed && (parsed as any)._rawText) || ''
-                  if (rawText && applicationId) {
-                    const { cloudflareAI } = await import('@/lib/cloudflareAI')
-                    const analysis = await cloudflareAI.analyzeDocument(rawText, 'result_slip')
-                    // If analysis contains grades in expected shape, try to sync them too
-                    if (analysis && Array.isArray(analysis.grades) && analysis.grades.length > 0) {
-                      const aiGrades = analysis.grades
-                        .map((g: any) => ({
-                          subject_id: findBestSubjectId((g.subject || '').toString(), subjects) || '',
-                          grade: Number.isFinite(g.grade) ? g.grade : parseInt(String(g.grade), 10)
-                        }))
-                        .filter((g: any) => g.subject_id && g.grade && g.grade > 0)
-
-                      if (aiGrades.length > 0) {
-                        try {
-                          await syncGrades.mutateAsync({ id: applicationId, grades: aiGrades })
-                          setSelectedGrades(aiGrades.map((g: any) => ({ subject_id: g.subject_id, grade: g.grade })))
-                          showSuccess('AI analysis applied', `Synced ${aiGrades.length} grade(s) suggested by document analysis`)
-                        } catch (e) {
-                          console.warn('AI grade sync failed:', e)
-                          showWarning('AI grade sync failed')
-                        }
-                      }
-                    }
-                  }
-                } catch (e) {
-                  console.warn('Server document analysis failed:', e)
-                  showWarning('Document analysis failed — proceeding without AI suggestions')
-                }
-              }
-            } catch (e) {
-              console.warn('Auto-fill/analysis step failed (non-fatal):', e)
-            }
-          })()
-          
-        })
+        if (selectedGrades.length > 0) {
+          await syncGrades.mutateAsync({ id: applicationId, grades: selectedGrades })
+        }
         goToStep(currentStepIndex + 1)
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to upload education documents'
+        const errorMessage = error instanceof Error ? error.message : 'Failed to save grades'
         console.error('Education step error:', error)
         setError(errorMessage)
       }
@@ -1005,28 +935,23 @@ const useWizardController = (): UseWizardControllerResult => {
         return
       }
 
-      // Upload POP and save payment data
+      // POP already uploaded, just save payment data
       try {
-        await trackUploadTask(async () => {
-          const popUrl = await startUpload(popFile!, 'proof_of_payment')
-          
-          await updateApplication.mutateAsync({
-            id: applicationId,
-            data: {
-              payment_method: formData.payment_method,
-              payer_name: formData.payer_name || null,
-              payer_phone: formData.payer_phone || null,
-              amount: formData.amount || 153,
-              paid_at: formData.paid_at ? new Date(formData.paid_at).toISOString() : null,
-              momo_ref: formData.momo_ref || null,
-              pop_url: popUrl
-            }
-          })
+        await updateApplication.mutateAsync({
+          id: applicationId,
+          data: {
+            payment_method: formData.payment_method,
+            payer_name: formData.payer_name || null,
+            payer_phone: formData.payer_phone || null,
+            amount: formData.amount || 153,
+            paid_at: formData.paid_at ? new Date(formData.paid_at).toISOString() : null,
+            momo_ref: formData.momo_ref || null
+          }
         })
         goToStep(currentStepIndex + 1)
       } catch (error) {
-        showError('Failed to upload payment proof. Please try again.')
-        console.error('Payment upload error:', error)
+        showError('Failed to save payment data. Please try again.')
+        console.error('Payment save error:', error)
       }
     }
   }, [
@@ -1093,22 +1018,8 @@ const useWizardController = (): UseWizardControllerResult => {
         throw new Error('Please sign in again to submit your application')
       }
 
-      logger.info('[handleSubmitApplication] Uploading proof of payment...')
-      // Upload proof of payment first
-      let popUrl: string
-      try {
-        popUrl = await startUpload(popFile, 'proof_of_payment')
-        logger.info('[handleSubmitApplication] Upload successful:', popUrl)
-        if (!popUrl) {
-          throw new Error('Upload returned empty URL')
-        }
-      } catch (uploadError) {
-        console.error('Proof of payment upload failed:', uploadError)
-        showError('Failed to upload proof of payment. Please try again.')
-        throw new Error('Failed to upload proof of payment. Please try again.')
-      }
-      
-      // Update application with submission data
+      // POP already uploaded, just update submission data
+      logger.info('[handleSubmitApplication] Finalizing submission...')
       const updateData = {
         payment_method: data.payment_method || 'MTN Money',
         payer_name: data.payer_name || null,
@@ -1116,7 +1027,6 @@ const useWizardController = (): UseWizardControllerResult => {
         amount: data.amount || 153,
         paid_at: data.paid_at && data.paid_at.trim() ? new Date(data.paid_at).toISOString() : new Date().toISOString(),
         momo_ref: data.momo_ref || null,
-        pop_url: popUrl,
         status: 'submitted',
         submitted_at: new Date().toISOString()
       }
