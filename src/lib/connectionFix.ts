@@ -181,8 +181,3 @@ export async function syncGradesWithRecovery(
 
 // Initialize connection manager
 export const connectionManager = ConnectionManager.getInstance()
-
-// Auto-suppress extension errors on module load
-if (typeof window !== 'undefined') {
-  connectionManager.suppressExtensionErrors()
-}

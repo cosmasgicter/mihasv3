@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Home, FileText, Bell, User, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+
 
 export const MobileBottomNav = React.memo(function MobileBottomNav() {
   const location = useLocation()
@@ -50,7 +50,6 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
     },
   ]
 
-  const prefersReducedMotion = useReducedMotion()
   const links = isAdmin ? adminMainLinks : studentLinks
 
   const renderLink = ({ to, icon: Icon, label }: any) => {
@@ -84,113 +83,57 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
 
   return (
     <>
-      {prefersReducedMotion ? (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t border-border shadow-lg safe-area-bottom">
-          <div className="flex justify-around items-center h-16 px-2">
-            {links.map(renderLink)}
-            {isAdmin && (
-              <button
-                onClick={() => setShowMoreMenu(!showMoreMenu)}
-                aria-label="More options"
-                className="relative flex flex-col items-center justify-center flex-1 h-full group min-w-[60px]"
-              >
-                <MoreHorizontal className="h-5 w-5 text-gray-900 group-hover:text-primary transition-all duration-300" />
-                <span className="text-xs mt-1 text-gray-900 group-hover:text-primary transition-all duration-300">More</span>
-              </button>
-            )}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t border-border shadow-lg safe-area-bottom animate-fade-in">
+        <div className="flex justify-around items-center h-16 px-2">
+          {links.map(renderLink)}
+          {isAdmin && (
+            <button
+              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              aria-label="More options"
+              className="relative flex flex-col items-center justify-center flex-1 h-full group min-w-[60px]"
+            >
+              <MoreHorizontal className="h-5 w-5 text-gray-900 group-hover:text-primary transition-all duration-300" />
+              <span className="text-xs mt-1 text-gray-900 group-hover:text-primary transition-all duration-300">More</span>
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {isAdmin && showMoreMenu && (
+        <>
+          <div 
+            onClick={() => setShowMoreMenu(false)} 
+            className="md:hidden fixed inset-0 bg-black/50 z-40 animate-fade-in"
+          />
+          <div className="md:hidden fixed bottom-20 right-4 w-48 max-w-[calc(100vw-2rem)] bg-card rounded-2xl shadow-lg border border-border z-50 overflow-hidden animate-fade-in">
+            <div className="py-2">
+              {adminMoreSections.map((section) => (
+                <div key={section.title}>
+                  <div className="px-3 py-1.5 text-[10px] font-medium text-gray-900 uppercase tracking-wide">
+                    {section.title}
+                  </div>
+                  {section.links.map(({ to, icon: Icon, label }) => {
+                    const isActive = location.pathname === to
+                    return (
+                      <Link 
+                        key={to} 
+                        to={to} 
+                        onClick={() => setShowMoreMenu(false)} 
+                        className={`flex items-center gap-2.5 px-3 py-2 transition-colors ${
+                          isActive ? 'bg-primary/10 text-primary' : 'text-gray-900 hover:bg-accent'
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="text-sm">{label}</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
-        </nav>
-      ) : (
-        <motion.nav initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.25 }} className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t border-border shadow-lg safe-area-bottom">
-          <div className="flex justify-around items-center h-16 px-2">
-            {links.map(({ to, icon: Icon, label }) => {
-              const isActive = location.pathname === to
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  aria-current={isActive ? 'page' : undefined}
-                  aria-label={label}
-                  className="relative flex flex-col items-center justify-center flex-1 h-full group"
-                  style={{ minWidth: 'var(--nav-min-width)' }}
-                >
-                  {isActive ? (
-                    <motion.div layoutId="activeTab" className="absolute inset-0 bg-primary/10 rounded-lg" transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }} />
-                  ) : null}
-                  <motion.span whileTap={{ scale: 0.92 }}>
-                    <Icon style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} className={`transition-all duration-300 ${isActive ? 'text-primary scale-110' : 'text-gray-900 group-hover:text-primary group-hover:scale-105'}`} />
-                  </motion.span>
-                  <span className={`mt-1 transition-all duration-300 truncate`} style={{ fontSize: 'var(--type-xs)', maxWidth: 'var(--nav-min-width)' }}>
-                    <span className={`${isActive ? 'text-primary font-medium' : 'text-gray-900 group-hover:text-primary'}`}>{label}</span>
-                  </span>
-                </Link>
-              )
-            })}
-            {isAdmin && (
-              <button
-                onClick={() => setShowMoreMenu(!showMoreMenu)}
-                aria-label="More options"
-                className="relative flex flex-col items-center justify-center flex-1 h-full group min-w-[60px]"
-              >
-                <MoreHorizontal className="h-5 w-5 text-gray-900 group-hover:text-primary transition-all duration-300" />
-                <span className="text-xs mt-1 text-gray-900 group-hover:text-primary transition-all duration-300">More</span>
-              </button>
-            )}
-          </div>
-        </motion.nav>
+        </>
       )}
-
-      <AnimatePresence>
-        {isAdmin && showMoreMenu && (
-          <>
-            {prefersReducedMotion ? (
-              <div onClick={() => setShowMoreMenu(false)} className="md:hidden fixed inset-0 bg-black/50 z-40" />
-            ) : (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowMoreMenu(false)} className="md:hidden fixed inset-0 bg-black/50 z-40" />
-            )}
-
-            {prefersReducedMotion ? (
-              <div className="md:hidden fixed bottom-20 right-4 w-48 max-w-[calc(100vw-2rem)] bg-card rounded-2xl shadow-lg border border-border z-50 overflow-hidden">
-                <div className="py-2">
-                  {adminMoreSections.map((section) => (
-                    <div key={section.title}>
-                      <div className="px-3 py-1.5 text-[10px] font-medium text-gray-900 uppercase tracking-wide">{section.title}</div>
-                      {section.links.map(({ to, icon: Icon, label }) => {
-                        const isActive = location.pathname === to
-                        return (
-                          <Link key={to} to={to} onClick={() => setShowMoreMenu(false)} className={`flex items-center gap-2.5 px-3 py-2 ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-900 hover:bg-accent'}`}>
-                            <Icon className="h-4 w-4" />
-                            <span className="text-sm">{label}</span>
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.15 }} className="md:hidden fixed bottom-20 right-4 w-48 max-w-[calc(100vw-2rem)] bg-card rounded-2xl shadow-lg border border-border z-50 overflow-hidden">
-                <div className="py-2">
-                  {adminMoreSections.map((section) => (
-                    <div key={section.title}>
-                      <div className="px-3 py-1.5 text-[10px] font-medium text-gray-900 uppercase tracking-wide">{section.title}</div>
-                      {section.links.map(({ to, icon: Icon, label }) => {
-                        const isActive = location.pathname === to
-                        return (
-                          <Link key={to} to={to} onClick={() => setShowMoreMenu(false)} className={`flex items-center gap-2.5 px-3 py-2 transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-900 hover:bg-accent'}`}>
-                            <Icon className="h-4 w-4" />
-                            <span className="text-sm">{label}</span>
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </>
-        )}
-      </AnimatePresence>
     </>
   )
 })

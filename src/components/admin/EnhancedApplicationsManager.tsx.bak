@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, 
   Filter, 
@@ -135,60 +136,60 @@ export function EnhancedApplicationsManager({
     <div className="space-y-6">
       {/* Enhanced Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-        <div 
-          
-          
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-4"
         >
           <div className="text-2xl font-bold">{stats.total}</div>
           <div className="text-sm opacity-90">Total</div>
-        </div>
+        </motion.div>
         
-        <div 
-          
-          
-          
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-xl p-4"
         >
           <div className="text-2xl font-bold">{stats.submitted}</div>
           <div className="text-sm opacity-90">Submitted</div>
-        </div>
+        </motion.div>
         
-        <div 
-          
-          
-          
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
           className="bg-gradient-to-br from-purple-500 to-indigo-500 text-white rounded-xl p-4"
         >
           <div className="text-2xl font-bold">{stats.under_review}</div>
           <div className="text-sm opacity-90">Review</div>
-        </div>
+        </motion.div>
         
-        <div 
-          
-          
-          
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
           className="bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-xl p-4"
         >
           <div className="text-2xl font-bold">{stats.approved}</div>
           <div className="text-sm opacity-90">Approved</div>
-        </div>
+        </motion.div>
         
-        <div 
-          
-          
-          
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
           className="bg-gradient-to-br from-red-500 to-pink-500 text-white rounded-xl p-4"
         >
           <div className="text-2xl font-bold">{stats.rejected}</div>
           <div className="text-sm opacity-90">Rejected</div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Enhanced Controls */}
-      <div 
-        
-        
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         className="bg-card rounded-xl shadow-lg border border-border p-6"
       >
         <div className="space-y-4">
@@ -273,9 +274,9 @@ export function EnhancedApplicationsManager({
 
           {/* Bulk Actions */}
           {selectedApplications.length > 0 && (
-            <div
-              
-              
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
               className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-primary/30 rounded-xl p-4"
             >
               <div className="flex items-center justify-between mb-4">
@@ -316,10 +317,10 @@ export function EnhancedApplicationsManager({
                   Clear
                 </Button>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Applications Display */}
       {loading ? (
@@ -327,23 +328,23 @@ export function EnhancedApplicationsManager({
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : filteredApplications.length === 0 ? (
-        <div 
-          
-          
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
           className="text-center py-12 bg-card rounded-xl shadow-lg"
         >
           <div className="text-6xl mb-4"><FileText className="w-5 h-5" /></div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">No Applications Found</h3>
           <p className="text-gray-900">Try adjusting your search filters</p>
-        </div>
+        </motion.div>
       ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredApplications.map((application, index) => (
-            <div
+            <motion.div
               key={application.id}
-              
-              
-              
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
               className={`bg-card rounded-xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
                 selectedApplications.includes(application.id) 
                   ? 'border-primary bg-blue-50' 
@@ -427,13 +428,13 @@ export function EnhancedApplicationsManager({
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       ) : (
-        <div 
-          
-          
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="bg-card rounded-xl shadow-lg border border-border overflow-hidden"
         >
           <div className="overflow-x-auto">
@@ -469,9 +470,9 @@ export function EnhancedApplicationsManager({
                 {filteredApplications.map((application, index) => (
                   <motion.tr 
                     key={application.id}
-                    
-                    
-                    
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.02 }}
                     className={`hover:bg-blue-50 transition-colors ${
                       selectedApplications.includes(application.id) ? 'bg-blue-50' : 'bg-card'
                     }`}
@@ -542,7 +543,7 @@ export function EnhancedApplicationsManager({
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   )

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { TrendingUp, Brain, Clock, AlertTriangle, Target, Zap, RefreshCw, Users, FileText, CheckCircle } from 'lucide-react'
 import { predictiveAnalytics } from '@/lib/predictiveAnalytics'
 import { workflowAutomation } from '@/lib/workflowAutomation'
@@ -286,9 +287,9 @@ export function PredictiveDashboard() {
       </div>
 
       {/* Main metrics */}
-      <div
-        
-        
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white"
       >
         <div className="flex items-center justify-between mb-6">
@@ -319,13 +320,13 @@ export function PredictiveDashboard() {
             <div className="text-sm opacity-90">Avg Days to Process</div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          
-          
-          
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
         >
           <Card className="p-6">
             <div className="flex items-center mb-4">
@@ -367,12 +368,12 @@ export function PredictiveDashboard() {
               </div>
             </div>
           </Card>
-        </div>
+        </motion.div>
 
-        <div
-          
-          
-          
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
         >
           <Card className="p-6">
             <div className="flex items-center mb-4">
@@ -395,13 +396,13 @@ export function PredictiveDashboard() {
               )}
             </div>
           </Card>
-        </div>
+        </motion.div>
 
         {/* Workflow Automation Stats */}
-        <div
-          
-          
-          
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
         >
           <Card className="p-6">
             <div className="flex items-center mb-4">
@@ -449,17 +450,17 @@ export function PredictiveDashboard() {
               )}
             </div>
           </Card>
-        </div>
+        </motion.div>
       </div>
 
       {/* AI Trends Panel */}
       <AITrendsPanel />
 
       {/* AI Recommendations */}
-      <div
-        
-        
-        
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
       >
         <Card className="p-6">
           <div className="flex items-center mb-6">
@@ -517,7 +518,7 @@ export function PredictiveDashboard() {
             </div>
           </div>
         </Card>
-      </div>
+      </motion.div>
     </div>
   )
 }
