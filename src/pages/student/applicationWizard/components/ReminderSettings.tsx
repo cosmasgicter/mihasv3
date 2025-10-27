@@ -13,8 +13,9 @@ interface ReminderSettingsProps {
 export const ReminderSettings = ({ email, fullName, draftName }: ReminderSettingsProps) => {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
-  const showSuccess = (msg: string) => useToastStore.getState().addToast('success', msg)
-  const showError = (msg: string) => useToastStore.getState().addToast('error', msg)
+  const { addToast } = useToastStore()
+  const showSuccess = (msg: string) => addToast('success', msg)
+  const showError = (msg: string) => addToast('error', msg)
 
   const sendReminder = async () => {
     if (!email || !fullName) {

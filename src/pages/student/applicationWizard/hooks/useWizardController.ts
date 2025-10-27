@@ -135,10 +135,11 @@ const useWizardController = (): UseWizardControllerResult => {
   const location = useLocation()
   const { user, loading: authLoading } = useAuth()
   const { profile } = useProfileQuery()
-  const showError = (message: string) => useToastStore.getState().addToast('error', message)
-  const showWarning = (message: string) => useToastStore.getState().addToast('info', message)
-  const showSuccess = (title: string, message?: string) => useToastStore.getState().addToast('success', message || title)
-  const showInfo = (title: string, message?: string) => useToastStore.getState().addToast('info', message || title)
+  const { addToast } = useToastStore()
+  const showError = useCallback((message: string) => addToast('error', message), [addToast])
+  const showWarning = useCallback((message: string) => addToast('info', message), [addToast])
+  const showSuccess = useCallback((title: string, message?: string) => addToast('success', message || title), [addToast])
+  const showInfo = useCallback((title: string, message?: string) => addToast('info', message || title), [addToast])
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -1084,7 +1085,7 @@ const useWizardController = (): UseWizardControllerResult => {
       }
 
       logger.info('[handleSubmitApplication] Submission successful!')
-      useToastStore.getState().addToast('success', 'Application submitted successfully!')
+      showSuccess('Application submitted successfully!')
       setSuccess(true)
     } catch (error) {
       console.error('Submission error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
