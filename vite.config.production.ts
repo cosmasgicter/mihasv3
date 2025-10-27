@@ -56,22 +56,19 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunks - core libraries
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            // React MUST be first - other libraries depend on it
+            if (id.includes('react') || id.includes('react-dom')) {
               return 'vendor-react'
             }
-            if (id.includes('@radix-ui')) {
-              return 'vendor-ui'
-            }
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-query'
-            }
-            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
-              return 'vendor-form'
+            if (id.includes('react-router')) {
+              return 'vendor-router'
             }
             if (id.includes('@supabase')) {
               return 'vendor-supabase'
+            }
+            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
+              return 'vendor-form'
             }
             // Heavy libraries - lazy loaded
             if (id.includes('xlsx') || id.includes('exceljs')) {
@@ -86,11 +83,8 @@ export default defineConfig({
             if (id.includes('tesseract')) {
               return 'vendor-ocr'
             }
-            if (id.includes('framer-motion')) {
-              return 'vendor-animation'
-            }
-            // Other vendor code
-            return 'vendor'
+            // Don't split framer-motion - let it bundle with components that use it
+            // This prevents React dependency issues
           }
         },
         assetFileNames: (assetInfo) => {
