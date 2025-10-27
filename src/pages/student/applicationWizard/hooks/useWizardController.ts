@@ -1098,7 +1098,7 @@ const useWizardController = (): UseWizardControllerResult => {
     } finally {
       setLoading(false)
     }
-  }, [confirmSubmission, popFile, applicationId, startUpload, updateApplication, user?.id])
+  }, [confirmSubmission, popFile, applicationId, startUpload, updateApplication, user?.id, showError, showSuccess])
 
   return {
     authLoading,
