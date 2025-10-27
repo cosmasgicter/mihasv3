@@ -19,7 +19,7 @@ interface ToastStore {
   info: (title: string, message?: string) => void;
 }
 
-export const useToastStore = create<ToastStore>((set, get) => ({
+export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
   addToast: (type, message) => {
     const id = Date.now().toString();
@@ -27,9 +27,24 @@ export const useToastStore = create<ToastStore>((set, get) => ({
     setTimeout(() => set((state) => ({ toasts: state.toasts.filter(t => t.id !== id) })), 5000);
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter(t => t.id !== id) })),
-  success: (title, message) => get().addToast('success', message || title),
-  error: (title, message) => get().addToast('error', message || title),
-  info: (title, message) => get().addToast('info', message || title),
+  success: (title, message) => {
+    const id = Date.now().toString();
+    const msg = message || title;
+    set((state) => ({ toasts: [...state.toasts, { id, type: 'success', message: msg }] }));
+    setTimeout(() => set((state) => ({ toasts: state.toasts.filter(t => t.id !== id) })), 5000);
+  },
+  error: (title, message) => {
+    const id = Date.now().toString();
+    const msg = message || title;
+    set((state) => ({ toasts: [...state.toasts, { id, type: 'error', message: msg }] }));
+    setTimeout(() => set((state) => ({ toasts: state.toasts.filter(t => t.id !== id) })), 5000);
+  },
+  info: (title, message) => {
+    const id = Date.now().toString();
+    const msg = message || title;
+    set((state) => ({ toasts: [...state.toasts, { id, type: 'info', message: msg }] }));
+    setTimeout(() => set((state) => ({ toasts: state.toasts.filter(t => t.id !== id) })), 5000);
+  },
 }))
 
 // Export useToast as an alias for backward compatibility

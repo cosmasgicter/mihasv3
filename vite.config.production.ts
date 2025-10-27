@@ -55,7 +55,44 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks: (id) => {
+          // Vendor chunks - core libraries
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor-react'
+            }
+            if (id.includes('@radix-ui')) {
+              return 'vendor-ui'
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'vendor-query'
+            }
+            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
+              return 'vendor-form'
+            }
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase'
+            }
+            // Heavy libraries - lazy loaded
+            if (id.includes('xlsx') || id.includes('exceljs')) {
+              return 'vendor-excel'
+            }
+            if (id.includes('jspdf') || id.includes('pdf-lib')) {
+              return 'vendor-pdf'
+            }
+            if (id.includes('recharts')) {
+              return 'vendor-charts'
+            }
+            if (id.includes('tesseract')) {
+              return 'vendor-ocr'
+            }
+            if (id.includes('framer-motion')) {
+              return 'vendor-animation'
+            }
+            // Other vendor code
+            return 'vendor'
+          }
+        },
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.')
           const ext = info[info.length - 1]

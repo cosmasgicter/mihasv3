@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect } from 'react'
+import React, { Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -6,18 +6,13 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
 import { ToastContainer } from '@/components/ui/Toast'
-
 import { AppLayout } from '@/components/navigation/AppLayout'
-import { UserMenu } from '@/components/ui/UserMenu'
-import { NotificationBell } from '@/components/student/NotificationBell'
 import { SessionMonitor } from '@/components/auth/SessionMonitor'
 import { LoadingFallback } from '@/components/ui/LoadingFallback'
 import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
-import { FancyPreloader } from '@/components/ui/FancyPreloader'
 import { routes, type RouteConfig } from '@/routes/config'
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { ParticleBackground } from '@/components/effects/ParticleBackground'
 
 // Optimized query client for better performance
 const queryClient = new QueryClient({
@@ -64,43 +59,31 @@ const renderRoute = (route: RouteConfig) => {
 }
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 2000)
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (isLoading) {
-    return <FancyPreloader />
-  }
-
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-            <ToastContainer />
-            <Router>
-              <AnalyticsTracker>
-                <SessionMonitor />
-                <SimpleErrorBoundary>
-                  <div className="min-h-screen bg-background transition-colors duration-500">
-                    <ParticleBackground />
-                    <AppLayout>
-                      <Routes>
-                        {routes.map((route) => (
-                          <Route
-                            key={route.path}
-                            path={route.path}
-                            element={renderRoute(route)}
-                          />
-                        ))}
-                      </Routes>
-                    </AppLayout>
-                  </div>
-                </SimpleErrorBoundary>
-              </AnalyticsTracker>
-            </Router>
+          <ToastContainer />
+          <Router>
+            <AnalyticsTracker>
+              <SessionMonitor />
+              <SimpleErrorBoundary>
+                <div className="min-h-screen bg-background">
+                  <AppLayout>
+                    <Routes>
+                      {routes.map((route) => (
+                        <Route
+                          key={route.path}
+                          path={route.path}
+                          element={renderRoute(route)}
+                        />
+                      ))}
+                    </Routes>
+                  </AppLayout>
+                </div>
+              </SimpleErrorBoundary>
+            </AnalyticsTracker>
+          </Router>
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
