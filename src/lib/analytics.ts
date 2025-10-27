@@ -1,6 +1,6 @@
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
-import { ReportExportData, ReportFormat } from './reportExports'
+import type { ReportExportData, ReportFormat } from './reportExports.types'
 import { isReportManagerRole } from '@/lib/auth/roles'
 import { sanitizeForLog } from './security'
 

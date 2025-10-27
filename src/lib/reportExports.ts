@@ -1,25 +1,6 @@
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import ExcelJS from 'exceljs'
-
-export type ReportFormat = 'json' | 'pdf' | 'excel'
-
-export interface ProgramBreakdownStats {
-  total: number
-  approved: number
-  rejected: number
-  pending: number
-}
-
-export interface ReportExportData {
-  period?: string
-  generatedAt?: string
-  statistics?: Record<string, number | string>
-  approvalRate?: string | number
-  programBreakdown?: Record<string, ProgramBreakdownStats>
-  metadata?: Record<string, any>
-  [key: string]: any
-}
+// Dynamic imports for heavy libraries
+export type { ReportFormat, ProgramBreakdownStats, ReportExportData } from './reportExports.types'
+import type { ReportFormat, ReportExportData } from './reportExports.types'
 
 const formatMetricName = (metric: string) =>
   metric
@@ -49,7 +30,9 @@ export const exportReportAsJson = (reportData: ReportExportData, fileName: strin
   triggerDownload(blob, `${sanitizeFileName(fileName)}.json`)
 }
 
-export const exportReportAsPdf = (reportData: ReportExportData, fileName: string) => {
+export const exportReportAsPdf = async (reportData: ReportExportData, fileName: string) => {
+  const jsPDF = (await import('jspdf')).default
+  const autoTable = (await import('jspdf-autotable')).default
   const doc = new jsPDF()
   const marginLeft = 14
   let currentY = 20
@@ -125,6 +108,7 @@ export const exportReportAsPdf = (reportData: ReportExportData, fileName: string
 }
 
 export const exportReportAsExcel = async (reportData: ReportExportData, fileName: string) => {
+  const ExcelJS = (await import('exceljs')).default
   const workbook = new ExcelJS.Workbook()
   workbook.created = new Date()
   workbook.modified = new Date()
@@ -227,7 +211,7 @@ export const exportReport = async (
   fileName: string
 ) => {
   if (format === 'pdf') {
-    exportReportAsPdf(reportData, fileName)
+    await exportReportAsPdf(reportData, fileName)
     return
   }
 

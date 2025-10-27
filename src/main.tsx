@@ -1,26 +1,27 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import * as Sentry from '@sentry/react'
 import App from './App.tsx'
 import './index.css'
 
 // Initialize connection manager to suppress extension errors
 import { connectionManager } from '@/lib/connectionFix'
 
-// Initialize Sentry for error monitoring
+// Lazy load Sentry to reduce initial bundle
 if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    environment: import.meta.env.VITE_NODE_ENV || 'production',
-    sendDefaultPii: true,
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration(),
-    ],
-    tracesSampleRate: 0.1,
-    replaysSessionSampleRate: 1.0,
-    replaysOnErrorSampleRate: 1.0,
-  });
+  import('@sentry/react').then((Sentry) => {
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+      environment: import.meta.env.VITE_NODE_ENV || 'production',
+      sendDefaultPii: true,
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        Sentry.replayIntegration(),
+      ],
+      tracesSampleRate: 0.1,
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    })
+  }).catch(() => {})
 }
 
 // Suppress browser extension errors that interfere with the application
