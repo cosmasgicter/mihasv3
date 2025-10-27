@@ -74,10 +74,8 @@ ALLOWED_FILE_TYPES = "image/*,.pdf,.doc,.docx"
 API_CACHE_TTL_MS = "300000"
 STATIC_CACHE_TTL_SECONDS = "31536000"
 
+# Cron Job
+CRON_SECRET_KEY = "C6MWtFE5fuFw90CA2KWqAKqlyaILQaL9B3SsIJWFWpc="
+
 [ai]
 binding = "AI"
-
-# Cron triggers for scheduled tasks
-[[triggers.crons]]
-cron = "*/2 * * * *"  # Every 2 minutes
-path = "/cron/process-email-queue"
