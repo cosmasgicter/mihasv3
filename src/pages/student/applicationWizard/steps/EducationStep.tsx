@@ -201,6 +201,15 @@ const EducationStep = ({
             <label className="block text-sm font-medium text-gray-900 mb-2">
               Result Slip <span className="text-error">*</span>
             </label>
+            <motion.div 
+              className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <p className="text-sm text-blue-900">
+                ✨ <strong>Auto-fill enabled:</strong> Upload your result slip and grades will be automatically extracted and populated below.
+              </p>
+            </motion.div>
             <div className="relative">
               <input
                 type="file"
