@@ -181,13 +181,13 @@ export default function StudentDashboard() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return <CheckCircle className="animate-fade-in-up h-5 w-5 text-success" />
+        return <CheckCircle className="h-5 w-5 text-success" />
       case 'rejected':
-        return <XCircle className="animate-fade-in-up h-5 w-5 text-red-800" />
+        return <XCircle className="h-5 w-5 text-red-800" />
       case 'under_review':
-        return <Clock className="animate-fade-in-up h-5 w-5 text-primary" />
+        return <Clock className="h-5 w-5 text-primary" />
       default:
-        return <Clock className="animate-fade-in-up h-5 w-5 text-warning" />
+        return <Clock className="h-5 w-5 text-warning" />
     }
   }
 
@@ -230,18 +230,18 @@ export default function StudentDashboard() {
   const totalDraftCount = draftApplications.length + (hasLocalDraftOnly ? 1 : 0)
 
   return (
-    <div className="animate-fade-in-up safe-area-bottom py-4 sm:py-6 lg:py-8 w-full max-w-full overflow-x-hidden">
+    <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 w-full max-w-full overflow-x-hidden">
       <Container size="lg">
         {isInitialLoading ? (
           <StudentDashboardSkeleton />
         ) : (
-          <div className="animate-fade-in-up space-y-6 sm:space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {isRefreshing && (
-              <div className="animate-fade-in-up rounded-full bg-white px-6 py-3 shadow-lg animate-fade-in">
-                <div className="animate-fade-in-up h-1 w-full overflow-hidden rounded-full bg-blue-100">
-                  <div className="animate-fade-in-up h-full w-1/3 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 animate-pulse" />
+              <div className="rounded-full bg-white px-6 py-3 shadow-lg animate-fade-in">
+                <div className="h-1 w-full overflow-hidden rounded-full bg-blue-100">
+                  <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 animate-pulse" />
                 </div>
-                <span className="animate-fade-in-up sr-only">Refreshing dashboard data</span>
+                <span className="sr-only">Refreshing dashboard data</span>
               </div>
             )}
 
@@ -255,23 +255,23 @@ export default function StudentDashboard() {
                   label: 'Submitted applications',
                   value: submittedApplications.length,
                   accent: 'primary',
-                  icon: <CheckCircle className="animate-fade-in-up h-5 w-5" />
+                  icon: <CheckCircle className="h-5 w-5" />
                 },
                 {
                   label: 'Drafts in progress',
                   value: totalDraftCount,
                   accent: totalDraftCount > 0 ? 'warning' : 'neutral',
-                  icon: <Clock className="animate-fade-in-up h-5 w-5" />
+                  icon: <Clock className="h-5 w-5" />
                 }
               ]}
               actions={
-                <div className="animate-fade-in-up flex items-center gap-3">
+                <div className="flex items-center gap-3">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => loadDashboardData()}
                     disabled={isRefreshing}
-                    className="animate-fade-in-up flex items-center gap-2"
+                    className="flex items-center gap-2"
                   >
                     <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                     {isRefreshing ? 'Refreshing...' : 'Refresh'}
@@ -282,105 +282,105 @@ export default function StudentDashboard() {
             />
 
             {error && (
-              <div
-                
-                
-                className="animate-fade-in-up rounded-2xl border border-red-300 bg-red-50 px-6 py-5 text-red-800 shadow-lg"
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-2xl border border-red-300 bg-red-50 px-6 py-5 text-red-800 shadow-lg"
               >
-                <div className="animate-fade-in-up flex items-start gap-3">
-                  <XCircle className="animate-fade-in-up h-6 w-6 flex-shrink-0" />
-                  <div className="animate-fade-in-up flex-1">
-                    <p className="animate-fade-in-up font-semibold">Dashboard Error</p>
-                    <p className="animate-fade-in-up text-sm text-destructive/80">{error}</p>
+                <div className="flex items-start gap-3">
+                  <XCircle className="h-6 w-6 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-semibold">Dashboard Error</p>
+                    <p className="text-sm text-destructive/80">{error}</p>
                   </div>
                   <button
                     onClick={() => setError('')}
-                    className="animate-fade-in-up flex-shrink-0 p-1 rounded-md hover:bg-red-100 transition-colors"
+                    className="flex-shrink-0 p-1 rounded-md hover:bg-red-100 transition-colors"
                     aria-label="Dismiss error"
                   >
-                    <X className="animate-fade-in-up h-5 w-5" />
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             <ContinueApplication />
 
-            <div className="animate-fade-in-up grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
               <SectionCard
-                className="animate-fade-in-up lg:col-span-2"
+                className="lg:col-span-2"
                 title="My applications"
                 description="Monitor each submission and jump back into drafts when you're ready."
-                icon={<FileText className="animate-fade-in-up h-5 w-5" />}
+                icon={<FileText className="h-5 w-5" />}
                 headerVariant="tinted"
                 contentClassName="p-0"
               >
                 {submittedApplications.length === 0 && draftApplications.length === 0 && !hasLocalDraftOnly ? (
-                  <div className="animate-fade-in-up flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-                    <div className="animate-fade-in-up text-gray-900"><FileText className="animate-fade-in-up w-16 h-16" /></div>
-                    <div className="animate-fade-in-up space-y-2">
-                      <h3 className="animate-fade-in-up text-xl sm:text-2xl font-semibold text-gray-900">No applications yet</h3>
-                      <p className="animate-fade-in-up text-gray-900">
+                  <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+                    <div className="text-gray-900"><FileText className="w-16 h-16" /></div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl sm:text-2xl font-semibold text-gray-900">No applications yet</h3>
+                      <p className="text-gray-900">
                         Start your journey by submitting your first application. We'll guide you every step of the way.
                       </p>
                     </div>
                     <Link to="/student/application-wizard">
-                      <Button className="animate-fade-in-up bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700">
-                        <Plus className="animate-fade-in-up mr-2 h-5 w-5" />
+                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700">
+                        <Plus className="mr-2 h-5 w-5" />
                         New Application
                       </Button>
                     </Link>
                   </div>
                 ) : (
-                  <div className="animate-fade-in-up divide-y divide-border">
+                  <div className="divide-y divide-border">
                     {draftApplications.map((application, index) => (
-                      <div
+                      <motion.div
                         key={`draft-${application.id}`}
-                        
-                        
-                        
-                        className="animate-fade-in-up px-6 py-6 transition-colors hover:bg-yellow-50 border-l-4 border-l-yellow-400"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="px-6 py-6 transition-colors hover:bg-yellow-50 border-l-4 border-l-yellow-400"
                       >
-                        <div className="animate-fade-in-up space-y-4">
+                        <div className="space-y-4">
                           {/* Header */}
-                          <div className="animate-fade-in-up flex items-start justify-between gap-4">
-                            <div className="animate-fade-in-up flex items-start gap-3 flex-1 min-w-0">
-                              <Clock className="animate-fade-in-up h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
-                              <div className="animate-fade-in-up flex-1 min-w-0">
-                                <h4 className="animate-fade-in-up text-lg font-bold text-gray-900 break-words leading-tight">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <Clock className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-lg font-bold text-gray-900 break-words leading-tight">
                                   {application.program || 'Draft Application'}
                                 </h4>
-                                <p className="animate-fade-in-up text-sm font-medium text-gray-600 mt-1">
+                                <p className="text-sm font-medium text-gray-600 mt-1">
                                   Application #{application.application_number}
                                 </p>
                               </div>
                             </div>
-                            <span className="animate-fade-in-up rounded-full bg-yellow-100 px-4 py-2 text-sm font-bold text-yellow-800 border border-yellow-300">
+                            <span className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-bold text-yellow-800 border border-yellow-300">
                               DRAFT
                             </span>
                           </div>
 
                           {/* Details Grid */}
-                          <div className="animate-fade-in-up grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                            <div className="animate-fade-in-up flex items-center gap-2">
-                              <Calendar className="animate-fade-in-up h-4 w-4 text-gray-500 flex-shrink-0" />
-                              <span className="animate-fade-in-up font-medium text-gray-700">Intake:</span>
-                              <span className="animate-fade-in-up text-gray-900 break-words">{application.intake || 'Not selected'}</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-700">Intake:</span>
+                              <span className="text-gray-900 break-words">{application.intake || 'Not selected'}</span>
                             </div>
-                            <div className="animate-fade-in-up flex items-center gap-2">
-                              <Clock className="animate-fade-in-up h-4 w-4 text-gray-500 flex-shrink-0" />
-                              <span className="animate-fade-in-up font-medium text-gray-700">Created:</span>
-                              <span className="animate-fade-in-up text-gray-900">{formatDate(application.created_at)}</span>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-700">Created:</span>
+                              <span className="text-gray-900">{formatDate(application.created_at)}</span>
                             </div>
                           </div>
 
                           {/* Actions */}
-                          <div className="animate-fade-in-up flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
-                            <Link to="/student/application-wizard" className="animate-fade-in-up flex-1">
+                          <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
+                            <Link to="/student/application-wizard" className="flex-1">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="animate-fade-in-up w-full border-yellow-400 text-yellow-700 hover:bg-yellow-100 font-medium"
+                                className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-100 font-medium"
                               >
                                 Continue Draft
                               </Button>
@@ -388,7 +388,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="animate-fade-in-up sm:w-auto border-red-300 text-red-700 hover:bg-red-50 font-medium"
+                              className="sm:w-auto border-red-300 text-red-700 hover:bg-red-50 font-medium"
                               onClick={async () => {
                                 const confirmed = await confirmDialog.confirm({
                                   title: 'Delete Draft',
@@ -417,47 +417,47 @@ export default function StudentDashboard() {
                                 }
                               }}
                             >
-                              <X className="animate-fade-in-up mr-2 h-4 w-4" />
+                              <X className="mr-2 h-4 w-4" />
                               Delete
                             </Button>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
 
                     {hasLocalDraftOnly && (
-                      <div className="animate-fade-in-up px-6 py-6 transition-colors hover:bg-yellow-50 border-l-4 border-l-yellow-400">
-                        <div className="animate-fade-in-up space-y-4">
+                      <div className="px-6 py-6 transition-colors hover:bg-yellow-50 border-l-4 border-l-yellow-400">
+                        <div className="space-y-4">
                           {/* Header */}
-                          <div className="animate-fade-in-up flex items-start justify-between gap-4">
-                            <div className="animate-fade-in-up flex items-start gap-3 flex-1 min-w-0">
-                              <Clock className="animate-fade-in-up h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
-                              <div className="animate-fade-in-up flex-1 min-w-0">
-                                <h4 className="animate-fade-in-up text-lg font-bold text-gray-900 leading-tight">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <Clock className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-lg font-bold text-gray-900 leading-tight">
                                   {draftData?.formData?.program || 'Local Draft in Progress'}
                                 </h4>
-                                <p className="animate-fade-in-up text-sm font-medium text-gray-600 mt-1">
+                                <p className="text-sm font-medium text-gray-600 mt-1">
                                   {getDraftProgress()}
                                 </p>
                               </div>
                             </div>
-                            <span className="animate-fade-in-up rounded-full bg-yellow-100 px-4 py-2 text-sm font-bold text-yellow-800 border border-yellow-300">
+                            <span className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-bold text-yellow-800 border border-yellow-300">
                               DRAFT
                             </span>
                           </div>
 
                           {/* Details */}
-                          <div className="animate-fade-in-up text-sm text-gray-600">
+                          <div className="text-sm text-gray-600">
                             <p>Last saved: {getDraftTimestamp()}</p>
                           </div>
 
                           {/* Actions */}
-                          <div className="animate-fade-in-up flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
-                            <Link to="/student/application-wizard" className="animate-fade-in-up flex-1">
+                          <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
+                            <Link to="/student/application-wizard" className="flex-1">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="animate-fade-in-up w-full border-yellow-400 text-yellow-700 hover:bg-yellow-100 font-medium"
+                                className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-100 font-medium"
                               >
                                 Continue Draft
                               </Button>
@@ -465,7 +465,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="animate-fade-in-up sm:w-auto border-red-300 text-red-700 hover:bg-red-50 font-medium"
+                              className="sm:w-auto border-red-300 text-red-700 hover:bg-red-50 font-medium"
                               onClick={async () => {
                                 const confirmed = await confirmDialog.confirm({
                                   title: 'Delete Draft',
@@ -491,7 +491,7 @@ export default function StudentDashboard() {
                                 }
                               }}
                             >
-                              <X className="animate-fade-in-up mr-2 h-4 w-4" />
+                              <X className="mr-2 h-4 w-4" />
                               Delete
                             </Button>
                           </div>
@@ -500,23 +500,23 @@ export default function StudentDashboard() {
                     )}
 
                     {submittedApplications.map((application, index) => (
-                      <div
+                      <motion.div
                         key={application.id}
-                        
-                        
-                        
-                        className="animate-fade-in-up px-6 py-6 transition-colors hover:bg-blue-50 border-l-4 border-l-transparent hover:border-l-blue-500"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 + index * 0.05 }}
+                        className="px-6 py-6 transition-colors hover:bg-blue-50 border-l-4 border-l-transparent hover:border-l-blue-500"
                       >
-                        <div className="animate-fade-in-up space-y-4">
+                        <div className="space-y-4">
                           {/* Header */}
-                          <div className="animate-fade-in-up flex items-start justify-between gap-4">
-                            <div className="animate-fade-in-up flex items-start gap-3 flex-1 min-w-0">
-                              <div className="animate-fade-in-up flex-shrink-0 mt-1">{getStatusIcon(application.status)}</div>
-                              <div className="animate-fade-in-up flex-1 min-w-0">
-                                <h4 className="animate-fade-in-up text-lg font-bold text-gray-900 break-words leading-tight">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <div className="flex-shrink-0 mt-1">{getStatusIcon(application.status)}</div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-lg font-bold text-gray-900 break-words leading-tight">
                                   {getProgramName(application.program)}
                                 </h4>
-                                <p className="animate-fade-in-up text-sm font-medium text-gray-600 mt-1">
+                                <p className="text-sm font-medium text-gray-600 mt-1">
                                   Application #{application.application_number}
                                 </p>
                               </div>
@@ -527,80 +527,80 @@ export default function StudentDashboard() {
                           </div>
 
                           {/* Details Grid */}
-                          <div className="animate-fade-in-up grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                            <div className="animate-fade-in-up flex items-center gap-2">
-                              <Calendar className="animate-fade-in-up h-4 w-4 text-gray-500 flex-shrink-0" />
-                              <span className="animate-fade-in-up font-medium text-gray-700">Intake:</span>
-                              <span className="animate-fade-in-up text-gray-900 break-words">{getIntakeName(application.intake)}</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-700">Intake:</span>
+                              <span className="text-gray-900 break-words">{getIntakeName(application.intake)}</span>
                             </div>
-                            <div className="animate-fade-in-up flex items-center gap-2">
-                              <Clock className="animate-fade-in-up h-4 w-4 text-gray-500 flex-shrink-0" />
-                              <span className="animate-fade-in-up font-medium text-gray-700">Submitted:</span>
-                              <span className="animate-fade-in-up text-gray-900">{formatDate(application.submitted_at)}</span>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-700">Submitted:</span>
+                              <span className="text-gray-900">{formatDate(application.submitted_at)}</span>
                             </div>
                           </div>
 
                           {/* Actions */}
-                          <div className="animate-fade-in-up flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
-                            <div className="animate-fade-in-up flex-1">
+                          <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
+                            <div className="flex-1">
                               <DocumentButtons 
                                 applicationId={application.id}
                                 status={application.status}
                                 paymentStatus={application.payment_status}
                               />
                             </div>
-                            <Link to={`/student/application/${application.id}`} className="animate-fade-in-up sm:w-auto">
+                            <Link to={`/student/application/${application.id}`} className="sm:w-auto">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="animate-fade-in-up w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white font-medium"
+                                className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white font-medium"
                               >
                                 View Details
                               </Button>
                             </Link>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 )}
               </SectionCard>
 
-              <div className="animate-fade-in-up space-y-6">
+              <div className="space-y-6">
                 <SectionCard
                   title="Profile summary"
                   description="Keep your personal details up to date so we can assist you faster."
-                  icon={<User className="animate-fade-in-up h-5 w-5" />}
+                  icon={<User className="h-5 w-5" />}
                 >
-                  <div className="animate-fade-in-up grid gap-3">
-                    <div className="animate-fade-in-up rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="animate-fade-in-up text-xs font-semibold uppercase tracking-wide text-gray-900">Full name</p>
-                      <p className="animate-fade-in-up text-sm font-semibold text-gray-900 break-words overflow-wrap-anywhere">
+                  <div className="grid gap-3">
+                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-900">Full name</p>
+                      <p className="text-sm font-semibold text-gray-900 break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
                       </p>
                     </div>
-                    <div className="animate-fade-in-up rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="animate-fade-in-up text-xs font-semibold uppercase tracking-wide text-gray-900">Email</p>
-                      <p className="animate-fade-in-up text-sm font-semibold text-gray-900 break-all overflow-wrap-anywhere">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
+                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-900">Email</p>
+                      <p className="text-sm font-semibold text-gray-900 break-all overflow-wrap-anywhere">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
                     </div>
-                    <div className="animate-fade-in-up rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="animate-fade-in-up text-xs font-semibold uppercase tracking-wide text-gray-900">Phone</p>
-                      <p className="animate-fade-in-up text-sm font-semibold text-gray-900 break-words overflow-wrap-anywhere">
+                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-900">Phone</p>
+                      <p className="text-sm font-semibold text-gray-900 break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
                       </p>
                     </div>
-                    <div className="animate-fade-in-up rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="animate-fade-in-up text-xs font-semibold uppercase tracking-wide text-gray-900">Residence</p>
-                      <p className="animate-fade-in-up text-sm font-semibold text-gray-900 break-words overflow-wrap-anywhere">
+                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-900">Residence</p>
+                      <p className="text-sm font-semibold text-gray-900 break-words overflow-wrap-anywhere">
                         {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}
                       </p>
                     </div>
                   </div>
-                  <Link to="/settings" className="animate-fade-in-up block">
+                  <Link to="/settings" className="block">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="animate-fade-in-up mt-4 w-full border-primary text-primary hover:bg-primary hover:text-white"
+                      className="mt-4 w-full border-primary text-primary hover:bg-primary hover:text-white"
                     >
                       Update profile
                     </Button>
@@ -610,23 +610,23 @@ export default function StudentDashboard() {
                 <SectionCard
                   title="Upcoming deadlines"
                   description="Never miss an important date for upcoming intakes."
-                  icon={<Clock className="animate-fade-in-up h-5 w-5" />}
+                  icon={<Clock className="h-5 w-5" />}
                 >
-                  <div className="animate-fade-in-up space-y-3">
+                  <div className="space-y-3">
                     {intakes.slice(0, 3).map((intake, index) => (
-                      <div
+                      <motion.div
                         key={intake.id}
-                        
-                        
-                        
-                        className="animate-fade-in-up rounded-xl border border-orange-300 bg-orange-50 px-4 py-3"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * index }}
+                        className="rounded-xl border border-orange-300 bg-orange-50 px-4 py-3"
                       >
-                        <p className="animate-fade-in-up text-sm font-semibold text-gray-900">{intake.name}</p>
-                        <p className="animate-fade-in-up text-xs font-semibold text-orange-700">Deadline: {formatDate(intake.application_deadline)}</p>
-                      </div>
+                        <p className="text-sm font-semibold text-gray-900">{intake.name}</p>
+                        <p className="text-xs font-semibold text-orange-700">Deadline: {formatDate(intake.application_deadline)}</p>
+                      </motion.div>
                     ))}
                     {intakes.length === 0 && (
-                      <p className="animate-fade-in-up rounded-xl bg-muted px-4 py-4 text-center text-sm text-gray-900">
+                      <p className="rounded-xl bg-muted px-4 py-4 text-center text-sm text-gray-900">
                         No upcoming deadlines yet. Check back soon.
                       </p>
                     )}
@@ -636,28 +636,28 @@ export default function StudentDashboard() {
                 <SectionCard
                   title="Quick actions"
                   description="Access the most common tasks in a single tap."
-                  icon={<Plus className="animate-fade-in-up h-5 w-5" />}
+                  icon={<Plus className="h-5 w-5" />}
                 >
-                  <div className="animate-fade-in-up grid gap-3">
+                  <div className="grid gap-3">
                     {totalDraftCount > 0 ? (
-                      <Link to="/student/application-wizard" className="animate-fade-in-up block">
+                      <Link to="/student/application-wizard" className="block">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="animate-fade-in-up w-full justify-start border-yellow-300 bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                          className="w-full justify-start border-yellow-300 bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
                         >
-                          <FileText className="animate-fade-in-up mr-2 h-4 w-4" />
+                          <FileText className="mr-2 h-4 w-4" />
                           Continue draft
                         </Button>
                       </Link>
                     ) : (
-                      <Link to="/student/application-wizard" className="animate-fade-in-up block">
+                      <Link to="/student/application-wizard" className="block">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="animate-fade-in-up w-full justify-start border-primary bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                          className="w-full justify-start border-primary bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
                         >
-                          <Plus className="animate-fade-in-up mr-2 h-4 w-4" />
+                          <Plus className="mr-2 h-4 w-4" />
                           Start new application
                         </Button>
                       </Link>
@@ -666,7 +666,7 @@ export default function StudentDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="animate-fade-in-up w-full justify-start border-red-300 text-red-700 hover:bg-red-50"
+                        className="w-full justify-start border-red-300 text-red-700 hover:bg-red-50"
                         disabled={isClearingAllDrafts}
                         onClick={async () => {
                           const confirmed = await confirmDialog.confirm({
@@ -704,24 +704,24 @@ export default function StudentDashboard() {
                         }}
                       >
                         {isClearingAllDrafts ? (
-                          <div
-                            className="animate-fade-in-up mr-2 h-4 w-4 rounded-full border-2 border-current border-t-transparent"
+                          <motion.div
+                            className="mr-2 h-4 w-4 rounded-full border-2 border-current border-t-transparent"
                             animate={{ rotate: 360 }}
                             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                           />
                         ) : (
-                          <X className="animate-fade-in-up mr-2 h-4 w-4" />
+                          <X className="mr-2 h-4 w-4" />
                         )}
                         {isClearingAllDrafts ? 'Clearing...' : 'Clear all drafts'}
                       </Button>
                     )}
-                    <Link to="/settings" className="animate-fade-in-up block">
+                    <Link to="/settings" className="block">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="animate-fade-in-up w-full justify-start border-border text-gray-900 hover:bg-muted"
+                        className="w-full justify-start border-border text-gray-900 hover:bg-muted"
                       >
-                        <User className="animate-fade-in-up mr-2 h-4 w-4" />
+                        <User className="mr-2 h-4 w-4" />
                         Profile settings
                       </Button>
                     </Link>
