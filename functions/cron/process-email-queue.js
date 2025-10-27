@@ -2,16 +2,25 @@ import { supabaseAdminClient } from '../_lib/supabaseClient.js';
 import { sendEmail } from '../_lib/emailService.js';
 
 export async function onRequest(context) {
-  const { env } = context;
+  const { env, request } = context;
   
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Cron-Key'
   };
 
-  if (context.request.method === 'OPTIONS') {
+  if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  // Verify cron key
+  const cronKey = request.headers.get('X-Cron-Key');
+  if (env.CRON_SECRET_KEY && cronKey !== env.CRON_SECRET_KEY) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   try {
