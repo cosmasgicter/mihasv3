@@ -1,4 +1,5 @@
 import React from 'react'
+import { hardReload } from '../../lib/hardReload'
 
 interface Props {
   children: React.ReactNode
@@ -39,7 +40,7 @@ export class SimpleErrorBoundary extends React.Component<Props, State> {
             <p className="text-gray-900 mb-4">{this.state.error?.message || 'Unknown error'}</p>
             <p className="text-xs text-gray-900 mb-4">{this.state.error?.stack?.substring(0, 200)}</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => { void hardReload() }}
               className="px-4 py-2 bg-primary text-gray-900 rounded-lg hover:bg-primary"
             >
               Refresh Page
