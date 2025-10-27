@@ -1,6 +1,7 @@
 import { Component, ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from './Button';
+import { hardReload } from '../../lib/hardReload';
 
 interface Props {
   children: ReactNode;
@@ -37,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <p className="text-sm text-gray-900 mb-6 text-center max-w-md">
             {this.state.error?.message || 'An unexpected error occurred'}
           </p>
-          <Button onClick={() => window.location.reload()}>Reload Page</Button>
+          <Button onClick={() => { void hardReload() }}>Reload Page</Button>
         </div>
       );
     }
