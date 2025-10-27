@@ -30,6 +30,7 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAdminRealtimeMetrics } from '@/hooks/admin'
@@ -274,9 +275,9 @@ export default function AdminDashboard() {
       <main className="w-full max-w-full overflow-x-hidden">
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 safe-area-bottom">
         {/* Enhanced Welcome Section */}
-        <div 
-          
-          
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="mb-6 sm:mb-8"
         >
           <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
@@ -322,15 +323,15 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Error Display */}
-        
+        <AnimatePresence>
           {error && (
-            <div 
-              
-              
-              
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               className="rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
             >
               <div className="flex items-center space-x-3">
@@ -339,9 +340,9 @@ export default function AdminDashboard() {
                   <strong>Error:</strong> {error}
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
-        
+        </AnimatePresence>
 
         {isRefreshing && (
           <div className="mb-6">
@@ -362,17 +363,17 @@ export default function AdminDashboard() {
 
 
         {/* Enhanced Stats Grid */}
-        <div 
-          
-          
-          
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8"
         >
           {/* Today's Applications */}
-          <div 
-            
-            
-            
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -5, scale: 1.02 }}
             className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-bl-full"></div>
@@ -394,14 +395,14 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Pending Reviews */}
-          <div 
-            
-            
-            
-            
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            whileHover={{ y: -5, scale: 1.02 }}
             className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-orange-600/20 rounded-bl-full"></div>
@@ -424,14 +425,14 @@ export default function AdminDashboard() {
                 <div className="text-xs text-green-600 mt-2">All caught up</div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Processing Time */}
-          <div 
-            
-            
-            
-            
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            whileHover={{ y: -5, scale: 1.02 }}
             className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/20 rounded-bl-full"></div>
@@ -451,14 +452,14 @@ export default function AdminDashboard() {
                 <span className="text-green-600">Improved by 15%</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Approval Rate */}
-          <div 
-            
-            
-            
-            
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            whileHover={{ y: -5, scale: 1.02 }}
             className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-green-600/20 rounded-bl-full"></div>
@@ -482,18 +483,18 @@ export default function AdminDashboard() {
                 <span className="text-green-600">Stable performance</span>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* AI-Powered Predictive Dashboard */}
-        <div
-          
-          
-          
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
           className="mb-8"
         >
           <PredictiveDashboard />
-        </div>
+        </motion.div>
 
         {/* Enhanced Dashboard Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -516,10 +517,10 @@ export default function AdminDashboard() {
           </div>
         </div>
         {/* Weekly Overview */}
-        <div 
-          
-          
-          
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
           className="mt-8 bg-card rounded-2xl shadow-lg border border-border"
         >
           <div className="px-6 py-4 border-b border-border">
@@ -551,7 +552,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         </div>
       </main>
