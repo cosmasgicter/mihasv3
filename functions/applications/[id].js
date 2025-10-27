@@ -318,22 +318,19 @@ export async function onRequest(context) {
             // Queue email notification
             if (data.email) {
               const { queueEmail } = await import('../_lib/emailQueue.js');
+              const { getApplicationStatusEmail } = await import('../_lib/emailTemplates.js');
+              
               await queueEmail({
                 to: data.email,
                 subject: title,
-                html: `
-                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};">${title}</h2>
-                    <p style="color: #374151; line-height: 1.6;">${content}</p>
-                    ${notes ? `<div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;"><p style="margin: 0; color: #374151;"><strong>Note:</strong> ${notes}</p></div>` : ''}
-                    <a href="${context.env.VITE_APP_URL || 'https://mihas.edu.zm'}/student/application/${id}" 
-                       style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
-                      View Application
-                    </a>
-                    <hr style="border: 1px solid #e5e7eb; margin: 20px 0;">
-                    <p style="color: #6b7280; font-size: 12px;">MIHAS Application System</p>
-                  </div>
-                `,
+                html: getApplicationStatusEmail({
+                  status,
+                  applicationNumber: data.application_number,
+                  program: data.program,
+                  studentName: data.full_name,
+                  notes,
+                  appUrl: `${context.env.VITE_APP_URL || 'https://apply.mihas.edu.zm'}/student/application/${id}`
+                }),
                 priority: status === 'approved' ? 'high' : 'normal'
               }).catch(err => console.error('Email queue error:', err));
             }
@@ -459,21 +456,18 @@ export async function onRequest(context) {
               // Queue email notification
               if (data.email) {
                 const { queueEmail } = await import('../_lib/emailQueue.js');
+                const { getPaymentStatusEmail } = await import('../_lib/emailTemplates.js');
+                
                 await queueEmail({
                   to: data.email,
                   subject: notification.title,
-                  html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                      <h2 style="color: ${notification.type === 'success' ? '#10b981' : notification.type === 'error' ? '#ef4444' : '#3b82f6'};">${notification.title}</h2>
-                      <p style="color: #374151; line-height: 1.6;">${notification.content}</p>
-                      <a href="${context.env.VITE_APP_URL || 'https://mihas.edu.zm'}/student/application/${id}" 
-                         style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
-                        View Application
-                      </a>
-                      <hr style="border: 1px solid #e5e7eb; margin: 20px 0;">
-                      <p style="color: #6b7280; font-size: 12px;">MIHAS Application System</p>
-                    </div>
-                  `,
+                  html: getPaymentStatusEmail({
+                    status: paymentStatus,
+                    applicationNumber: data.application_number,
+                    amount: data.amount,
+                    studentName: data.full_name,
+                    appUrl: `${context.env.VITE_APP_URL || 'https://apply.mihas.edu.zm'}/student/application/${id}`
+                  }),
                   priority: paymentStatus === 'verified' ? 'high' : 'normal'
                 }).catch(err => console.error('Email queue error:', err));
               }
