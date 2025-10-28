@@ -162,8 +162,11 @@ export async function onRequest(context) {
       const sortColumn = determineSortColumn(sortBy);
       const sortAscending = sortOrder?.toLowerCase() === 'asc';
       
+      // Use admin view for admin users, regular table for students
+      const tableName = isAdmin ? 'admin_application_detailed' : 'applications';
+      
       let query = applyFilters(
-        supabaseAdminClient.from('applications').select('*', { count: 'exact' }),
+        supabaseAdminClient.from(tableName).select('*', { count: 'exact' }),
         filterOptions
       );
       
@@ -181,7 +184,7 @@ export async function onRequest(context) {
       let stats;
       if (parseBoolean(includeStats)) {
         const baseCountQuery = applyFilters(
-          supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }),
+          supabaseAdminClient.from(tableName).select('id', { count: 'exact', head: true }),
           filterOptions,
           { includeStatus: false }
         );
@@ -191,7 +194,7 @@ export async function onRequest(context) {
         
         for (const statusValue of APPLICATION_STATUSES) {
           const statusQuery = applyFilters(
-            supabaseAdminClient.from('applications').select('id', { count: 'exact', head: true }).eq('status', statusValue),
+            supabaseAdminClient.from(tableName).select('id', { count: 'exact', head: true }).eq('status', statusValue),
             filterOptions,
             { includeStatus: false }
           );

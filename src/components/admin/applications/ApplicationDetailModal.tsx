@@ -6,6 +6,7 @@ import { applicationService } from '@/services/applications'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import type { ApplicationInterview } from '@/lib/supabase'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
+import { SendNotificationModal } from './SendNotificationModal'
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -111,7 +112,7 @@ interface ApplicationDetailModalProps {
  show: boolean
  updating: string | null
  onClose: () => void
- onSendNotification: () => void
+ onSendNotification: (title: string, message: string) => Promise<void>
  onViewDocuments: () => void
  onViewHistory: () => void
  onUpdateStatus: (id: string, status: string) => Promise<void>
@@ -393,6 +394,7 @@ export function ApplicationDetailModal({
  })
  const [adminFeedback, setAdminFeedback] = useState('')
  const [savingFeedback, setSavingFeedback] = useState(false)
+ const [showNotificationModal, setShowNotificationModal] = useState(false)
 
  useEffect(() => {
  setIsGeneratingAcceptance(false)
@@ -1180,7 +1182,7 @@ export function ApplicationDetailModal({
  <div className="flex flex-wrap gap-2">
  <Button
  variant="outline"
- onClick={onSendNotification}
+ onClick={() => setShowNotificationModal(true)}
  className="flex items-center gap-2"
  >
  <Send className="h-4 w-4" />
@@ -1217,7 +1219,7 @@ export function ApplicationDetailModal({
  loading={updating === application.id}
  onClick={async () => {
  await onUpdateStatus(application.id, 'under_review')
- await loadApplicationDetails()
+ setTimeout(() => loadApplicationDetails(), 100)
  }}
  variant="primary"
  >
@@ -1231,7 +1233,7 @@ export function ApplicationDetailModal({
  loading={updating === application.id}
  onClick={async () => {
  await onUpdateStatus(application.id, 'approved')
- await loadApplicationDetails()
+ setTimeout(() => loadApplicationDetails(), 100)
  }}
  variant="success"
  >
@@ -1242,7 +1244,7 @@ export function ApplicationDetailModal({
  loading={updating === application.id}
  onClick={async () => {
  await onUpdateStatus(application.id, 'rejected')
- await loadApplicationDetails()
+ setTimeout(() => loadApplicationDetails(), 100)
  }}
  variant="destructive"
  >
@@ -1259,6 +1261,14 @@ export function ApplicationDetailModal({
  </div>
  </div>
  </div>
+      
+      <SendNotificationModal
+        show={showNotificationModal}
+        applicationNumber={application.application_number}
+        studentName={application.full_name}
+        onClose={() => setShowNotificationModal(false)}
+        onSend={onSendNotification}
+      />
  </div>
  )
 }

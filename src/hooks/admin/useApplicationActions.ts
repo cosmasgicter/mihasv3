@@ -14,8 +14,13 @@ export function useApplicationActions() {
       setUpdating(applicationId)
       await applicationService.updateStatus(applicationId, newStatus, feedback)
       
-      await queryClient.invalidateQueries({ queryKey: ['applications'] })
-      await queryClient.invalidateQueries({ queryKey: ['application-stats'] })
+      // Invalidate all related queries immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['applications'] }),
+        queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['applications', applicationId] }),
+        queryClient.refetchQueries({ queryKey: ['applications'] })
+      ])
     } catch (error) {
       console.error('Error updating application status:', error)
       throw error

@@ -368,6 +368,14 @@ const useWizardController = (): UseWizardControllerResult => {
     })
   }, [baseHandleResultSlipUpload, applicationId, subjects, syncGrades, updateApplication, showSuccess, showInfo, showWarning])
 
+  const handleProofOfPaymentUploadWrapped = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    handleProofOfPaymentUpload(event, async (file, url) => {
+      if (!applicationId) return
+      await updateApplication.mutateAsync({ id: applicationId, data: { pop_url: url } })
+      showSuccess('Payment proof uploaded successfully!')
+    })
+  }, [handleProofOfPaymentUpload, applicationId, updateApplication, showSuccess])
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth/signin?redirect=/student/application-wizard')
@@ -1164,7 +1172,7 @@ const useWizardController = (): UseWizardControllerResult => {
     handleEmailSlip,
     handleResultSlipUpload,
     handleExtraKycUpload,
-    handleProofOfPaymentUpload,
+    handleProofOfPaymentUpload: handleProofOfPaymentUploadWrapped,
     getPaymentTarget,
     handleNextStep,
     handlePrevStep,
