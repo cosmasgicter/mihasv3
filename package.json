@@ -8,6 +8,9 @@
     "npm": ">=10.0.0"
   },
   "scripts": {
+    "test:load": "node scripts/load-test.js",
+    "test:email": "node scripts/test-email.js",
+    "test:security": "node scripts/security-audit.js",
     "dev": "vite --config vite.config.local.ts",
     "dev:network": "vite --config vite.config.local.ts --host 0.0.0.0",
     "dev:prod": "vite build --config vite.config.production.ts && vite preview",
