@@ -54,8 +54,14 @@ export async function onRequest(context) {
       errors: []
     };
 
-    // Process each email
-    for (const email of emails) {
+    // Process each email with rate limiting
+    for (let i = 0; i < emails.length; i++) {
+      const email = emails[i];
+      
+      // Add delay between emails to respect rate limits (2 requests/second = 500ms delay)
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 600)); // 600ms delay for safety
+      }
       try {
         // Send email
         const result = await sendEmail({
