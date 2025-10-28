@@ -897,8 +897,16 @@ const useWizardController = (): UseWizardControllerResult => {
       }
       if (selectedProgram && eligibilityCheck && !eligibilityCheck.eligible) {
       }
-      if (!resultSlipFile) {
+      if (!resultSlipFile && !uploadedFiles['result_slip']) {
         const errorMessage = 'Result slip is required'
+        setError('')
+        showError(errorMessage)
+        return
+      }
+
+      // Wait for upload to complete if still uploading
+      if (uploading) {
+        const errorMessage = 'Please wait for file upload to complete'
         setError('')
         showError(errorMessage)
         return
