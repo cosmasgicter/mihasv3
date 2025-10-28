@@ -12,7 +12,7 @@ module.exports = {
         input: '#cbd5e1',
         ring: '#3b82f6',
         background: '#f8fafc',
-        foreground: '#0f172a',
+        foreground: '#020617',
         primary: {
           DEFAULT: '#3b82f6',
           foreground: '#ffffff',
@@ -58,7 +58,7 @@ module.exports = {
           foreground: '#ffffff',
         },
         success: {
-          DEFAULT: '#10b981',
+          DEFAULT: '#059669',
           foreground: '#ffffff',
         },
       },

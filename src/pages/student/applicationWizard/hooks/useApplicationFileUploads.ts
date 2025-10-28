@@ -199,53 +199,6 @@ export function useApplicationFileUploads({
     [onValidationClear, onValidationError, resetUploadedState, clearProgressEntry]
   )
 
-  const createFileHandler = useCallback(
-    (fileType: ApplicationFileType, setter: (file: File | null) => void, onUploadComplete?: (file: File, url: string) => void) =>
-      async (event: ChangeEvent<HTMLInputElement>) => {
-        const target = event.target
-        const file = target.files?.[0] ?? null
-
-        const isValid = validateFileSelection(file, fileType, target)
-        if (!isValid) {
-          setter(null)
-          return
-        }
-
-        // Auto-upload immediately after validation
-        if (file && applicationId) {
-          try {
-            const url = await startUpload(file, fileType)
-            onUploadComplete?.(file, url)
-          } catch (error) {
-            console.error('Auto-upload failed:', error)
-            onValidationError?.(error instanceof Error ? error.message : 'Upload failed')
-          }
-        }
-      },
-    [validateFileSelection, applicationId, startUpload, onValidationError]
-  )
-
-  const handleResultSlipUpload = useCallback(
-    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => {
-      createFileHandler('result_slip', setResultSlipFile, onUploadComplete)(event)
-    },
-    [createFileHandler]
-  )
-
-  const handleExtraKycUpload = useCallback(
-    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => {
-      createFileHandler('extra_kyc', setExtraKycFile, onUploadComplete)(event)
-    },
-    [createFileHandler]
-  )
-
-  const handleProofOfPaymentUpload = useCallback(
-    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => {
-      createFileHandler('proof_of_payment', setProofOfPaymentFile, onUploadComplete)(event)
-    },
-    [createFileHandler]
-  )
-
   const trackUploadTask = useCallback(
     async <T,>(task: () => Promise<T>) => {
       incrementActiveTasks()
@@ -333,6 +286,53 @@ export function useApplicationFileUploads({
       return uploadPromise
     },
     [applicationId, clearProgressEntry, scheduleProgressClear, trackUploadTask, userId]
+  )
+
+  const createFileHandler = useCallback(
+    (fileType: ApplicationFileType, setter: (file: File | null) => void, onUploadComplete?: (file: File, url: string) => void) =>
+      async (event: ChangeEvent<HTMLInputElement>) => {
+        const target = event.target
+        const file = target.files?.[0] ?? null
+
+        const isValid = validateFileSelection(file, fileType, target)
+        if (!isValid) {
+          setter(null)
+          return
+        }
+
+        // Auto-upload immediately after validation
+        if (file && applicationId) {
+          try {
+            const url = await startUpload(file, fileType)
+            onUploadComplete?.(file, url)
+          } catch (error) {
+            console.error('Auto-upload failed:', error)
+            onValidationError?.(error instanceof Error ? error.message : 'Upload failed')
+          }
+        }
+      },
+    [validateFileSelection, applicationId, startUpload, onValidationError]
+  )
+
+  const handleResultSlipUpload = useCallback(
+    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => {
+      createFileHandler('result_slip', setResultSlipFile, onUploadComplete)(event)
+    },
+    [createFileHandler]
+  )
+
+  const handleExtraKycUpload = useCallback(
+    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => {
+      createFileHandler('extra_kyc', setExtraKycFile, onUploadComplete)(event)
+    },
+    [createFileHandler]
+  )
+
+  const handleProofOfPaymentUpload = useCallback(
+    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => {
+      createFileHandler('proof_of_payment', setProofOfPaymentFile, onUploadComplete)(event)
+    },
+    [createFileHandler]
   )
 
   return {

@@ -32,12 +32,21 @@ html = html.replace(
 // Remove original CSS link
 html = html.replace(/<link[^>]*\.css[^>]*>/g, '');
 
-// Find main bundle
+// Remove Vite's immediate script tag (we defer it instead)
+html = html.replace(/<script type="module" crossorigin src="\/assets\/js\/[^"]+"><\/script>/g, '');
+
+// Remove blocking registerSW (already deferred in main.tsx)
+html = html.replace(/<script id="vite-plugin-pwa:register-sw" src="\/registerSW.js"><\/script>/g, '');
+
+// Find main bundle (largest index file)
 const jsFiles = fs.readdirSync(path.join(distPath, 'assets/js'))
-  .filter(f => f.startsWith('index-') && f.endsWith('.js') && !f.includes('vendor'));
-const mainBundle = jsFiles.length > 0 ? jsFiles[jsFiles.length - 1] : null;
+  .filter(f => f.startsWith('main-') && f.endsWith('.js'));
+const mainBundle = jsFiles.length > 0 ? jsFiles[0] : null;
 
 if (mainBundle) {
+  // Remove any existing deferred scripts
+  html = html.replace(/<script type="module">\s*requestIdleCallback[^<]+<\/script>/g, '');
+  
   const scriptTag = `
     <script type="module">
       requestIdleCallback(() => import('/assets/js/${mainBundle}'), { timeout: 100 });

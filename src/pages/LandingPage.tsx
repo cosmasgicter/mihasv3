@@ -210,10 +210,10 @@ export default function LandingPage() {
           
           <div className={`grid ${isMobile ? 'grid-cols-1 gap-6 px-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8'}`}>
             {[
-              { logo: "GNCLogo.png", title: "NMCZ Accredited", org: "Nursing and Midwifery Council of Zambia", desc: "Graduates qualified for nursing jobs in all Zambian hospitals and clinics" },
-              { logo: "hpc_logobig.png", title: "HPCZ Accredited", org: "Health Professions Council of Zambia", desc: "Graduates eligible for clinical officer positions nationwide" },
-              { logo: "eczlogo.png", title: "ECZ Recognized", org: "Examinations Council of Zambia", desc: "Environmental health graduates work in government and private sectors" },
-              { logo: "unza.jpg", title: "UNZA Affiliated", org: "University of Zambia", desc: "University-level qualifications recognized by international employers" }
+              { logo: "GNCLogo.webp", title: "NMCZ Accredited", org: "Nursing and Midwifery Council of Zambia", desc: "Graduates qualified for nursing jobs in all Zambian hospitals and clinics" },
+              { logo: "hpc_logobig.webp", title: "HPCZ Accredited", org: "Health Professions Council of Zambia", desc: "Graduates eligible for clinical officer positions nationwide" },
+              { logo: "eczlogo.webp", title: "ECZ Recognized", org: "Examinations Council of Zambia", desc: "Environmental health graduates work in government and private sectors" },
+              { logo: "unza.webp", title: "UNZA Affiliated", org: "University of Zambia", desc: "University-level qualifications recognized by international employers" }
             ].map((accred, index) => (
               <div key={index} className="bg-card rounded-lg shadow-lg p-6 text-center border border-border hover:shadow-xl transition-shadow">
                 <div className="h-16 w-16 mb-4 flex items-center justify-center bg-muted rounded-lg p-2 mx-auto">
@@ -222,6 +222,8 @@ export default function LandingPage() {
                     alt={`${accred.title} logo`}
                     className="h-full w-full"
                     loading="lazy"
+                    width={64}
+                    height={64}
                   />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{accred.title}</h3>
