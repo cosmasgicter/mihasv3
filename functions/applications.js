@@ -281,7 +281,7 @@ export async function onRequest(context) {
       // Verify ownership
       const { data: app, error: fetchError } = await supabaseAdminClient
         .from('applications')
-        .select('user_id')
+        .select('user_id, status')
         .eq('id', applicationId)
         .single();
 
@@ -293,8 +293,10 @@ export async function onRequest(context) {
         });
       }
 
-      if (app.user_id !== authContext.user.id) {
-        console.error('DELETE: Access denied', { applicationId, userId: authContext.user.id, ownerId: app.user_id });
+      // Allow deletion if user owns it OR if it's a draft (drafts can be deleted by creator)
+      const canDelete = app.user_id === authContext.user.id || app.status === 'draft';
+      if (!canDelete) {
+        console.error('DELETE: Access denied', { applicationId, userId: authContext.user.id, ownerId: app.user_id, status: app.status });
         return new Response(JSON.stringify({ error: 'Access denied' }), {
           status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }

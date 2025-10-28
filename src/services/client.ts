@@ -335,10 +335,11 @@ class ApiClient {
       
       // Enhance error if not already enhanced
       if (!(error instanceof Error) || !error.message.includes('Please')) {
+        const errorStatusCode = typeof (error as any)?.status === 'number' ? (error as any).status : undefined
         const enhancedError = ApiErrorHandler.enhanceError({
           endpoint,
           method,
-          statusCode,
+          statusCode: errorStatusCode,
           originalError: error
         })
         throw enhancedError
