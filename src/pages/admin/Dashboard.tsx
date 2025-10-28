@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { logger } from '@/lib/logger'
 import { useAuth } from '@/contexts/AuthContext'
 import { adminDashboardService } from '@/services/admin/dashboard'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
@@ -170,10 +171,10 @@ export default function AdminDashboard() {
   }, [trackPageView])
 
   useEffect(() => {
-    console.log('[Dashboard] useEffect triggered', { hasUser: !!user, hasProfile: !!profile, userId: user?.id, profileId: profile?.id })
+    logger.log('[Dashboard] useEffect triggered', { hasUser: !!user, hasProfile: !!profile, userId: user?.id, profileId: profile?.id })
     
     if (!user || !profile) {
-      console.log('[Dashboard] Skipping load - missing user or profile')
+      logger.log('[Dashboard] Skipping load - missing user or profile')
       return
     }
 
@@ -181,7 +182,7 @@ export default function AdminDashboard() {
 
     const load = async () => {
       if (mounted) {
-        console.log('[Dashboard] Loading dashboard stats...')
+        logger.log('[Dashboard] Loading dashboard stats...')
         await loadDashboardStats()
       }
     }

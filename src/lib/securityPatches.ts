@@ -12,25 +12,70 @@ export class SecureCodeExecution {
   ])
 
   /**
-   * Safely evaluate mathematical expressions without using eval()
+   * Safely evaluate mathematical expressions without using eval() or Function()
    */
   static evaluateMathExpression(expression: string): number {
     // Only allow basic math operations
     const sanitized = expression.replace(/[^0-9+\-*/.() ]/g, '')
     
+    if (!sanitized || !/^[0-9+\-*/.() ]+$/.test(sanitized)) {
+      return 0
+    }
+    
     try {
-      // Use Function constructor with restricted scope instead of eval
-      const func = new Function('return ' + sanitized)
-      const result = func()
-      
-      if (typeof result !== 'number' || !isFinite(result)) {
-        throw new Error('Invalid result')
-      }
-      
-      return result
+      // Use safe math parser instead of Function constructor
+      return this.parseMathExpression(sanitized)
     } catch (error) {
       return 0
     }
+  }
+
+  /**
+   * Safe recursive descent parser for math expressions
+   */
+  private static parseMathExpression(expr: string): number {
+    let pos = 0
+    const clean = expr.replace(/\s/g, '')
+    
+    const parseNumber = (): number => {
+      let num = ''
+      while (pos < clean.length && /[0-9.]/.test(clean[pos])) {
+        num += clean[pos++]
+      }
+      return parseFloat(num) || 0
+    }
+    
+    const parseFactor = (): number => {
+      if (clean[pos] === '(') {
+        pos++
+        const result = parseExpression()
+        pos++
+        return result
+      }
+      return parseNumber()
+    }
+    
+    const parseTerm = (): number => {
+      let result = parseFactor()
+      while (pos < clean.length && (clean[pos] === '*' || clean[pos] === '/')) {
+        const op = clean[pos++]
+        const right = parseFactor()
+        result = op === '*' ? result * right : result / right
+      }
+      return result
+    }
+    
+    const parseExpression = (): number => {
+      let result = parseTerm()
+      while (pos < clean.length && (clean[pos] === '+' || clean[pos] === '-')) {
+        const op = clean[pos++]
+        const right = parseTerm()
+        result = op === '+' ? result + right : result - right
+      }
+      return result
+    }
+    
+    return parseExpression()
   }
 
   /**

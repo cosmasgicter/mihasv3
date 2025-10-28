@@ -2,6 +2,7 @@ import { Download, FileText, Award } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useDocumentGeneration } from '@/hooks/useDocumentGeneration'
 import { useToastStore } from '@/components/ui/Toast'
+import { logger } from '@/lib/logger'
 
 interface DocumentButtonsProps {
   applicationId: string
@@ -14,9 +15,9 @@ export function DocumentButtons({ applicationId, status, paymentStatus }: Docume
   const { addToast } = useToastStore()
 
   const handleDownload = async (type: 'slip' | 'acceptance' | 'receipt') => {
-    console.log('[DocumentButtons] handleDownload called for type:', type)
+    logger.debug('[DocumentButtons] handleDownload called for type:', type)
     const success = await generateDocument(type, applicationId)
-    console.log('[DocumentButtons] generateDocument returned:', success)
+    logger.debug('[DocumentButtons] generateDocument returned:', success)
     if (success) {
       addToast('success', 'Document downloaded successfully')
     } else {
