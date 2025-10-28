@@ -280,6 +280,9 @@ export async function onRequest(context) {
 
       const body = await request.json();
       
+      // Remove action field if present (used for routing, not a DB column)
+      const { action, ...updateData } = body;
+      
       // Verify ownership or admin
       const { data: app } = await supabaseAdminClient
         .from('applications')
@@ -304,7 +307,7 @@ export async function onRequest(context) {
 
       const { data, error } = await supabaseAdminClient
         .from('applications')
-        .update(body)
+        .update(updateData)
         .eq('id', applicationId)
         .select()
         .single();
