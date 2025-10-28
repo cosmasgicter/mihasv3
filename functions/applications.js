@@ -92,6 +92,38 @@ export async function onRequest(context) {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
+
+      // Check if requesting specific application by ID
+      const pathParts = url.pathname.split('/').filter(Boolean);
+      if (pathParts.length > 1 && pathParts[pathParts.length - 1].match(/^[0-9a-f-]{36}$/i)) {
+        const applicationId = pathParts[pathParts.length - 1];
+        
+        const { data: app, error } = await supabaseAdminClient
+          .from('applications')
+          .select('*')
+          .eq('id', applicationId)
+          .single();
+
+        if (error || !app) {
+          return new Response(JSON.stringify({ error: 'Application not found' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        // Verify access
+        if (!authContext.isAdmin && app.user_id !== authContext.user?.id) {
+          return new Response(JSON.stringify({ error: 'Access denied' }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify(app), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
       
       const page = parseInt(url.searchParams.get('page') || '0');
       const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
