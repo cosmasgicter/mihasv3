@@ -229,6 +229,18 @@ export const applicationsData = {
     })
   },
 
+  useDelete: () => {
+    const queryClient = useQueryClient()
+    
+    return useMutation({
+      mutationFn: (id: string) => applicationService.delete(id),
+      onSuccess: (_, id) => {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applications })
+        queryClient.removeQueries({ queryKey: QUERY_KEYS.applicationDetail(id) })
+      }
+    })
+  },
+
   // Bulk operations
   useBulkUpdateStatus: () => {
     const queryClient = useQueryClient()
