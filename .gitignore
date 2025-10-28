@@ -78,7 +78,7 @@ jspm_packages/
 
 # Gatsby files
 .cache/
-/public
+# /public - Don't ignore, we need robots.txt and sitemap.xml
 
 # Storybook build outputs
 .out

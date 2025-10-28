@@ -4,6 +4,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Font optimization */
+@supports (font-variation-settings: normal) {
+  * {
+    font-feature-settings: 'kern' 1;
+    text-rendering: optimizeLegibility;
+  }
+}
+
 @layer base {
   html {
     color-scheme: light only !important;
