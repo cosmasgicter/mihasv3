@@ -1,0 +1,12 @@
+# Cloudflare Pages Headers
+
+# Allow search engine indexing
+/*
+  X-Robots-Tag: index, follow
+  
+# Security headers
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
