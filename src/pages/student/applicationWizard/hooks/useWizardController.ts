@@ -138,7 +138,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const { addToast } = useToastStore()
   const showError = useCallback((message: string) => addToast('error', message), [addToast])
   const showWarning = useCallback((message: string) => addToast('info', message), [addToast])
-  const showSuccess = useCallback((title: string, message?: string) => addToast('success', message || title), [addToast])
+  const showSuccess = useCallback((message: string) => addToast('success', message), [addToast])
   const showInfo = useCallback((title: string, message?: string) => addToast('info', message || title), [addToast])
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
@@ -330,28 +330,43 @@ const useWizardController = (): UseWizardControllerResult => {
   const handleResultSlipUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     baseHandleResultSlipUpload(event, async (file, url) => {
       if (!applicationId) return
+      
+      showInfo('Processing document...', 'Extracting grades from your result slip')
+      
       try {
         const { autoFillService } = await import('@/utils/smart-features')
-        const parsed = await autoFillService.extractDataFromFile(file, 'grade12').catch(() => null)
-        if (parsed?.grades?.length > 0) {
-          const gradesToSync = parsed.grades
-            .map((g: any) => ({
-              subject_id: findBestSubjectId(g.subject?.toString() || '', subjects) || '',
-              grade: Number(g.grade) || 0
-            }))
-            .filter((g: any) => g.subject_id && g.grade > 0)
-          if (gradesToSync.length > 0) {
-            await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
-            await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
-            setSelectedGrades(gradesToSync)
-            showSuccess(`Auto-filled ${gradesToSync.length} grades`)
-          }
+        const parsed = await autoFillService.extractDataFromFile(file, 'grade12')
+        
+        if (!parsed || !parsed.grades || parsed.grades.length === 0) {
+          showWarning('No grades detected. Please enter them manually.')
+          await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
+          return
         }
+        
+        const gradesToSync = parsed.grades
+          .map((g: any) => ({
+            subject_id: findBestSubjectId(g.subject?.toString() || '', subjects) || '',
+            grade: Number(g.grade) || 0
+          }))
+          .filter((g: any) => g.subject_id && g.grade > 0)
+          
+        if (gradesToSync.length === 0) {
+          showWarning('Could not match subjects. Please enter grades manually.')
+          await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
+          return
+        }
+        
+        await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
+        await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
+        setSelectedGrades(gradesToSync)
+        showSuccess(`Auto-filled ${gradesToSync.length} grades successfully!`)
       } catch (e) {
-        console.warn('Auto-fill failed:', e)
+        console.error('Auto-fill error:', e)
+        showWarning('Auto-fill failed. Please enter grades manually.')
+        await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
       }
     })
-  }, [baseHandleResultSlipUpload, applicationId, subjects, syncGrades, updateApplication, showSuccess])
+  }, [baseHandleResultSlipUpload, applicationId, subjects, syncGrades, updateApplication, showSuccess, showInfo, showWarning])
 
   useEffect(() => {
     if (!authLoading && !user) {
