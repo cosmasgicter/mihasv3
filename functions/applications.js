@@ -279,15 +279,24 @@ export async function onRequest(context) {
       }
 
       // Verify ownership
-      const { data: app } = await supabaseAdminClient
+      const { data: app, error: fetchError } = await supabaseAdminClient
         .from('applications')
         .select('user_id')
         .eq('id', applicationId)
         .single();
 
-      if (!app || app.user_id !== authContext.user.id) {
-        return new Response(JSON.stringify({ error: 'Not found or access denied' }), {
+      if (fetchError || !app) {
+        console.error('DELETE: Application not found', { applicationId, error: fetchError?.message });
+        return new Response(JSON.stringify({ error: 'Application not found' }), {
           status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      if (app.user_id !== authContext.user.id) {
+        console.error('DELETE: Access denied', { applicationId, userId: authContext.user.id, ownerId: app.user_id });
+        return new Response(JSON.stringify({ error: 'Access denied' }), {
+          status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
