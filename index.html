@@ -27,10 +27,21 @@
     <meta name="referrer" content="no-referrer-when-downgrade" />
     <meta name="robots" content="index, follow" />
     <meta name="description" content="Apply to Mukuba Institute of Health and Allied Sciences (MIHAS). Complete your student application online with real-time eligibility checking for nursing, midwifery, and allied health programs." />
+    
+    <!-- Performance: Preconnect to critical origins -->
+    <link rel="preconnect" href="https://mylgegkqoddcrxtwcclb.supabase.co" crossorigin>
+    <link rel="dns-prefetch" href="https://mylgegkqoddcrxtwcclb.supabase.co">
+    
     <title>MIHAS Application System</title>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- Defer main bundle for instant first paint -->
+    <script type="module">
+      // Load React app after first paint
+      requestIdleCallback(() => {
+        import('/src/main.tsx');
+      }, { timeout: 100 });
+    </script>
   </body>
 </html>

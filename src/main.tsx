@@ -37,11 +37,12 @@ if (typeof window !== 'undefined') {
   document.body.classList.add('light')
   document.body.style.colorScheme = 'light'
   
-  // Register service worker for offline support
+  // Register service worker for offline support (deferred)
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
-    window.addEventListener('load', () => {
+    // Defer until after page load to not block initial render
+    setTimeout(() => {
       navigator.serviceWorker.register('/sw.js').catch(() => {})
-    })
+    }, 3000)
   }
 }
 
