@@ -62,13 +62,21 @@ function App() {
   useEffect(() => {
     const preloader = document.getElementById('preloader');
     if (preloader) {
-      // Add class to start fade out animation
       preloader.classList.add('hidden');
-      // Remove preloader from DOM after transition
       setTimeout(() => {
         preloader.remove();
-      }, 500); // Corresponds to the transition duration in index.css
+      }, 500);
     }
+
+    // Handle chunk loading errors
+    const handleError = (event: ErrorEvent) => {
+      if (event.message?.includes('Failed to fetch dynamically imported module')) {
+        event.preventDefault();
+        window.location.reload();
+      }
+    };
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
   }, []);
 
   return (

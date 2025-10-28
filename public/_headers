@@ -1,10 +1,22 @@
 # Cloudflare Pages Headers
 
-# Allow search engine indexing
-/*
+# HTML - no cache to prevent stale chunks
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
   X-Robots-Tag: index, follow
-  
-# Security headers
+
+# JS/CSS - cache with hash validation
+/assets/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+# Images - long cache
+/assets/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Security headers for all
 /*
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff

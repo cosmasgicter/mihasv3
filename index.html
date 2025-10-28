@@ -54,12 +54,6 @@
         <div class="spinner"></div>
       </div>
     </div>
-    <!-- Defer main bundle for instant first paint -->
-    <script type="module">
-      // Load React app after first paint
-      requestIdleCallback(() => {
-        import('/src/main.tsx');
-      }, { timeout: 100 });
-    </script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
