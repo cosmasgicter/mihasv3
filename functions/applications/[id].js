@@ -265,15 +265,20 @@ export async function onRequest(context) {
             throw new Error(error.message);
           }
           
-          if (notes) {
-            await supabase.from('application_status_history').insert({
-              application_id: id,
-              status,
-              changed_by: authContext.user.id,
-              notes,
-              created_at: new Date().toISOString()
-            });
-          }
+          // Always record status history
+          await supabase.from('application_status_history').insert({
+            application_id: id,
+            status,
+            changed_by: authContext.user.id,
+            notes: notes || null,
+            created_at: new Date().toISOString(),
+            changes: {
+              status: {
+                old: app.status,
+                new: status
+              }
+            }
+          });
           
           // Send notification to student
           if (data) {
@@ -480,6 +485,59 @@ export async function onRequest(context) {
           });
         }
         
+        if (action === 'send_notification') {
+          const { title, message } = payload;
+          
+          if (!title || !message) {
+            return new Response(JSON.stringify({ 
+              error: 'Title and message are required for notifications' 
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          
+          // Send in-app notification
+          await supabase.from('in_app_notifications').insert({
+            user_id: app.user_id,
+            title,
+            content: message,
+            type: 'info',
+            action_url: `/student/application/${id}`,
+            read: false
+          });
+          
+          // Queue email notification
+          if (app.email) {
+            const { queueEmail } = await import('../_lib/emailQueue.js');
+            
+            await queueEmail({
+              to: app.email,
+              subject: title,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #2563eb;">${title}</h2>
+                  <p>${message}</p>
+                  <hr style="margin: 20px 0;">
+                  <p style="color: #666; font-size: 14px;">
+                    This message is regarding your application #${app.application_number}.<br>
+                    <a href="${context.env.VITE_APP_URL || 'https://apply.mihas.edu.zm'}/student/application/${id}">View Application</a>
+                  </p>
+                </div>
+              `,
+              priority: 'normal'
+            }).catch(err => console.error('Email queue error:', err));
+          }
+          
+          return new Response(JSON.stringify({ 
+            success: true, 
+            message: 'Notification sent successfully' 
+          }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
         if (action === 'sync_grades') {
           const { grades } = payload;
           if (!Array.isArray(grades)) {
@@ -506,6 +564,7 @@ export async function onRequest(context) {
             
             if (insertError) throw new Error(insertError.message);
           }
+          
           
           return new Response(JSON.stringify({ success: true }), {
             status: 200,

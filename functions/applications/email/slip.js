@@ -161,11 +161,65 @@ export async function onRequest(context) {
       admin_feedback_date: application.admin_feedback_date
     };
 
-    // Return data for frontend to generate and email
+    // Generate and send email with slip data
+    const emailData = {
+      applicantName: application.full_name,
+      applicationNumber: application.application_number,
+      trackingCode: application.public_tracking_code,
+      status: application.status,
+      programName: application.program,
+      paymentStatus: application.payment_status,
+      slipUrl: `${context.env.VITE_APP_BASE_URL || 'https://apply.mihas.edu.zm'}/student/application/${application.id}`
+    };
+
+    const emailHtml = renderApplicationSlipEmail(emailData);
+    
+    // Send email immediately and queue as backup
+    const { sendEmail } = await import('../_lib/emailService.js');
+    const { queueEmail } = await import('../_lib/emailQueue.js');
+    
+    const emailSubject = `MIHAS Application Slip - ${application.application_number}`;
+    
+    // Try to send immediately
+    const emailResult = await sendEmail({
+      to: recipientEmail,
+      subject: emailSubject,
+      html: emailHtml,
+      env: context.env
+    });
+
+    // If immediate send fails, queue it
+    if (!emailResult.success) {
+      await queueEmail({
+        to: recipientEmail,
+        subject: emailSubject,
+        html: emailHtml,
+        priority: 'high'
+      });
+      
+      return new Response(JSON.stringify({ 
+        success: true,
+        message: 'Email queued for delivery',
+        queued: true
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Also queue as backup for reliability
+    await queueEmail({
+      to: recipientEmail,
+      subject: emailSubject,
+      html: emailHtml,
+      priority: 'normal'
+    });
+
     return new Response(JSON.stringify({ 
       success: true,
-      data: slipData,
-      email: recipientEmail
+      message: 'Application slip emailed successfully',
+      emailId: emailResult.id,
+      sent: true
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

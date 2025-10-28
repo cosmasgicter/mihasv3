@@ -294,14 +294,14 @@ export default function Applications() {
     return applications.find(app => app.id === selectedApplication) || null
   }, [selectedApplication, applications])
 
-  const handleSendNotification = useCallback(async () => {
+  const handleSendNotification = useCallback(async (title: string, message: string) => {
     if (!selectedApplication) return
     
     setModalLoading(prev => ({ ...prev, notification: true }))
     try {
       await applicationService.sendNotification(selectedApplication, {
-        title: 'Application Update',
-        message: 'Your application status has been updated. Please check your dashboard for details.'
+        title,
+        message
       })
       showSuccess('Notification sent', 'Student has been notified successfully.')
     } catch (error) {
