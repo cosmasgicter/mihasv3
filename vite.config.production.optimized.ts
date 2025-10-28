@@ -58,23 +58,38 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // Core - always loaded
-            if (id.includes('react') || id.includes('react-dom')) {
+            // Core React - critical
+            if (id.includes('react/') || id.includes('react-dom/')) {
               return 'vendor-react'
-            }
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase'
             }
             if (id.includes('react-router')) {
               return 'vendor-router'
             }
-            // Forms - loaded on application pages
-            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
-              return 'vendor-form'
+            // Supabase - split into smaller chunks
+            if (id.includes('@supabase/supabase-js')) {
+              return 'vendor-supabase'
             }
-            // Heavy libraries - LAZY LOADED (no chunk = dynamic import)
-            // xlsx, exceljs, jspdf, pdf-lib, recharts, tesseract
-            // These will be loaded on-demand via dynamic imports
+            if (id.includes('@supabase/postgrest') || id.includes('@supabase/storage')) {
+              return 'vendor-supabase-client'
+            }
+            // Forms - lazy load
+            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
+              return 'vendor-forms'
+            }
+            // Query - separate
+            if (id.includes('@tanstack/react-query')) {
+              return 'vendor-query'
+            }
+            // UI libraries
+            if (id.includes('lucide-react') || id.includes('framer-motion')) {
+              return 'vendor-ui'
+            }
+            // Heavy libs - dynamic import only (no chunk)
+            if (id.includes('tesseract') || id.includes('pdf') || id.includes('xlsx') || id.includes('excel')) {
+              return // Dynamic import
+            }
+            // Everything else
+            return 'vendor-misc'
           }
         },
         assetFileNames: (assetInfo) => {
