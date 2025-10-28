@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -59,6 +59,18 @@ const renderRoute = (route: RouteConfig) => {
 }
 
 function App() {
+  useEffect(() => {
+    const preloader = document.getElementById('preloader');
+    if (preloader) {
+      // Add class to start fade out animation
+      preloader.classList.add('hidden');
+      // Remove preloader from DOM after transition
+      setTimeout(() => {
+        preloader.remove();
+      }, 500); // Corresponds to the transition duration in index.css
+    }
+  }, []);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
