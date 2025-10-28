@@ -12,7 +12,7 @@ module.exports = {
         input: '#cbd5e1',
         ring: '#3b82f6',
         background: '#f8fafc',
-        foreground: '#020617',
+        foreground: '#000000',
         primary: {
           DEFAULT: '#3b82f6',
           foreground: '#ffffff',
