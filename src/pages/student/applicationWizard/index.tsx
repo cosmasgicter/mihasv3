@@ -91,6 +91,7 @@ const ApplicationWizardContent = () => {
   })
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
   useAnalytics(user?.id, null, currentStepIndex, currentStepConfig.key)
+  const prefersReducedMotion = useReducedMotion()
 
   const getChecklistItems = () => {
     // Defensive: some test setups call this component without a populated form.watch()
@@ -221,7 +222,6 @@ const ApplicationWizardContent = () => {
 
   const handleGetUsedSubjects = () => getUsedSubjects()
 
-  const prefersReducedMotion = useReducedMotion()
   const MaybeMotionDiv: any = prefersReducedMotion ? (props: any) => <div {...props} /> : motion.div
 
   return (
