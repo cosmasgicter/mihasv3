@@ -11,6 +11,7 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'service-worker.ts',
+      injectRegister: false,
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024
