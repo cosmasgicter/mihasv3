@@ -1,13 +1,14 @@
-import { jsPDF } from 'jspdf'
+// Dynamic import
 
 export const pdfGenerator = {
-  generateAcceptanceLetter(application: {
+  async generateAcceptanceLetter(application: {
     application_number: string
     full_name: string
     program: string
     intake: string
     institution: string
-  }): Blob {
+  }): Promise<Blob> {
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF()
     
     // Header
@@ -62,7 +63,7 @@ export const pdfGenerator = {
     return doc.output('blob')
   },
 
-  generateFinanceReceipt(application: {
+  async generateFinanceReceipt(application: {
     application_number: string
     full_name: string
     program: string
@@ -70,7 +71,8 @@ export const pdfGenerator = {
     paid_amount: number
     payment_method?: string
     paid_at?: string
-  }): Blob {
+  }): Promise<Blob> {
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF()
     
     // Header

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { getSupabaseClient, isSupabaseConfigured, SUPABASE_MISSING_CONFIG_MESSAGE } from '@/lib/supabase'
 import { getApiBaseUrl } from '@/lib/apiConfig'
-import { generateApplicationSlip } from '@/lib/applicationSlip'
+// Dynamic import for PDF generation
 
 interface ApplicationSlipActionsProps {
   applicationId: string
@@ -58,6 +58,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         throw new Error('Invalid response from server')
       }
 
+      const { generateApplicationSlip } = await import('@/lib/applicationSlip');
       const blob = await generateApplicationSlip({ ...result.data, email: user?.email || '', userId: user?.id })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')

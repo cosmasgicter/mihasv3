@@ -1,5 +1,4 @@
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+// Dynamic imports for PDF generation
 import { sanitizeHtml } from './security';
 
 export type DocumentTemplateId =
@@ -343,6 +342,8 @@ const generatePdfDocument = async (
   template: DocumentTemplateDefinition,
   context: DocumentTemplateContext
 ) => {
+  const { jsPDF } = await import('jspdf');
+  await import('jspdf-autotable');
   const doc = new jsPDF();
   let yPos = 20;
 

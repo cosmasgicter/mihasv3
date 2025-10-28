@@ -1,5 +1,4 @@
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// Dynamic imports for PDF generation (loaded on-demand)
 import QRCode from 'qrcode';
 
 import { getApiBaseUrl } from './apiConfig';
@@ -76,6 +75,11 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
   }
 
   try {
+    // Dynamic import - only load when generating slip
+    const [{ jsPDF }, autoTable] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable').then(m => m.default)
+    ]);
     const doc = new jsPDF();
     const institutionName = getFullInstitutionName(data.institution);
     

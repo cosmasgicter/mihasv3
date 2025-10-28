@@ -1,4 +1,4 @@
-import { jsPDF } from 'jspdf'
+// Dynamic import
 import QRCode from 'qrcode'
 import { formatDate } from './utils'
 
@@ -21,6 +21,7 @@ function getFullInstitutionName(code: string): string {
 }
 
 export async function generateAcceptanceLetter(data: AcceptanceLetterData): Promise<Blob> {
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
   const institutionName = getFullInstitutionName(data.institution)
