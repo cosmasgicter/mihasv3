@@ -114,7 +114,7 @@ interface ApplicationDetailModalProps {
  onSendNotification: () => void
  onViewDocuments: () => void
  onViewHistory: () => void
- onUpdateStatus: (id: string, status: string) => void
+ onUpdateStatus: (id: string, status: string) => Promise<void>
  onGenerateAcceptanceLetter: () => Promise<void>
  onGenerateFinanceReceipt: () => Promise<void>
 }
@@ -1215,7 +1215,10 @@ export function ApplicationDetailModal({
  {application.status === 'submitted' && (
  <Button
  loading={updating === application.id}
- onClick={() => onUpdateStatus(application.id, 'under_review')}
+ onClick={async () => {
+ await onUpdateStatus(application.id, 'under_review')
+ await loadApplicationDetails()
+ }}
  variant="primary"
  >
  Start Review
@@ -1226,7 +1229,10 @@ export function ApplicationDetailModal({
  <>
  <Button
  loading={updating === application.id}
- onClick={() => onUpdateStatus(application.id, 'approved')}
+ onClick={async () => {
+ await onUpdateStatus(application.id, 'approved')
+ await loadApplicationDetails()
+ }}
  variant="success"
  >
  <CheckCircle className="h-4 w-4 mr-2" />
@@ -1234,7 +1240,10 @@ export function ApplicationDetailModal({
  </Button>
  <Button
  loading={updating === application.id}
- onClick={() => onUpdateStatus(application.id, 'rejected')}
+ onClick={async () => {
+ await onUpdateStatus(application.id, 'rejected')
+ await loadApplicationDetails()
+ }}
  variant="destructive"
  >
  <XCircle className="h-4 w-4 mr-2" />
