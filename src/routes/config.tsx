@@ -5,7 +5,7 @@ import SignInPage from '@/pages/auth/SignInPage'
 import SignUpPage from '@/pages/auth/SignUpPage'
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from '@/pages/auth/ResetPasswordPage'
-const LandingPage = React.lazy(() => import('@/pages/LandingPage'))
+import LandingPage from '@/pages/LandingPage'
 
 // Lazy load non-critical pages
 const StudentDashboard = React.lazy(() => import('@/pages/student/Dashboard'))
@@ -46,7 +46,7 @@ export interface RouteConfig {
 
 export const routes: RouteConfig[] = [
   // Public routes
-  { path: '/', element: LandingPage, guard: 'public', lazy: true },
+  { path: '/', element: LandingPage, guard: 'public' },
   { path: '/track-application', element: PublicApplicationTracker, guard: 'public', lazy: true },
   { path: '/auth/signin', element: SignInPage, guard: 'public' },
   { path: '/signin', element: SignInPage, guard: 'public' },
