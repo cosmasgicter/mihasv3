@@ -657,7 +657,7 @@ const useWizardController = (): UseWizardControllerResult => {
       subscription.unsubscribe()
       if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [draftLoaded, restoringDraft, watch, saveDraft])
+  }, [draftLoaded, restoringDraft, watch])
 
   const addGrade = useCallback(() => {
     setSelectedGrades(prev => (prev.length < 10 ? [...prev, { subject_id: '', grade: 1 }] : prev))
