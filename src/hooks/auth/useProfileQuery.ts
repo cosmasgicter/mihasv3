@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react'
+import { logger } from '@/lib/logger'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { User } from '@supabase/supabase-js'
 import { useAuth } from '@/contexts/AuthContext'
@@ -131,11 +132,11 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       const accessToken = session?.access_token
 
       if (!accessToken) {
-        console.log('[ProfileQuery] No access token found')
+        logger.log('[ProfileQuery] No access token found')
         return null
       }
       
-      console.log('[ProfileQuery] Fetching profile for user:', user.id)
+      logger.log('[ProfileQuery] Fetching profile for user:', user.id)
 
       // Try direct Supabase query first (for students)
       const { data: profileData, error: profileError } = await supabase
@@ -215,8 +216,8 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         throw new Error('No valid fields to update')
       }
 
-      console.log('Attempting to update profile for user:', user.id)
-      console.log('Sanitized updates:', sanitizedUpdates)
+      logger.log('Attempting to update profile for user:', user.id)
+      logger.log('Sanitized updates:', sanitizedUpdates)
 
       const { data, error } = await supabase
         .from('profiles')
@@ -234,7 +235,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         throw new Error('Profile update returned no data. The profile may not exist.')
       }
 
-      console.log('Profile updated successfully:', data)
+      logger.log('Profile updated successfully:', data)
 
       return sanitizeProfile(data) as UserProfile
     },

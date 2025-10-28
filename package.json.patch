@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "test:load": "node scripts/load-test.js",
+    "test:email": "node scripts/test-email.js",
+    "test:security": "node scripts/security-audit.js",
+    "test:browser": "open scripts/browser-test.html"
+  }
+}

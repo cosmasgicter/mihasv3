@@ -1,4 +1,5 @@
 import { generateApplicationSlip, persistSlip, type ApplicationSlipData } from './applicationSlip'
+import { logger } from '@/lib/logger'
 import { sanitizeForLog } from './security'
 import { supabase } from './supabase'
 import { renderApplicationSlipEmail } from './emailTemplates'
@@ -44,9 +45,9 @@ export async function createApplicationSlip(
     let path: string | undefined
 
     try {
-      console.log('[slipService] Attempting to persist slip for:', data.application_number)
+      logger.log('[slipService] Attempting to persist slip for:', data.application_number)
       const uploadResult = await persistSlip(data.application_number, blob, data.userId)
-      console.log('[slipService] Persist result:', uploadResult)
+      logger.log('[slipService] Persist result:', uploadResult)
       if (!uploadResult.success) {
         uploadError = uploadResult.error || 'Unable to store application slip'
         console.error('[slipService] Upload failed:', uploadError)

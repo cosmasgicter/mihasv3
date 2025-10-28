@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { logger } from '@/lib/logger'
 import { User } from '@supabase/supabase-js'
 import {
   getPasswordResetRedirectUrl,
@@ -195,7 +196,7 @@ export function useSessionListener() {
       const { confirmPassword, turnstileToken, ...cleanUserData } = userData
       
       const payload = { email, password, ...cleanUserData }
-      console.log('[SignUp] Sending payload:', { ...payload, password: '***' })
+      logger.log('[SignUp] Sending payload:', { ...payload, password: '***' })
       
       // Create account via API
       const response = await fetch(`${apiBaseUrl}/auth/signup`, {
