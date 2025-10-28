@@ -224,6 +224,65 @@ export async function onRequest(context) {
       });
     }
   }
+
+  if (request.method === 'DELETE') {
+    try {
+      const authContext = await getUserFromRequest(request);
+      if (authContext.error || !authContext.user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const url = new URL(request.url);
+      const pathParts = url.pathname.split('/').filter(Boolean);
+      const applicationId = pathParts[pathParts.length - 1];
+
+      if (!applicationId) {
+        return new Response(JSON.stringify({ error: 'Application ID required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Verify ownership
+      const { data: app } = await supabaseAdminClient
+        .from('applications')
+        .select('user_id')
+        .eq('id', applicationId)
+        .single();
+
+      if (!app || app.user_id !== authContext.user.id) {
+        return new Response(JSON.stringify({ error: 'Not found or access denied' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { error } = await supabaseAdminClient
+        .from('applications')
+        .delete()
+        .eq('id', applicationId);
+
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+  }
   
   return new Response(JSON.stringify({ error: 'Method not allowed' }), {
     status: 405,

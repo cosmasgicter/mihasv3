@@ -15,12 +15,7 @@ export class OCRService {
       // Dynamic import to avoid loading OCR library until needed
       const Tesseract = await import('tesseract.js')
       
-      this.worker = await Tesseract.createWorker({
-        logger: (m: any) => {
-          if (m.status === 'recognizing text') {
-          }
-        }
-      })
+      this.worker = await Tesseract.createWorker()
       
       await this.worker.loadLanguage('eng')
       await this.worker.initialize('eng')
