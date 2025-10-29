@@ -196,30 +196,27 @@ export function useApplicationSlip({
       setEmailLoading(true)
       toast.showInfo?.('Preparing slip', 'Generating your application slip...')
 
-      // First ensure slip is downloaded/generated and wait for it to complete
-      if (!slipCache?.publicUrl && !slipCache?.objectUrl) {
-        await handleDownloadSlip()
-        // Wait a moment for the slip to be fully uploaded to storage
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-
-      // Verify slip exists before attempting to email
-      if (!slipCache?.publicUrl && !slipCache?.path) {
-        throw new Error('Slip not yet available. Please try downloading first, then email.')
-      }
+      // Email endpoint generates slip on-demand, no need to download first
 
       toast.showInfo?.('Sending email', 'Sending your application slip...')
 
       // Call endpoint with application number
-      const session = await import('@/lib/supabase').then(m => m.supabase.auth.getSession())
-      const emailResponse = await fetch('/applications/email/slip-with-attachment', {
+      const { supabase } = await import('@/lib/supabase')
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        throw new Error('Please sign in to send email')
+      }
+
+      const emailResponse = await fetch('/applications/email/slip', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.data.session?.access_token}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ 
-          applicationNumber: submittedApplication.applicationNumber 
+          applicationNumber: submittedApplication.applicationNumber,
+          email: submittedApplication.email
         })
       })
 
