@@ -1219,6 +1219,7 @@ export function ApplicationDetailModal({
  loading={updating === application.id}
  onClick={async () => {
  await onUpdateStatus(application.id, 'under_review')
+ window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: application.id } }))
  setTimeout(() => loadApplicationDetails(), 100)
  }}
  variant="primary"
@@ -1233,6 +1234,7 @@ export function ApplicationDetailModal({
  loading={updating === application.id}
  onClick={async () => {
  await onUpdateStatus(application.id, 'approved')
+ window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: application.id } }))
  setTimeout(() => loadApplicationDetails(), 100)
  }}
  variant="success"
@@ -1244,6 +1246,7 @@ export function ApplicationDetailModal({
  loading={updating === application.id}
  onClick={async () => {
  await onUpdateStatus(application.id, 'rejected')
+ window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: application.id } }))
  setTimeout(() => loadApplicationDetails(), 100)
  }}
  variant="destructive"
