@@ -260,7 +260,7 @@ export default function LandingPage() {
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                       {program.highlight}
                     </div>
-                    <div className="bg-success text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    <div className="bg-green-700 text-white px-3 py-1 rounded-full text-xs font-semibold">
                       {program.accreditation}
                     </div>
                   </div>
@@ -299,7 +299,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="bg-foreground text-white py-16">
+      <footer className="bg-gray-900 text-white py-16">
         <div className="content-wrapper">
           <div className="grid md:grid-cols-3 gap-12">
             <div>
@@ -309,7 +309,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-semibold mb-4">Apply Today - Contact Us</h3>
               <div className="space-y-2 text-white/90 text-sm">
-                <p><strong>Location:</strong> Mukuba University Campus, Kitwe, Zambia</p>
+                <p><strong>Location:</strong> President Avenue, Kalulushi, 2-Shaft, Next to KMC</p>
                 <p><strong>KATC:</strong> +260 966 992 299</p>
                 <p><strong>MIHAS:</strong> +260 961 515 151</p>
                 <p><strong>Email:</strong> info@katc.edu.zm | info@mihas.edu.zm</p>
