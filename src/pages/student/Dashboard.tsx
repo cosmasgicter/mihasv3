@@ -77,18 +77,35 @@ export default function StudentDashboard() {
     const handleDraftCleared = () => {
       setHasDraft(false)
       setDraftData(null)
-      // Reload dashboard data to reflect changes
+      loadDashboardData()
+    }
+
+    const handleApplicationSubmitted = () => {
+      loadDashboardData()
+    }
+
+    const handleApplicationUpdated = () => {
+      loadDashboardData()
+    }
+
+    const handleApplicationCreated = () => {
       loadDashboardData()
     }
 
     window.addEventListener('storage', handleStorageChange)
     window.addEventListener('focus', handleStorageChange)
     window.addEventListener('draftCleared', handleDraftCleared)
+    window.addEventListener('applicationSubmitted', handleApplicationSubmitted)
+    window.addEventListener('applicationUpdated', handleApplicationUpdated)
+    window.addEventListener('applicationCreated', handleApplicationCreated)
 
     return () => {
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('focus', handleStorageChange)
       window.removeEventListener('draftCleared', handleDraftCleared)
+      window.removeEventListener('applicationSubmitted', handleApplicationSubmitted)
+      window.removeEventListener('applicationUpdated', handleApplicationUpdated)
+      window.removeEventListener('applicationCreated', handleApplicationCreated)
     }
   }, [])
 
