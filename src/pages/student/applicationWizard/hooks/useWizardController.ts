@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { connectionManager } from '@/lib/connectionFix'
 
 import { useToastStore } from '@/components/ui/Toast'
@@ -133,6 +134,7 @@ export function validatePaymentStep({
 const useWizardController = (): UseWizardControllerResult => {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const { user, loading: authLoading } = useAuth()
   const { profile } = useProfileQuery()
   const { addToast } = useToastStore()
@@ -340,6 +342,7 @@ const useWizardController = (): UseWizardControllerResult => {
         if (!parsed || !parsed.grades || parsed.grades.length === 0) {
           showWarning('No grades detected. Please enter them manually.')
           await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
+          queryClient.invalidateQueries({ queryKey: ['applications'] })
           return
         }
         
@@ -353,28 +356,32 @@ const useWizardController = (): UseWizardControllerResult => {
         if (gradesToSync.length === 0) {
           showWarning('Could not match subjects. Please enter grades manually.')
           await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
+          queryClient.invalidateQueries({ queryKey: ['applications'] })
           return
         }
         
         await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
         await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
         setSelectedGrades(gradesToSync)
+        queryClient.invalidateQueries({ queryKey: ['applications'] })
         showSuccess(`Auto-filled ${gradesToSync.length} grades successfully!`)
       } catch (e) {
         console.error('Auto-fill error:', e)
         showWarning('Auto-fill failed. Please enter grades manually.')
         await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
+        queryClient.invalidateQueries({ queryKey: ['applications'] })
       }
     })
-  }, [baseHandleResultSlipUpload, applicationId, subjects, syncGrades, updateApplication, showSuccess, showInfo, showWarning])
+  }, [baseHandleResultSlipUpload, applicationId, subjects, syncGrades, updateApplication, queryClient, showSuccess, showInfo, showWarning])
 
   const handleProofOfPaymentUploadWrapped = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     handleProofOfPaymentUpload(event, async (file, url) => {
       if (!applicationId) return
       await updateApplication.mutateAsync({ id: applicationId, data: { pop_url: url } })
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
       showSuccess('Payment proof uploaded successfully!')
     })
-  }, [handleProofOfPaymentUpload, applicationId, updateApplication, showSuccess])
+  }, [handleProofOfPaymentUpload, applicationId, updateApplication, queryClient, showSuccess])
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -836,6 +843,10 @@ const useWizardController = (): UseWizardControllerResult => {
             status: updatedApp.status || 'draft',
             paymentStatus: updatedApp.payment_status || prev?.paymentStatus || 'pending_review'
           }))
+          
+          // Invalidate cache and notify dashboard
+          queryClient.invalidateQueries({ queryKey: ['applications'] })
+          window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId } }))
         } else {
           // Create new application
           const { generateApplicationNumber } = await import('@/lib/applicationNumberGenerator')
@@ -882,6 +893,10 @@ const useWizardController = (): UseWizardControllerResult => {
             status: 'draft',
             paymentStatus: 'pending_review'
           })
+          
+          // Invalidate cache and notify dashboard
+          queryClient.invalidateQueries({ queryKey: ['applications'] })
+          window.dispatchEvent(new CustomEvent('applicationCreated', { detail: { applicationId: app.id } }))
         }
         
         goToStep(currentStepIndex + 1)
@@ -939,6 +954,7 @@ const useWizardController = (): UseWizardControllerResult => {
       try {
         if (selectedGrades.length > 0) {
           await syncGrades.mutateAsync({ id: applicationId, grades: selectedGrades })
+          queryClient.invalidateQueries({ queryKey: ['applications'] })
         }
         goToStep(currentStepIndex + 1)
       } catch (error) {
@@ -980,6 +996,7 @@ const useWizardController = (): UseWizardControllerResult => {
             momo_ref: formData.momo_ref || null
           }
         })
+        queryClient.invalidateQueries({ queryKey: ['applications'] })
         goToStep(currentStepIndex + 1)
       } catch (error) {
         showError('Failed to save payment data. Please try again.')
@@ -1115,6 +1132,12 @@ const useWizardController = (): UseWizardControllerResult => {
       } catch (cleanupError) {
       }
 
+      // Invalidate all application queries to refresh dashboard
+      await queryClient.invalidateQueries({ queryKey: ['applications'] })
+      
+      // Dispatch event to notify dashboard to refresh
+      window.dispatchEvent(new CustomEvent('applicationSubmitted', { detail: { applicationId } }))
+      
       logger.info('[handleSubmitApplication] Submission successful!')
       showSuccess('Application submitted successfully!')
       setSuccess(true)
