@@ -1,5 +1,5 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -18,24 +18,47 @@ export function Card({ className, variant = 'default', hover = false, ...props }
     className
   )
 
+  const prefersReducedMotion = useReducedMotion()
+
   if (hover) {
+    if (prefersReducedMotion) {
+      return (
+        <div className={baseClasses} {...props} />
+      )
+    }
+
     return (
       <motion.div
         className={baseClasses}
         whileHover={{ y: -4, transition: { duration: 0.2 } }}
-        {...props}
+        whileTap={{ scale: 0.995, transition: { duration: 0.08 } }}
+        {...(props as any)}
       />
     )
   }
 
-  return <div className={baseClasses} {...props} />
+  // For non-hover cards, provide a gentle mount entrance when motion is allowed.
+  if (prefersReducedMotion) {
+    return <div className={baseClasses} {...props} />
+  }
+
+  return (
+    <motion.div
+      className={baseClasses}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      {...(props as any)}
+    />
+  )
 }
 
 type CardHeaderProps = React.HTMLAttributes<HTMLDivElement>
 
 export function CardHeader({ className, ...props }: CardHeaderProps) {
   return (
-    <div className={cn("flex flex-col space-y-1.5 p-4 md:p-6", className)} {...props} />
+    // Use token-backed padding via `.card-padding` so spacing is centralized
+    <div className={cn('flex flex-col space-y-1.5 card-padding', className)} {...props} />
   )
 }
 
@@ -44,10 +67,8 @@ type CardTitleProps = React.HTMLAttributes<HTMLHeadingElement>
 export function CardTitle({ className, ...props }: CardTitleProps) {
   return (
     <h3
-      className={cn(
-        "text-lg md:text-xl font-semibold text-foreground",
-        className
-      )}
+      className={cn('font-semibold text-foreground', className)}
+      style={{ fontSize: 'var(--type-lg)' }}
       {...props}
     />
   )
@@ -58,7 +79,8 @@ type CardDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
 export function CardDescription({ className, ...props }: CardDescriptionProps) {
   return (
     <p
-      className={cn("text-sm text-foreground", className)}
+      className={cn('text-foreground', className)}
+      style={{ fontSize: 'var(--type-sm)' }}
       {...props}
     />
   )
@@ -67,13 +89,13 @@ export function CardDescription({ className, ...props }: CardDescriptionProps) {
 type CardContentProps = React.HTMLAttributes<HTMLDivElement>
 
 export function CardContent({ className, ...props }: CardContentProps) {
-  return <div className={cn("p-4 md:p-6 pt-0", className)} {...props} />
+  return <div className={cn('card-padding pt-0', className)} {...props} />
 }
 
 type CardFooterProps = React.HTMLAttributes<HTMLDivElement>
 
 export function CardFooter({ className, ...props }: CardFooterProps) {
   return (
-    <div className={cn("flex items-center p-4 md:p-6 pt-0", className)} {...props} />
+    <div className={cn('flex items-center card-padding pt-0', className)} {...props} />
   )
 }
