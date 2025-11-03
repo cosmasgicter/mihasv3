@@ -69,6 +69,7 @@ npm run test:unit
 - **Production Readiness**: `PRODUCTION_READINESS_REPORT.md`
 - **Unified Templates**: `docs/UNIFIED_TEMPLATES_SYSTEM.md`
 - **Complete Source Code**: `COMPLETE_SOURCE_CODE_FINAL.md` (2.6MB, 457 files)
+- **Realtime Sync Fix**: `REALTIME_FIX_INDEX.md` ⭐ **START HERE** | [Summary](REALTIME_SYNC_FIX_SUMMARY.md) | [Deploy](DEPLOYMENT_INSTRUCTIONS.md)
 
 ## 🔧 Technology Stack
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { applicationService } from '@/services/applications'
 import { ApplicationFilters, DEFAULT_APPLICATION_FILTERS } from './useApplicationFilters'
@@ -387,6 +388,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
   }), [applications.length, currentPage, pageSize, totalCount])
 
   const updateStatus = useCallback(async (applicationId: string, newStatus: string) => {
+    const queryClient = useQueryClient()
     try {
       // Optimistic update
       setApplications(prev => prev.map(app => 
@@ -395,10 +397,15 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       
       await applicationService.updateStatus(applicationId, newStatus)
       
-      // Force full refresh after delay to ensure DB is updated
-      setTimeout(() => {
-        void loadPage(currentPage, 'refresh')
-      }, 1000)
+      // Invalidate queries immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['applications'] }),
+        queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
+        queryClient.refetchQueries({ queryKey: ['applications'] })
+      ])
+      
+      // Also refresh current page
+      await loadPage(currentPage, 'refresh')
     } catch (error) {
       console.error('Failed to update status:', error)
       // Revert optimistic update on error
@@ -412,6 +419,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
     newPaymentStatus: string,
     verificationNotes?: string
   ) => {
+    const queryClient = useQueryClient()
     try {
       // Optimistic update
       setApplications(prev => prev.map(app => 
@@ -420,10 +428,15 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       
       await applicationService.updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes)
       
-      // Force full refresh after delay to ensure DB is updated
-      setTimeout(() => {
-        void loadPage(currentPage, 'refresh')
-      }, 1000)
+      // Invalidate queries immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['applications'] }),
+        queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
+        queryClient.refetchQueries({ queryKey: ['applications'] })
+      ])
+      
+      // Also refresh current page
+      await loadPage(currentPage, 'refresh')
     } catch (error) {
       console.error('Failed to update payment status:', error)
       // Revert optimistic update on error

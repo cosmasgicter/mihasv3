@@ -19,13 +19,13 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      refetchOnWindowFocus: true, // Enable refetch on focus for new data
-      refetchOnMount: true, // Enable refetch on mount for fresh data
-      refetchInterval: false,
-      staleTime: 0, // Always fetch fresh data
-      gcTime: 5 * 60 * 1000, // 5 minutes
-      networkMode: 'offlineFirst',
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
       refetchOnReconnect: true,
+      refetchInterval: 60000, // Poll every 60 seconds as fallback
+      staleTime: 30000, // 30 seconds
+      gcTime: 5 * 60 * 1000,
+      networkMode: 'offlineFirst',
     },
   },
 })

@@ -566,6 +566,17 @@ export function useAdminRealtimeMetrics(options: AdminRealtimeMetricsOptions = {
     }
   }, [options.channelName, options.onChange, supabase, updateApplicationsListCache, updateRecentActivityCache, updateStatsCache, updateWithCountsCache])
 
+  // Polling fallback when realtime is disconnected
+  useEffect(() => {
+    if (!isConnected && !error?.includes('configuration')) {
+      const interval = setInterval(() => {
+        queryClient.invalidateQueries({ queryKey: ['applications'] })
+        queryClient.invalidateQueries({ queryKey: ['application-stats'] })
+      }, 15000) // Poll every 15 seconds
+      return () => clearInterval(interval)
+    }
+  }, [isConnected, error, queryClient])
+
   return {
     isConnected,
     error,
