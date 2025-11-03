@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 
 interface WizardFormData {
@@ -41,6 +42,7 @@ const retryWithBackoff = async <T>(
 }
 
 export function useApplicationSubmitFixed() {
+  const queryClient = useQueryClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -89,6 +91,14 @@ export function useApplicationSubmitFixed() {
       if (!updatedApp) {
         throw new Error('Application not found or access denied')
       }
+
+      // Invalidate all application queries immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['applications'] }),
+        queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['application_drafts'] }),
+        queryClient.refetchQueries({ queryKey: ['applications'] })
+      ])
 
       setSuccess(true)
       
