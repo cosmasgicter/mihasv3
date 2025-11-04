@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" class="light" style="color-scheme: light;">
+  <head>
+    <script>
+      (function() {
+        if (typeof window !== 'undefined') {
+          const originalError = console.error;
+          console.error = function(...args) {
+            const message = args.join(' ');
+            if (
+              message.includes('Could not establish connection') ||
+              message.includes('Receiving end does not exist') ||
+              message.includes('Extension context invalidated') ||
+              message.includes('chrome-extension://') ||
+              message.includes('Private Access Token challenge')
+            ) {
+              return;
+            }
+            originalError.apply(console, args);
+          };
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
+    <meta name="robots" content="index, follow" />
+    <meta name="description" content="Apply to Mukuba Institute of Health and Allied Sciences (MIHAS). Complete your student application online with real-time eligibility checking for nursing, midwifery, and allied health programs." />
+    
+    <!-- Performance: Preconnect to critical origins -->
+    <link rel="preconnect" href="https://mylgegkqoddcrxtwcclb.supabase.co" crossorigin>
+    <link rel="dns-prefetch" href="https://mylgegkqoddcrxtwcclb.supabase.co">
+    
+    <!-- Font optimization -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Resource hints -->
+    <link rel="dns-prefetch" href="https://o4510254223196160.ingest.de.sentry.io">
+    
+    <style>
+      /* Prevent font flash */
+      body { font-family: system-ui, -apple-system, sans-serif; }
+      /* Optimize rendering */
+      img { content-visibility: auto; }
+    </style>
+    
+    <title>MIHAS Application System</title>
+    
+    <link rel="modulepreload" crossorigin href="/assets/js/vendor-excel-DMTyl1ru.js">
+    <link rel="modulepreload" crossorigin href="/assets/js/vendor-react-CvS8jKKb.js">
+    <link rel="modulepreload" crossorigin href="/assets/js/vendor-pdf-B958YVW4.js">
+    <link rel="modulepreload" crossorigin href="/assets/js/vendor-supabase-CethMGqO.js">
+    <link rel="modulepreload" crossorigin href="/assets/js/vendor-form-CCLlStxn.js">
+    
+  <link rel="manifest" href="/manifest.webmanifest"><style>.accreditation-grid{display:grid;gap:1.5rem;align-items:stretch}@media(min-width:640px){.accreditation-grid{grid-template-columns:repeat(2,1fr)}}@media(min-width:1024px){.accreditation-grid{grid-template-columns:repeat(4,1fr);gap:2rem}}.accreditation-card{background:#fff;border-radius:.5rem;box-shadow:0 4px 6px -1px #0000001a;padding:1.5rem;text-align:center;border:1px solid #f3f4f6;height:100%;display:flex;flex-direction:column;justify-content:space-between;transition:all .3s ease}.accreditation-card:hover{transform:translateY(-5px);box-shadow:0 20px 40px #0000001a}.accreditation-logo-container{height:4rem;width:4rem;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;background-color:#f9fafb;border-radius:.5rem;padding:.5rem}.accreditation-logo{max-height:100%;max-width:100%;-o-object-fit:contain;object-fit:contain;transition:transform .3s ease}.accreditation-card:hover .accreditation-logo{transform:scale(1.05)}.accreditation-logo[src*=eczlogo]{filter:contrast(1.1) brightness(1.05);image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;transform:scale(.95)}.accreditation-logo{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}.accreditation-content{flex:1;display:flex;flex-direction:column;align-items:center}.accreditation-title{font-size:1.125rem;font-weight:700;color:#111827;margin-bottom:.5rem}@media(min-width:640px){.accreditation-title{font-size:1.25rem}}.accreditation-subtitle{color:#6b7280;font-size:.75rem;margin-bottom:.75rem}@media(min-width:640px){.accreditation-subtitle{font-size:.875rem}}.accreditation-description{font-size:.75rem;color:#9ca3af;margin-top:auto}.accreditation-loading{background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb,#f3f4f6 75%);background-size:200% 100%;animation:loading 1.5s infinite}@keyframes loading{0%{background-position:200% 0}to{background-position:-200% 0}}.text-heading{font-weight:600;--tw-text-opacity: 1;color:rgb(17 24 39 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.text-heading{--tw-text-opacity: 1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}}.text-subheading{font-weight:500;--tw-text-opacity: 1;color:rgb(17 24 39 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.text-subheading{--tw-text-opacity: 1;color:rgb(243 244 246 / var(--tw-text-opacity, 1))}}.text-body{--tw-text-opacity: 1;color:rgb(17 24 39 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.text-body{--tw-text-opacity: 1;color:rgb(229 231 235 / var(--tw-text-opacity, 1))}}.text-body-secondary{--tw-text-opacity: 1;color:rgb(31 41 55 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.text-body-secondary{--tw-text-opacity: 1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}}.text-caption{font-size:.875rem;line-height:1.25rem;--tw-text-opacity: 1;color:rgb(55 65 81 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.text-caption{--tw-text-opacity: 1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}}.text-muted{--tw-text-opacity: 1;color:rgb(75 85 99 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.text-muted{--tw-text-opacity: 1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}}.text-success-strong{font-weight:600;--tw-text-opacity: 1;color:rgb(21 128 61 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.text-success-strong{--tw-text-opacity: 1;color:rgb(74 222 128 / var(--tw-text-opacity, 1))}}.text-warning-strong{font-weight:600;--tw-text-opacity: 1;color:rgb(161 98 7 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.text-warning-strong{--tw-text-opacity: 1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}}.text-error-strong{font-weight:600;--tw-text-opacity: 1;color:rgb(185 28 28 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.text-error-strong{--tw-text-opacity: 1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}}.text-info-strong{font-weight:600;--tw-text-opacity: 1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.text-info-strong{--tw-text-opacity: 1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}}.bg-success-subtle{--tw-bg-opacity: 1;background-color:rgb(240 253 244 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(31 41 55 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.bg-success-subtle{background-color:#14532d33;--tw-text-opacity: 1;color:rgb(229 231 235 / var(--tw-text-opacity, 1))}}.bg-warning-subtle{--tw-bg-opacity: 1;background-color:rgb(254 252 232 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(31 41 55 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.bg-warning-subtle{background-color:#713f1233;--tw-text-opacity: 1;color:rgb(229 231 235 / var(--tw-text-opacity, 1))}}.bg-error-subtle{--tw-bg-opacity: 1;background-color:rgb(254 242 242 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(31 41 55 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.bg-error-subtle{background-color:#7f1d1d33;--tw-text-opacity: 1;color:rgb(229 231 235 / var(--tw-text-opacity, 1))}}.bg-info-subtle{--tw-bg-opacity: 1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(31 41 55 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.bg-info-subtle{background-color:#1e3a8a33;--tw-text-opacity: 1;color:rgb(229 231 235 / var(--tw-text-opacity, 1))}}.badge-primary{--tw-bg-opacity: 1;background-color:rgb(219 234 254 / var(--tw-bg-opacity, 1));font-weight:500;--tw-text-opacity: 1;color:rgb(30 64 175 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.badge-primary{--tw-bg-opacity: 1;background-color:rgb(30 58 138 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(191 219 254 / var(--tw-text-opacity, 1))}}.badge-success{--tw-bg-opacity: 1;background-color:rgb(220 252 231 / var(--tw-bg-opacity, 1));font-weight:500;--tw-text-opacity: 1;color:rgb(22 101 52 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.badge-success{--tw-bg-opacity: 1;background-color:rgb(20 83 45 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(187 247 208 / var(--tw-text-opacity, 1))}}.badge-warning{--tw-bg-opacity: 1;background-color:rgb(254 249 195 / var(--tw-bg-opacity, 1));font-weight:500;--tw-text-opacity: 1;color:rgb(133 77 14 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.badge-warning{--tw-bg-opacity: 1;background-color:rgb(113 63 18 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(254 240 138 / var(--tw-text-opacity, 1))}}.badge-error{--tw-bg-opacity: 1;background-color:rgb(254 226 226 / var(--tw-bg-opacity, 1));font-weight:500;--tw-text-opacity: 1;color:rgb(153 27 27 / var(--tw-text-opacity, 1))}@media(prefers-color-scheme:dark){.badge-error{--tw-bg-opacity: 1;background-color:rgb(127 29 29 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(254 202 202 / var(--tw-text-opacity, 1))}}.card-primary{border-width:1px;--tw-border-opacity: 1;border-color:rgb(191 219 254 / var(--tw-border-opacity, 1));--tw-bg-opacity: 1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}@media(prefers-color-scheme:dark){.card-primary{--tw-border-opacity: 1;border-color:rgb(30 64 175 / var(--tw-border-opacity, 1));background-color:#1e3a8a33}}.card-success{border-width:1px;--tw-border-opacity: 1;border-color:rgb(187 247 208 / var(--tw-border-opacity, 1));--tw-bg-opacity: 1;background-color:rgb(240 253 244 / var(--tw-bg-opacity, 1))}@media(prefers-color-scheme:dark){.card-success{--tw-border-opacity: 1;border-color:rgb(22 101 52 / var(--tw-border-opacity, 1));background-color:#14532d33}}.card-warning{border-width:1px;--tw-border-opacity: 1;border-color:rgb(254 240 138 / var(--tw-border-opacity, 1));--tw-bg-opacity: 1;background-color:rgb(254 252 232 / var(--tw-bg-opacity, 1))}@media(prefers-color-scheme:dark){.card-warning{--tw-border-opacity: 1;border-color:rgb(133 77 14 / var(--tw-border-opacity, 1));background-color:#713f1233}}.card-error{border-width:1px;--tw-border-opacity: 1;border-color:rgb(254 202 202 / var(--tw-border-opacity, 1));--tw-bg-opacity: 1;background-color:rgb(254 242 242 / var(--tw-bg-opacity, 1))}@media(prefers-color-scheme:dark){.card-error{--tw-border-opacity: 1;border-color:rgb(153 27 27 / var(--tw-border-opacity, 1));background-color:#7f1d1d33}}*,:before,:after{--tw-border-spacing-x: 0;--tw-border-spacing-y: 0;--tw-translate-x: 0;--tw-translate-y: 0;--tw-rotate: 0;--tw-skew-x: 0;--tw-skew-y: 0;--tw-scale-x: 1;--tw-scale-y: 1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness: proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width: 0px;--tw-ring-offset-color: #fff;--tw-ring-color: rgb(59 130 246 / .5);--tw-ring-offset-shadow: 0 0 #0000;--tw-ring-shadow: 0 0 #0000;--tw-shadow: 0 0 #0000;--tw-shadow-colored: 0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x: 0;--tw-border-spacing-y: 0;--tw-translate-x: 0;--tw-translate-y: 0;--tw-rotate: 0;--tw-skew-x: 0;--tw-skew-y: 0;--tw-scale-x: 1;--tw-scale-y: 1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness: proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width: 0px;--tw-ring-offset-color: #fff;--tw-ring-color: rgb(59 130 246 / .5);--tw-ring-offset-shadow: 0 0 #0000;--tw-ring-shadow: 0 0 #0000;--tw-shadow: 0 0 #0000;--tw-shadow-colored: 0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-s</style>
+    
+    <noscript></noscript>
+  </head>
+  <body>
+    <div id="root">
+      <div id="preloader">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </body>
+</html>
