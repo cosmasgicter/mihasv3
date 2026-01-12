@@ -126,13 +126,13 @@ fg
     - _Requirements: 5.5_
 
 - [ ] 8. Enhance notification system reliability
-  - [ ] 8.1 Implement multi-channel notification dispatcher
+  - [x] 8.1 Implement multi-channel notification dispatcher
     - Support email, SMS, WhatsApp, push notifications, and in-app messages
     - Implement channel-specific formatting and delivery logic
     - Add delivery confirmation and status tracking
     - _Requirements: 6.1_
 
-  - [ ] 8.2 Build notification preference manager
+  - [x] 8.2 Build notification preference manager
     - Respect user consent settings for each notification channel
     - Implement opt-in/opt-out functionality with audit trail
     - Handle preference inheritance and default settings

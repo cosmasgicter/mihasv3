@@ -4,7 +4,7 @@ import { supabase, Institution } from '@/lib/supabase'
 import { programService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Textarea } from '@/components/ui/Textarea'
+import { TextArea } from '@/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
