@@ -130,3 +130,58 @@ export interface ChartData {
   data: any[];
   labels: string[];
 }
+
+// Flow Analysis Types
+export interface FlowAnalysisResult {
+  student_journey: UserJourneyAnalysis;
+  admin_journey: UserJourneyAnalysis;
+  bottlenecks: FlowBottleneck[];
+  automation_opportunities: AutomationOpportunity[];
+  touchpoint_analysis: TouchpointAnalysis[];
+}
+
+export interface UserJourneyAnalysis {
+  journey_id: string;
+  journey_name: string;
+  total_steps: number;
+  manual_steps: number;
+  automated_steps: number;
+  estimated_completion_time: number;
+  bottleneck_steps: string[];
+  improvement_opportunities: string[];
+  success_rate?: number;
+  abandonment_rate?: number;
+}
+
+export interface FlowBottleneck {
+  id: string;
+  step_id: string;
+  step_name: string;
+  journey_type: 'student' | 'admin';
+  bottleneck_type: 'time' | 'complexity' | 'manual_intervention' | 'system_limitation';
+  impact_score: number;
+  estimated_delay_minutes: number;
+  affected_users_percentage: number;
+  recommended_solution: string;
+}
+
+export interface AutomationOpportunity {
+  id: string;
+  decision_point_id: string;
+  decision_point_name: string;
+  current_automation_level: 'manual' | 'semi_automated' | 'automated';
+  automation_potential: 'high' | 'medium' | 'low' | 'none';
+  estimated_time_savings_minutes: number;
+  implementation_complexity: 'low' | 'medium' | 'high';
+  roi_estimate: number;
+}
+
+export interface TouchpointAnalysis {
+  id: string;
+  touchpoint_name: string;
+  channel: 'web' | 'email' | 'sms' | 'whatsapp' | 'phone' | 'in_person';
+  frequency: 'once' | 'multiple' | 'conditional';
+  user_satisfaction_score?: number;
+  effectiveness_score?: number;
+  optimization_recommendations: string[];
+}

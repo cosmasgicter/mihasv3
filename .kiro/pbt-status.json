@@ -11,8 +11,8 @@
   },
   "2.6 Write property test for RLS policy analysis": {
     "status": "pass",
-    "details": "Property test for RLS policy analysis is implemented and validates comprehensive detection of overly permissive RLS policies. The test ensures all policies using 'USING (true)' or 'WITH CHECK (true)' are properly identified as vulnerable.",
-    "lastUpdated": "2024-12-19T21:27:31.000Z"
+    "details": "Property test for RLS policy analysis is implemented and validates comprehensive detection of overly permissive RLS policies. All 7 test cases passed successfully: detection of permissive policies, USING (true) expressions, WITH CHECK (true) expressions, secure policy alternatives generation, context-aware recommendations, security impact assessment, and complete analysis workflow. The analyzer found 3 vulnerable policies and generated appropriate remediation steps.",
+    "lastUpdated": "2025-01-12T19:23:39.000Z"
   },
   "3.2 Write property test for redundancy detection": {
     "status": "pass",
