@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
+import { SaveStatusIndicator, CompactSaveStatusIndicator } from '@/components/ui/SaveStatusIndicator'
 
 import SubmissionSuccess from './components/SubmissionSuccess'
 import { StepChecklist } from './components/StepChecklist'
@@ -84,7 +85,7 @@ const ApplicationWizardContent = () => {
   } = useWizardController()
 
   const stepValidation = useStepValidation(form, currentStepIndex)
-  const { lastSaved, changedFields, timeSinceLastSave } = useSmartAutoSave({
+  const smartAutoSave = useSmartAutoSave({
     onSave: saveDraft,
     watchValues,
     enabled: !loading && !uploading
@@ -305,29 +306,46 @@ const ApplicationWizardContent = () => {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {isDraftSaving && (
-                <motion.div className="flex items-center gap-2 text-sm text-primary" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-                  <span className="hidden sm:inline">Saving...</span>
-                </motion.div>
-              )}
-              {!isDraftSaving && (draftSaved || lastSaved) && (
-                <motion.div className="flex flex-col items-end gap-0.5" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
-                  <div className="flex items-center gap-1.5 text-sm text-success">
-                    <CheckCircle className="h-4 w-4" />
-                    <span className="hidden sm:inline">Saved</span>
-                  </div>
-                  {timeSinceLastSave && (
-                    <span className="text-xs text-caption hidden sm:inline">{timeSinceLastSave}</span>
-                  )}
-                </motion.div>
-              )}
-              {changedFields.length > 0 && !isDraftSaving && (
+              {/* Enhanced save status indicator */}
+              <div className="hidden sm:block">
+                <SaveStatusIndicator
+                  status={smartAutoSave.saveStatus}
+                  lastSaved={smartAutoSave.lastSaved}
+                  saveError={smartAutoSave.saveError}
+                  isOnline={smartAutoSave.isOnline}
+                  saveAttempts={smartAutoSave.saveAttempts}
+                  timeUntilNextSave={smartAutoSave.timeUntilNextSave}
+                  saveQueue={smartAutoSave.saveQueue}
+                  onForceSave={smartAutoSave.forceSave}
+                  onResolveConflict={smartAutoSave.resolveConflict}
+                />
+              </div>
+              
+              {/* Compact version for mobile */}
+              <div className="sm:hidden">
+                <CompactSaveStatusIndicator
+                  status={smartAutoSave.saveStatus}
+                  isOnline={smartAutoSave.isOnline}
+                  saveQueue={smartAutoSave.saveQueue}
+                  onForceSave={smartAutoSave.forceSave}
+                />
+              </div>
+              
+              {/* Legacy changed fields indicator */}
+              {smartAutoSave.changedFields.length > 0 && smartAutoSave.saveStatus !== 'saving' && (
                 <span className="text-xs text-warning hidden md:inline">
-                  {changedFields.length} unsaved change{changedFields.length > 1 ? 's' : ''}
+                  {smartAutoSave.changedFields.length} unsaved change{smartAutoSave.changedFields.length > 1 ? 's' : ''}
                 </span>
               )}
-              <Button type="button" variant="ghost" size="sm" onClick={saveDraft} disabled={isDraftSaving} className="hover:bg-primary/10">
+              
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                onClick={smartAutoSave.forceSave} 
+                disabled={smartAutoSave.isSaving} 
+                className="hover:bg-primary/10"
+              >
                 <Send className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">{saveNowLabel}</span>
               </Button>
