@@ -2,6 +2,10 @@ import { supabase, isSupabaseConfigured } from './supabase'
 import type { EnhancedEligibilityResult, SubjectGrade as LegacySubjectGrade } from './eligibility'
 import { checkEnhancedEligibility } from './eligibility'
 import { regulatoryEngine } from './regulatoryGuidelines'
+import { 
+  detailedEligibilityScoringEngine, 
+  type DetailedEligibilityAssessment 
+} from './detailedEligibilityScoring'
 
 export interface EligibilityRule {
   id: string
@@ -99,6 +103,52 @@ export class EligibilityEngine {
     await this.saveAssessment(assessment)
 
     return assessment
+  }
+
+  /**
+   * Calculate detailed eligibility assessment with comprehensive scoring breakdown
+   */
+  async calculateDetailedEligibilityAssessment(
+    applicationId: string,
+    programId: string,
+    grades: SubjectGrade[]
+  ): Promise<DetailedEligibilityAssessment> {
+    
+    // Get program name for detailed assessment
+    const programName = await this.getProgramName(programId)
+    
+    // Use the detailed scoring engine
+    return await detailedEligibilityScoringEngine.calculateDetailedAssessment(
+      applicationId,
+      programId,
+      programName,
+      grades
+    )
+  }
+
+  /**
+   * Get program name from database or resolve from ID
+   */
+  private async getProgramName(programId: string): Promise<string> {
+    if (!isSupabaseConfigured) {
+      return this.resolveProgramName(programId) || 'Unknown Program'
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('programs')
+        .select('name')
+        .eq('id', programId)
+        .single()
+      
+      if (error || !data) {
+        return this.resolveProgramName(programId) || 'Unknown Program'
+      }
+      
+      return data.name
+    } catch (error) {
+      return this.resolveProgramName(programId) || 'Unknown Program'
+    }
   }
 
   private async assessWithLocalRules(

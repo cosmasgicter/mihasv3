@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { notificationService } from '@/services/notifications'
 import { ArrowLeft, MessageCircle, MessageSquare } from 'lucide-react'
+import PushNotificationSettings from '@/components/notifications/PushNotificationSettings'
 
 type ChannelKey = 'sms' | 'whatsapp'
 
