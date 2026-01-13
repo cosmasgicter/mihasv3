@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { AnalyticsService, ApplicationStats, ProgramAnalytics, EligibilityAnalytics, AutomatedReport } from '@/lib/analytics'
 import { ReportsGenerator } from '@/components/admin/ReportsGenerator'
+import NotificationAnalyticsDashboard from '@/components/admin/NotificationAnalyticsDashboard'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { exportReport, ReportExportData, ReportFormat } from '@/lib/reportExports'
-import { TrendingUp, Users, FileText, CheckCircle, Download, Plus, Edit, Trash2, RefreshCw, Eye, Filter, BarChart3, Trophy, GraduationCap } from 'lucide-react'
+import { TrendingUp, Users, FileText, CheckCircle, Download, Plus, Edit, Trash2, RefreshCw, Eye, Filter, BarChart3, Trophy, GraduationCap, Bell } from 'lucide-react'
 import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { isReportManagerRole } from '@/lib/auth/roles'
 import { useToastStore } from '@/components/ui/Toast'
@@ -14,7 +15,7 @@ import { useToastStore } from '@/components/ui/Toast'
 export default function Analytics() {
  const [loading, setLoading] = useState(true)
  const [refreshing, setRefreshing] = useState(false)
- const [activeTab, setActiveTab] = useState<'overview' | 'applications' | 'programs' | 'eligibility' | 'reports'>('overview')
+ const [activeTab, setActiveTab] = useState<'overview' | 'applications' | 'programs' | 'eligibility' | 'notifications' | 'reports'>('overview')
  const [dateRange, setDateRange] = useState({
  start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
  end: new Date().toISOString().split('T')[0]
@@ -248,6 +249,7 @@ export default function Analytics() {
  { key: 'applications', label: 'Applications', icon: FileText },
  { key: 'programs', label: 'Programs', icon: GraduationCap },
  { key: 'eligibility', label: 'Eligibility', icon: CheckCircle },
+ { key: 'notifications', label: 'Notifications', icon: Bell },
  { key: 'reports', label: 'Reports', icon: Download }
  ].map((tab) => {
  const Icon = tab.icon
@@ -736,6 +738,10 @@ export default function Analytics() {
  </div>
  </div>
  </div>
+ )}
+
+ {activeTab === 'notifications' && (
+ <NotificationAnalyticsDashboard />
  )}
 
  {activeTab === 'reports' && (

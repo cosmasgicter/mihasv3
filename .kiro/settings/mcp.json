@@ -8,7 +8,7 @@
         "./"
       ],
       "env": {},
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
     "fetch": {
@@ -17,7 +17,7 @@
         "mcp-server-fetch"
       ],
       "env": {},
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
     "memory": {
@@ -42,7 +42,7 @@
     },
     "canva": {
       "url": "https://mcp.canva.com/mcp",
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
     "chrome-devtools": {
@@ -64,7 +64,7 @@
         "@playwright/mcp"
       ],
       "env": {},
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
     "sqlite": {

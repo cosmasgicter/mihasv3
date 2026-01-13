@@ -1,5 +1,5 @@
 import React from 'react'
-import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch } from 'lucide-react'
+import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch, TrendingUp } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
@@ -28,6 +28,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
     { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
     { to: '/admin/ai-insights', icon: Brain, label: 'AI Insights' },
     { to: '/admin/workflow', icon: Workflow, label: 'Workflow' },
+    { to: '/admin/flow-analysis', icon: TrendingUp, label: 'Flow Analysis' },
     { to: '/admin/roles', icon: Shield, label: 'Roles' },
     { to: '/admin/audit', icon: FileSearch, label: 'Audit Trail' },
     { to: '/admin/settings', icon: Settings, label: 'Settings' },
