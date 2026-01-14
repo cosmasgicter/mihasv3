@@ -117,3 +117,43 @@ test-results/production-results.xml
 # GitHub Actions (disabled for production tests)
 .github/workflows/test-submit.yml
 src/components/ui/TextArea.tsx
+
+# Additional build and cache files
+*.log
+.wrangler/
+.dev.vars
+.mf/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# IDE files
+*.swp
+*.swo
+*~
+
+# Playwright
+playwright/.cache/
+
+# Vite
+.vite/
+
+# TypeScript
+*.tsbuildinfo
+
+# Package manager locks (keep package-lock.json but ignore others)
+yarn.lock
+pnpm-lock.yaml
+
+# Local development files
+dev.log
+*.local.ts
+*.local.js
