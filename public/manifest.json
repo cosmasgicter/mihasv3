@@ -9,6 +9,7 @@
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
+  "dir": "ltr",
   "categories": ["education", "productivity"],
   "icons": [
     {
@@ -35,7 +36,7 @@
       "name": "New Application",
       "short_name": "Apply",
       "description": "Start a new application",
-      "url": "/apply",
+      "url": "/apply?shortcut=new-application",
       "icons": [
         {
           "src": "/images/icon-192.png",
@@ -47,7 +48,19 @@
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "View your dashboard",
-      "url": "/dashboard",
+      "url": "/dashboard?shortcut=dashboard",
+      "icons": [
+        {
+          "src": "/images/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "My Applications",
+      "short_name": "Applications",
+      "description": "View your applications",
+      "url": "/applications?shortcut=applications",
       "icons": [
         {
           "src": "/images/icon-192.png",
@@ -109,5 +122,9 @@
         }
       ]
     }
-  }
+  },
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "handle_links": "preferred",
+  "related_applications": [],
+  "iarc_rating_id": ""
 }

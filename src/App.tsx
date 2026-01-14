@@ -13,6 +13,8 @@ import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
 import { routes, type RouteConfig } from '@/routes/config'
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt'
+import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 
 // Optimized query client for better performance
 const queryClient = new QueryClient({
@@ -84,6 +86,8 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <ToastContainer />
+          <PWAInstallPrompt />
+          <OfflineIndicator />
           <Router>
             <AnalyticsTracker>
               <SessionMonitor />

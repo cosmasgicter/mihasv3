@@ -86,3 +86,5 @@ VITE_API_BASE_URL=https://apply.mihas.edu.zm
 - **Largest Contentful Paint**: <2.5s  
 - **Bundle Size**: Main chunk <500KB
 - **Lighthouse Score**: >90 across all metrics
+
+Please note that my terminal is Ubuntu WSL on a windows Machine

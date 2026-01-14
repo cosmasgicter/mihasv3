@@ -28,6 +28,7 @@ const WorkflowAutomation = React.lazy(() => import('@/pages/admin/WorkflowAutoma
 const AuditTrail = React.lazy(() => import('@/pages/admin/AuditTrail'))
 const RoleManagement = React.lazy(() => import('@/pages/admin/RoleManagement'))
 const ApplicationFlowAnalysis = React.lazy(() => import('@/pages/admin/ApplicationFlowAnalysis'))
+const SystemHealthDashboard = React.lazy(() => import('@/pages/admin/SystemHealthDashboard'))
 const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index.tsx'))
 const AdminTest = React.lazy(() => import('@/pages/AdminTest'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
@@ -89,6 +90,7 @@ export const routes: RouteConfig[] = [
   { path: '/admin/workflow', element: WorkflowAutomation, guard: 'admin', lazy: true },
   { path: '/admin/flow-analysis', element: ApplicationFlowAnalysis, guard: 'admin', lazy: true },
   { path: '/admin/roles', element: RoleManagement, guard: 'admin', lazy: true },
+  { path: '/admin/system-health', element: SystemHealthDashboard, guard: 'admin', lazy: true },
   
   // 404 routes
   { path: '/404', element: NotFoundPage, guard: 'public', lazy: true },
