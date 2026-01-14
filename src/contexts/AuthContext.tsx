@@ -1,16 +1,18 @@
 import React, { createContext, useContext, useMemo, useCallback } from 'react'
 import { User } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
-import { getSupabaseClient } from '@/lib/supabase'
+import { getSupabaseClient, UserProfile } from '@/lib/supabase'
 import {
   useSessionListener,
   type SignInResult,
   type SignUpResult,
   type PasswordResetResult,
 } from '@/hooks/auth/useSessionListener'
+import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
 
 interface AuthContextType {
   user: User | null
+  profile: UserProfile | null
   loading: boolean
   isAdmin: boolean
   signIn: (email: string, password: string) => Promise<SignInResult>
@@ -24,15 +26,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient()
+  
+  // Use session listener for auth actions (signIn, signUp, etc.)
   const {
-    user,
-    loading,
     signIn,
     signUp,
     signOut: originalSignOut,
     requestPasswordReset,
     updatePassword,
   } = useSessionListener()
+  
+  // Use optimized auth state for reading auth state (leverages React Query caching)
+  // This avoids redundant session validations and provides non-blocking auth checks
+  // Requirements: 4.5
+  const { user, profile, isLoading, isAdmin } = useOptimizedAuthState()
   
   // Wrap signOut to ensure all caches are cleared
   const signOut = useCallback(async () => {
@@ -41,28 +48,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.clear()
   }, [originalSignOut, queryClient])
 
-  // Get role from user metadata (set by backend)
-  const profileRole = user?.user_metadata?.role || user?.app_metadata?.role || null
-
-  const isAdmin = useMemo(() => {
-    // If no user, definitely not admin
-    if (!user) return false
-    // Hardcoded super admin
-    if (user.email === 'cosmas@beanola.com') return true
-    // Check profile role
-    return profileRole === 'admin' || profileRole === 'super_admin'
-  }, [user, profileRole])
-
   const value = useMemo(() => ({
     user,
-    loading,
+    profile,
+    loading: isLoading,
     isAdmin,
     signIn,
     signUp,
     signOut,
     requestPasswordReset,
     updatePassword
-  }), [user, loading, isAdmin, signIn, signUp, signOut, requestPasswordReset, updatePassword])
+  }), [user, profile, isLoading, isAdmin, signIn, signUp, signOut, requestPasswordReset, updatePassword])
 
   return (
     <AuthContext.Provider value={value}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -25,7 +25,7 @@ export function ApplicationApprovalActions({
   const [updatingPayment, setUpdatingPayment] = useState(false)
   const confirmDialog = useConfirmDialog()
 
-  const handleStatusUpdate = async (newStatus: string) => {
+  const handleStatusUpdate = useCallback(async (newStatus: string) => {
     if (updatingStatus || disabled) return
     
     // Prevent approval without verified payment
@@ -64,14 +64,23 @@ export function ApplicationApprovalActions({
     try {
       setUpdatingStatus(true)
       await onStatusUpdate(applicationId, newStatus)
+      // Success - state will be updated by parent component
     } catch (error) {
       console.error('Status update failed:', error)
+      // Show error to user
+      await confirmDialog.confirm({
+        title: 'Update Failed',
+        message: error instanceof Error ? error.message : 'Failed to update application status. Please try again.',
+        confirmText: 'OK',
+        variant: 'danger',
+        showCancel: false
+      })
     } finally {
       setUpdatingStatus(false)
     }
-  }
+  }, [applicationId, currentPaymentStatus, disabled, updatingStatus, onStatusUpdate, confirmDialog])
 
-  const handlePaymentUpdate = async (newStatus: string) => {
+  const handlePaymentUpdate = useCallback(async (newStatus: string) => {
     if (updatingPayment || disabled) return
     
     // Confirm payment actions
@@ -98,12 +107,21 @@ export function ApplicationApprovalActions({
     try {
       setUpdatingPayment(true)
       await onPaymentStatusUpdate(applicationId, newStatus)
+      // Success - state will be updated by parent component
     } catch (error) {
       console.error('Payment status update failed:', error)
+      // Show error to user
+      await confirmDialog.confirm({
+        title: 'Update Failed',
+        message: error instanceof Error ? error.message : 'Failed to update payment status. Please try again.',
+        confirmText: 'OK',
+        variant: 'danger',
+        showCancel: false
+      })
     } finally {
       setUpdatingPayment(false)
     }
-  }
+  }, [applicationId, disabled, updatingPayment, onPaymentStatusUpdate, confirmDialog])
 
   return (
     <div className="space-y-3">

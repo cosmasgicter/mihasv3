@@ -378,6 +378,7 @@ export function ApplicationDetailModal({
  onGenerateAcceptanceLetter,
  onGenerateFinanceReceipt
 }: ApplicationDetailModalProps) {
+ const [isClient, setIsClient] = useState(false)
  const [isGeneratingAcceptance, setIsGeneratingAcceptance] = useState(false)
  const [isGeneratingFinanceReceipt, setIsGeneratingFinanceReceipt] = useState(false)
  const [activeTab, setActiveTab] = useState<'overview' | 'interview' | 'grades' | 'documents' | 'history'>('overview')
@@ -395,6 +396,11 @@ export function ApplicationDetailModal({
  const [adminFeedback, setAdminFeedback] = useState('')
  const [savingFeedback, setSavingFeedback] = useState(false)
  const [showNotificationModal, setShowNotificationModal] = useState(false)
+
+ // Client-side rendering guard to prevent hydration mismatch
+ useEffect(() => {
+ setIsClient(true)
+ }, [])
 
  useEffect(() => {
  setIsGeneratingAcceptance(false)
@@ -645,6 +651,46 @@ export function ApplicationDetailModal({
  }
 
  if (!show || !application) return null
+
+ // Show skeleton during SSR/initial render to prevent hydration mismatch
+ if (!isClient) {
+ return (
+ <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
+ <div className="bg-card w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full">
+ {/* Header Skeleton */}
+ <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
+ <div className="flex items-center justify-between gap-2">
+ <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+ <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-xl animate-pulse flex-shrink-0"></div>
+ <div className="min-w-0 flex-1 space-y-2">
+ <div className="h-6 bg-gray-200 rounded animate-pulse w-48"></div>
+ <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+ </div>
+ </div>
+ <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+ </div>
+ </div>
+ 
+ {/* Content Skeleton */}
+ <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+ <div className="space-y-4">
+ <div className="h-32 bg-gray-200 rounded-xl animate-pulse"></div>
+ <div className="h-48 bg-gray-200 rounded-xl animate-pulse"></div>
+ <div className="h-48 bg-gray-200 rounded-xl animate-pulse"></div>
+ </div>
+ </div>
+ 
+ {/* Footer Skeleton */}
+ <div className="flex-shrink-0 p-4 sm:p-6 border-t border-border bg-muted">
+ <div className="flex justify-between gap-4">
+ <div className="h-10 bg-gray-200 rounded animate-pulse w-32"></div>
+ <div className="h-10 bg-gray-200 rounded animate-pulse w-24"></div>
+ </div>
+ </div>
+ </div>
+ </div>
+ )
+ }
 
  const getStatusIcon = (status: string) => {
  switch (status) {

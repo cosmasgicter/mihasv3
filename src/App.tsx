@@ -15,6 +15,7 @@ import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
+import { cacheMonitor } from '@/services/cacheMonitor'
 
 // Optimized query client for better performance
 const queryClient = new QueryClient({
@@ -31,6 +32,11 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+// Initialize cache monitoring in production
+if (import.meta.env.PROD) {
+  cacheMonitor.initialize(queryClient)
+}
 
 const renderRoute = (route: RouteConfig) => {
   const { element, guard, lazy } = route
