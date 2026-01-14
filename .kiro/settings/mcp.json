@@ -37,7 +37,7 @@
         "@jpisnice/shadcn-ui-mcp-server"
       ],
       "env": {},
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
     "canva": {

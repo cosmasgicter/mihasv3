@@ -1,20 +1,22 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
-import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import { useRoleQuery, isAdminRole } from '@/hooks/auth/useRoleQuery'
+import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary'
 
 interface AdminRouteProps {
   children: React.ReactNode
 }
 
+/**
+ * Admin route guard using optimized auth state checks
+ * Leverages React Query caching to avoid redundant profile fetches
+ * Requirements: 4.5
+ */
 export function AdminRoute({ children }: AdminRouteProps) {
-  const { user, loading } = useAuth()
-  const { profile, isLoading: profileLoading } = useProfileQuery()
-  const { isAdmin: hasAdminRole, isLoading: roleLoading } = useRoleQuery()
+  const { user, isAdmin, isLoading } = useOptimizedAuthState()
   
-  if (loading || roleLoading || profileLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -28,14 +30,13 @@ export function AdminRoute({ children }: AdminRouteProps) {
 
   // Super admin override
   if (user.email === 'cosmas@beanola.com') {
-    return <>{children}</>
+    return <AdminErrorBoundary>{children}</AdminErrorBoundary>
   }
 
-  // Check admin role - must have user AND admin role
-  const isAdmin = user && (hasAdminRole || isAdminRole(profile?.role))
+  // Check admin role
   if (!isAdmin) {
     return <Navigate to="/student/dashboard" replace />
   }
 
-  return <>{children}</>
+  return <AdminErrorBoundary>{children}</AdminErrorBoundary>
 }

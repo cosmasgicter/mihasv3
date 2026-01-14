@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
-import { supabase } from '../../lib/supabase'
-import { EligibilityDashboard } from '../../components/application/EligibilityDashboard'
-import { Button } from '../../components/ui/Button'
-import { Input } from '../../components/ui/Input'
-import { TextArea } from '../../components/ui/textarea'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
+import { EligibilityDashboard } from '@/components/application/EligibilityDashboard'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/textarea'
 import { Plus, Edit, Trash2, Save, X, Settings, BarChart3, Users, AlertTriangle } from 'lucide-react'
-import { RegulatoryGuidelinesTable } from '../../components/admin/RegulatoryGuidelinesTable'
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
-import { useConfirmDialog } from '../../hooks/useConfirmDialog'
+import { RegulatoryGuidelinesTable } from '@/components/admin/RegulatoryGuidelinesTable'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 interface Program {
   id: string

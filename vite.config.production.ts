@@ -87,6 +87,16 @@ export default defineConfig({
             // Don't split framer-motion - let it bundle with components that use it
             // This prevents React dependency issues
           }
+          
+          // Group UI components together for better caching
+          if (id.includes('src/components/ui/')) {
+            return 'ui-components'
+          }
+          
+          // Group admin components together
+          if (id.includes('src/components/admin/')) {
+            return 'admin-components'
+          }
         },
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.')

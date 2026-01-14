@@ -7,15 +7,19 @@ import {
   isSupabaseConfigured,
   SUPABASE_STATUS_EVENT,
   SUPABASE_MISSING_CONFIG_MESSAGE,
-  type SupabaseStatusDetail
+  type SupabaseStatusDetail,
+  UserProfile
 } from '@/lib/supabase'
 import { sanitizeForLog } from '@/lib/security'
 import { authPersistence } from '@/lib/authPersistence'
 import { getApiBaseUrl } from '@/lib/apiConfig'
+import { optimizedLogin } from '@/services/optimizedAuthService'
+import { useQueryClient } from '@tanstack/react-query'
 
 export type SignInResult = {
   session?: any
   user?: User
+  profile?: UserProfile | null
   error?: string
 }
 
@@ -31,6 +35,7 @@ export type PasswordResetResult = {
 
 export function useSessionListener() {
   const apiBaseUrl = getApiBaseUrl()
+  const queryClient = useQueryClient()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -131,50 +136,26 @@ export function useSessionListener() {
     }
 
     try {
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      // Use optimized login with parallel data fetching and dashboard preloading
+      const result = await optimizedLogin(email, password, queryClient)
 
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          return { error: 'Invalid email or password' }
-        }
-        if (error.message.includes('Email not confirmed')) {
-          return { error: 'Please verify your email address before signing in' }
-        }
-        return { error: error.message }
+      if ('error' in result) {
+        return { error: result.error }
       }
 
-      if (data.session && data.user) {
-        setUser(data.user)
-        
-        // Track device session (non-blocking)
-        try {
-          const deviceId = localStorage.getItem('device_id') || 
-            (crypto?.randomUUID ? crypto.randomUUID() : `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`)
-          if (deviceId) localStorage.setItem('device_id', deviceId)
-          
-          fetch('/api/sessions/track', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${data.session.access_token}`
-            },
-            body: JSON.stringify({
-              device_id: deviceId,
-              device_info: navigator.userAgent
-            })
-          }).catch(() => {})
-        } catch (e) {
-          // Silent fail for session tracking
-        }
-        
-        return { session: data.session, user: data.user }
+      // Update user state
+      setUser(result.user)
+
+      // Cache profile data in React Query for immediate availability
+      if (result.profile) {
+        queryClient.setQueryData(['user-profile', result.user.id], result.profile)
       }
 
-      return { error: 'Unable to sign in. Please try again.' }
+      return {
+        session: result.session,
+        user: result.user,
+        profile: result.profile
+      }
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes('fetch')) {
@@ -184,7 +165,7 @@ export function useSessionListener() {
       }
       return { error: 'An unexpected error occurred. Please try again.' }
     }
-  }, [])
+  }, [queryClient])
 
   const signUp = useCallback(async (email: string, password: string, userData: any): Promise<SignUpResult> => {
     if (!isSupabaseConfigured) {
