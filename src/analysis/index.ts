@@ -12,6 +12,7 @@ export { AnalysisOrchestrator } from './AnalysisOrchestrator';
 export { SecurityAnalyzer } from './security/SecurityAnalyzer';
 export { SchemaAnalyzer } from './database/SchemaAnalyzer';
 export { PerformanceMonitor } from './performance/PerformanceMonitor';
+export { SystemIntegrator } from './integration/SystemIntegrator';
 export { AnalysisReporter } from './reporting/AnalysisReporter';
 export { PropertyTestFramework } from './testing/PropertyTestFramework';
 
