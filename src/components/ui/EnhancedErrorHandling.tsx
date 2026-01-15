@@ -1,7 +1,6 @@
 import React from 'react'
 import { AlertCircle, CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MobileOptimizedButton } from './MobileOptimizedButton'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
@@ -114,14 +113,21 @@ export function EnhancedToast({
           {actions && actions.length > 0 && (
             <div className="mt-3 flex flex-col sm:flex-row gap-2">
               {actions.map((action, index) => (
-                <MobileOptimizedButton
+                <button
                   key={index}
                   onClick={action.onClick}
-                  size="sm"
-                  variant={action.variant || 'outline'}
+                  className={cn(
+                    'inline-flex items-center justify-center gap-2 font-medium',
+                    'rounded-lg transition-all duration-200 ease-in-out',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                    'min-h-[44px] px-3 py-2 text-sm',
+                    action.variant === 'primary' 
+                      ? 'bg-primary text-white hover:bg-primary/90' 
+                      : 'border-2 border-input bg-card text-foreground hover:bg-muted'
+                  )}
                 >
                   {action.label}
-                </MobileOptimizedButton>
+                </button>
               ))}
             </div>
           )}
