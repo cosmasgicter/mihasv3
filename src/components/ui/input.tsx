@@ -34,10 +34,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               'border border-input',
               'text-foreground',
               'placeholder:text-foreground',
-              'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
-              'transition-all duration-200',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
-              error && 'border-error focus:ring-red-500 focus:ring-red-400',
+              'hover:border-blue-400 hover:bg-slate-50',
+              'focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600',
+              'transition-all duration-100',
+              'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-input disabled:hover:bg-background',
+              error && 'border-error focus:ring-red-500 focus:ring-red-400 hover:border-red-400',
               icon && 'pl-10',
               className
             )}

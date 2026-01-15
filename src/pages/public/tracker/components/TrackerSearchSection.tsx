@@ -86,7 +86,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
                   initial={maybeMotion({ opacity: 0, y: 20 })}
                   animate={maybeMotion({ opacity: 1, y: 0 })}
                   exit={maybeMotion({ opacity: 0, y: -20 })}
-                  className="mt-8 rounded-2xl bg-gradient-to-r from-red-50 to-pink-50 border-2 border-destructive/30 p-8 shadow-lg"
+                  className="mt-8 rounded-2xl bg-gradient-to-r from-red-50 to-pink-50 border-2 border-destructive/30 p-4 sm:p-8 shadow-lg"
                 >
                   <div className="flex items-center space-x-4">
                     <div className="text-4xl">⚠️</div>

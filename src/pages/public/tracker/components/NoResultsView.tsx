@@ -14,7 +14,7 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
   const maybeMotion = <T,>(value: T) => (shouldReduceMotion ? undefined : value)
 
   return (
-    <AnimatedCard className="text-center py-20" glassEffect>
+    <AnimatedCard className="text-center py-10 sm:py-20" glassEffect>
       <motion.div
         initial={maybeMotion({ opacity: 0, y: 20 })}
         animate={maybeMotion({ opacity: 1, y: 0 })}
@@ -42,7 +42,7 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
           <Button 
             variant="outline" 
             size="xl"
-            className="text-xl px-10 py-5 border-2"
+            className="text-xl px-5 sm:px-10 py-5 border-2"
             onClick={onTryAgain}
           >
             <Search className="h-6 w-6 mr-3" />
@@ -51,7 +51,7 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
           <Link to="/apply">
             <Button 
               size="xl" 
-              className="text-xl px-10 py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600"
+              className="text-xl px-5 sm:px-10 py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600"
             >
               <Rocket className="h-6 w-6 mr-3" />
               Submit New Application

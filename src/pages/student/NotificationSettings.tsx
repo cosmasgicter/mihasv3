@@ -321,12 +321,12 @@ export default function NotificationSettings() {
         )}
 
         {loading ? (
-          <div className="flex justify-center items-center py-20">
+          <div className="flex justify-center items-center py-10 sm:py-20">
             <LoadingSpinner size="lg" />
           </div>
         ) : (
           <div className="space-y-6">
-            <section className="grid gap-6 lg:grid-cols-2">
+            <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {(['sms', 'whatsapp'] as ChannelKey[]).map(channel => renderChannelCard(channel))}
             </section>
           </div>

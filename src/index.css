@@ -2,6 +2,7 @@
 @import './styles/pwa.css';
 @import './styles/design-tokens.css';
 @import './styles/admin-colors.css';
+@import './styles/interactive-feedback.css';
 
 @tailwind base;
 @tailwind components;

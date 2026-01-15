@@ -44,13 +44,15 @@ export { LoadingSpinner } from './LoadingSpinner'
 export { LoadingButton } from './LoadingButton'
 export { LoadingOverlay } from './LoadingOverlay'
 export { Spinner } from './Spinner'
-export { SkeletonLoader } from './SkeletonLoader'
+export { SkeletonLoader, SkeletonCard, SkeletonTable, SkeletonAvatar } from './SkeletonLoader'
+export { ProgressIndicator, CircularProgress, IndeterminateProgress } from './ProgressIndicator'
 
 // Form Components
 export { FileUpload } from './FileUpload'
 export { EnhancedFileUpload } from './EnhancedFileUpload'
 export { PasswordInput } from './PasswordInput'
 export { FormError } from './FormError'
+export { FormFeedback, InlineFormFeedback, FormSubmitButton } from './FormFeedback'
 
 // Utility Components
 export { ErrorBoundary } from './ErrorBoundary'

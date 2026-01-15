@@ -92,10 +92,10 @@ export default function ApplicationDetail() {
     return (
       <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <main className="w-full">
-          <div className="content-wrapper py-8">
+          <div className="content-wrapper py-4 sm:py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-skeleton rounded w-1/3"></div>
-            <div className="bg-card rounded-2xl shadow-lg p-8 space-y-4">
+            <div className="bg-card rounded-2xl shadow-lg p-4 sm:p-8 space-y-4">
               <div className="h-6 bg-skeleton rounded w-1/2"></div>
               <div className="h-4 bg-skeleton rounded w-3/4"></div>
               <div className="h-4 bg-skeleton rounded w-1/2"></div>
@@ -111,8 +111,8 @@ export default function ApplicationDetail() {
     return (
       <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <main className="w-full">
-          <div className="content-wrapper py-8">
-          <div className="text-center py-16">
+          <div className="content-wrapper py-4 sm:py-8">
+          <div className="text-center py-8 sm:py-16">
             <XCircle className="h-16 w-16 text-error mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Not Found</h2>
             <p className="text-gray-900 mb-6">{error || 'The application you are looking for does not exist.'}</p>
@@ -130,7 +130,7 @@ export default function ApplicationDetail() {
     <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
       
       <main className="w-full">
-        <div className="content-wrapper py-8">
+        <div className="content-wrapper py-4 sm:py-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -189,7 +189,7 @@ export default function ApplicationDetail() {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:p-8">
           {/* Personal Information */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}

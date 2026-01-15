@@ -827,7 +827,7 @@ export default function AuditTrailPage() {
             </div>
           </>
         ) : (
-          <div className="text-center py-20 bg-gradient-to-br from-muted to-muted rounded-xl border border-border">
+          <div className="text-center py-10 sm:py-20 bg-gradient-to-br from-muted to-muted rounded-xl border border-border">
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
               <Shield className="h-10 w-10 text-foreground" />
             </div>

@@ -1,61 +1,31 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
-
-interface SkipLinkProps {
-  href: string
-  children: React.ReactNode
-  className?: string
-}
-
 /**
  * Skip Link Component
- * Provides keyboard users a way to skip repetitive navigation
- * Visible only when focused
+ * Provides keyboard users a way to skip to main content
+ * WCAG 2.1 Level A requirement
  */
-export function SkipLink({ href, children, className }: SkipLinkProps) {
+
+import React from 'react'
+
+interface SkipLinkProps {
+  href?: string
+  children?: React.ReactNode
+}
+
+export function SkipLink({ href = '#main-content', children = 'Skip to main content' }: SkipLinkProps) {
   return (
     <a
       href={href}
-      className={cn(
-        // Hidden by default
-        'sr-only',
-        // Visible when focused
-        'focus:not-sr-only',
-        'focus:absolute',
-        'focus:top-4',
-        'focus:left-4',
-        'focus:z-[9999]',
-        // Styling
-        'bg-primary',
-        'text-primary-foreground',
-        'px-4',
-        'py-2',
-        'rounded-lg',
-        'font-medium',
-        'shadow-lg',
-        // Focus indicator
-        'focus:outline-none',
-        'focus:ring-4',
-        'focus:ring-primary/50',
-        // Animation
-        'transition-all',
-        'duration-200',
-        className
-      )}
+      className="skip-link fixed left-4 top-4 z-[9999] px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-lg transform -translate-y-full focus:translate-y-0 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      onClick={(e) => {
+        e.preventDefault()
+        const target = document.querySelector(href)
+        if (target instanceof HTMLElement) {
+          target.focus()
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }}
     >
       {children}
     </a>
-  )
-}
-
-/**
- * Skip Links Container
- * Groups multiple skip links at the top of the page
- */
-export function SkipLinks({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="skip-links" aria-label="Skip links">
-      {children}
-    </div>
   )
 }

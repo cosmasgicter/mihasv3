@@ -71,7 +71,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="fixed top-20 right-4 z-40 shadow-lg"
+        className="fixed top-10 sm:p-20 right-4 z-40 shadow-lg"
       >
         <FileText className="h-4 w-4 mr-2" />
         Drafts ({drafts.length})
@@ -129,9 +129,9 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                 </div>
 
                 {loading ? (
-                  <div className="text-center py-8 text-caption">Loading drafts...</div>
+                  <div className="text-center py-4 sm:py-8 text-caption">Loading drafts...</div>
                 ) : drafts.length === 0 ? (
-                  <div className="text-center py-8 text-caption">
+                  <div className="text-center py-4 sm:py-8 text-caption">
                     <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
                     <p>No drafts yet</p>
                     <p className="text-xs mt-1">Create a new draft to get started</p>

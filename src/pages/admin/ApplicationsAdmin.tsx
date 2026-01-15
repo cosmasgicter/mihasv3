@@ -209,7 +209,7 @@ function ApplicationsAdminContent() {
     )
   }
   return (
-    <div className="min-h-screen bg-muted py-8">
+    <div className="min-h-screen bg-muted py-4 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -543,7 +543,7 @@ function ApplicationsAdminContent() {
           </div>
           
             {filteredApplications.length === 0 && (
-              <div className="text-center py-12">
+              <div className="text-center py-6 sm:py-12">
                 <div className="text-gray-900">No applications found matching your criteria.</div>
               </div>
             )}

@@ -462,7 +462,7 @@ export default function Applications() {
         </div>
       </div>
 
-      <Container size="lg" className="py-8">
+      <Container size="lg" className="py-4 sm:py-8">
       {/* Enhanced Admin Metrics */}
       <div className="px-4 py-4 sm:px-6">
         <AdminMetrics applications={applications} />

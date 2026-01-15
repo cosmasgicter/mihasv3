@@ -400,7 +400,7 @@ export function SystemHealthDashboard() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-4 sm:py-8 text-gray-500">
             <CheckCircle className="w-12 h-12 mx-auto mb-3 text-green-500" />
             <p>No recent alerts - system operating normally</p>
           </div>

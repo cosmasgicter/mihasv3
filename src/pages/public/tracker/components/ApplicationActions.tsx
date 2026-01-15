@@ -10,7 +10,7 @@ export const ApplicationActions: React.FC = () => {
 
   return (
     <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border-t-2 border-blue-200">
-      <div className="p-10">
+      <div className="p-5 sm:p-10">
         <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
           <motion.div
             initial={maybeMotion({ opacity: 0, x: -20 })}
@@ -37,7 +37,7 @@ export const ApplicationActions: React.FC = () => {
               <Button 
                 variant="outline" 
                 size="xl" 
-                className="text-xl px-8 py-4 border-2 border-input hover:bg-secondary hover:text-white transition-all duration-300"
+                className="text-xl px-4 sm:px-8 py-4 border-2 border-input hover:bg-secondary hover:text-white transition-all duration-300"
               >
                 <Rocket className="h-6 w-6 mr-3" />
                 Submit New Application
@@ -46,7 +46,7 @@ export const ApplicationActions: React.FC = () => {
             <Link to="/auth/signin">
               <Button 
                 size="xl" 
-                className="text-xl px-8 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                className="text-xl px-4 sm:px-8 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
                 <Eye className="h-6 w-6 mr-3" />
                 View Full Details

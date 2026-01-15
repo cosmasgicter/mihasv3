@@ -504,7 +504,7 @@ export default function AdminSettings() {
             )}
 
             {loading ? (
-              <div className="flex justify-center py-16">
+              <div className="flex justify-center py-8 sm:py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
                   <p className="mt-4 text-lg text-gray-900">Loading settings...</p>
@@ -778,7 +778,7 @@ export default function AdminSettings() {
                 )}
                   
                   {filteredSettings.length === 0 && (
-                    <div className="text-center py-12">
+                    <div className="text-center py-6 sm:py-12">
                       <Database className="h-12 w-12 text-gray-900 mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-gray-900 mb-2">No settings found</h3>
                       <p className="text-gray-900 mb-4">

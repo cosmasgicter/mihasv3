@@ -340,7 +340,7 @@ export default function WorkflowAutomation() {
           </div>
 
           {rules.length === 0 && (
-            <div className="text-center py-12">
+            <div className="text-center py-6 sm:py-12">
               <Zap className="h-12 w-12 text-gray-900 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Workflow Rules</h3>
               <p className="text-gray-900">No automation rules are currently configured.</p>

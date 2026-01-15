@@ -280,7 +280,7 @@ export default function EnhancedAdminDashboard() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="text-center py-12"
+              className="text-center py-6 sm:py-12"
             >
               <div className="text-6xl mb-4"><BarChart3 className="w-5 h-5" /></div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Advanced Analytics</h3>
