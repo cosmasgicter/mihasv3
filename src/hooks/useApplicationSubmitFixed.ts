@@ -23,6 +23,130 @@ interface WizardFormData {
   momo_ref?: string
 }
 
+interface NotificationData {
+  applicationId: string
+  userId: string
+  email: string
+  fullName: string
+  applicationNumber: string
+  program: string
+}
+
+/**
+ * Triggers submission notifications by inserting into email_queue, 
+ * in_app_notifications, and email_notifications tables.
+ * Errors are handled gracefully and don't fail the submission.
+ * 
+ * @param data - The notification data containing application details
+ * @returns Object with success status and any errors encountered
+ */
+export async function triggerSubmissionNotifications(data: NotificationData): Promise<{
+  success: boolean
+  emailQueueSuccess: boolean
+  inAppSuccess: boolean
+  emailNotificationSuccess: boolean
+  errors: string[]
+}> {
+  const { applicationId, userId, email, fullName, applicationNumber, program } = data
+  const errors: string[] = []
+  let emailQueueSuccess = false
+  let inAppSuccess = false
+  let emailNotificationSuccess = false
+
+  const submittedAt = new Date().toISOString()
+  const applicationUrl = `https://apply.mihas.edu.zm/student/application/${applicationId}`
+
+  // 1. Insert into email_queue table with template data
+  try {
+    const { error: emailQueueError } = await supabase
+      .from('email_queue')
+      .insert({
+        to_email: email,
+        subject: '✅ Application Submitted Successfully - MIHAS',
+        template: 'application_submitted',
+        template_data: {
+          studentName: fullName,
+          applicationNumber: applicationNumber,
+          program: program,
+          applicationUrl: applicationUrl,
+          submittedAt: submittedAt
+        },
+        priority: 'high',
+        status: 'pending',
+        scheduled_for: submittedAt,
+        created_at: submittedAt
+      })
+
+    if (emailQueueError) {
+      console.error('Failed to queue email:', emailQueueError)
+      errors.push(`Email queue: ${emailQueueError.message}`)
+    } else {
+      emailQueueSuccess = true
+    }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Failed to queue email:', err)
+    errors.push(`Email queue: ${errorMessage}`)
+  }
+
+  // 2. Insert into in_app_notifications table
+  try {
+    const { error: inAppError } = await supabase
+      .from('in_app_notifications')
+      .insert({
+        user_id: userId,
+        title: '✅ Application Submitted Successfully',
+        content: `Your application #${applicationNumber} for ${program} has been submitted and is now under review.`,
+        type: 'success',
+        action_url: `/student/application/${applicationId}`,
+        read: false
+      })
+
+    if (inAppError) {
+      console.error('Failed to create in-app notification:', inAppError)
+      errors.push(`In-app notification: ${inAppError.message}`)
+    } else {
+      inAppSuccess = true
+    }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Failed to create in-app notification:', err)
+    errors.push(`In-app notification: ${errorMessage}`)
+  }
+
+  // 3. Insert into email_notifications table for tracking
+  try {
+    const { error: emailNotifError } = await supabase
+      .from('email_notifications')
+      .insert({
+        application_id: applicationId,
+        recipient_email: email,
+        subject: '✅ Application Submitted Successfully - MIHAS',
+        body: `Application #${applicationNumber} for ${program} submitted successfully. Your application is now under review.`,
+        status: 'pending'
+      })
+
+    if (emailNotifError) {
+      console.error('Failed to create email notification tracking:', emailNotifError)
+      errors.push(`Email notification tracking: ${emailNotifError.message}`)
+    } else {
+      emailNotificationSuccess = true
+    }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Failed to create email notification tracking:', err)
+    errors.push(`Email notification tracking: ${errorMessage}`)
+  }
+
+  return {
+    success: emailQueueSuccess || inAppSuccess || emailNotificationSuccess,
+    emailQueueSuccess,
+    inAppSuccess,
+    emailNotificationSuccess,
+    errors
+  }
+}
+
 // Retry helper for large file uploads
 const retryWithBackoff = async <T>(
   fn: () => Promise<T>,
@@ -99,6 +223,29 @@ export function useApplicationSubmitFixed() {
         queryClient.invalidateQueries({ queryKey: ['application_drafts'] }),
         queryClient.refetchQueries({ queryKey: ['applications'] })
       ])
+
+      // Trigger submission notifications (non-blocking - errors don't fail submission)
+      // This inserts into email_queue, in_app_notifications, and email_notifications tables
+      try {
+        const notificationResult = await triggerSubmissionNotifications({
+          applicationId,
+          userId: user.id,
+          email: data.email,
+          fullName: data.full_name,
+          applicationNumber: updatedApp.application_number || applicationId.slice(0, 8).toUpperCase(),
+          program: data.program
+        })
+
+        if (notificationResult.errors.length > 0) {
+          console.warn('Some notifications failed to send:', notificationResult.errors)
+        }
+      } catch (notificationError) {
+        // Log but don't fail the submission - notifications are non-critical
+        console.error('Failed to trigger submission notifications:', notificationError)
+      }
+
+      // Dispatch custom event to trigger dashboard refresh
+      window.dispatchEvent(new CustomEvent('applicationCreated'))
 
       setSuccess(true)
       

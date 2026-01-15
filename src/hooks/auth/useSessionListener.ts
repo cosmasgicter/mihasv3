@@ -136,6 +136,11 @@ export function useSessionListener() {
     }
 
     try {
+      // Clear all cached data from previous sessions before login
+      // This prevents stale data from being shown after login
+      // Requirements: 4.3 - Login Cache Clear
+      queryClient.clear()
+
       // Use optimized login with parallel data fetching and dashboard preloading
       const result = await optimizedLogin(email, password, queryClient)
 
@@ -150,6 +155,12 @@ export function useSessionListener() {
       if (result.profile) {
         queryClient.setQueryData(['user-profile', result.user.id], result.profile)
       }
+
+      // Dispatch custom event to notify components of successful login
+      // This allows components to refresh their data if needed
+      window.dispatchEvent(new CustomEvent('userLoggedIn', { 
+        detail: { userId: result.user.id } 
+      }))
 
       return {
         session: result.session,
@@ -196,6 +207,10 @@ export function useSessionListener() {
         return { error: result.error || result.message || result.details || 'Unable to create account' }
       }
 
+      // Clear any stale cached data before auto sign-in
+      // Requirements: 4.3 - Login Cache Clear (applies to signup auto-login too)
+      queryClient.clear()
+
       // Auto sign in after successful signup
       const supabase = getSupabaseClient()
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -214,6 +229,12 @@ export function useSessionListener() {
 
       // Set user state and return session
       setUser(signInData.user)
+      
+      // Dispatch custom event to notify components of successful login
+      window.dispatchEvent(new CustomEvent('userLoggedIn', { 
+        detail: { userId: signInData.user.id } 
+      }))
+      
       return { user: signInData.user, session: signInData.session }
     } catch (error) {
       if (error instanceof Error) {
@@ -224,7 +245,7 @@ export function useSessionListener() {
       }
       return { error: 'Unable to create account. Please try again.' }
     }
-  }, [apiBaseUrl])
+  }, [apiBaseUrl, queryClient])
 
   const signOut = useCallback(async () => {
     // Clear user state immediately to prevent stale data

@@ -1,0 +1,103 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "fetch": {
+      "command": "C:\\Users\\Cosma\\AppData\\Roaming\\Python\\Python314\\Scripts\\uvx.exe",
+      "args": ["mcp-server-fetch"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"],
+      "env": {
+        "CHROME_REMOTE_DEBUGGING_PORT": "9222"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "sqlite": {
+      "command": "C:\\Users\\Cosma\\AppData\\Roaming\\Python\\Python314\\Scripts\\uvx.exe",
+      "args": ["mcp-server-sqlite", "--db-path", "./database.db"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "shadcn": {
+      "command": "npx",
+      "args": ["-y", "shadcn@latest", "mcp"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-dbfa3364-1dd8-484e-bdf0-88016070cee1"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": ""
+      },
+      "disabled": true,
+      "autoApprove": []
+    },
+    "brave-search": {
+      "command": "C:\\Users\\Cosma\\AppData\\Roaming\\Python\\Python314\\Scripts\\uvx.exe",
+      "args": ["mcp-server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": ""
+      },
+      "disabled": true,
+      "autoApprove": []
+    }
+  },
+  "powers": {
+    "mcpServers": {
+      "power-supabase-hosted-supabase": {
+        "url": "https://mcp.supabase.com/mcp",
+        "disabled": false,
+        "autoApprove": ["apply_migration", "list_tables", "list_projects", "execute_sql"]
+      },
+      "power-strands-strands-agents": {
+        "command": "uvx",
+        "args": ["strands-agents-mcp-server"],
+        "env": {
+          "FASTMCP_LOG_LEVEL": "INFO"
+        },
+        "disabled": true
+      },
+      "power-aws-agentcore-agentcore-mcp-server": {
+        "command": "uvx",
+        "args": ["awslabs.amazon-bedrock-agentcore-mcp-server@latest"],
+        "disabled": true
+      }
+    }
+  }
+}

@@ -196,8 +196,26 @@ export const applicationsData = {
     
     return useMutation({
       mutationFn: (data: ApplicationCreateData) => applicationService.create(data),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applications })
+      onSuccess: async () => {
+        // Force immediate invalidation and refetch of all related queries
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applications,
+          refetchType: 'all' // Refetch all matching queries
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applicationStats,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: ['payment-status'],
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: ['student-dashboard'],
+          refetchType: 'all'
+        })
+        // Dispatch custom event for components not using React Query
+        window.dispatchEvent(new CustomEvent('applicationCreated'))
       }
     })
   },
@@ -208,9 +226,25 @@ export const applicationsData = {
     return useMutation({
       mutationFn: ({ id, data }: { id: string; data: ApplicationUpdateData }) => 
         applicationService.update(id, data),
-      onSuccess: (_, { id }) => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applicationDetail(id) })
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applications })
+      onSuccess: async (_, { id }) => {
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applicationDetail(id),
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applications,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applicationStats,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: ['payment-status'],
+          refetchType: 'all'
+        })
+        // Dispatch custom event for dashboard refresh
+        window.dispatchEvent(new CustomEvent('applicationUpdated'))
       }
     })
   },
@@ -221,9 +255,25 @@ export const applicationsData = {
     return useMutation({
       mutationFn: ({ id, status, notes }: { id: string; status: string; notes?: string }) =>
         applicationService.updateStatus(id, status, notes),
-      onSuccess: (_, { id }) => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applicationDetail(id) })
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applications })
+      onSuccess: async (_, { id }) => {
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applicationDetail(id),
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applications,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applicationStats,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: ['admin-dashboard'],
+          refetchType: 'all'
+        })
+        // Dispatch custom event for status change
+        window.dispatchEvent(new CustomEvent('applicationStatusChanged'))
       }
     })
   },
@@ -234,8 +284,15 @@ export const applicationsData = {
     return useMutation({
       mutationFn: ({ id, grades }: { id: string; grades: Array<{ subject_id: string; grade: number }> }) =>
         applicationService.syncGrades(id, grades),
-      onSuccess: (_, { id }) => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applicationDetail(id) })
+      onSuccess: async (_, { id }) => {
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applicationDetail(id),
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applications,
+          refetchType: 'all'
+        })
       }
     })
   },
@@ -245,9 +302,18 @@ export const applicationsData = {
     
     return useMutation({
       mutationFn: (id: string) => applicationService.delete(id),
-      onSuccess: (_, id) => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applications })
+      onSuccess: async (_, id) => {
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applications,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applicationStats,
+          refetchType: 'all'
+        })
         queryClient.removeQueries({ queryKey: QUERY_KEYS.applicationDetail(id) })
+        // Dispatch custom event for deletion
+        window.dispatchEvent(new CustomEvent('applicationDeleted'))
       }
     })
   },
@@ -268,8 +334,20 @@ export const applicationsData = {
           })
         })
       },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applications })
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applications,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applicationStats,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: ['admin-dashboard'],
+          refetchType: 'all'
+        })
+        window.dispatchEvent(new CustomEvent('applicationStatusChanged'))
       }
     })
   },
@@ -289,8 +367,20 @@ export const applicationsData = {
           })
         })
       },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applications })
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applications,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: ['payment-status'],
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: ['payment-stats'],
+          refetchType: 'all'
+        })
+        window.dispatchEvent(new CustomEvent('paymentStatusChanged'))
       }
     })
   },
@@ -309,8 +399,16 @@ export const applicationsData = {
           })
         })
       },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.applications })
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applications,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.applicationStats,
+          refetchType: 'all'
+        })
+        window.dispatchEvent(new CustomEvent('applicationDeleted'))
       }
     })
   }

@@ -25,6 +25,8 @@ import { useToastStore } from '@/components/ui/Toast'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { Container } from '@/components/ui/Container'
+import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
+import { useStudentDashboardRealtime } from '@/hooks/useStudentDashboardRealtime'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -41,6 +43,31 @@ export default function StudentDashboard() {
   const hasLoadedRef = useRef(false)
   const abortControllerRef = useRef<AbortController | null>(null)
   const confirmDialog = useConfirmDialog()
+  
+  // Manual refresh hook for React Query cache invalidation
+  const { forceRefresh, isRefreshing: isManualRefreshing } = useStudentDashboardRefresh({
+    onSuccess: () => {
+      // Also reload local data after cache invalidation
+      loadDashboardData()
+    },
+    onError: (error) => {
+      console.error('Manual refresh failed:', error)
+      useToastStore.getState().addToast('error', 'Failed to refresh data')
+    }
+  })
+
+  // Real-time subscription for automatic dashboard updates
+  // Requirements: 1.1, 1.2 - Dashboard real-time data refresh
+  useStudentDashboardRealtime({
+    onApplicationChange: () => {
+      // Reload local data when application changes are detected via realtime
+      loadDashboardData()
+    },
+    onNotificationChange: () => {
+      // Could show a toast or update notification badge here
+      console.log('[StudentDashboard] New notification received via realtime')
+    }
+  })
 
   useEffect(() => {
     if (user) {
@@ -287,12 +314,12 @@ export default function StudentDashboard() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => loadDashboardData()}
-                    disabled={isRefreshing}
+                    onClick={() => forceRefresh()}
+                    disabled={isRefreshing || isManualRefreshing}
                     className="flex items-center gap-2"
                   >
-                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                    <RefreshCw className={`h-4 w-4 ${(isRefreshing || isManualRefreshing) ? 'animate-spin' : ''}`} />
+                    {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
                   </Button>
                   <ProfileCompletionBadge completionPercentage={profileCompletion} />
                 </div>

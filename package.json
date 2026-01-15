@@ -158,6 +158,7 @@
     "eslint": "^9.17.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
+    "fast-check": "^4.5.3",
     "globals": "^15.12.0",
     "jsdom": "^25.0.1",
     "shadcn": "^3.6.3",
