@@ -1,155 +1,336 @@
 /**
- * Lighthouse Performance Audit Script
+ * Comprehensive Lighthouse Performance Audit
  * 
- * Runs Lighthouse audit on key pages and verifies scores meet requirements
- * Requirement: Lighthouse score > 90
+ * Runs Lighthouse audits on all major pages and generates a report.
+ * 
+ * Requirements: 14.1, 14.5 - Ensure Lighthouse score > 90
+ * Task: 25.4 - Run final performance audit
+ * 
+ * Usage: node scripts/lighthouse-audit.js
  */
 
-import lighthouse from 'lighthouse';
-import * as chromeLauncher from 'chrome-launcher';
-import fs from 'fs';
-import path from 'path';
+const lighthouse = require('lighthouse');
+const chromeLauncher = require('chrome-launcher');
+const fs = require('fs');
+const path = require('path');
 
+// Pages to audit
 const PAGES_TO_AUDIT = [
-  { url: 'http://localhost:5173/', name: 'Home' },
-  { url: 'http://localhost:5173/track', name: 'Track Application' },
-  { url: 'http://localhost:5173/programs', name: 'Programs' },
-  { url: 'http://localhost:5173/about', name: 'About' }
+  { name: 'Homepage', url: 'http://localhost:5173/' },
+  { name: 'Programs', url: 'http://localhost:5173/programs' },
+  { name: 'About', url: 'http://localhost:5173/about' },
+  { name: 'Track Application', url: 'http://localhost:5173/track-application' },
+  { name: 'Sign In', url: 'http://localhost:5173/auth/signin' },
 ];
 
-const REQUIRED_SCORE = 90;
-
-async function runLighthouse(url, name) {
-  console.log(`\n🔍 Running Lighthouse audit for: ${name}`);
-  console.log(`   URL: ${url}`);
-
-  const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless'] });
-  
-  const options = {
-    logLevel: 'info',
-    output: 'json',
-    onlyCategories: ['performance'],
-    port: chrome.port,
+// Lighthouse configuration
+const lighthouseConfig = {
+  extends: 'lighthouse:default',
+  settings: {
+    onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
+    formFactor: 'desktop',
     throttling: {
       rttMs: 40,
       throughputKbps: 10 * 1024,
-      cpuSlowdownMultiplier: 1
-    }
+      cpuSlowdownMultiplier: 1,
+    },
+    screenEmulation: {
+      mobile: false,
+      width: 1920,
+      height: 1080,
+      deviceScaleFactor: 1,
+      disabled: false,
+    },
+  },
+};
+
+// Mobile configuration
+const mobileConfig = {
+  ...lighthouseConfig,
+  settings: {
+    ...lighthouseConfig.settings,
+    formFactor: 'mobile',
+    throttling: {
+      rttMs: 150,
+      throughputKbps: 1.6 * 1024,
+      cpuSlowdownMultiplier: 4,
+    },
+    screenEmulation: {
+      mobile: true,
+      width: 375,
+      height: 667,
+      deviceScaleFactor: 2,
+      disabled: false,
+    },
+  },
+};
+
+// Performance thresholds
+const THRESHOLDS = {
+  performance: 90,
+  accessibility: 90,
+  bestPractices: 90,
+  seo: 90,
+  fcp: 1500,  // First Contentful Paint (ms)
+  lcp: 2000,  // Largest Contentful Paint (ms)
+  fid: 100,   // First Input Delay (ms)
+  cls: 0.1,   // Cumulative Layout Shift
+  tti: 3000,  // Time to Interactive (ms)
+};
+
+/**
+ * Run Lighthouse audit on a URL
+ */
+async function runLighthouse(url, config) {
+  const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless'] });
+  const options = {
+    logLevel: 'error',
+    output: 'json',
+    port: chrome.port,
   };
-
+  
   try {
-    const runnerResult = await lighthouse(url, options);
+    const runnerResult = await lighthouse(url, options, config);
     await chrome.kill();
-
-    const { lhr } = runnerResult;
-    const performanceScore = lhr.categories.performance.score * 100;
-
-    // Extract key metrics
-    const metrics = {
-      score: performanceScore,
-      fcp: lhr.audits['first-contentful-paint'].numericValue,
-      lcp: lhr.audits['largest-contentful-paint'].numericValue,
-      tti: lhr.audits['interactive'].numericValue,
-      si: lhr.audits['speed-index'].numericValue,
-      tbt: lhr.audits['total-blocking-time'].numericValue,
-      cls: lhr.audits['cumulative-layout-shift'].numericValue
-    };
-
-    return {
-      name,
-      url,
-      ...metrics,
-      passed: performanceScore >= REQUIRED_SCORE
-    };
+    return runnerResult;
   } catch (error) {
-    console.error(`❌ Error running Lighthouse for ${name}:`, error.message);
     await chrome.kill();
-    return {
-      name,
-      url,
-      error: error.message,
-      passed: false
-    };
+    throw error;
   }
 }
 
-async function main() {
-  console.log('🚀 Starting Lighthouse Performance Audit');
-  console.log(`📊 Required Score: ${REQUIRED_SCORE}`);
-  console.log('=' .repeat(60));
+/**
+ * Extract key metrics from Lighthouse result
+ */
+function extractMetrics(lhr) {
+  const { categories, audits } = lhr;
+  
+  return {
+    scores: {
+      performance: Math.round(categories.performance.score * 100),
+      accessibility: Math.round(categories.accessibility.score * 100),
+      bestPractices: Math.round(categories['best-practices'].score * 100),
+      seo: Math.round(categories.seo.score * 100),
+    },
+    metrics: {
+      fcp: audits['first-contentful-paint'].numericValue,
+      lcp: audits['largest-contentful-paint'].numericValue,
+      fid: audits['max-potential-fid']?.numericValue || 0,
+      cls: audits['cumulative-layout-shift'].numericValue,
+      tti: audits['interactive'].numericValue,
+      speedIndex: audits['speed-index'].numericValue,
+      tbt: audits['total-blocking-time'].numericValue,
+    },
+    opportunities: audits['diagnostics']?.details?.items || [],
+  };
+}
 
-  const results = [];
+/**
+ * Check if metrics meet thresholds
+ */
+function checkThresholds(metrics) {
+  const results = {
+    performance: metrics.scores.performance >= THRESHOLDS.performance,
+    accessibility: metrics.scores.accessibility >= THRESHOLDS.accessibility,
+    bestPractices: metrics.scores.bestPractices >= THRESHOLDS.bestPractices,
+    seo: metrics.scores.seo >= THRESHOLDS.seo,
+    fcp: metrics.metrics.fcp <= THRESHOLDS.fcp,
+    lcp: metrics.metrics.lcp <= THRESHOLDS.lcp,
+    cls: metrics.metrics.cls <= THRESHOLDS.cls,
+    tti: metrics.metrics.tti <= THRESHOLDS.tti,
+  };
+  
+  const allPassed = Object.values(results).every(r => r);
+  
+  return { results, allPassed };
+}
 
-  for (const page of PAGES_TO_AUDIT) {
-    const result = await runLighthouse(page.url, page.name);
-    results.push(result);
-
-    if (result.error) {
-      console.log(`\n❌ ${result.name}: ERROR`);
-      console.log(`   ${result.error}`);
-    } else {
-      const status = result.passed ? '✅' : '❌';
-      console.log(`\n${status} ${result.name}: ${result.score.toFixed(1)}/100`);
-      console.log(`   First Contentful Paint: ${(result.fcp / 1000).toFixed(2)}s`);
-      console.log(`   Largest Contentful Paint: ${(result.lcp / 1000).toFixed(2)}s`);
-      console.log(`   Time to Interactive: ${(result.tti / 1000).toFixed(2)}s`);
-      console.log(`   Speed Index: ${(result.si / 1000).toFixed(2)}s`);
-      console.log(`   Total Blocking Time: ${result.tbt.toFixed(0)}ms`);
-      console.log(`   Cumulative Layout Shift: ${result.cls.toFixed(3)}`);
-    }
+/**
+ * Format metric value
+ */
+function formatMetric(value, unit = 'ms') {
+  if (unit === 'ms') {
+    return `${Math.round(value)}ms`;
   }
+  return value.toFixed(3);
+}
 
-  // Summary
-  console.log('\n' + '='.repeat(60));
-  console.log('📈 SUMMARY');
-  console.log('='.repeat(60));
-
-  const passedCount = results.filter(r => r.passed).length;
-  const totalCount = results.length;
-  const allPassed = passedCount === totalCount;
-
-  results.forEach(result => {
-    if (!result.error) {
-      const status = result.passed ? '✅' : '❌';
-      console.log(`${status} ${result.name}: ${result.score.toFixed(1)}/100`);
-    }
+/**
+ * Print audit results
+ */
+function printResults(results) {
+  console.log('\n' + '='.repeat(80));
+  console.log('LIGHTHOUSE PERFORMANCE AUDIT REPORT');
+  console.log('='.repeat(80));
+  console.log(`\nTimestamp: ${new Date().toISOString()}`);
+  
+  console.log(`\nThresholds:`);
+  console.log(`  Performance: >= ${THRESHOLDS.performance}`);
+  console.log(`  Accessibility: >= ${THRESHOLDS.accessibility}`);
+  console.log(`  Best Practices: >= ${THRESHOLDS.bestPractices}`);
+  console.log(`  SEO: >= ${THRESHOLDS.seo}`);
+  console.log(`  FCP: <= ${THRESHOLDS.fcp}ms`);
+  console.log(`  LCP: <= ${THRESHOLDS.lcp}ms`);
+  console.log(`  CLS: <= ${THRESHOLDS.cls}`);
+  
+  console.log('\n' + '-'.repeat(80));
+  console.log('DESKTOP RESULTS');
+  console.log('-'.repeat(80));
+  
+  results.desktop.forEach((result, index) => {
+    const status = result.allPassed ? '✓' : '✗';
+    const color = result.allPassed ? '\x1b[32m' : '\x1b[31m';
+    
+    console.log(`\n${index + 1}. ${result.pageName} (${result.url})`);
+    console.log(`   ${color}${status} Overall: ${result.allPassed ? 'PASS' : 'FAIL'}\x1b[0m`);
+    
+    console.log(`\n   Scores:`);
+    Object.entries(result.metrics.scores).forEach(([key, value]) => {
+      const threshold = THRESHOLDS[key];
+      const passed = value >= threshold;
+      const scoreColor = passed ? '\x1b[32m' : '\x1b[31m';
+      console.log(`     ${scoreColor}${key}: ${value}/100\x1b[0m`);
+    });
+    
+    console.log(`\n   Core Web Vitals:`);
+    console.log(`     FCP: ${formatMetric(result.metrics.metrics.fcp)}`);
+    console.log(`     LCP: ${formatMetric(result.metrics.metrics.lcp)}`);
+    console.log(`     CLS: ${formatMetric(result.metrics.metrics.cls, '')}`);
+    console.log(`     TTI: ${formatMetric(result.metrics.metrics.tti)}`);
   });
-
-  console.log(`\n${passedCount}/${totalCount} pages passed (score >= ${REQUIRED_SCORE})`);
-
-  // Save results to file
-  const reportPath = path.join(process.cwd(), 'lighthouse-report.json');
-  fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
-  console.log(`\n📄 Full report saved to: ${reportPath}`);
-
-  if (allPassed) {
-    console.log('\n🎉 All pages meet the performance requirements!');
-    process.exit(0);
+  
+  console.log('\n' + '-'.repeat(80));
+  console.log('MOBILE RESULTS');
+  console.log('-'.repeat(80));
+  
+  results.mobile.forEach((result, index) => {
+    const status = result.allPassed ? '✓' : '✗';
+    const color = result.allPassed ? '\x1b[32m' : '\x1b[31m';
+    
+    console.log(`\n${index + 1}. ${result.pageName} (${result.url})`);
+    console.log(`   ${color}${status} Overall: ${result.allPassed ? 'PASS' : 'FAIL'}\x1b[0m`);
+    
+    console.log(`\n   Scores:`);
+    Object.entries(result.metrics.scores).forEach(([key, value]) => {
+      const threshold = THRESHOLDS[key];
+      const passed = value >= threshold;
+      const scoreColor = passed ? '\x1b[32m' : '\x1b[31m';
+      console.log(`     ${scoreColor}${key}: ${value}/100\x1b[0m`);
+    });
+    
+    console.log(`\n   Core Web Vitals:`);
+    console.log(`     FCP: ${formatMetric(result.metrics.metrics.fcp)}`);
+    console.log(`     LCP: ${formatMetric(result.metrics.metrics.lcp)}`);
+    console.log(`     CLS: ${formatMetric(result.metrics.metrics.cls, '')}`);
+    console.log(`     TTI: ${formatMetric(result.metrics.metrics.tti)}`);
+  });
+  
+  console.log('\n' + '='.repeat(80));
+  
+  const desktopPassed = results.desktop.filter(r => r.allPassed).length;
+  const mobilePassed = results.mobile.filter(r => r.allPassed).length;
+  const totalPages = PAGES_TO_AUDIT.length;
+  
+  if (desktopPassed === totalPages && mobilePassed === totalPages) {
+    console.log('\x1b[32m✓ PERFORMANCE AUDIT PASSED\x1b[0m');
+    console.log('All pages meet performance thresholds on both desktop and mobile!');
   } else {
-    console.log('\n⚠️  Some pages did not meet the performance requirements.');
-    process.exit(1);
+    console.log('\x1b[31m✗ PERFORMANCE AUDIT FAILED\x1b[0m');
+    console.log(`Desktop: ${desktopPassed}/${totalPages} pages passed`);
+    console.log(`Mobile: ${mobilePassed}/${totalPages} pages passed`);
   }
+  
+  console.log('='.repeat(80) + '\n');
+}
+
+/**
+ * Main audit function
+ */
+async function runAudit() {
+  console.log('Starting Lighthouse performance audit...');
+  console.log('This may take several minutes...\n');
+  
+  const results = {
+    desktop: [],
+    mobile: [],
+  };
+  
+  // Run desktop audits
+  console.log('Running desktop audits...');
+  for (const page of PAGES_TO_AUDIT) {
+    console.log(`  Auditing: ${page.name}...`);
+    
+    try {
+      const result = await runLighthouse(page.url, lighthouseConfig);
+      const metrics = extractMetrics(result.lhr);
+      const thresholdCheck = checkThresholds(metrics);
+      
+      results.desktop.push({
+        pageName: page.name,
+        url: page.url,
+        metrics,
+        ...thresholdCheck,
+      });
+    } catch (error) {
+      console.error(`  Error auditing ${page.name}:`, error.message);
+      results.desktop.push({
+        pageName: page.name,
+        url: page.url,
+        error: error.message,
+        allPassed: false,
+      });
+    }
+  }
+  
+  // Run mobile audits
+  console.log('\nRunning mobile audits...');
+  for (const page of PAGES_TO_AUDIT) {
+    console.log(`  Auditing: ${page.name}...`);
+    
+    try {
+      const result = await runLighthouse(page.url, mobileConfig);
+      const metrics = extractMetrics(result.lhr);
+      const thresholdCheck = checkThresholds(metrics);
+      
+      results.mobile.push({
+        pageName: page.name,
+        url: page.url,
+        metrics,
+        ...thresholdCheck,
+      });
+    } catch (error) {
+      console.error(`  Error auditing ${page.name}:`, error.message);
+      results.mobile.push({
+        pageName: page.name,
+        url: page.url,
+        error: error.message,
+        allPassed: false,
+      });
+    }
+  }
+  
+  // Print results
+  printResults(results);
+  
+  // Save detailed report
+  const reportPath = path.join(process.cwd(), 'lighthouse-audit-report.json');
+  fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
+  console.log(`\nDetailed report saved to: ${reportPath}\n`);
+  
+  // Exit with appropriate code
+  const allPassed = 
+    results.desktop.every(r => r.allPassed) &&
+    results.mobile.every(r => r.allPassed);
+  
+  process.exit(allPassed ? 0 : 1);
 }
 
 // Check if dev server is running
-async function checkDevServer() {
-  try {
-    const response = await fetch('http://localhost:5173/');
-    return response.ok;
-  } catch (error) {
-    return false;
-  }
-}
+console.log('Make sure the dev server is running on http://localhost:5173');
+console.log('Run: npm run dev\n');
 
 // Run the audit
-(async () => {
-  const serverRunning = await checkDevServer();
-  
-  if (!serverRunning) {
-    console.error('❌ Dev server is not running on http://localhost:5173/');
-    console.error('   Please start the dev server with: npm run dev');
-    process.exit(1);
-  }
-
-  await main();
-})();
+runAudit().catch(error => {
+  console.error('Audit failed:', error);
+  process.exit(1);
+});

@@ -1,54 +1,23 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/components/ui/Toast'
 import { Activity, Users, FileText, Clock, TrendingUp, RefreshCw, Zap } from 'lucide-react'
-
-interface RealtimeMetrics {
-  activeApplications: number
-  todaySubmissions: number
-  pendingReviews: number
-  averageProcessingTime: number
-  systemLoad: number
-  lastUpdated: string
-}
+import { useRealtimeMetrics } from '@/hooks/useAnalyticsQueries'
 
 export default function RealtimeMetrics() {
-  const [loading, setLoading] = useState(true)
-  const [metrics, setMetrics] = useState<RealtimeMetrics | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
   const { error: showError } = useToastStore()
 
-  useEffect(() => {
-    loadMetrics()
-
-    // Auto-refresh every 30 seconds if enabled
-    if (autoRefresh) {
-      const interval = setInterval(loadMetrics, 30000)
-      return () => clearInterval(interval)
-    }
-  }, [autoRefresh])
+  // Use React Query hook with auto-refresh
+  const { data: metrics, isLoading, refetch } = useRealtimeMetrics(autoRefresh ? 30000 : undefined)
 
   const loadMetrics = async () => {
     try {
-      const response = await fetch('/analytics/realtime-metrics', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to load real-time metrics')
-      }
-
-      const data = await response.json()
-      setMetrics(data)
-      setLoading(false)
+      await refetch()
     } catch (error) {
       console.error('Failed to load metrics:', error)
       showError('Failed to load real-time metrics', error instanceof Error ? error.message : undefined)
-      setLoading(false)
     }
   }
 
@@ -64,7 +33,7 @@ export default function RealtimeMetrics() {
     return 'bg-success/10'
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />

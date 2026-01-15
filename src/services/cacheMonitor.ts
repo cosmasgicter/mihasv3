@@ -29,6 +29,16 @@ export interface CacheMetrics {
   }
   averageQueryTime: number
   slowQueries: SlowQuery[]
+  serviceWorkerCache?: ServiceWorkerCacheMetrics
+}
+
+export interface ServiceWorkerCacheMetrics {
+  cacheNames: string[]
+  totalCaches: number
+  totalCacheSize: number
+  cachesByType: Record<string, number>
+  oldestCacheAge?: number
+  staleContentDetected: boolean
 }
 
 export interface SlowQuery {
@@ -199,6 +209,13 @@ class CacheMonitorService {
       slowQueries
     }
 
+    // Collect service worker cache metrics if available
+    this.collectServiceWorkerMetrics().then(swMetrics => {
+      if (swMetrics) {
+        metrics.serviceWorkerCache = swMetrics
+      }
+    })
+
     // Store metrics
     this.metrics.push(metrics)
     if (this.metrics.length > this.MAX_METRICS_HISTORY) {
@@ -228,6 +245,88 @@ class CacheMonitorService {
 
     if (slowQueries.length > 0) {
       console.warn(`[Cache Monitor] Found ${slowQueries.length} slow queries`)
+    }
+  }
+
+  /**
+   * Collect service worker cache metrics
+   */
+  private async collectServiceWorkerMetrics(): Promise<ServiceWorkerCacheMetrics | null> {
+    if (!('caches' in window)) {
+      return null
+    }
+
+    try {
+      const cacheNames = await caches.keys()
+      const cachesByType: Record<string, number> = {}
+      let totalCacheSize = 0
+      let oldestCacheAge: number | undefined
+      let staleContentDetected = false
+
+      // Analyze each cache
+      for (const cacheName of cacheNames) {
+        const cache = await caches.open(cacheName)
+        const requests = await cache.keys()
+
+        // Categorize cache by name
+        if (cacheName.includes('images')) {
+          cachesByType.images = (cachesByType.images || 0) + requests.length
+        } else if (cacheName.includes('assets')) {
+          cachesByType.assets = (cachesByType.assets || 0) + requests.length
+        } else if (cacheName.includes('api')) {
+          cachesByType.api = (cachesByType.api || 0) + requests.length
+        } else if (cacheName.includes('fonts')) {
+          cachesByType.fonts = (cachesByType.fonts || 0) + requests.length
+        } else {
+          cachesByType.other = (cachesByType.other || 0) + requests.length
+        }
+
+        // Estimate cache size and check for stale content
+        for (const request of requests) {
+          const response = await cache.match(request)
+          if (response) {
+            const blob = await response.blob()
+            totalCacheSize += blob.size
+
+            // Check cache age
+            const dateHeader = response.headers.get('date')
+            if (dateHeader) {
+              const cacheAge = Date.now() - new Date(dateHeader).getTime()
+              if (!oldestCacheAge || cacheAge > oldestCacheAge) {
+                oldestCacheAge = cacheAge
+              }
+
+              // Flag stale content (older than 7 days)
+              if (cacheAge > 7 * 24 * 60 * 60 * 1000) {
+                staleContentDetected = true
+              }
+            }
+          }
+        }
+      }
+
+      const metrics: ServiceWorkerCacheMetrics = {
+        cacheNames,
+        totalCaches: cacheNames.length,
+        totalCacheSize,
+        cachesByType,
+        oldestCacheAge,
+        staleContentDetected
+      }
+
+      // Log service worker cache metrics
+      this.logPerformance('sw_cache_size', totalCacheSize, 'bytes')
+      this.logPerformance('sw_cache_count', cacheNames.length, 'count')
+
+      if (staleContentDetected) {
+        console.warn('[Cache Monitor] Stale content detected in service worker cache')
+        this.logPerformance('stale_content_detected', 1, 'boolean')
+      }
+
+      return metrics
+    } catch (error) {
+      console.error('[Cache Monitor] Failed to collect service worker metrics:', error)
+      return null
     }
   }
 
@@ -406,6 +505,29 @@ class CacheMonitorService {
       logsCount: this.performanceLogs.length,
       initialized: this.queryClient !== null
     }
+  }
+
+  /**
+   * Log cache-related error
+   */
+  logCacheError(error: Error, context?: Record<string, any>): void {
+    console.error('[Cache Monitor] Cache error:', error.message, context)
+    this.logPerformance('cache_error', 1, 'count', {
+      error: error.message,
+      ...context
+    })
+  }
+
+  /**
+   * Check for stale content and log warnings
+   */
+  async checkStaleContent(): Promise<boolean> {
+    const metrics = this.getCurrentMetrics()
+    if (metrics?.serviceWorkerCache?.staleContentDetected) {
+      console.warn('[Cache Monitor] Stale content detected in cache')
+      return true
+    }
+    return false
   }
 }
 

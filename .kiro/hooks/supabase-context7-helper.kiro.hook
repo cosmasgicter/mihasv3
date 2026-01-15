@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Supabase & Context7 Reference",
+  "description": "Automatically reminds to use Supabase project_id: mylgegkqoddcrxtwcclb and Context7 MCP for documentation when working on database-related tasks",
+  "version": "1",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "echo \"Remember: Use Supabase project_id: mylgegkqoddcrxtwcclb and Context7 MCP for documentation\""
+  }
+}

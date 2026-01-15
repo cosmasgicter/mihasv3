@@ -3,82 +3,34 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/components/ui/Toast'
 import { TrendingUp, Calendar, Users, BarChart3, RefreshCw, Download } from 'lucide-react'
-
-interface PredictionData {
-  period: string
-  predictedVolume: number
-  confidence: number
-  trend: 'up' | 'down' | 'stable'
-}
+import { usePredictiveAnalytics, useGeneratePredictiveReport } from '@/hooks/useAnalyticsQueries'
 
 export default function PredictiveAnalytics() {
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [predictions, setPredictions] = useState<PredictionData[]>([])
   const [timeRange, setTimeRange] = useState('30')
   const { success: showSuccess, error: showError } = useToastStore()
+  
+  // Use React Query hook for data fetching
+  const { data, isLoading, refetch, isFetching } = usePredictiveAnalytics(parseInt(timeRange))
+  const generateReportMutation = useGeneratePredictiveReport()
 
-  useEffect(() => {
-    loadPredictions()
-  }, [timeRange])
-
-  const loadPredictions = async () => {
-    try {
-      setLoading(true)
-      
-      // Call predictive analytics endpoint
-      const response = await fetch('/analytics/predictive/application-volume', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        },
-        body: JSON.stringify({
-          daysAhead: parseInt(timeRange),
-          includeConfidence: true
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to load predictions')
-      }
-
-      const data = await response.json()
-      setPredictions(data.predictions || [])
-    } catch (error) {
-      console.error('Failed to load predictions:', error)
-      showError('Failed to load predictions', error instanceof Error ? error.message : undefined)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const predictions = data?.predictions || []
 
   const refreshData = async () => {
-    setRefreshing(true)
-    await loadPredictions()
-    setRefreshing(false)
-    showSuccess('Predictions refreshed successfully')
+    try {
+      await refetch()
+      showSuccess('Predictions refreshed successfully')
+    } catch (error) {
+      showError('Failed to refresh predictions', error instanceof Error ? error.message : undefined)
+    }
   }
 
   const generateReport = async () => {
     try {
-      const response = await fetch('/analytics/predictive/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        },
-        body: JSON.stringify({
-          daysAhead: parseInt(timeRange),
-          format: 'pdf'
-        })
+      const blob = await generateReportMutation.mutateAsync({
+        daysAhead: parseInt(timeRange),
+        format: 'pdf'
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to generate report')
-      }
-
-      const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -95,7 +47,7 @@ export default function PredictiveAnalytics() {
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -121,10 +73,10 @@ export default function PredictiveAnalytics() {
             <div className="flex items-center space-x-4">
               <Button
                 onClick={refreshData}
-                disabled={refreshing}
+                disabled={isFetching}
                 className="bg-white/20 hover:bg-white/30 text-white border-white/30"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
               <Button

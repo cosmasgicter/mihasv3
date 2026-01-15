@@ -16,6 +16,7 @@ import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
+import { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerUpdatePrompt'
 import { cacheMonitor } from '@/services/cacheMonitor'
 
 // Optimized query client for better performance
@@ -96,6 +97,7 @@ function App() {
           <ToastContainer />
           <PWAInstallPrompt />
           <OfflineIndicator />
+          <ServiceWorkerUpdatePrompt />
           <Router>
             <AnalyticsTracker>
               <SessionMonitor />

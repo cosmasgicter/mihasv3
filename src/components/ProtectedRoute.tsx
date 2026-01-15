@@ -1,5 +1,5 @@
 import React from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthCheck } from '@/hooks/auth/useOptimizedAuthState'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 
@@ -11,10 +11,12 @@ interface ProtectedRouteProps {
  * Protected route guard using optimized auth state checks
  * Uses lightweight useAuthCheck hook that only checks authentication
  * without fetching profile data, reducing unnecessary API calls
- * Requirements: 4.5
+ * Preserves intended destination for redirect after login
+ * Requirements: 4.5, 11.5
  */
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuthCheck()
+  const location = useLocation()
 
   if (isLoading) {
     return (
@@ -28,7 +30,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth/signin" replace />
+    // Preserve the intended destination in location state
+    // This allows redirecting back after successful login
+    return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }
 
   return <>{children}</>

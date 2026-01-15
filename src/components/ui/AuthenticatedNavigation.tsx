@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useMemo } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import { Button } from './Button'
+import { BaseNavigation, NavigationItem } from '@/components/navigation/BaseNavigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -11,8 +11,6 @@ import {
   User,
   LogOut,
   Settings,
-  Menu,
-  X,
   Home,
   Plus,
   Bell
@@ -28,37 +26,7 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
   const { profile } = useProfileQuery()
   const isMobile = useIsMobile()
   const navigate = useNavigate()
-  const [isOpen, setIsOpen] = useState(false)
-
-  const toggleMenu = () => {
-    setIsOpen(!isOpen)
-    if (!isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-  }
-  
-  const closeMenu = () => {
-    setIsOpen(false)
-    document.body.style.overflow = ''
-  }
-  
-  // Cleanup on unmount and handle escape key
-  React.useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        closeMenu()
-      }
-    }
-    
-    document.addEventListener('keydown', handleEscape)
-    
-    return () => {
-      document.body.style.overflow = ''
-      document.removeEventListener('keydown', handleEscape)
-    }
-  }, [isOpen])
+  const location = useLocation()
 
   const handleSignOut = async () => {
     try {
@@ -71,268 +39,146 @@ export function AuthenticatedNavigation({ className }: AuthenticatedNavigationPr
     }
   }
 
-  const menuVariants = useMemo(() => ({
-    closed: {
-      opacity: 0,
-      x: '100%',
-      transition: {
-        duration: 0.25,
-        ease: [0.4, 0, 0.2, 1]
-      }
-    },
-    open: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        duration: 0.25,
-        ease: [0.4, 0, 0.2, 1]
-      }
-    }
-  }), [])
-
-  const itemVariants = useMemo(() => ({
-    closed: { opacity: 0, x: 20 },
-    open: (i: number) => ({
-      opacity: 1,
-      x: 0,
-      transition: {
-        delay: i * 0.05,
-        duration: 0.2,
-        ease: [0.4, 0, 0.2, 1]
-      }
-    })
-  }), [])
-
-  const navigationItems = [
+  const navigationItems: NavigationItem[] = useMemo(() => [
     { href: '/student/dashboard', label: 'Dashboard', icon: Home },
     { href: '/student/application-wizard', label: 'New Application', icon: Plus },
     { href: '/settings', label: 'Settings', icon: Settings },
     { href: '/student/notifications', label: 'Notifications', icon: Bell }
-  ]
+  ], [])
+
+  const isActiveRoute = (href: string) => {
+    return location.pathname.startsWith(href)
+  }
+
+  const handleNavigate = (href: string) => {
+    navigate(href)
+  }
+
+  // Brand component
+  const brand = (
+    <div className="flex items-center space-x-2 sm:space-x-3">
+      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+        <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <h1 className="text-sm sm:text-lg font-bold text-foreground truncate">
+          {profile?.full_name ? (
+            isMobile ? profile.full_name.split(' ')[0] : `Welcome, ${profile.full_name}`
+          ) : (
+            <span className="inline-flex items-center space-x-2">
+              <span className="h-4 w-16 bg-muted rounded animate-pulse" />
+            </span>
+          )}
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground truncate max-w-[200px]">
+          {profile?.email || (
+            <span className="inline-flex items-center">
+              <span className="h-3 w-24 bg-muted rounded animate-pulse" />
+            </span>
+          )}
+        </p>
+      </div>
+    </div>
+  )
+
+  // Desktop navigation
+  const desktopNav = (
+    <>
+      <NavigationMenu.Root>
+        <NavigationMenu.List className="flex items-center space-x-2">
+          {navigationItems.map((item) => {
+            const isActive = isActiveRoute(item.href)
+            const Icon = item.icon
+            return (
+              <NavigationMenu.Item key={item.href}>
+                <Link to={item.href}>
+                  <Button
+                    variant={isActive ? "default" : "ghost"}
+                    size="sm"
+                    className={cn(
+                      "flex items-center space-x-2 transition-all duration-200",
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "hover:bg-accent text-foreground"
+                    )}
+                  >
+                    {Icon && <Icon className="h-4 w-4" />}
+                    <span className="font-medium">{item.label}</span>
+                  </Button>
+                </Link>
+              </NavigationMenu.Item>
+            )
+          })}
+
+          <NavigationMenu.Item>
+            <NotificationBell />
+          </NavigationMenu.Item>
+
+          <NavigationMenu.Item>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="ml-2 text-destructive border-destructive/30 hover:bg-destructive/5 hover:border-destructive/30 flex items-center"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </NavigationMenu.Item>
+        </NavigationMenu.List>
+      </NavigationMenu.Root>
+      <div className="lg:hidden ml-2">
+        <NotificationBell />
+      </div>
+    </>
+  )
+
+  // Mobile header
+  const mobileHeader = (
+    <div className="flex items-center space-x-3">
+      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+        <User className="h-5 w-5 text-primary-foreground" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="font-bold text-foreground text-lg truncate">
+          {profile?.full_name || (
+            <span className="inline-flex items-center">
+              <span className="h-5 w-24 bg-muted rounded animate-pulse" />
+            </span>
+          )}
+        </p>
+        <p className="text-sm text-muted-foreground truncate max-w-[180px]">
+          {profile?.email || (
+            <span className="inline-flex items-center">
+              <span className="h-4 w-32 bg-muted rounded animate-pulse" />
+            </span>
+          )}
+        </p>
+      </div>
+    </div>
+  )
+
+  // Mobile footer
+  const mobileFooter = (
+    <button 
+      onClick={handleSignOut}
+      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-xl hover:from-destructive/90 hover:to-destructive/70 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target logout-button"
+    >
+      <LogOut className="h-5 w-5" />
+      <span>Sign Out</span>
+    </button>
+  )
 
   return (
-    <NavigationMenu.Root className={cn("nav-container bg-card/95 backdrop-blur-sm shadow-lg border-b border-border/50 sticky top-0 z-50 w-full transition-colors duration-500", className)}>
-      <div className="container-mobile">
-        <div className="flex justify-between items-center py-3 sm:py-4">
-          {/* User Info - Mobile First */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <motion.div 
-              className="flex items-center space-x-2 sm:space-x-3"
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            >
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-                <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h1 className="text-sm sm:text-lg font-bold text-gray-900 truncate">
-                  {profile?.full_name ? (
-                    isMobile ? profile.full_name.split(' ')[0] : `Welcome, ${profile.full_name}`
-                  ) : (
-                    <span className="inline-flex items-center space-x-2">
-                      <span className="h-4 w-16 bg-skeleton rounded animate-pulse" />
-                    </span>
-                  )}
-                </h1>
-                <p className="text-xs sm:text-sm text-gray-900 truncate max-w-[200px]">
-                  {profile?.email || (
-                    <span className="inline-flex items-center">
-                      <span className="h-3 w-24 bg-skeleton rounded animate-pulse" />
-                    </span>
-                  )}
-                </p>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Right Side Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="lg:hidden">
-              <NotificationBell />
-            </div>
-
-            {/* Desktop Navigation */}
-            <NavigationMenu.List className="hidden lg:flex items-center space-x-2">
-              {navigationItems.map((item) => (
-                <NavigationMenu.Item key={item.href}>
-                  <Link to={item.href}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center space-x-2 hover:bg-primary/5 hover:bg-blue-900/30 hover:text-primary hover:text-blue-400 smooth-transition"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span className="font-medium">{item.label}</span>
-                    </Button>
-                  </Link>
-                </NavigationMenu.Item>
-              ))}
-
-              <NavigationMenu.Item>
-                <NotificationBell />
-              </NavigationMenu.Item>
-
-              <NavigationMenu.Item>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="ml-2 text-destructive border-destructive/30 hover:bg-destructive/5 hover:border-destructive/30 flex items-center !visible !flex"
-                  style={{ visibility: 'visible !important', display: 'flex !important', opacity: '1 !important' }}
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
-              </NavigationMenu.Item>
-            </NavigationMenu.List>
-
-            {/* Mobile Menu Button */}
-            <motion.button
-              className="lg:hidden p-3 rounded-xl bg-card shadow-lg border border-border hover:bg-muted smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target nav-toggle-button"
-              onClick={toggleMenu}
-              whileTap={{ scale: 0.95 }}
-              aria-label={isOpen ? "Close menu" : "Open menu"}
-              aria-expanded={isOpen}
-              data-testid="auth-nav-mobile-toggle"
-            >
-              <AnimatePresence mode="wait">
-                {isOpen ? (
-                  <motion.div
-                    key="close"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <X className="h-6 w-6" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="menu"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Menu className="h-6 w-6" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.button>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden nav-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeMenu}
-            />
-
-            {/* Mobile Menu */}
-            <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-2xl border-l-4 border-primary lg:hidden nav-panel overflow-y-auto z-[9999] opacity-100 visible transition-colors duration-500"
-              variants={menuVariants}
-              initial="closed"
-              animate="open"
-              exit="closed"
-              data-testid="auth-nav-mobile-menu"
-            >
-              <div className="flex flex-col h-full">
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-primary/5 to-secondary/5 backdrop-blur-sm transition-colors duration-500">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-                      <User className="h-5 w-5 text-foreground" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-gray-900 text-lg truncate">
-                        {profile?.full_name || (
-                          <span className="inline-flex items-center">
-                            <span className="h-5 w-24 bg-skeleton rounded animate-pulse" />
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-sm text-gray-900 truncate max-w-[180px]">
-                        {profile?.email || (
-                          <span className="inline-flex items-center">
-                            <span className="h-4 w-32 bg-skeleton rounded animate-pulse" />
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <motion.button
-                    className="p-2 rounded-lg text-gray-900 hover:bg-accent smooth-transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 touch-target"
-                    onClick={closeMenu}
-                    whileTap={{ scale: 0.95 }}
-                    aria-label="Close menu"
-                  >
-                    <X className="h-6 w-6" />
-                  </motion.button>
-                </div>
-
-                {/* Navigation Items */}
-                <div className="flex flex-col flex-1 overflow-hidden">
-                  <div className="flex flex-col space-y-3 p-6 flex-1 overflow-y-auto">
-                    {navigationItems.map((item, index) => (
-                      <motion.div
-                        key={item.href}
-                        variants={itemVariants}
-                        custom={index}
-                        initial="closed"
-                        animate="open"
-                      >
-                        <Link 
-                          to={item.href}
-                          onClick={closeMenu}
-                          className="mobile-nav-item mobile-nav-focus mobile-menu-hw-accel block w-full bg-card text-gray-900 border-2 border-border hover:border-primary hover:border-purple-500 hover:bg-primary/5 opacity-100 visible transition-all duration-200"
-                        >
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center space-x-3">
-                              <item.icon className="h-5 w-5 flex-shrink-0 text-foreground" />
-                              <span className="mobile-nav-text text-gray-900 font-semibold">{item.label}</span>
-                            </div>
-                            <div className="w-2 h-2 rounded-full bg-primary"></div>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Fixed Sign Out Button */}
-                  <div className="p-6 border-t border-border bg-card backdrop-blur-sm transition-colors duration-500">
-                    <motion.button 
-                      onClick={() => {
-                        closeMenu()
-                        handleSignOut()
-                      }}
-                      variants={itemVariants}
-                      custom={navigationItems.length}
-                      initial="closed"
-                      animate="open"
-                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 text-gray-900 rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl smooth-transition font-medium min-h-[48px] touch-target mobile-menu-hw-accel logout-button"
-                    >
-                      <LogOut className="h-5 w-5" />
-                      <span>Sign Out</span>
-                    </motion.button>
-                  </div>
-                </div>
-
-
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </NavigationMenu.Root>
+    <BaseNavigation
+      brand={brand}
+      desktopNav={desktopNav}
+      mobileItems={navigationItems}
+      mobileHeader={mobileHeader}
+      mobileFooter={mobileFooter}
+      isActiveRoute={isActiveRoute}
+      onNavigate={handleNavigate}
+      className={className}
+    />
   )
 }

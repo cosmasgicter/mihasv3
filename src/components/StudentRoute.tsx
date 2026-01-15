@@ -1,5 +1,5 @@
 import React from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 
@@ -10,10 +10,12 @@ interface StudentRouteProps {
 /**
  * Student route guard using optimized auth state checks
  * Leverages React Query caching to avoid redundant session validations
- * Requirements: 4.5
+ * Preserves intended destination for redirect after login
+ * Requirements: 4.5, 11.5
  */
 export function StudentRoute({ children }: StudentRouteProps) {
   const { user, isAdmin, isLoading } = useOptimizedAuthState()
+  const location = useLocation()
 
   if (isLoading) {
     return (
@@ -27,7 +29,8 @@ export function StudentRoute({ children }: StudentRouteProps) {
   }
 
   if (!user) {
-    return <Navigate to="/auth/signin" replace />
+    // Preserve the intended destination in location state
+    return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }
 
   // Redirect admins to admin dashboard
