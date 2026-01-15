@@ -1,5 +1,7 @@
 @import './styles/legibility.css';
 @import './styles/pwa.css';
+@import './styles/design-tokens.css';
+@import './styles/admin-colors.css';
 
 @tailwind base;
 @tailwind components;
@@ -149,6 +151,13 @@ input, textarea, select {
 }
 
 @layer utilities {
+  /* Skip link for keyboard navigation accessibility */
+  .skip-link {
+    @apply absolute left-0 top-0 z-[9999] px-4 py-2 bg-blue-600 text-white font-medium;
+    @apply transform -translate-y-full focus:translate-y-0 transition-transform;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  }
+  
   .text-vibrant {
     @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
   }
@@ -215,6 +224,10 @@ input, textarea, select {
   
   /* Mobile-friendly utilities */
   .container-mobile {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .content-wrapper {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
   

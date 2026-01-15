@@ -40,7 +40,7 @@ export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivEl
     <div
       className={cn('animate-shimmer rounded-md bg-muted/50', className)}
       style={{
-        backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+        backgroundImage: 'linear-gradient(90deg, transparent, rgba(var(--color-card-rgb, 255, 255, 255), 0.1), transparent)',
         backgroundSize: '200% 100%'
       }}
       {...props}

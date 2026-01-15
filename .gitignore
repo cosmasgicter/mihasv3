@@ -1,14 +1,21 @@
-# Dependencies
+# Dependencies - MUST be excluded (WSL symlink issues)
 node_modules/
+node_modules
+/node_modules
+**/node_modules
 .pnp
 .pnp.js
 
-# Production
+# Production builds
 /dist
 /build
+dist/
+build/
 
 # Environment variables
 .env
+.env.*
+!.env.example
 .env.local
 .env.development.local
 .env.test.local
@@ -17,70 +24,48 @@ node_modules/
 
 # Testing
 /coverage
+coverage/
 /test-results
-playwright-report/
 test-results/
+playwright-report/
+.nyc_output
+*.lcov
 
 # Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
-
-# Runtime data
 pids
 *.pid
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# nyc test coverage
-.nyc_output
-
 # Dependency directories
 node_modules/
 jspm_packages/
 
-# Optional npm cache directory
+# Package manager files
 .npm
+.yarn-integrity
+yarn.lock
+pnpm-lock.yaml
+# Keep package-lock.json for npm projects
 
-# Optional eslint cache
+# Cache directories
+.cache
+.parcel-cache
 .eslintcache
-
-# Microbundle cache
 .rpt2_cache/
 .rts2_cache_cjs/
 .rts2_cache_es/
 .rts2_cache_umd/
+.vite/
 
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# Next.js build output
+# Build tools
 .next
-
-# Nuxt.js build / generate output
 .nuxt
-/dist
-
-# Gatsby files
-.cache/
-# /public - Don't ignore, we need robots.txt and sitemap.xml
-
-# Storybook build outputs
 .out
 .storybook-out
 
@@ -91,38 +76,44 @@ temp/
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Runtime data
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Cloudflare
+.wrangler/
+.dev.vars
+.mf/
 
 # Netlify
 .netlify/
 
-# Local Netlify folder
-.netlify
-
 # Supabase
 .branches
 .temp
-
-# TestMonitor results (keep local only)
-test-results/production-report-*.json
-test-results/results.xml
-test-results/production-results.xml
-
-# GitHub Actions (disabled for production tests)
-.github/workflows/test-submit.yml
-src/components/ui/TextArea.tsx
-
-# Additional build and cache files
-*.log
-.wrangler/
-.dev.vars
-.mf/
 
 # Database files
 *.db
@@ -130,30 +121,68 @@ src/components/ui/TextArea.tsx
 *.db-wal
 *.sqlite
 *.sqlite3
-
-# OS files
-Thumbs.db
-Desktop.ini
-
-# IDE files
-*.swp
-*.swo
-*~
-
-# Playwright
-playwright/.cache/
-
-# Vite
-.vite/
+database.db
 
 # TypeScript
 *.tsbuildinfo
 
-# Package manager locks (keep package-lock.json but ignore others)
-yarn.lock
-pnpm-lock.yaml
+# Playwright
+playwright/.cache/
+playwright-report/
+
+# Test results (keep local only)
+test-results/production-report-*.json
+test-results/results.xml
+test-results/production-results.xml
 
 # Local development files
 dev.log
 *.local.ts
 *.local.js
+accessibility-report.json
+
+# Build artifacts that shouldn't be committed
+*.patch
+node-installer.msi
+
+# Additional files that shouldn't be in git
+DEPLOYMENT_*.md
+PERFORMANCE_*.md
+PHASE_*.md
+*_FIX_*.md
+*_COMPLETE.md
+*_SUMMARY.md
+*_ANALYSIS.md
+*_REPORT.md
+*_RESULTS.md
+*_STATUS.md
+*_VERIFICATION.md
+EXECUTIVE_SUMMARY.md
+FINAL_*.md
+INSTANT_*.md
+LIVE_*.md
+PATH_TO_*.md
+QUICK_*.md
+REALTIME_*.md
+ROLLBACK_*.md
+SECURITY_*.md
+TESTING_*.md
+WEBSITE_*.md
+WIZARD_*.md
+task9-*.md
+task9-*.json
+validate-*.js
+test-*.js
+test-*.sh
+test-*.bat
+run-*.sh
+run-*.js
+*.bat
+*.sql
+supabase-helper.bat
+
+# Keep important documentation
+!README.md
+!CHANGELOG.md
+!LICENSE.md
+node_modules

@@ -286,14 +286,16 @@ export default function EligibilityManagement() {
                         <button
                           onClick={() => handleEditRule(rule)}
                           className="text-primary hover:text-primary-foreground"
+                          aria-label={`Edit ${rule.rule_name} rule`}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4" aria-hidden="true" />
                         </button>
                         <button
                           onClick={() => handleDeleteRule(rule.id)}
                           className="text-destructive hover:text-red-900"
+                          aria-label={`Delete ${rule.rule_name} rule`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </button>
                       </td>
                     </tr>
@@ -332,8 +334,9 @@ export default function EligibilityManagement() {
                     setEditingRule(null)
                   }}
                   className="text-gray-900 hover:text-foreground"
+                  aria-label="Close rule form"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-6 w-6" aria-hidden="true" />
                 </button>
               </div>
 

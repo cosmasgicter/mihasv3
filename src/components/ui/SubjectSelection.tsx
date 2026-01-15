@@ -137,8 +137,10 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           type="button"
           onClick={() => setShowAddForm(!showAddForm)}
           className="bg-primary hover:bg-primary fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-10 md:relative md:bottom-auto md:right-auto md:w-auto md:h-auto md:rounded-md"
+          aria-label={showAddForm ? "Close subject selection" : "Add subject"}
+          aria-expanded={showAddForm}
         >
-          <Plus className="h-5 w-5 md:mr-2" />
+          <Plus className="h-5 w-5 md:mr-2" aria-hidden="true" />
           <span className="hidden md:inline">Add Subject</span>
         </Button>
       </div>
@@ -160,46 +162,53 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
 
       {/* Add subject form */}
       {showAddForm && (
-        <div className="bg-muted border rounded-lg p-4">
+        <div className="bg-muted border rounded-lg p-4" role="search" aria-label="Subject search and selection">
           <div className="flex items-center space-x-3 mb-4">
             <div className="relative flex-1">
-              <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground" />
+              <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Search subjects..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Search for subjects by name or code"
               />
             </div>
             <Button
               type="button"
               variant="ghost"
               onClick={() => setShowAddForm(false)}
+              aria-label="Close subject selection"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+          <div 
+            className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto"
+            role="list"
+            aria-label="Available subjects"
+          >
             {filteredSubjects.map((subject) => (
               <button
                 key={subject.id}
                 type="button"
                 onClick={() => addSubject(subject)}
                 className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-card hover:border-blue-300 transition-colors text-left"
+                aria-label={`Add ${subject.name} (${subject.code}) - ${subject.category} subject`}
               >
                 <div>
                   <p className="font-medium text-gray-900">{subject.name}</p>
                   <p className="text-sm text-gray-900">{subject.code} • {subject.category}</p>
                 </div>
-                <Plus className="h-4 w-4 text-foreground" />
+                <Plus className="h-4 w-4 text-foreground" aria-hidden="true" />
               </button>
             ))}
           </div>
           
           {filteredSubjects.length === 0 && (
-            <p className="text-center text-gray-900 py-4">
+            <p className="text-center text-gray-900 py-4" role="status">
               {searchTerm ? 'No subjects found matching your search.' : 'All available subjects have been added.'}
             </p>
           )}
@@ -213,7 +222,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           {coreSubjects.length > 0 && (
             <div>
               <h4 className="font-medium text-gray-900 mb-3">Core Subjects ({coreSubjects.length})</h4>
-              <div className="space-y-2">
+              <div className="space-y-2" role="list" aria-label="Selected core subjects">
                 {coreSubjects.map((subject, index) => (
                   <SubjectCard
                     key={subject.id}
@@ -240,7 +249,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           {electiveSubjects.length > 0 && (
             <div>
               <h4 className="font-medium text-gray-900 mb-3">Elective Subjects ({electiveSubjects.length})</h4>
-              <div className="space-y-2">
+              <div className="space-y-2" role="list" aria-label="Selected elective subjects">
                 {electiveSubjects.map((subject, index) => (
                   <SubjectCard
                     key={subject.id}
@@ -342,6 +351,9 @@ function SubjectCard({
   onDragOver, 
   onDrop 
 }: SubjectCardProps) {
+  const gradeId = `grade-${subject.id}`
+  const scoreId = `score-${subject.id}`
+  
   return (
     <div
       draggable
@@ -349,9 +361,11 @@ function SubjectCard({
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, index)}
       className="bg-card border border-border rounded-lg p-4 hover:border-input transition-colors cursor-move"
+      role="listitem"
+      aria-label={`${subject.name} subject card`}
     >
       <div className="flex items-center space-x-4">
-        <GripVertical className="h-5 w-5 text-foreground" />
+        <GripVertical className="h-5 w-5 text-foreground" aria-label="Drag to reorder" />
         
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">
@@ -363,20 +377,23 @@ function SubjectCard({
               type="button"
               onClick={() => onRemove(subject.id)}
               className="text-error hover:text-error transition-colors"
+              aria-label={`Remove ${subject.name} from selection`}
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-900 mb-1">
+              <label htmlFor={gradeId} className="block text-xs font-medium text-gray-900 mb-1">
                 Grade
               </label>
               <select
+                id={gradeId}
                 value={subject.grade || ''}
                 onChange={(e) => onUpdate(subject.id, 'grade', e.target.value)}
                 className="w-full px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                aria-label={`Grade for ${subject.name}`}
               >
                 <option value="">Select grade</option>
                 <option value="1">1 (A+ - Distinction)</option>
@@ -392,10 +409,11 @@ function SubjectCard({
             </div>
             
             <div>
-              <label className="block text-xs font-medium text-gray-900 mb-1">
+              <label htmlFor={scoreId} className="block text-xs font-medium text-gray-900 mb-1">
                 Score (%)
               </label>
               <input
+                id={scoreId}
                 type="number"
                 min="0"
                 max="100"
@@ -403,6 +421,7 @@ function SubjectCard({
                 onChange={(e) => onUpdate(subject.id, 'score', parseInt(e.target.value) || 0)}
                 className="w-full px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="0-100"
+                aria-label={`Score percentage for ${subject.name}`}
               />
             </div>
           </div>
