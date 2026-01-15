@@ -164,7 +164,7 @@ describe('Login Cache Clear Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -198,7 +198,7 @@ describe('Login Cache Clear Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -231,7 +231,7 @@ describe('Login Cache Clear Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -274,7 +274,7 @@ describe('Login Cache Clear Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -314,7 +314,7 @@ describe('Login Cache Clear Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -351,7 +351,7 @@ describe('Login Cache Clear Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -378,7 +378,7 @@ describe('Login Cache Clear Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 })

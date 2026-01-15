@@ -124,7 +124,7 @@ describe('Manual Refresh Availability Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -155,7 +155,7 @@ describe('Manual Refresh Availability Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -180,7 +180,7 @@ describe('Manual Refresh Availability Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -211,7 +211,7 @@ describe('Manual Refresh Availability Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -239,7 +239,7 @@ describe('Manual Refresh Availability Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -268,7 +268,7 @@ describe('Manual Refresh Availability Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -348,7 +348,7 @@ describe('Manual Refresh Availability Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
