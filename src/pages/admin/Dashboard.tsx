@@ -5,6 +5,8 @@ import { adminDashboardService } from '@/services/admin/dashboard'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
+import { useToastStore } from '@/components/ui/Toast'
 import { 
   Users, 
   FileText, 
@@ -36,6 +38,7 @@ import { Link } from 'react-router-dom'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAdminRealtimeMetrics } from '@/hooks/admin'
 import type { AdminApplicationChange, AdminMetricsDelta } from '@/hooks/admin/useAdminRealtimeMetrics'
+import { useAdminDashboardRealtime } from '@/hooks/useAdminDashboardRealtime'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
 import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
 import { PredictiveDashboard } from '@/components/admin/PredictiveDashboard'
@@ -127,6 +130,17 @@ export default function AdminDashboard() {
     onChange: handleRealtimeChange
   })
 
+  // Additional realtime subscription for payments and status history
+  // Requirements: 2.1, 2.2, 2.4, 2.5 - Admin Dashboard Real-time Updates
+  const { isSubscribed: isRealtimeSubscribed, isPolling } = useAdminDashboardRealtime({
+    enabled: !!user?.id,
+    showToasts: true,
+    onPaymentChange: () => {
+      // Reload dashboard stats when payment changes
+      loadDashboardStats({ refresh: true })
+    }
+  })
+
   const loadDashboardStats = useCallback(async (options?: { refresh?: boolean }) => {
     const isRefresh = options?.refresh ?? false
     try {
@@ -160,11 +174,23 @@ export default function AdminDashboard() {
     }
   }, [])
 
+  // Manual refresh hook for React Query cache invalidation
+  // Requirements: 1.5 - Manual refresh button that forces data reload
+  const { forceRefresh, isRefreshing: isManualRefreshing } = useAdminDashboardRefresh({
+    onSuccess: () => {
+      // Also reload local dashboard data after cache invalidation
+      loadDashboardStats({ refresh: true })
+    },
+    onError: (err) => {
+      console.error('Manual refresh failed:', err)
+      useToastStore.getState().addToast('error', 'Failed to refresh data')
+    }
+  })
 
-
-  const refreshDashboard = useCallback(async () => {
-    await loadDashboardStats({ refresh: true })
-  }, [loadDashboardStats])
+  // Handler for manual refresh button - invalidates React Query cache and reloads data
+  const handleManualRefresh = useCallback(async () => {
+    await forceRefresh()
+  }, [forceRefresh])
 
   useEffect(() => {
     trackPageView('admin_dashboard')
@@ -313,12 +339,12 @@ export default function AdminDashboard() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={refreshDashboard}
-                    loading={isRefreshing}
-                    className="bg-card/80 border-white/30 text-gray-900 hover:bg-white/90"
+                    onClick={handleManualRefresh}
+                    disabled={isRefreshing || isManualRefreshing}
+                    className="bg-card/80 border-white/30 text-gray-900 hover:bg-white/90 flex items-center gap-2"
                   >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
+                    <RefreshCw className={`h-4 w-4 ${(isRefreshing || isManualRefreshing) ? 'animate-spin' : ''}`} />
+                    {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
                   </Button>
                 </div>
               </div>
@@ -345,7 +371,7 @@ export default function AdminDashboard() {
           )}
         </AnimatePresence>
 
-        {isRefreshing && (
+        {(isRefreshing || isManualRefreshing) && (
           <div className="mb-6">
             <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -503,8 +529,8 @@ export default function AdminDashboard() {
             <EnhancedDashboard
               metrics={enhancedMetrics}
               recentActivity={recentActivity}
-              onRefresh={refreshDashboard}
-              isRefreshing={isRefreshing}
+              onRefresh={handleManualRefresh}
+              isRefreshing={isRefreshing || isManualRefreshing}
             />
           </div>
 

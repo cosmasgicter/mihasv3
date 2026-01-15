@@ -12,7 +12,7 @@ This implementation plan addresses three critical production issues: dashboard d
   - Verify realtime is working via Supabase dashboard
   - _Requirements: 1.1, 2.1, 2.2_
 
-- [-] 2. Fix React Query Cache Configuration
+- [x] 2. Fix React Query Cache Configuration
   - [x] 2.1 Update cache settings in `src/data/applications.ts`
     - Set `staleTime: 0` for applications list and stats queries
     - Set `gcTime: 5 * 60 * 1000` (5 minutes)
@@ -20,55 +20,55 @@ This implementation plan addresses three critical production issues: dashboard d
     - Enable `refetchOnMount: 'always'`
     - _Requirements: 1.2, 1.3, 1.4, 4.1, 4.4_
 
-  - [-] 2.2 Enhance mutation cache invalidation
+  - [x] 2.2 Enhance mutation cache invalidation
     - Update `useCreate` mutation to invalidate all related query keys
     - Add `refetchType: 'all'` to invalidateQueries calls
     - Add invalidation for `payment-status` queries
     - Dispatch `applicationCreated` custom event on success
     - _Requirements: 2.4, 4.2, 5.5_
 
-  - [ ] 2.3 Write property test for cache invalidation completeness
+  - [x] 2.3 Write property test for cache invalidation completeness
     - **Property 2: Cache Invalidation Completeness**
     - **Validates: Requirements 1.2, 2.4, 4.2**
 
-- [ ] 3. Implement Manual Refresh Functionality
-  - [ ] 3.1 Create `src/hooks/useManualRefresh.ts`
+- [x] 3. Implement Manual Refresh Functionality
+  - [x] 3.1 Create `src/hooks/useManualRefresh.ts`
     - Implement `forceRefresh` function using `resetQueries` and `refetchQueries`
     - Add `isRefreshing` state for loading indicator
     - _Requirements: 1.5, 4.5_
 
-  - [ ] 3.2 Add refresh button to student dashboard
+  - [x] 3.2 Add refresh button to student dashboard
     - Add refresh button component with loading state
     - Wire up to `useManualRefresh` hook
     - _Requirements: 1.5_
 
-  - [ ] 3.3 Add refresh button to admin dashboard
+  - [x] 3.3 Add refresh button to admin dashboard
     - Add refresh button component with loading state
-    - Wire up to `useManualRefresh` hook
+    - Wire up to `useAdminDashboardRefresh` hook
     - _Requirements: 1.5_
 
-  - [ ] 3.4 Write property test for manual refresh
+  - [x] 3.4 Write property test for manual refresh
     - **Property 10: Manual Refresh Availability**
     - **Validates: Requirements 1.5**
 
-- [ ] 4. Implement Login Cache Clear
-  - [ ] 4.1 Modify `src/contexts/AuthContext.tsx`
+- [x] 4. Implement Login Cache Clear
+  - [x] 4.1 Modify `src/contexts/AuthContext.tsx`
     - Add `queryClient.clear()` call on successful login
     - Optionally prefetch critical data for new session
     - _Requirements: 4.3_
 
-  - [ ] 4.2 Write property test for login cache clear
+  - [x] 4.2 Write property test for login cache clear
     - **Property 13: Login Cache Clear**
     - **Validates: Requirements 4.3**
 
-- [ ] 5. Checkpoint - Verify Cache Fixes
+- [x] 5. Checkpoint - Verify Cache Fixes
   - Ensure all cache configuration changes are working
   - Test manual refresh functionality
   - Test login cache clear behavior
   - Ask the user if questions arise
 
-- [ ] 6. Implement Application Submission Notifications
-  - [ ] 6.1 Update `src/hooks/useApplicationSubmitFixed.ts`
+- [x] 6. Implement Application Submission Notifications
+  - [x] 6.1 Update `src/hooks/useApplicationSubmitFixed.ts`
     - Add `triggerSubmissionNotifications` function
     - Insert into `email_queue` table with template data
     - Insert into `in_app_notifications` table
@@ -76,54 +76,54 @@ This implementation plan addresses three critical production issues: dashboard d
     - Handle errors gracefully (don't fail submission)
     - _Requirements: 3.1, 5.1, 5.2, 5.3, 5.4_
 
-  - [ ] 6.2 Write property test for notification creation
+  - [x] 6.2 Write property test for notification creation
     - **Property 5: Submission Notification Creation**
     - **Validates: Requirements 3.1, 5.1, 5.2, 5.3**
 
-  - [ ] 6.3 Write property test for email content completeness
+  - [x] 6.3 Write property test for email content completeness
     - **Property 6: Email Content Completeness**
     - **Validates: Requirements 3.5, 5.3**
 
-- [ ] 7. Enhance Email Queue Processing
-  - [ ] 7.1 Update `functions/cron/process-email-queue.js`
+- [x] 7. Enhance Email Queue Processing
+  - [x] 7.1 Update `functions/cron/process-email-queue.js`
     - Add priority-based ordering (high priority first)
     - Implement retry logic with exponential backoff
     - Update status to 'sent' with timestamp on success
     - Mark as 'failed' after 3 retry attempts
     - _Requirements: 3.2, 3.3, 3.4_
 
-  - [ ] 7.2 Write property test for email queue status tracking
+  - [x] 7.2 Write property test for email queue status tracking
     - **Property 8: Email Queue Status Tracking**
     - **Validates: Requirements 3.3**
 
-  - [ ] 7.3 Write property test for email send timing
+  - [x] 7.3 Write property test for email send timing
     - **Property 9: Email Send Timing**
     - **Validates: Requirements 3.2**
 
-- [ ] 8. Checkpoint - Verify Email Notifications
+- [x] 8. Checkpoint - Verify Email Notifications
   - Test application submission triggers email queue insert
   - Test in-app notification creation
   - Verify cron worker processes emails correctly
   - Ask the user if questions arise
 
-- [ ] 9. Implement Student Dashboard Realtime Subscription
-  - [ ] 9.1 Create `src/hooks/useStudentDashboardRealtime.ts`
+- [-] 9. Implement Student Dashboard Realtime Subscription
+  - [x] 9.1 Create `src/hooks/useStudentDashboardRealtime.ts`
     - Subscribe to `applications` table filtered by `user_id`
     - Subscribe to `in_app_notifications` table filtered by `user_id`
     - Invalidate queries on `postgres_changes` events
     - Handle subscription cleanup on unmount
     - _Requirements: 1.1, 1.2_
 
-  - [ ] 9.2 Integrate hook into student dashboard
+  - [x] 9.2 Integrate hook into student dashboard
     - Add `useStudentDashboardRealtime()` call to `src/pages/student/Dashboard.tsx`
     - _Requirements: 1.1_
 
-  - [ ] 9.3 Write property test for realtime update latency
+  - [x] 9.3 Write property test for realtime update latency
     - **Property 1: Real-time Update Latency**
     - **Validates: Requirements 1.1, 2.1, 2.2**
 
 - [ ] 10. Implement Admin Dashboard Realtime Subscription
-  - [ ] 10.1 Create `src/hooks/useAdminDashboardRealtime.ts`
+  - [x] 10.1 Create `src/hooks/useAdminDashboardRealtime.ts`
     - Subscribe to `applications` table (all changes)
     - Subscribe to `payments` table for payment status
     - Subscribe to `application_status_history` for audit
@@ -132,7 +132,7 @@ This implementation plan addresses three critical production issues: dashboard d
     - Show toast notifications for status changes
     - _Requirements: 2.1, 2.2, 2.4, 2.5_
 
-  - [ ] 10.2 Integrate hook into admin dashboard
+  - [x] 10.2 Integrate hook into admin dashboard
     - Add `useAdminDashboardRealtime()` call to admin dashboard component
     - _Requirements: 2.1_
 
