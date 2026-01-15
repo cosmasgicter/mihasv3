@@ -1,5 +1,5 @@
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { X, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 

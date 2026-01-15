@@ -1,6 +1,6 @@
 // Core UI Components
 export { Button } from './Button'
-export { Input } from './input'
+export { Input } from './Input'
 export { Textarea } from './textarea'
 export { Select } from './select'
 export { Checkbox } from './checkbox'
