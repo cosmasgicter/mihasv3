@@ -1,240 +1,227 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
-import { Check, Circle } from 'lucide-react'
+/**
+ * Progress Indicator Component
+ * Shows progress for uploads, downloads, and other async operations
+ * Provides visual feedback within 100ms
+ */
 
-interface Step {
-  id: string
-  title: string
-  description?: string
-  status: 'pending' | 'current' | 'completed' | 'error'
-}
+import React from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { cn } from '@/lib/utils'
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
 interface ProgressIndicatorProps {
-  steps: Step[]
-  orientation?: 'horizontal' | 'vertical'
+  progress: number // 0-100
+  status?: 'loading' | 'success' | 'error' | 'idle'
+  message?: string
+  showPercentage?: boolean
   size?: 'sm' | 'md' | 'lg'
-  showDescriptions?: boolean
   className?: string
 }
 
 export function ProgressIndicator({
-  steps,
-  orientation = 'horizontal',
+  progress,
+  status = 'loading',
+  message,
+  showPercentage = true,
   size = 'md',
-  showDescriptions = true,
-  className
+  className,
 }: ProgressIndicatorProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   const sizeClasses = {
-    sm: {
-      circle: 'w-6 h-6 text-xs',
-      line: orientation === 'horizontal' ? 'h-0.5' : 'w-0.5',
-      title: 'text-sm',
-      description: 'text-xs'
-    },
-    md: {
-      circle: 'w-8 h-8 text-sm',
-      line: orientation === 'horizontal' ? 'h-1' : 'w-1', 
-      title: 'text-base',
-      description: 'text-sm'
-    },
-    lg: {
-      circle: 'w-10 h-10 text-base',
-      line: orientation === 'horizontal' ? 'h-1.5' : 'w-1.5',
-      title: 'text-lg',
-      description: 'text-base'
-    }
+    sm: 'h-1',
+    md: 'h-2',
+    lg: 'h-3',
   }
 
-  const getStepIcon = (step: Step) => {
-    switch (step.status) {
-      case 'completed':
-        return <Check className="w-full h-full" />
-      case 'error':
-        return (
-          <svg className="w-full h-full" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
-        )
-      default:
-        return (
-          <span className="font-semibold">
-            {steps.findIndex(s => s.id === step.id) + 1}
-          </span>
-        )
-    }
+  const iconSizes = {
+    sm: 'h-4 w-4',
+    md: 'h-5 w-5',
+    lg: 'h-6 w-6',
   }
 
-  const getStepClasses = (step: Step) => {
-    const baseClasses = cn(
-      'flex items-center justify-center rounded-full border-2 transition-all duration-200',
-      sizeClasses[size].circle
-    )
+  const clampedProgress = Math.max(0, Math.min(100, progress))
 
-    switch (step.status) {
-      case 'completed':
-        return cn(baseClasses, 'bg-success border-success text-foreground')
-      case 'current':
-        return cn(baseClasses, 'bg-primary border-primary text-gray-900 animate-pulse')
-      case 'error':
-        return cn(baseClasses, 'bg-error border-error text-foreground')
-      default:
-        return cn(baseClasses, 'bg-accent border-input text-foreground')
-    }
-  }
-
-  const getLineClasses = (index: number) => {
-    const isCompleted = steps[index].status === 'completed'
-    const baseClasses = cn(
-      'transition-all duration-200',
-      sizeClasses[size].line
-    )
-    
-    if (orientation === 'horizontal') {
-      return cn(
-        baseClasses,
-        'flex-1 mx-2',
-        isCompleted ? 'bg-success' : 'bg-skeleton'
-      )
-    }
-    
-    return cn(
-      baseClasses,
-      'my-2 h-8',
-      isCompleted ? 'bg-success' : 'bg-skeleton'
-    )
-  }
-
-  if (orientation === 'horizontal') {
-    return (
-      <div className={cn('w-full', className)}>
-        <div className="flex items-center">
-          {steps.map((step, index) => (
-            <React.Fragment key={step.id}>
-              <div className="flex flex-col items-center">
-                <div className={getStepClasses(step)}>
-                  {getStepIcon(step)}
-                </div>
-                {showDescriptions && (
-                  <div className="mt-2 text-center">
-                    <div className={cn(
-                      'font-medium',
-                      sizeClasses[size].title,
-                      step.status === 'current' ? 'text-primary' : 'text-foreground'
-                    )}>
-                      {step.title}
-                    </div>
-                    {step.description && (
-                      <div className={cn(
-                        'text-gray-900 mt-1',
-                        sizeClasses[size].description
-                      )}>
-                        {step.description}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              {index < steps.length - 1 && (
-                <div className={getLineClasses(index)} />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // Vertical orientation
   return (
-    <div className={cn('flex flex-col', className)}>
-      {steps.map((step, index) => (
-        <React.Fragment key={step.id}>
-          <div className="flex items-start">
-            <div className="flex flex-col items-center">
-              <div className={getStepClasses(step)}>
-                {getStepIcon(step)}
-              </div>
-              {index < steps.length - 1 && (
-                <div className={getLineClasses(index)} />
-              )}
-            </div>
-            {showDescriptions && (
-              <div className="ml-4 pb-8">
-                <div className={cn(
-                  'font-medium',
-                  sizeClasses[size].title,
-                  step.status === 'current' ? 'text-primary' : 'text-foreground'
-                )}>
-                  {step.title}
-                </div>
-                {step.description && (
-                  <div className={cn(
-                    'text-gray-900 mt-1',
-                    sizeClasses[size].description
-                  )}>
-                    {step.description}
-                  </div>
-                )}
-              </div>
+    <div className={cn('w-full space-y-2', className)}>
+      {/* Progress bar */}
+      <div className={cn('w-full bg-slate-200 rounded-full overflow-hidden', sizeClasses[size])}>
+        {prefersReducedMotion ? (
+          <div
+            className={cn(
+              'h-full rounded-full transition-all duration-300',
+              status === 'success' && 'bg-green-600',
+              status === 'error' && 'bg-red-600',
+              status === 'loading' && 'bg-blue-600',
+              status === 'idle' && 'bg-slate-400'
             )}
-          </div>
-        </React.Fragment>
-      ))}
+            style={{ width: `${clampedProgress}%` }}
+          />
+        ) : (
+          <motion.div
+            className={cn(
+              'h-full rounded-full',
+              status === 'success' && 'bg-green-600',
+              status === 'error' && 'bg-red-600',
+              status === 'loading' && 'bg-blue-600',
+              status === 'idle' && 'bg-slate-400'
+            )}
+            initial={{ width: 0 }}
+            animate={{ width: `${clampedProgress}%` }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+          />
+        )}
+      </div>
+
+      {/* Status message and percentage */}
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center space-x-2">
+          {status === 'loading' && (
+            <Loader2 className={cn('animate-spin text-blue-600', iconSizes[size])} />
+          )}
+          {status === 'success' && (
+            <CheckCircle className={cn('text-green-600', iconSizes[size])} />
+          )}
+          {status === 'error' && (
+            <XCircle className={cn('text-red-600', iconSizes[size])} />
+          )}
+          {message && (
+            <span className="text-slate-700 font-medium">{message}</span>
+          )}
+        </div>
+        {showPercentage && (
+          <span className="text-slate-600 font-semibold">
+            {Math.round(clampedProgress)}%
+          </span>
+        )}
+      </div>
     </div>
   )
 }
 
-// Simple progress bar component
-export function ProgressBar({ 
-  value, 
-  max = 100, 
-  className,
-  showPercentage = true,
-  color = 'blue',
-  size = 'md'
-}: {
-  value: number
-  max?: number
+/**
+ * Circular Progress Indicator
+ */
+interface CircularProgressProps {
+  progress: number // 0-100
+  size?: number
+  strokeWidth?: number
   className?: string
   showPercentage?: boolean
-  color?: 'blue' | 'green' | 'red' | 'yellow'
+}
+
+export function CircularProgress({
+  progress,
+  size = 64,
+  strokeWidth = 4,
+  className,
+  showPercentage = true,
+}: CircularProgressProps) {
+  const prefersReducedMotion = useReducedMotion()
+  const clampedProgress = Math.max(0, Math.min(100, progress))
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (clampedProgress / 100) * circumference
+
+  return (
+    <div className={cn('relative inline-flex items-center justify-center', className)}>
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          fill="none"
+          className="text-slate-200"
+        />
+        {/* Progress circle */}
+        {prefersReducedMotion ? (
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            className="text-blue-600 transition-all duration-300"
+          />
+        ) : (
+          <motion.circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeDasharray={circumference}
+            strokeLinecap="round"
+            className="text-blue-600"
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset: offset }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          />
+        )}
+      </svg>
+      {showPercentage && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-sm font-semibold text-slate-700">
+            {Math.round(clampedProgress)}%
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Indeterminate Progress (for unknown duration)
+ */
+interface IndeterminateProgressProps {
+  message?: string
   size?: 'sm' | 'md' | 'lg'
-}) {
-  const percentage = Math.round((value / max) * 100)
-  
-  const colorClasses = {
-    blue: 'bg-primary',
-    green: 'bg-success', 
-    red: 'bg-error',
-    yellow: 'bg-warning'
-  }
-  
+  className?: string
+}
+
+export function IndeterminateProgress({
+  message,
+  size = 'md',
+  className,
+}: IndeterminateProgressProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   const sizeClasses = {
     sm: 'h-1',
     md: 'h-2',
-    lg: 'h-3'
+    lg: 'h-3',
   }
 
   return (
-    <div className={cn('w-full', className)}>
-      {showPercentage && (
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium text-gray-900">Progress</span>
-          <span className="text-sm text-gray-900">{percentage}%</span>
-        </div>
-      )}
-      <div className={cn(
-        'w-full bg-skeleton rounded-full overflow-hidden',
-        sizeClasses[size]
-      )}>
-        <div 
-          className={cn(
-            'h-full transition-all duration-300 ease-out rounded-full',
-            colorClasses[color]
-          )}
-          style={{ width: `${percentage}%` }}
-        />
+    <div className={cn('w-full space-y-2', className)}>
+      <div className={cn('w-full bg-slate-200 rounded-full overflow-hidden', sizeClasses[size])}>
+        {prefersReducedMotion ? (
+          <div className="h-full w-1/3 bg-blue-600 rounded-full" />
+        ) : (
+          <motion.div
+            className="h-full w-1/3 bg-blue-600 rounded-full"
+            animate={{
+              x: ['-100%', '400%'],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        )}
       </div>
+      {message && (
+        <p className="text-sm text-slate-700 font-medium">{message}</p>
+      )}
     </div>
   )
 }

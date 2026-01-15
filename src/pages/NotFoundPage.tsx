@@ -5,7 +5,7 @@ import { Home, ArrowLeft } from 'lucide-react'
 
 export default function NotFoundPage() {
   return (
-    <div className="page-container bg-muted flex flex-col justify-center py-12">
+    <div className="page-container bg-muted flex flex-col justify-center py-6 sm:py-12">
       <div className="content-wrapper">
         <div className="mx-auto w-full max-w-md">
         <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">

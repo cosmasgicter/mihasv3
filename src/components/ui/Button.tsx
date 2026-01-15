@@ -4,20 +4,20 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'relative inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 overflow-hidden group',
+  'relative inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 overflow-hidden group active:scale-95',
   {
     variants: {
       variant: {
-        default: 'bg-primary hover:bg-primary/90 text-white shadow-sm hover:shadow-lg',
-        primary: 'bg-primary hover:bg-primary/90 text-white shadow-sm hover:shadow-lg',
-        secondary: 'bg-secondary hover:bg-secondary/90 text-secondary-foreground border border-border',
-        outline: 'border-2 border-primary text-primary hover:bg-primary/5',
-        ghost: 'hover:bg-primary/5 text-primary',
-        link: 'text-primary underline-offset-4 hover:underline',
-        destructive: 'bg-error hover:bg-error/90 text-white shadow-sm hover:shadow-lg',
-        success: 'bg-success hover:bg-success/90 text-white shadow-sm hover:shadow-lg',
-        warning: 'bg-warning hover:bg-warning/90 text-white shadow-sm hover:shadow-lg',
-        gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl',
+        default: 'bg-primary hover:bg-primary/90 text-white shadow-sm hover:shadow-lg hover:brightness-95',
+        primary: 'bg-primary hover:bg-primary/90 text-white shadow-sm hover:shadow-lg hover:brightness-95',
+        secondary: 'bg-secondary hover:bg-secondary/90 text-secondary-foreground border border-border hover:brightness-95',
+        outline: 'border-2 border-primary text-primary hover:bg-primary/5 hover:border-primary/80',
+        ghost: 'hover:bg-primary/5 text-primary hover:brightness-95',
+        link: 'text-primary underline-offset-4 hover:underline hover:text-primary/80',
+        destructive: 'bg-error hover:bg-error/90 text-white shadow-sm hover:shadow-lg hover:brightness-95',
+        success: 'bg-success hover:bg-success/90 text-white shadow-sm hover:shadow-lg hover:brightness-95',
+        warning: 'bg-warning hover:bg-warning/90 text-white shadow-sm hover:shadow-lg hover:brightness-95',
+        gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl hover:brightness-95',
       },
       size: {
         // Visual sizing will be applied via inline styles using design tokens / CSS variables

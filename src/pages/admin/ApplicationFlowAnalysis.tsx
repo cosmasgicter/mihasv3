@@ -5,7 +5,7 @@ import { TrendingUp, Users, Zap } from 'lucide-react'
 
 export default function ApplicationFlowAnalysis() {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <Container size="full">
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-4">

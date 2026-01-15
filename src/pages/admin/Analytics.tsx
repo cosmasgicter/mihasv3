@@ -750,7 +750,7 @@ export default function Analytics() {
  You do not have permission to view analytics reports.
  </div>
  ) : (
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:p-8">
  <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
  <div className="px-6 py-4 bg-gradient-to-r from-muted to-blue-50 border-b border-border">
  <h3 className="text-xl font-bold text-gray-900">📄 Automated Reports</h3>

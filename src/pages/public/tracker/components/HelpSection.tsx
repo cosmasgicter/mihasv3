@@ -23,7 +23,7 @@ export const HelpSection: React.FC = () => {
           <p className="text-xl text-gray-800 font-medium">Everything you need to know about tracking your application</p>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:p-8 mb-12">
           <AnimatedCard className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200" hover3d>
             <div className="text-center space-y-4">
               <div className="text-5xl">📍</div>

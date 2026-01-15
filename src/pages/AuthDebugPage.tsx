@@ -61,7 +61,7 @@ export function AuthDebugPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted p-8">
+    <div className="min-h-screen bg-muted p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <h1 className="text-3xl font-bold">Auth Debug Page</h1>
         

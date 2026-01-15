@@ -9,12 +9,12 @@ type CardProps = React.HTMLAttributes<HTMLDivElement> & {
 
 export function Card({ className, variant = 'default', hover = false, ...props }: CardProps) {
   const baseClasses = cn(
-    'rounded-lg bg-card shadow-sm transition-all duration-200',
+    'rounded-lg bg-card shadow-sm transition-all duration-100',
     variant === 'gradient' && 'border border-transparent bg-gradient-to-br from-card via-card to-primary/5',
     variant === 'elevated' && 'shadow-lg',
-    variant === 'interactive' && 'cursor-pointer hover:shadow-md',
+    variant === 'interactive' && 'cursor-pointer hover:shadow-md hover:brightness-95 active:scale-[0.99]',
     variant === 'default' && 'border border-border',
-    hover && 'hover:shadow-lg hover:shadow-blue-500/10',
+    hover && 'hover:shadow-lg hover:shadow-blue-500/10 hover:brightness-95 cursor-pointer',
     className
   )
 

@@ -35,7 +35,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             initial={maybeMotion({ scale: 0.8, opacity: 0 })}
             animate={maybeMotion({ scale: 1, opacity: 1 })}
             exit={maybeMotion({ scale: 0.8, opacity: 0 })}
-            className="bg-card rounded-2xl p-8 max-w-md w-full"
+            className="bg-card rounded-2xl p-4 sm:p-8 max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">

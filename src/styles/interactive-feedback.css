@@ -1,0 +1,251 @@
+/**
+ * Interactive Feedback Styles
+ * Provides consistent hover, focus, and active states for all interactive elements
+ * Ensures 100ms response time and WCAG AA compliance
+ */
+
+@layer utilities {
+  /* ===== HOVER STATES ===== */
+  
+  /* Button hover states - already defined in button component but adding utilities */
+  .hover-lift {
+    @apply transition-all duration-100;
+  }
+  
+  .hover-lift:hover {
+    @apply transform -translate-y-0.5 shadow-md;
+  }
+  
+  /* Link hover states */
+  .link-hover {
+    @apply text-blue-600 transition-colors duration-100;
+  }
+  
+  .link-hover:hover {
+    @apply text-blue-700 underline;
+  }
+  
+  /* Card hover states */
+  .card-hover {
+    @apply transition-all duration-100 cursor-pointer;
+  }
+  
+  .card-hover:hover {
+    @apply shadow-lg transform -translate-y-1;
+  }
+  
+  /* Interactive element hover - generic */
+  .interactive-hover {
+    @apply transition-all duration-100;
+  }
+  
+  .interactive-hover:hover {
+    @apply bg-slate-50;
+  }
+  
+  /* Icon button hover */
+  .icon-hover {
+    @apply transition-all duration-100 rounded-lg;
+  }
+  
+  .icon-hover:hover {
+    @apply bg-slate-100 scale-105;
+  }
+  
+  /* Table row hover */
+  .table-row-hover {
+    @apply transition-colors duration-100;
+  }
+  
+  .table-row-hover:hover {
+    @apply bg-slate-50;
+  }
+  
+  /* Menu item hover */
+  .menu-item-hover {
+    @apply transition-colors duration-100;
+  }
+  
+  .menu-item-hover:hover {
+    @apply bg-slate-100;
+  }
+  
+  /* ===== FOCUS STATES ===== */
+  
+  /* Consistent focus ring for all interactive elements */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2;
+  }
+  
+  /* Focus ring for dark backgrounds */
+  .focus-ring-light {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600;
+  }
+  
+  /* Focus ring for inputs */
+  .focus-ring-input {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600;
+  }
+  
+  /* Visible focus indicator for keyboard navigation */
+  .keyboard-focus {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600;
+  }
+  
+  /* ===== ACTIVE/PRESSED STATES ===== */
+  
+  /* Button press effect */
+  .active-press {
+    @apply active:scale-95 transition-transform duration-100;
+  }
+  
+  /* ===== LOADING STATES ===== */
+  
+  /* Loading spinner */
+  .loading-spinner {
+    @apply inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent;
+  }
+  
+  .loading-spinner-lg {
+    @apply inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-current border-r-transparent;
+  }
+  
+  /* Loading overlay */
+  .loading-overlay {
+    @apply absolute inset-0 bg-white/80 flex items-center justify-center z-10;
+  }
+  
+  /* Skeleton loader */
+  .skeleton {
+    @apply animate-pulse bg-slate-200 rounded;
+  }
+  
+  /* Skeleton text */
+  .skeleton-text {
+    @apply h-4 bg-slate-200 rounded animate-pulse;
+  }
+  
+  /* ===== DISABLED STATES ===== */
+  
+  /* Disabled interactive elements */
+  .disabled-state {
+    @apply opacity-50 cursor-not-allowed pointer-events-none;
+  }
+  
+  /* ===== SMOOTH TRANSITIONS ===== */
+  
+  /* Fast transition for immediate feedback */
+  .transition-fast {
+    @apply transition-all duration-100;
+  }
+  
+  /* Standard transition */
+  .transition-standard {
+    @apply transition-all duration-200;
+  }
+  
+  /* Smooth transition */
+  .transition-smooth {
+    @apply transition-all duration-300;
+  }
+}
+
+/* ===== GLOBAL INTERACTIVE ELEMENT STYLES ===== */
+
+/* Ensure all buttons have consistent hover states */
+button:not(:disabled) {
+  @apply transition-all duration-100;
+}
+
+button:not(:disabled):hover {
+  @apply brightness-95;
+}
+
+button:not(:disabled):active {
+  @apply scale-95;
+}
+
+/* Ensure all links have consistent hover states */
+a:not(.no-hover) {
+  @apply transition-colors duration-100;
+}
+
+/* Ensure all interactive cards have hover feedback */
+[role="button"]:not(:disabled),
+[role="link"]:not(:disabled) {
+  @apply transition-all duration-100;
+}
+
+[role="button"]:not(:disabled):hover,
+[role="link"]:not(:disabled):hover {
+  @apply brightness-95;
+}
+
+/* ===== FOCUS VISIBLE POLYFILL ===== */
+
+/* Enhanced focus indicators for keyboard navigation */
+*:focus-visible {
+  @apply outline-2 outline-offset-2 outline-blue-600 ring-2 ring-blue-600 ring-offset-2;
+}
+
+/* Specific focus styles for form elements */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  @apply outline-none ring-2 ring-blue-600 border-blue-600;
+}
+
+/* Focus styles for custom interactive elements */
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  @apply outline-2 outline-offset-2 outline-blue-600 ring-2 ring-blue-600 ring-offset-2;
+}
+
+/* ===== TOUCH FEEDBACK ===== */
+
+/* Touch feedback for mobile devices */
+@media (hover: none) and (pointer: coarse) {
+  button:active,
+  [role="button"]:active,
+  a:active {
+    @apply bg-slate-100;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .hover-lift:hover,
+  .card-hover:hover,
+  .icon-hover:hover {
+    @apply transform-none;
+  }
+  
+  button:active,
+  .active-press:active {
+    @apply scale-100;
+  }
+  
+  .loading-spinner,
+  .loading-spinner-lg {
+    @apply animate-none;
+  }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* Use GPU acceleration for transforms */
+.hover-lift,
+.card-hover,
+.icon-hover,
+button,
+[role="button"] {
+  will-change: transform;
+}
+
+/* Remove will-change after animation */
+.hover-lift:not(:hover),
+.card-hover:not(:hover),
+.icon-hover:not(:hover) {
+  will-change: auto;
+}

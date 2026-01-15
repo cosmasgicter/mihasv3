@@ -249,7 +249,7 @@ export default function AdminIntakes() {
           <div className="p-6">
 
             {loading ? (
-              <div className="flex justify-center py-16">
+              <div className="flex justify-center py-8 sm:py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
                   <p className="mt-4 text-lg text-gray-900">Loading intakes...</p>
@@ -268,7 +268,7 @@ export default function AdminIntakes() {
                 </Button>
               </div>
             ) : intakes.length === 0 ? (
-              <div className="text-center py-16">
+              <div className="text-center py-8 sm:py-16">
                 <div className="text-8xl mb-6"><Calendar className="w-5 h-5" /></div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">No Intakes Yet</h3>
                 <p className="text-gray-900 mb-6 max-w-md mx-auto">

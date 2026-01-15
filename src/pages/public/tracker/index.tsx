@@ -238,7 +238,7 @@ export default function PublicApplicationTracker() {
         <motion.div
           animate={maybeMotion({ x: [0, 100, 0], y: [0, -100, 0], rotate: [0, 180, 360] })}
           transition={maybeMotion({ duration: 20, repeat: Infinity, ease: "linear" })}
-          className="absolute top-10 left-10 w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-20"
+          className="absolute top-5 sm:p-10 left-10 w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-20"
         />
         <motion.div
           animate={maybeMotion({ x: [0, -150, 0], y: [0, 100, 0], rotate: [360, 180, 0] })}
@@ -248,7 +248,7 @@ export default function PublicApplicationTracker() {
         <motion.div
           animate={maybeMotion({ x: [0, 80, 0], y: [0, -80, 0], scale: [1, 1.2, 1] })}
           transition={maybeMotion({ duration: 15, repeat: Infinity, ease: "linear" })}
-          className="absolute bottom-20 left-1/4 w-16 h-16 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-25"
+          className="absolute bottom-10 sm:m-20 left-1/4 w-16 h-16 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-25"
         />
       </div>
 

@@ -388,7 +388,7 @@ export default function AdminUsers() {
             {loading ? (
               <LoadingState message="Loading users..." size="lg" />
             ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-16">
+              <div className="text-center py-8 sm:py-16">
                 <div className="text-8xl mb-6">👥</div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
                   {searchTerm || roleFilter ? 'No Matching Users' : 'No Users Found'}
@@ -679,7 +679,7 @@ export default function AdminUsers() {
               />
               <button
                 type="button"
-                className="absolute right-3 top-8 text-gray-900 hover:text-foreground"
+                className="absolute right-3 top-4 sm:p-8 text-gray-900 hover:text-foreground"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

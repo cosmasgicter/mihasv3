@@ -10,6 +10,7 @@ import { AppLayout } from '@/components/navigation/AppLayout'
 import { SessionMonitor } from '@/components/auth/SessionMonitor'
 import { LoadingFallback } from '@/components/ui/LoadingFallback'
 import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
+import { SkipLink } from '@/components/ui/SkipLink'
 import { routes, type RouteConfig } from '@/routes/config'
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -91,6 +92,7 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <SkipLink />
           <ToastContainer />
           <PWAInstallPrompt />
           <OfflineIndicator />
@@ -100,15 +102,17 @@ function App() {
               <SimpleErrorBoundary>
                 <div className="min-h-screen bg-background">
                   <AppLayout>
-                    <Routes>
-                      {routes.map((route) => (
-                        <Route
-                          key={route.path}
-                          path={route.path}
-                          element={renderRoute(route)}
-                        />
-                      ))}
-                    </Routes>
+                    <main id="main-content" tabIndex={-1} className="focus:outline-none">
+                      <Routes>
+                        {routes.map((route) => (
+                          <Route
+                            key={route.path}
+                            path={route.path}
+                            element={renderRoute(route)}
+                          />
+                        ))}
+                      </Routes>
+                    </main>
                   </AppLayout>
                 </div>
               </SimpleErrorBoundary>

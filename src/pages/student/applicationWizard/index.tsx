@@ -228,7 +228,7 @@ const ApplicationWizardContent = () => {
   return (
     <MaybeMotionDiv className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.36 }}>
       <div className="w-full">
-        <Container size="md" className="py-8">
+        <Container size="md" className="py-4 sm:py-8">
           <div className="mb-8">
             <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary mb-4">
               <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
