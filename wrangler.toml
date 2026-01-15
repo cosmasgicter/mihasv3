@@ -3,17 +3,6 @@ compatibility_date = "2025-01-23"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
 
-# Build configuration
-[build]
-command = "npm run build:prod"
-cwd = "."
-watch_dirs = ["src", "functions"]
-
-# Build environment
-[build.environment]
-NODE_VERSION = "20.18.0"
-NPM_VERSION = "10.0.0"
-
 [vars]
 # Application Version (for cache busting)
 VITE_APP_VERSION = "1.0.0"
@@ -94,8 +83,3 @@ CRON_SECRET_KEY = "C6MWtFE5fuFw90CA2KWqAKqlyaILQaL9B3SsIJWFWpc="
 # Cloudflare AI Binding
 [ai]
 binding = "AI"
-
-# Observability
-[observability]
-enabled = true
-head_sampling_rate = 1.0
