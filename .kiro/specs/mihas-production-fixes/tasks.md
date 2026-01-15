@@ -289,7 +289,7 @@ This implementation plan addresses remaining production issues in the MIHAS Appl
     - Provide feedback within 100ms
     - _Requirements: 14.2, 14.4_
 
-- [ ] 14. Checkpoint - Verify UI/UX improvements
+- [x] 14. Checkpoint - Verify UI/UX improvements
   - Verify WCAG AA compliance
   - Test mobile responsiveness
   - Check visual consistency
@@ -297,43 +297,43 @@ This implementation plan addresses remaining production issues in the MIHAS Appl
 
 ### Phase 4: Feature Integration
 
-- [ ] 15. Add draft applications to admin list
-  - [ ] 15.1 Update application list query
+- [x] 15. Add draft applications to admin list
+  - [x] 15.1 Update application list query
     - Modify query in admin applications page to include draft applications
     - Add isDraft flag to results
     - Calculate completion percentage
     - Add lastUpdated timestamp
     - _Requirements: 5.1_
 
-  - [ ] 15.2 Add draft filter controls
+  - [x] 15.2 Add draft filter controls
     - Add "Show Drafts" checkbox to admin applications page
     - Add "Show Completed" checkbox
     - Add "Show All" option
     - Implement filter logic
     - _Requirements: 5.2_
 
-  - [ ] 15.3 Display draft status in list
+  - [x] 15.3 Display draft status in list
     - Show "Draft" badge
     - Show completion percentage
     - Show last updated time
     - Highlight incomplete applications
     - _Requirements: 5.5_
 
-  - [ ] 15.4 Test draft display functionality
+  - [x] 15.4 Test draft display functionality
     - Verify drafts appear in list
     - Test filter controls
     - Verify completion percentage accuracy
     - _Requirements: 5.1, 5.2, 5.5_
 
-- [ ] 16. Implement admin-applicant communication
-  - [ ] 16.1 Create communication modal component
+- [x] 16. Implement admin-applicant communication
+  - [x] 16.1 Create communication modal component
     - Build modal UI with channel selection (email, SMS, in-app)
     - Add message textarea
     - Add template selection
     - Add send button with loading state
     - _Requirements: 5.3_
 
-  - [ ] 16.2 Implement communication service
+  - [x] 16.2 Implement communication service
     - Create src/services/communicationService.ts
     - Implement sendToApplicant function
     - Support email channel
@@ -341,45 +341,45 @@ This implementation plan addresses remaining production issues in the MIHAS Appl
     - Support in-app messaging
     - _Requirements: 5.4_
 
-  - [ ] 16.3 Add communication button to draft applications
+  - [x] 16.3 Add communication button to draft applications
     - Show "Contact Applicant" button for drafts
     - Open communication modal on click
     - Pre-fill applicant information
     - _Requirements: 5.3_
 
-  - [ ] 16.4 Track communication history
+  - [x] 16.4 Track communication history
     - Store communication records in database
     - Display history in application details
     - Show last contacted timestamp
     - _Requirements: 5.4_
 
-  - [ ] 16.5 Test communication system
+  - [x] 16.5 Test communication system
     - Test email sending
     - Test SMS sending
     - Test in-app messaging
     - Verify history tracking
     - _Requirements: 5.4_
 
-- [ ] 17. Integrate analysis features
-  - [ ] 17.1 Identify missing analysis pages
+- [-] 17. Integrate analysis features
+  - [x] 17.1 Identify missing analysis pages
     - Check functions/analytics/ directory for implemented endpoints
     - Check functions/analysis/ directory
     - List all implemented but not integrated features
     - _Requirements: 10.2_
 
-  - [ ] 17.2 Create routes for analysis pages
+  - [x] 17.2 Create routes for analysis pages
     - Add routes to src/routes/config.tsx
     - Create page components if needed
     - Add lazy loading
     - _Requirements: 10.4_
 
-  - [ ] 17.3 Add analysis navigation items
+  - [x] 17.3 Add analysis navigation items
     - Add to admin navigation menu
     - Add appropriate icons
     - Set correct permissions
     - _Requirements: 10.1_
 
-  - [ ] 17.4 Connect frontend to analysis APIs
+  - [-] 17.4 Connect frontend to analysis APIs
     - Create service functions for analysis endpoints
     - Implement data fetching with React Query
     - Add error handling

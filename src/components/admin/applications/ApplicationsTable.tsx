@@ -1,9 +1,11 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { sanitizeHtml } from '@/lib/sanitizer'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { Eye, FileText, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building } from 'lucide-react'
+import { Eye, FileText, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building, MessageSquare } from 'lucide-react'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 import { useToastStore } from '@/components/ui/Toast'
+import { CommunicationModal } from '@/components/admin/CommunicationModal'
+import { sendToApplicant, type CommunicationRequest } from '@/services/communicationService'
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -50,6 +52,10 @@ interface ApplicationSummary {
  total_subjects: number
  points: number
  days_since_submission: number
+ // Draft-specific fields
+ isDraft: boolean
+ completionPercentage: number
+ lastUpdated: string
 }
 
 interface ApplicationsTableProps {
@@ -293,10 +299,23 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  isSelected = false,
  onSelect
 }) => {
+ const [showCommunicationModal, setShowCommunicationModal] = useState(false)
+ const { error: showError, success: showSuccess } = useToastStore()
+
  const sanitizedGradesSummary = useMemo(
  () => sanitizeHtml(app.grades_summary ?? ''),
  [app.grades_summary]
  )
+
+ const handleSendMessage = async (data: CommunicationRequest) => {
+ const result = await sendToApplicant(data)
+ 
+ if (result.success) {
+ showSuccess('Message Sent', 'Your message has been sent successfully')
+ } else {
+ throw new Error(result.error || 'Failed to send message')
+ }
+ }
 
  const formatDate = (dateString: string) => {
  return new Date(dateString).toLocaleDateString('en-US', {
@@ -343,8 +362,38 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  <span>{formatDate(app.submitted_at || app.created_at)}</span>
  </div>
  </div>
+ <div className="flex flex-col items-end gap-2">
  {getStatusBadge(app.status)}
+ {app.isDraft && (
+ <div className="text-xs text-gray-900">
+ <span className="font-medium">{app.completionPercentage}%</span> complete
  </div>
+ )}
+ </div>
+ </div>
+
+ {/* Draft Status Banner */}
+ {app.isDraft && (
+ <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-2">
+ <AlertTriangle className="h-4 w-4 text-yellow-600" />
+ <span className="text-sm font-medium text-yellow-800">Draft Application</span>
+ </div>
+ <div className="text-xs text-yellow-700">
+ Last updated: {formatDate(app.lastUpdated)}
+ </div>
+ </div>
+ <div className="mt-2">
+ <div className="w-full bg-yellow-100 rounded-full h-2">
+ <div
+ className="bg-yellow-600 h-2 rounded-full transition-all duration-300"
+ style={{ width: `${app.completionPercentage}%` }}
+ />
+ </div>
+ </div>
+ </div>
+ )}
 
  {/* Contact Info */}
  <div className="space-y-2 mb-4">
@@ -439,6 +488,18 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  View Details
  </button>
  
+ {/* Contact Applicant Button - Show for draft applications */}
+ {app.isDraft && (
+ <button
+ onClick={() => setShowCommunicationModal(true)}
+ className="bg-secondary hover:bg-secondary/90 text-white text-sm py-2.5 px-4 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2"
+ title="Contact Applicant"
+ >
+ <MessageSquare className="h-4 w-4" />
+ Contact
+ </button>
+ )}
+ 
  {documentsCount > 0 && (
  <div className="flex gap-1">
  {app.result_slip_url && (
@@ -466,6 +527,20 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  </div>
  )}
  </div>
+
+ {/* Communication Modal */}
+ <CommunicationModal
+ open={showCommunicationModal}
+ onOpenChange={setShowCommunicationModal}
+ applicant={{
+ id: app.id,
+ full_name: app.full_name,
+ email: app.email,
+ phone: app.phone,
+ application_id: app.application_number
+ }}
+ onSend={handleSendMessage}
+ />
 
  {/* Loading Overlays */}
  {(updatingStatus || updatingPayment) && (

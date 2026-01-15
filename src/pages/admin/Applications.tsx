@@ -567,6 +567,7 @@ export default function Applications() {
               paymentFilter={filters.paymentFilter}
               programFilter={filters.programFilter}
               institutionFilter={filters.institutionFilter}
+              draftFilter={filters.draftFilter}
               onFilterChange={updateFilter}
             />
           </div>
@@ -580,6 +581,7 @@ export default function Applications() {
             paymentFilter={filters.paymentFilter}
             programFilter={filters.programFilter}
             institutionFilter={filters.institutionFilter}
+            draftFilter={filters.draftFilter}
             onFilterChange={updateFilter}
           />
         </div>

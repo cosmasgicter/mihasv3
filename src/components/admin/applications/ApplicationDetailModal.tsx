@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/lib/utils'
-import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, Calendar, MapPin, Users, GraduationCap, Building, AlertCircle, Download, Send, History, Eye } from 'lucide-react'
+import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, Calendar, MapPin, Users, GraduationCap, Building, AlertCircle, Download, Send, History, Eye, MessageSquare } from 'lucide-react'
 import { applicationService } from '@/services/applications'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import type { ApplicationInterview } from '@/lib/supabase'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 import { SendNotificationModal } from './SendNotificationModal'
+import { CommunicationHistory } from '@/components/admin/CommunicationHistory'
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -381,7 +382,7 @@ export function ApplicationDetailModal({
  const [isClient, setIsClient] = useState(false)
  const [isGeneratingAcceptance, setIsGeneratingAcceptance] = useState(false)
  const [isGeneratingFinanceReceipt, setIsGeneratingFinanceReceipt] = useState(false)
- const [activeTab, setActiveTab] = useState<'overview' | 'interview' | 'grades' | 'documents' | 'history'>('overview')
+ const [activeTab, setActiveTab] = useState<'overview' | 'interview' | 'grades' | 'documents' | 'communications' | 'history'>('overview')
  const [applicationData, setApplicationData] = useState<ApplicationDetailResponse | null>(null)
  const [loading, setLoading] = useState(false)
  const [isSavingInterview, setIsSavingInterview] = useState(false)
@@ -715,6 +716,7 @@ export function ApplicationDetailModal({
  { id: 'interview', label: 'Interview', icon: Calendar },
  { id: 'grades', label: 'Grades', icon: GraduationCap },
  { id: 'documents', label: 'Documents', icon: FileText },
+ { id: 'communications', label: 'Communications', icon: MessageSquare },
  { id: 'history', label: 'History', icon: History }
  ] as const
 
@@ -1209,6 +1211,12 @@ export function ApplicationDetailModal({
  documents={applicationData?.documents || []} 
  loading={loading}
  application={application}
+ />
+ )}
+
+ {activeTab === 'communications' && (
+ <CommunicationHistory 
+ applicantId={application.id}
  />
  )}
 
