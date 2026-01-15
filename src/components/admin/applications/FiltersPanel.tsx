@@ -9,6 +9,7 @@ interface FiltersPanelProps {
   paymentFilter: string
   programFilter: string
   institutionFilter: string
+  draftFilter: string
   onFilterChange: (key: keyof ApplicationFilters, value: string) => void
 }
 
@@ -18,6 +19,7 @@ export function FiltersPanel({
   paymentFilter,
   programFilter,
   institutionFilter,
+  draftFilter,
   onFilterChange
 }: FiltersPanelProps) {
   return (
@@ -33,6 +35,18 @@ export function FiltersPanel({
               className="pl-10"
             />
           </div>
+        </div>
+        
+        <div>
+          <select
+            value={draftFilter}
+            onChange={(e) => onFilterChange('draftFilter', e.target.value)}
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
+          >
+            <option value="all">All Applications</option>
+            <option value="drafts">Drafts Only</option>
+            <option value="completed">Completed Only</option>
+          </select>
         </div>
         
         <div>
@@ -75,8 +89,11 @@ export function FiltersPanel({
             <option value="Registered Nursing">Registered Nursing</option>
           </select>
         </div>
-        
-        <div>
+      </div>
+      
+      {/* Second row for institution filter */}
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mt-4">
+        <div className="md:col-span-2">
           <select
             value={institutionFilter}
             onChange={(e) => onFilterChange('institutionFilter', e.target.value)}

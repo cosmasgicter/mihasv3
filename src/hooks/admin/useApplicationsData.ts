@@ -43,6 +43,10 @@ interface ApplicationSummary {
   points: number
   age: number
   days_since_submission: number
+  // Draft-specific fields
+  isDraft: boolean
+  completionPercentage: number
+  lastUpdated: string
 }
 
 interface PaginationState {
@@ -62,6 +66,33 @@ const sanitizeSearchTerm = (value: string) => {
     .trim()
     .replace(/[%_]/g, match => `\\${match}`)
     .replace(/,/g, '\\,')
+}
+
+// Calculate completion percentage for draft applications
+const calculateCompletionPercentage = (application: any): number => {
+  if (application.status !== 'draft') return 100
+  
+  const requiredFields = [
+    'full_name',
+    'date_of_birth',
+    'sex',
+    'phone',
+    'email',
+    'residence_town',
+    'program',
+    'intake',
+    'institution',
+    'result_slip_url',
+    'payment_method',
+    'amount'
+  ]
+  
+  const completedFields = requiredFields.filter(field => {
+    const value = application[field]
+    return value !== null && value !== undefined && value !== ''
+  })
+  
+  return Math.round((completedFields.length / requiredFields.length) * 100)
 }
 
 const mapSupabaseApplication = (row: any): ApplicationSummary => ({
@@ -96,7 +127,11 @@ const mapSupabaseApplication = (row: any): ApplicationSummary => ({
   total_subjects: Number(row.total_subjects ?? 0),
   points: Number(row.points ?? calculatePointsFromSummary(row.grades_summary)),
   age: Number(row.age ?? 0),
-  days_since_submission: Number(row.days_since_submission ?? 0)
+  days_since_submission: Number(row.days_since_submission ?? 0),
+  // Draft-specific fields
+  isDraft: row.status === 'draft',
+  completionPercentage: calculateCompletionPercentage(row),
+  lastUpdated: row.updated_at ?? row.created_at ?? ''
 })
 
 const mapApplicationFiltersToAdminFilters = (
@@ -184,7 +219,6 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       let query = supabase
         .from('admin_application_detailed')
         .select('*', { count: 'exact' })
-        .neq('status', 'draft')
 
       if (activeFilters.searchTerm) {
         const searchValue = sanitizeSearchTerm(activeFilters.searchTerm)
@@ -209,6 +243,14 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       if (activeFilters.institutionFilter) {
         query = query.eq('institution', activeFilters.institutionFilter)
       }
+
+      // Apply draft filter
+      if (activeFilters.draftFilter === 'drafts') {
+        query = query.eq('status', 'draft')
+      } else if (activeFilters.draftFilter === 'completed') {
+        query = query.neq('status', 'draft')
+      }
+      // 'all' shows both drafts and completed (no additional filter needed)
 
       const { data, error: queryError, count } = await query
         .order('created_at', { ascending: false })

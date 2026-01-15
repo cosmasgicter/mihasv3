@@ -29,6 +29,9 @@ const AuditTrail = React.lazy(() => import('@/pages/admin/AuditTrail'))
 const RoleManagement = React.lazy(() => import('@/pages/admin/RoleManagement'))
 const ApplicationFlowAnalysis = React.lazy(() => import('@/pages/admin/ApplicationFlowAnalysis'))
 const SystemHealthDashboard = React.lazy(() => import('@/pages/admin/SystemHealthDashboard'))
+const PredictiveAnalytics = React.lazy(() => import('@/pages/admin/PredictiveAnalytics'))
+const ComplianceAnalytics = React.lazy(() => import('@/pages/admin/ComplianceAnalytics'))
+const RealtimeMetrics = React.lazy(() => import('@/pages/admin/RealtimeMetrics'))
 const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index.tsx'))
 const AdminTest = React.lazy(() => import('@/pages/AdminTest'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
@@ -86,6 +89,9 @@ export const routes: RouteConfig[] = [
   { path: '/admin/audit', element: AuditTrail, guard: 'admin', lazy: true },
   { path: '/admin/settings', element: AdminSettings, guard: 'admin', lazy: true },
   { path: '/admin/analytics', element: AdminAnalytics, guard: 'admin', lazy: true },
+  { path: '/admin/predictive-analytics', element: PredictiveAnalytics, guard: 'admin', lazy: true },
+  { path: '/admin/compliance-analytics', element: ComplianceAnalytics, guard: 'admin', lazy: true },
+  { path: '/admin/realtime-metrics', element: RealtimeMetrics, guard: 'admin', lazy: true },
   { path: '/admin/ai-insights', element: AIInsights, guard: 'admin', lazy: true },
   { path: '/admin/workflow', element: WorkflowAutomation, guard: 'admin', lazy: true },
   { path: '/admin/flow-analysis', element: ApplicationFlowAnalysis, guard: 'admin', lazy: true },

@@ -20,7 +20,8 @@ import {
   Shield,
   BarChart3,
   ChevronRight,
-  Activity
+  Activity,
+  TrendingUp
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -114,6 +115,9 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
     { href: '/admin/intakes', label: 'Intakes', icon: Calendar, emoji: '<Calendar className="w-5 h-5" />' },
     { href: '/admin/users', label: 'Users', icon: Users, emoji: '👥' },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, emoji: '<BarChart3 className="w-5 h-5" />' },
+    { href: '/admin/predictive-analytics', label: 'Predictive', icon: TrendingUp, emoji: '📈' },
+    { href: '/admin/compliance-analytics', label: 'Compliance', icon: Shield, emoji: '🛡️' },
+    { href: '/admin/realtime-metrics', label: 'Real-time', icon: Activity, emoji: '⚡' },
     { href: '/admin/audit', label: 'Audit trail', icon: Activity, emoji: '🛡️' },
     { href: '/admin/settings', label: 'Settings', icon: Settings, emoji: '⚙️' },
   ]
