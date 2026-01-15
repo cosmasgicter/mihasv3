@@ -646,4 +646,19 @@ export class PluginManager {
       await integrationAuditTrail.logActivity({
         integration_name: 'plugin_system',
         action: 'plugin_uninstalled',
-        metadata: { plugin_name: plugin
+        metadata: { plugin_name: pluginName }
+      });
+
+      return { success: true, message: `Plugin ${pluginName} uninstalled` };
+
+    } catch (error) {
+      throw new Error(`Plugin uninstallation failed: ${error.message}`);
+    }
+  }
+}
+
+module.exports = {
+  PluginRegistry,
+  PluginManager,
+  integrationAuditTrail
+};
