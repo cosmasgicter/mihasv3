@@ -106,7 +106,7 @@ This implementation plan addresses three critical production issues: dashboard d
   - Verify cron worker processes emails correctly
   - Ask the user if questions arise
 
-- [-] 9. Implement Student Dashboard Realtime Subscription
+- [x] 9. Implement Student Dashboard Realtime Subscription
   - [x] 9.1 Create `src/hooks/useStudentDashboardRealtime.ts`
     - Subscribe to `applications` table filtered by `user_id`
     - Subscribe to `in_app_notifications` table filtered by `user_id`
@@ -122,7 +122,7 @@ This implementation plan addresses three critical production issues: dashboard d
     - **Property 1: Real-time Update Latency**
     - **Validates: Requirements 1.1, 2.1, 2.2**
 
-- [ ] 10. Implement Admin Dashboard Realtime Subscription
+- [x] 10. Implement Admin Dashboard Realtime Subscription
   - [x] 10.1 Create `src/hooks/useAdminDashboardRealtime.ts`
     - Subscribe to `applications` table (all changes)
     - Subscribe to `payments` table for payment status
@@ -136,48 +136,48 @@ This implementation plan addresses three critical production issues: dashboard d
     - Add `useAdminDashboardRealtime()` call to admin dashboard component
     - _Requirements: 2.1_
 
-  - [ ] 10.3 Write property test for polling fallback
+  - [x] 10.3 Write property test for polling fallback
     - **Property 12: Polling Fallback**
     - **Validates: Requirements 2.5**
 
-- [ ] 11. Implement Multi-Admin Consistency
-  - [ ] 11.1 Create `src/hooks/admin/useApplicationStatusUpdate.ts`
+- [x] 11. Implement Multi-Admin Consistency
+  - [x] 11.1 Create `src/hooks/admin/useApplicationStatusUpdate.ts`
     - Implement optimistic locking using `updated_at` timestamp
     - Detect concurrent modification conflicts
     - Show warning toast and auto-refresh on conflict
     - Record status changes in `application_status_history`
     - _Requirements: 2.3_
 
-  - [ ] 11.2 Write property test for multi-admin consistency
+  - [x] 11.2 Write property test for multi-admin consistency
     - **Property 11: Multi-Admin Consistency**
     - **Validates: Requirements 2.3**
 
-- [ ] 12. Checkpoint - Verify Realtime Subscriptions
+- [x] 12. Checkpoint - Verify Realtime Subscriptions
   - Test student dashboard updates in real-time
   - Test admin dashboard updates in real-time
   - Test multi-admin concurrent modification handling
   - Test polling fallback when realtime disconnects
   - Ask the user if questions arise
 
-- [ ] 13. Integration Testing
-  - [ ] 13.1 Write integration test for full submission flow
+- [x] 13. Integration Testing
+  - [x] 13.1 Write integration test for full submission flow
     - Submit application and verify dashboard updates within 2 seconds
     - Verify email appears in `email_queue`
     - Verify in-app notification is created
     - _Requirements: 1.1, 3.1, 5.1, 5.2_
 
-  - [ ] 13.2 Write integration test for admin status change flow
+  - [x] 13.2 Write integration test for admin status change flow
     - Approve application and verify status change reflects
     - Verify cache invalidation occurs
     - _Requirements: 2.1, 2.4_
 
-  - [ ] 13.3 Write integration test for multi-tab synchronization
+  - [x] 13.3 Write integration test for multi-tab synchronization
     - Open dashboard in two tabs
     - Make change in one tab
     - Verify other tab updates via realtime
     - _Requirements: 1.1, 2.1_
 
-- [ ] 14. Final Checkpoint - Complete System Verification
+- [x] 14. Final Checkpoint - Complete System Verification
   - Run all property tests
   - Run all integration tests
   - Verify all requirements are met

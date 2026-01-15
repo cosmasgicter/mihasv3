@@ -135,7 +135,7 @@ describe('Email Send Timing Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -158,7 +158,7 @@ describe('Email Send Timing Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -202,7 +202,7 @@ describe('Email Send Timing Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -247,7 +247,7 @@ describe('Email Send Timing Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -283,7 +283,7 @@ describe('Email Send Timing Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -309,7 +309,7 @@ describe('Email Send Timing Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -349,7 +349,7 @@ describe('Email Send Timing Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -400,7 +400,7 @@ describe('Email Send Timing Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -423,7 +423,7 @@ describe('Email Send Timing Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 })

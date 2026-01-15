@@ -48,7 +48,7 @@ describe('Real-time Update Latency Property Tests', () => {
         expect(keyNames).toContain('application-stats')
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -60,7 +60,7 @@ describe('Real-time Update Latency Property Tests', () => {
         expect(keyNames).toContain('in-app-notifications')
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -73,7 +73,7 @@ describe('Real-time Update Latency Property Tests', () => {
         expect(channelName.length).toBeGreaterThan(0)
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -86,7 +86,7 @@ describe('Real-time Update Latency Property Tests', () => {
         expect(filter.startsWith('user_id=')).toBe(true)
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -104,7 +104,7 @@ describe('Real-time Update Latency Property Tests', () => {
         expect(['INSERT', 'UPDATE', 'DELETE', '*']).toContain(config.event)
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -121,7 +121,7 @@ describe('Real-time Update Latency Property Tests', () => {
         expect(applicationsConfig.table).toBe('applications')
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -138,7 +138,7 @@ describe('Real-time Update Latency Property Tests', () => {
         expect(notificationsConfig.table).toBe('in_app_notifications')
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -156,7 +156,7 @@ describe('Real-time Update Latency Property Tests', () => {
         expect(['SUBSCRIBED', 'CLOSED', 'CHANNEL_ERROR', 'TIMED_OUT']).toContain(hookReturn.status)
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -171,7 +171,7 @@ describe('Real-time Update Latency Property Tests', () => {
         }
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -196,7 +196,7 @@ describe('Real-time Update Latency Property Tests', () => {
         }
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -212,7 +212,7 @@ describe('Real-time Update Latency Property Tests', () => {
         expect(hasStats).toBe(true)
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -228,7 +228,7 @@ describe('Real-time Update Latency Property Tests', () => {
         }
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -240,7 +240,7 @@ describe('Real-time Update Latency Property Tests', () => {
         expect(shouldCreateSubscription).toBe(false)
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 })

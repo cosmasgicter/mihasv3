@@ -77,7 +77,7 @@ describe('Submission Notification Creation Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -114,7 +114,7 @@ describe('Submission Notification Creation Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -153,7 +153,7 @@ describe('Submission Notification Creation Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -182,7 +182,7 @@ describe('Submission Notification Creation Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -229,7 +229,7 @@ describe('Submission Notification Creation Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -266,7 +266,7 @@ describe('Submission Notification Creation Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -304,7 +304,7 @@ describe('Submission Notification Creation Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 })

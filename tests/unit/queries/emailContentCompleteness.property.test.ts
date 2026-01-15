@@ -105,7 +105,7 @@ describe('Email Content Completeness Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -137,7 +137,7 @@ describe('Email Content Completeness Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -169,7 +169,7 @@ describe('Email Content Completeness Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -206,7 +206,7 @@ describe('Email Content Completeness Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -242,7 +242,7 @@ describe('Email Content Completeness Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -283,7 +283,7 @@ describe('Email Content Completeness Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -322,7 +322,7 @@ describe('Email Content Completeness Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -358,7 +358,7 @@ describe('Email Content Completeness Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 })

@@ -118,7 +118,8 @@
         "list_projects",
         "execute_sql",
         "get_advisors",
-        "apply_migration"
+        "apply_migration",
+        "list_migrations"
       ]
     },
     "context7": {

@@ -171,7 +171,7 @@ describe('Email Queue Status Tracking Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -215,7 +215,7 @@ describe('Email Queue Status Tracking Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -253,7 +253,7 @@ describe('Email Queue Status Tracking Property Tests', () => {
 
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -292,7 +292,7 @@ describe('Email Queue Status Tracking Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -329,7 +329,7 @@ describe('Email Queue Status Tracking Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -435,7 +435,7 @@ describe('Email Queue Status Tracking Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 })

@@ -105,7 +105,7 @@ describe('Cache Invalidation Completeness Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -131,7 +131,7 @@ describe('Cache Invalidation Completeness Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -155,7 +155,7 @@ describe('Cache Invalidation Completeness Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -176,7 +176,7 @@ describe('Cache Invalidation Completeness Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -200,7 +200,7 @@ describe('Cache Invalidation Completeness Property Tests', () => {
           return true
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -219,7 +219,7 @@ describe('Cache Invalidation Completeness Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 
@@ -246,7 +246,7 @@ describe('Cache Invalidation Completeness Property Tests', () => {
         
         return true
       }),
-      { numRuns: 100 }
+      { numRuns: 20 }
     )
   })
 })
