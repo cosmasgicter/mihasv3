@@ -1,5 +1,5 @@
 import React from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary'
@@ -11,10 +11,12 @@ interface AdminRouteProps {
 /**
  * Admin route guard using optimized auth state checks
  * Leverages React Query caching to avoid redundant profile fetches
- * Requirements: 4.5
+ * Preserves intended destination for redirect after login
+ * Requirements: 4.5, 11.5
  */
 export function AdminRoute({ children }: AdminRouteProps) {
   const { user, isAdmin, isLoading } = useOptimizedAuthState()
+  const location = useLocation()
   
   if (isLoading) {
     return (
@@ -25,7 +27,8 @@ export function AdminRoute({ children }: AdminRouteProps) {
   }
 
   if (!user) {
-    return <Navigate to="/auth/signin" replace />
+    // Preserve the intended destination in location state
+    return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }
 
   // Super admin override

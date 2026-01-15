@@ -10,7 +10,9 @@ import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<unknown> }
 
 // Cache version for invalidation on deployment
-const CACHE_VERSION = 'v1'
+// Uses VITE_APP_VERSION from environment, falls back to package.json version
+const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.0.0'
+const CACHE_VERSION = `v${APP_VERSION}`
 const CACHE_PREFIX = 'mihas-app'
 
 // Suppress extension-related errors in service worker
@@ -303,28 +305,69 @@ registerRoute(
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
+      console.log(`[Service Worker] Activating with cache version: ${CACHE_VERSION}`)
+      
       const cacheNames = await caches.keys()
       const oldCaches = cacheNames.filter(
         name => name.startsWith(CACHE_PREFIX) && !name.includes(CACHE_VERSION)
       )
       
-      await Promise.all(
-        oldCaches.map(cacheName => {
-          console.log('Deleting old cache:', cacheName)
-          return caches.delete(cacheName)
-        })
-      )
+      if (oldCaches.length > 0) {
+        console.log(`[Service Worker] Deleting ${oldCaches.length} old cache(s):`, oldCaches)
+        await Promise.all(
+          oldCaches.map(cacheName => {
+            console.log('[Service Worker] Deleting old cache:', cacheName)
+            return caches.delete(cacheName)
+          })
+        )
+      } else {
+        console.log('[Service Worker] No old caches to delete')
+      }
       
       // Notify clients about cache update
       const clients = await self.clients.matchAll()
-      clients.forEach(client => {
-        client.postMessage({
-          type: 'cache-updated',
-          version: CACHE_VERSION
+      if (clients.length > 0) {
+        console.log(`[Service Worker] Notifying ${clients.length} client(s) about cache update`)
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'cache-updated',
+            version: CACHE_VERSION,
+            appVersion: APP_VERSION
+          })
         })
-      })
+      }
     })()
   )
+})
+
+// Handle messages from clients
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[Service Worker] Received SKIP_WAITING message')
+    self.skipWaiting()
+  }
+  
+  if (event.data && event.data.type === 'GET_VERSION') {
+    event.ports[0].postMessage({
+      version: CACHE_VERSION,
+      appVersion: APP_VERSION
+    })
+  }
+  
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      (async () => {
+        const cacheNames = await caches.keys()
+        await Promise.all(
+          cacheNames
+            .filter(name => name.startsWith(CACHE_PREFIX))
+            .map(name => caches.delete(name))
+        )
+        console.log('[Service Worker] All caches cleared')
+        event.ports[0]?.postMessage({ success: true })
+      })()
+    )
+  }
 })
 
 // ============================================================================

@@ -1,53 +1,38 @@
 @echo off
-echo ========================================
-echo Supabase Realtime Configuration Check
-echo ========================================
+echo ============================================================
+echo Supabase Realtime Configuration Verification
+echo ============================================================
 echo.
-
-REM Load environment variables
-if exist .env.production (
-    for /f "tokens=1,2 delims==" %%a in (.env.production) do (
-        if "%%a"=="VITE_SUPABASE_URL" set SUPABASE_URL=%%b
-        if "%%a"=="VITE_SUPABASE_SERVICE_ROLE_KEY" set SERVICE_KEY=%%b
-    )
-) else (
-    echo ERROR: .env.production not found
-    exit /b 1
-)
-
-echo Supabase URL: %SUPABASE_URL%
+echo This script helps verify that realtime is enabled for the
+echo required tables: applications, payments, in_app_notifications
 echo.
-
-echo Checking Realtime configuration...
+echo ============================================================
+echo MANUAL VERIFICATION STEPS:
+echo ============================================================
 echo.
-
-REM Check if realtime is enabled on applications table
-curl -X POST "%SUPABASE_URL%/rest/v1/rpc/check_realtime" ^
-  -H "apikey: %SERVICE_KEY%" ^
-  -H "Authorization: Bearer %SERVICE_KEY%" ^
-  -H "Content-Type: application/json"
-
+echo 1. Go to Supabase Dashboard:
+echo    https://supabase.com/dashboard
 echo.
+echo 2. Select your project and navigate to:
+echo    Database ^> Replication
 echo.
-echo ========================================
-echo Manual Verification Steps:
-echo ========================================
-echo 1. Go to: https://supabase.com/dashboard/project/mylgegkqoddcrxtwcclb
-echo 2. Navigate to: Database ^> Replication
-echo 3. Verify "applications" table has Realtime ENABLED
-echo 4. Check: Database ^> Tables ^> applications ^> Settings
-echo 5. Ensure RLS policies allow realtime events
+echo 3. Verify these tables are in the supabase_realtime publication:
+echo    - applications
+echo    - payments  
+echo    - in_app_notifications
 echo.
-echo ========================================
-echo Testing Realtime Connection:
-echo ========================================
-echo Open browser console and run:
+echo 4. If tables are missing, run this SQL in SQL Editor:
 echo.
-echo const { createClient } = supabase
-echo const client = createClient('%SUPABASE_URL%', 'YOUR_ANON_KEY')
-echo const channel = client.channel('test').on('postgres_changes', 
-echo   { event: '*', schema: 'public', table: 'applications' },
-echo   (payload) =^> console.log('Realtime event:', payload)
-echo ).subscribe((status) =^> console.log('Status:', status))
+echo    ALTER PUBLICATION supabase_realtime ADD TABLE applications;
+echo    ALTER PUBLICATION supabase_realtime ADD TABLE payments;
+echo    ALTER PUBLICATION supabase_realtime ADD TABLE in_app_notifications;
+echo.
+echo 5. Verify with:
+echo    SELECT tablename FROM pg_publication_tables 
+echo    WHERE pubname = 'supabase_realtime';
+echo.
+echo ============================================================
+echo Migration file: supabase/migrations/20250115_enable_realtime_tables.sql
+echo ============================================================
 echo.
 pause

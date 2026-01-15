@@ -1,0 +1,105 @@
+# Cloudflare Functions Headers
+# API-specific cache and security headers
+
+# ============================================================================
+# API ENDPOINTS - No cache for dynamic content
+# ============================================================================
+/api/*
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Pragma: no-cache
+  Expires: 0
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+
+# ============================================================================
+# AUTHENTICATION - Strict no-cache
+# ============================================================================
+/auth/*
+  Cache-Control: no-store, no-cache, must-revalidate, private
+  Pragma: no-cache
+  Expires: 0
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+
+# ============================================================================
+# ADMIN ENDPOINTS - No cache, strict security
+# ============================================================================
+/admin/*
+  Cache-Control: no-store, no-cache, must-revalidate, private
+  Pragma: no-cache
+  Expires: 0
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+
+# ============================================================================
+# APPLICATION DATA - Short cache with revalidation
+# ============================================================================
+/applications/*
+  Cache-Control: private, max-age=60, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# CATALOG DATA - Medium cache (less volatile)
+# ============================================================================
+/catalog/*
+  Cache-Control: public, max-age=1800, stale-while-revalidate=3600
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# ANALYTICS - Short cache
+# ============================================================================
+/analytics/*
+  Cache-Control: private, max-age=300, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# DOCUMENT GENERATION - No cache (dynamic PDFs)
+# ============================================================================
+/documents/*
+  Cache-Control: no-store, no-cache, must-revalidate
+  Pragma: no-cache
+  Content-Disposition: attachment
+  X-Content-Type-Options: nosniff
+
+/generate/*
+  Cache-Control: no-store, no-cache, must-revalidate
+  Pragma: no-cache
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# NOTIFICATIONS - No cache
+# ============================================================================
+/notifications/*
+  Cache-Control: no-store, no-cache, must-revalidate
+  Pragma: no-cache
+  X-Content-Type-Options: nosniff
+
+/send/*
+  Cache-Control: no-store, no-cache, must-revalidate
+  Pragma: no-cache
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# PAYMENTS - Strict no-cache
+# ============================================================================
+/payments/*
+  Cache-Control: no-store, no-cache, must-revalidate, private
+  Pragma: no-cache
+  Expires: 0
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+
+# ============================================================================
+# HEALTH CHECK - Short cache
+# ============================================================================
+/health
+  Cache-Control: public, max-age=30
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# CRON JOBS - No cache
+# ============================================================================
+/cron/*
+  Cache-Control: no-store, no-cache, must-revalidate
+  Pragma: no-cache
+  X-Content-Type-Options: nosniff

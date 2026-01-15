@@ -1,96 +1,36 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/components/ui/Toast'
 import { Shield, CheckCircle, AlertTriangle, XCircle, RefreshCw, Download, FileText } from 'lucide-react'
-
-interface ComplianceCheck {
-  id: string
-  checkType: string
-  status: 'passed' | 'failed' | 'warning'
-  message: string
-  timestamp: string
-  details?: Record<string, any>
-}
-
-interface ComplianceReport {
-  overallStatus: 'compliant' | 'non-compliant' | 'partial'
-  totalChecks: number
-  passedChecks: number
-  failedChecks: number
-  warningChecks: number
-  complianceScore: number
-  checks: ComplianceCheck[]
-  generatedAt: string
-}
+import { useComplianceCheck, useGenerateComplianceReport, useValidateCompliance } from '@/hooks/useAnalyticsQueries'
+import type { ComplianceCheck } from '@/services/analyticsService'
 
 export default function ComplianceAnalytics() {
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [report, setReport] = useState<ComplianceReport | null>(null)
   const [selectedCheck, setSelectedCheck] = useState<ComplianceCheck | null>(null)
   const { success: showSuccess, error: showError } = useToastStore()
-
-  useEffect(() => {
-    loadComplianceReport()
-  }, [])
-
-  const loadComplianceReport = async () => {
-    try {
-      setLoading(true)
-      
-      // Call compliance check endpoint
-      const response = await fetch('/analytics/compliance/check', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        },
-        body: JSON.stringify({
-          includeDetails: true
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to load compliance report')
-      }
-
-      const data = await response.json()
-      setReport(data)
-    } catch (error) {
-      console.error('Failed to load compliance report:', error)
-      showError('Failed to load compliance report', error instanceof Error ? error.message : undefined)
-    } finally {
-      setLoading(false)
-    }
-  }
+  
+  // Use React Query hooks
+  const { data: report, isLoading, refetch, isFetching } = useComplianceCheck(true)
+  const generateReportMutation = useGenerateComplianceReport()
+  const validateMutation = useValidateCompliance()
 
   const refreshData = async () => {
-    setRefreshing(true)
-    await loadComplianceReport()
-    setRefreshing(false)
-    showSuccess('Compliance report refreshed successfully')
+    try {
+      await refetch()
+      showSuccess('Compliance report refreshed successfully')
+    } catch (error) {
+      showError('Failed to refresh compliance report', error instanceof Error ? error.message : undefined)
+    }
   }
 
   const generateReport = async () => {
     try {
-      const response = await fetch('/analytics/compliance/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        },
-        body: JSON.stringify({
-          format: 'pdf',
-          includeDetails: true
-        })
+      const blob = await generateReportMutation.mutateAsync({
+        format: 'pdf',
+        includeDetails: true
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to generate report')
-      }
-
-      const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -109,28 +49,15 @@ export default function ComplianceAnalytics() {
 
   const validateCompliance = async () => {
     try {
-      const response = await fetch('/analytics/compliance/validate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to validate compliance')
-      }
-
-      const data = await response.json()
-      showSuccess('Compliance validation completed', data.message)
-      await loadComplianceReport()
+      const result = await validateMutation.mutateAsync()
+      showSuccess('Compliance validation completed', result.message)
     } catch (error) {
       console.error('Failed to validate compliance:', error)
       showError('Failed to validate compliance', error instanceof Error ? error.message : undefined)
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -182,14 +109,15 @@ export default function ComplianceAnalytics() {
             <div className="flex items-center space-x-4">
               <Button
                 onClick={refreshData}
-                disabled={refreshing}
+                disabled={isFetching}
                 className="bg-white/20 hover:bg-white/30 text-white border-white/30"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
               <Button
                 onClick={validateCompliance}
+                disabled={validateMutation.isPending}
                 className="bg-white/20 hover:bg-white/30 text-white border-white/30"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />

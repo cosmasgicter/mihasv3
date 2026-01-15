@@ -2,6 +2,31 @@
 
 ## 🎯 Pre-Deployment
 
+### 0. Run Supabase Realtime Migration ⭐ CRITICAL FIRST STEP
+Run the following SQL in Supabase SQL Editor to enable realtime for required tables:
+
+```sql
+-- Enable realtime for applications table
+ALTER PUBLICATION supabase_realtime ADD TABLE applications;
+
+-- Enable realtime for payments table  
+ALTER PUBLICATION supabase_realtime ADD TABLE payments;
+
+-- Enable realtime for in_app_notifications table
+ALTER PUBLICATION supabase_realtime ADD TABLE in_app_notifications;
+
+-- Verify configuration
+SELECT tablename FROM pg_publication_tables WHERE pubname = 'supabase_realtime';
+```
+
+**Or apply the migration file**:
+```bash
+# Using Supabase CLI
+supabase db push --include-all
+```
+
+Migration file: `supabase/migrations/20250115_enable_realtime_tables.sql`
+
 ### 1. Verify Supabase Realtime Configuration ⭐ CRITICAL
 ```bash
 cd c:\Users\Administrator\Pictures\mihasv3
@@ -12,6 +37,8 @@ scripts\verify-realtime.bat
 - [ ] Go to https://supabase.com/dashboard/project/mylgegkqoddcrxtwcclb
 - [ ] Navigate to Database > Replication
 - [ ] Verify `applications` table has Realtime **ENABLED**
+- [ ] Verify `payments` table has Realtime **ENABLED**
+- [ ] Verify `in_app_notifications` table has Realtime **ENABLED**
 - [ ] Check Database > Tables > applications > RLS Policies
 - [ ] Ensure policies allow SELECT for authenticated users
 

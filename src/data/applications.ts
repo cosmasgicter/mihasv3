@@ -104,10 +104,12 @@ export const applicationsData = {
           throw error
         }
       },
-      staleTime: 30000,
+      staleTime: 0, // Always consider data stale for fresh fetches
+      gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes for background refetch
       retry: 2,
       retryDelay: 1000,
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: true, // Refetch when window gains focus
+      refetchOnMount: 'always' // Always refetch on component mount
     })
   },
 
@@ -117,7 +119,10 @@ export const applicationsData = {
       queryKey: QUERY_KEYS.applicationDetail(id),
       queryFn: () => applicationService.getById(id, options),
       enabled: !!id,
-      staleTime: 60000
+      staleTime: 0, // Always consider data stale for fresh fetches
+      gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+      refetchOnWindowFocus: true,
+      refetchOnMount: 'always'
     })
   },
 
@@ -151,8 +156,11 @@ export const applicationsData = {
           activeUsers: Math.floor(Math.random() * 20) + 5
         }
       },
-      staleTime: 30000,
-      refetchInterval: 60000
+      staleTime: 0, // Always consider data stale for fresh fetches
+      gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+      refetchInterval: 60000,
+      refetchOnWindowFocus: true,
+      refetchOnMount: 'always'
     })
   },
 
@@ -175,7 +183,10 @@ export const applicationsData = {
           user: app.full_name
         }))
       },
-      staleTime: 30000
+      staleTime: 0, // Always consider data stale for fresh fetches
+      gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+      refetchOnWindowFocus: true,
+      refetchOnMount: 'always'
     })
   },
 

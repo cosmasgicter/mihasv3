@@ -3,8 +3,22 @@ compatibility_date = "2025-01-23"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
 
+# Build configuration
+[build]
+command = "npm run build:prod"
+cwd = "."
+watch_dirs = ["src", "functions"]
+
+# Build environment
+[build.environment]
+NODE_VERSION = "20.18.0"
+NPM_VERSION = "10.0.0"
+
 [vars]
-# Supabase
+# Application Version (for cache busting)
+VITE_APP_VERSION = "1.0.0"
+
+# Supabase Configuration
 VITE_SUPABASE_URL = "https://mylgegkqoddcrxtwcclb.supabase.co"
 VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MTIwODMsImV4cCI6MjA3MzA4ODA4M30.7f-TwYz7E6Pp07oH5Lkkfw9c8d8JkeE81EXJqpCWiLw"
 SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzUxMjA4MywiZXhwIjoyMDczMDg4MDgzfQ.FsspKE5bjcG4TW8IvG-N0o7W0E7ljxznwlzJCm50ZRE"
@@ -70,12 +84,18 @@ SESSION_WARNING_MINUTES = "5"
 MAX_FILE_SIZE_MB = "10"
 ALLOWED_FILE_TYPES = "image/*,.pdf,.doc,.docx"
 
-# Cache
+# Cache Configuration
 API_CACHE_TTL_MS = "300000"
 STATIC_CACHE_TTL_SECONDS = "31536000"
 
 # Cron Job
 CRON_SECRET_KEY = "C6MWtFE5fuFw90CA2KWqAKqlyaILQaL9B3SsIJWFWpc="
 
+# Cloudflare AI Binding
 [ai]
 binding = "AI"
+
+# Observability
+[observability]
+enabled = true
+head_sampling_rate = 1.0

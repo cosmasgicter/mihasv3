@@ -1,24 +1,128 @@
-# Cloudflare Pages Headers
+# Cloudflare Pages CDN Caching Configuration
+# Optimized for MIHAS Application System
 
-# HTML - no cache to prevent stale chunks
+# ============================================================================
+# HTML FILES - No cache, always fresh
+# ============================================================================
 /*.html
-  Cache-Control: no-cache, no-store, must-revalidate
-  X-Robots-Tag: index, follow
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
 
-# JS/CSS - cache with hash validation
-/assets/js/*
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+
+# ============================================================================
+# STATIC ASSETS - Long-term cache with immutable
+# ============================================================================
+
+# JavaScript bundles (hashed filenames)
+/assets/*.js
   Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
 
+# CSS files (hashed filenames)
 /assets/*.css
   Cache-Control: public, max-age=31536000, immutable
-
-# Images - long cache
-/assets/images/*
-  Cache-Control: public, max-age=31536000, immutable
-
-# Security headers for all
-/*
-  X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
+
+# Images
+/assets/*.png
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/assets/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/assets/*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/assets/*.gif
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/assets/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/assets/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# Fonts
+/assets/*.woff
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/assets/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/assets/*.ttf
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/assets/*.eot
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/assets/*.otf
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# IMAGES DIRECTORY - Medium-term cache
+# ============================================================================
+/images/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# MANIFEST AND SERVICE WORKER - Short cache
+# ============================================================================
+/manifest.json
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Content-Type-Options: nosniff
+
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# STATIC FILES - Medium cache
+# ============================================================================
+/favicon.ico
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+/robots.txt
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# OFFLINE PAGE - Medium cache
+# ============================================================================
+/offline.html
+  Cache-Control: public, max-age=3600
+  X-Content-Type-Options: nosniff
+
+# ============================================================================
+# SECURITY HEADERS FOR ALL ROUTES
+# ============================================================================
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Permissions-Policy: geolocation=(), microphone=(), camera=()

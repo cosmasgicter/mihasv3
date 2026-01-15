@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -20,6 +20,7 @@ type SignInForm = z.infer<typeof signInSchema>
 
 export default function SignInPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { signIn } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -61,8 +62,12 @@ export default function SignInPage() {
       setIsAuthenticating(true)
       await new Promise(resolve => setTimeout(resolve, 800))
       
-      // Navigate to dashboard
-      navigate('/dashboard', { replace: true })
+      // Redirect to intended destination or dashboard
+      // Check if there's a saved location from the route guard
+      const from = (location.state as any)?.from?.pathname
+      const redirectTo = from && from !== '/auth/signin' ? from : '/dashboard'
+      
+      navigate(redirectTo, { replace: true })
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to sign in. Please try again.'
       setError(message.includes('Invalid') ? 'Invalid email or password. Please try again.' : message)
