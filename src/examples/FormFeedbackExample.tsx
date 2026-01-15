@@ -7,7 +7,7 @@
 import React from 'react'
 import { useFormSubmission } from '@/components/ui/FormFeedback'
 import { FormFeedback, FormSubmitButton, InlineFormFeedback } from '@/components/ui/FormFeedback'
-import { Input } from '@/components/ui/input'
+import { Input } from '@/components/ui/Input'
 
 export function FormFeedbackExample() {
   const { status, message, details, startSubmission, setSuccess, setError, reset } = useFormSubmission()
