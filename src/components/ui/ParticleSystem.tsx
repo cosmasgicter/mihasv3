@@ -34,7 +34,10 @@ export const ParticleSystem: React.FC = () => {
       vy: -Math.random() * 0.5 - 0.1,
       size: Math.random() * 1.5 + 0.5,
       opacity: Math.random() * 0.2 + 0.05,
-      color: ['#3b82f6', '#8b5cf6'][Math.floor(Math.random() * 2)]
+      color: [
+        getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#3b82f6',
+        getComputedStyle(document.documentElement).getPropertyValue('--color-accent-foreground').trim() || '#8b5cf6'
+      ][Math.floor(Math.random() * 2)]
     })
 
     const initParticles = () => {

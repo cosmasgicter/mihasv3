@@ -35,7 +35,7 @@ export const FloatingElements = React.memo(({ count = 20, className = '', should
               height: element.size,
               left: `${element.left}%`,
               top: `${element.top}%`,
-              background: `radial-gradient(circle, rgba(20, 184, 166, ${element.opacity}) 0%, transparent 70%)`
+              background: `radial-gradient(circle, rgba(var(--color-primary-rgb, 37, 99, 235), ${element.opacity}) 0%, transparent 70%)`
             }}
             animate={{
               y: [-50, -100, -50],
@@ -59,7 +59,7 @@ export const FloatingElements = React.memo(({ count = 20, className = '', should
               height: element.size,
               left: `${element.left}%`,
               top: `${element.top}%`,
-              background: `radial-gradient(circle, rgba(20, 184, 166, ${element.opacity}) 0%, transparent 70%)`,
+              background: `radial-gradient(circle, rgba(var(--color-primary-rgb, 37, 99, 235), ${element.opacity}) 0%, transparent 70%)`,
               opacity: element.opacity
             }}
           />

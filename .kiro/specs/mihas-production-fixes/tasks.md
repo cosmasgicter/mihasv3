@@ -162,59 +162,96 @@ This implementation plan addresses remaining production issues in the MIHAS Appl
 
 ### Phase 3: UI/UX Enhancements
 
-- [ ] 10. Redesign homepage with shadcn
-  - [ ] 10.1 Audit current LandingPage.tsx implementation
+- [-] 10. Redesign homepage with shadcn
+  - [x] 10.1 Audit current LandingPage.tsx implementation
     - Review current design and component usage
     - Identify areas not using shadcn components
     - Document mobile responsiveness issues
     - _Requirements: 1.1_
 
-  - [ ] 10.2 Implement responsive breakpoints
+  - [x] 10.2 Implement responsive breakpoints
     - Test on mobile (320px-768px)
     - Test on tablet (768px-1024px)
     - Test on desktop (1024px+)
     - Ensure no horizontal scrollbars
     - _Requirements: 1.2, 1.3_
 
-  - [ ] 10.3 Add visual consistency
+  - [x] 10.3 Add visual consistency
     - Use design tokens for all colors
     - Apply consistent typography
     - Use consistent spacing scale
     - _Requirements: 1.4_
 
-  - [ ] 10.4 Test homepage responsiveness
+  - [x] 10.4 Test homepage responsiveness
     - Test on various viewport sizes
     - Verify no layout breaks
     - Check touch targets on mobile (44x44px minimum)
     - _Requirements: 1.2, 1.3_
 
-- [ ] 11. Fix color contrast issues
-  - [ ] 11.1 Create WCAG AA compliant color palette
+- [x] 11. Fix color contrast issues
+  - [x] 11.1 Create WCAG AA compliant color palette
     - Define primary, secondary, text colors in design tokens
     - Ensure 4.5:1 contrast for normal text
     - Ensure 3:1 contrast for large text
     - Document in src/styles/design-tokens.css
     - _Requirements: 1.5, 7.1_
 
-  - [ ] 11.2 Update admin dashboard colors
+  - [x] 11.2 Update admin dashboard colors
     - Apply new color palette to admin pages
     - Fix low-contrast text
     - Update button and link colors
     - Ensure form inputs have proper contrast
     - _Requirements: 7.1, 7.2_
 
-  - [ ] 11.3 Implement contrast validation utility
+  - [x] 11.3 Implement contrast validation utility
     - Create src/utils/contrastChecker.ts
     - Implement getContrastRatio function
     - Implement meetsWCAG_AA function
     - Add to build process as warning
     - _Requirements: 1.5, 7.1_
 
-  - [ ] 11.4 Run accessibility audit
+  - [x] 11.4 Run accessibility audit
     - Use axe-core to check contrast
     - Verify all text meets WCAG AA
     - Fix any remaining issues
     - _Requirements: 1.5, 7.1, 7.2_
+
+  - [-] 11.5 Fix component-level accessibility issues
+    - [x] 11.5.1 Add missing form labels and ARIA attributes
+      - Fix form inputs missing labels in admin components
+      - Add aria-label attributes where visual labels aren't present
+      - Ensure all form controls have accessible names
+      - Update Radio, SubjectSelection, and input components
+      - _Requirements: 1.5, 7.1, 7.2_
+
+    - [x] 11.5.2 Replace hardcoded colors with design tokens
+      - Fix hardcoded colors in AdminNavigation.tsx (7 instances)
+      - Fix hardcoded colors in FloatingElements.tsx (2 instances)
+      - Fix hardcoded colors in LoadingState.tsx (1 instance)
+      - Fix hardcoded colors in ParticleSystem.tsx (2 instances)
+      - Fix hardcoded colors in ParticlesBackground.tsx (2 instances)
+      - _Requirements: 1.4, 7.3_
+
+    - [x] 11.5.3 Add missing alt attributes and button labels
+      - Audit all images for missing alt attributes
+      - Add descriptive alt text where missing
+      - Ensure buttons have accessible text or aria-label
+      - Fix button accessibility in admin components
+      - _Requirements: 1.5, 7.1_
+
+    - [ ] 11.5.4 Verify keyboard navigation and focus management
+      - Test tab order through all admin pages
+      - Ensure focus indicators are visible
+      - Fix any keyboard navigation issues
+      - Add skip links where appropriate
+      - _Requirements: 7.4_
+
+    - [ ] 11.5.5 Run comprehensive accessibility validation
+      - Re-run accessibility audit after fixes
+      - Verify all component issues are resolved
+      - Achieve >90% accessibility score
+      - Document remaining issues if any
+      - _Requirements: 1.5, 7.1, 7.2_
 
 - [ ] 12. Implement mobile-first responsive design
   - [ ] 12.1 Audit all pages for mobile responsiveness

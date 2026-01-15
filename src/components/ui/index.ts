@@ -27,6 +27,7 @@ export { ConfirmDialog } from './ConfirmDialog'
 export { Tabs } from './tabs'
 export { Breadcrumbs } from './Breadcrumbs'
 export { Pagination } from './Pagination'
+export { SkipLink } from './SkipLink'
 
 // Data Display Components
 export { Table } from './Table'

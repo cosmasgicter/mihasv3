@@ -53,6 +53,11 @@ export const ParticlesBackground: React.FC<ParticlesProps> = ({ enabled = true, 
 
     function step() {
       ctx.clearRect(0, 0, width, height)
+      
+      // Get primary color from CSS variables
+      const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#2563eb'
+      const primaryRgb = hexToRgb(primaryColor)
+      
       for (const p of particles) {
         p.x += p.vx
         p.y += p.vy
@@ -63,7 +68,7 @@ export const ParticlesBackground: React.FC<ParticlesProps> = ({ enabled = true, 
         if (p.y > height + 10) p.y = -10
 
         ctx.beginPath()
-        ctx.fillStyle = `rgba(14,165,233,${p.alpha})` // primary blue with low alpha
+        ctx.fillStyle = `rgba(${primaryRgb.r},${primaryRgb.g},${primaryRgb.b},${p.alpha})`
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
         ctx.fill()
       }
@@ -78,7 +83,7 @@ export const ParticlesBackground: React.FC<ParticlesProps> = ({ enabled = true, 
           const dist = Math.sqrt(dx * dx + dy * dy)
           if (dist < 100) {
             ctx.beginPath()
-            ctx.strokeStyle = `rgba(2,132,199,${Math.max(0, 0.06 - dist / 2000)})`
+            ctx.strokeStyle = `rgba(${primaryRgb.r},${primaryRgb.g},${primaryRgb.b},${Math.max(0, 0.06 - dist / 2000)})`
             ctx.lineWidth = 0.6
             ctx.moveTo(a.x, a.y)
             ctx.lineTo(b.x, b.y)
@@ -88,6 +93,16 @@ export const ParticlesBackground: React.FC<ParticlesProps> = ({ enabled = true, 
       }
 
       raf = requestAnimationFrame(step)
+    }
+    
+    // Helper function to convert hex to RGB
+    function hexToRgb(hex: string): { r: number; g: number; b: number } {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 37, g: 99, b: 235 } // fallback to primary color
     }
 
     window.addEventListener('resize', resize)

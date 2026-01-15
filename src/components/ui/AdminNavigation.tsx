@@ -249,7 +249,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             <motion.div
               className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-2xl nav-panel lg:hidden safe-area-top safe-area-bottom border-l-4 border-primary overflow-y-auto"
               style={{
-                backgroundColor: '#ffffff',
+                backgroundColor: 'var(--color-card)',
                 zIndex: 9999,
                 opacity: 1,
                 visibility: 'visible'
@@ -303,9 +303,9 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                                 : "text-gray-900 hover:bg-accent border border-border hover:border-input"
                             )}
                             style={{
-                              backgroundColor: isActive ? undefined : '#ffffff',
-                              color: isActive ? '#ffffff' : '#1f2937',
-                              border: isActive ? undefined : '2px solid #e5e7eb',
+                              backgroundColor: isActive ? undefined : 'var(--color-card)',
+                              color: isActive ? 'var(--color-primary-foreground)' : 'var(--color-foreground)',
+                              border: isActive ? undefined : '2px solid var(--color-border)',
                               opacity: 1,
                               visibility: 'visible'
                             }}
@@ -315,7 +315,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
                                 <span className="text-xl" style={{ opacity: 1 }}>{item.emoji}</span>
                                 <div>
                                   <span className="mobile-nav-text truncate" style={{ 
-                                    color: isActive ? '#ffffff' : '#1f2937',
+                                    color: isActive ? 'var(--color-primary-foreground)' : 'var(--color-foreground)',
                                     fontWeight: 600,
                                     opacity: 1
                                   }}>{item.label}</span>
