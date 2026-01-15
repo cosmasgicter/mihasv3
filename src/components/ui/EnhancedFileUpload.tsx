@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone'
 import { Upload, X, Image, FileText, Check, AlertCircle, Minimize2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { EnhancedLoadingSpinner } from './EnhancedLoadingSpinner'
-import { ProgressBar } from './ProgressIndicator'
+import { ProgressIndicator } from './ProgressIndicator'
 import { compressImage, validateFile, formatFileSize } from '@/utils/file-helpers'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 
@@ -302,10 +302,10 @@ export function EnhancedFileUpload({
                     
                     {/* Progress Bar */}
                     {(fileWithProgress.status === 'uploading' || fileWithProgress.status === 'compressing') && (
-                      <ProgressBar
-                        value={fileWithProgress.progress}
+                      <ProgressIndicator
+                        progress={fileWithProgress.progress}
+                        status={fileWithProgress.status === 'compressing' ? 'loading' : 'loading'}
                         size="sm"
-                        color={fileWithProgress.status === 'compressing' ? 'yellow' : 'blue'}
                         showPercentage={false}
                       />
                     )}
