@@ -27,7 +27,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
 
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden">
-      <SkipLink />
+      <SkipLink href="#main-content">Skip to main content</SkipLink>
       {/* Decorative background particles - disabled on mobile inside component */}
       <ParticlesBackground enabled={!isMobile} />
       <DesktopSidebar />
