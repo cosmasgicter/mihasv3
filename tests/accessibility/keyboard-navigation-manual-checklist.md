@@ -1,378 +1,340 @@
 # Keyboard Navigation Manual Testing Checklist
 
-**Requirements: 7.4**  
-**Task: 11.5.4 - Verify keyboard navigation and focus management**
+**Task**: 11.5.4 Verify keyboard navigation and focus management  
+**Requirements**: 7.4  
+**Date**: January 15, 2026
 
 ## Overview
-This document provides a comprehensive checklist for manually testing keyboard navigation and focus management across all admin pages in the MIHAS Application System.
 
-## General Keyboard Navigation Standards
+This checklist provides a comprehensive manual testing guide for keyboard navigation and focus management across all admin pages. Use this to verify that the application meets WCAG AA accessibility standards for keyboard interaction.
 
-### Essential Keyboard Shortcuts
-- **Tab**: Move focus forward
-- **Shift + Tab**: Move focus backward
-- **Enter**: Activate links and buttons
-- **Space**: Activate buttons, toggle checkboxes
-- **Escape**: Close modals, cancel operations
-- **Arrow Keys**: Navigate within components (dropdowns, radio groups)
+## General Testing Instructions
 
-### Focus Indicator Requirements
-- All interactive elements MUST have visible focus indicators
-- Focus indicators MUST meet WCAG AA contrast requirements (3:1 minimum)
-- Focus indicators should be consistent across the application
-- Focus should never be lost or trapped unintentionally
-
----
+1. **Close all mouse/trackpad input** - Test using keyboard only
+2. **Use Tab key** to move forward through interactive elements
+3. **Use Shift+Tab** to move backward
+4. **Use Enter/Space** to activate buttons and links
+5. **Use Arrow keys** for dropdowns, radio groups, and custom controls
+6. **Use Escape** to close modals and menus
 
 ## Skip Link Testing
 
 ### Test 1: Skip Link Presence
-- [ ] Navigate to any admin page
-- [ ] Press Tab once (skip link should be the first focusable element)
-- [ ] Verify skip link appears with text "Skip to main content"
-- [ ] Verify skip link has visible focus indicator
+- [ ] Load any admin page
+- [ ] Press Tab once
+- [ ] **Expected**: Skip link appears at top-left with text "Skip to main content"
+- [ ] **Expected**: Skip link has visible focus indicator (blue ring)
 
 ### Test 2: Skip Link Functionality
-- [ ] Focus the skip link (Tab once)
-- [ ] Press Enter to activate
-- [ ] Verify focus moves to main content area
-- [ ] Verify main content has id="main-content"
+- [ ] Focus skip link (Tab once)
+- [ ] Press Enter
+- [ ] **Expected**: Focus moves to main content area
+- [ ] **Expected**: Next Tab moves to first interactive element in main content
 
-**Status**: ✅ PASS / ❌ FAIL  
-**Notes**: _____________________
+### Test 3: Skip Link Styling
+- [ ] Focus skip link
+- [ ] **Expected**: Blue background, white text, clearly visible
+- [ ] **Expected**: Positioned at top-left, not obscured by other elements
+- [ ] **Expected**: Has adequate padding and readable text
 
----
+## Admin Dashboard Testing
 
-## Admin Dashboard (/admin/dashboard)
+### Dashboard - Tab Order
+- [ ] Navigate to `/admin/dashboard`
+- [ ] Tab through all interactive elements
+- [ ] **Expected**: Tab order follows visual layout (left-to-right, top-to-bottom)
+- [ ] **Expected**: No unexpected focus jumps
+- [ ] **Expected**: All interactive elements are reachable
 
-### Navigation Elements
-- [ ] Tab through all navigation menu items
-- [ ] Verify each menu item receives visible focus
-- [ ] Press Enter on a menu item to navigate
-- [ ] Verify navigation works correctly
+### Dashboard - Focus Indicators
+- [ ] Tab to each card/widget
+- [ ] **Expected**: Each focused element has visible blue ring/outline
+- [ ] **Expected**: Focus indicator is at least 2px wide
+- [ ] **Expected**: Focus indicator has sufficient contrast (3:1 minimum)
 
-### Dashboard Cards
-- [ ] Tab through all interactive elements in cards
-- [ ] Verify buttons and links have focus indicators
-- [ ] Test any expandable/collapsible sections
-- [ ] Verify keyboard can trigger all actions
+### Dashboard - Statistics Cards
+- [ ] Tab to statistics cards
+- [ ] **Expected**: If cards are clickable, they receive focus
+- [ ] **Expected**: Focus indicator visible on card
+- [ ] Press Enter on focused card
+- [ ] **Expected**: Card action activates (navigation or expansion)
 
-### Data Visualizations
-- [ ] If charts are present, verify they're keyboard accessible
-- [ ] Test any interactive chart elements
-- [ ] Verify tooltips can be accessed via keyboard
+## Applications Page Testing
 
-**Status**: ✅ PASS / ❌ FAIL  
-**Notes**: _____________________
-
----
-
-## Applications Page (/admin/applications)
-
-### Search and Filters
-- [ ] Tab to search input field
+### Applications - Search and Filters
+- [ ] Navigate to `/admin/applications`
+- [ ] Tab to search input
+- [ ] **Expected**: Search input receives focus with visible indicator
 - [ ] Type search query
-- [ ] Tab to filter dropdowns
-- [ ] Use arrow keys to select filter options
-- [ ] Press Enter to apply filters
+- [ ] **Expected**: Can type without issues
+- [ ] Tab to filter buttons
+- [ ] **Expected**: Each filter button receives focus
+- [ ] Press Enter on filter button
+- [ ] **Expected**: Filter activates
 
-### Bulk Actions
-- [ ] Tab to "Select All" checkbox
-- [ ] Press Space to toggle selection
-- [ ] Tab to bulk action dropdowns
-- [ ] Use arrow keys to select actions
-- [ ] Press Enter to apply bulk action
+### Applications - Table Navigation
+- [ ] Tab through application table
+- [ ] **Expected**: Can reach all action buttons in table
+- [ ] **Expected**: Tab order goes row by row
+- [ ] Focus on "View" button
+- [ ] Press Enter
+- [ ] **Expected**: Application details modal opens
 
-### Application Table
-- [ ] Tab through table headers
-- [ ] Tab through each row's interactive elements
-- [ ] Test status update dropdowns with keyboard
-- [ ] Test payment status dropdowns with keyboard
-- [ ] Verify "View Details" buttons are keyboard accessible
+### Applications - Modal Focus Trap
+- [ ] Open application details modal
+- [ ] Tab through modal elements
+- [ ] **Expected**: Focus stays within modal
+- [ ] Tab past last element
+- [ ] **Expected**: Focus returns to first modal element
+- [ ] Press Escape
+- [ ] **Expected**: Modal closes, focus returns to trigger button
 
-### Application Detail Modal
-- [ ] Open modal using keyboard (Enter on View button)
-- [ ] Verify focus moves into modal
-- [ ] Tab through all modal elements
-- [ ] Verify focus stays trapped within modal
-- [ ] Press Escape to close modal
-- [ ] Verify focus returns to trigger button
+## Programs Page Testing
 
-**Status**: ✅ PASS / ❌ FAIL  
-**Notes**: _____________________
+### Programs - Add/Edit Forms
+- [ ] Navigate to `/admin/programs`
+- [ ] Tab to "Add Program" button
+- [ ] Press Enter
+- [ ] **Expected**: Form modal opens
+- [ ] Tab through form fields
+- [ ] **Expected**: Logical order (top to bottom)
+- [ ] **Expected**: All inputs receive focus with visible indicator
 
----
+### Programs - Form Validation
+- [ ] Focus on required field
+- [ ] Tab away without filling
+- [ ] **Expected**: Error message appears
+- [ ] **Expected**: Can tab back to field to fix
+- [ ] Tab to submit button
+- [ ] Press Enter
+- [ ] **Expected**: Form validates, shows errors if any
 
-## Users Page (/admin/users)
+### Programs - Textarea Fields
+- [ ] Tab to textarea (description field)
+- [ ] **Expected**: Textarea receives focus
+- [ ] **Expected**: Can type multi-line text
+- [ ] **Expected**: Focus indicator visible
 
-### User List
-- [ ] Tab through user list items
-- [ ] Test edit/delete buttons with keyboard
-- [ ] Verify confirmation dialogs are keyboard accessible
+## Users Page Testing
 
-### User Forms
+### Users - Table Actions
+- [ ] Navigate to `/admin/users`
+- [ ] Tab through user table
+- [ ] **Expected**: Can reach edit/delete buttons
+- [ ] Focus on edit button
+- [ ] Press Enter
+- [ ] **Expected**: Edit modal opens
+
+### Users - Role Selection
+- [ ] In edit user modal, tab to role dropdown
+- [ ] Press Space or Enter to open
+- [ ] Use Arrow keys to navigate options
+- [ ] Press Enter to select
+- [ ] **Expected**: Dropdown works with keyboard
+- [ ] **Expected**: Selected value updates
+
+## Settings Page Testing
+
+### Settings - Form Navigation
+- [ ] Navigate to `/admin/settings`
 - [ ] Tab through all form fields
-- [ ] Test form validation with keyboard
-- [ ] Submit form using Enter key
-- [ ] Cancel form using Escape key
+- [ ] **Expected**: Logical tab order
+- [ ] **Expected**: All inputs reachable
+- [ ] **Expected**: Focus indicators visible
 
-**Status**: ✅ PASS / ❌ FAIL  
-**Notes**: _____________________
+### Settings - Toggle Switches
+- [ ] Tab to toggle switch
+- [ ] Press Space to toggle
+- [ ] **Expected**: Toggle switches state
+- [ ] **Expected**: Visual feedback provided
 
----
+### Settings - Save Button
+- [ ] Tab to Save button
+- [ ] **Expected**: Button receives focus
+- [ ] Press Enter
+- [ ] **Expected**: Settings save
+- [ ] **Expected**: Success message appears
 
-## Programs Page (/admin/programs)
+## Analytics Page Testing
 
-### Program List
-- [ ] Tab through program cards/list items
-- [ ] Test edit/delete actions with keyboard
-- [ ] Verify all interactive elements are accessible
+### Analytics - Date Pickers
+- [ ] Navigate to `/admin/analytics`
+- [ ] Tab to date picker
+- [ ] **Expected**: Date input receives focus
+- [ ] Press Enter or Space
+- [ ] **Expected**: Calendar opens
+- [ ] Use Arrow keys to navigate dates
+- [ ] Press Enter to select
+- [ ] **Expected**: Date selected, calendar closes
 
-### Program Forms
-- [ ] Tab through all form fields (including Textarea)
-- [ ] Test dropdown selections with arrow keys
-- [ ] Test checkbox/radio selections with Space
-- [ ] Submit form with Enter
-- [ ] Cancel with Escape
+### Analytics - Chart Controls
+- [ ] Tab to chart export buttons
+- [ ] **Expected**: Buttons receive focus
+- [ ] Press Enter
+- [ ] **Expected**: Export action triggers
 
-**Status**: ✅ PASS / ❌ FAIL  
-**Notes**: _____________________
+## Intakes Page Testing
 
----
+### Intakes - CRUD Operations
+- [ ] Navigate to `/admin/intakes`
+- [ ] Tab to "Add Intake" button
+- [ ] Press Enter
+- [ ] **Expected**: Form opens
+- [ ] Complete form using keyboard only
+- [ ] **Expected**: Can complete entire form
+- [ ] Tab to submit
+- [ ] Press Enter
+- [ ] **Expected**: Intake created
 
-## Eligibility Management (/admin/eligibility)
+## Audit Trail Page Testing
 
-### Rule List
-- [ ] Tab through eligibility rules
-- [ ] Test edit/delete buttons with keyboard
-- [ ] Verify rule details are accessible
+### Audit Trail - Filters and Search
+- [ ] Navigate to `/admin/audit-trail`
+- [ ] Tab through filter controls
+- [ ] **Expected**: All filters keyboard accessible
+- [ ] Tab to search
+- [ ] Type search query
+- [ ] **Expected**: Results filter
 
-### Rule Forms
-- [ ] Tab through all form fields
-- [ ] Test rule type selection with keyboard
-- [ ] Test condition inputs with keyboard
-- [ ] Save rule with Enter
-- [ ] Close form with Escape
+### Audit Trail - Table Pagination
+- [ ] Tab to pagination controls
+- [ ] **Expected**: Page numbers receive focus
+- [ ] Press Enter on page number
+- [ ] **Expected**: Page changes
+- [ ] Use Arrow keys if pagination has arrow buttons
+- [ ] **Expected**: Can navigate pages
 
-**Status**: ✅ PASS / ❌ FAIL  
-**Notes**: _____________________
+## Navigation Menu Testing
 
----
+### Desktop Navigation
+- [ ] Tab to navigation menu
+- [ ] **Expected**: Menu items receive focus in order
+- [ ] Press Enter on menu item
+- [ ] **Expected**: Navigate to page
+- [ ] **Expected**: Active page indicator visible
 
-## Audit Trail (/admin/audit-trail)
+### Mobile Navigation
+- [ ] Resize to mobile viewport (< 768px)
+- [ ] Tab to hamburger menu button
+- [ ] Press Enter
+- [ ] **Expected**: Mobile menu opens
+- [ ] Tab through menu items
+- [ ] **Expected**: Focus stays in menu
+- [ ] Press Escape
+- [ ] **Expected**: Menu closes
 
-### Filters
-- [ ] Tab through date range inputs
-- [ ] Tab through filter dropdowns
-- [ ] Apply filters with keyboard
+## Common Components Testing
 
-### Audit Log Table
-- [ ] Tab through table rows
-- [ ] Test sorting controls with keyboard
-- [ ] Test pagination controls with keyboard
-- [ ] Verify log details are accessible
+### Modals
+- [ ] Open any modal
+- [ ] **Expected**: Focus moves to modal
+- [ ] Tab through modal
+- [ ] **Expected**: Focus trapped in modal
+- [ ] Press Escape
+- [ ] **Expected**: Modal closes, focus returns
 
-**Status**: ✅ PASS / ❌ FAIL  
-**Notes**: _____________________
-
----
-
-## Settings Page (/admin/settings)
-
-### Settings Sections
-- [ ] Tab through all settings sections
-- [ ] Test toggle switches with Space
-- [ ] Test input fields with keyboard
-- [ ] Save settings with Enter
-
-### Configuration Forms
-- [ ] Tab through all configuration fields
-- [ ] Test validation with keyboard
-- [ ] Submit changes with keyboard
-
-**Status**: ✅ PASS / ❌ FAIL  
-**Notes**: _____________________
-
----
-
-## Common Component Testing
-
-### Modals/Dialogs
-- [ ] Open modal with keyboard
-- [ ] Focus moves into modal
-- [ ] Tab cycles through modal elements only
-- [ ] Shift+Tab works in reverse
-- [ ] Escape closes modal
-- [ ] Focus returns to trigger element
-
-### Dropdowns/Select Menus
-- [ ] Focus dropdown with Tab
-- [ ] Open with Space or Enter
-- [ ] Navigate options with Arrow keys
-- [ ] Select with Enter
-- [ ] Close with Escape
+### Dropdowns
+- [ ] Tab to dropdown
+- [ ] Press Space or Enter
+- [ ] **Expected**: Dropdown opens
+- [ ] Use Arrow keys
+- [ ] **Expected**: Can navigate options
+- [ ] Press Enter
+- [ ] **Expected**: Option selected
 
 ### Buttons
-- [ ] All buttons focusable with Tab
-- [ ] Activate with Enter or Space
-- [ ] Disabled buttons not focusable
-- [ ] Focus indicators visible
+- [ ] Tab to any button
+- [ ] **Expected**: Visible focus indicator
+- [ ] Press Enter or Space
+- [ ] **Expected**: Button activates
 
 ### Links
-- [ ] All links focusable with Tab
-- [ ] Activate with Enter
-- [ ] Focus indicators visible
-- [ ] Skip links work correctly
+- [ ] Tab to any link
+- [ ] **Expected**: Visible focus indicator
+- [ ] Press Enter
+- [ ] **Expected**: Navigation occurs
 
-### Form Inputs
-- [ ] All inputs focusable with Tab
-- [ ] Labels associated correctly
-- [ ] Error messages announced
-- [ ] Required fields indicated
+## Accessibility Standards Verification
 
-### Checkboxes/Radio Buttons
-- [ ] Focusable with Tab
-- [ ] Toggle with Space
-- [ ] Radio groups navigate with Arrow keys
-- [ ] Current selection indicated
+### WCAG 2.1 AA Compliance
 
-### Data Tables
-- [ ] Tab through table headers
-- [ ] Tab through table cells
-- [ ] Sortable columns keyboard accessible
-- [ ] Row actions keyboard accessible
+#### 2.1.1 Keyboard (Level A)
+- [ ] All functionality available via keyboard
+- [ ] No keyboard-only operations require specific timings
 
----
+#### 2.1.2 No Keyboard Trap (Level A)
+- [ ] Can navigate to and from all components
+- [ ] No unintentional focus traps
+- [ ] Escape key works to exit modals/menus
 
-## Focus Management Issues Found
+#### 2.4.1 Bypass Blocks (Level A)
+- [ ] Skip link present on all pages
+- [ ] Skip link functional
+- [ ] Skip link visible on focus
 
-### Issue Template
-**Page**: _____________________  
-**Element**: _____________________  
-**Issue**: _____________________  
-**Expected Behavior**: _____________________  
-**Actual Behavior**: _____________________  
-**Severity**: Critical / High / Medium / Low  
-**Fix Required**: Yes / No  
+#### 2.4.3 Focus Order (Level A)
+- [ ] Focus order is logical
+- [ ] Focus order preserves meaning
+- [ ] Focus order follows visual layout
 
----
-
-## Focus Indicator Audit
-
-### Elements to Check
-- [ ] Buttons - all variants
-- [ ] Links - all variants
-- [ ] Input fields
-- [ ] Textareas
-- [ ] Select dropdowns
-- [ ] Checkboxes
-- [ ] Radio buttons
-- [ ] Navigation menu items
-- [ ] Table rows/cells
-- [ ] Modal close buttons
-- [ ] Icon buttons
-
-### Focus Indicator Checklist
-For each element type:
-- [ ] Focus indicator is visible
+#### 2.4.7 Focus Visible (Level AA)
+- [ ] Focus indicator visible on all interactive elements
 - [ ] Focus indicator has sufficient contrast (3:1 minimum)
-- [ ] Focus indicator is consistent with design system
-- [ ] Focus indicator doesn't obscure content
-- [ ] Focus indicator works in all states (hover, active, disabled)
+- [ ] Focus indicator is at least 2px wide
 
----
+#### 3.2.1 On Focus (Level A)
+- [ ] Focusing an element doesn't trigger unexpected changes
+- [ ] No automatic navigation on focus
 
-## Tab Order Verification
+## Issues Found
 
-### Logical Tab Order Checklist
-- [ ] Skip link is first focusable element
-- [ ] Navigation menu follows skip link
-- [ ] Main content area follows navigation
-- [ ] Tab order follows visual layout (left to right, top to bottom)
-- [ ] No unexpected focus jumps
-- [ ] No focus traps (except intentional modal traps)
-- [ ] All interactive elements are in tab order
-- [ ] Hidden elements are not in tab order
+### Critical Issues
+_List any critical keyboard navigation issues that prevent task completion_
 
----
+1. 
+2. 
+3. 
 
-## Keyboard Shortcuts Documentation
+### Medium Issues
+_List issues that make navigation difficult but not impossible_
 
-### Implemented Shortcuts
-| Shortcut | Action | Context |
-|----------|--------|---------|
-| Tab | Move focus forward | Global |
-| Shift+Tab | Move focus backward | Global |
-| Enter | Activate element | Buttons, Links |
-| Space | Activate element | Buttons, Checkboxes |
-| Escape | Close/Cancel | Modals, Dropdowns |
-| Arrow Keys | Navigate options | Dropdowns, Radio groups |
+1. 
+2. 
+3. 
 
-### Missing Shortcuts (if any)
-_Document any keyboard shortcuts that should be added_
+### Minor Issues
+_List minor usability issues_
 
----
-
-## Accessibility Improvements Implemented
-
-### Skip Link
-- ✅ Added SkipLink component
-- ✅ Integrated into AppLayout
-- ✅ Added skip-link CSS styling
-- ✅ Added main-content ID to main element
-- ✅ Skip link appears on focus
-- ✅ Skip link has proper focus indicator
-
-### Focus Indicators
-- ✅ Verified focus indicators on buttons
-- ✅ Verified focus indicators on links
-- ✅ Verified focus indicators on form inputs
-- ✅ Added consistent focus ring styles
-
-### Tab Order
-- ✅ Verified logical tab order on all pages
-- ✅ Ensured no focus traps
-- ✅ Verified hidden elements excluded from tab order
-
----
+1. 
+2. 
+3. 
 
 ## Test Results Summary
 
-**Total Pages Tested**: _____  
-**Pages Passed**: _____  
-**Pages Failed**: _____  
-**Critical Issues Found**: _____  
-**High Priority Issues**: _____  
-**Medium Priority Issues**: _____  
-**Low Priority Issues**: _____  
+- **Total Tests**: ___
+- **Passed**: ___
+- **Failed**: ___
+- **Blocked**: ___
 
-**Overall Status**: ✅ PASS / ❌ FAIL / ⚠️ PARTIAL
+### Overall Assessment
+- [ ] All admin pages are fully keyboard accessible
+- [ ] All focus indicators are visible and meet WCAG AA standards
+- [ ] Tab order is logical across all pages
+- [ ] Skip links are present and functional
+- [ ] No keyboard traps exist
+- [ ] Modals properly trap and release focus
 
----
+### Recommendations
+_List any recommendations for improvements_
 
-## Recommendations
-
-### Immediate Fixes Required
-1. _____________________
-2. _____________________
-3. _____________________
-
-### Future Enhancements
-1. _____________________
-2. _____________________
-3. _____________________
-
----
+1. 
+2. 
+3. 
 
 ## Sign-off
 
-**Tested By**: _____________________  
-**Date**: _____________________  
-**Approved By**: _____________________  
-**Date**: _____________________  
+**Tester Name**: _______________  
+**Date**: _______________  
+**Status**: [ ] Approved [ ] Needs Work  
+**Notes**: 
 
----
-
-## Notes
-
-_Additional observations, edge cases, or context_

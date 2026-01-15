@@ -45,6 +45,28 @@
   button {
     @apply transition-all duration-200;
   }
+  
+  /* Enhanced focus indicators for keyboard navigation */
+  *:focus {
+    @apply outline-none;
+  }
+  
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    @apply outline-2 outline-offset-2 outline-blue-600 ring-2 ring-blue-600 ring-offset-2;
+  }
+  
+  /* Ensure focus is visible on interactive elements */
+  [role="button"]:focus-visible,
+  [role="link"]:focus-visible,
+  [role="menuitem"]:focus-visible,
+  [role="tab"]:focus-visible {
+    @apply outline-2 outline-offset-2 outline-blue-600 ring-2 ring-blue-600 ring-offset-2;
+  }
 }
 
 /* Root variables for consistent layouts and type scale */
