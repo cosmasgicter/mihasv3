@@ -21,6 +21,12 @@ export {
 // Animated form inputs
 export { AnimatedInput } from './animated-input';
 
+// Animated select inputs
+export { AnimatedSelect } from './animated-select';
+
+// Animated file upload
+export { AnimatedFileUpload } from './animated-file-upload';
+
 // Page transitions
 export { 
   PageTransition, 

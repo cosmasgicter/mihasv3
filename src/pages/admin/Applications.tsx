@@ -6,6 +6,7 @@ import {
   FiltersPanel,
   MetricsHeader,
   ApplicationsTable,
+  ApplicationsTableView,
   ApplicationsSkeleton,
   ApplicationDetailModal
 } from '@/components/admin/applications'
@@ -40,7 +41,9 @@ import {
   AlertCircle,
   Eye,
   Send,
-  Download
+  Download,
+  LayoutGrid,
+  Table
 } from 'lucide-react'
 
 const EXPORT_BATCH_SIZE = 500
@@ -175,6 +178,7 @@ export default function Applications() {
     receipt: boolean
   }>({ notification: false, acceptance: false, receipt: false })
   const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
   const [quickStats, setQuickStats] = useState({
     todaySubmissions: 0,
     pendingReview: 0,
@@ -443,6 +447,31 @@ export default function Applications() {
             </div>
           </div>
           <div className="flex items-center space-x-2">
+            {/* View Toggle */}
+            <div className="hidden sm:flex items-center bg-muted rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('cards')}
+                className={`p-1.5 rounded-md transition-colors ${
+                  viewMode === 'cards'
+                    ? 'bg-card text-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Card View"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('table')}
+                className={`p-1.5 rounded-md transition-colors ${
+                  viewMode === 'table'
+                    ? 'bg-card text-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Table View"
+              >
+                <Table className="h-4 w-4" />
+              </button>
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -616,6 +645,15 @@ export default function Applications() {
 
         {isInitialLoading ? (
           <ApplicationsSkeleton />
+        ) : viewMode === 'table' ? (
+          <ApplicationsTableView
+            applications={applications}
+            onViewDetails={handleViewDetails}
+            onStatusUpdate={updateStatus}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            loading={isRefreshing}
+          />
         ) : applications.length > 100 ? (
           <VirtualizedApplicationsGrid
             applications={applications}

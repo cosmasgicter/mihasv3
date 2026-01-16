@@ -153,7 +153,7 @@ export function DashboardStatusOverview({
   const underReviewCount = applications.filter(app => app.status === 'under_review').length;
   const approvedCount = applications.filter(app => app.status === 'approved').length;
   const pendingPaymentCount = applications.filter(app => 
-    app.status === 'submitted' && app.payment_status !== 'paid'
+    app.status === 'submitted' && app.payment_status !== 'verified'
   ).length;
 
   // Get the most recent application for status display

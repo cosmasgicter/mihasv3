@@ -65,17 +65,17 @@ const mobileConfig = {
   },
 };
 
-// Performance thresholds
+// Performance thresholds - Updated for Requirement 1.6 (95+ score)
 const THRESHOLDS = {
-  performance: 90,
-  accessibility: 90,
-  bestPractices: 90,
-  seo: 90,
-  fcp: 1500,  // First Contentful Paint (ms)
-  lcp: 2000,  // Largest Contentful Paint (ms)
+  performance: 95,    // Requirement 1.6 - Lighthouse Performance score 95+
+  accessibility: 95,  // WCAG 2.1 AA compliance
+  bestPractices: 95,
+  seo: 95,
+  fcp: 500,   // First Contentful Paint (ms) - Requirement 1.1
+  lcp: 1500,  // Largest Contentful Paint (ms) - Requirement 1.2
   fid: 100,   // First Input Delay (ms)
   cls: 0.1,   // Cumulative Layout Shift
-  tti: 3000,  // Time to Interactive (ms)
+  tti: 2500,  // Time to Interactive (ms)
 };
 
 /**

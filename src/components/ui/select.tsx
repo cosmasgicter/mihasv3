@@ -10,6 +10,13 @@ const SelectGroup = SelectPrimitive.Group
 
 const SelectValue = SelectPrimitive.Value
 
+/**
+ * SelectTrigger Component
+ * 
+ * Touch-optimized select trigger with 44px minimum height.
+ * 
+ * Requirements: 9.2 - Touch targets at least 44x44 pixels
+ */
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
@@ -17,14 +24,31 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background data-[placeholder]:text-caption focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      // Touch target compliance - 44px minimum height
+      "flex min-h-[44px] w-full items-center justify-between",
+      // Styling
+      "rounded-lg border border-input bg-background px-3 py-2",
+      // Typography
+      "text-base text-foreground",
+      // Placeholder styling
+      "data-[placeholder]:text-muted-foreground",
+      // Focus styles
+      "ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      // Disabled state
+      "disabled:cursor-not-allowed disabled:opacity-50",
+      // Touch optimization
+      "touch-manipulation",
+      // Truncate long text
+      "[&>span]:line-clamp-1",
+      // Transition
+      "transition-colors duration-150",
       className
     )}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
+      <ChevronDown className="h-5 w-5 opacity-50 shrink-0 ml-2" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -109,6 +133,13 @@ const SelectLabel = React.forwardRef<
 ))
 SelectLabel.displayName = SelectPrimitive.Label.displayName
 
+/**
+ * SelectItem Component
+ * 
+ * Touch-optimized select item with 44px minimum height.
+ * 
+ * Requirements: 9.2 - Touch targets at least 44x44 pixels
+ */
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
@@ -116,14 +147,25 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      // Touch target compliance - 44px minimum height
+      "relative flex w-full min-h-[44px] cursor-default select-none items-center",
+      // Padding and spacing
+      "rounded-md py-2 pl-10 pr-3",
+      // Typography
+      "text-base",
+      // Focus and hover states
+      "outline-none focus:bg-accent focus:text-accent-foreground",
+      // Disabled state
+      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      // Touch optimization
+      "touch-manipulation",
       className
     )}
     {...props}
   >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+    <span className="absolute left-3 flex h-5 w-5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
+        <Check className="h-5 w-5" />
       </SelectPrimitive.ItemIndicator>
     </span>
 

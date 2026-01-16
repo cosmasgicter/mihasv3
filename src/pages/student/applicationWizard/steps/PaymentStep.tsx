@@ -1,11 +1,14 @@
 import type { ChangeEvent } from 'react'
 import { useEffect, useState } from 'react'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { CheckCircle, CreditCard } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 
-import { Input } from '@/components/ui/Input'
+import { AnimatedInput } from '@/components/smoothui/animated-input'
+import { AnimatedSelect } from '@/components/smoothui/animated-select'
+import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
+import { durations, easings } from '@/lib/animation-config'
 
 import type { WizardFormData } from '../types'
 
@@ -28,8 +31,51 @@ const PaymentStep = ({
   uploadProgress,
   uploadedFiles
 }: PaymentStepProps) => {
-  const { register } = form
+  const { register, formState: { errors } } = form
   const [paymentTarget, setPaymentTarget] = useState('Loading...')
+  const prefersReducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    getPaymentTarget()
+      .then(setPaymentTarget)
+      .catch((error) => {
+        console.error('Failed to load payment target:', error)
+        setPaymentTarget('Payment information unavailable')
+      })
+  }, [getPaymentTarget])
+
+  // Payment method options
+  const paymentMethodOptions = [
+    { value: 'MTN Money', label: 'MTN Money' },
+    { value: 'Airtel Money', label: 'Airtel Money (Cross Network)' },
+    { value: 'Zamtel Money', label: 'Zamtel Money (Cross Network)' },
+    { value: 'Ewallet', label: 'Ewallet' },
+    { value: 'Bank To Cell', label: 'Bank To Cell' },
+  ]
+
+  // Animation variants for staggered content
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: prefersReducedMotion ? 0 : 0.1,
+        delayChildren: prefersReducedMotion ? 0 : 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: prefersReducedMotion ? 0 : durations.normal,
+        ease: easings.easeOut,
+      }
+    },
+  }
 
   useEffect(() => {
     getPaymentTarget()
@@ -103,113 +149,88 @@ const PaymentStep = ({
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="payment_method" className="block text-sm font-medium text-gray-900 mb-1">
-              Payment Method <span className="text-error">*</span>
-            </label>
-            <select
+        <motion.div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={itemVariants}>
+            <AnimatedSelect
               {...register('payment_method')}
-              id="payment_method"
-              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
+              label="Payment Method"
+              options={paymentMethodOptions}
               defaultValue="MTN Money"
-            >
-              <option value="MTN Money">MTN Money</option>
-              <option value="Airtel Money">Airtel Money (Cross Network)</option>
-              <option value="Zamtel Money">Zamtel Money (Cross Network)</option>
-              <option value="Ewallet">Ewallet</option>
-              <option value="Bank To Cell">Bank To Cell</option>
-            </select>
-          </div>
+              error={errors.payment_method?.message}
+            />
+          </motion.div>
 
-          <div>
-            <Input
+          <motion.div variants={itemVariants}>
+            <AnimatedInput
               {...register('payer_name')}
               label="Payer Name"
               placeholder="Name of person who made payment"
+              error={errors.payer_name?.message}
             />
-          </div>
+          </motion.div>
 
-          <div>
-            <Input
+          <motion.div variants={itemVariants}>
+            <AnimatedInput
               {...register('payer_phone')}
               label="Payer Phone"
               placeholder="Phone number used for payment"
+              error={errors.payer_phone?.message}
             />
-          </div>
+          </motion.div>
 
-          <div>
-            <Input
+          <motion.div variants={itemVariants}>
+            <AnimatedInput
               type="number"
               {...register('amount', { valueAsNumber: true })}
               label="Amount Paid"
               defaultValue={153}
               min={153}
+              error={errors.amount?.message}
             />
-          </div>
+          </motion.div>
 
-          <div>
-            <Input
+          <motion.div variants={itemVariants}>
+            <AnimatedInput
               type="datetime-local"
               {...register('paid_at')}
               label="Payment Date & Time"
+              error={errors.paid_at?.message}
             />
-          </div>
+          </motion.div>
 
-          <div>
-            <Input
+          <motion.div variants={itemVariants}>
+            <AnimatedInput
               {...register('momo_ref')}
               label="Mobile Money Reference (Optional)"
               placeholder="Transaction reference number"
+              helperText="Enter your transaction reference for faster verification"
+              error={errors.momo_ref?.message}
             />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
-            Proof of Payment <span className="text-error">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={handleProofOfPaymentUpload}
-              className="w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
-            />
-            {proofOfPaymentFile && (
-              <div className="mt-2 flex items-center text-sm text-warning-strong">
-                <CheckCircle className="h-4 w-4 mr-1" />
-                {proofOfPaymentFile.name}
-              </div>
-            )}
-            {uploadProgress.proof_of_payment !== undefined && (
-              <div className="mt-2">
-                <div className="flex justify-between text-sm text-gray-900 mb-1">
-                  <span>Uploading...</span>
-                  <span>{uploadProgress.proof_of_payment}%</span>
-                </div>
-                <div className="w-full bg-skeleton rounded-full h-2">
-                  <motion.div
-                    className="bg-primary h-2 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${uploadProgress.proof_of_payment}%` }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </div>
-              </div>
-            )}
-            {uploadedFiles.proof_of_payment && (
-              <motion.div
-                className="mt-2 flex items-center text-sm text-accent"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Upload complete! Ready to submit.
-              </motion.div>
-            )}
-          </div>
-        </div>
+        <motion.div 
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
+        >
+          <AnimatedFileUpload
+            label="Proof of Payment"
+            required
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={handleProofOfPaymentUpload}
+            file={proofOfPaymentFile}
+            uploadProgress={uploadProgress.proof_of_payment}
+            isUploaded={uploadedFiles.proof_of_payment}
+            helperText="Upload a screenshot or PDF of your payment confirmation"
+          />
+        </motion.div>
       </div>
     </motion.div>
   )

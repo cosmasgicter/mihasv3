@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 
-import { Input } from '@/components/ui/Input'
+import { AnimatedInput } from '@/components/smoothui/animated-input'
+import { AnimatedSelect } from '@/components/smoothui/animated-select'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
+import { durations, easings } from '@/lib/animation-config'
 import { FieldHelp } from '../components/FieldHelp'
 
 import type { WizardFormData, WizardProgram, WizardIntake } from '../types'
@@ -33,6 +35,7 @@ const BasicKycStep = ({
     register,
     formState: { errors }
   } = form
+  const prefersReducedMotion = useReducedMotion()
 
   const selectedProgramDetails = useMemo(
     () => programs.find(program => program.id === selectedProgram),
@@ -57,13 +60,65 @@ const BasicKycStep = ({
     }
   }
 
+  // Animation variants for staggered content
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: prefersReducedMotion ? 0 : 0.05,
+        delayChildren: prefersReducedMotion ? 0 : 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: prefersReducedMotion ? 0 : durations.normal,
+        ease: easings.easeOut,
+      }
+    },
+  }
+
+  // Sex options
+  const sexOptions = [
+    { value: '', label: 'Select sex', disabled: true },
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' },
+  ]
+
+  // Program options
+  const programOptions = [
+    { value: '', label: 'Select program', disabled: true },
+    ...programs.map(program => {
+      const institutionName = program.institutions?.full_name || program.institutions?.name
+      const label = institutionName ? `${program.name} (${institutionName})` : program.name
+      return { value: program.id, label }
+    })
+  ]
+
+  // Intake options
+  const intakeOptions = [
+    { value: '', label: 'Select intake', disabled: true },
+    ...intakes.map(intake => {
+      const label = intake.displayName
+      const deadline = formatDeadline(intake.application_deadline)
+      const optionLabel = deadline ? `${label} — Apply by ${deadline}` : label
+      return { value: label, label: optionLabel }
+    })
+  ]
+
   return (
     <motion.div
       key="step1"
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
       className="bg-card rounded-lg shadow-lg p-6 border border-border"
       data-testid="basic-kyc-step"
     >
@@ -90,197 +145,142 @@ const BasicKycStep = ({
         </motion.div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="lg:col-span-2">
-          <Input
+      <motion.div 
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div className="lg:col-span-2" variants={itemVariants}>
+          <AnimatedInput
             {...register('full_name')}
-            label="Full Name"
+            label="Full Name *"
             error={errors.full_name?.message}
-            required
           />
-        </div>
+        </motion.div>
 
-        <div>
+        <motion.div variants={itemVariants}>
           <div className="flex items-center gap-2 mb-1">
-            <label className="block text-sm font-medium text-gray-900">
-              NRC Number
-            </label>
+            <span className="text-sm font-medium text-gray-900">NRC Number</span>
             <FieldHelp
               title="National Registration Card"
               description="Your Zambian National Registration Card number. Required for Zambian citizens."
               example="123456/78/9"
             />
           </div>
-          <input
+          <AnimatedInput
             {...register('nrc_number')}
             placeholder="e.g., 123456/78/9"
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            error={errors.nrc_number?.message}
+            helperText="Provide either NRC or Passport (one is sufficient)"
           />
-          {errors.nrc_number && <p className="mt-1 text-sm text-destructive">{errors.nrc_number.message}</p>}
-          <p className="mt-1 text-xs text-caption">Provide either NRC or Passport (one is sufficient)</p>
-        </div>
+        </motion.div>
 
-        <div>
-          <Input
+        <motion.div variants={itemVariants}>
+          <AnimatedInput
             {...register('passport_number')}
             label="Passport Number"
             error={errors.passport_number?.message}
             helperText="Provide either NRC or Passport (one is sufficient)"
           />
-        </div>
+        </motion.div>
 
-        <div>
-          <Input
+        <motion.div variants={itemVariants}>
+          <AnimatedInput
             type="date"
             {...register('date_of_birth')}
-            label="Date of Birth"
+            label="Date of Birth *"
             error={errors.date_of_birth?.message}
-            required
           />
-        </div>
+        </motion.div>
 
-        <div>
-          <label htmlFor="sex" className="block text-sm font-medium text-gray-900 mb-1">
-            Sex <span className="text-error">*</span>
-          </label>
-          <select
+        <motion.div variants={itemVariants}>
+          <AnimatedSelect
             {...register('sex')}
-            id="sex"
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
-          >
-            <option value="">Select sex</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-          {errors.sex && <p className="mt-1 text-sm text-destructive">{errors.sex.message}</p>}
-        </div>
+            label="Sex *"
+            options={sexOptions}
+            error={errors.sex?.message}
+          />
+        </motion.div>
 
-        <div>
+        <motion.div variants={itemVariants}>
           <div className="flex items-center gap-2 mb-1">
-            <label className="block text-sm font-medium text-gray-900">
-              Phone Number <span className="text-error">*</span>
-            </label>
+            <span className="text-sm font-medium text-gray-900">Phone Number *</span>
             <FieldHelp
               title="Contact Phone Number"
               description="Your primary phone number for communication. Include country code for international numbers."
               example="+260 97 123 4567"
             />
           </div>
-          <input
+          <AnimatedInput
             {...register('phone')}
             placeholder="e.g., +260 97 123 4567"
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            error={errors.phone?.message}
           />
-          {errors.phone && <p className="mt-1 text-sm text-destructive">{errors.phone.message}</p>}
-        </div>
+        </motion.div>
 
-        <div>
-          <Input
+        <motion.div variants={itemVariants}>
+          <AnimatedInput
             type="email"
             {...register('email')}
-            label="Email Address"
+            label="Email Address *"
             error={errors.email?.message}
-            required
           />
-        </div>
+        </motion.div>
 
-        <div>
-          <Input
+        <motion.div variants={itemVariants}>
+          <AnimatedInput
             {...register('residence_town')}
-            label="Residence Town"
+            label="Residence Town *"
             error={errors.residence_town?.message}
-            required
           />
-        </div>
+        </motion.div>
 
-        <div>
-          <Input
+        <motion.div variants={itemVariants}>
+          <AnimatedInput
             {...register('nationality')}
             label="Nationality"
             error={errors.nationality?.message}
             placeholder="e.g., Zambian"
           />
-        </div>
+        </motion.div>
 
-        <div>
-          <Input
+        <motion.div variants={itemVariants}>
+          <AnimatedInput
             {...register('next_of_kin_name')}
             label="Next of Kin Name (Optional)"
             error={errors.next_of_kin_name?.message}
           />
-        </div>
+        </motion.div>
 
-        <div>
-          <Input
+        <motion.div variants={itemVariants}>
+          <AnimatedInput
             {...register('next_of_kin_phone')}
             label="Next of Kin Phone (Optional)"
             error={errors.next_of_kin_phone?.message}
           />
-        </div>
+        </motion.div>
 
-        <div>
-          <label htmlFor="program" className="block text-sm font-medium text-gray-900 mb-1">
-            Program <span className="text-error">*</span>
-          </label>
-          <select
+        <motion.div variants={itemVariants}>
+          <AnimatedSelect
             {...register('program')}
-            id="program"
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
-          >
-            <option value="">Select program</option>
-            {programs.length === 0 && (
-              <option value="" disabled>
-                No programs available
-              </option>
-            )}
-            {programs.map(program => {
-              const institutionName = program.institutions?.full_name || program.institutions?.name
-              const label = institutionName ? `${program.name} (${institutionName})` : program.name
-              return (
-                <option key={program.id} value={program.id}>
-                  {label}
-                </option>
-              )
-            })}
-          </select>
-          {errors.program && <p className="mt-1 text-sm text-destructive">{errors.program.message}</p>}
-        </div>
+            label="Program *"
+            options={programOptions}
+            error={errors.program?.message}
+          />
+        </motion.div>
 
-        <div>
-          <label htmlFor="intake" className="block text-sm font-medium text-gray-900 mb-1">
-            Intake <span className="text-error">*</span>
-          </label>
-          <select
+        <motion.div variants={itemVariants}>
+          <AnimatedSelect
             {...register('intake')}
-            id="intake"
+            label="Intake *"
+            options={intakeOptions}
             disabled={intakes.length === 0}
-            className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary ${
-              intakes.length === 0 ? 'bg-accent text-gray-900 cursor-not-allowed border-border' : 'bg-card border-input'
-            }`}
-          >
-            <option value="">Select intake</option>
-            {intakes.length === 0 && (
-              <option value="" disabled>
-                No intakes available
-              </option>
-            )}
-            {intakes.map(intake => {
-              const label = intake.displayName
-              const deadline = formatDeadline(intake.application_deadline)
-              const optionLabel = deadline ? `${label} — Apply by ${deadline}` : label
-              return (
-                <option key={intake.id} value={label}>
-                  {optionLabel}
-                </option>
-              )
-            })}
-          </select>
-          {intakes.length === 0 && (
-            <p className="mt-1 text-sm text-gray-900">Intakes will appear here once enrollment periods are announced.</p>
-          )}
-          {errors.intake && <p className="mt-1 text-sm text-destructive">{errors.intake.message}</p>}
-        </div>
-      </div>
+            error={errors.intake?.message}
+            helperText={intakes.length === 0 ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
+          />
+        </motion.div>
+      </motion.div>
 
       {selectedProgramDetails && (
         <motion.div
