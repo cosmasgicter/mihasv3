@@ -1,22 +1,51 @@
-import React, { useState, useCallback } from 'react'
-import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch, TrendingUp, Activity, LineChart, Gauge } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { useAuth } from '@/contexts/AuthContext'
-import { useSidebar } from '@/contexts/SidebarContext'
-import { designTokens } from '@/design-system/tokens'
-import { cn } from '@/lib/utils'
+/**
+ * AdminSidebar Component - Enhanced admin navigation sidebar
+ * Implements collapsible sidebar with icons, labels, and section grouping
+ * 
+ * @requirements 6.1 - Sidebar navigation layout with collapsible sections
+ * @requirements 6.7 - Tablet-responsive behavior
+ */
+
+import React, { useState, useCallback } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { useSidebar } from '@/contexts/SidebarContext';
+import { designTokens } from '@/design-system/tokens';
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
+  GraduationCap,
+  Calendar,
+  BarChart3,
+  Brain,
+  Workflow,
+  TrendingUp,
+  Shield,
+  FileSearch,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Activity,
+  Bell,
+  Database,
+  Gauge,
+  PieChart,
+  LineChart,
+} from 'lucide-react';
 
 interface NavItem {
-  to: string
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
-  label: string
+  to: string;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  label: string;
 }
 
 interface NavSection {
-  id: string
-  title: string
-  items: NavItem[]
+  id: string;
+  title: string;
+  items: NavItem[];
 }
 
 // Grouped navigation sections for admin
@@ -66,44 +95,47 @@ const adminSections: NavSection[] = [
       { to: '/admin/settings', icon: Settings, label: 'Settings' },
     ],
   },
-]
+];
 
-const studentLinks: NavItem[] = [
-  { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
-  { to: '/apply', icon: FileText, label: 'Application' },
-  { to: '/student/notifications', icon: Bell, label: 'Notifications' },
-  { to: '/student/profile', icon: User, label: 'Profile' },
-]
+interface AdminSidebarProps {
+  className?: string;
+}
 
-export const DesktopSidebar = React.memo(function DesktopSidebar() {
-  const location = useLocation()
-  const { user, isAdmin } = useAuth()
-  const { collapsed, setCollapsed } = useSidebar()
-  const prefersReducedMotion = useReducedMotion()
+export function AdminSidebar({ className }: AdminSidebarProps) {
+  const location = useLocation();
+  const { collapsed, setCollapsed } = useSidebar();
+  const prefersReducedMotion = useReducedMotion();
   
   // Track which sections are expanded (all expanded by default)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(adminSections.map(s => s.id))
-  )
+  );
 
   const toggleSection = useCallback((sectionId: string) => {
     setExpandedSections(prev => {
-      const next = new Set(prev)
+      const next = new Set(prev);
       if (next.has(sectionId)) {
-        next.delete(sectionId)
+        next.delete(sectionId);
       } else {
-        next.add(sectionId)
+        next.add(sectionId);
       }
-      return next
-    })
-  }, [])
+      return next;
+    });
+  }, []);
 
-  if (!user) return null
+  const sidebarWidth = collapsed 
+    ? designTokens.layout.sidebarCollapsed 
+    : designTokens.layout.sidebarExpanded;
 
   return (
     <aside
-      className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-card/95 backdrop-blur-xl border-r border-border shadow-xl z-40 transition-all duration-300 ease-in-out"
-      style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
+      className={cn(
+        'hidden md:flex flex-col fixed left-0 top-0 h-screen',
+        'bg-card/95 backdrop-blur-xl border-r border-border shadow-xl z-40',
+        'transition-all duration-300 ease-in-out',
+        className
+      )}
+      style={{ width: sidebarWidth }}
     >
       {/* Header with logo and collapse toggle */}
       <div className="flex items-center justify-between p-4 border-b border-border min-h-[64px]">
@@ -120,7 +152,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                 <span className="text-white font-bold text-sm">M</span>
               </div>
               <span className="text-lg font-bold text-foreground truncate">
-                {isAdmin ? 'MIHAS Admin' : 'MIHAS-KATC'}
+                MIHAS Admin
               </span>
             </motion.div>
           )}
@@ -142,42 +174,26 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
           )}
         >
           {collapsed ? (
-            <ChevronRight style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
           ) : (
-            <ChevronLeft style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />
+            <ChevronLeft className="h-5 w-5 text-muted-foreground" />
           )}
         </button>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation sections */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-        {isAdmin ? (
-          // Admin: Section-based navigation
-          adminSections.map((section) => (
-            <SidebarSection
-              key={section.id}
-              section={section}
-              collapsed={collapsed}
-              expanded={expandedSections.has(section.id)}
-              onToggle={() => toggleSection(section.id)}
-              currentPath={location.pathname}
-              prefersReducedMotion={prefersReducedMotion}
-            />
-          ))
-        ) : (
-          // Student: Simple list navigation
-          <div className="space-y-1">
-            {studentLinks.map((item) => (
-              <SidebarNavItem
-                key={item.to}
-                item={item}
-                collapsed={collapsed}
-                isActive={location.pathname === item.to}
-                prefersReducedMotion={prefersReducedMotion}
-              />
-            ))}
-          </div>
-        )}
+        {adminSections.map((section) => (
+          <SidebarSection
+            key={section.id}
+            section={section}
+            collapsed={collapsed}
+            expanded={expandedSections.has(section.id)}
+            onToggle={() => toggleSection(section.id)}
+            currentPath={location.pathname}
+            prefersReducedMotion={prefersReducedMotion}
+          />
+        ))}
       </nav>
 
       {/* Footer with system status */}
@@ -206,16 +222,16 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         </AnimatePresence>
       </div>
     </aside>
-  )
-})
+  );
+}
 
 interface SidebarSectionProps {
-  section: NavSection
-  collapsed: boolean
-  expanded: boolean
-  onToggle: () => void
-  currentPath: string
-  prefersReducedMotion: boolean | null
+  section: NavSection;
+  collapsed: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+  currentPath: string;
+  prefersReducedMotion: boolean | null;
 }
 
 function SidebarSection({
@@ -227,7 +243,7 @@ function SidebarSection({
   prefersReducedMotion,
 }: SidebarSectionProps) {
   // Check if any item in this section is active
-  const hasActiveItem = section.items.some(item => currentPath === item.to)
+  const hasActiveItem = section.items.some(item => currentPath === item.to);
 
   return (
     <div className="mb-2">
@@ -277,14 +293,14 @@ function SidebarSection({
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
 interface SidebarNavItemProps {
-  item: NavItem
-  collapsed: boolean
-  isActive: boolean
-  prefersReducedMotion: boolean | null
+  item: NavItem;
+  collapsed: boolean;
+  isActive: boolean;
+  prefersReducedMotion: boolean | null;
 }
 
 function SidebarNavItem({
@@ -293,7 +309,7 @@ function SidebarNavItem({
   isActive,
   prefersReducedMotion,
 }: SidebarNavItemProps) {
-  const Icon = item.icon
+  const Icon = item.icon;
 
   return (
     <Link
@@ -313,7 +329,7 @@ function SidebarNavItem({
       {/* Active indicator */}
       {isActive && (
         <motion.div
-          layoutId="sidebarActiveIndicator"
+          layoutId="activeIndicator"
           className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"
           initial={prefersReducedMotion ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -323,9 +339,8 @@ function SidebarNavItem({
 
       {/* Icon */}
       <Icon
-        style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }}
         className={cn(
-          'shrink-0 transition-colors duration-200',
+          'h-5 w-5 shrink-0 transition-colors duration-200',
           isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
         )}
       />
@@ -339,10 +354,9 @@ function SidebarNavItem({
             exit={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
             transition={{ duration: 0.15 }}
             className={cn(
-              'font-medium truncate',
+              'text-sm font-medium truncate',
               isActive ? 'text-primary' : 'text-foreground'
             )}
-            style={{ fontSize: 'var(--type-sm)' }}
           >
             {item.label}
           </motion.span>
@@ -354,5 +368,7 @@ function SidebarNavItem({
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg" />
       )}
     </Link>
-  )
+  );
 }
+
+export default AdminSidebar;

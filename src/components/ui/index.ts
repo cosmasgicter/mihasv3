@@ -3,8 +3,8 @@ export { Button } from './Button'
 export { Input } from './Input'
 export { Textarea } from './textarea'
 export { Select } from './select'
-export { Checkbox } from './checkbox'
-export { Radio } from './Radio'
+export { Checkbox, CheckboxWithLabel } from './checkbox'
+export { Radio, RadioGroup } from './Radio'
 export { Switch } from './switch'
 export { Label } from './label'
 
@@ -15,6 +15,19 @@ export { Grid } from './Grid'
 export { Stack } from './Stack'
 export { Section } from './Section'
 export { SectionCard } from './SectionCard'
+export { 
+  ResponsiveContainer, 
+  ResponsiveStack, 
+  ResponsiveGrid,
+  LandscapeCompact,
+  HideOnLandscape,
+  ShowOnLandscape,
+  MobileOnly,
+  DesktopOnly,
+  SafeAreaSpacer,
+  PageLayout as ResponsivePageLayout 
+} from './ResponsiveLayout'
+export { SafeAreaProvider, SafeAreaView, BottomNavigationWrapper, LandscapeAwareContainer, useSafeArea } from './SafeAreaProvider'
 
 // Feedback Components
 export { Alert } from './Alert'
@@ -28,6 +41,8 @@ export { Tabs } from './tabs'
 export { Breadcrumbs } from './Breadcrumbs'
 export { Pagination } from './Pagination'
 export { SkipLink } from './SkipLink'
+export { SkipLinks, MainContent, NavigationLandmark, FooterLandmark } from './SkipLinks'
+export { BottomNavigation, BottomNavigationSpacer, defaultStudentNavItems, defaultPublicNavItems } from './BottomNavigation'
 
 // Data Display Components
 export { Table } from './Table'
@@ -61,3 +76,19 @@ export { PageHeader } from './PageHeader'
 export { PageLayout } from './PageLayout'
 export { StatusIcon } from './StatusIcon'
 export { OfflineIndicator } from './OfflineIndicator'
+
+// Accessibility Components
+export { 
+  HeadingLevelProvider, 
+  useHeadingLevel, 
+  Heading, 
+  Section as HeadingSection, 
+  PageTitle, 
+  SectionTitle, 
+  CardTitle, 
+  VisuallyHidden 
+} from './HeadingHierarchy'
+
+// Touch Components
+export { TouchButton } from './TouchButton'
+export { TouchOptimizedButton, TouchOptimizedIconButton } from './TouchOptimizedButton'

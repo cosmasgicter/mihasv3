@@ -42,6 +42,7 @@ import { useAdminDashboardRealtime } from '@/hooks/useAdminDashboardRealtime'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
 import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
 import { PredictiveDashboard } from '@/components/admin/PredictiveDashboard'
+import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDisplay'
 import { workflowAutomation } from '@/lib/workflowAutomation'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import OfflineAdminDashboard from '@/components/admin/OfflineAdminDashboard'
@@ -99,6 +100,7 @@ export default function AdminDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showQuickActions, setShowQuickActions] = useState(true)
   const [networkError, setNetworkError] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   const updateStatsFromRealtime = useCallback((delta: AdminMetricsDelta) => {
     setStats(prev => ({
@@ -155,6 +157,7 @@ export default function AdminDashboard() {
       const response = await adminDashboardService.getMetrics()
       setStats(response.stats)
       setRecentActivity(response.recentActivity || [])
+      setLastUpdated(new Date())
     } catch (error: any) {
       console.error('Error loading dashboard stats:', error)
 
@@ -389,128 +392,34 @@ export default function AdminDashboard() {
 
 
 
-        {/* Enhanced Stats Grid */}
+        {/* Real-time Metrics Display with Animated Counters */}
+        {/* Requirements: 6.2, 6.4 - Real-time metrics display with animated counters and visual indicators */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8"
+          className="mb-6 sm:mb-8"
         >
-          {/* Today's Applications */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-bl-full"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-primary/10 rounded-xl">
-                  <Calendar className="h-6 w-6 text-primary" />
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{stats.todayApplications}</div>
-                  <div className="text-xs font-medium text-muted-foreground">Today</div>
-                </div>
-              </div>
-              <div className="text-sm font-semibold text-foreground">New Applications</div>
-              {stats.todayApplications > 0 && (
-                <div className="flex items-center mt-2 text-xs">
-                  <ArrowUp className="h-3 w-3 text-success mr-1" />
-                  <span className="text-success">Active today</span>
-                </div>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Pending Reviews */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-orange-600/20 rounded-bl-full"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-accent/10 rounded-xl">
-                  <Clock className="h-6 w-6 text-accent" />
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{stats.pendingApplications}</div>
-                  <div className="text-xs font-medium text-muted-foreground">Pending</div>
-                </div>
-              </div>
-              <div className="text-sm font-semibold text-foreground">Awaiting Review</div>
-              {stats.pendingApplications > 0 ? (
-                <Link to="/admin/applications?status=submitted" className="text-xs text-orange-600 hover:underline mt-2 block font-medium">
-                  Requires attention
-                </Link>
-              ) : (
-                <div className="text-xs text-green-600 mt-2">All caught up</div>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Processing Time */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/20 rounded-bl-full"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-secondary/10 rounded-xl">
-                  <Zap className="h-6 w-6 text-secondary" />
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{stats.avgProcessingTime}</div>
-                  <div className="text-xs font-medium text-muted-foreground">Days</div>
-                </div>
-              </div>
-              <div className="text-sm font-semibold text-foreground">Avg Processing</div>
-              <div className="flex items-center mt-2 text-xs">
-                <ArrowDown className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-green-600">Improved by 15%</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Approval Rate */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            whileHover={{ y: -5, scale: 1.02 }}
-            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-green-600/20 rounded-bl-full"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-accent/10 rounded-xl">
-                  <CheckCircle className="h-6 w-6 text-accent" />
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                    {stats.approvedApplications + stats.rejectedApplications > 0 
-                      ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
-                      : 0}%
-                  </div>
-                  <div className="text-xs font-medium text-muted-foreground">Rate</div>
-                </div>
-              </div>
-              <div className="text-sm font-semibold text-foreground">Approval Rate</div>
-              <div className="flex items-center mt-2 text-xs">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-green-600">Stable performance</span>
-              </div>
-            </div>
-          </motion.div>
+          <RealtimeMetricsDisplay
+            todayApplications={stats.todayApplications}
+            pendingApplications={stats.pendingApplications}
+            approvedApplications={stats.approvedApplications}
+            rejectedApplications={stats.rejectedApplications}
+            totalApplications={stats.totalApplications}
+            avgProcessingTime={stats.avgProcessingTime}
+            activeUsers={stats.activeUsers}
+            isConnected={isConnected}
+            lastUpdated={lastUpdated}
+            onRefresh={handleManualRefresh}
+            isRefreshing={isRefreshing || isManualRefreshing}
+            showSystemHealth={true}
+            systemHealth={{
+              database: stats.systemHealth === 'excellent' || stats.systemHealth === 'good' ? 'healthy' : stats.systemHealth === 'warning' ? 'degraded' : 'down',
+              api: stats.systemHealth === 'excellent' || stats.systemHealth === 'good' ? 'healthy' : stats.systemHealth === 'warning' ? 'degraded' : 'down',
+              storage: 'healthy',
+              auth: 'healthy',
+            }}
+          />
         </motion.div>
 
         {/* AI-Powered Predictive Dashboard */}

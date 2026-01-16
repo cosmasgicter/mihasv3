@@ -1,6 +1,7 @@
 export { FiltersPanel } from './FiltersPanel'
 export { MetricsHeader } from './MetricsHeader'
 export { ApplicationsTable } from './ApplicationsTable'
+export { ApplicationsTableView } from './ApplicationsTableView'
 export { ApplicationsSkeleton } from './ApplicationsSkeleton'
 export { ApplicationDetailModal } from './ApplicationDetailModal'
 export { ApplicationApprovalActions } from './ApplicationApprovalActions'

@@ -327,10 +327,12 @@ function ProgramsSection() {
               <Card className="hover:shadow-xl transition-all duration-300 group" hover>
                 <CardContent className="p-6 sm:p-8">
                   <div className="relative mb-6 overflow-hidden rounded-lg">
-                    <img
+                    <OptimizedImage
                       src={program.image}
                       alt={`${program.institution} campus`}
-                      className="w-full h-48 sm:h-56 lg:h-64 object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-48 sm:h-56 lg:h-64 group-hover:scale-105 transition-transform duration-500"
+                      containerClassName="w-full h-48 sm:h-56 lg:h-64"
+                      objectFit="cover"
                       loading="lazy"
                     />
                     <div className="absolute top-4 right-4 space-y-2">

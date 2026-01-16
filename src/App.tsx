@@ -11,7 +11,8 @@ import { AppLayout } from '@/components/navigation/AppLayout'
 import { SessionMonitor } from '@/components/auth/SessionMonitor'
 import { LoadingFallback } from '@/components/ui/LoadingFallback'
 import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
-import { SkipLink } from '@/components/ui/SkipLink'
+import { SkipLinks } from '@/components/ui/SkipLinks'
+import { SafeAreaProvider } from '@/components/ui/SafeAreaProvider'
 import { routes, type RouteConfig } from '@/routes/config'
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -95,33 +96,41 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <SkeletonProvider>
           <AuthProvider>
-            <SkipLink />
-            <ToastContainer />
-            <PWAInstallPrompt />
-            <OfflineIndicator />
-            <ServiceWorkerUpdatePrompt />
-            <Router>
-              <AnalyticsTracker>
-                <SessionMonitor />
-                <SimpleErrorBoundary>
-                  <div className="min-h-screen bg-background">
-                    <AppLayout>
-                      <main id="main-content" tabIndex={-1} className="focus:outline-none">
-                        <Routes>
-                          {routes.map((route) => (
-                            <Route
-                              key={route.path}
-                              path={route.path}
-                              element={renderRoute(route)}
-                            />
-                          ))}
-                        </Routes>
-                      </main>
-                    </AppLayout>
-                  </div>
-                </SimpleErrorBoundary>
-              </AnalyticsTracker>
-            </Router>
+            <SafeAreaProvider>
+              <SkipLinks />
+              <ToastContainer />
+              <PWAInstallPrompt />
+              <OfflineIndicator />
+              <ServiceWorkerUpdatePrompt />
+              <Router>
+                <AnalyticsTracker>
+                  <SessionMonitor />
+                  <SimpleErrorBoundary>
+                    <div className="min-h-screen bg-background safe-area-all">
+                      <AppLayout>
+                        <main 
+                          id="main-content" 
+                          tabIndex={-1} 
+                          className="focus:outline-none"
+                          role="main"
+                          aria-label="Main content"
+                        >
+                          <Routes>
+                            {routes.map((route) => (
+                              <Route
+                                key={route.path}
+                                path={route.path}
+                                element={renderRoute(route)}
+                              />
+                            ))}
+                          </Routes>
+                        </main>
+                      </AppLayout>
+                    </div>
+                  </SimpleErrorBoundary>
+                </AnalyticsTracker>
+              </Router>
+            </SafeAreaProvider>
           </AuthProvider>
         </SkeletonProvider>
       </QueryClientProvider>

@@ -16,7 +16,10 @@ import { clearAllDraftData } from '@/lib/draftCleanup'
 import { useDraftManager } from '@/hooks/useDraftManager'
 import { applicationService } from '@/services/applications'
 import { catalogService } from '@/services/catalog'
-import { StudentDashboardSkeleton } from '@/components/student/StudentDashboardSkeleton'
+import { DashboardSkeleton } from '@/components/student/DashboardSkeleton'
+import { DashboardStatusOverview } from '@/components/student/DashboardStatusOverview'
+import { ApplicationTimeline } from '@/components/student/ApplicationTimeline'
+import { QuickActions } from '@/components/student/QuickActions'
 import { User, FileText, Clock, CheckCircle, XCircle, Plus, X, RefreshCw, Calendar } from 'lucide-react'
 
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -273,12 +276,56 @@ export default function StudentDashboard() {
   const submittedApplications = applications.filter(app => app.status !== 'draft')
   const hasLocalDraftOnly = hasDraft && draftApplications.length === 0
   const totalDraftCount = draftApplications.length + (hasLocalDraftOnly ? 1 : 0)
+  
+  // Check for pending payment and scheduled interviews
+  const hasPendingPayment = applications.some(app => 
+    app.status === 'submitted' && app.payment_status !== 'verified'
+  )
+  const hasScheduledInterview = applications.some(app => 
+    app.status === 'interview_scheduled'
+  )
+
+  // Handler for clearing all drafts
+  const handleClearAllDrafts = async () => {
+    const confirmed = await confirmDialog.confirm({
+      title: 'Clear All Drafts',
+      message: 'All draft applications will be permanently deleted.',
+      confirmText: 'Clear All',
+      variant: 'danger'
+    })
+    if (!confirmed) return
+    setIsClearingAllDrafts(true)
+    try {
+      clearAllDraftData()
+      if (user) {
+        await draftManager.clearAllDrafts(user.id)
+      }
+      
+      const draftApps = applications.filter(app => app.status === 'draft')
+      await Promise.allSettled(
+        draftApps.map(app => applicationService.delete(app.id))
+      )
+      
+      setApplications(prev => prev.filter(app => app.status !== 'draft'))
+      setHasDraft(false)
+      setDraftData(null)
+      setError('')
+      useToastStore.getState().addToast('success', 'All drafts cleared successfully')
+    } catch (error) {
+      console.error('Clear drafts error:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Failed to clear drafts'
+      setError(errorMsg)
+      useToastStore.getState().addToast('error', errorMsg)
+    } finally {
+      setIsClearingAllDrafts(false)
+    }
+  }
 
   return (
     <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 w-full max-w-full overflow-x-hidden">
       <Container size="lg">
         {isInitialLoading ? (
-          <StudentDashboardSkeleton />
+          <DashboardSkeleton />
         ) : (
           <div className="space-y-6 sm:space-y-8">
             {isRefreshing && (
@@ -348,6 +395,12 @@ export default function StudentDashboard() {
                 </div>
               </motion.div>
             )}
+
+            {/* Status Overview with 8starlabs StatusIndicator */}
+            <DashboardStatusOverview 
+              applications={applications}
+              totalDraftCount={totalDraftCount}
+            />
 
             <ContinueApplication />
 
@@ -678,100 +731,17 @@ export default function StudentDashboard() {
                   </div>
                 </SectionCard>
 
-                <SectionCard
-                  title="Quick actions"
-                  description="Access the most common tasks in a single tap."
-                  icon={<Plus className="h-5 w-5" />}
-                >
-                  <div className="grid gap-3">
-                    {totalDraftCount > 0 ? (
-                      <Link to="/student/application-wizard" className="block">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-start border-yellow-300 bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-                        >
-                          <FileText className="mr-2 h-4 w-4" />
-                          Continue draft
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Link to="/student/application-wizard" className="block">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-start border-primary bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Start new application
-                        </Button>
-                      </Link>
-                    )}
-                    {totalDraftCount > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start border-red-300 text-red-700 hover:bg-red-50"
-                        disabled={isClearingAllDrafts}
-                        onClick={async () => {
-                          const confirmed = await confirmDialog.confirm({
-                            title: 'Clear All Drafts',
-                            message: 'All draft applications will be permanently deleted.',
-                            confirmText: 'Clear All',
-                            variant: 'danger'
-                          })
-                          if (!confirmed) return
-                          setIsClearingAllDrafts(true)
-                          try {
-                            clearAllDraftData()
-                            if (user) {
-                              await draftManager.clearAllDrafts(user.id)
-                            }
-                            
-                            const draftApps = applications.filter(app => app.status === 'draft')
-                            await Promise.allSettled(
-                              draftApps.map(app => applicationService.delete(app.id))
-                            )
-                            
-                            setApplications(prev => prev.filter(app => app.status !== 'draft'))
-                            setHasDraft(false)
-                            setDraftData(null)
-                            setError('')
-                            useToastStore.getState().addToast('success', 'All drafts cleared successfully')
-                          } catch (error) {
-                            console.error('Clear drafts error:', error)
-                            const errorMsg = error instanceof Error ? error.message : 'Failed to clear drafts'
-                            setError(errorMsg)
-                            useToastStore.getState().addToast('error', errorMsg)
-                          } finally {
-                            setIsClearingAllDrafts(false)
-                          }
-                        }}
-                      >
-                        {isClearingAllDrafts ? (
-                          <motion.div
-                            className="mr-2 h-4 w-4 rounded-full border-2 border-current border-t-transparent"
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          />
-                        ) : (
-                          <X className="mr-2 h-4 w-4" />
-                        )}
-                        {isClearingAllDrafts ? 'Clearing...' : 'Clear all drafts'}
-                      </Button>
-                    )}
-                    <Link to="/settings" className="block">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start border-border text-gray-900 hover:bg-muted"
-                      >
-                        <User className="mr-2 h-4 w-4" />
-                        Profile settings
-                      </Button>
-                    </Link>
-                  </div>
-                </SectionCard>
+                {/* Application Timeline with 8starlabs Timeline component */}
+                <ApplicationTimeline applications={applications} />
+
+                {/* Quick Actions component */}
+                <QuickActions
+                  hasDrafts={totalDraftCount > 0}
+                  hasPendingPayment={hasPendingPayment}
+                  hasScheduledInterview={hasScheduledInterview}
+                  onClearAllDrafts={handleClearAllDrafts}
+                  isClearingDrafts={isClearingAllDrafts}
+                />
               </div>
             </div>
           </div>

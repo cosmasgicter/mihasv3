@@ -1,10 +1,13 @@
 import type { ChangeEvent } from 'react'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { CheckCircle, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
+import { AnimatedSelect } from '@/components/smoothui/animated-select'
+import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
 import { EligibilityNotification } from '@/components/application/EligibilityNotification'
+import { durations, easings } from '@/lib/animation-config'
 
 import type { EligibilityResult } from '@/lib/eligibility'
 
@@ -47,20 +50,80 @@ const EducationStep = ({
   handleResultSlipUpload,
   handleExtraKycUpload
 }: EducationStepProps) => {
+  const prefersReducedMotion = useReducedMotion()
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: prefersReducedMotion ? 0 : 0.05,
+        delayChildren: prefersReducedMotion ? 0 : 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: prefersReducedMotion ? 0 : durations.normal,
+        ease: easings.easeOut,
+      }
+    },
+  }
+
+  // Subject options for AnimatedSelect
+  const getSubjectOptions = (currentSubjectId: string) => {
+    const usedSubjects = getUsedSubjects()
+    return [
+      { value: '', label: subjects.length === 0 ? 'Loading subjects...' : 'Select subject', disabled: true },
+      ...subjects.map(subject => {
+        const isUsed = usedSubjects.includes(subject.id) && currentSubjectId !== subject.id
+        return {
+          value: subject.id,
+          label: `${subject.name}${isUsed ? ' (Already selected)' : ''}`,
+          disabled: isUsed,
+        }
+      })
+    ]
+  }
+
+  // Grade options
+  const gradeOptions = [
+    { value: '1', label: '1 (A+)' },
+    { value: '2', label: '2 (A)' },
+    { value: '3', label: '3 (B+)' },
+    { value: '4', label: '4 (B)' },
+    { value: '5', label: '5 (C+)' },
+    { value: '6', label: '6 (C)' },
+    { value: '7', label: '7 (D+)' },
+    { value: '8', label: '8 (D)' },
+    { value: '9', label: '9 (F)' },
+  ]
+
   return (
     <motion.div
       key="step2"
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-border"
+      transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+      className="bg-card rounded-lg shadow-lg p-4 sm:p-6 border border-border"
       data-testid="education-step"
     >
       <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
 
-      <div className="space-y-6">
-        <div>
+      <motion.div 
+        className="space-y-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants}>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <h3 className="text-md font-medium text-gray-900">Grade 12 Subjects (Minimum 5 required)</h3>
             <Button
@@ -70,7 +133,7 @@ const EducationStep = ({
                 addGrade()
               }}
               disabled={selectedGrades.length >= 10}
-              className="w-full sm:w-auto bg-primary hover:bg-primary"
+              className="w-full sm:w-auto bg-primary hover:bg-primary touch-manipulation min-h-[44px]"
             >
               + Add New Subject
             </Button>
@@ -106,200 +169,120 @@ const EducationStep = ({
 
           {selectedGrades.length > 0 && (
             <div className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-gray-900 uppercase tracking-wide">
-              <div className="col-span-8">Subject</div>
-              <div className="col-span-2">Grade</div>
-              <div className="col-span-2">Action</div>
+              <div className="col-span-6">Subject</div>
+              <div className="col-span-3">Grade</div>
+              <div className="col-span-3">Action</div>
             </div>
           )}
 
           <div className="space-y-3">
             {selectedGrades.map((grade, index) => (
-              <div key={index}>
-                <motion.div
-                  className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 bg-muted rounded-lg"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <label className="block text-xs font-medium text-gray-900 mb-1 sm:hidden">
-                      Subject
-                    </label>
-                    <select
-                      value={grade.subject_id}
-                      onChange={event => updateGrade(index, 'subject_id', event.target.value)}
-                      className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
-                      disabled={subjects.length === 0}
-                    >
-                      <option value="">{subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}</option>
-                      {subjects.map(subject => {
-                        const isUsed = getUsedSubjects().includes(subject.id) && grade.subject_id !== subject.id
-                        return (
-                          <option key={subject.id} value={subject.id} disabled={isUsed}>
-                            {subject.name} {isUsed ? '(Already selected)' : ''}
-                          </option>
-                        )
-                      })}
-                    </select>
-                  </div>
+              <motion.div
+                key={index}
+                className="flex flex-col sm:grid sm:grid-cols-12 items-stretch sm:items-center gap-3 p-3 sm:p-4 bg-muted rounded-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: prefersReducedMotion ? 0 : index * 0.05 }}
+              >
+                {/* Subject Select */}
+                <div className="sm:col-span-6">
+                  <label className="block text-xs font-medium text-gray-900 mb-1 sm:hidden">
+                    Subject
+                  </label>
+                  <AnimatedSelect
+                    value={grade.subject_id}
+                    onChange={(e) => updateGrade(index, 'subject_id', e.target.value)}
+                    options={getSubjectOptions(grade.subject_id)}
+                    disabled={subjects.length === 0}
+                  />
+                </div>
 
-                  <div className="w-full sm:w-24">
-                    <label className="block text-xs font-medium text-gray-900 mb-1 sm:hidden">Grade</label>
-                    <select
-                      value={grade.grade}
-                      onChange={event => updateGrade(index, 'grade', parseInt(event.target.value))}
-                      className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
-                    >
-                      <option value={1}>1 (A+)</option>
-                      <option value={2}>2 (A)</option>
-                      <option value={3}>3 (B+)</option>
-                      <option value={4}>4 (B)</option>
-                      <option value={5}>5 (C+)</option>
-                      <option value={6}>6 (C)</option>
-                      <option value={7}>7 (D+)</option>
-                      <option value={8}>8 (D)</option>
-                      <option value={9}>9 (F)</option>
-                    </select>
-                  </div>
+                {/* Grade Select */}
+                <div className="sm:col-span-3">
+                  <label className="block text-xs font-medium text-gray-900 mb-1 sm:hidden">
+                    Grade
+                  </label>
+                  <AnimatedSelect
+                    value={String(grade.grade)}
+                    onChange={(e) => updateGrade(index, 'grade', parseInt(e.target.value))}
+                    options={gradeOptions}
+                  />
+                </div>
 
-                  <div className="w-full sm:w-auto flex gap-2">
+                {/* Actions */}
+                <div className="sm:col-span-3 flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={event => {
+                      event.preventDefault()
+                      removeGrade(index)
+                    }}
+                    className="flex-1 sm:flex-none touch-manipulation min-h-[44px]"
+                  >
+                    <X className="h-4 w-4 sm:mr-0 mr-2" />
+                    <span className="sm:hidden">Remove</span>
+                  </Button>
+                  {selectedGrades.length < 10 && (
                     <Button
                       type="button"
-                      variant="outline"
-                      size="sm"
                       onClick={event => {
                         event.preventDefault()
-                        removeGrade(index)
+                        addGrade()
                       }}
-                      className="flex-1 sm:flex-none"
+                      size="sm"
+                      className="flex-1 sm:hidden bg-primary hover:bg-primary touch-manipulation min-h-[44px]"
                     >
-                      <X className="h-4 w-4 sm:mr-0 mr-2" />
-                      <span className="sm:hidden">Remove</span>
+                      + Add
                     </Button>
-                    {selectedGrades.length < 10 && (
-                      <Button
-                        type="button"
-                        onClick={event => {
-                          event.preventDefault()
-                          addGrade()
-                        }}
-                        size="sm"
-                        className="flex-1 sm:flex-none bg-primary hover:bg-primary"
-                      >
-                        + Add
-                      </Button>
-                    )}
-                  </div>
-                </motion.div>
-              </div>
+                  )}
+                </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Document Uploads */}
+        <motion.div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          variants={itemVariants}
+        >
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Result Slip <span className="text-error">*</span>
-            </label>
             <motion.div 
               className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
             >
               <p className="text-sm text-blue-900">
-                ✨ <strong>Auto-fill enabled:</strong> Upload your result slip and grades will be automatically extracted and populated below.
+                ✨ <strong>Auto-fill enabled:</strong> Upload your result slip and grades will be automatically extracted.
               </p>
             </motion.div>
-            <div className="relative">
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleResultSlipUpload}
-                className="w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
-              />
-
-              {resultSlipFile && (
-                <div className="mt-2 flex items-center text-sm text-warning-strong">
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  {resultSlipFile.name}
-                </div>
-              )}
-              {uploadProgress.result_slip !== undefined && (
-                <div className="mt-2">
-                  <div className="flex justify-between text-sm text-gray-900 mb-1">
-                    <span>Uploading...</span>
-                    <span>{uploadProgress.result_slip}%</span>
-                  </div>
-                  <div className="w-full bg-skeleton rounded-full h-2">
-                    <motion.div
-                      className="bg-primary h-2 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${uploadProgress.result_slip}%` }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </div>
-                </div>
-              )}
-              {uploadedFiles.result_slip && (
-                <motion.div
-                  className="mt-2 flex items-center text-sm text-accent"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Upload complete! Ready to proceed.
-                </motion.div>
-              )}
-            </div>
+            <AnimatedFileUpload
+              label="Result Slip"
+              required
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={handleResultSlipUpload}
+              file={resultSlipFile}
+              uploadProgress={uploadProgress.result_slip}
+              isUploaded={uploadedFiles.result_slip}
+              helperText="Upload a clear scan or photo of your Grade 12 result slip"
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Extra KYC Documents (Optional)
-            </label>
-            <div className="relative">
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleExtraKycUpload}
-                className="w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
-              />
-              {extraKycFile && (
-                <div className="mt-2 flex items-center text-sm text-warning-strong">
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  {extraKycFile.name}
-                </div>
-              )}
-              {uploadProgress.extra_kyc !== undefined && (
-                <div className="mt-2">
-                  <div className="flex justify-between text-sm text-gray-900 mb-1">
-                    <span>Uploading...</span>
-                    <span>{uploadProgress.extra_kyc}%</span>
-                  </div>
-                  <div className="w-full bg-skeleton rounded-full h-2">
-                    <motion.div
-                      className="bg-primary h-2 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${uploadProgress.extra_kyc}%` }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </div>
-                </div>
-              )}
-              {uploadedFiles.extra_kyc && (
-                <motion.div
-                  className="mt-2 flex items-center text-sm text-accent"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Upload complete!
-                </motion.div>
-              )}
-            </div>
+            <AnimatedFileUpload
+              label="Extra KYC Documents (Optional)"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={handleExtraKycUpload}
+              file={extraKycFile}
+              uploadProgress={uploadProgress.extra_kyc}
+              isUploaded={uploadedFiles.extra_kyc}
+              helperText="Upload any additional supporting documents"
+            />
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </motion.div>
   )
 }
