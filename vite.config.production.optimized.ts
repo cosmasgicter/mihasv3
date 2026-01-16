@@ -56,40 +56,34 @@ export default defineConfig({
     modulePreload: { polyfill: false }, // No polyfills for modern browsers
     rollupOptions: {
       output: {
+        /**
+         * Manual Chunks - MINIMAL SAFE APPROACH
+         * 
+         * Only split truly independent heavy libraries.
+         * Let Vite handle React ecosystem automatically to prevent createContext errors.
+         */
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // Core React - critical
-            if (id.includes('react/') || id.includes('react-dom/')) {
-              return 'vendor-react'
+            // ONLY split heavy libraries that are dynamically imported
+            if (id.includes('xlsx') || id.includes('exceljs')) {
+              return 'vendor-excel'
             }
-            if (id.includes('react-router')) {
-              return 'vendor-router'
+            if (id.includes('jspdf') || id.includes('pdf-lib')) {
+              return 'vendor-pdf'
             }
-            // Supabase - split into smaller chunks
-            if (id.includes('@supabase/supabase-js')) {
+            if (id.includes('tesseract')) {
+              return 'vendor-ocr'
+            }
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'vendor-charts'
+            }
+            
+            // Supabase is independent and large
+            if (id.includes('@supabase')) {
               return 'vendor-supabase'
             }
-            if (id.includes('@supabase/postgrest') || id.includes('@supabase/storage')) {
-              return 'vendor-supabase-client'
-            }
-            // Forms - lazy load
-            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
-              return 'vendor-forms'
-            }
-            // Query - separate
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-query'
-            }
-            // UI libraries
-            if (id.includes('lucide-react') || id.includes('framer-motion')) {
-              return 'vendor-ui'
-            }
-            // Heavy libs - dynamic import only (no chunk)
-            if (id.includes('tesseract') || id.includes('pdf') || id.includes('xlsx') || id.includes('excel')) {
-              return // Dynamic import
-            }
-            // Everything else
-            return 'vendor-misc'
+            
+            // Let Vite handle everything else automatically
           }
         },
         assetFileNames: (assetInfo) => {
