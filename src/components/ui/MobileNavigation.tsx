@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { Button } from './Button'
 import { BaseNavigation, NavigationItem } from '@/components/navigation/BaseNavigation'
 import { GraduationCap, LayoutDashboard, LogOut } from 'lucide-react'
@@ -64,27 +63,12 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
     navigate(href)
   }
 
-  // Brand component
+  // Brand component - simplified without continuous rotation animation
   const brand = (
-    <motion.div
-      className="flex items-center space-x-2"
-      whileHover={{ scale: 1.05 }}
-      transition={{ type: "spring", stiffness: 300 }}
-    >
-      <motion.div
-        animate={{ rotate: [0, 360] }}
-        transition={{ 
-          duration: 20, 
-          repeat: Infinity, 
-          ease: "linear",
-          repeatType: "loop"
-        }}
-        style={{ willChange: 'transform' }}
-      >
-        <GraduationCap className="h-8 w-8 text-primary" />
-      </motion.div>
+    <div className="flex items-center space-x-2">
+      <GraduationCap className="h-8 w-8 text-primary" />
       <span className="text-xl font-bold text-foreground">MIHAS-KATC</span>
-    </motion.div>
+    </div>
   )
 
   // Desktop navigation
