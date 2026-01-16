@@ -1,88 +1,145 @@
-# Technology Stack & Build System
+---
+inclusion: always
+---
 
-## Frontend Stack
+# Technology Stack & Development Conventions
 
-- **React 18** with TypeScript - UI framework with strict type safety
-- **Vite** - Build tool and dev server (fast HMR)
-- **Tailwind CSS** - Utility-first styling with custom design tokens
-- **Radix UI** - Accessible component primitives
-- **React Hook Form + Zod** - Form handling with schema validation
-- **Zustand** - Lightweight state management
-- **React Query** - Server state management and caching
-- **React Router** - Client-side routing
+## Stack Overview
 
-## Backend & Infrastructure
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| UI Framework | React 18 + TypeScript | Functional components only |
+| Build Tool | Vite | Use `vite.config.production.ts` for prod builds |
+| Styling | Tailwind CSS | Custom design tokens in `tailwind.config.js` |
+| Components | Radix UI | Accessible primitives—prefer over custom implementations |
+| Forms | React Hook Form + Zod | All forms must have Zod schemas |
+| State | Zustand (client), React Query (server) | No Redux |
+| Routing | React Router v6 | Lazy-load all page components |
+| Backend | Supabase + Cloudflare Functions | 47 API endpoints in `functions/` |
+| Email/SMS | Resend, Twilio | Queue with retry on failure |
 
-- **Supabase** - PostgreSQL database, auth, and real-time subscriptions
-- **Cloudflare Pages** - Static hosting with edge functions
-- **Cloudflare Functions** - Serverless API endpoints (47 functions)
-- **Resend** - Email delivery service
-- **Twilio** - SMS and WhatsApp notifications
+## Code Conventions
 
-## Key Libraries
+### TypeScript
+- Use `@/` path alias for all `src/` imports
+- Prefer `interface` over `type` for object shapes
+- Export types alongside components when needed externally
+- `tsconfig.json` has `strict: false` for legacy compatibility—don't enable strict mode
 
-- **PDF Generation**: jspdf, pdf-lib
-- **Excel Processing**: xlsx, exceljs  
-- **File Uploads**: react-dropzone
-- **Charts**: recharts
-- **OCR**: tesseract.js
-- **Animations**: framer-motion (being phased out for performance)
+### React Components
+- Functional components with hooks only—no class components
+- Co-locate component, test, and styles in same directory
+- Use named exports (not default) for better refactoring
+- Memoize expensive computations with `useMemo`/`useCallback`
 
-## Development Commands
+### Styling
+- Tailwind utility classes preferred over custom CSS
+- Design tokens defined in `tailwind.config.js`—use them
+- Avoid inline styles except for dynamic values
+- Mobile-first responsive design (`sm:`, `md:`, `lg:` breakpoints)
 
-```bash
-# Development
-npm run dev                    # Start dev server (localhost:5173)
-npm run dev:network           # Dev server accessible on network
-npm run dev:prod              # Build and preview production
+### Forms
+- All forms use React Hook Form with Zod validation
+- Define schemas in separate files when reused
+- Use controlled components for complex inputs
+- Implement auto-save for multi-step forms (8-second interval)
 
-# Building
-npm run build                 # Standard build
-npm run build:prod           # Optimized production build with image optimization
-npm run build:analyze        # Build with bundle analysis
+### State Management
+- Zustand: Global UI state, user preferences
+- React Query: All server data fetching and caching
+- Local state: Component-specific UI state only
+- Never duplicate server state in Zustand
 
-# Testing
-npm run test                  # Playwright E2E tests
-npm run test:unit            # Vitest unit tests
-npm run test:unit:coverage   # Unit tests with coverage
-npm run test:production      # Production environment tests
+## API Development (functions/)
 
-# Deployment
-npm run deploy               # Deploy to Cloudflare Pages
-wrangler pages deploy dist   # Direct Cloudflare deployment
+### Structure
 
-# Utilities
-npm run lint                 # ESLint
-npm run type-check          # TypeScript checking
+```
+functions/
+├── _lib/           # Shared utilities (auth, db, validation)
+├── _middleware.js  # Global CORS, auth, error handling
+└── [feature]/      # Feature-grouped endpoints
 ```
 
-## Configuration Files
+### Conventions
+- File naming: `kebab-case.js` (e.g., `send-email.js`)
+- Always import shared utilities from `_lib/`
+- Return consistent JSON: `{ success: boolean, data?: any, error?: string }`
+- Handle errors gracefully—never expose stack traces
+- Log errors but never log PII
 
-- **vite.config.production.ts** - Production build optimization
-- **wrangler.toml** - Cloudflare Pages configuration
-- **tailwind.config.js** - Design system tokens
-- **tsconfig.json** - TypeScript settings (strict: false for legacy compatibility)
+### Response Pattern
+```javascript
+// Success
+return new Response(JSON.stringify({ success: true, data: result }), {
+  headers: { 'Content-Type': 'application/json' }
+});
 
-## Build Optimization
+// Error
+return new Response(JSON.stringify({ success: false, error: 'Message' }), {
+  status: 400,
+  headers: { 'Content-Type': 'application/json' }
+});
+```
 
-- **Code Splitting**: Manual chunks for vendor libraries (React, Supabase, forms)
-- **Tree Shaking**: Terser with console.log removal in production
-- **Asset Optimization**: Image compression and inlining <4KB assets
-- **PWA**: Service worker with offline caching strategies
-- **Critical CSS**: Inlined for faster initial paint
+## Build & Deployment
 
-## Environment Variables
+### Commands
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Local dev server (port 5173) |
+| `npm run build:prod` | Production build with optimizations |
+| `npm run deploy` | Deploy to Cloudflare Pages |
+| `npm run test` | Playwright E2E tests |
+| `npm run test:unit` | Vitest unit tests |
 
-Required for development:
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+### Environment Variables
+Required in `.env`:
+```
+VITE_SUPABASE_URL=https://[project].supabase.co
+VITE_SUPABASE_ANON_KEY=[anon-key]
 VITE_API_BASE_URL=***REMOVED***
 ```
 
-## Performance Targets
+### Build Optimizations (Already Configured)
+- Manual code splitting for vendor chunks (React, Supabase, forms)
+- Terser minification with console.log removal
+- Assets <4KB inlined as base64
+- Critical CSS inlined in HTML
+- Service worker for PWA offline support
 
-- **First Contentful Paint**: <1.5s
-- **Largest Contentful Paint**: <2.5s  
-- **Bundle Size**: Main chunk <500KB
-- **Lighthouse Score**: >90 across all metrics
+## Performance Requirements
+
+| Metric | Target |
+|--------|--------|
+| First Contentful Paint | <1.5s |
+| Largest Contentful Paint | <2.5s |
+| Main bundle size | <500KB |
+| Lighthouse score | >90 |
+
+### Performance Rules
+- Lazy-load all page components with `React.lazy()`
+- Avoid `framer-motion`—being phased out for performance
+- Use `loading="lazy"` on images below the fold
+- Prefer CSS transitions over JS animations
+- Debounce search inputs (300ms minimum)
+
+## Key Libraries
+
+| Use Case | Library | Notes |
+|----------|---------|-------|
+| PDF generation | jspdf, pdf-lib | Server-side preferred |
+| Excel export | xlsx, exceljs | Use exceljs for styling |
+| File uploads | react-dropzone | With validation |
+| Charts | recharts | Lazy-load chart components |
+| OCR | tesseract.js | Web worker for performance |
+
+## Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `vite.config.production.ts` | Production build settings |
+| `wrangler.toml` | Cloudflare Pages config |
+| `tailwind.config.js` | Design tokens and theme |
+| `tsconfig.json` | TypeScript (strict: false) |
+| `playwright.config.ts` | E2E test configuration |

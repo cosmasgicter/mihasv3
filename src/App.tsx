@@ -2,6 +2,7 @@ import React, { Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { SkeletonProvider } from '@/contexts/SkeletonContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
@@ -92,35 +93,37 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SkipLink />
-          <ToastContainer />
-          <PWAInstallPrompt />
-          <OfflineIndicator />
-          <ServiceWorkerUpdatePrompt />
-          <Router>
-            <AnalyticsTracker>
-              <SessionMonitor />
-              <SimpleErrorBoundary>
-                <div className="min-h-screen bg-background">
-                  <AppLayout>
-                    <main id="main-content" tabIndex={-1} className="focus:outline-none">
-                      <Routes>
-                        {routes.map((route) => (
-                          <Route
-                            key={route.path}
-                            path={route.path}
-                            element={renderRoute(route)}
-                          />
-                        ))}
-                      </Routes>
-                    </main>
-                  </AppLayout>
-                </div>
-              </SimpleErrorBoundary>
-            </AnalyticsTracker>
-          </Router>
-        </AuthProvider>
+        <SkeletonProvider>
+          <AuthProvider>
+            <SkipLink />
+            <ToastContainer />
+            <PWAInstallPrompt />
+            <OfflineIndicator />
+            <ServiceWorkerUpdatePrompt />
+            <Router>
+              <AnalyticsTracker>
+                <SessionMonitor />
+                <SimpleErrorBoundary>
+                  <div className="min-h-screen bg-background">
+                    <AppLayout>
+                      <main id="main-content" tabIndex={-1} className="focus:outline-none">
+                        <Routes>
+                          {routes.map((route) => (
+                            <Route
+                              key={route.path}
+                              path={route.path}
+                              element={renderRoute(route)}
+                            />
+                          ))}
+                        </Routes>
+                      </main>
+                    </AppLayout>
+                  </div>
+                </SimpleErrorBoundary>
+              </AnalyticsTracker>
+            </Router>
+          </AuthProvider>
+        </SkeletonProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   )

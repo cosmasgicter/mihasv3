@@ -1,11 +1,16 @@
 import React from 'react'
 
-// Import critical pages directly for faster loading
-import SignInPage from '@/pages/auth/SignInPage'
-import SignUpPage from '@/pages/auth/SignUpPage'
-import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage'
-import ResetPasswordPage from '@/pages/auth/ResetPasswordPage'
-import LandingPage from '@/pages/LandingPage'
+// Lazy load ALL pages for optimal code splitting
+// This ensures the landing page bundle stays under 100KB (Requirement 1.4)
+
+// Auth pages - loaded on demand
+const SignInPage = React.lazy(() => import('@/pages/auth/SignInPage'))
+const SignUpPage = React.lazy(() => import('@/pages/auth/SignUpPage'))
+const ForgotPasswordPage = React.lazy(() => import('@/pages/auth/ForgotPasswordPage'))
+const ResetPasswordPage = React.lazy(() => import('@/pages/auth/ResetPasswordPage'))
+
+// Landing page - lazy loaded with preload hint
+const LandingPage = React.lazy(() => import('@/pages/LandingPage'))
 
 // Lazy load non-critical pages
 const StudentDashboard = React.lazy(() => import('@/pages/student/Dashboard'))
@@ -50,15 +55,15 @@ export interface RouteConfig {
 }
 
 export const routes: RouteConfig[] = [
-  // Public routes
-  { path: '/', element: LandingPage, guard: 'public' },
+  // Public routes - all lazy loaded for optimal bundle size
+  { path: '/', element: LandingPage, guard: 'public', lazy: true },
   { path: '/track-application', element: PublicApplicationTracker, guard: 'public', lazy: true },
-  { path: '/auth/signin', element: SignInPage, guard: 'public' },
-  { path: '/signin', element: SignInPage, guard: 'public' },
-  { path: '/login', element: SignInPage, guard: 'public' },
-  { path: '/auth/signup', element: SignUpPage, guard: 'public' },
-  { path: '/auth/forgot-password', element: ForgotPasswordPage, guard: 'public' },
-  { path: '/auth/reset-password', element: ResetPasswordPage, guard: 'public' },
+  { path: '/auth/signin', element: SignInPage, guard: 'public', lazy: true },
+  { path: '/signin', element: SignInPage, guard: 'public', lazy: true },
+  { path: '/login', element: SignInPage, guard: 'public', lazy: true },
+  { path: '/auth/signup', element: SignUpPage, guard: 'public', lazy: true },
+  { path: '/auth/forgot-password', element: ForgotPasswordPage, guard: 'public', lazy: true },
+  { path: '/auth/reset-password', element: ResetPasswordPage, guard: 'public', lazy: true },
   { path: '/auth/callback', element: AuthCallbackPage, guard: 'public', lazy: true },
   
   // Dashboard redirect (no lazy loading needed)
