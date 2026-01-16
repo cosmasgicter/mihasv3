@@ -72,95 +72,39 @@ export default defineConfig({
     rollupOptions: {
       output: {
         /**
-         * Manual Chunks Configuration
+         * Manual Chunks Configuration - MINIMAL SAFE APPROACH
          * 
-         * Strategy:
-         * 1. Core vendor chunks (react, router) - loaded immediately
-         * 2. Feature vendor chunks (supabase, forms) - loaded on demand
-         * 3. Heavy vendor chunks (excel, pdf, charts) - lazy loaded
-         * 4. Motion chunk - MUST include react dependencies to avoid createContext errors
-         * 5. UI components - grouped for caching
+         * Previous strategies caused createContext errors due to chunk loading order.
          * 
-         * Target: Landing page bundle < 100KB (Requirement 1.4)
+         * New Strategy: Only split truly independent heavy libraries that are
+         * dynamically imported. Let Vite handle React ecosystem automatically.
          * 
-         * IMPORTANT: framer-motion must be bundled with react to ensure
-         * React's createContext is available when motion initializes.
+         * This prevents race conditions where React-dependent code loads before React.
          */
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // Core React - MUST be first, other libraries depend on it
-            if (id.includes('react-dom')) {
-              return 'vendor-react'
-            }
-            if (id.includes('node_modules/react/') || id.includes('node_modules\\react\\')) {
-              return 'vendor-react'
-            }
-            // Router - needed for navigation
-            if (id.includes('react-router')) {
-              return 'vendor-router'
-            }
-            // Motion/Framer Motion - bundle with react core to avoid createContext errors
-            // framer-motion depends on React's createContext being available
-            if (id.includes('framer-motion') || id.includes('@motionone')) {
-              return 'vendor-react'
-            }
-            // Supabase - backend integration
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase'
-            }
-            // Forms - loaded when forms are needed
-            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
-              return 'vendor-form'
-            }
-            // Radix UI - component primitives
-            if (id.includes('@radix-ui')) {
-              return 'vendor-radix'
-            }
-            // TanStack Query - data fetching
-            if (id.includes('@tanstack')) {
-              return 'vendor-query'
-            }
-            // Heavy libraries - lazy loaded only when needed
+            // ONLY split heavy libraries that are dynamically imported
+            // These have no React dependencies at module initialization
             if (id.includes('xlsx') || id.includes('exceljs')) {
               return 'vendor-excel'
             }
             if (id.includes('jspdf') || id.includes('pdf-lib')) {
               return 'vendor-pdf'
             }
-            if (id.includes('recharts')) {
-              return 'vendor-charts'
-            }
             if (id.includes('tesseract')) {
               return 'vendor-ocr'
             }
-            // Date utilities
-            if (id.includes('date-fns')) {
-              return 'vendor-date'
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'vendor-charts'
             }
-            // Utility libraries (clsx, tailwind-merge, etc.)
-            if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority')) {
-              return 'vendor-utils'
+            
+            // Supabase is independent and large
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase'
             }
-          }
-          
-          // Group UI components together for better caching
-          if (id.includes('src/components/ui/')) {
-            return 'ui-components'
-          }
-          
-          // Group admin components together (lazy loaded)
-          if (id.includes('src/components/admin/')) {
-            return 'admin-components'
-          }
-          
-          // Group student components together
-          if (id.includes('src/components/student/')) {
-            return 'student-components'
-          }
-          
-          // Group auth components together
-          if (id.includes('src/components/auth/')) {
-            return 'auth-components'
+            
+            // Let Vite handle everything else automatically
+            // This ensures proper dependency ordering for React ecosystem
           }
         },
         assetFileNames: (assetInfo) => {
