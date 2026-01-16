@@ -9,7 +9,7 @@ export { Switch } from './switch'
 export { Label } from './label'
 
 // Layout Components
-export { Card } from './card'
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './card'
 export { Container } from './Container'
 export { Grid } from './Grid'
 export { Stack } from './Stack'
@@ -85,7 +85,7 @@ export {
   Section as HeadingSection, 
   PageTitle, 
   SectionTitle, 
-  CardTitle, 
+  HeadingCardTitle, 
   VisuallyHidden 
 } from './HeadingHierarchy'
 

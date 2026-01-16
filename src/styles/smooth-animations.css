@@ -1,11 +1,13 @@
 /* Smooth Animations - Performance Optimized */
 
-/* Hardware acceleration for all animated elements */
-* {
+/* Hardware acceleration for animated elements only - not global */
+.animate-spin,
+.animate-pulse,
+.animate-bounce,
+[class*="animate-"],
+[class*="smooth-"] {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  -webkit-perspective: 1000;
-  perspective: 1000;
 }
 
 /* Base animation optimizations */
