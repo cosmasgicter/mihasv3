@@ -78,25 +78,31 @@ export default defineConfig({
          * 1. Core vendor chunks (react, router) - loaded immediately
          * 2. Feature vendor chunks (supabase, forms) - loaded on demand
          * 3. Heavy vendor chunks (excel, pdf, charts) - lazy loaded
-         * 4. Motion chunk - separate for animation features
+         * 4. Motion chunk - MUST include react dependencies to avoid createContext errors
          * 5. UI components - grouped for caching
          * 
          * Target: Landing page bundle < 100KB (Requirement 1.4)
+         * 
+         * IMPORTANT: framer-motion must be bundled with react to ensure
+         * React's createContext is available when motion initializes.
          */
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
             // Core React - MUST be first, other libraries depend on it
-            if (id.includes('react') || id.includes('react-dom')) {
+            if (id.includes('react-dom')) {
+              return 'vendor-react'
+            }
+            if (id.includes('node_modules/react/') || id.includes('node_modules\\react\\')) {
               return 'vendor-react'
             }
             // Router - needed for navigation
             if (id.includes('react-router')) {
               return 'vendor-router'
             }
-            // Motion/Framer Motion - separate chunk for animations
-            // This allows pages without animations to load faster
-            if (id.includes('framer-motion') || id.includes('motion')) {
-              return 'vendor-motion'
+            // Motion/Framer Motion - bundle with react core to avoid createContext errors
+            // framer-motion depends on React's createContext being available
+            if (id.includes('framer-motion') || id.includes('@motionone')) {
+              return 'vendor-react'
             }
             // Supabase - backend integration
             if (id.includes('@supabase')) {
