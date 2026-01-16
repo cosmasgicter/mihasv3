@@ -4,144 +4,77 @@ inclusion: always
 
 # MIHAS Application System - Product Context
 
-MIHAS (Mukuba Institute of Health and Allied Sciences) Application System V3 is a production student admissions platform serving a Zambian medical institute. This is a **live system with real users and data**.
+Live production admissions platform for Mukuba Institute of Health and Allied Sciences (Zambia). Real users, real data—treat all changes as production-critical.
 
-## Critical Constraints
+## Hard Constraints (Non-Negotiable)
 
-**PRODUCTION SYSTEM RULES:**
-- All changes must maintain backward compatibility with existing data
-- Never break existing user workflows or data integrity
-- Test thoroughly before suggesting production deployments
-- Respect the 86-table database schema - coordinate schema changes carefully
-- Consider offline functionality - PWA must work without network
+| Rule | Reason |
+|------|--------|
+| Never remove auto-save | 8-second interval prevents data loss for students |
+| Never block on external API failures | HPCZ, GNC/NMCZ, ECZ APIs are unreliable—always provide fallbacks |
+| Never log PII | Student applications contain medical credentials and personal data |
+| Maintain backward compatibility | 86 database tables with existing data |
+| Preserve offline functionality | PWA must work on unreliable Zambian connections |
 
-**DATA SENSITIVITY:**
-- Student applications contain personal information (PII)
-- Medical credentials and eligibility data are regulated
-- Maintain GDPR-like privacy standards even though not EU-based
-- Never log sensitive data in production
+## User Roles
 
-## Core User Flows
+| Role | Capabilities |
+|------|-------------|
+| Student | Apply, upload documents, track status, pay, schedule interviews |
+| Admin | Review applications, verify eligibility, approve/reject, generate reports |
+| Super Admin | Full access + user management, system config, analytics, audit logs |
 
-### 1. Student Application Journey
-- **Registration** → Email verification → Profile creation
-- **4-Step Wizard**: Personal Info → Academic History → Program Selection → Document Upload
-- **Auto-save**: Every 8 seconds to prevent data loss
-- **Non-blocking validation**: Students can proceed even if eligibility checks fail
-- **Application submission** → Payment → Interview scheduling → Admission decision
+## Application Flow
 
-### 2. Admin Application Review
-- View applications with filtering and search
-- Verify eligibility against external systems (HPCZ, GNC/NMCZ, ECZ)
-- Approve/reject applications with audit trail
-- Generate admission letters and slips
-- Bulk operations for efficiency
+`Registration → Email Verification → Profile Setup → Application Wizard → Payment → Interview → Decision`
 
-### 3. Eligibility Checking System
-- **HPCZ**: Health Professions Council of Zambia registration verification
-- **GNC/NMCZ**: General Nursing Council / Nurses and Midwives Council verification
-- **ECZ**: Examinations Council of Zambia grade verification
-- **Design principle**: Always non-blocking - manual override available
+### Application Wizard (4 Steps)
+1. Personal Information
+2. Academic History
+3. Program Selection
+4. Document Upload
 
-## Key Features & Behaviors
+### Wizard Behaviors
+- Auto-save: every 8 seconds, silent, non-blocking
+- Validation: non-blocking—students can proceed even if eligibility checks fail
+- Persistence: draft state persists across sessions
+- Eligibility: advisory only, manual admin override always available
 
-### Application Wizard
-- 4 steps with progress tracking
-- Auto-save every 8 seconds (critical - prevents data loss)
-- Validation on blur and submit
-- Draft state preserved across sessions
-- Mobile-responsive with touch-friendly controls
+## Business Rules
 
-### Document Management
-- PDF generation for slips, letters, and reports
-- File uploads with validation (size, type, virus scanning)
-- Document versioning and audit trail
-- Bulk document operations for admins
+| Rule | Details |
+|------|---------|
+| Payment timing | Required before interview scheduling |
+| Documents | Requirements vary by program |
+| Grading | Zambian ECZ: 1-9 scale (1-6 = pass, 7-9 = fail) |
+| Interviews | First-come-first-served with admin override |
+| Audit | All state changes require audit trail entries |
 
-### Notification System
-- **Email**: Transactional via Resend (application status, interviews, etc.)
-- **SMS**: Critical updates via Twilio
-- **WhatsApp**: Optional notifications via Twilio
-- **In-app**: Real-time via Supabase subscriptions
-- All notifications logged for audit
+## Performance Targets
 
-### Real-time Features
-- Application status updates via Supabase real-time subscriptions
-- Admin dashboard live metrics
-- Notification delivery without page refresh
+| Metric | Target |
+|--------|--------|
+| First load (3G) | <2.5s |
+| Wizard navigation | <100ms |
+| Auto-save | Silent, no UI blocking |
+| Offline mode | Core features functional |
 
-## System Scale & Architecture
+## External Integrations
 
-- **Database**: 86 tables in PostgreSQL (Supabase)
-- **API**: 47 Cloudflare Pages Functions (serverless)
-- **Frontend**: 120+ React components, ~56K LOC
-- **Users**: 3 roles (Student, Admin, Super Admin)
-- **Deployment**: Cloudflare Pages with edge functions
+| Service | Failure Handling |
+|---------|------------------|
+| Supabase (auth, DB, storage) | Critical—no fallback |
+| Cloudflare (hosting, CDN) | Infrastructure layer |
+| Resend (email) | Queue with retry |
+| Twilio (SMS/WhatsApp) | Graceful degradation |
+| HPCZ/GNC/NMCZ/ECZ (eligibility) | Advisory only, never blocking |
 
-## User Roles & Permissions
+## Development Checklist
 
-### Student
-- Create and submit applications
-- Upload documents
-- Track application status
-- Schedule interviews
-- Make payments
-
-### Admin
-- Review and process applications
-- Verify eligibility
-- Approve/reject applications
-- Generate reports
-- Manage interviews
-
-### Super Admin
-- All admin permissions
-- User management
-- System configuration
-- Analytics and reporting
-- Audit trail access
-
-## Business Rules to Respect
-
-1. **Eligibility is advisory, not blocking**: Students can always proceed even if checks fail
-2. **Payment before interview**: Students must pay application fee before interview scheduling
-3. **Document requirements vary by program**: Different programs require different documents
-4. **Zambian grading system**: ECZ grades (1-9, where 1-6 is pass, 7-9 is fail)
-5. **Academic year cycles**: Applications open/close based on academic calendar
-6. **Interview slots are limited**: First-come-first-served with admin override
-
-## Performance Expectations
-
-- **First load**: <2.5s on 3G connection (mobile-first market)
-- **Wizard navigation**: Instant (<100ms)
-- **Auto-save**: Silent, non-blocking
-- **Document upload**: Progress indication, resumable
-- **Offline mode**: Core features work without network
-
-## Common Pitfalls to Avoid
-
-- Don't assume fast internet - optimize for 3G/4G
-- Don't block user progress on external API failures
-- Don't remove auto-save - data loss is critical issue
-- Don't break mobile layouts - majority of users on mobile
-- Don't skip validation - but make it helpful, not blocking
-- Don't ignore accessibility - screen readers must work
-- Don't log PII in production logs or error tracking
-
-## Integration Points
-
-- **Supabase**: Auth, database, real-time, storage
-- **Cloudflare**: Hosting, functions, CDN, DDoS protection
-- **Resend**: Email delivery
-- **Twilio**: SMS and WhatsApp
-- **External APIs**: HPCZ, GNC/NMCZ, ECZ (unreliable - always have fallbacks)
-
-## When Making Changes
-
-1. Consider impact on existing applications in progress
-2. Test with realistic Zambian data (names, phone formats, grades)
-3. Verify mobile responsiveness (majority of users)
-4. Check offline functionality if touching PWA features
-5. Ensure admin workflows remain efficient (they process hundreds of applications)
-6. Maintain audit trail for compliance
-7. Consider performance on slower devices and networks
+When modifying code, verify:
+- [ ] Impact on in-progress applications (students may have drafts)
+- [ ] Zambian data formats (+260 phone numbers, ECZ grades 1-9)
+- [ ] Mobile responsiveness (most users are on mobile)
+- [ ] Graceful degradation for external API calls
+- [ ] Accessibility (screen reader support)
+- [ ] Audit trails for state changes (no PII in logs)

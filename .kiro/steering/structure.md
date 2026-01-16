@@ -1,127 +1,114 @@
-# Project Structure & Organization
+---
+inclusion: always
+---
 
-## Root Directory Layout
+# Project Structure & Code Organization
 
-```
-mihasv3/
-├── src/                    # Frontend React application
-├── functions/              # Cloudflare Pages Functions (API)
-├── docs/                   # Documentation and reports
-├── scripts/                # Utility and deployment scripts
-├── tests/                  # E2E and integration tests
-├── supabase/              # Database migrations and functions
-├── public/                # Static assets
-└── infra/                 # Terraform infrastructure code
-```
+## Directory Rules
+
+| Directory | Purpose | AI Action |
+|-----------|---------|-----------|
+| `src/` | React frontend | Primary modification target |
+| `functions/` | Cloudflare API endpoints | Use `_lib/` for shared code |
+| `tests/` | Test files | Match test type to subdirectory |
+| `supabase/migrations/` | DB migrations | Append-only, never modify existing |
+| `public/` | Static assets, PWA | Rarely modify |
+| `scripts/` | Build/deploy utilities | Reference only, do not modify |
+| `docs/` | Documentation | **Do not modify unless explicitly asked** |
 
 ## Frontend Structure (`src/`)
 
 ```
-src/
-├── components/            # React components
-│   ├── ui/               # Base UI components (Button, Input, etc.)
-│   ├── admin/            # Admin-specific components
-│   ├── student/          # Student-specific components
-│   ├── auth/             # Authentication components
-│   ├── navigation/       # Navigation and layout components
-│   └── forms/            # Form components and wizards
-├── pages/                # Page-level components (route handlers)
-├── hooks/                # Custom React hooks (38 total)
-├── services/             # API service layer and external integrations
-├── lib/                  # Utilities, helpers, and configurations
-├── stores/               # Zustand state management stores
-├── types/                # TypeScript type definitions
-├── contexts/             # React context providers
-├── routes/               # Route configuration and guards
-├── styles/               # Global styles and Tailwind customizations
-└── utils/                # Pure utility functions
+components/
+├── ui/        → Primitives (Button, Input, Card, Modal)
+├── admin/     → Admin dashboard components
+├── student/   → Student-facing components
+├── auth/      → Authentication flows
+└── forms/     → Form components, wizards
+
+pages/         → Route-level components (register in routes/)
+hooks/         → Custom hooks (useXxx.ts)
+services/      → API clients, external integrations
+stores/        → Zustand stores (xxxStore.ts)
+lib/           → Utilities, configs, supabase client
+types/         → TypeScript definitions
+contexts/      → React context providers
+routes/        → Route config and guards
 ```
 
-## API Structure (`functions/`)
+## Naming Conventions
 
-**Organization**: Feature-based directories with flat deployment structure
+| Type | Pattern | Example |
+|------|---------|---------|
+| Components | PascalCase `.tsx` | `ApplicationWizard.tsx` |
+| Hooks | `use` + PascalCase `.ts` | `useApplicationForm.ts` |
+| Services | camelCase `.ts` | `supabaseClient.ts` |
+| Types | PascalCase | `ApplicationFormData` |
+| API Functions | kebab-case `.js` | `send-email.js` |
+| Stores | camelCase + `Store` | `applicationStore.ts` |
 
-```
-functions/
-├── _lib/                 # Shared utilities and middleware
-├── _middleware.js        # Global API middleware
-├── admin/               # Admin management endpoints
-├── applications/        # Application CRUD operations
-├── auth/                # Authentication and session management
-├── catalog/             # Course and program catalog
-├── documents/           # PDF generation and file handling
-├── notifications/       # Email, SMS, WhatsApp services
-├── payments/            # Payment processing
-├── analytics/           # Usage tracking and reporting
-└── cron/                # Scheduled background jobs
-```
-
-## Component Organization Patterns
-
-### UI Components (`src/components/ui/`)
-- **Base components**: Button, Input, Card, Modal
-- **Compound components**: DataTable, FormField, Toast
-- **Layout components**: Container, Grid, Stack
-
-### Feature Components
-- **Grouped by domain**: admin/, student/, auth/
-- **Co-located with related files**: Component.tsx, Component.test.tsx, Component.stories.tsx
-- **Index files**: Export public API from directories
-
-### Naming Conventions
-- **Components**: PascalCase (e.g., `ApplicationWizard.tsx`)
-- **Hooks**: camelCase with `use` prefix (e.g., `useApplicationForm.ts`)
-- **Services**: camelCase (e.g., `supabaseClient.ts`)
-- **Types**: PascalCase with descriptive suffixes (e.g., `ApplicationFormData`)
-- **API Functions**: kebab-case (e.g., `send-email.js`)
-
-## Documentation Structure (`docs/`)
-
-```
-docs/
-├── guides/              # User and developer guides
-├── reports/             # Analysis and audit reports (200+ files)
-├── analysis/            # Technical deep-dives and investigations
-└── design-system/       # UI/UX documentation and patterns
-```
-
-## Import Path Conventions
-
-Use TypeScript path mapping with `@/` alias:
+## Import Rules
 
 ```typescript
-// ✅ Correct - Use alias for src imports
+// ✅ ALWAYS use @/ alias for cross-directory imports
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 
-// ❌ Avoid - Relative imports from src
+// ✅ Use ./ for same-directory imports only
+import { helper } from './utils'
+
+// ❌ NEVER use relative paths beyond ./
 import { Button } from '../../../components/ui/Button'
 ```
 
-## File Organization Rules
+## File Placement
 
-1. **Co-location**: Keep related files together (component + test + styles)
-2. **Index exports**: Use index.ts files to create clean public APIs
-3. **Single responsibility**: One main export per file
-4. **Consistent naming**: Follow established patterns across the codebase
-5. **Feature grouping**: Organize by business domain, not technical layer
+| Adding | Location | Notes |
+|--------|----------|-------|
+| Component | `src/components/{domain}/` | domain: admin, student, auth, forms, ui |
+| Hook | `src/hooks/useXxx.ts` | Must prefix with `use` |
+| API endpoint | `functions/{feature}/` | feature: admin, applications, auth, documents, notifications, payments |
+| Page | `src/pages/` | Must register route in `src/routes/` |
+| Type | `src/types/` or co-locate | Co-locate component-specific types |
+| Store | `src/stores/xxxStore.ts` | Follow existing Zustand patterns |
 
-## State Management Organization
+## State Management
 
-- **Global state**: Zustand stores in `src/stores/`
-- **Server state**: React Query in `src/services/`
-- **Form state**: React Hook Form with Zod validation
-- **Component state**: Local useState for UI-only state
+Choose based on data type:
+1. **Server data** → React Query (`services/`)
+2. **Global app state** → Zustand (`stores/`)
+3. **Form state** → React Hook Form + Zod (component-level)
+4. **UI-only state** → `useState` (component-level)
 
-## Testing Structure (`tests/`)
+## Code Principles
 
+- Co-locate related files (component + test + styles)
+- Export via `index.ts` for clean public APIs
+- One main export per file
+- Extract to hooks/utilities when component exceeds 200 lines
+- Organize by feature domain, not technical layer
+
+## API Functions (`functions/`)
+
+Structure:
+- `_lib/` → Shared utilities (auth helpers, response builders)
+- `_middleware.js` → Global CORS, auth, error handling
+- Feature directories: `admin/`, `applications/`, `auth/`, `documents/`, `notifications/`, `payments/`
+
+Pattern:
+```javascript
+// functions/{feature}/action.js
+export async function onRequest(context) {
+  // Use helpers from _lib/
+}
 ```
-tests/
-├── e2e/                 # End-to-end user flows
-├── integration/         # API and service integration tests
-├── unit/                # Component and utility unit tests
-├── api/                 # API endpoint testing
-├── mobile/              # Mobile-specific test scenarios
-└── production/          # Production environment validation
-```
+
+## Testing
+
+| Type | Directory | Framework |
+|------|-----------|-----------|
+| E2E flows | `tests/e2e/` | Playwright |
+| API tests | `tests/api/` | Playwright |
+| Unit tests | `tests/unit/` | Vitest |
+| Integration | `tests/integration/` | Playwright |

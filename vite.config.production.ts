@@ -3,6 +3,15 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
+/**
+ * Production Vite Configuration
+ * 
+ * Optimized for:
+ * - Critical CSS extraction and inlining (Requirement 1.3)
+ * - Code splitting for vendor libraries (Requirement 1.4)
+ * - Instant first paint (<500ms FCP target)
+ * - Bundle size optimization (<100KB landing page)
+ */
 export default defineConfig({
   plugins: [
     react(),
@@ -54,24 +63,58 @@ export default defineConfig({
     minify: 'terser',
     sourcemap: false,
     chunkSizeWarningLimit: 500,
+    // Enable CSS code splitting for better critical CSS extraction
+    cssCodeSplit: true,
+    // Inline small assets to reduce HTTP requests
+    assetsInlineLimit: 4096,
+    // Disable compressed size reporting for faster builds
+    reportCompressedSize: false,
     rollupOptions: {
       output: {
+        /**
+         * Manual Chunks Configuration
+         * 
+         * Strategy:
+         * 1. Core vendor chunks (react, router) - loaded immediately
+         * 2. Feature vendor chunks (supabase, forms) - loaded on demand
+         * 3. Heavy vendor chunks (excel, pdf, charts) - lazy loaded
+         * 4. Motion chunk - separate for animation features
+         * 5. UI components - grouped for caching
+         * 
+         * Target: Landing page bundle < 100KB (Requirement 1.4)
+         */
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // React MUST be first - other libraries depend on it
+            // Core React - MUST be first, other libraries depend on it
             if (id.includes('react') || id.includes('react-dom')) {
               return 'vendor-react'
             }
+            // Router - needed for navigation
             if (id.includes('react-router')) {
               return 'vendor-router'
             }
+            // Motion/Framer Motion - separate chunk for animations
+            // This allows pages without animations to load faster
+            if (id.includes('framer-motion') || id.includes('motion')) {
+              return 'vendor-motion'
+            }
+            // Supabase - backend integration
             if (id.includes('@supabase')) {
               return 'vendor-supabase'
             }
+            // Forms - loaded when forms are needed
             if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
               return 'vendor-form'
             }
-            // Heavy libraries - lazy loaded
+            // Radix UI - component primitives
+            if (id.includes('@radix-ui')) {
+              return 'vendor-radix'
+            }
+            // TanStack Query - data fetching
+            if (id.includes('@tanstack')) {
+              return 'vendor-query'
+            }
+            // Heavy libraries - lazy loaded only when needed
             if (id.includes('xlsx') || id.includes('exceljs')) {
               return 'vendor-excel'
             }
@@ -84,8 +127,14 @@ export default defineConfig({
             if (id.includes('tesseract')) {
               return 'vendor-ocr'
             }
-            // Don't split framer-motion - let it bundle with components that use it
-            // This prevents React dependency issues
+            // Date utilities
+            if (id.includes('date-fns')) {
+              return 'vendor-date'
+            }
+            // Utility libraries (clsx, tailwind-merge, etc.)
+            if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority')) {
+              return 'vendor-utils'
+            }
           }
           
           // Group UI components together for better caching
@@ -93,9 +142,19 @@ export default defineConfig({
             return 'ui-components'
           }
           
-          // Group admin components together
+          // Group admin components together (lazy loaded)
           if (id.includes('src/components/admin/')) {
             return 'admin-components'
+          }
+          
+          // Group student components together
+          if (id.includes('src/components/student/')) {
+            return 'student-components'
+          }
+          
+          // Group auth components together
+          if (id.includes('src/components/auth/')) {
+            return 'auth-components'
           }
         },
         assetFileNames: (assetInfo) => {
@@ -120,10 +179,7 @@ export default defineConfig({
       mangle: {
         safari10: true
       }
-    },
-    cssCodeSplit: true,
-    assetsInlineLimit: 4096,
-    reportCompressedSize: false
+    }
   },
   server: {
     port: 5173
