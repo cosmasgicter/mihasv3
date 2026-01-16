@@ -24,8 +24,10 @@ export { AnimatedInput } from './animated-input';
 // Page transitions
 export { 
   PageTransition, 
+  RouteTransition,
   AnimatedRoutes, 
-  LayoutTransition 
+  LayoutTransition,
+  ContentTransition
 } from './page-transition';
 
 // Re-export animation configuration
