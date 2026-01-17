@@ -34,13 +34,17 @@ export interface UseStudentDashboardRealtimeReturn {
 }
 
 // Query keys to invalidate on changes
+// These must align with all query keys used across the application for application data
 const APPLICATION_QUERY_KEYS = [
   ['applications'],
   ['applications', 'stats'],
   ['applications', 'recent-activity'],
   ['student-dashboard'],
   ['payment-status'],
-  ['application-stats']
+  ['application-stats'],
+  ['application_drafts'],        // Used by useApplicationDrafts hook
+  ['applications-with-counts'],  // Used by useApplicationsWithCounts hook
+  ['application_analytics']      // Used by useApplicationAnalytics hook
 ] as const
 
 const NOTIFICATION_QUERY_KEYS = [
@@ -105,6 +109,7 @@ export function useStudentDashboardRealtime(
 
   /**
    * Invalidate all application-related queries
+   * Includes both static query keys and user-specific keys
    */
   const invalidateApplicationQueries = useCallback(async () => {
     const invalidationPromises = APPLICATION_QUERY_KEYS.map(queryKey =>
@@ -113,8 +118,25 @@ export function useStudentDashboardRealtime(
         refetchType: 'all'
       })
     )
+    
+    // Also invalidate user-specific query keys
+    if (user?.id) {
+      invalidationPromises.push(
+        // User-specific applications query (used by dashboardPreloader)
+        queryClient.invalidateQueries({
+          queryKey: ['applications', user.id],
+          refetchType: 'all'
+        }),
+        // User-specific drafts query
+        queryClient.invalidateQueries({
+          queryKey: ['application_drafts', user.id],
+          refetchType: 'all'
+        })
+      )
+    }
+    
     await Promise.all(invalidationPromises)
-  }, [queryClient])
+  }, [queryClient, user?.id])
 
   /**
    * Invalidate all notification-related queries

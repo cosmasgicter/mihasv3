@@ -111,17 +111,19 @@ npm run test:unit
 
 This workspace has the following Kiro powers installed for enhanced development capabilities:
 
-| Power | Description | Keywords |
-|-------|-------------|----------|
-| **supabase-hosted** | Build applications with Supabase's Postgres database, authentication, storage, and real-time subscriptions | database, postgres, auth, storage, realtime, backend, supabase, rls |
-| **strands** | Build AI agents with Strands Agent SDK using Bedrock, Anthropic, OpenAI, Gemini, or Llama models | agents, ai, llm, bedrock, anthropic, openai, gemini, strands, tools |
-| **aws-agentcore** | Amazon Bedrock AgentCore - an agentic platform for building, deploying, and operating effective agents | agentcore, bedrock, aws, agents, ai, development, agent |
+| Power | Description | Keywords | MCP Server |
+|-------|-------------|----------|------------|
+| **supabase-hosted** | Build applications with Supabase's Postgres database, authentication, storage, and real-time subscriptions | database, postgres, auth, storage, realtime, backend, supabase, rls | supabase |
+| **strands** | Build AI agents with Strands Agent SDK using Bedrock, Anthropic, OpenAI, Gemini, or Llama models | agents, ai, llm, bedrock, anthropic, openai, gemini, strands, tools | strands-agents |
+| **aws-agentcore** | Amazon Bedrock AgentCore is an agentic platform for building, deploying, and operating effective agents | agentcore, bedrock, aws, agents, ai, development, agent | agentcore-mcp-server |
 
 ### Using Powers
 
-1. **Activate**: Use `action="activate"` with the power name to understand available tools
-2. **Use**: Use `action="use"` with powerName, toolName, and arguments
-3. **Read Guides**: Use `action="readSteering"` for step-by-step workflows
+Powers provide specialized tools through MCP servers. To use them:
+
+1. **Activate**: Use `action="activate"` with the power name to discover available tools and documentation
+2. **Use**: Use `action="use"` with powerName, serverName, toolName, and arguments
+3. **Read Guides**: Use `action="readSteering"` for detailed workflow guides
 
 ## 📞 Support
 
@@ -132,5 +134,5 @@ This workspace has the following Kiro powers installed for enhanced development 
 
 **Version**: 3.0 (Enterprise Eligibility System)  
 **Status**: Production Ready (92/100)  
-**Last Updated**: 2026-01-16  
+**Last Updated**: 2026-01-17  
 **Documentation**: 100% Complete ✅

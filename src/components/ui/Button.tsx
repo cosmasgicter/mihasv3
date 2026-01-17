@@ -31,13 +31,13 @@ const buttonVariants = cva(
         gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700 hover:shadow-xl active:scale-[0.98]',
       },
       size: {
-        default: 'h-11 min-h-[44px] min-w-[44px] px-4 text-sm',
-        xs: 'h-8 min-h-[32px] min-w-[36px] px-2 text-xs',
-        sm: 'h-9 min-h-[36px] min-w-[44px] px-3 text-sm',
-        md: 'h-11 min-h-[44px] min-w-[44px] px-4 text-base',
-        lg: 'h-11 min-h-[44px] min-w-[44px] px-6 text-lg',
-        xl: 'h-12 min-h-[48px] min-w-[48px] px-8 text-xl',
-        icon: 'h-11 w-11 min-h-[44px] min-w-[44px] p-0',
+        default: 'h-10 px-4 text-sm',           // 40px - standard
+        xs: 'h-8 px-2 text-xs',                  // 32px - extra small
+        sm: 'h-9 px-3 text-sm',                  // 36px - small
+        md: 'h-10 px-4 text-base',               // 40px - medium (same as default)
+        lg: 'h-11 px-6 text-lg',                 // 44px - large
+        xl: 'h-12 px-8 text-xl',                 // 48px - extra large
+        icon: 'h-10 w-10 p-0',                   // 40px - icon only
       },
     },
     defaultVariants: {
@@ -90,7 +90,7 @@ export interface ButtonProps
  * - All existing variants preserved (default, primary, secondary, outline, ghost, link, destructive, danger, success, warning, gradient)
  * - All existing sizes preserved (xs, sm, md, lg, xl, icon)
  * - Loading state with spinner animation
- * - 44px minimum touch targets (WCAG compliant)
+ * - Touch-manipulation CSS for mobile accessibility
  * - Respects prefers-reduced-motion via CSS
  * - Radix Slot support for composition (asChild prop)
  * - Prevents click when disabled or loading

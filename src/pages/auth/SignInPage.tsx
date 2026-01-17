@@ -18,7 +18,7 @@ import { PasswordInput } from '@/components/ui/PasswordInput';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { durations } from '@/lib/animation-config';
-import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -228,14 +228,7 @@ export default function SignInPage() {
               variant="gradient"
               size="lg"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign in'
-              )}
+              {loading ? 'Signing in...' : 'Sign in'}
             </Button>
           </motion.div>
         </form>

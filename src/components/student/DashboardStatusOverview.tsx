@@ -156,14 +156,23 @@ export function DashboardStatusOverview({
     app.status === 'submitted' && app.payment_status !== 'verified'
   ).length;
 
-  // Get the most recent application for status display
+  // Get the most recent application for status display (including drafts so users can continue)
+  // Sort by updated_at first (most recently touched), then created_at
   const latestApplication = applications.length > 0 
-    ? applications.reduce((latest, app) => 
-        new Date(app.updated_at || app.created_at) > new Date(latest.updated_at || latest.created_at) 
-          ? app 
-          : latest
-      )
+    ? [...applications]
+        .sort((a, b) => {
+          // For drafts, use updated_at or created_at
+          // For submitted apps, use submitted_at, then updated_at, then created_at
+          const dateA = new Date(a.updated_at || a.submitted_at || a.created_at).getTime();
+          const dateB = new Date(b.updated_at || b.submitted_at || b.created_at).getTime();
+          return dateB - dateA; // Most recent first
+        })[0]
     : null;
+  
+  // Determine the correct link for the latest application
+  const latestApplicationLink = latestApplication?.status === 'draft'
+    ? '/student/application-wizard'
+    : `/student/application/${latestApplication?.id}`;
 
   const metrics = [
     {
@@ -265,10 +274,10 @@ export function DashboardStatusOverview({
                   <span>#{latestApplication.application_number}</span>
                 </div>
                 <Link 
-                  to={`/student/application/${latestApplication.id}`}
+                  to={latestApplicationLink}
                   className="text-sm font-medium text-primary hover:underline"
                 >
-                  View Details →
+                  {latestApplication.status === 'draft' ? 'Continue Application →' : 'View Details →'}
                 </Link>
               </div>
             </CardContent>
