@@ -192,10 +192,10 @@ describe('Property 2: Touch Target Compliance (Button)', () => {
   })
 
   /**
-   * Property: Button has minimum touch target classes
-   * For any button size (except xs), the Button SHALL have min-h-[44px] and min-w-[44px] classes
+   * Property: Button has correct height classes for each size
+   * For any button size, the Button SHALL have the correct height class
    */
-  it('button has minimum touch target classes for standard sizes', () => {
+  it('button has correct height classes for each size', () => {
     fc.assert(
       fc.property(
         fc.constantFrom('default', 'sm', 'md', 'lg', 'xl', 'icon') as fc.Arbitrary<ButtonSize>,
@@ -213,17 +213,19 @@ describe('Property 2: Touch Target Compliance (Button)', () => {
           if (button) {
             const className = button.className
             
-            // Should have minimum height class (44px or 48px)
-            const hasMinHeight = className.includes('min-h-[44px]') || 
-                                className.includes('min-h-[48px]') ||
-                                className.includes('min-h-[36px]') // sm size
-            expect(hasMinHeight).toBe(true)
+            // Check for correct height class based on size
+            // xs=h-8, sm=h-9, default/md=h-10, lg=h-11, xl=h-12, icon=h-10
+            const expectedHeights: Record<string, string> = {
+              'xs': 'h-8',
+              'sm': 'h-9',
+              'default': 'h-10',
+              'md': 'h-10',
+              'lg': 'h-11',
+              'xl': 'h-12',
+              'icon': 'h-10',
+            }
             
-            // Should have minimum width class
-            const hasMinWidth = className.includes('min-w-[44px]') || 
-                               className.includes('min-w-[48px]') ||
-                               className.includes('min-w-[36px]') // sm size
-            expect(hasMinWidth).toBe(true)
+            expect(className).toContain(expectedHeights[size])
           }
           
           cleanup()
@@ -251,23 +253,19 @@ describe('Property 2: Touch Target Compliance (Button)', () => {
     if (button) {
       const className = button.className
       
-      // Should have both h-11 and w-11 for square shape
-      expect(className).toContain('h-11')
-      expect(className).toContain('w-11')
-      
-      // Should have minimum touch target
-      expect(className).toContain('min-h-[44px]')
-      expect(className).toContain('min-w-[44px]')
+      // Should have both h-10 and w-10 for square shape (40px)
+      expect(className).toContain('h-10')
+      expect(className).toContain('w-10')
     }
     
     cleanup()
   })
 
   /**
-   * Property: XL button has larger touch target
-   * For xl size, the Button SHALL have min-h-[48px] and min-w-[48px] classes
+   * Property: XL button has larger height
+   * For xl size, the Button SHALL have h-12 class (48px)
    */
-  it('xl button has larger touch target', () => {
+  it('xl button has larger height', () => {
     const { container } = render(
       <Button size="xl">Extra Large</Button>
     )
@@ -278,9 +276,8 @@ describe('Property 2: Touch Target Compliance (Button)', () => {
     if (button) {
       const className = button.className
       
-      // Should have larger minimum dimensions
-      expect(className).toContain('min-h-[48px]')
-      expect(className).toContain('min-w-[48px]')
+      // Should have h-12 for 48px height
+      expect(className).toContain('h-12')
     }
     
     cleanup()

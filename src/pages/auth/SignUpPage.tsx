@@ -23,16 +23,10 @@ import { AuthLayout } from '@/components/auth/AuthLayout';
 import { NotificationService } from '@/lib/notificationService';
 import { durations } from '@/lib/animation-config';
 import { 
-  Loader2, 
+  Loader2,
   AlertCircle, 
   CheckCircle, 
   XCircle,
-  User,
-  Mail,
-  Phone,
-  Calendar,
-  MapPin,
-  Globe,
   Users
 } from 'lucide-react';
 
@@ -550,14 +544,7 @@ export default function SignUpPage() {
               variant="gradient"
               size="lg"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                'Create Account'
-              )}
+              {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
           </motion.div>
 

@@ -175,8 +175,8 @@ export async function onRequest(context) {
     const emailHtml = renderApplicationSlipEmail(emailData);
     
     // Send email immediately and queue as backup
-    const { sendEmail } = await import('../_lib/emailService.js');
-    const { queueEmail } = await import('../_lib/emailQueue.js');
+    const { sendEmail } = await import('../../_lib/emailService.js');
+    const { queueEmail } = await import('../../_lib/emailQueue.js');
     
     const emailSubject = `MIHAS Application Slip - ${application.application_number}`;
     
@@ -229,9 +229,9 @@ export async function onRequest(context) {
     console.error('Email slip error:', error);
     console.error('Error stack:', error.stack);
     return new Response(JSON.stringify({ 
+      success: false,
       error: 'Failed to email slip',
-      message: error.message,
-      stack: error.stack?.split('\n').slice(0, 3).join('\n')
+      message: 'An error occurred while processing your request. Please try again.'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

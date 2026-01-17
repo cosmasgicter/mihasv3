@@ -8,6 +8,22 @@ const CACHE_URLS = [
   '/images/logos/mihas-logo.png'
 ]
 
+/**
+ * Check if a request URL scheme is cacheable (http or https only)
+ * Filters out chrome-extension://, file://, data:, and other unsupported schemes
+ * @param {Request} request - The request to validate
+ * @returns {boolean} - True if the request can be cached
+ */
+function isCacheableRequest(request) {
+  try {
+    const url = new URL(request.url)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch (e) {
+    // Invalid URL, not cacheable
+    return false
+  }
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -33,6 +49,11 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('fetch', (event) => {
+  // Skip non-cacheable requests (chrome-extension://, file://, etc.)
+  if (!isCacheableRequest(event.request)) {
+    return
+  }
+
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => {
@@ -45,12 +66,19 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request).then((fetchResponse) => {
-        return caches.open(CACHE_NAME).then((cache) => {
-          if (event.request.method === 'GET') {
-            cache.put(event.request, fetchResponse.clone())
-          }
-          return fetchResponse
-        })
+        // Only cache GET requests with cacheable URL schemes
+        if (event.request.method === 'GET' && isCacheableRequest(event.request)) {
+          return caches.open(CACHE_NAME).then((cache) => {
+            try {
+              cache.put(event.request, fetchResponse.clone())
+            } catch (e) {
+              // Silently ignore cache errors (e.g., quota exceeded, invalid URL)
+              console.debug('Service worker cache error:', e.message)
+            }
+            return fetchResponse
+          })
+        }
+        return fetchResponse
       })
     }).catch(() => {
       if (event.request.destination === 'image') {

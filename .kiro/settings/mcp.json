@@ -120,7 +120,8 @@
         "get_advisors",
         "apply_migration",
         "list_migrations",
-        "list_tables"
+        "list_tables",
+        "search_docs"
       ]
     },
     "context7": {

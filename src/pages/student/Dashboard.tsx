@@ -342,20 +342,6 @@ export default function StudentDashboard() {
               icon={<User style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />}
               title={`Welcome back, ${firstName}`}
               description="Track your applications, manage drafts, and keep your profile information up to date."
-              stats={[
-                {
-                  label: 'Submitted applications',
-                  value: submittedApplications.length,
-                  accent: 'primary',
-                  icon: <CheckCircle className="h-5 w-5" />
-                },
-                {
-                  label: 'Drafts in progress',
-                  value: totalDraftCount,
-                  accent: totalDraftCount > 0 ? 'warning' : 'neutral',
-                  icon: <Clock className="h-5 w-5" />
-                }
-              ]}
               actions={
                 <div className="flex items-center gap-3">
                   <Button
