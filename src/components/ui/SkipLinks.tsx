@@ -4,7 +4,7 @@
  * Provides keyboard users a way to skip to main content areas.
  * WCAG 2.1 Level A requirement for keyboard navigation.
  * 
- * Requirements: 10.2, 10.3 - Skip links for keyboard navigation
+ * Requirements: 4.1, 4.2, 4.3, 4.4 - Skip links hidden by default, visible on focus, correct targets
  */
 
 import React from 'react'
@@ -41,6 +41,13 @@ export function SkipLinks({ links = defaultSkipLinks, className }: SkipLinksProp
     }
   }
 
+  // Calculate vertical offset for stacked skip links (each link 48px apart when focused)
+  const getTopOffset = (index: number) => {
+    if (index === 0) return 'focus:top-4'
+    // Stack subsequent links below the first one
+    return `focus:top-[${16 + (index * 48)}px]`
+  }
+
   return (
     <div className={cn('skip-links-container', className)}>
       {links.map((link, index) => (
@@ -49,8 +56,9 @@ export function SkipLinks({ links = defaultSkipLinks, className }: SkipLinksProp
           href={`#${link.targetId}`}
           className={cn(
             skipLinkClasses,
-            // Stack multiple skip links
-            index > 0 && 'focus:top-16'
+            // Override top position for stacked links
+            index > 0 && 'focus:top-16',
+            index > 1 && 'focus:top-28'
           )}
           onClick={(e) => handleClick(e, link.targetId)}
         >
@@ -63,49 +71,14 @@ export function SkipLinks({ links = defaultSkipLinks, className }: SkipLinksProp
 
 /**
  * Single Skip Link Component (for backward compatibility)
+ * 
+ * @deprecated Import SkipLink directly from '@/components/ui/SkipLink' instead.
+ * This re-export is maintained for backward compatibility only.
+ * 
+ * Requirements: 4.1, 4.2, 4.3, 4.4 - Skip link visibility and correct targets
  */
-interface SingleSkipLinkProps {
-  /** Target element ID (without #) */
-  href?: string
-  /** Link text */
-  children?: React.ReactNode
-  /** Additional class names */
-  className?: string
-}
-
-export function SkipLink({
-  href = '#main-content',
-  children = 'Skip to main content',
-  className,
-}: SingleSkipLinkProps) {
-  const targetId = href.replace('#', '')
-
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault()
-    const target = document.getElementById(targetId)
-    
-    if (target) {
-      // Make the target focusable if it isn't already
-      if (!target.hasAttribute('tabindex')) {
-        target.setAttribute('tabindex', '-1')
-      }
-      
-      // Focus and scroll to the target
-      target.focus()
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
-
-  return (
-    <a
-      href={href}
-      className={cn(skipLinkClasses, className)}
-      onClick={handleClick}
-    >
-      {children}
-    </a>
-  )
-}
+// Re-export from the canonical SkipLink component for backward compatibility
+export { SkipLink } from './SkipLink'
 
 /**
  * Main Content Wrapper

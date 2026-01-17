@@ -8,7 +8,7 @@
 
 import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, GraduationCap, Shield, Clock, Users, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { durations, easings } from '@/lib/animation-config';
@@ -165,6 +165,13 @@ function BrandingPanel() {
   );
 }
 
+// Mobile branding features (condensed version for mobile)
+const mobileBrandingFeatures = [
+  { icon: Shield, text: '24/7 Access' },
+  { icon: Clock, text: 'Fast Processing' },
+  { icon: Award, text: 'Accredited Programs' },
+];
+
 // Form Panel Component
 function FormPanel({
   title,
@@ -211,6 +218,24 @@ function FormPanel({
             <GraduationCap className="h-6 w-6" />
           </div>
           <span className="ml-3 text-lg font-semibold text-foreground">MIHAS</span>
+        </div>
+
+        {/* Mobile branding section - visible only on mobile */}
+        <div className="lg:hidden mt-6 p-4 rounded-xl bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-blue-800/10 border border-primary/20">
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Access your personalized portal to monitor applications and stay connected with our admissions team.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            {mobileBrandingFeatures.map((feature) => (
+              <span
+                key={feature.text}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80"
+              >
+                <feature.icon className="h-3.5 w-3.5" aria-hidden="true" />
+                {feature.text}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Title and description */}

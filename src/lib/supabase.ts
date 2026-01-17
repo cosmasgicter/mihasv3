@@ -149,7 +149,8 @@ export function createSupabaseClient(options: SupabaseFactoryOptions = {}): Supa
         detectSessionInUrl: false,
         storage,
         storageKey: AUTH_STORAGE_KEY,
-        debug: true
+        // Only enable debug logging in development mode to reduce console noise in production
+        debug: import.meta.env.DEV
       },
       realtime: {
         params: {

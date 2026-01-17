@@ -1,7 +1,17 @@
+/**
+ * @deprecated This component is deprecated. Use LoadingSpinner from '@/components/ui/LoadingSpinner' instead.
+ * This file will be removed in a future version.
+ * 
+ * Migration:
+ * - Replace `<Spinner />` with `<LoadingSpinner />`
+ * - Replace `<Spinner size="lg" />` with `<LoadingSpinner size="lg" />`
+ * - Replace `<Spinner variant="white" />` with `<LoadingSpinner color="white" />`
+ */
 import React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
+/** @deprecated Use LoadingSpinner instead */
 const spinnerVariants = cva('animate-spin rounded-full border-2 border-current border-t-transparent', {
   variants: {
     size: {

@@ -1,7 +1,7 @@
 import React from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Phone, Mail, MapPin } from 'lucide-react'
-import { AnimatedCard } from '@/components/ui/AnimatedCard'
+import { Phone, Mail, MapPin, HelpCircle, FileSearch, CheckCircle, Clock, Target, XCircle, Rocket } from 'lucide-react'
+import { SectionCard } from '@/components/ui/SectionCard'
 
 export const HelpSection: React.FC = () => {
   const shouldReduceMotion = useReducedMotion()
@@ -9,111 +9,113 @@ export const HelpSection: React.FC = () => {
 
   return (
     <motion.div
-      initial={maybeMotion({ opacity: 0, y: 30 })}
+      initial={maybeMotion({ opacity: 0, y: 20 })}
       animate={maybeMotion({ opacity: 1, y: 0 })}
-      transition={maybeMotion({ delay: 1.2 })}
-      className="mt-16"
+      transition={maybeMotion({ duration: 0.3, delay: 0.3 })}
     >
-      <AnimatedCard glassEffect>
-        <div className="text-center mb-12">
-          <h3 className="text-4xl font-black text-gray-900 mb-4 flex items-center justify-center space-x-3">
-            <span>❓</span>
-            <span>Need Help?</span>
-          </h3>
-          <p className="text-xl text-gray-800 font-medium">Everything you need to know about tracking your application</p>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:p-8 mb-12">
-          <AnimatedCard className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200" hover3d>
-            <div className="text-center space-y-4">
-              <div className="text-5xl">📍</div>
-              <h4 className="font-black text-gray-900 text-2xl">
-                Where to find your application number?
-              </h4>
-              <ul className="text-gray-800 space-y-3 text-lg text-left">
-                <li className="flex items-start space-x-3">
-                  <span className="text-blue-600 font-bold text-xl">•</span>
-                  <span className="font-medium">Check your email confirmation after submitting</span>
+      <SectionCard
+        title="Need Help?"
+        description="Everything you need to know about tracking your application"
+        icon={<HelpCircle className="h-5 w-5" />}
+        headerVariant="tinted"
+      >
+        <div className="space-y-6">
+          {/* Help Cards Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Where to Find Application Number */}
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <FileSearch className="h-5 w-5 text-primary" />
+                </div>
+                <h4 className="font-semibold text-gray-900 text-base">
+                  Where to find your application number?
+                </h4>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary font-bold">•</span>
+                  <span>Check your email confirmation after submitting</span>
                 </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-blue-600 font-bold text-xl">•</span>
-                  <span className="font-medium">Look for format: <code className="bg-blue-100 px-2 py-1 rounded font-mono font-bold text-gray-900">MIHAS123456</code></span>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary font-bold">•</span>
+                  <span>Look for format: <code className="bg-primary/10 px-1.5 py-0.5 rounded font-mono text-xs">MIHAS123456</code></span>
                 </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-blue-600 font-bold text-xl">•</span>
-                  <span className="font-medium">Contact admissions if you can't find it</span>
-                </li>
-              </ul>
-            </div>
-          </AnimatedCard>
-          
-          <AnimatedCard className="bg-gradient-to-br from-green-50 to-emerald-50 border border-yellow-200" hover3d delay={0.1}>
-            <div className="text-center space-y-4">
-              <div className="text-5xl">📊</div>
-              <h4 className="font-black text-gray-900 text-2xl">
-                Application Status Meanings
-              </h4>
-              <ul className="text-gray-800 space-y-3 text-lg text-left">
-                <li className="flex items-start space-x-3">
-                  <span className="text-2xl">🚀</span>
-                  <div className="font-medium">
-                    <strong className="text-gray-900">Submitted:</strong> Application received and queued
-                  </div>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-2xl">🔍</span>
-                  <div className="font-medium">
-                    <strong className="text-gray-900">Under Review:</strong> Being carefully evaluated
-                  </div>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-2xl">🎉</span>
-                  <div className="font-medium">
-                    <strong className="text-gray-900">Approved:</strong> Congratulations! You're accepted
-                  </div>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-2xl">💔</span>
-                  <div className="font-medium">
-                    <strong className="text-gray-900">Rejected:</strong> Not accepted this time
-                  </div>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary font-bold">•</span>
+                  <span>Contact admissions if you can't find it</span>
                 </li>
               </ul>
-            </div>
-          </AnimatedCard>
-        </div>
-        
-        <AnimatedCard className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-gray-200" delay={0.2}>
-          <div className="text-center space-y-6">
-            <div className="flex items-center justify-center space-x-4">
-              <Phone className="h-8 w-8 text-secondary" />
-              <Mail className="h-8 w-8 text-primary" />
-              <MapPin className="h-8 w-8 text-secondary" />
             </div>
             
-            <h4 className="text-3xl font-black text-gray-900">
-              📞 Contact Information
+            {/* Status Meanings */}
+            <div className="rounded-xl border border-warning/20 bg-warning/5 p-5">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-warning/10">
+                  <Target className="h-5 w-5 text-warning" />
+                </div>
+                <h4 className="font-semibold text-gray-900 text-base">
+                  Application Status Meanings
+                </h4>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <Rocket className="h-4 w-4 text-warning flex-shrink-0 mt-0.5" />
+                  <span><strong>Submitted:</strong> Application received and queued</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Clock className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span><strong>Under Review:</strong> Being carefully evaluated</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
+                  <span><strong>Approved:</strong> Congratulations! You're accepted</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <XCircle className="h-4 w-4 text-error flex-shrink-0 mt-0.5" />
+                  <span><strong>Rejected:</strong> Not accepted this time</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Contact Information */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Phone className="h-5 w-5 text-secondary" />
+              <Mail className="h-5 w-5 text-primary" />
+              <MapPin className="h-5 w-5 text-secondary" />
+            </div>
+            
+            <h4 className="text-center text-lg font-semibold text-gray-900 mb-4">
+              Contact Information
             </h4>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
-              <div className="bg-white/80 rounded-xl p-6 border border-purple-200">
-                <p className="font-bold text-gray-900 mb-2 text-xl">📧 Email Support</p>
-                <a href="mailto:info@mihas.edu.zm" className="text-blue-700 font-bold hover:underline text-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <p className="font-semibold text-gray-900 mb-2 flex items-center justify-center gap-2">
+                  <Mail className="h-4 w-4 text-primary" />
+                  Email Support
+                </p>
+                <a href="mailto:info@mihas.edu.zm" className="text-primary font-medium hover:underline text-sm">
                   info@mihas.edu.zm
                 </a>
               </div>
               
-              <div className="bg-white/80 rounded-xl p-6 border border-purple-200">
-                <p className="font-bold text-gray-900 mb-2 text-xl">📱 Phone Support</p>
-                <div className="space-y-1 text-gray-800 font-medium">
-                  <p><strong className="text-gray-900">KATC:</strong> <a href="tel:0966992299" className="text-blue-700 font-bold hover:underline">0966992299</a></p>
-                  <p><strong className="text-gray-900">MIHAS:</strong> <a href="tel:0961515151" className="text-blue-700 font-bold hover:underline">0961515151</a></p>
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <p className="font-semibold text-gray-900 mb-2 flex items-center justify-center gap-2">
+                  <Phone className="h-4 w-4 text-secondary" />
+                  Phone Support
+                </p>
+                <div className="space-y-1 text-sm">
+                  <p><strong>KATC:</strong> <a href="tel:0966992299" className="text-primary hover:underline">0966992299</a></p>
+                  <p><strong>MIHAS:</strong> <a href="tel:0961515151" className="text-primary hover:underline">0961515151</a></p>
                 </div>
               </div>
             </div>
           </div>
-        </AnimatedCard>
-      </AnimatedCard>
+        </div>
+      </SectionCard>
     </motion.div>
   )
 }

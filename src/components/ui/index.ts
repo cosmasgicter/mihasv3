@@ -38,11 +38,14 @@ export { ConfirmDialog } from './ConfirmDialog'
 
 // Navigation Components
 export { Tabs } from './tabs'
-export { Breadcrumbs } from './Breadcrumbs'
 export { Pagination } from './Pagination'
 export { SkipLink } from './SkipLink'
 export { SkipLinks, MainContent, NavigationLandmark, FooterLandmark } from './SkipLinks'
 export { BottomNavigation, BottomNavigationSpacer, defaultStudentNavItems, defaultPublicNavItems } from './BottomNavigation'
+
+// Deprecated - Use Breadcrumbs from '@/components/navigation/Breadcrumbs' instead
+/** @deprecated Use Breadcrumbs from '@/components/navigation/Breadcrumbs' for full-featured breadcrumbs */
+export { Breadcrumbs } from './Breadcrumbs'
 
 // Data Display Components
 export { Table } from './Table'
@@ -54,13 +57,17 @@ export { Progress } from './progress'
 export { Skeleton } from './skeleton'
 
 // Loading Components
-export { Loading } from './Loading'
 export { LoadingSpinner } from './LoadingSpinner'
 export { LoadingButton } from './LoadingButton'
 export { LoadingOverlay } from './LoadingOverlay'
-export { Spinner } from './Spinner'
 export { SkeletonLoader, SkeletonCard, SkeletonTable, SkeletonAvatar } from './SkeletonLoader'
 export { ProgressIndicator, CircularProgress, IndeterminateProgress } from './ProgressIndicator'
+
+// Deprecated Loading Components - Use LoadingSpinner instead
+/** @deprecated Use LoadingSpinner instead */
+export { Loading } from './Loading'
+/** @deprecated Use LoadingSpinner instead */
+export { Spinner } from './Spinner'
 
 // Form Components
 export { FileUpload } from './FileUpload'
@@ -75,6 +82,9 @@ export { EmptyState } from './EmptyState'
 export { PageHeader } from './PageHeader'
 export { PageLayout } from './PageLayout'
 export { StatusIcon } from './StatusIcon'
+
+// Deprecated - Use OfflineIndicator from '@/components/pwa/OfflineIndicator' instead
+/** @deprecated Use OfflineIndicator from '@/components/pwa/OfflineIndicator' instead */
 export { OfflineIndicator } from './OfflineIndicator'
 
 // Accessibility Components

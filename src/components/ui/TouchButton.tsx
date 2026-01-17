@@ -3,11 +3,19 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useTouchFeedback } from '@/hooks/useTouchFeedback'
 
+/**
+ * @deprecated Use `Button` from '@/components/ui/Button' instead.
+ * This component will be removed in a future release.
+ */
 interface TouchButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode
   variant?: 'primary' | 'secondary' | 'ghost'
 }
 
+/**
+ * @deprecated Use `Button` from '@/components/ui/Button' instead.
+ * This component will be removed in a future release.
+ */
 export function TouchButton({ 
   children, 
   variant = 'primary', 

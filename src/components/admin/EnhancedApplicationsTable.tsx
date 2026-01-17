@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react'
 import { Search, Filter, SortDesc, Download, RefreshCw, Users, FileText, Clock, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MobileOptimizedButton } from '../ui/MobileOptimizedButton'
-import { EnhancedInput, EnhancedSelect } from '../ui/EnhancedFormComponents'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { SkeletonTable } from '../ui/EnhancedLoadingSpinner'
 import { BulkOperations } from './BulkOperations'
 
@@ -295,44 +295,47 @@ export function EnhancedApplicationsTable({
         {/* Main toolbar */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex-1 max-w-md">
-            <EnhancedInput
+            <Input
               placeholder="Search applications..."
               value={filters.search}
               onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              leftIcon={<Search className="w-4 h-4" />}
+              icon={<Search className="w-4 h-4" />}
             />
           </div>
           
           <div className="flex items-center gap-2">
-            <MobileOptimizedButton
+            <Button
               onClick={() => setShowFilters(!showFilters)}
               variant="outline"
               size="md"
-              icon={<Filter className="w-4 h-4" />}
+              className="gap-2"
             >
+              <Filter className="w-4 h-4" />
               Filters
-            </MobileOptimizedButton>
+            </Button>
             
             {onRefresh && (
-              <MobileOptimizedButton
+              <Button
                 onClick={onRefresh}
                 variant="outline"
                 size="md"
-                icon={<RefreshCw className="w-4 h-4" />}
+                className="gap-2"
               >
+                <RefreshCw className="w-4 h-4" />
                 Refresh
-              </MobileOptimizedButton>
+              </Button>
             )}
             
             {onExport && (
-              <MobileOptimizedButton
+              <Button
                 onClick={() => onExport(filteredAndSortedApplications)}
                 variant="outline"
                 size="md"
-                icon={<Download className="w-4 h-4" />}
+                className="gap-2"
               >
+                <Download className="w-4 h-4" />
                 Export
-              </MobileOptimizedButton>
+              </Button>
             )}
           </div>
         </div>
@@ -340,52 +343,49 @@ export function EnhancedApplicationsTable({
         {/* Filters */}
         {showFilters && (
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-4 border-t border-border">
-            <EnhancedSelect
-              placeholder="All Statuses"
+            <select
               value={filters.status}
               onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-              options={[
-                { value: '', label: 'All Statuses' },
-                { value: 'draft', label: 'Draft' },
-                { value: 'submitted', label: 'Submitted' },
-                { value: 'under-review', label: 'Under Review' },
-                { value: 'approved', label: 'Approved' },
-                { value: 'rejected', label: 'Rejected' }
-              ]}
-            />
+              className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+              <option value="">All Statuses</option>
+              <option value="draft">Draft</option>
+              <option value="submitted">Submitted</option>
+              <option value="under-review">Under Review</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
             
-            <EnhancedSelect
-              placeholder="Payment Status"
+            <select
               value={filters.paymentStatus}
               onChange={(e) => setFilters(prev => ({ ...prev, paymentStatus: e.target.value }))}
-              options={[
-                { value: '', label: 'All Payment Status' },
-                { value: 'pending', label: 'Pending' },
-                { value: 'verified', label: 'Verified' },
-                { value: 'rejected', label: 'Rejected' }
-              ]}
-            />
+              className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+              <option value="">All Payment Status</option>
+              <option value="pending">Pending</option>
+              <option value="verified">Verified</option>
+              <option value="rejected">Rejected</option>
+            </select>
             
-            <EnhancedSelect
-              placeholder="Program"
+            <select
               value={filters.program}
               onChange={(e) => setFilters(prev => ({ ...prev, program: e.target.value }))}
-              options={[
-                { value: '', label: 'All Programs' },
-                { value: 'clinical-medicine', label: 'Clinical Medicine' },
-                { value: 'environmental-health', label: 'Environmental Health' },
-                { value: 'registered-nursing', label: 'Registered Nursing' }
-              ]}
-            />
+              className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+              <option value="">All Programs</option>
+              <option value="clinical-medicine">Clinical Medicine</option>
+              <option value="environmental-health">Environmental Health</option>
+              <option value="registered-nursing">Registered Nursing</option>
+            </select>
             
-            <MobileOptimizedButton
+            <Button
               onClick={clearFilters}
               variant="outline"
               size="md"
-              fullWidth
+              className="w-full"
             >
               Clear Filters
-            </MobileOptimizedButton>
+            </Button>
           </div>
         )}
       </div>

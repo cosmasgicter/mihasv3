@@ -1,7 +1,19 @@
 /**
+ * @deprecated This component is deprecated. Use OfflineIndicator from '@/components/pwa/OfflineIndicator' instead.
+ * This file will be removed in a future version.
+ * 
+ * Migration:
+ * - Replace `import { OfflineIndicator } from '@/components/ui/OfflineIndicator'`
+ * - With `import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'`
+ * 
+ * The PWA version provides better integration with the offline manager service.
+ */
+
+/**
  * Offline Status Indicator Component
  * Shows connection status and sync information
  * Requirements: 9.2 - Provide user feedback on offline status and sync progress
+ * @deprecated Use OfflineIndicator from '@/components/pwa/OfflineIndicator' instead
  */
 
 import React from 'react'

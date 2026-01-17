@@ -41,11 +41,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Requirements: 4.5
   const { user, profile, isLoading, isAdmin } = useOptimizedAuthState()
   
-  // Wrap signOut to ensure all caches are cleared
+  // Wrap signOut to ensure all caches are cleared immediately
+  // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
   const signOut = useCallback(async () => {
-    await originalSignOut()
-    // Clear all cached queries to prevent stale data
+    // Clear all cached queries immediately (non-blocking) - Requirements: 13.2
     queryClient.clear()
+    
+    // Clear any persisted query cache
+    try {
+      localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE')
+    } catch {
+      // Silent fail
+    }
+    
+    // Fire-and-forget the actual signOut - Requirements: 13.3
+    // Don't await - let it run in background
+    originalSignOut().catch(() => {
+      // Silent fail - local state already cleared
+      // Requirements: 13.4
+    })
   }, [originalSignOut, queryClient])
 
   const value = useMemo(() => ({

@@ -1,7 +1,18 @@
+/**
+ * @deprecated This component is deprecated. Use LoadingSpinner from '@/components/ui/LoadingSpinner' instead.
+ * This file will be removed in a future version.
+ * 
+ * Migration:
+ * - Replace `<EnhancedLoadingSpinner />` with `<LoadingSpinner />`
+ * - Replace `<EnhancedLoadingSpinner variant="dots" />` with `<LoadingSpinner showPulse />`
+ * - Replace `<FullScreenLoader />` with `<LoadingOverlay />` from '@/components/ui/LoadingOverlay'
+ * - Replace `<SkeletonCard />` with `<SkeletonCard />` from '@/components/ui/SkeletonLoader'
+ */
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { Loader2, RefreshCw } from 'lucide-react'
 
+/** @deprecated Use LoadingSpinner from '@/components/ui/LoadingSpinner' instead */
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
   variant?: 'default' | 'dots' | 'pulse' | 'bounce'

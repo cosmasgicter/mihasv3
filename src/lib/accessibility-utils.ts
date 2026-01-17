@@ -25,25 +25,39 @@ export interface SkipLinkConfig {
 
 /**
  * Default skip links for the application
+ * 
+ * The primary skip link points to main content (most common use case).
+ * This is the essential skip link for keyboard navigation accessibility.
+ * 
+ * Requirements: 4.4 - Skip links should have correct href targets (main content, not footer)
  */
 export const defaultSkipLinks: SkipLinkConfig[] = [
   { targetId: 'main-content', label: 'Skip to main content' },
-  { targetId: 'navigation', label: 'Skip to navigation' },
-  { targetId: 'footer', label: 'Skip to footer' },
 ]
 
 /**
  * CSS classes for skip links
+ * Uses sr-only pattern for proper accessibility:
+ * - Hidden by default using sr-only (screen reader only)
+ * - Visible on focus using focus:not-sr-only
+ * - Proper z-index and positioning when visible
+ * 
+ * Requirements: 4.1, 4.2, 4.3 - Skip links hidden by default, visible on focus
  */
 export const skipLinkClasses = cn(
-  'fixed left-4 top-4 z-[9999]',
-  'px-4 py-2',
-  'bg-primary text-primary-foreground',
-  'font-medium rounded-lg shadow-lg',
-  'transform -translate-y-full',
-  'focus:translate-y-0',
-  'transition-transform duration-200',
-  'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
+  // Hidden by default using screen-reader-only pattern
+  'sr-only',
+  // Visible on focus - override sr-only styles
+  'focus:not-sr-only',
+  'focus:absolute focus:left-4 focus:top-4 focus:z-[9999]',
+  // Styling when visible
+  'focus:block focus:px-4 focus:py-2',
+  'focus:bg-primary focus:text-primary-foreground',
+  'focus:font-medium focus:rounded-lg focus:shadow-lg',
+  // Focus ring for visibility
+  'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+  // Ensure proper text rendering
+  'focus:whitespace-nowrap'
 )
 
 /**

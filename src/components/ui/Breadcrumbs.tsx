@@ -1,3 +1,18 @@
+/**
+ * @deprecated This simple Breadcrumbs component is deprecated.
+ * Use the full-featured Breadcrumbs from '@/components/navigation/Breadcrumbs' instead.
+ * This file will be removed in a future version.
+ * 
+ * Migration:
+ * - Replace `import { Breadcrumbs } from '@/components/ui/Breadcrumbs'`
+ * - With `import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'`
+ * 
+ * The navigation version provides:
+ * - Auto-generation from route hierarchy
+ * - React Router integration
+ * - Proper ARIA attributes
+ * - Schema.org structured data
+ */
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'

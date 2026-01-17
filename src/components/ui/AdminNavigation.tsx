@@ -35,15 +35,18 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
   const navigate = useNavigate()
   const location = useLocation()
 
+  // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
+  // Navigate immediately, don't wait for signOut to complete
   const handleSignOut = async () => {
-    try {
-      await signOut()
-      navigate('/', { replace: true })
-    } catch (error) {
+    // Navigate first for instant feedback - Requirements: 13.1
+    navigate('/', { replace: true })
+    
+    // Fire-and-forget signOut - Requirements: 13.3
+    signOut().catch((error) => {
       console.error('Sign out error:', error)
-      // Force navigation even if signOut fails
-      navigate('/', { replace: true })
-    }
+      // Already navigated, so just log the error
+      // Requirements: 13.4 - Still redirect even if API fails
+    })
   }
 
   const navigationItems: NavigationItem[] = [

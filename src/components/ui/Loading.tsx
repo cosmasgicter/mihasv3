@@ -1,7 +1,18 @@
+/**
+ * @deprecated This component is deprecated. Use LoadingSpinner from '@/components/ui/LoadingSpinner' instead.
+ * This file will be removed in a future version.
+ * 
+ * Migration:
+ * - Replace `<Loading />` with `<LoadingSpinner />`
+ * - Replace `<Loading size="lg" />` with `<LoadingSpinner size="lg" />`
+ * - Replace `<Loading text="..." />` with `<LoadingSpinner message="..." />`
+ * - Replace `<Loading fullScreen />` with `<LoadingOverlay />` from '@/components/ui/LoadingOverlay'
+ */
 import React from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
+/** @deprecated Use LoadingSpinner instead */
 interface LoadingProps {
   size?: 'sm' | 'md' | 'lg'
   text?: string
