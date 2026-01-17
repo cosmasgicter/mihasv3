@@ -130,7 +130,8 @@
       },
       "disabled": false,
       "autoApprove": [
-        "query-docs"
+        "query-docs",
+        "resolve-library-id"
       ]
     }
   },
