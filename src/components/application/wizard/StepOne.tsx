@@ -1,6 +1,7 @@
 import React from 'react'
-import { UseFormRegister, FieldErrors } from 'react-hook-form'
+import { UseFormRegister, FieldErrors, Control } from 'react-hook-form'
 import { Input } from '@/components/ui/Input'
+import { FormSelect } from '@/components/ui/form-select'
 import { motion } from 'framer-motion'
 
 interface WizardFormData {
@@ -20,11 +21,12 @@ interface WizardFormData {
 
 interface StepOneProps {
   register: UseFormRegister<WizardFormData>
+  control: Control<WizardFormData>
   errors: FieldErrors<WizardFormData>
   selectedProgram?: string
 }
 
-export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProgram }) => {
+export const StepOne: React.FC<StepOneProps> = ({ register, control, errors, selectedProgram }) => {
   return (
     <motion.div 
       initial={{ opacity: 0, x: 50 }}
@@ -79,23 +81,18 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
           />
         </div>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">
-            Sex <span className="text-error">*</span>
-          </label>
-          <select
-            {...register('sex')}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
-            autoComplete="sex"
-          >
-            <option value="">Select sex</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-          {errors.sex && (
-            <p className="mt-1 text-sm text-destructive">{errors.sex.message}</p>
-          )}
-        </div>
+        <FormSelect
+          name="sex"
+          control={control}
+          options={[
+            { value: 'Male', label: 'Male' },
+            { value: 'Female', label: 'Female' },
+          ]}
+          label="Sex"
+          placeholder="Select sex"
+          error={errors.sex?.message}
+          required
+        />
         
         <div>
           <Input
@@ -147,42 +144,34 @@ export const StepOne: React.FC<StepOneProps> = ({ register, errors, selectedProg
           />
         </div>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">
-            Program <span className="text-error">*</span>
-          </label>
-          <select
-            {...register('program')}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
-          >
-            <option value="">Select program</option>
-            <option value="Clinical Medicine">Clinical Medicine (KATC)</option>
-            <option value="Environmental Health">Environmental Health (KATC)</option>
-            <option value="Registered Nursing">Registered Nursing (MIHAS)</option>
-          </select>
-          {errors.program && (
-            <p className="mt-1 text-sm text-destructive">{errors.program.message}</p>
-          )}
-        </div>
+        <FormSelect
+          name="program"
+          control={control}
+          options={[
+            { value: 'Clinical Medicine', label: 'Clinical Medicine (KATC)' },
+            { value: 'Environmental Health', label: 'Environmental Health (KATC)' },
+            { value: 'Registered Nursing', label: 'Registered Nursing (MIHAS)' },
+          ]}
+          label="Program"
+          placeholder="Select program"
+          error={errors.program?.message}
+          required
+        />
         
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">
-            Intake <span className="text-error">*</span>
-          </label>
-          <select
-            {...register('intake')}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
-          >
-            <option value="">Select intake</option>
-            <option value="January 2025">January 2025</option>
-            <option value="July 2025">July 2025</option>
-            <option value="January 2026">January 2026</option>
-            <option value="July 2026">July 2026</option>
-          </select>
-          {errors.intake && (
-            <p className="mt-1 text-sm text-destructive">{errors.intake.message}</p>
-          )}
-        </div>
+        <FormSelect
+          name="intake"
+          control={control}
+          options={[
+            { value: 'January 2025', label: 'January 2025' },
+            { value: 'July 2025', label: 'July 2025' },
+            { value: 'January 2026', label: 'January 2026' },
+            { value: 'July 2026', label: 'July 2026' },
+          ]}
+          label="Intake"
+          placeholder="Select intake"
+          error={errors.intake?.message}
+          required
+        />
       </div>
       
       {selectedProgram && (

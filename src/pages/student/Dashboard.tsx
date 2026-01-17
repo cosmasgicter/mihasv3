@@ -25,7 +25,7 @@ import { User, FileText, Clock, CheckCircle, XCircle, Plus, X, RefreshCw, Calend
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { useToastStore } from '@/components/ui/Toast'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { Container } from '@/components/ui/Container'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
@@ -746,7 +746,7 @@ export default function StudentDashboard() {
             </div>
           </div>
         )}
-      <ConfirmDialog
+      <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}
         onClose={confirmDialog.handleCancel}
         onConfirm={confirmDialog.handleConfirm}

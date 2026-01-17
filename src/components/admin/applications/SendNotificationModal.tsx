@@ -1,6 +1,13 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { XCircle, Send } from 'lucide-react'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from '@/components/ui/Dialog'
+import { Send } from 'lucide-react'
 
 interface SendNotificationModalProps {
   show: boolean
@@ -38,17 +45,18 @@ export function SendNotificationModal({
     }
   }
 
-  if (!show) return null
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose()
+    }
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[70]">
-      <div className="bg-card rounded-xl max-w-md w-full p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Send Notification</h3>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <XCircle className="h-5 w-5" />
-          </Button>
-        </div>
+    <Dialog open={show} onOpenChange={handleOpenChange}>
+      <DialogContent size="sm" className="z-[70]">
+        <DialogHeader>
+          <DialogTitle>Send Notification</DialogTitle>
+        </DialogHeader>
 
         <div className="mb-4 p-3 bg-blue-50 rounded-lg">
           <p className="text-sm text-gray-900">
@@ -88,7 +96,10 @@ export function SendNotificationModal({
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
             <Button
               type="submit"
               loading={sending}
@@ -98,12 +109,9 @@ export function SendNotificationModal({
               <Send className="h-4 w-4" />
               Send Notification
             </Button>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

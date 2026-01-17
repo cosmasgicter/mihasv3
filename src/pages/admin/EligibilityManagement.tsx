@@ -5,9 +5,10 @@ import { EligibilityDashboard } from '@/components/application/EligibilityDashbo
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/textarea'
+import { StandaloneSelect } from '@/components/ui/standalone-select'
 import { Plus, Edit, Trash2, Save, X, Settings, BarChart3, Users, AlertTriangle } from 'lucide-react'
 import { RegulatoryGuidelinesTable } from '@/components/admin/RegulatoryGuidelinesTable'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 interface Program {
@@ -341,24 +342,16 @@ export default function EligibilityManagement() {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label htmlFor="program" className="block text-sm font-medium text-gray-900 mb-1">
-                    Program
-                  </label>
-                  <select
-                    id="program"
-                    value={ruleForm.program_id}
-                    onChange={(e) => setRuleForm({ ...ruleForm, program_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Program</option>
-                    {programs.map((program) => (
-                      <option key={program.id} value={program.id}>
-                        {program.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <StandaloneSelect
+                  value={ruleForm.program_id}
+                  onChange={(value) => setRuleForm({ ...ruleForm, program_id: value })}
+                  options={programs.map((program) => ({
+                    value: program.id,
+                    label: program.name,
+                  }))}
+                  label="Program"
+                  placeholder="Select Program"
+                />
 
                 <Input
                   label="Rule Name"
@@ -366,22 +359,17 @@ export default function EligibilityManagement() {
                   onChange={(e) => setRuleForm({ ...ruleForm, rule_name: e.target.value })}
                 />
 
-                <div>
-                  <label htmlFor="rule_type" className="block text-sm font-medium text-gray-900 mb-1">
-                    Rule Type
-                  </label>
-                  <select
-                    id="rule_type"
-                    value={ruleForm.rule_type}
-                    onChange={(e) => setRuleForm({ ...ruleForm, rule_type: e.target.value })}
-                    className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="subject_count">Subject Count</option>
-                    <option value="grade_average">Grade Average</option>
-                    <option value="specific_subject">Specific Subject</option>
-                    <option value="composite">Composite</option>
-                  </select>
-                </div>
+                <StandaloneSelect
+                  value={ruleForm.rule_type}
+                  onChange={(value) => setRuleForm({ ...ruleForm, rule_type: value })}
+                  options={[
+                    { value: 'subject_count', label: 'Subject Count' },
+                    { value: 'grade_average', label: 'Grade Average' },
+                    { value: 'specific_subject', label: 'Specific Subject' },
+                    { value: 'composite', label: 'Composite' },
+                  ]}
+                  label="Rule Type"
+                />
 
                 <Textarea
                   label="Condition JSON"
@@ -432,7 +420,7 @@ export default function EligibilityManagement() {
           </div>
         )}
       </div>
-      <ConfirmDialog
+      <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}
         onClose={confirmDialog.handleCancel}
         onConfirm={confirmDialog.handleConfirm}

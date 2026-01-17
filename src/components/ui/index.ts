@@ -3,6 +3,8 @@ export { Button } from './Button'
 export { Input } from './Input'
 export { Textarea } from './textarea'
 export { Select } from './select'
+export { FormSelect } from './form-select'
+export type { FormSelectProps, SelectOption } from './form-select'
 export { Checkbox, CheckboxWithLabel } from './checkbox'
 export { Radio, RadioGroup } from './Radio'
 export { Switch } from './switch'
@@ -34,6 +36,18 @@ export { Alert } from './Alert'
 export { Toast } from './Toast'
 export { Modal } from './Modal'
 export { Dialog } from './Dialog'
+export { 
+  Dialog as RadixDialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+  ModalDialog
+} from './Dialog'
+export type { DialogSize, ModalDialogProps } from './Dialog'
 export { ConfirmDialog } from './ConfirmDialog'
 
 // Navigation Components

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
+import { StandaloneSelect } from '@/components/ui/standalone-select'
 import { useToastStore } from '@/components/ui/Toast'
 import { TrendingUp, Calendar, Users, BarChart3, RefreshCw, Download } from 'lucide-react'
 import { usePredictiveAnalytics, useGeneratePredictiveReport } from '@/hooks/useAnalyticsQueries'
@@ -95,21 +96,21 @@ export default function PredictiveAnalytics() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <h3 className="text-lg font-bold text-gray-900">Prediction Settings</h3>
             <div className="flex items-center space-x-4">
-              <label htmlFor="time_range" className="text-sm font-medium text-gray-900">
+              <label className="text-sm font-medium text-gray-900">
                 Forecast Period:
               </label>
-              <select
-                id="time_range"
+              <StandaloneSelect
                 value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="border-2 border-border rounded-xl px-3 py-2 focus:border-success focus:ring-2 focus:ring-green-500/20"
-              >
-                <option value="7">Next 7 days</option>
-                <option value="14">Next 14 days</option>
-                <option value="30">Next 30 days</option>
-                <option value="60">Next 60 days</option>
-                <option value="90">Next 90 days</option>
-              </select>
+                onChange={(value) => setTimeRange(value)}
+                options={[
+                  { value: '7', label: 'Next 7 days' },
+                  { value: '14', label: 'Next 14 days' },
+                  { value: '30', label: 'Next 30 days' },
+                  { value: '60', label: 'Next 60 days' },
+                  { value: '90', label: 'Next 90 days' },
+                ]}
+                triggerClassName="min-w-[160px]"
+              />
             </div>
           </div>
         </div>

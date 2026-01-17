@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getSupabaseClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { FormSelect } from '@/components/ui/form-select';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Turnstile } from '@/components/ui/Turnstile';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
@@ -79,6 +80,7 @@ export default function SignUpPage() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
@@ -420,23 +422,19 @@ export default function SignUpPage() {
             animate="visible"
             className="grid grid-cols-1 gap-4 sm:grid-cols-3"
           >
-            <div>
-              <label htmlFor="sex" className="mb-1 block text-sm font-medium text-foreground">
-                Sex <span className="text-destructive">*</span>
-              </label>
-              <select
-                {...register('sex')}
-                id="sex"
-                className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
-              >
-                <option value="">Select Sex</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-              {errors.sex && (
-                <p className="mt-1 text-sm text-destructive">{errors.sex.message}</p>
-              )}
-            </div>
+            <FormSelect
+              name="sex"
+              control={control}
+              options={[
+                { value: 'Male', label: 'Male' },
+                { value: 'Female', label: 'Female' },
+              ]}
+              label="Sex"
+              placeholder="Select Sex"
+              error={errors.sex?.message}
+              disabled={loading}
+              required
+            />
 
             <Input
               {...register('residence_town')}

@@ -1,7 +1,12 @@
 import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  type DialogSize 
+} from './Dialog'
 
 interface ModalProps {
   isOpen: boolean
@@ -13,6 +18,20 @@ interface ModalProps {
   className?: string
 }
 
+/**
+ * Modal component - Backward compatible wrapper using Radix Dialog
+ * 
+ * This component maintains the original Modal API (isOpen/onClose) while
+ * using the Radix-based Dialog component under the hood.
+ * 
+ * Features:
+ * - Focus trapping (via Radix)
+ * - Escape key close (via Radix)
+ * - Backdrop click close (via Radix)
+ * - Body scroll lock (via Radix)
+ * - Size variants (sm, md, lg, xl, full)
+ * - ARIA attributes (role="dialog", aria-modal)
+ */
 export function Modal({
   isOpen,
   onClose,
@@ -22,85 +41,31 @@ export function Modal({
   size = 'md',
   className
 }: ModalProps) {
-  const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-    full: 'max-w-7xl'
-  }
-
-  React.useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
+  const handleOpenChange = React.useCallback((open: boolean) => {
+    if (!open) {
+      onClose()
     }
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [isOpen])
+  }, [onClose])
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
-
-          {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              className={cn(
-                'relative w-full bg-card rounded-lg shadow-xl',
-                'border border-border',
-                sizeClasses[size],
-                className
-              )}
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', duration: 0.3 }}
-            >
-              {/* Header */}
-              {(title || description) && (
-                <div className="flex items-start justify-between p-4 md:p-6 border-b border-border">
-                  <div className="flex-1">
-                    {title && (
-                      <h2 className="text-lg md:text-xl font-semibold text-gray-900">
-                        {title}
-                      </h2>
-                    )}
-                    {description && (
-                      <p className="mt-1 text-sm text-gray-900">
-                        {description}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={onClose}
-                    className="ml-4 p-2 rounded-lg text-gray-900 hover:text-gray-900 hover:text-gray-900 hover:bg-accent transition-colors"
-                    aria-label="Close modal"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
-
-              {/* Content */}
-              <div className="p-4 md:p-6 max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden">
-                {children}
-              </div>
-            </motion.div>
-          </div>
-        </>
-      )}
-    </AnimatePresence>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent size={size as DialogSize} className={className}>
+        {(title || description) && (
+          <DialogHeader>
+            {title && (
+              <DialogTitle className="text-lg md:text-xl font-semibold text-gray-900">
+                {title}
+              </DialogTitle>
+            )}
+            {description && (
+              <DialogDescription className="mt-1 text-sm text-gray-900">
+                {description}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+        )}
+        {children}
+      </DialogContent>
+    </Dialog>
   )
 }

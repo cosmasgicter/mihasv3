@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { StandaloneSelect } from '@/components/ui/standalone-select'
 import { ArrowLeft, Plus, Edit2, Trash2, Save, X, Settings, Globe, Lock, Database, Grid, List } from 'lucide-react'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { fetchSettings, createSetting, updateSetting, deleteSetting, type SystemSetting } from '@/lib/api/adminApi'
 import { supabase } from '@/lib/supabase'
@@ -526,19 +527,17 @@ export default function AdminSettings() {
                         onChange={(e) => setNewSetting({...newSetting, setting_key: e.target.value})}
                         placeholder="e.g., max_file_size"
                       />
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900 mb-1">Type</label>
-                        <select
-                          value={newSetting.setting_type}
-                          onChange={(e) => setNewSetting({...newSetting, setting_type: e.target.value as any})}
-                          className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="string">String</option>
-                          <option value="integer">Integer</option>
-                          <option value="decimal">Decimal</option>
-                          <option value="boolean">Boolean</option>
-                        </select>
-                      </div>
+                      <StandaloneSelect
+                        value={newSetting.setting_type}
+                        onChange={(value) => setNewSetting({...newSetting, setting_type: value as any})}
+                        options={[
+                          { value: 'string', label: 'String' },
+                          { value: 'integer', label: 'Integer' },
+                          { value: 'decimal', label: 'Decimal' },
+                          { value: 'boolean', label: 'Boolean' },
+                        ]}
+                        label="Type"
+                      />
                       <Input
                         label="Value"
                         value={newSetting.setting_value}
@@ -797,7 +796,7 @@ export default function AdminSettings() {
           </div>
         </div>
       </div>
-      <ConfirmDialog
+      <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}
         onClose={confirmDialog.handleCancel}
         onConfirm={confirmDialog.handleConfirm}

@@ -7,7 +7,7 @@ import { applicationSessionManager } from '@/lib/applicationSession'
 import { cn, formatDate } from '@/lib/utils'
 import { FileText, Clock, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
 import { clearAllDraftData } from '@/lib/draftCleanup'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 interface DraftInfo {
@@ -231,7 +231,7 @@ export function ContinueApplication() {
           </div>
         </div>
       )}
-      <ConfirmDialog
+      <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}
         onClose={confirmDialog.handleCancel}
         onConfirm={confirmDialog.handleConfirm}

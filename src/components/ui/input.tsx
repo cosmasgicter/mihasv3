@@ -1,13 +1,21 @@
 import React from 'react'
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 /**
- * Input Component
+ * Input Component - shadcn/ui pattern
  * 
  * Touch-optimized input with 44px minimum height.
+ * Supports React Hook Form register() spread pattern.
+ * Uses pure CSS transitions (no framer-motion) for better performance.
  * 
- * Requirements: 9.2 - Touch targets at least 44x44 pixels
+ * Requirements:
+ * - 2.2: shadcn/ui pattern with label/error/helperText/icon props
+ * - 2.3: RHF register() spread compatibility
+ * - 2.4: 44px minimum height for touch targets
+ * - 2.5: 16px font size for iOS zoom prevention
+ * - 2.6: Hover and focus states with CSS transitions
+ * - 2.7: aria-invalid for error state
+ * - 2.8: aria-describedby for error/helper text
  */
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -18,8 +26,9 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, helperText, icon, type = 'text', id, ...props }, ref) => {
-    const [isFocused, setIsFocused] = React.useState(false)
     const inputId = id || React.useId()
+    const errorId = `${inputId}-error`
+    const helperId = `${inputId}-helper`
 
     return (
       <div className="w-full">
@@ -29,11 +38,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className="block text-sm font-medium text-foreground mb-1.5"
           >
             {label}
+            {props.required && <span className="text-destructive ml-1">*</span>}
           </label>
         )}
         <div className="relative">
           {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10">
               {icon}
             </div>
           )}
@@ -42,7 +52,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             className={cn(
               // Touch target compliance - 44px minimum height
-              'w-full min-h-[44px] px-3 rounded-lg',
+              'flex w-full min-h-[44px] px-3 py-2 rounded-lg',
               // Background and border
               'bg-background border border-input',
               // Typography - 16px to prevent iOS zoom
@@ -51,57 +61,53 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               'placeholder:text-muted-foreground',
               // Hover state
               'hover:border-primary/50 hover:bg-accent/30',
-              // Focus state
-              'focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary',
-              // Transition
-              'transition-all duration-150',
+              // Focus state with ring
+              'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 focus:border-primary',
+              // CSS transitions - respects prefers-reduced-motion
+              'transition-colors duration-150',
+              'motion-reduce:transition-none',
               // Disabled state
-              'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-input disabled:hover:bg-background',
+              'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
+              'disabled:hover:border-input disabled:hover:bg-background',
               // Error state
               error && 'border-destructive focus:ring-destructive/50 focus:border-destructive hover:border-destructive/70',
               // Icon padding
               icon && 'pl-10',
               // Touch optimization
               'touch-manipulation',
+              // File input styling
+              'file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground',
               className
             )}
             ref={ref}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
             aria-invalid={error ? 'true' : 'false'}
             aria-describedby={
               error 
-                ? `${inputId}-error` 
+                ? errorId 
                 : helperText 
-                  ? `${inputId}-helper` 
+                  ? helperId 
                   : undefined
             }
             {...props}
           />
-          {isFocused && (
-            <motion.div
-              className="absolute inset-0 rounded-lg border-2 border-ring pointer-events-none"
-              layoutId="input-focus"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
-          )}
         </div>
         {error && (
-          <motion.p
-            id={`${inputId}-error`}
-            className="mt-1.5 text-sm text-destructive"
+          <p
+            id={errorId}
+            className={cn(
+              'mt-1.5 text-sm text-destructive',
+              // CSS animation for error appearance
+              'animate-in fade-in-0 slide-in-from-top-1 duration-150',
+              'motion-reduce:animate-none'
+            )}
             role="alert"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
           >
             {error}
-          </motion.p>
+          </p>
         )}
         {helperText && !error && (
           <p 
-            id={`${inputId}-helper`} 
+            id={helperId} 
             className="mt-1.5 text-sm text-muted-foreground"
           >
             {helperText}

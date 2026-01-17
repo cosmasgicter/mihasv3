@@ -37,6 +37,12 @@ describe('Textarea Component', () => {
       const textarea = screen.getByRole('textbox')
       expect(textarea).toHaveClass('custom-class')
     })
+
+    it('should render required indicator when required', () => {
+      render(<Textarea label="Test Label" required />)
+      const label = screen.getByText('Test Label')
+      expect(label.parentElement?.textContent).toContain('*')
+    })
   })
 
   describe('Error State', () => {
@@ -48,7 +54,7 @@ describe('Textarea Component', () => {
     it('should have error styling when error prop is provided', () => {
       render(<Textarea error="Error message" />)
       const textarea = screen.getByRole('textbox')
-      expect(textarea).toHaveClass('border-error')
+      expect(textarea).toHaveClass('border-destructive')
     })
 
     it('should set aria-invalid to true when error exists', () => {
@@ -102,10 +108,16 @@ describe('Textarea Component', () => {
       expect(textarea).toHaveClass('disabled:opacity-50')
     })
 
-    it('should have minimum touch target size', () => {
+    it('should have touch-manipulation class for mobile optimization', () => {
       render(<Textarea />)
       const textarea = screen.getByRole('textbox')
-      expect(textarea).toHaveClass('touch-target')
+      expect(textarea).toHaveClass('touch-manipulation')
+    })
+
+    it('should have label associated with textarea via htmlFor', () => {
+      render(<Textarea label="Test Label" id="test-textarea" />)
+      const label = screen.getByText('Test Label')
+      expect(label).toHaveAttribute('for', 'test-textarea')
     })
   })
 
@@ -171,6 +183,12 @@ describe('Textarea Component', () => {
       const textarea = screen.getByRole('textbox')
       expect(textarea).toHaveClass('min-h-[100px]')
     })
+
+    it('should have motion-reduce classes for reduced motion compliance', () => {
+      render(<Textarea />)
+      const textarea = screen.getByRole('textbox')
+      expect(textarea).toHaveClass('motion-reduce:transition-none')
+    })
   })
 
   describe('WCAG AA Compliance', () => {
@@ -200,6 +218,7 @@ describe('Textarea Component', () => {
       // Label should be associated with textarea
       expect(label).toBeInTheDocument()
       expect(textarea).toBeInTheDocument()
+      expect(label).toHaveAttribute('for', 'test-textarea')
     })
   })
 

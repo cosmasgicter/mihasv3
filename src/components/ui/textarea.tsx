@@ -1,7 +1,20 @@
 import React from 'react'
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
+/**
+ * Textarea Component - shadcn/ui pattern
+ * 
+ * Touch-optimized textarea with 44px minimum height.
+ * Supports React Hook Form register() spread pattern.
+ * Uses pure CSS transitions (no framer-motion) for better performance.
+ * 
+ * Requirements:
+ * - 3.2: shadcn/ui pattern with label/error/helperText props
+ * - 3.3: RHF register() spread compatibility
+ * - 3.4: Minimum height and auto-resize (resize-y)
+ * - 3.5: aria-invalid for error state
+ * - 3.6: aria-describedby for error/helper text
+ */
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string
   error?: string
@@ -9,61 +22,81 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, label, error, helperText, ...props }, ref) => {
-    const [isFocused, setIsFocused] = React.useState(false)
+  ({ className, label, error, helperText, id, ...props }, ref) => {
+    const textareaId = id || React.useId()
+    const errorId = `${textareaId}-error`
+    const helperId = `${textareaId}-helper`
 
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-900 mb-1.5">
+          <label 
+            htmlFor={textareaId}
+            className="block text-sm font-medium text-foreground mb-1.5"
+          >
             {label}
+            {props.required && <span className="text-destructive ml-1">*</span>}
           </label>
         )}
-        <div className="relative">
-          <textarea
-            className={cn(
-              'w-full min-h-[100px] px-3 py-2 rounded-lg touch-target',
-              'bg-background',
-              'border border-input',
-              'text-foreground',
-              'placeholder:text-muted-foreground',
-              'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
-              'transition-all duration-200',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
-              'resize-y',
-              error && 'border-error focus:ring-red-500 focus:ring-red-400',
-              className
-            )}
-            ref={ref}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            aria-invalid={error ? 'true' : 'false'}
-            aria-describedby={error ? `${props.id}-error` : helperText ? `${props.id}-helper` : undefined}
-            {...props}
-          />
-          {isFocused && (
-            <motion.div
-              className="absolute inset-0 rounded-lg border-2 border-ring pointer-events-none"
-              layoutId="textarea-focus"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
+        <textarea
+          id={textareaId}
+          className={cn(
+            // Base styles - minimum height for touch targets
+            'flex w-full min-h-[100px] px-3 py-2 rounded-lg',
+            // Background and border
+            'bg-background border border-input',
+            // Typography - 16px to prevent iOS zoom
+            'text-base text-foreground',
+            // Placeholder
+            'placeholder:text-muted-foreground',
+            // Hover state
+            'hover:border-primary/50 hover:bg-accent/30',
+            // Focus state with ring
+            'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 focus:border-primary',
+            // CSS transitions - respects prefers-reduced-motion
+            'transition-colors duration-150',
+            'motion-reduce:transition-none',
+            // Disabled state
+            'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
+            'disabled:hover:border-input disabled:hover:bg-background',
+            // Resize behavior
+            'resize-y',
+            // Error state
+            error && 'border-destructive focus:ring-destructive/50 focus:border-destructive hover:border-destructive/70',
+            // Touch optimization
+            'touch-manipulation',
+            className
           )}
-        </div>
+          ref={ref}
+          aria-invalid={error ? 'true' : 'false'}
+          aria-describedby={
+            error 
+              ? errorId 
+              : helperText 
+                ? helperId 
+                : undefined
+          }
+          {...props}
+        />
         {error && (
-          <motion.p
-            id={`${props.id}-error`}
-            className="mt-1.5 text-sm text-destructive"
+          <p
+            id={errorId}
+            className={cn(
+              'mt-1.5 text-sm text-destructive',
+              // CSS animation for error appearance
+              'animate-in fade-in-0 slide-in-from-top-1 duration-150',
+              'motion-reduce:animate-none'
+            )}
             role="alert"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
           >
             {error}
-          </motion.p>
+          </p>
         )}
         {helperText && !error && (
-          <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-muted-foreground">
+          <p 
+            id={helperId} 
+            className="mt-1.5 text-sm text-muted-foreground"
+          >
             {helperText}
           </p>
         )}

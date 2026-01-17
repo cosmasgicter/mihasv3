@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { StandaloneSelect } from '@/components/ui/standalone-select'
 
 export default function RoleManagement() {
   const queryClient = useQueryClient()
@@ -96,16 +97,16 @@ export default function RoleManagement() {
                     </div>
                     {selectedUser === user.id ? (
                       <div className="space-y-2">
-                        <select
+                        <StandaloneSelect
                           value={newRole}
-                          onChange={(e) => setNewRole(e.target.value)}
-                          className="w-full border rounded-lg px-3 py-2"
-                        >
-                          <option value="">Select role</option>
-                          <option value="student">Student</option>
-                          <option value="admin">Admin</option>
-                          <option value="super_admin">Super Admin</option>
-                        </select>
+                          onChange={(value) => setNewRole(value)}
+                          options={[
+                            { value: 'student', label: 'Student' },
+                            { value: 'admin', label: 'Admin' },
+                            { value: 'super_admin', label: 'Super Admin' },
+                          ]}
+                          placeholder="Select role"
+                        />
                         <div className="flex gap-2">
                           <button
                             onClick={() => updateRoleMutation.mutate({ userId: user.id, role: newRole })}
@@ -164,16 +165,17 @@ export default function RoleManagement() {
                         <td className="px-6 py-4">
                           {selectedUser === user.id ? (
                             <div className="flex gap-2">
-                              <select
+                              <StandaloneSelect
                                 value={newRole}
-                                onChange={(e) => setNewRole(e.target.value)}
-                                className="border rounded px-2 py-1"
-                              >
-                                <option value="">Select role</option>
-                                <option value="student">Student</option>
-                                <option value="admin">Admin</option>
-                                <option value="super_admin">Super Admin</option>
-                              </select>
+                                onChange={(value) => setNewRole(value)}
+                                options={[
+                                  { value: 'student', label: 'Student' },
+                                  { value: 'admin', label: 'Admin' },
+                                  { value: 'super_admin', label: 'Super Admin' },
+                                ]}
+                                placeholder="Select role"
+                                triggerClassName="min-w-[140px]"
+                              />
                               <button
                                 onClick={() => updateRoleMutation.mutate({ userId: user.id, role: newRole })}
                                 disabled={!newRole}
