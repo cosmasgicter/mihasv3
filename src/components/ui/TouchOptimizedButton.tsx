@@ -3,6 +3,10 @@ import { cn } from '@/lib/utils'
 import { useEnhancedResponsive, useDeviceOptimizations } from '@/hooks/useEnhancedResponsive'
 import { Loader2 } from 'lucide-react'
 
+/**
+ * @deprecated Use `Button` from '@/components/ui/Button' instead.
+ * This component will be removed in a future release.
+ */
 interface TouchOptimizedButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive'
@@ -16,6 +20,7 @@ interface TouchOptimizedButtonProps extends ButtonHTMLAttributes<HTMLButtonEleme
 }
 
 /**
+ * @deprecated Use `Button` from '@/components/ui/Button' instead.
  * Touch-optimized button with proper sizing, feedback, and accessibility
  */
 export function TouchOptimizedButton({

@@ -2,6 +2,10 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 import { EnhancedLoadingSpinner } from './EnhancedLoadingSpinner'
 
+/**
+ * @deprecated Use `Button` from '@/components/ui/Button' instead.
+ * This component will be removed in a future release.
+ */
 interface MobileOptimizedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'touch' // 'touch' ensures 44px minimum
@@ -12,6 +16,10 @@ interface MobileOptimizedButtonProps extends React.ButtonHTMLAttributes<HTMLButt
   touchOptimized?: boolean // Force 44px minimum even for smaller sizes
 }
 
+/**
+ * @deprecated Use `Button` from '@/components/ui/Button' instead.
+ * This component will be removed in a future release.
+ */
 export function MobileOptimizedButton({
   className,
   variant = 'primary',

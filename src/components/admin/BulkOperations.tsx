@@ -1,9 +1,7 @@
 import React, { useState } from 'react'
 import { Check, X, Mail, Users, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MobileOptimizedButton } from '../ui/MobileOptimizedButton'
-import { EnhancedSelect } from '../ui/EnhancedFormComponents'
-import { EnhancedToast } from '../ui/EnhancedErrorHandling'
+import { Button } from '@/components/ui/Button'
 
 interface BulkOperationsProps {
   selectedCount: number
@@ -123,14 +121,15 @@ export function BulkOperations({
                 </p>
               </div>
               
-              <MobileOptimizedButton
+              <Button
                 onClick={onClearSelection}
                 variant="ghost"
                 size="sm"
-                icon={<X className="w-4 h-4" />}
+                className="gap-2"
               >
+                <X className="w-4 h-4" />
                 Clear Selection
-              </MobileOptimizedButton>
+              </Button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -142,22 +141,26 @@ export function BulkOperations({
                   </label>
                   <div className="flex space-x-2">
                     <div className="flex-1">
-                      <EnhancedSelect
+                      <select
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value)}
-                        options={statusOptions}
-                        className="text-sm"
-                      />
+                        className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                      >
+                        {statusOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
                     </div>
-                    <MobileOptimizedButton
+                    <Button
                       onClick={() => setShowConfirmation({ type: 'status', action: selectedStatus })}
                       disabled={!selectedStatus || isLoading}
                       variant="primary"
                       size="sm"
-                      icon={<Check className="w-4 h-4" />}
+                      className="gap-2"
                     >
+                      <Check className="w-4 h-4" />
                       Update
-                    </MobileOptimizedButton>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -170,22 +173,26 @@ export function BulkOperations({
                   </label>
                   <div className="flex space-x-2">
                     <div className="flex-1">
-                      <EnhancedSelect
+                      <select
                         value={selectedPaymentStatus}
                         onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-                        options={paymentStatusOptions}
-                        className="text-sm"
-                      />
+                        className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                      >
+                        {paymentStatusOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
                     </div>
-                    <MobileOptimizedButton
+                    <Button
                       onClick={() => setShowConfirmation({ type: 'payment', action: selectedPaymentStatus })}
                       disabled={!selectedPaymentStatus || isLoading}
                       variant="primary"
                       size="sm"
-                      icon={<Check className="w-4 h-4" />}
+                      className="gap-2"
                     >
+                      <Check className="w-4 h-4" />
                       Update
-                    </MobileOptimizedButton>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -196,16 +203,16 @@ export function BulkOperations({
                   <label className="text-sm font-medium text-primary-foreground">
                     Send Notifications
                   </label>
-                  <MobileOptimizedButton
+                  <Button
                     onClick={() => setShowConfirmation({ type: 'email', action: 'notification' })}
                     disabled={isLoading}
                     variant="secondary"
                     size="md"
-                    icon={<Mail className="w-4 h-4" />}
-                    fullWidth
+                    className="w-full gap-2"
                   >
+                    <Mail className="w-4 h-4" />
                     Send Email Updates
-                  </MobileOptimizedButton>
+                  </Button>
                 </div>
               )}
               
@@ -215,27 +222,27 @@ export function BulkOperations({
                   Quick Actions
                 </label>
                 <div className="space-y-2">
-                  <MobileOptimizedButton
+                  <Button
                     onClick={() => {
                       // Export selected applications
                     }}
                     variant="outline"
                     size="sm"
-                    fullWidth
+                    className="w-full"
                   >
                     Export Selected
-                  </MobileOptimizedButton>
+                  </Button>
                   
-                  <MobileOptimizedButton
+                  <Button
                     onClick={() => {
                       // Generate reports for selected
                     }}
                     variant="outline"
                     size="sm"
-                    fullWidth
+                    className="w-full"
                   >
                     Generate Report
-                  </MobileOptimizedButton>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -259,17 +266,17 @@ export function BulkOperations({
             </p>
             
             <div className="flex space-x-3">
-              <MobileOptimizedButton
+              <Button
                 onClick={() => setShowConfirmation(null)}
                 variant="outline"
                 size="md"
-                fullWidth
+                className="flex-1"
                 disabled={isLoading}
               >
                 Cancel
-              </MobileOptimizedButton>
+              </Button>
               
-              <MobileOptimizedButton
+              <Button
                 onClick={() => {
                   switch (showConfirmation.type) {
                     case 'status':
@@ -285,11 +292,11 @@ export function BulkOperations({
                 }}
                 variant="primary"
                 size="md"
-                fullWidth
+                className="flex-1"
                 loading={isLoading}
               >
                 Confirm
-              </MobileOptimizedButton>
+              </Button>
             </div>
           </div>
         </div>
@@ -321,7 +328,7 @@ export function QuickFilters({
         const isActive = currentFilters[filter.filter] === filter.value
         
         return (
-          <MobileOptimizedButton
+          <Button
             key={`${filter.filter}-${filter.value}`}
             onClick={() => onFilterChange(filter.filter, isActive ? '' : filter.value)}
             variant={isActive ? 'primary' : 'outline'}
@@ -332,7 +339,7 @@ export function QuickFilters({
             )}
           >
             {filter.label}
-          </MobileOptimizedButton>
+          </Button>
         )
       })}
     </div>

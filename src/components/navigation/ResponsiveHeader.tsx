@@ -133,14 +133,18 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
   // Determine if header should be visible
   const isHeaderVisible = isAtTop || scrollDirection === 'up' || isMenuOpen;
 
+  // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
+  // Navigate immediately, don't wait for signOut to complete
   const handleSignOut = useCallback(async () => {
-    try {
-      await signOut();
-      navigate('/');
-    } catch (error) {
+    // Navigate first for instant feedback - Requirements: 13.1
+    navigate('/');
+    
+    // Fire-and-forget signOut - Requirements: 13.3
+    signOut().catch((error) => {
       console.error('Sign out failed:', error);
-      navigate('/');
-    }
+      // Already navigated, so just log the error
+      // Requirements: 13.4 - Still redirect even if API fails
+    });
   }, [signOut, navigate]);
 
   const dashboardPath = isAdmin ? '/admin/dashboard' : '/student/dashboard';

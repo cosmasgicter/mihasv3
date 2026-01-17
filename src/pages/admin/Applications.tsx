@@ -382,6 +382,30 @@ export default function Applications() {
     window.location.reload()
   }, [])
 
+  // Wrapper for updateStatus with error handling and toast notifications
+  const handleStatusUpdate = useCallback(async (applicationId: string, newStatus: string) => {
+    try {
+      await updateStatus(applicationId, newStatus)
+      showSuccess('Status updated', `Application status changed to ${newStatus.replace('_', ' ')}.`)
+    } catch (error) {
+      console.error('Failed to update application status:', error)
+      showError('Status update failed', error instanceof Error ? error.message : 'Unable to update application status. Please try again.')
+      throw error // Re-throw to let the calling component know the operation failed
+    }
+  }, [updateStatus, showSuccess, showError])
+
+  // Wrapper for updatePaymentStatus with error handling and toast notifications
+  const handlePaymentStatusUpdate = useCallback(async (applicationId: string, newPaymentStatus: string) => {
+    try {
+      await updatePaymentStatus(applicationId, newPaymentStatus)
+      showSuccess('Payment status updated', `Payment status changed to ${newPaymentStatus.replace('_', ' ')}.`)
+    } catch (error) {
+      console.error('Failed to update payment status:', error)
+      showError('Payment update failed', error instanceof Error ? error.message : 'Unable to update payment status. Please try again.')
+      throw error // Re-throw to let the calling component know the operation failed
+    }
+  }, [updatePaymentStatus, showSuccess, showError])
+
   const handleBulkAction = useCallback(async (action: string, ids: string[]) => {
     if (ids.length === 0) {
       showError('No selection', 'Please select applications to perform bulk action.')
@@ -649,7 +673,7 @@ export default function Applications() {
           <ApplicationsTableView
             applications={applications}
             onViewDetails={handleViewDetails}
-            onStatusUpdate={updateStatus}
+            onStatusUpdate={handleStatusUpdate}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             loading={isRefreshing}
@@ -671,8 +695,8 @@ export default function Applications() {
             hasMore={hasMore}
             isLoadingMore={isLoadingMore}
             onLoadMore={loadNextPage}
-            onStatusUpdate={updateStatus}
-            onPaymentStatusUpdate={updatePaymentStatus}
+            onStatusUpdate={handleStatusUpdate}
+            onPaymentStatusUpdate={handlePaymentStatusUpdate}
             onViewDetails={handleViewDetails}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
@@ -693,7 +717,7 @@ export default function Applications() {
           onSendNotification={handleSendNotification}
           onViewDocuments={handleViewDocuments}
           onViewHistory={handleViewHistory}
-          onUpdateStatus={updateStatus}
+          onUpdateStatus={handleStatusUpdate}
           onGenerateAcceptanceLetter={handleGenerateAcceptanceLetter}
           onGenerateFinanceReceipt={handleGenerateFinanceReceipt}
         />

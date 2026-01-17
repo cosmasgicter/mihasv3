@@ -1,12 +1,20 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 
+/**
+ * @deprecated Use `Button` from '@/components/ui/Button' instead.
+ * This component will be removed in a future release.
+ */
 interface LightweightButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'gradient'
   size?: 'sm' | 'md' | 'lg' | 'xl'
   children: React.ReactNode
 }
 
+/**
+ * @deprecated Use `Button` from '@/components/ui/Button' instead.
+ * This component will be removed in a future release.
+ */
 export function LightweightButton({
   variant = 'primary',
   size = 'md',

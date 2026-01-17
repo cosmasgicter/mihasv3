@@ -1,9 +1,9 @@
 import React from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { Search } from 'lucide-react'
+import { Search, Mail, Hash, Zap, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { AnimatedCard } from '@/components/ui/AnimatedCard'
+import { SectionCard } from '@/components/ui/SectionCard'
 
 interface TrackerSearchSectionProps {
   searchTerm: string
@@ -28,111 +28,89 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
   const maybeMotion = <T,>(value: T) => (shouldReduceMotion ? undefined : value)
 
   return (
-    <motion.div
-      initial={maybeMotion({ opacity: 0, y: 30 })}
-      animate={maybeMotion({ opacity: 1, y: 0 })}
-      transition={maybeMotion({ delay: 0.3 })}
+    <SectionCard
+      title="Find Your Application"
+      description="Enter your application number (e.g., MIHAS123456) or tracking code to check status."
+      icon={<Search className="h-5 w-5" />}
+      headerVariant="tinted"
     >
-      <AnimatedCard className="mb-8 sm:mb-12 bg-gradient-to-br from-white via-blue-50 to-purple-50 card-mobile" glassEffect hover3d>
-        <div className="text-center space-y-6 sm:space-y-8">
-          <motion.div
-            initial={maybeMotion({ scale: 0 })}
-            animate={maybeMotion({ scale: 1 })}
-            transition={maybeMotion({ delay: 0.5, type: "spring" })}
-            className="text-6xl sm:text-8xl"
-          >
-            🔍
-          </motion.div>
-          
-          <div>
-            <h2 className="text-responsive-3xl font-black text-gray-900 mb-3 sm:mb-4">
-              Find Your Application
-            </h2>
-            <p className="text-base sm:text-xl text-gray-800 max-w-2xl mx-auto leading-relaxed px-4 font-medium">
-              Enter your <span className="font-bold text-info-strong">application number</span> (e.g., MIHAS123456) or 
-              <span className="font-bold text-gray-900"> tracking code</span> to check status.
-            </p>
-          </div>
-          
-          <div className="max-w-2xl mx-auto px-4">
-            <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:gap-4">
-              <div className="flex-1">
-                <motion.div whileFocus={maybeMotion({ scale: 1.02 })} className="relative">
-                  <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
-                  <Input
-                    value={searchTerm}
-                    onChange={(e) => onSearchTermChange(e.target.value)}
-                    onPaste={onPaste}
-                    onKeyPress={onKeyPress}
-                    placeholder="Enter application number..."
-                    className="form-input-mobile w-full text-base sm:text-xl py-4 sm:py-6 pl-12 sm:pl-16 pr-4 sm:pr-6 border-3 border-border focus:border-primary rounded-2xl shadow-lg font-medium"
-                  />
-                </motion.div>
-              </div>
-              <Button
-                onClick={onSearch}
-                loading={loading}
-                size="lg"
-                className="btn-responsive text-base sm:text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:shadow-2xl rounded-2xl transform hover:scale-105 transition-all duration-300 touch-target"
-              >
-                <Search className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3" />
-                {loading ? 'Searching...' : 'Search Now'}
-              </Button>
+      <div className="space-y-6">
+        {/* Search Input */}
+        <div className="max-w-2xl mx-auto">
+          <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => onSearchTermChange(e.target.value)}
+                onPaste={onPaste}
+                onKeyPress={onKeyPress}
+                placeholder="Enter application number..."
+                className="w-full pl-12 pr-4 py-3 text-base border-2 border-border focus:border-primary rounded-xl"
+              />
             </div>
-            
-            <AnimatePresence initial={!shouldReduceMotion}>
-              {error && (
-                <motion.div
-                  initial={maybeMotion({ opacity: 0, y: 20 })}
-                  animate={maybeMotion({ opacity: 1, y: 0 })}
-                  exit={maybeMotion({ opacity: 0, y: -20 })}
-                  className="mt-8 rounded-2xl bg-gradient-to-r from-red-50 to-pink-50 border-2 border-destructive/30 p-4 sm:p-8 shadow-lg"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="text-4xl">⚠️</div>
-                    <div className="text-xl text-error font-bold">{error}</div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <Button
+              onClick={onSearch}
+              loading={loading}
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl px-6 touch-target"
+            >
+              <Search className="h-5 w-5 mr-2" />
+              {loading ? 'Searching...' : 'Search'}
+            </Button>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
-            <motion.div
-              initial={maybeMotion({ opacity: 0, y: 20 })}
-              animate={maybeMotion({ opacity: 1, y: 0 })}
-              transition={maybeMotion({ delay: 0.7 })}
-              className="bg-blue-50 rounded-xl p-4 sm:p-6 border border-blue-200"
-            >
-              <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">📧</div>
-              <h3 className="font-bold text-gray-900 mb-2 text-sm sm:text-base">Check Your Email</h3>
-              <p className="text-gray-700 text-xs sm:text-sm font-medium">Application number sent after submission</p>
-            </motion.div>
-            
-            <motion.div
-              initial={maybeMotion({ opacity: 0, y: 20 })}
-              animate={maybeMotion({ opacity: 1, y: 0 })}
-              transition={maybeMotion({ delay: 0.8 })}
-              className="bg-yellow-50 rounded-xl p-4 sm:p-6 border border-yellow-200"
-            >
-              <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">🔢</div>
-              <h3 className="font-bold text-gray-900 mb-2 text-sm sm:text-base">Format Example</h3>
-              <p className="text-gray-800 font-mono text-xs sm:text-sm font-bold">MIHAS123456</p>
-            </motion.div>
-            
-            <motion.div
-              initial={maybeMotion({ opacity: 0, y: 20 })}
-              animate={maybeMotion({ opacity: 1, y: 0 })}
-              transition={maybeMotion({ delay: 0.9 })}
-              className="bg-gray-50 rounded-xl p-4 sm:p-6 border border-gray-200 sm:col-span-2 lg:col-span-1"
-            >
-              <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">⚡</div>
-              <h3 className="font-bold text-gray-900 mb-2 text-sm sm:text-base">Instant Results</h3>
-              <p className="text-gray-700 text-xs sm:text-sm font-medium">Real-time updates without login</p>
-            </motion.div>
+          {/* Error Message */}
+          <AnimatePresence initial={!shouldReduceMotion}>
+            {error && (
+              <motion.div
+                initial={maybeMotion({ opacity: 0, y: 10 })}
+                animate={maybeMotion({ opacity: 1, y: 0 })}
+                exit={maybeMotion({ opacity: 0, y: -10 })}
+                className="mt-4 rounded-xl bg-error/10 border border-error/30 p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="h-5 w-5 text-error flex-shrink-0" />
+                  <p className="text-sm font-medium text-error">{error}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        
+        {/* Help Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
+            <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
+              <Mail className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 text-sm">Check Your Email</h3>
+              <p className="text-xs text-muted-foreground mt-1">Application number sent after submission</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-warning/5 border border-warning/20">
+            <div className="flex-shrink-0 p-2 rounded-lg bg-warning/10">
+              <Hash className="h-5 w-5 text-warning" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 text-sm">Format Example</h3>
+              <p className="text-xs font-mono text-muted-foreground mt-1">MIHAS123456</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-success/5 border border-success/20">
+            <div className="flex-shrink-0 p-2 rounded-lg bg-success/10">
+              <Zap className="h-5 w-5 text-success" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 text-sm">Instant Results</h3>
+              <p className="text-xs text-muted-foreground mt-1">Real-time updates without login</p>
+            </div>
           </div>
         </div>
-      </AnimatedCard>
-    </motion.div>
+      </div>
+    </SectionCard>
   )
 }

@@ -248,8 +248,23 @@ export function useSessionListener() {
   }, [apiBaseUrl, queryClient])
 
   const signOut = useCallback(async () => {
-    // Clear user state immediately to prevent stale data
+    // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
+    // Clear user state immediately (non-blocking) - Requirements: 13.2
     setUser(null)
+    
+    // Clear local storage immediately - Requirements: 13.2
+    try {
+      localStorage.removeItem('supabase.auth.token')
+      localStorage.removeItem('mihas-auth-token')
+      // Clear any other auth-related storage
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+          localStorage.removeItem(key)
+        }
+      })
+    } catch {
+      // Silent fail on storage clear
+    }
     
     if (!isSupabaseConfigured) {
       return
@@ -257,9 +272,10 @@ export function useSessionListener() {
 
     const supabase = getSupabaseClient()
     
-    // Log logout event before signing out
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
+    // Fire-and-forget pattern - Requirements: 13.3, 13.4
+    // Don't await these calls - they run in background
+    // Log logout event (fire-and-forget)
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         fetch('/api/auth/session', {
           method: 'POST',
@@ -270,9 +286,13 @@ export function useSessionListener() {
           body: JSON.stringify({ action: 'logout' })
         }).catch(() => {}) // Silent fail
       }
-    } catch {}
+    }).catch(() => {}) // Silent fail
     
-    await supabase.auth.signOut()
+    // Sign out from Supabase (fire-and-forget) - Requirements: 13.3
+    supabase.auth.signOut().catch(() => {
+      // Silent fail - local state already cleared
+      // Requirements: 13.4 - If logout API call fails, still clear local state
+    })
   }, [])
 
   const requestPasswordReset = useCallback(async (

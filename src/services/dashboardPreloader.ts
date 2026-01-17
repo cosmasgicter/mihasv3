@@ -55,7 +55,7 @@ async function preloadStudentDashboard(userId: string) {
         .from('notifications')
         .select('*')
         .eq('user_id', userId)
-        .eq('read', false)
+        .eq('is_read', false)
         .order('created_at', { ascending: false })
         .limit(5),
       
@@ -101,14 +101,14 @@ async function preloadAdminDashboard() {
       
       // Dashboard stats
       supabase
-        .rpc('get_dashboard_stats')
+        .rpc('get_admin_dashboard_stats')
         .single(),
       
       // System notifications
       supabase
         .from('notifications')
         .select('*')
-        .eq('read', false)
+        .eq('is_read', false)
         .order('created_at', { ascending: false })
         .limit(10)
     ])
@@ -259,7 +259,7 @@ export async function prefetchDashboardQueries(
         queryClient.prefetchQuery({
           queryKey: ['dashboard-stats'],
           queryFn: async () => {
-            const { data } = await supabase.rpc('get_dashboard_stats').single()
+            const { data } = await supabase.rpc('get_admin_dashboard_stats').single()
             return data
           },
           staleTime: CACHE_CONFIG.analytics.staleTime

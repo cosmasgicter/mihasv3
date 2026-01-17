@@ -1,9 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Search } from 'lucide-react'
 import { useToastStore } from '@/components/ui/Toast'
-import { AnimatedCard } from '@/components/ui/AnimatedCard'
+import { SectionCard } from '@/components/ui/SectionCard'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Container } from '@/components/ui/Container'
 import { createApplicationSlip } from '@/lib/slipService'
 import { logger } from '@/utils/logger'
 import { useApplicationTracker } from './hooks/useApplicationTracker'
@@ -233,131 +235,102 @@ export default function PublicApplicationTracker() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 relative overflow-hidden">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={maybeMotion({ x: [0, 100, 0], y: [0, -100, 0], rotate: [0, 180, 360] })}
-          transition={maybeMotion({ duration: 20, repeat: Infinity, ease: "linear" })}
-          className="absolute top-5 sm:p-10 left-10 w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-20"
-        />
-        <motion.div
-          animate={maybeMotion({ x: [0, -150, 0], y: [0, 100, 0], rotate: [360, 180, 0] })}
-          transition={maybeMotion({ duration: 25, repeat: Infinity, ease: "linear" })}
-          className="absolute top-1/3 right-10 w-32 h-32 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-15"
-        />
-        <motion.div
-          animate={maybeMotion({ x: [0, 80, 0], y: [0, -80, 0], scale: [1, 1.2, 1] })}
-          transition={maybeMotion({ duration: 15, repeat: Infinity, ease: "linear" })}
-          className="absolute bottom-10 sm:m-20 left-1/4 w-16 h-16 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-25"
-        />
-      </div>
-
-      <motion.header
-        initial={maybeMotion({ y: -50, opacity: 0 })}
-        animate={maybeMotion({ y: 0, opacity: 1 })}
-        className="relative bg-card/90 backdrop-blur-md shadow-2xl border-b border-white/30 safe-area-top"
-      >
-        <div className="container-mobile">
-          <div className="flex flex-col space-y-4 py-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 sm:py-8">
-            <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-6">
-              <Link to="/" className="inline-flex items-center text-primary hover:text-primary/80 transition-all duration-300 group touch-target">
-                <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 group-hover:-translate-x-2 transition-transform" />
-                <span className="font-bold text-base sm:text-lg">Back to Home</span>
-              </Link>
-              <div>
-                <motion.h1
-                  initial={maybeMotion({ scale: 0.8 })}
-                  animate={maybeMotion({ scale: 1 })}
-                  className="text-responsive-3xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent"
-                >
-                  🔍 Track Application
-                </motion.h1>
-                <motion.p
-                  initial={maybeMotion({ opacity: 0 })}
-                  animate={maybeMotion({ opacity: 1 })}
-                  transition={maybeMotion({ delay: 0.2 })}
-                  className="text-sm sm:text-xl text-gray-700 mt-1 sm:mt-2 font-semibold"
-                >
-                  ✨ Check status instantly - no login required!
-                </motion.p>
-              </div>
-            </div>
-            <motion.div
-              animate={maybeMotion({ rotate: [0, 10, -10, 0] })}
-              transition={maybeMotion({ duration: 2, repeat: Infinity })}
-              className="text-4xl sm:text-6xl self-center sm:self-auto"
+    <div className="min-h-screen bg-background safe-area-top safe-area-bottom">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
+        <Container size="lg">
+          <div className="flex items-center justify-between py-4">
+            <Link 
+              to="/" 
+              className="inline-flex items-center text-primary hover:text-primary/80 transition-colors group touch-target"
             >
-              🎓
-            </motion.div>
+              <ArrowLeft className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+              <span className="font-semibold text-base">Back to Home</span>
+            </Link>
           </div>
-        </div>
-      </motion.header>
+        </Container>
+      </header>
 
-      <main className="relative container-mobile py-6 sm:py-12 safe-area-bottom mobile-scroll">
-        <TrackerSearchSection
-          searchTerm={searchTerm}
-          loading={loading}
-          error={error}
-          onSearchTermChange={handleInputChange}
-          onSearch={() => searchApplication(searchTerm)}
-          onKeyPress={handleKeyPress}
-          onPaste={handlePaste}
-        />
+      <main className="py-6 sm:py-8 lg:py-12">
+        <Container size="lg" className="space-y-6 sm:space-y-8">
+          {/* Page Header */}
+          <PageHeader
+            variant="gradient"
+            icon={<Search className="h-6 w-6" />}
+            title="Track Your Application"
+            description="Check your application status instantly — no login required. Enter your application number or tracking code below."
+          />
 
-        <AnimatePresence initial={!shouldReduceMotion}>
-          {application && (
-            <motion.div
-              initial={maybeMotion({ opacity: 0, scale: 0.9, y: 50 })}
-              animate={maybeMotion({ opacity: 1, scale: 1, y: 0 })}
-              exit={maybeMotion({ opacity: 0, scale: 0.9, y: -50 })}
-              transition={maybeMotion({ type: "spring", damping: 20 })}
-            >
-              <AnimatedCard className="overflow-hidden shadow-2xl" glassEffect>
-                <ApplicationStatusHeader
-                  application={application}
-                  copied={copied}
-                  slipLoading={slipLoading}
-                  emailLoading={emailLoading}
-                  onShare={() => setShowShareModal(true)}
-                  onCopy={() => copyToClipboard(application.application_number)}
-                  onDownloadSlip={handleDownloadSlip}
-                  onEmailSlip={handleEmailSlip}
-                />
+          {/* Search Section */}
+          <TrackerSearchSection
+            searchTerm={searchTerm}
+            loading={loading}
+            error={error}
+            onSearchTermChange={handleInputChange}
+            onSearch={() => searchApplication(searchTerm)}
+            onKeyPress={handleKeyPress}
+            onPaste={handlePaste}
+          />
 
-                <div className="space-responsive-lg">
-                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 xl:gap-12">
-                    <ApplicationStatusDetails application={application} />
-                    <ApplicationInfoGrid application={application} />
+          {/* Application Results */}
+          <AnimatePresence initial={!shouldReduceMotion}>
+            {application && (
+              <motion.div
+                initial={maybeMotion({ opacity: 0, y: 20 })}
+                animate={maybeMotion({ opacity: 1, y: 0 })}
+                exit={maybeMotion({ opacity: 0, y: -20 })}
+                transition={maybeMotion({ duration: 0.3 })}
+              >
+                <SectionCard className="overflow-hidden" padding="sm">
+                  <ApplicationStatusHeader
+                    application={application}
+                    copied={copied}
+                    slipLoading={slipLoading}
+                    emailLoading={emailLoading}
+                    onShare={() => setShowShareModal(true)}
+                    onCopy={() => copyToClipboard(application.application_number)}
+                    onDownloadSlip={handleDownloadSlip}
+                    onEmailSlip={handleEmailSlip}
+                  />
+
+                  <div className="space-y-6 sm:space-y-8 p-4 sm:p-6">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
+                      <ApplicationStatusDetails application={application} />
+                      <ApplicationInfoGrid application={application} />
+                    </div>
                   </div>
-                </div>
 
-                <ApplicationActions />
-              </AnimatedCard>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  <ApplicationActions />
+                </SectionCard>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        <AnimatePresence initial={!shouldReduceMotion}>
-          {searched && !application && !loading && (
-            <motion.div
-              initial={maybeMotion({ opacity: 0, scale: 0.9 })}
-              animate={maybeMotion({ opacity: 1, scale: 1 })}
-              exit={maybeMotion({ opacity: 0, scale: 0.9 })}
-            >
-              <NoResultsView onTryAgain={handleTryAgain} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+          {/* No Results */}
+          <AnimatePresence initial={!shouldReduceMotion}>
+            {searched && !application && !loading && (
+              <motion.div
+                initial={maybeMotion({ opacity: 0, y: 20 })}
+                animate={maybeMotion({ opacity: 1, y: 0 })}
+                exit={maybeMotion({ opacity: 0, y: -20 })}
+              >
+                <NoResultsView onTryAgain={handleTryAgain} />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        <HelpSection />
-        
-        <ShareModal
-          show={showShareModal}
-          applicationNumber={application?.application_number || ''}
-          onClose={() => setShowShareModal(false)}
-          onCopyLink={() => copyToClipboard(window.location.href)}
-          onCopyNumber={() => copyToClipboard(application?.application_number || '')}
-        />
+          {/* Help Section */}
+          <HelpSection />
+          
+          {/* Share Modal */}
+          <ShareModal
+            show={showShareModal}
+            applicationNumber={application?.application_number || ''}
+            onClose={() => setShowShareModal(false)}
+            onCopyLink={() => copyToClipboard(window.location.href)}
+            onCopyNumber={() => copyToClipboard(application?.application_number || '')}
+          />
+        </Container>
       </main>
     </div>
   )

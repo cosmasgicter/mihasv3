@@ -26,9 +26,15 @@ export function UserMenu() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
+  // Fire-and-forget signOut - don't wait for API call
   const handleSignOut = async () => {
     setIsOpen(false)
-    await signOut()
+    // Fire-and-forget - Requirements: 13.3
+    signOut().catch((error) => {
+      console.error('Sign out failed:', error)
+      // Requirements: 13.4 - Still clear local state even if API fails
+    })
   }
 
   return (

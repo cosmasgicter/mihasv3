@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { UserProfile } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
-import { LoadingState } from '@/components/ui/LoadingState'
+import { LoadingState, TableSkeleton, CardSkeleton } from '@/components/ui/LoadingState'
 import { Input } from '@/components/ui/Input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
 import { UserStats } from '@/components/admin/UserStats'
@@ -54,7 +54,8 @@ export default function AdminUsers() {
   const deleteUserMutation = useDeleteUser()
   const updateUserPermissionsMutation = useUpdateUserPermissions()
   
-  const users = usersData?.data || []
+  // userService.list returns { users: [...] }, so access the users property
+  const users = usersData?.users || []
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
@@ -386,7 +387,18 @@ export default function AdminUsers() {
             )}
 
             {loading ? (
-              <LoadingState message="Loading users..." size="lg" />
+              <>
+                {/* Mobile Skeleton View */}
+                <div className="block lg:hidden space-y-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <CardSkeleton key={i} />
+                  ))}
+                </div>
+                {/* Desktop Skeleton View */}
+                <div className="hidden lg:block">
+                  <TableSkeleton rows={8} columns={5} />
+                </div>
+              </>
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-8 sm:py-16">
                 <div className="text-8xl mb-6">👥</div>

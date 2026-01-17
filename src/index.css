@@ -174,11 +174,51 @@ input, textarea, select {
 }
 
 @layer utilities {
-  /* Skip link for keyboard navigation accessibility */
+  /* Skip link for keyboard navigation accessibility
+   * Uses sr-only pattern: hidden by default, visible on focus
+   * Requirements: 4.1, 4.2, 4.3 - Skip links hidden by default, visible on focus
+   */
   .skip-link {
-    @apply absolute left-0 top-0 z-[9999] px-4 py-2 bg-blue-600 text-white font-medium;
-    @apply transform -translate-y-full focus:translate-y-0 transition-transform;
-    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    /* Hidden by default using sr-only pattern */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  .skip-link:focus {
+    /* Visible on focus */
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    z-index: 9999;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: nowrap;
+    @apply bg-blue-600 text-white font-medium rounded-lg shadow-lg;
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  }
+  
+  .skip-link:not(:focus) {
+    /* Ensure hidden when not focused */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
   
   .text-vibrant {

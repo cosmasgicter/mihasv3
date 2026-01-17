@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { applicationService } from '@/services/applications'
 import { ApplicationFilters, DEFAULT_APPLICATION_FILTERS } from './useApplicationFilters'
@@ -152,6 +152,9 @@ const mapApplicationFiltersToAdminFilters = (
 }
 
 export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLICATION_FILTERS) {
+  // Call useQueryClient at the top level of the hook (not inside callbacks)
+  const queryClient = useQueryClient()
+  
   const [applications, setApplications] = useState<ApplicationSummary[]>([])
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -430,62 +433,69 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
   }), [applications.length, currentPage, pageSize, totalCount])
 
   const updateStatus = useCallback(async (applicationId: string, newStatus: string) => {
-    const queryClient = useQueryClient()
+    // Store previous state for rollback
+    const previousApplications = applications
+    
     try {
-      // Optimistic update
+      // Optimistic update - update local state immediately
       setApplications(prev => prev.map(app => 
         app.id === applicationId ? { ...app, status: newStatus } : app
       ))
       
+      // Make the API call
       await applicationService.updateStatus(applicationId, newStatus)
       
-      // Invalidate queries immediately
-      await Promise.all([
+      // Invalidate queries to refresh data from server
+      // Using Promise.allSettled to ensure all invalidations are attempted
+      await Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: ['applications'] }),
         queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
-        queryClient.refetchQueries({ queryKey: ['applications'] })
+        queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] })
       ])
       
-      // Also refresh current page
+      // Refresh current page to get latest data
       await loadPage(currentPage, 'refresh')
     } catch (error) {
       console.error('Failed to update status:', error)
       // Revert optimistic update on error
-      await refreshCurrentPage()
+      setApplications(previousApplications)
       throw error
     }
-  }, [currentPage, loadPage, refreshCurrentPage])
+  }, [applications, currentPage, loadPage, queryClient])
 
   const updatePaymentStatus = useCallback(async (
     applicationId: string,
     newPaymentStatus: string,
     verificationNotes?: string
   ) => {
-    const queryClient = useQueryClient()
+    // Store previous state for rollback
+    const previousApplications = applications
+    
     try {
-      // Optimistic update
+      // Optimistic update - update local state immediately
       setApplications(prev => prev.map(app => 
         app.id === applicationId ? { ...app, payment_status: newPaymentStatus } : app
       ))
       
+      // Make the API call
       await applicationService.updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes)
       
-      // Invalidate queries immediately
-      await Promise.all([
+      // Invalidate queries to refresh data from server
+      await Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: ['applications'] }),
         queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
-        queryClient.refetchQueries({ queryKey: ['applications'] })
+        queryClient.invalidateQueries({ queryKey: ['payment-status'] })
       ])
       
-      // Also refresh current page
+      // Refresh current page to get latest data
       await loadPage(currentPage, 'refresh')
     } catch (error) {
       console.error('Failed to update payment status:', error)
       // Revert optimistic update on error
-      await refreshCurrentPage()
+      setApplications(previousApplications)
       throw error
     }
-  }, [currentPage, loadPage, refreshCurrentPage])
+  }, [applications, currentPage, loadPage, queryClient])
 
   return {
     applications,

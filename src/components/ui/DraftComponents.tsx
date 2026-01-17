@@ -1,7 +1,7 @@
 import React from 'react'
 import { AlertTriangle, Clock, Save, RefreshCw, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MobileOptimizedButton } from './MobileOptimizedButton'
+import { Button } from '@/components/ui/Button'
 
 interface DraftWarningBannerProps {
   onRestore: () => void
@@ -50,24 +50,25 @@ export function DraftWarningBanner({
         </p>
         
         <div className="mt-3 flex flex-col sm:flex-row gap-2">
-          <MobileOptimizedButton
+          <Button
             onClick={onRestore}
             size="sm"
-            variant="primary"
-            icon={<RefreshCw className="w-4 h-4" />}
-            className="bg-warning hover:bg-yellow-700"
+            variant="warning"
+            className="gap-2"
           >
+            <RefreshCw className="w-4 h-4" />
             Restore Draft
-          </MobileOptimizedButton>
+          </Button>
           
-          <MobileOptimizedButton
+          <Button
             onClick={onDismiss}
             size="sm"
             variant="outline"
-            icon={<X className="w-4 h-4" />}
+            className="gap-2"
           >
+            <X className="w-4 h-4" />
             Start Fresh
-          </MobileOptimizedButton>
+          </Button>
         </div>
       </div>
     </div>
@@ -168,15 +169,14 @@ export function SessionTimeoutWarning({
           </p>
           
           <div className="mt-3">
-            <MobileOptimizedButton
+            <Button
               onClick={onExtend}
               size="sm"
-              variant="primary"
-              className="bg-error hover:bg-error"
-              fullWidth
+              variant="destructive"
+              className="w-full"
             >
               Extend Session
-            </MobileOptimizedButton>
+            </Button>
           </div>
         </div>
       </div>
@@ -214,23 +214,23 @@ export function FormRecoveryBanner({
         </p>
         
         <div className="mt-3 flex flex-col sm:flex-row gap-2">
-          <MobileOptimizedButton
+          <Button
             onClick={onRecover}
             size="sm"
-            variant="primary"
-            icon={<RefreshCw className="w-4 h-4" />}
-            className="bg-error hover:bg-error"
+            variant="destructive"
+            className="gap-2"
           >
+            <RefreshCw className="w-4 h-4" />
             Try Again
-          </MobileOptimizedButton>
+          </Button>
           
-          <MobileOptimizedButton
+          <Button
             onClick={onDismiss}
             size="sm"
             variant="outline"
           >
             Dismiss
-          </MobileOptimizedButton>
+          </Button>
         </div>
       </div>
     </div>

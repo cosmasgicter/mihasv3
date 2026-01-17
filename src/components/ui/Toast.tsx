@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { create } from 'zustand';
+import { cn } from '@/lib/utils';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -72,12 +73,18 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
 
   return (
     <div className="bg-card border border-border rounded-lg shadow-lg p-4 min-w-[300px] animate-slide-up flex items-start gap-3">
-      <Icon className={`h-5 w-5 flex-shrink-0 ${
-        toast.type === 'success' ? 'text-green-500' :
-        toast.type === 'error' ? 'text-destructive' : 'text-blue-500'
-      }`} />
-      <p className="text-sm text-gray-900 flex-1">{toast.message}</p>
-      <button onClick={onClose} className="text-gray-900 hover:text-gray-900">
+      <Icon className={cn(
+        'h-5 w-5 flex-shrink-0',
+        toast.type === 'success' && 'text-green-500',
+        toast.type === 'error' && 'text-destructive',
+        toast.type === 'info' && 'text-blue-500'
+      )} />
+      <p className="text-sm text-foreground flex-1">{toast.message}</p>
+      <button 
+        onClick={onClose} 
+        className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        aria-label="Dismiss notification"
+      >
         <X className="h-4 w-4" />
       </button>
     </div>

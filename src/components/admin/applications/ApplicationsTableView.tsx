@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
-import { Eye, FileText, Mail, Phone, Calendar, User } from 'lucide-react';
+import { Eye, FileText, Mail, Phone, Calendar, User, AlertTriangle } from 'lucide-react';
 import { EnhancedDataTable, type Column } from '@/components/admin/EnhancedDataTable';
 import { cn } from '@/lib/utils';
 
@@ -131,7 +131,40 @@ export function ApplicationsTableView({
       sortable: true,
       filterable: true,
       align: 'center',
-      statusMapping: APPLICATION_STATUS_MAPPING,
+      render: (value: string, row: ApplicationSummary) => {
+        if (row.isDraft) {
+          return (
+            <div className="flex flex-col items-center gap-1">
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
+                <AlertTriangle className="h-3 w-3" />
+                DRAFT
+              </div>
+              <div className="w-full max-w-[60px]">
+                <div className="w-full bg-yellow-100 rounded-full h-1.5">
+                  <div
+                    className="bg-yellow-600 h-1.5 rounded-full transition-all duration-300"
+                    style={{ width: `${row.completionPercentage || 0}%` }}
+                  />
+                </div>
+                <span className="text-[10px] text-yellow-700">{row.completionPercentage || 0}%</span>
+              </div>
+            </div>
+          );
+        }
+        // For non-draft statuses, render the status badge manually
+        const statusConfig: Record<string, { color: string; label: string }> = {
+          submitted: { color: 'bg-blue-100 text-blue-800 border-blue-300', label: 'SUBMITTED' },
+          under_review: { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', label: 'UNDER REVIEW' },
+          approved: { color: 'bg-green-100 text-green-800 border-green-300', label: 'APPROVED' },
+          rejected: { color: 'bg-red-100 text-red-800 border-red-300', label: 'REJECTED' },
+        };
+        const config = statusConfig[value] || { color: 'bg-gray-100 text-gray-800 border-gray-300', label: value?.toUpperCase() || 'UNKNOWN' };
+        return (
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${config.color}`}>
+            {config.label}
+          </span>
+        );
+      },
     },
     {
       key: 'payment_status',
