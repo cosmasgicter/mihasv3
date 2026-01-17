@@ -225,7 +225,7 @@ The migration is organized into three phases: Foundation Components (low risk), 
     - Verify each migration individually
     - _Requirements: 9.6_
 
-  - [-] 11.4 Write property test for AlertDialog no backdrop close
+  - [x] 11.4 Write property test for AlertDialog no backdrop close
     - **Property 12: AlertDialog No Backdrop Close**
     - **Validates: Requirements 9.3**
 
