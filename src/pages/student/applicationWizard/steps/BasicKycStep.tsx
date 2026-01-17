@@ -5,7 +5,7 @@ import { CheckCircle } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 
 import { AnimatedInput } from '@/components/smoothui/animated-input'
-import { AnimatedSelect } from '@/components/smoothui/animated-select'
+import { FormSelect } from '@/components/ui/form-select'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
 import { durations, easings } from '@/lib/animation-config'
 import { FieldHelp } from '../components/FieldHelp'
@@ -33,6 +33,7 @@ const BasicKycStep = ({
 }: BasicKycStepProps) => {
   const {
     register,
+    control,
     formState: { errors }
   } = form
   const prefersReducedMotion = useReducedMotion()
@@ -83,34 +84,6 @@ const BasicKycStep = ({
       }
     },
   }
-
-  // Sex options
-  const sexOptions = [
-    { value: '', label: 'Select sex', disabled: true },
-    { value: 'Male', label: 'Male' },
-    { value: 'Female', label: 'Female' },
-  ]
-
-  // Program options
-  const programOptions = [
-    { value: '', label: 'Select program', disabled: true },
-    ...programs.map(program => {
-      const institutionName = program.institutions?.full_name || program.institutions?.name
-      const label = institutionName ? `${program.name} (${institutionName})` : program.name
-      return { value: program.id, label }
-    })
-  ]
-
-  // Intake options
-  const intakeOptions = [
-    { value: '', label: 'Select intake', disabled: true },
-    ...intakes.map(intake => {
-      const label = intake.displayName
-      const deadline = formatDeadline(intake.application_deadline)
-      const optionLabel = deadline ? `${label} — Apply by ${deadline}` : label
-      return { value: label, label: optionLabel }
-    })
-  ]
 
   return (
     <motion.div
@@ -195,11 +168,17 @@ const BasicKycStep = ({
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <AnimatedSelect
-            {...register('sex')}
-            label="Sex *"
-            options={sexOptions}
+          <FormSelect
+            name="sex"
+            control={control}
+            label="Sex"
+            options={[
+              { value: 'Male', label: 'Male' },
+              { value: 'Female', label: 'Female' },
+            ]}
+            placeholder="Select sex"
             error={errors.sex?.message}
+            required
           />
         </motion.div>
 
@@ -262,22 +241,37 @@ const BasicKycStep = ({
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <AnimatedSelect
-            {...register('program')}
-            label="Program *"
-            options={programOptions}
+          <FormSelect
+            name="program"
+            control={control}
+            label="Program"
+            options={programs.map(program => {
+              const institutionName = program.institutions?.full_name || program.institutions?.name
+              const label = institutionName ? `${program.name} (${institutionName})` : program.name
+              return { value: program.id, label }
+            })}
+            placeholder="Select program"
             error={errors.program?.message}
+            required
           />
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <AnimatedSelect
-            {...register('intake')}
-            label="Intake *"
-            options={intakeOptions}
+          <FormSelect
+            name="intake"
+            control={control}
+            label="Intake"
+            options={intakes.map(intake => {
+              const label = intake.displayName
+              const deadline = formatDeadline(intake.application_deadline)
+              const optionLabel = deadline ? `${label} — Apply by ${deadline}` : label
+              return { value: label, label: optionLabel }
+            })}
+            placeholder="Select intake"
             disabled={intakes.length === 0}
             error={errors.intake?.message}
             helperText={intakes.length === 0 ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
+            required
           />
         </motion.div>
       </motion.div>

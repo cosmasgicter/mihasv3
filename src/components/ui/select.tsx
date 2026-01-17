@@ -19,36 +19,44 @@ const SelectValue = SelectPrimitive.Value
  */
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & {
+    error?: boolean
+  }
+>(({ className, children, error, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
+    aria-invalid={error ? "true" : "false"}
     className={cn(
       // Touch target compliance - 44px minimum height
       "flex min-h-[44px] w-full items-center justify-between",
       // Styling
-      "rounded-lg border border-input bg-background px-3 py-2",
+      "rounded-lg border bg-background px-3 py-2",
+      // Border color - normal vs error state
+      error ? "border-destructive" : "border-input",
       // Typography
       "text-base text-foreground",
       // Placeholder styling
       "data-[placeholder]:text-muted-foreground",
       // Focus styles
       "ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      // Error focus state
+      error && "focus:ring-destructive",
       // Disabled state
       "disabled:cursor-not-allowed disabled:opacity-50",
       // Touch optimization
       "touch-manipulation",
       // Truncate long text
       "[&>span]:line-clamp-1",
-      // Transition
+      // Transition with reduced motion support
       "transition-colors duration-150",
+      "motion-reduce:transition-none",
       className
     )}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-5 w-5 opacity-50 shrink-0 ml-2" />
+      <ChevronDown className="h-5 w-5 opacity-50 shrink-0 ml-2" aria-hidden="true" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -62,11 +70,13 @@ const SelectScrollUpButton = React.forwardRef<
     ref={ref}
     className={cn(
       "flex cursor-default items-center justify-center py-1",
+      // Touch target for scroll button
+      "min-h-[32px]",
       className
     )}
     {...props}
   >
-    <ChevronUp className="h-4 w-4" />
+    <ChevronUp className="h-4 w-4" aria-hidden="true" />
   </SelectPrimitive.ScrollUpButton>
 ))
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
@@ -79,11 +89,13 @@ const SelectScrollDownButton = React.forwardRef<
     ref={ref}
     className={cn(
       "flex cursor-default items-center justify-center py-1",
+      // Touch target for scroll button
+      "min-h-[32px]",
       className
     )}
     {...props}
   >
-    <ChevronDown className="h-4 w-4" />
+    <ChevronDown className="h-4 w-4" aria-hidden="true" />
   </SelectPrimitive.ScrollDownButton>
 ))
 SelectScrollDownButton.displayName =
@@ -97,7 +109,16 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]",
+        "relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md",
+        // Animation classes with reduced motion support
+        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+        "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
+        "data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        "origin-[--radix-select-content-transform-origin]",
+        // Reduced motion support
+        "motion-reduce:animate-none",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
         className
@@ -159,13 +180,16 @@ const SelectItem = React.forwardRef<
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       // Touch optimization
       "touch-manipulation",
+      // Transition with reduced motion support
+      "transition-colors duration-150",
+      "motion-reduce:transition-none",
       className
     )}
     {...props}
   >
     <span className="absolute left-3 flex h-5 w-5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-5 w-5" />
+        <Check className="h-5 w-5" aria-hidden="true" />
       </SelectPrimitive.ItemIndicator>
     </span>
 

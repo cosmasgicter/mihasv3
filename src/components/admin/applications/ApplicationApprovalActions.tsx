@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 interface ApplicationApprovalActionsProps {
@@ -268,7 +268,7 @@ export function ApplicationApprovalActions({
           )}
         </div>
       </div>
-      <ConfirmDialog
+      <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}
         onClose={confirmDialog.handleCancel}
         onConfirm={confirmDialog.handleConfirm}

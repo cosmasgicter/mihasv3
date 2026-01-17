@@ -5,6 +5,7 @@ import { programService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/textarea'
+import { StandaloneSelect } from '@/components/ui/standalone-select'
 import {
   Dialog,
   DialogContent,
@@ -88,11 +89,10 @@ export default function AdminPrograms() {
     }))
   }, [])
 
-  const handleSelectChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target
+  const handleInstitutionChange = useCallback((value: string) => {
     setForm((f) => ({
       ...f,
-      [name]: value
+      institution_id: value
     }))
   }, [])
 
@@ -392,23 +392,17 @@ export default function AdminPrograms() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Input label="Name" name="name" value={form.name} onChange={handleChange} required />
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">Institution</label>
-              <select
-                name="institution_id"
-                value={form.institution_id}
-                onChange={handleSelectChange}
-                className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
-                required
-              >
-                <option value="">Select an institution</option>
-                {institutions.map((institution) => (
-                  <option key={institution.id} value={institution.id}>
-                    {institution.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <StandaloneSelect
+              label="Institution"
+              value={form.institution_id}
+              onValueChange={handleInstitutionChange}
+              placeholder="Select an institution"
+              options={institutions.map((institution) => ({
+                value: institution.id,
+                label: institution.name
+              }))}
+              required
+            />
             <Textarea label="Description" name="description" value={form.description} onChange={handleChange} />
             <Input label="Duration (years)" type="number" name="duration_years" value={form.duration_years} onChange={handleChange} />
           </div>
@@ -428,23 +422,17 @@ export default function AdminPrograms() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Input label="Name" name="name" value={form.name} onChange={handleChange} required />
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">Institution</label>
-              <select
-                name="institution_id"
-                value={form.institution_id}
-                onChange={handleSelectChange}
-                className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
-                required
-              >
-                <option value="">Select an institution</option>
-                {institutions.map((institution) => (
-                  <option key={institution.id} value={institution.id}>
-                    {institution.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <StandaloneSelect
+              label="Institution"
+              value={form.institution_id}
+              onValueChange={handleInstitutionChange}
+              placeholder="Select an institution"
+              options={institutions.map((institution) => ({
+                value: institution.id,
+                label: institution.name
+              }))}
+              required
+            />
             <Textarea label="Description" name="description" value={form.description} onChange={handleChange} />
             <Input label="Duration (years)" type="number" name="duration_years" value={form.duration_years} onChange={handleChange} />
           </div>

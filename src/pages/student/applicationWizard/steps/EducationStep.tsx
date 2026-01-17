@@ -1,10 +1,10 @@
 import type { ChangeEvent } from 'react'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { CheckCircle, X } from 'lucide-react'
+import { X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
-import { AnimatedSelect } from '@/components/smoothui/animated-select'
+import { StandaloneSelect } from '@/components/ui/standalone-select'
 import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
 import { EligibilityNotification } from '@/components/application/EligibilityNotification'
 import { durations, easings } from '@/lib/animation-config'
@@ -76,23 +76,20 @@ const EducationStep = ({
     },
   }
 
-  // Subject options for AnimatedSelect
+  // Subject options for StandaloneSelect
   const getSubjectOptions = (currentSubjectId: string) => {
     const usedSubjects = getUsedSubjects()
-    return [
-      { value: '', label: subjects.length === 0 ? 'Loading subjects...' : 'Select subject', disabled: true },
-      ...subjects.map(subject => {
-        const isUsed = usedSubjects.includes(subject.id) && currentSubjectId !== subject.id
-        return {
-          value: subject.id,
-          label: `${subject.name}${isUsed ? ' (Already selected)' : ''}`,
-          disabled: isUsed,
-        }
-      })
-    ]
+    return subjects.map(subject => {
+      const isUsed = usedSubjects.includes(subject.id) && currentSubjectId !== subject.id
+      return {
+        value: subject.id,
+        label: `${subject.name}${isUsed ? ' (Already selected)' : ''}`,
+        disabled: isUsed,
+      }
+    })
   }
 
-  // Grade options
+  // Grade options for StandaloneSelect
   const gradeOptions = [
     { value: '1', label: '1 (A+)' },
     { value: '2', label: '2 (A)' },
@@ -189,11 +186,13 @@ const EducationStep = ({
                   <label className="block text-xs font-medium text-gray-900 mb-1 sm:hidden">
                     Subject
                   </label>
-                  <AnimatedSelect
+                  <StandaloneSelect
                     value={grade.subject_id}
-                    onChange={(e) => updateGrade(index, 'subject_id', e.target.value)}
+                    onChange={(value) => updateGrade(index, 'subject_id', value)}
                     options={getSubjectOptions(grade.subject_id)}
                     disabled={subjects.length === 0}
+                    placeholder={subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}
+                    data-testid={`subject-select-${index}`}
                   />
                 </div>
 
@@ -202,10 +201,12 @@ const EducationStep = ({
                   <label className="block text-xs font-medium text-gray-900 mb-1 sm:hidden">
                     Grade
                   </label>
-                  <AnimatedSelect
+                  <StandaloneSelect
                     value={String(grade.grade)}
-                    onChange={(e) => updateGrade(index, 'grade', parseInt(e.target.value))}
+                    onChange={(value) => updateGrade(index, 'grade', parseInt(value))}
                     options={gradeOptions}
+                    placeholder="Select grade"
+                    data-testid={`grade-select-${index}`}
                   />
                 </div>
 

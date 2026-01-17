@@ -2,11 +2,11 @@ import type { ChangeEvent } from 'react'
 import { useEffect, useState } from 'react'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { CheckCircle, CreditCard } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 
 import { AnimatedInput } from '@/components/smoothui/animated-input'
-import { AnimatedSelect } from '@/components/smoothui/animated-select'
+import { FormSelect } from '@/components/ui/form-select'
 import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
 import { durations, easings } from '@/lib/animation-config'
 
@@ -31,7 +31,7 @@ const PaymentStep = ({
   uploadProgress,
   uploadedFiles
 }: PaymentStepProps) => {
-  const { register, formState: { errors } } = form
+  const { register, control, formState: { errors } } = form
   const [paymentTarget, setPaymentTarget] = useState('Loading...')
   const prefersReducedMotion = useReducedMotion()
 
@@ -76,15 +76,6 @@ const PaymentStep = ({
       }
     },
   }
-
-  useEffect(() => {
-    getPaymentTarget()
-      .then(setPaymentTarget)
-      .catch((error) => {
-        console.error('Failed to load payment target:', error)
-        setPaymentTarget('Payment information unavailable')
-      })
-  }, [getPaymentTarget])
 
   return (
     <motion.div
@@ -156,11 +147,12 @@ const PaymentStep = ({
           animate="visible"
         >
           <motion.div variants={itemVariants}>
-            <AnimatedSelect
-              {...register('payment_method')}
-              label="Payment Method"
+            <FormSelect
+              name="payment_method"
+              control={control}
               options={paymentMethodOptions}
-              defaultValue="MTN Money"
+              label="Payment Method"
+              placeholder="Select payment method"
               error={errors.payment_method?.message}
             />
           </motion.div>
