@@ -2,6 +2,7 @@ import React from 'react'
 import { Input } from '@/components/ui/Input'
 import { Search } from 'lucide-react'
 import type { ApplicationFilters } from '@/hooks/admin/useApplicationFilters'
+import { DRAFT_FILTER_OPTIONS } from '@/hooks/admin/useApplicationFilters'
 
 interface FiltersPanelProps {
   searchTerm: string
@@ -43,9 +44,11 @@ export function FiltersPanel({
             onChange={(e) => onFilterChange('draftFilter', e.target.value)}
             className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
           >
-            <option value="all">All Applications</option>
-            <option value="drafts">Drafts Only</option>
-            <option value="completed">Completed Only</option>
+            {DRAFT_FILTER_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
         

@@ -37,27 +37,32 @@ export const defaultSkipLinks: SkipLinkConfig[] = [
 
 /**
  * CSS classes for skip links
- * Uses sr-only pattern for proper accessibility:
- * - Hidden by default using sr-only (screen reader only)
- * - Visible on focus using focus:not-sr-only
+ * Uses transform-based hiding for reliable accessibility:
+ * - Hidden by default using transform (moves off-screen)
+ * - Visible on focus by resetting transform
  * - Proper z-index and positioning when visible
+ * 
+ * Note: Using transform instead of sr-only/clip to avoid intermittent visibility issues
  * 
  * Requirements: 4.1, 4.2, 4.3 - Skip links hidden by default, visible on focus
  */
 export const skipLinkClasses = cn(
-  // Hidden by default using screen-reader-only pattern
-  'sr-only',
-  // Visible on focus - override sr-only styles
-  'focus:not-sr-only',
-  'focus:absolute focus:left-4 focus:top-4 focus:z-[9999]',
-  // Styling when visible
-  'focus:block focus:px-4 focus:py-2',
-  'focus:bg-primary focus:text-primary-foreground',
-  'focus:font-medium focus:rounded-lg focus:shadow-lg',
+  // Base positioning - always absolute, always at top-left when visible
+  'absolute left-4 top-4 z-[9999]',
+  // Hidden by default using transform (more reliable than sr-only)
+  '-translate-y-full opacity-0 pointer-events-none',
+  // Visible on focus - reset transform and opacity
+  'focus:translate-y-0 focus:opacity-100 focus:pointer-events-auto',
+  // Smooth transition for focus state
+  'transition-all duration-150',
+  // Styling
+  'block px-4 py-2',
+  'bg-primary text-primary-foreground',
+  'font-medium rounded-lg shadow-lg',
   // Focus ring for visibility
-  'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+  'outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   // Ensure proper text rendering
-  'focus:whitespace-nowrap'
+  'whitespace-nowrap'
 )
 
 /**

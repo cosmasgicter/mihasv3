@@ -7,6 +7,45 @@ const RATE_LIMITS = {
 
 const rateLimitStore = new Map();
 
+// Security headers for all responses
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'"
+  ].join('; '),
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Embedder-Policy': 'credentialless',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+};
+
+function addSecurityHeaders(response) {
+  const newHeaders = new Headers(response.headers);
+  
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    // Don't override if already set
+    if (!newHeaders.has(key)) {
+      newHeaders.set(key, value);
+    }
+  }
+  
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: newHeaders
+  });
+}
+
 function getRateLimitKey(userId, path) {
   return `${userId}:${path}`;
 }
@@ -53,7 +92,8 @@ export async function onRequest(context) {
       // Extract user ID from Authorization header
       const authHeader = request.headers.get('Authorization');
       if (!authHeader) {
-        return next();
+        const response = await next();
+        return addSecurityHeaders(response);
       }
 
       const token = authHeader.replace('Bearer ', '');
@@ -63,7 +103,7 @@ export async function onRequest(context) {
       const rateLimit = checkRateLimit(userId, path);
 
       if (!rateLimit.allowed) {
-        return new Response(JSON.stringify({
+        const rateLimitResponse = new Response(JSON.stringify({
           error: 'Rate limit exceeded',
           retryAfter: rateLimit.retryAfter,
           message: `Too many requests. Please try again in ${rateLimit.retryAfter} seconds.`
@@ -77,6 +117,7 @@ export async function onRequest(context) {
             'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString()
           }
         });
+        return addSecurityHeaders(rateLimitResponse);
       }
 
       // Add rate limit headers to response
@@ -86,16 +127,20 @@ export async function onRequest(context) {
       newHeaders.set('X-RateLimit-Remaining', rateLimit.remaining.toString());
       newHeaders.set('X-RateLimit-Reset', new Date(rateLimit.resetTime).toISOString());
 
-      return new Response(response.body, {
+      const rateLimitedResponse = new Response(response.body, {
         status: response.status,
         statusText: response.statusText,
         headers: newHeaders
       });
+      return addSecurityHeaders(rateLimitedResponse);
     } catch (error) {
       console.error('Rate limit middleware error:', error);
-      return next();
+      const response = await next();
+      return addSecurityHeaders(response);
     }
   }
 
-  return next();
+  // Apply security headers to all other responses
+  const response = await next();
+  return addSecurityHeaders(response);
 }

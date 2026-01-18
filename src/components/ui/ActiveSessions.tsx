@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { formatDistanceToNow } from 'date-fns'
 import { sanitizeForDisplay } from '@/lib/sanitize'
+import { terminateAllOtherSessions } from '@/services/sessionService'
+import { useToastStore } from '@/components/ui/Toast'
 
 interface DeviceSession {
   id: string
@@ -20,7 +22,9 @@ export function ActiveSessions() {
   const [sessions, setSessions] = useState<DeviceSession[]>([])
   const [loading, setLoading] = useState(true)
   const [terminating, setTerminating] = useState<string | null>(null)
+  const [terminatingAll, setTerminatingAll] = useState(false)
   const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const { addToast } = useToastStore()
 
   const loadSessions = useCallback(async () => {
     if (!user) return
@@ -88,6 +92,51 @@ export function ActiveSessions() {
       console.error('Failed to terminate session:', error)
     } finally {
       setTerminating(null)
+    }
+  }
+
+  const handleTerminateAllOtherSessions = async () => {
+    if (!user) return
+    
+    const currentDeviceId = getCurrentDeviceId()
+    const otherSessionsCount = sessions.filter(s => s.device_id !== currentDeviceId).length
+    
+    if (otherSessionsCount === 0) {
+      addToast({
+        type: 'info',
+        message: 'No other sessions to terminate'
+      })
+      return
+    }
+    
+    try {
+      setTerminatingAll(true)
+      const result = await terminateAllOtherSessions()
+      
+      if (result.success) {
+        // Update local state to remove terminated sessions
+        setSessions(prev => prev.filter(s => s.device_id === currentDeviceId))
+        
+        addToast({
+          type: 'success',
+          message: result.terminatedCount > 0 
+            ? `Successfully terminated ${result.terminatedCount} session${result.terminatedCount > 1 ? 's' : ''}`
+            : 'No other sessions to terminate'
+        })
+      } else {
+        addToast({
+          type: 'error',
+          message: result.error || 'Failed to terminate sessions. Please try again.'
+        })
+      }
+    } catch (error) {
+      console.error('Failed to terminate all sessions:', error)
+      addToast({
+        type: 'error',
+        message: 'Failed to terminate sessions. Please try again.'
+      })
+    } finally {
+      setTerminatingAll(false)
     }
   }
 
@@ -181,7 +230,18 @@ export function ActiveSessions() {
         </div>
       )}
       
-      <div className="mt-4 pt-4 border-t">
+      <div className="mt-4 pt-4 border-t space-y-2">
+        {sessions.filter(s => s.device_id !== getCurrentDeviceId()).length > 0 && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleTerminateAllOtherSessions}
+            disabled={terminatingAll || sessions.filter(s => s.device_id !== getCurrentDeviceId()).length === 0}
+            className="w-full"
+          >
+            {terminatingAll ? 'Terminating All...' : 'Terminate All Other Sessions'}
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"

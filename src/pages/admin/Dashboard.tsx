@@ -134,12 +134,21 @@ export default function AdminDashboard() {
   })
 
   // Additional realtime subscription for payments and status history
-  // Requirements: 2.1, 2.2, 2.4, 2.5 - Admin Dashboard Real-time Updates
+  // Requirements: 1.1, 1.2, 2.1, 2.2, 2.3, 2.4, 2.5 - Admin Dashboard Real-time Updates
   const { isSubscribed: isRealtimeSubscribed, isPolling } = useAdminDashboardRealtime({
     enabled: !!user?.id,
     showToasts: true,
+    onApplicationChange: () => {
+      // Reload dashboard stats when any application changes (including status changes)
+      // This ensures the UI updates immediately after admin approves/rejects an application
+      loadDashboardStats({ refresh: true })
+    },
     onPaymentChange: () => {
       // Reload dashboard stats when payment changes
+      loadDashboardStats({ refresh: true })
+    },
+    onStatusHistoryChange: () => {
+      // Reload dashboard stats when status history changes (audit trail updates)
       loadDashboardStats({ refresh: true })
     }
   })

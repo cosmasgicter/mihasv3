@@ -21,6 +21,19 @@ const DEFAULT_WORKFLOW_SUMMARY = {
 
 async function fallbackPredictiveSummary() {
   try {
+    // Get total count of ALL applications regardless of status
+    // This ensures the AI Dashboard shows accurate total (e.g., 28 applications)
+    // including draft, submitted, under_review, approved, and rejected
+    const { count: totalApplications, error: countError } = await supabaseAdminClient
+      .from('applications')
+      .select('*', { count: 'exact', head: true })
+
+    if (countError) {
+      console.error('Predictive summary count error:', countError)
+      return DEFAULT_PREDICTIVE_SUMMARY
+    }
+
+    // Get recent applications for trend analysis (last 30 days)
     const { data, error } = await supabaseAdminClient
       .from('applications')
       .select('created_at, status, program, updated_at')
@@ -31,14 +44,13 @@ async function fallbackPredictiveSummary() {
       return DEFAULT_PREDICTIVE_SUMMARY
     }
 
-    const applications = data || []
-    const totalApplications = applications.length
-    const processed = applications.filter(app => ['approved', 'rejected'].includes(app.status)).length
-    const efficiency = totalApplications > 0 ? (processed / totalApplications) * 100 : 100
+    const recentApplications = data || []
+    const processed = recentApplications.filter(app => ['approved', 'rejected'].includes(app.status)).length
+    const efficiency = recentApplications.length > 0 ? (processed / recentApplications.length) * 100 : 100
 
     return {
       avgAdmissionProbability: 0,
-      totalApplications,
+      totalApplications: totalApplications || 0,
       avgProcessingTime: 0,
       efficiency,
       applicationTrend: 'stable',

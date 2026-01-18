@@ -20,6 +20,8 @@ const ApplicationStatus = React.lazy(() => import('@/pages/student/ApplicationSt
 const ApplicationDetail = React.lazy(() => import('@/pages/student/ApplicationDetail'))
 const StudentSettings = React.lazy(() => import('@/pages/student/Settings'))
 const StudentNotificationSettings = React.lazy(() => import('@/pages/student/NotificationSettings'))
+const StudentPayment = React.lazy(() => import('@/pages/student/Payment'))
+const StudentInterview = React.lazy(() => import('@/pages/student/Interview'))
 const AdminDashboard = React.lazy(() => import('@/pages/admin/Dashboard'))
 const AdminApplications = React.lazy(() => import('@/pages/admin/Applications'))
 const ApplicationsAdmin = React.lazy(() => import('@/pages/admin/ApplicationsAdmin'))
@@ -80,6 +82,8 @@ export const routes: RouteConfig[] = [
   { path: '/student/profile', element: StudentSettings, guard: 'student', lazy: true },
   { path: '/student/settings', element: StudentSettings, guard: 'student', lazy: true },
   { path: '/student/notifications', element: StudentNotificationSettings, guard: 'student', lazy: true },
+  { path: '/student/payment', element: StudentPayment, guard: 'student', lazy: true },
+  { path: '/student/interview', element: StudentInterview, guard: 'student', lazy: true },
   
   // Admin routes
   { path: '/admin', element: AdminDashboard, guard: 'admin', lazy: true },
