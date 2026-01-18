@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SkeletonProvider } from '@/contexts/SkeletonContext'
+import { RealtimeStatusProvider } from '@/contexts/RealtimeStatusContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
@@ -96,7 +97,8 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <SkeletonProvider>
           <AuthProvider>
-            <SafeAreaProvider>
+            <RealtimeStatusProvider>
+              <SafeAreaProvider>
               <SkipLinks />
               <ToastContainer />
               <PWAInstallPrompt />
@@ -130,7 +132,8 @@ function App() {
                   </SimpleErrorBoundary>
                 </AnalyticsTracker>
               </Router>
-            </SafeAreaProvider>
+              </SafeAreaProvider>
+            </RealtimeStatusProvider>
           </AuthProvider>
         </SkeletonProvider>
       </QueryClientProvider>

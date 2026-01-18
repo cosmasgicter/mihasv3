@@ -1,5 +1,12 @@
-import React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+/**
+ * LoadingSpinner Component
+ * 
+ * Modern, smooth loading spinner using CSS animations only.
+ * No Framer Motion dependency for better performance.
+ * 
+ * @requirements 5.1, 5.2 - Fast page loading with minimal JS overhead
+ */
+
 import { cn } from '@/lib/utils'
 
 interface LoadingSpinnerProps {
@@ -18,16 +25,23 @@ export function LoadingSpinner({
   showPulse = false
 }: LoadingSpinnerProps) {
   const sizeClasses = {
-    sm: 'w-[var(--spinner-sm)] h-[var(--spinner-sm)]',
-    md: 'w-[var(--spinner-md)] h-[var(--spinner-md)]',
-    lg: 'w-[var(--spinner-lg)] h-[var(--spinner-lg)]',
-    xl: 'w-[2.5rem] h-[2.5rem]'
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8',
+    xl: 'w-10 h-10'
+  }
+
+  const borderSizeClasses = {
+    sm: 'border-2',
+    md: 'border-2',
+    lg: 'border-[3px]',
+    xl: 'border-[3px]'
   }
 
   const colorClasses = {
-    primary: 'border-border border-t-primary',
-    secondary: 'border-border border-t-secondary', 
-    white: 'border-card/20 border-t-white'
+    primary: 'border-primary/20 border-t-primary',
+    secondary: 'border-secondary/20 border-t-secondary', 
+    white: 'border-white/20 border-t-white'
   }
 
   const textSizeClasses = {
@@ -37,83 +51,92 @@ export function LoadingSpinner({
     xl: 'text-lg'
   }
 
-  const prefersReducedMotion = useReducedMotion()
-
   return (
-    <div className="flex flex-col items-center justify-center space-y-2">
-      {prefersReducedMotion ? (
-        <div className={cn('rounded-full border-2', sizeClasses[size], colorClasses[color], className)} />
-      ) : (
-        <motion.div 
+    <div className="flex flex-col items-center justify-center gap-3">
+      {/* Main spinner with smooth gradient effect */}
+      <div className="relative">
+        <div 
           className={cn(
-            'animate-spin rounded-full border-2',
+            'rounded-full animate-spin',
             sizeClasses[size],
+            borderSizeClasses[size],
             colorClasses[color],
             className
           )}
-          animate={{ rotate: 360 }}
-          transition={{
-            duration: 1,
-            repeat: Infinity,
-            ease: "linear"
+          style={{
+            animationDuration: '0.8s',
+            animationTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
           }}
         />
-      )}
-
-      {message && (
-        prefersReducedMotion ? (
-          <p className={cn('text-gray-900 font-medium text-center', textSizeClasses[size])}>{message}</p>
-        ) : (
-          <motion.p 
+        {/* Subtle glow effect for larger sizes */}
+        {(size === 'lg' || size === 'xl') && color === 'primary' && (
+          <div 
             className={cn(
-              'text-gray-900 font-medium text-center',
-              textSizeClasses[size]
+              'absolute inset-0 rounded-full opacity-30 blur-sm animate-pulse',
+              sizeClasses[size],
+              'bg-primary/20'
             )}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            {message}
-          </motion.p>
-        )
+          />
+        )}
+      </div>
+
+      {/* Message with fade-in animation */}
+      {message && (
+        <p 
+          className={cn(
+            'text-muted-foreground font-medium text-center animate-fade-in',
+            textSizeClasses[size]
+          )}
+        >
+          {message}
+        </p>
       )}
 
-      {showPulse && (prefersReducedMotion ? (
-        <div className="flex space-x-1">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="w-2 h-2 bg-primary rounded-full opacity-80" />
-          ))}
-        </div>
-      ) : (
-        <motion.div
-          className="flex space-x-1"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: {
-                staggerChildren: 0.3,
-                repeat: Infinity,
-                repeatType: "reverse",
-                duration: 1.5
-              }
-            }
-          }}
-        >
-          {[...Array(3)].map((_, i) => (
-            <motion.div
+      {/* Pulse dots indicator */}
+      {showPulse && (
+        <div className="flex items-center gap-1">
+          {[0, 1, 2].map((i) => (
+            <span
               key={i}
-              className="w-2 h-2 bg-primary rounded-full"
-              variants={{
-                hidden: { opacity: 0.3 },
-                visible: { opacity: 1 }
+              className={cn(
+                'w-1.5 h-1.5 rounded-full',
+                color === 'white' ? 'bg-white' : 'bg-primary'
+              )}
+              style={{
+                animation: 'pulse-dot 1.4s ease-in-out infinite',
+                animationDelay: `${i * 0.16}s`
               }}
             />
           ))}
-        </motion.div>
-      ))}
+        </div>
+      )}
+
+      {/* CSS keyframes injected via style tag (only once) */}
+      <style>{`
+        @keyframes pulse-dot {
+          0%, 80%, 100% {
+            opacity: 0.3;
+            transform: scale(0.8);
+          }
+          40% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   )
 }

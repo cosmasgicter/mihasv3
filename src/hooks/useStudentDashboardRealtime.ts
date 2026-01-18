@@ -9,7 +9,7 @@
 
 import { useEffect, useRef, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { supabase, dispatchRealtimeStatus } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
@@ -29,6 +29,8 @@ export interface UseStudentDashboardRealtimeReturn {
   isSubscribed: boolean
   /** Current subscription status */
   status: string
+  /** Timestamp of last successful connection */
+  lastConnectedAt: Date | null
   /** Manually reconnect the subscription */
   reconnect: () => void
 }
@@ -94,6 +96,7 @@ export function useStudentDashboardRealtime(
   const channelRef = useRef<RealtimeChannel | null>(null)
   const statusRef = useRef<string>('CLOSED')
   const isSubscribedRef = useRef<boolean>(false)
+  const lastConnectedAtRef = useRef<Date | null>(null)
   
   // Use refs to avoid stale closures in callbacks
   const onApplicationChangeRef = useRef(onApplicationChange)
@@ -237,7 +240,21 @@ export function useStudentDashboardRealtime(
         console.log('[StudentDashboardRealtime] Subscription status:', status)
         statusRef.current = status
         isSubscribedRef.current = status === 'SUBSCRIBED'
+        
+        // Track last connected timestamp
+        if (status === 'SUBSCRIBED') {
+          lastConnectedAtRef.current = new Date()
+        }
+        
         onStatusChangeRef.current?.(status)
+        
+        // Dispatch status event for RealtimeStatusContext
+        dispatchRealtimeStatus({
+          connected: status === 'SUBSCRIBED',
+          channelCount: status === 'SUBSCRIBED' ? 1 : 0,
+          status,
+          lastConnectedAt: lastConnectedAtRef.current
+        })
         
         if (status === 'SUBSCRIBED') {
           console.log('[StudentDashboardRealtime] Realtime subscription active for student dashboard')
@@ -290,6 +307,7 @@ export function useStudentDashboardRealtime(
   return {
     isSubscribed: isSubscribedRef.current,
     status: statusRef.current,
+    lastConnectedAt: lastConnectedAtRef.current,
     reconnect
   }
 }

@@ -1,0 +1,118 @@
+/**
+ * RealtimeStatusIndicator Component
+ * 
+ * Visual indicator showing realtime connection status in dashboard headers.
+ * Uses CSS-only animations for performance.
+ * 
+ * @requirements 3.4, 4.4 - Connection status indicators
+ */
+
+import { useRealtimeStatus } from '@/contexts/RealtimeStatusContext'
+
+export interface RealtimeStatusIndicatorProps {
+  /** Show "Live" label next to indicator */
+  showLabel?: boolean
+  /** Size of the indicator */
+  size?: 'sm' | 'md'
+  /** Additional CSS classes */
+  className?: string
+}
+
+/**
+ * Realtime connection status indicator
+ * 
+ * @example
+ * ```tsx
+ * // In dashboard header
+ * <RealtimeStatusIndicator showLabel size="sm" />
+ * ```
+ */
+export function RealtimeStatusIndicator({ 
+  showLabel = false, 
+  size = 'sm',
+  className = ''
+}: RealtimeStatusIndicatorProps) {
+  const { isConnected, isReconnecting, lastConnectedAt } = useRealtimeStatus()
+
+  const sizeClasses = {
+    sm: 'h-2 w-2',
+    md: 'h-3 w-3'
+  }
+
+  const getStatusColor = () => {
+    if (isReconnecting) return 'bg-yellow-400'
+    if (isConnected) return 'bg-green-500'
+    return 'bg-gray-400'
+  }
+
+  const getStatusLabel = () => {
+    if (isReconnecting) return 'Reconnecting...'
+    if (isConnected) return 'Live'
+    return 'Offline'
+  }
+
+  const getAriaLabel = () => {
+    if (isReconnecting) return 'Reconnecting to live updates'
+    if (isConnected) {
+      const timeAgo = lastConnectedAt 
+        ? `Connected since ${lastConnectedAt.toLocaleTimeString()}`
+        : 'Connected'
+      return `Live updates active. ${timeAgo}`
+    }
+    return 'Live updates disconnected'
+  }
+
+  const getTooltip = () => {
+    if (isReconnecting) return 'Attempting to reconnect...'
+    if (isConnected) {
+      return lastConnectedAt 
+        ? `Live updates active\nConnected: ${lastConnectedAt.toLocaleTimeString()}`
+        : 'Live updates active'
+    }
+    return 'Live updates disconnected. Changes may require refresh.'
+  }
+
+  return (
+    <div 
+      className={`inline-flex items-center gap-1.5 ${className}`}
+      role="status"
+      aria-label={getAriaLabel()}
+      title={getTooltip()}
+    >
+      <span className="relative flex">
+        <span 
+          className={`
+            ${sizeClasses[size]} 
+            ${getStatusColor()} 
+            rounded-full
+            ${isConnected && !isReconnecting ? 'animate-pulse' : ''}
+            ${isReconnecting ? 'animate-spin' : ''}
+          `}
+        />
+        {/* Ping animation for connected state */}
+        {isConnected && !isReconnecting && (
+          <span 
+            className={`
+              absolute inline-flex h-full w-full rounded-full 
+              bg-green-400 opacity-75 animate-ping
+            `}
+            style={{ animationDuration: '2s' }}
+          />
+        )}
+      </span>
+      
+      {showLabel && (
+        <span className={`
+          text-xs font-medium
+          ${isConnected ? 'text-green-600 dark:text-green-400' : ''}
+          ${isReconnecting ? 'text-yellow-600 dark:text-yellow-400' : ''}
+          ${!isConnected && !isReconnecting ? 'text-gray-500 dark:text-gray-400' : ''}
+        `}>
+          {getStatusLabel()}
+        </span>
+      )}
+    </div>
+  )
+}
+
+export default RealtimeStatusIndicator

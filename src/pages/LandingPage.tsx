@@ -19,7 +19,7 @@ import {
   GraduationCap, Users, Award, BookOpen, Star, ArrowRight, 
   CheckCircle, AlertTriangle, Mail, Phone, MapPin, Facebook, 
   Twitter, Linkedin 
-} from 'lucide-react';
+} from '@/components/icons';
 import {
   isSupabaseConfigured,
   SUPABASE_MISSING_CONFIG_MESSAGE,

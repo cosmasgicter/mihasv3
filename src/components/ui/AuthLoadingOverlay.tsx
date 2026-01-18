@@ -1,84 +1,101 @@
-import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2 } from 'lucide-react'
+/**
+ * AuthLoadingOverlay Component
+ * 
+ * Full-screen overlay shown during authentication flows.
+ * Uses CSS animations only - no Framer Motion.
+ * 
+ * @requirements 5.1, 5.2 - Fast page loading
+ */
+
+import { useState, useEffect } from 'react'
+import { Loader2 } from '@/components/icons'
 
 interface AuthLoadingOverlayProps {
   message?: string
 }
 
 export function AuthLoadingOverlay({ message = 'Signing you in...' }: AuthLoadingOverlayProps) {
+  const [isVisible, setIsVisible] = useState(false)
+
+  // Trigger animations on mount
+  useEffect(() => {
+    const timer = requestAnimationFrame(() => setIsVisible(true))
+    return () => cancelAnimationFrame(timer)
+  }, [])
+
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md flex items-center justify-center"
+    <div
+      className={`
+        fixed inset-0 z-50 bg-background/95 backdrop-blur-md 
+        flex items-center justify-center
+        transition-opacity duration-200
+        ${isVisible ? 'opacity-100' : 'opacity-0'}
+      `}
+    >
+      <div
+        className={`
+          bg-card rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 border border-border
+          transition-all duration-300
+          ${isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}
+        `}
       >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="bg-card rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 border border-border"
-        >
-          <div className="flex flex-col items-center space-y-6">
-            <div className="relative">
-              <motion.div
-                animate={{
-                  scale: [1, 1.2, 1],
-                  opacity: [0.5, 0.8, 0.5],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-                className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur-xl"
-              />
-              <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-full p-4">
-                <Loader2 className="h-8 w-8 text-white animate-spin" />
-              </div>
+        <div className="flex flex-col items-center space-y-6">
+          {/* Animated spinner with glow */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/60 rounded-full blur-xl opacity-50 animate-pulse" />
+            <div className="relative bg-gradient-to-r from-primary to-primary/80 rounded-full p-4">
+              <Loader2 className="h-8 w-8 text-white animate-spin" />
             </div>
-            <div className="text-center space-y-2">
-              <motion.h3
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-lg font-semibold text-foreground"
-              >
-                {message}
-              </motion.h3>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="text-sm text-muted-foreground"
-              >
-                Please wait a moment...
-              </motion.p>
-            </div>
-            <motion.div
-              className="w-full bg-muted rounded-full h-1 overflow-hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <motion.div
-                className="h-full bg-gradient-to-r from-blue-600 to-purple-600"
-                initial={{ width: '0%' }}
-                animate={{ width: '100%' }}
-                transition={{
-                  duration: 2,
-                  ease: 'easeInOut',
-                  repeat: Infinity,
-                }}
-              />
-            </motion.div>
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+          
+          {/* Text content */}
+          <div className="text-center space-y-2">
+            <h3
+              className={`
+                text-lg font-semibold text-foreground
+                transition-all duration-300 delay-100
+                ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
+              `}
+            >
+              {message}
+            </h3>
+            <p
+              className={`
+                text-sm text-muted-foreground
+                transition-all duration-300 delay-200
+                ${isVisible ? 'opacity-100' : 'opacity-0'}
+              `}
+            >
+              Please wait a moment...
+            </p>
+          </div>
+          
+          {/* Progress bar */}
+          <div
+            className={`
+              w-full bg-muted rounded-full h-1 overflow-hidden
+              transition-opacity duration-300 delay-300
+              ${isVisible ? 'opacity-100' : 'opacity-0'}
+            `}
+          >
+            <div 
+              className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full animate-progress-bar"
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* CSS keyframes for progress bar */}
+      <style>{`
+        @keyframes progress-bar {
+          0% { width: 0%; }
+          50% { width: 70%; }
+          100% { width: 100%; }
+        }
+        .animate-progress-bar {
+          animation: progress-bar 2s ease-in-out infinite;
+        }
+      `}</style>
+    </div>
   )
 }

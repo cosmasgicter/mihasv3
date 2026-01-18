@@ -1,5 +1,12 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+/**
+ * LoadingButton Component
+ * 
+ * Button with loading state using CSS animations.
+ * No Framer Motion dependency for better performance.
+ * 
+ * @requirements 5.1, 5.2 - Fast page loading
+ */
+
 import { LoadingSpinner } from './LoadingSpinner'
 import { Button, ButtonProps } from './Button'
 import { cn } from '@/lib/utils'
@@ -23,18 +30,16 @@ export function LoadingButton({
       disabled={disabled || loading}
       className={cn(
         'relative overflow-hidden transition-all duration-200',
-        loading && 'cursor-not-allowed',
+        loading && 'cursor-not-allowed opacity-90',
         className
       )}
       {...props}
     >
-      <motion.div
-        className="flex items-center justify-center space-x-2"
-        animate={{
-          opacity: loading ? 0.7 : 1,
-          scale: loading ? 0.95 : 1
-        }}
-        transition={{ duration: 0.2 }}
+      <span
+        className={cn(
+          'flex items-center justify-center gap-2 transition-transform duration-200',
+          loading && 'scale-95'
+        )}
       >
         {loading && (
           <LoadingSpinner 
@@ -43,16 +48,7 @@ export function LoadingButton({
           />
         )}
         <span>{loading && loadingText ? loadingText : children}</span>
-      </motion.div>
-      
-      {loading && (
-        <motion.div
-          className="absolute inset-0 bg-card/10 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-        />
-      )}
+      </span>
     </Button>
   )
 }

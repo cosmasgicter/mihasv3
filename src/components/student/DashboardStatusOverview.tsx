@@ -157,15 +157,19 @@ export function DashboardStatusOverview({
   ).length;
 
   // Get the most recent application for status display (including drafts so users can continue)
-  // Sort by updated_at first (most recently touched), then created_at
+  // Sort by created_at (most recently created first) for consistent ordering
+  // For submitted apps, prefer submitted_at if available
   const latestApplication = applications.length > 0 
     ? [...applications]
         .sort((a, b) => {
-          // For drafts, use updated_at or created_at
-          // For submitted apps, use submitted_at, then updated_at, then created_at
-          const dateA = new Date(a.updated_at || a.submitted_at || a.created_at).getTime();
-          const dateB = new Date(b.updated_at || b.submitted_at || b.created_at).getTime();
-          return dateB - dateA; // Most recent first
+          // Use submitted_at for submitted apps, created_at for drafts
+          const getRelevantDate = (app: Application) => {
+            if (app.status !== 'draft' && app.submitted_at) {
+              return new Date(app.submitted_at).getTime();
+            }
+            return new Date(app.created_at).getTime();
+          };
+          return getRelevantDate(b) - getRelevantDate(a); // Most recent first
         })[0]
     : null;
   

@@ -7,7 +7,7 @@
  * Requirements: 9.5, 9.6, 9.7
  */
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 interface SafeAreaInsets {
@@ -103,14 +103,15 @@ export function SafeAreaProvider({ children }: SafeAreaProviderProps) {
 
   const hasNotch = insets.top > 20 || insets.bottom > 20
 
-  const value: SafeAreaContextValue = {
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo<SafeAreaContextValue>(() => ({
     insets,
     isLandscape,
     isPortrait: !isLandscape,
     hasNotch,
     viewportHeight,
     viewportWidth,
-  }
+  }), [insets, isLandscape, hasNotch, viewportHeight, viewportWidth])
 
   return (
     <SafeAreaContext.Provider value={value}>

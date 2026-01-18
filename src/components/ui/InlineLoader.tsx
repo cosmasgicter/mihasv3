@@ -1,5 +1,12 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+/**
+ * InlineLoader Component
+ * 
+ * Lightweight inline loading indicator using CSS animations.
+ * No Framer Motion dependency for better performance.
+ * 
+ * @requirements 5.1, 5.2 - Fast page loading
+ */
+
 import { LoadingSpinner } from './LoadingSpinner'
 import { cn } from '@/lib/utils'
 
@@ -31,25 +38,34 @@ export function InlineLoader({
   }
 
   return (
-    <motion.div
-      className={cn(baseClasses[variant], sizeClasses[size], className)}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
+    <div
+      className={cn(
+        baseClasses[variant], 
+        sizeClasses[size], 
+        'animate-fade-in',
+        className
+      )}
     >
       {showSpinner && (
         <LoadingSpinner 
           size={size === 'lg' ? 'md' : 'sm'} 
-          color={variant === 'card' ? 'primary' : 'primary'}
+          color="primary"
         />
       )}
-      <span className={cn(
-        'font-medium',
-        variant === 'minimal' ? 'text-foreground' : 'text-foreground'
-      )}>
+      <span className="font-medium text-foreground">
         {message}
       </span>
-    </motion.div>
+      
+      <style>{`
+        .animate-fade-in {
+          animation: inline-fade-in 0.3s ease-out forwards;
+        }
+        @keyframes inline-fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
+    </div>
   )
 }
 

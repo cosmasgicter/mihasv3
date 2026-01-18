@@ -1,9 +1,10 @@
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, CheckCircle, Send, Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect } from 'react'
 
 import { AIAssistant } from '@/components/application/AIAssistant'
+import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
@@ -24,6 +25,7 @@ import PaymentStep from './steps/PaymentStep'
 import SubmitStep from './steps/SubmitStep'
 import useWizardController from './hooks/useWizardController'
 import { useStepValidation } from './hooks/useStepValidation'
+import { useOverallProgress } from './hooks/useOverallProgress'
 import { useSmartAutoSave } from './hooks/useSmartAutoSave'
 import { useEstimatedTime } from './hooks/useEstimatedTime'
 import { useAnalytics } from './hooks/useAnalytics'
@@ -86,6 +88,7 @@ const ApplicationWizardContent = () => {
   } = useWizardController()
 
   const stepValidation = useStepValidation(form, currentStepIndex)
+  const overallProgress = useOverallProgress(form)
   const smartAutoSave = useSmartAutoSave({
     onSave: saveDraft,
     watchValues,
@@ -93,7 +96,7 @@ const ApplicationWizardContent = () => {
   })
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
   useAnalytics(user?.id, null, currentStepIndex, currentStepConfig.key)
-  const prefersReducedMotion = useReducedMotion()
+  const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
 
   const getChecklistItems = () => {
     // Defensive: some test setups call this component without a populated form.watch()
@@ -224,10 +227,14 @@ const ApplicationWizardContent = () => {
 
   const handleGetUsedSubjects = () => getUsedSubjects()
 
-  const MaybeMotionDiv: any = prefersReducedMotion ? (props: any) => <div {...props} /> : motion.div
+  // Use CSS transitions on mobile/reduced motion, Framer Motion on desktop
+  const MaybeMotionDiv: any = shouldAnimate ? motion.div : (props: any) => <div {...props} />
 
   return (
-    <MaybeMotionDiv className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.36 }}>
+    <MaybeMotionDiv 
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50" 
+      {...(shouldAnimate ? { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.36 } } : {})}
+    >
       <div className="w-full">
         <Container size="md" className="py-4 sm:py-8">
           <div className="mb-8">
@@ -235,7 +242,7 @@ const ApplicationWizardContent = () => {
               <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
               Back to Dashboard
             </Link>
-            {prefersReducedMotion ? (
+            {!shouldAnimate ? (
               <div>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Student Application</h1>
                 <p className="text-gray-900">Complete the {totalSteps}-step application process</p>
