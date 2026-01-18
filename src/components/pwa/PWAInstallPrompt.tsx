@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Download, X, Smartphone, Monitor } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
+import { Download, X } from 'lucide-react'
 import { usePWA } from '@/hooks/usePWA'
+import { cn } from '@/lib/utils'
 
 /**
- * PWA Install Prompt Component
+ * PWA Install Prompt Component - Sleek minimal banner
  * Requirements: 9.5 - Enhance app-like experience when installed as PWA
  */
 export const PWAInstallPrompt: React.FC = () => {
-  const { canInstall, isInstalled, capabilities, promptInstall } = usePWA()
+  const { canInstall, isInstalled, promptInstall } = usePWA()
   const [showPrompt, setShowPrompt] = useState(false)
   const [dismissed, setDismissed] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
     // Check if user has dismissed the prompt before
@@ -29,7 +28,9 @@ export const PWAInstallPrompt: React.FC = () => {
     if (canInstall && !isInstalled && !dismissed) {
       const timer = setTimeout(() => {
         setShowPrompt(true)
-      }, 5000) // Show after 5 seconds
+        // Trigger animation after mount
+        requestAnimationFrame(() => setIsVisible(true))
+      }, 5000)
 
       return () => clearTimeout(timer)
     }
@@ -38,12 +39,17 @@ export const PWAInstallPrompt: React.FC = () => {
   const handleInstall = async () => {
     const success = await promptInstall()
     if (success) {
-      setShowPrompt(false)
+      handleClose()
     }
   }
 
+  const handleClose = () => {
+    setIsVisible(false)
+    setTimeout(() => setShowPrompt(false), 200)
+  }
+
   const handleDismiss = () => {
-    setShowPrompt(false)
+    handleClose()
     setDismissed(true)
     localStorage.setItem('pwa_prompt_dismissed', Date.now().toString())
   }
@@ -52,60 +58,39 @@ export const PWAInstallPrompt: React.FC = () => {
     return null
   }
 
-  const platformIcon = capabilities.platform === 'ios' || capabilities.platform === 'android' 
-    ? <Smartphone className="h-5 w-5" />
-    : <Monitor className="h-5 w-5" />
-
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 50 }}
-        className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50"
-      >
-        <Card className="shadow-lg border-2 border-primary/20">
-          <div className="p-4">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2">
-                {platformIcon}
-                <h3 className="font-semibold text-lg">Install MIHAS App</h3>
-              </div>
-              <button
-                onClick={handleDismiss}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Dismiss"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <p className="text-sm text-muted-foreground mb-4">
-              Install the MIHAS app for a better experience with offline access, 
-              faster loading, and push notifications.
-            </p>
-
-            <div className="flex gap-2">
-              <Button
-                onClick={handleInstall}
-                className="flex-1"
-                size="sm"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Install App
-              </Button>
-              <Button
-                onClick={handleDismiss}
-                variant="outline"
-                size="sm"
-              >
-                Not Now
-              </Button>
-            </div>
+    <div
+      className={cn(
+        'fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50',
+        'transform transition-all duration-200 ease-out',
+        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+      )}
+    >
+      <div className="flex items-center gap-3 bg-card/95 backdrop-blur-sm border border-border rounded-full shadow-lg px-4 py-2.5">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Download className="h-4 w-4 text-primary" />
           </div>
-        </Card>
-      </motion.div>
-    </AnimatePresence>
+          <span className="text-sm font-medium truncate">Install MIHAS App</span>
+        </div>
+        
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={handleInstall}
+            className="px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          >
+            Install
+          </button>
+          <button
+            onClick={handleDismiss}
+            className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+            aria-label="Dismiss"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 

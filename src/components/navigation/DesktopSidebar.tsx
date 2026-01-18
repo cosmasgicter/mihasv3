@@ -106,39 +106,45 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
       style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
     >
       {/* Header with logo and collapse toggle */}
-      <div className="flex items-center justify-between p-4 border-b border-border min-h-[64px]">
-        <AnimatePresence mode="wait">
-          {!collapsed && (
-            <motion.div
-              initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
-              className="flex items-center gap-2"
-            >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <span className="text-white font-bold text-sm">M</span>
-              </div>
-              <span className="text-lg font-bold text-foreground truncate">
-                {isAdmin ? 'MIHAS Admin' : 'MIHAS-KATC'}
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
-        {collapsed && (
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto">
+      <div className={cn(
+        "flex items-center p-4 border-b border-border min-h-[64px]",
+        collapsed ? "flex-col gap-2 justify-center" : "justify-between"
+      )}>
+        {/* Logo - always visible */}
+        <div className={cn(
+          "flex items-center",
+          collapsed ? "justify-center" : "gap-2"
+        )}>
+          <div className={cn(
+            "w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary",
+            "flex items-center justify-center shrink-0"
+          )}>
             <span className="text-white font-bold text-sm">M</span>
           </div>
-        )}
+          
+          {/* Text - only when expanded */}
+          <AnimatePresence mode="wait">
+            {!collapsed && (
+              <motion.span
+                initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                className="text-lg font-bold text-foreground truncate"
+              >
+                {isAdmin ? 'MIHAS Admin' : 'MIHAS-KATC'}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
         
+        {/* Toggle button - centered below logo when collapsed */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className={cn(
             'p-2 rounded-lg hover:bg-accent transition-colors',
-            'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-            collapsed && 'mx-auto mt-2'
+            'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
           )}
         >
           {collapsed ? (

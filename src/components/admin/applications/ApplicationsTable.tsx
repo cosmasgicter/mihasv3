@@ -3,6 +3,7 @@ import { sanitizeHtml } from '@/lib/sanitizer'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Eye, FileText, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building, MessageSquare } from 'lucide-react'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
+import { DraftBadge } from './DraftBadge'
 import { useToastStore } from '@/components/ui/Toast'
 import { CommunicationModal } from '@/components/admin/CommunicationModal'
 import { sendToApplicant, type CommunicationRequest } from '@/services/communicationService'
@@ -363,11 +364,13 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
  </div>
  </div>
  <div className="flex flex-col items-end gap-2">
- {getStatusBadge(app.status)}
- {app.isDraft && (
- <div className="text-xs text-gray-900">
- <span className="font-medium">{app.completionPercentage}%</span> complete
- </div>
+ {app.isDraft ? (
+ <DraftBadge
+ completionPercentage={app.completionPercentage}
+ lastUpdated={app.lastUpdated}
+ />
+ ) : (
+ getStatusBadge(app.status)
  )}
  </div>
  </div>

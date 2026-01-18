@@ -61,7 +61,7 @@ export default defineConfig({
   build: {
     target: 'es2020',
     minify: 'terser',
-    sourcemap: false,
+    sourcemap: true,
     chunkSizeWarningLimit: 500,
     // Enable CSS code splitting for better critical CSS extraction
     cssCodeSplit: true,

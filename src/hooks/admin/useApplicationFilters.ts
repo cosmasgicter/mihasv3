@@ -20,6 +20,12 @@ export const DEFAULT_APPLICATION_FILTERS: ApplicationFilters = {
   draftFilter: 'all'
 }
 
+export const DRAFT_FILTER_OPTIONS = [
+  { value: 'all', label: 'All Applications' },
+  { value: 'drafts', label: 'Drafts Only' },
+  { value: 'completed', label: 'Completed Only' }
+] as const
+
 export const APPLICATION_FILTER_KEYS = [
   'searchTerm',
   'statusFilter',

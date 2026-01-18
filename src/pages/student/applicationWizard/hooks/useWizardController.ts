@@ -158,7 +158,6 @@ const useWizardController = (): UseWizardControllerResult => {
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
   const isSavingRef = useRef(false)
-  const saveQueueRef = useRef<Promise<void>>(Promise.resolve())
 
   const findProgramId = useCallback(
     (
@@ -478,11 +477,14 @@ const useWizardController = (): UseWizardControllerResult => {
     const loadDraft = async () => {
       if (!user || authLoading || draftLoaded) return
       setRestoringDraft(true)
+      let draftRestored = false
+      
       try {
         // Check if draft was recently deleted
         if (isDraftDeleted()) {
           clearDraftDeletedFlag()
           setRestoringDraft(false)
+          setDraftLoaded(true)
           return
         }
         
@@ -491,12 +493,15 @@ const useWizardController = (): UseWizardControllerResult => {
         if (savedDraft) {
           const draft = safeJsonParse(savedDraft, null)
           if (draft && draft.formData && draft.version === 2) {
+            // 3.2: Restore form values with shouldValidate: false to prevent validation errors
             Object.keys(draft.formData).forEach(key => {
               const value = draft.formData[key]
               if (value !== undefined && value !== null && value !== '') {
-                setValue(key as keyof WizardFormData, value)
+                setValue(key as keyof WizardFormData, value, { shouldValidate: false })
               }
             })
+            
+            // Handle program ID resolution correctly
             if (draft.formData.program) {
               const resolvedProgramId = findProgramId(
                 draft.formData.program,
@@ -504,25 +509,54 @@ const useWizardController = (): UseWizardControllerResult => {
                 programsData?.programs as WizardProgram[] | undefined
               )
               if (resolvedProgramId) {
-                setValue('program', resolvedProgramId, { shouldValidate: true })
+                setValue('program', resolvedProgramId, { shouldValidate: false })
               }
             }
-            if (draft.selectedGrades) {
-              setSelectedGrades(draft.selectedGrades)
+            
+            // Ensure intake is restored
+            if (draft.formData.intake) {
+              setValue('intake', draft.formData.intake, { shouldValidate: false })
             }
-            // Only restore step if we're starting fresh (currentStepIndex is 0)
-            if (currentStepIndex === 0) {
-              if (draft.currentStepKey) {
-                const index = wizardSteps.findIndex(step => step.key === draft.currentStepKey)
-                if (index >= 0) setCurrentStepIndex(index)
-              } else if (typeof draft.currentStep === 'number') {
-                const index = getStepIndexById(draft.currentStep)
-                setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(draft.currentStep - 1, 0), totalSteps - 1))
+            
+            // 3.3: Validate grades array structure before setting
+            if (draft.selectedGrades && Array.isArray(draft.selectedGrades)) {
+              const validGrades = draft.selectedGrades.filter((grade: any) => 
+                grade && 
+                typeof grade === 'object' &&
+                typeof grade.subject_id === 'string' &&
+                (typeof grade.grade === 'number' || typeof grade.grade === 'string')
+              ).map((grade: any) => ({
+                subject_id: grade.subject_id,
+                grade: typeof grade.grade === 'string' ? parseInt(grade.grade, 10) : grade.grade
+              }))
+              
+              if (validGrades.length > 0) {
+                setSelectedGrades(validGrades)
               }
             }
+            
+            // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
+            // Use currentStepKey for reliable step matching
+            if (draft.currentStepKey) {
+              const index = wizardSteps.findIndex(step => step.key === draft.currentStepKey)
+              if (index >= 0) {
+                setCurrentStepIndex(index)
+              }
+            } else if (typeof draft.currentStep === 'number') {
+              const index = getStepIndexById(draft.currentStep)
+              setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(draft.currentStep - 1, 0), totalSteps - 1))
+            }
+            
             if (draft.applicationId) {
               setApplicationId(draft.applicationId)
             }
+            
+            draftRestored = true
+            setRestoringDraft(false)
+            setDraftLoaded(true)
+            
+            // 3.4: Show restoration confirmation message only if draft was actually restored
+            showSuccess('Draft restored successfully')
             return
           }
           localStorage.removeItem('applicationWizardDraft')
@@ -539,23 +573,24 @@ const useWizardController = (): UseWizardControllerResult => {
           // CRITICAL: Set application ID FIRST
           setApplicationId(app.id)
           
-          setValue('full_name', app.full_name || '')
-          setValue('nrc_number', app.nrc_number || '')
-          setValue('passport_number', app.passport_number || '')
-          setValue('date_of_birth', app.date_of_birth || '')
-          setValue('sex', app.sex || '')
-          setValue('phone', app.phone || '')
-          setValue('email', app.email || '')
-          setValue('residence_town', app.residence_town || '')
-          setValue('nationality', (app as any).nationality || 'Zambian')
-          setValue('next_of_kin_name', app.next_of_kin_name || '')
-          setValue('next_of_kin_phone', app.next_of_kin_phone || '')
-          setValue('payment_method', app.payment_method || '')
-          setValue('payer_name', app.payer_name || '')
-          setValue('payer_phone', app.payer_phone || '')
-          setValue('amount', app.amount || 153)
-          setValue('paid_at', app.paid_at || '')
-          setValue('momo_ref', app.momo_ref || '')
+          // 3.2: Set form values with shouldValidate: false
+          setValue('full_name', app.full_name || '', { shouldValidate: false })
+          setValue('nrc_number', app.nrc_number || '', { shouldValidate: false })
+          setValue('passport_number', app.passport_number || '', { shouldValidate: false })
+          setValue('date_of_birth', app.date_of_birth || '', { shouldValidate: false })
+          setValue('sex', app.sex || '', { shouldValidate: false })
+          setValue('phone', app.phone || '', { shouldValidate: false })
+          setValue('email', app.email || '', { shouldValidate: false })
+          setValue('residence_town', app.residence_town || '', { shouldValidate: false })
+          setValue('nationality', (app as any).nationality || 'Zambian', { shouldValidate: false })
+          setValue('next_of_kin_name', app.next_of_kin_name || '', { shouldValidate: false })
+          setValue('next_of_kin_phone', app.next_of_kin_phone || '', { shouldValidate: false })
+          setValue('payment_method', app.payment_method || '', { shouldValidate: false })
+          setValue('payer_name', app.payer_name || '', { shouldValidate: false })
+          setValue('payer_phone', app.payer_phone || '', { shouldValidate: false })
+          setValue('amount', app.amount || 153, { shouldValidate: false })
+          setValue('paid_at', app.paid_at || '', { shouldValidate: false })
+          setValue('momo_ref', app.momo_ref || '', { shouldValidate: false })
           
           if (app.program) {
             const resolvedProgramId = findProgramId(
@@ -563,32 +598,28 @@ const useWizardController = (): UseWizardControllerResult => {
               app.institution,
               programsData?.programs as WizardProgram[] | undefined
             )
-            setValue('program', resolvedProgramId || app.program)
+            setValue('program', resolvedProgramId || app.program, { shouldValidate: false })
           } else {
-            setValue('program', '')
+            setValue('program', '', { shouldValidate: false })
           }
-          setValue('intake', app.intake || '')
+          setValue('intake', app.intake || '', { shouldValidate: false })
 
-          // Only restore step if we're starting fresh (currentStepIndex is 0)
-          if (currentStepIndex === 0) {
-            let stepId = 1
-            if (app.program && app.full_name) {
-              stepId = 2
-              if (app.result_slip_url) {
-                stepId = 3
-                if (app.pop_url) stepId = 4
-              }
+          // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
+          let stepId = 1
+          if (app.program && app.full_name) {
+            stepId = 2
+            if (app.result_slip_url) {
+              stepId = 3
+              if (app.pop_url) stepId = 4
             }
-            const index = getStepIndexById(stepId)
-            setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
           }
+          const index = getStepIndexById(stepId)
+          setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
 
-          if (location.state?.continueApplication) {
-            setTimeout(() => {
-              setDraftSaved(true)
-              setTimeout(() => setDraftSaved(false), 3000)
-            }, 500)
-          }
+          draftRestored = true
+          
+          // 3.4: Show restoration confirmation for database draft
+          showSuccess('Draft restored successfully')
         }
       } catch (error) {
         console.error('Error loading draft application:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
@@ -611,83 +642,67 @@ const useWizardController = (): UseWizardControllerResult => {
     location.state,
     totalSteps,
     findProgramId,
-    programsData
+    programsData,
+    showSuccess
   ])
 
   const saveDraft = useCallback(async () => {
     if (!user || restoringDraft) return
     
-    // Queue saves to prevent race conditions
-    saveQueueRef.current = saveQueueRef.current.then(async () => {
-      if (isSavingRef.current) return
-      
-      try {
-        isSavingRef.current = true
-        setIsDraftSaving(true)
-        
-        const formData = watch()
-        const draft = {
-          formData,
-          selectedGrades,
-          currentStep: currentStepConfig.id,
-          currentStepKey: currentStepConfig.key,
-          applicationId,
-          savedAt: new Date().toISOString(),
-          version: 2
-        }
-
-        // Use requestIdleCallback for non-blocking save
-        await new Promise<void>(resolve => {
-          const saveOperation = () => {
-            try {
-              localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
-              sessionStorage.removeItem('applicationWizardDraft')
-              resolve()
-            } catch (error) {
-              console.error('Error saving draft:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
-              resolve()
-            }
-          }
-          
-          if ('requestIdleCallback' in window) {
-            requestIdleCallback(saveOperation, { timeout: 2000 })
-          } else {
-            setTimeout(saveOperation, 0)
-          }
-        })
-
-        setDraftSaved(true)
-        setTimeout(() => setDraftSaved(false), 2000)
-      } finally {
-        setIsDraftSaving(false)
-        isSavingRef.current = false
-      }
-    }).catch(error => {
-      console.error('Draft save queue error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
-      isSavingRef.current = false
-      setIsDraftSaving(false)
-    })
+    // Prevent concurrent saves
+    if (isSavingRef.current) return
     
-    return saveQueueRef.current
-  }, [user, restoringDraft, selectedGrades, currentStepConfig, applicationId, watch])
+    try {
+      isSavingRef.current = true
+      setIsDraftSaving(true)
+      
+      const formData = getValues()
+      const draft = {
+        formData,
+        selectedGrades,
+        currentStep: currentStepConfig.id,
+        currentStepKey: currentStepConfig.key,
+        applicationId,
+        savedAt: new Date().toISOString(),
+        version: 2
+      }
+
+      // Save synchronously for reliability (no requestIdleCallback delay)
+      try {
+        localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
+        sessionStorage.removeItem('applicationWizardDraft')
+      } catch (error) {
+        console.error('Error saving draft:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+      }
+
+      // Update UI indicators
+      setDraftSaved(true)
+      setTimeout(() => setDraftSaved(false), 2000)
+    } finally {
+      setIsDraftSaving(false)
+      isSavingRef.current = false
+    }
+  }, [user, restoringDraft, selectedGrades, currentStepConfig, applicationId, getValues])
 
   useEffect(() => {
     // Don't start auto-save until draft is loaded and not restoring
-    if (!draftLoaded || restoringDraft) return
+    if (!draftLoaded || restoringDraft || !user) return
     
-    let timeoutId: NodeJS.Timeout
-    const subscription = watch(() => {
-      if (timeoutId) clearTimeout(timeoutId)
-      timeoutId = setTimeout(() => {
+    // Use setInterval for reliable 8-second auto-save
+    const intervalId = setInterval(() => {
+      const formData = getValues()
+      // Only save when form has data
+      const hasData = Object.values(formData).some(v => v !== undefined && v !== null && v !== '')
+      
+      if (hasData) {
         saveDraft()
-      }, 8000)
-    })
+      }
+    }, 8000)
 
     return () => {
-      subscription.unsubscribe()
-      if (timeoutId) clearTimeout(timeoutId)
+      clearInterval(intervalId)
     }
-  }, [draftLoaded, restoringDraft, watch])
+  }, [draftLoaded, restoringDraft, user, getValues, saveDraft])
 
   const addGrade = useCallback(() => {
     setSelectedGrades(prev => (prev.length < 10 ? [...prev, { subject_id: '', grade: 1 }] : prev))

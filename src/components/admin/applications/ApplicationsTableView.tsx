@@ -8,6 +8,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Eye, FileText, Mail, Phone, Calendar, User, AlertTriangle } from 'lucide-react';
 import { EnhancedDataTable, type Column } from '@/components/admin/EnhancedDataTable';
+import { DraftBadge } from '@/components/admin/applications/DraftBadge';
 import { cn } from '@/lib/utils';
 
 interface ApplicationSummary {
@@ -28,6 +29,7 @@ interface ApplicationSummary {
   days_since_submission: number;
   isDraft?: boolean;
   completionPercentage?: number;
+  lastUpdated?: string;
 }
 
 interface ApplicationsTableViewProps {
@@ -134,21 +136,10 @@ export function ApplicationsTableView({
       render: (value: string, row: ApplicationSummary) => {
         if (row.isDraft) {
           return (
-            <div className="flex flex-col items-center gap-1">
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
-                <AlertTriangle className="h-3 w-3" />
-                DRAFT
-              </div>
-              <div className="w-full max-w-[60px]">
-                <div className="w-full bg-yellow-100 rounded-full h-1.5">
-                  <div
-                    className="bg-yellow-600 h-1.5 rounded-full transition-all duration-300"
-                    style={{ width: `${row.completionPercentage || 0}%` }}
-                  />
-                </div>
-                <span className="text-[10px] text-yellow-700">{row.completionPercentage || 0}%</span>
-              </div>
-            </div>
+            <DraftBadge
+              completionPercentage={row.completionPercentage || 0}
+              lastUpdated={row.lastUpdated || row.created_at}
+            />
           );
         }
         // For non-draft statuses, render the status badge manually

@@ -38,7 +38,17 @@ export async function onRequestGet(context) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // Fetch last 30 days of applications
+    // Get total count of ALL applications regardless of status or date
+    // This ensures accurate totalApplications count (e.g., 28 applications)
+    const { count: totalApplications, error: countError } = await supabaseAdminClient
+      .from('applications')
+      .select('*', { count: 'exact', head: true })
+
+    if (countError) {
+      console.error('Total count error:', countError)
+    }
+
+    // Fetch last 30 days of applications for trend analysis
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
     const { data: applications } = await supabaseAdminClient
       .from('applications')
@@ -48,6 +58,9 @@ export async function onRequestGet(context) {
     // Use Cloudflare AI for analysis
     const ai = new CloudflareAI(env)
     const analysis = await ai.analyzeTrends(applications || [])
+
+    // Override the total with the accurate count from all applications
+    analysis.total = totalApplications || analysis.total || 0
 
     return new Response(JSON.stringify(analysis), {
       status: 200,
