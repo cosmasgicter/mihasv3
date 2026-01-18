@@ -66,8 +66,12 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request).then((fetchResponse) => {
-        // Only cache GET requests with cacheable URL schemes
-        if (event.request.method === 'GET' && isCacheableRequest(event.request)) {
+        // Only cache GET requests with cacheable URL schemes and full responses (not 206 partial)
+        const canCache = event.request.method === 'GET' && 
+                         isCacheableRequest(event.request) && 
+                         fetchResponse.status === 200
+        
+        if (canCache) {
           return caches.open(CACHE_NAME).then((cache) => {
             try {
               cache.put(event.request, fetchResponse.clone())

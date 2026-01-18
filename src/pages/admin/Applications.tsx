@@ -19,6 +19,7 @@ import { useToastStore } from '@/components/ui/Toast'
 import { supabase } from '@/lib/supabase'
 import { applicationService } from '@/services/applications'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
+import { ApplicationCard } from '@/components/admin/applications/ApplicationCard'
 import {
   exportToCSV,
   exportToExcel,
@@ -179,6 +180,9 @@ export default function Applications() {
   }>({ notification: false, acceptance: false, receipt: false })
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
+  // Track which application is currently being updated (for virtualized grid)
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
+  const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null)
   const [quickStats, setQuickStats] = useState({
     todaySubmissions: 0,
     pendingReview: 0,
@@ -385,24 +389,30 @@ export default function Applications() {
   // Wrapper for updateStatus with error handling and toast notifications
   const handleStatusUpdate = useCallback(async (applicationId: string, newStatus: string) => {
     try {
+      setUpdatingStatusId(applicationId)
       await updateStatus(applicationId, newStatus)
       showSuccess('Status updated', `Application status changed to ${newStatus.replace('_', ' ')}.`)
     } catch (error) {
       console.error('Failed to update application status:', error)
       showError('Status update failed', error instanceof Error ? error.message : 'Unable to update application status. Please try again.')
       throw error // Re-throw to let the calling component know the operation failed
+    } finally {
+      setUpdatingStatusId(null)
     }
   }, [updateStatus, showSuccess, showError])
 
   // Wrapper for updatePaymentStatus with error handling and toast notifications
   const handlePaymentStatusUpdate = useCallback(async (applicationId: string, newPaymentStatus: string) => {
     try {
+      setUpdatingPaymentId(applicationId)
       await updatePaymentStatus(applicationId, newPaymentStatus)
       showSuccess('Payment status updated', `Payment status changed to ${newPaymentStatus.replace('_', ' ')}.`)
     } catch (error) {
       console.error('Failed to update payment status:', error)
       showError('Payment update failed', error instanceof Error ? error.message : 'Unable to update payment status. Please try again.')
       throw error // Re-throw to let the calling component know the operation failed
+    } finally {
+      setUpdatingPaymentId(null)
     }
   }, [updatePaymentStatus, showSuccess, showError])
 
@@ -681,11 +691,13 @@ export default function Applications() {
         ) : applications.length > 100 ? (
           <VirtualizedApplicationsGrid
             applications={applications}
-            renderCard={(app) => (
-              <div className="h-full">
-                {/* Card content rendered via ApplicationsTable */}
-              </div>
-            )}
+            onStatusUpdate={handleStatusUpdate}
+            onPaymentStatusUpdate={handlePaymentStatusUpdate}
+            onViewDetails={handleViewDetails}
+            updatingStatusId={updatingStatusId}
+            updatingPaymentId={updatingPaymentId}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
           />
         ) : (
           <ApplicationsTable
