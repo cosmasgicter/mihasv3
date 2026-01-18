@@ -5,7 +5,7 @@
  * @requirements 8.3 - Supabase UI realtime components for dashboard updates
  */
 
-import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
@@ -122,8 +122,11 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
     };
   }, []);
 
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({ subscribe, isConnected }), [subscribe, isConnected]);
+
   return (
-    <RealtimeContext.Provider value={{ subscribe, isConnected }}>
+    <RealtimeContext.Provider value={value}>
       {children}
     </RealtimeContext.Provider>
   );

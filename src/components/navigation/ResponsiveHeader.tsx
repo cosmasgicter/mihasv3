@@ -7,17 +7,16 @@
  * - Current page highlighting with visual indicators
  * 
  * @requirements 4.1, 4.2, 4.3, 4.5 - Navigation system redesign
+ * @performance Optimized to eliminate forced reflows - uses CSS transitions instead of Framer Motion
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Menu, X, ChevronRight, GraduationCap, LayoutDashboard, LogOut, Home, Search, UserPlus, LogIn } from 'lucide-react';
+import { Menu, X, ChevronRight, GraduationCap, LayoutDashboard, LogOut, Home, Search, UserPlus, LogIn } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRoleQuery } from '@/hooks/auth/useRoleQuery';
-import { durations, easings } from '@/lib/animation-config';
 
 export interface NavigationItem {
   href: string;
@@ -30,103 +29,79 @@ interface ResponsiveHeaderProps {
   className?: string;
 }
 
-// Animation variants for the header
-const headerVariants = {
-  visible: {
-    y: 0,
-    transition: {
-      duration: durations.normal,
-      ease: easings.easeOut,
-    },
-  },
-  hidden: {
-    y: '-100%',
-    transition: {
-      duration: durations.normal,
-      ease: easings.easeIn,
-    },
-  },
-};
-
-// Animation variants for mobile menu
-const menuVariants = {
-  closed: {
-    x: '100%',
-    transition: {
-      duration: durations.normal,
-      ease: easings.easeIn,
-    },
-  },
-  open: {
-    x: 0,
-    transition: {
-      duration: durations.normal,
-      ease: easings.easeOut,
-    },
-  },
-};
-
-// Animation variants for menu items
-const itemVariants = {
-  closed: { opacity: 0, x: 20 },
-  open: (i: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: {
-      delay: i * 0.05,
-      duration: durations.fast,
-      ease: easings.easeOut,
-    },
-  }),
-};
-
-// Custom hook for scroll direction detection
+// Custom hook for scroll direction detection - optimized to prevent reflows
 function useScrollDirection(threshold = 10) {
   const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(null);
   const [isAtTop, setIsAtTop] = useState(true);
+  const lastScrollYRef = useRef(0);
+  const tickingRef = useRef(false);
+  // Cache scroll values to batch reads
+  const scrollStateRef = useRef({ direction: null as 'up' | 'down' | null, atTop: true });
 
   useEffect(() => {
-    let lastScrollY = window.scrollY;
-    let ticking = false;
+    // Read initial scroll position once - batch DOM read
+    const initialScrollY = window.scrollY;
+    lastScrollYRef.current = initialScrollY;
+    const initialAtTop = initialScrollY < threshold;
+    scrollStateRef.current = { direction: null, atTop: initialAtTop };
+    setIsAtTop(initialAtTop);
 
     const updateScrollDirection = () => {
+      // Single DOM read - batch all reads before any state updates
       const scrollY = window.scrollY;
+      const lastScrollY = lastScrollYRef.current;
       
-      // Check if at top
-      setIsAtTop(scrollY < threshold);
-
-      // Determine scroll direction
-      if (Math.abs(scrollY - lastScrollY) < threshold) {
-        ticking = false;
-        return;
+      // Calculate new values without triggering state updates yet
+      const newIsAtTop = scrollY < threshold;
+      const diff = scrollY - lastScrollY;
+      let newDirection = scrollStateRef.current.direction;
+      
+      if (Math.abs(diff) >= threshold) {
+        newDirection = diff > 0 ? 'down' : 'up';
+        lastScrollYRef.current = scrollY > 0 ? scrollY : 0;
       }
-
-      setScrollDirection(scrollY > lastScrollY ? 'down' : 'up');
-      lastScrollY = scrollY > 0 ? scrollY : 0;
-      ticking = false;
+      
+      // Batch state updates - only update if values actually changed
+      const prevState = scrollStateRef.current;
+      if (prevState.direction !== newDirection || prevState.atTop !== newIsAtTop) {
+        scrollStateRef.current = { direction: newDirection, atTop: newIsAtTop };
+        
+        // Single batch of state updates
+        if (prevState.direction !== newDirection) {
+          setScrollDirection(newDirection);
+        }
+        if (prevState.atTop !== newIsAtTop) {
+          setIsAtTop(newIsAtTop);
+        }
+      }
+      
+      tickingRef.current = false;
     };
 
     const onScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(updateScrollDirection);
-        ticking = true;
+      if (!tickingRef.current) {
+        tickingRef.current = true;
+        requestAnimationFrame(updateScrollDirection);
       }
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
-
     return () => window.removeEventListener('scroll', onScroll);
   }, [threshold]);
 
   return { scrollDirection, isAtTop };
 }
 
+// Check for reduced motion preference once at module level
+const prefersReducedMotion = typeof window !== 'undefined' 
+  ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
+  : false;
+
 export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { isAdmin } = useRoleQuery({ user });
-  const prefersReducedMotion = useReducedMotion();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { scrollDirection, isAtTop } = useScrollDirection();
 
@@ -182,19 +157,25 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
     return location.pathname.startsWith(href);
   }, [location.pathname]);
 
-  // Toggle mobile menu
+  // Toggle mobile menu - batch DOM writes to prevent reflows
   const toggleMenu = useCallback(() => {
     setIsMenuOpen((prev) => {
       const newState = !prev;
-      document.body.style.overflow = newState ? 'hidden' : '';
+      // Use requestAnimationFrame to batch DOM write after state update
+      requestAnimationFrame(() => {
+        document.body.style.overflow = newState ? 'hidden' : '';
+      });
       return newState;
     });
   }, []);
 
-  // Close mobile menu
+  // Close mobile menu - batch DOM writes to prevent reflows
   const closeMenu = useCallback(() => {
     setIsMenuOpen(false);
-    document.body.style.overflow = '';
+    // Use requestAnimationFrame to batch DOM write after state update
+    requestAnimationFrame(() => {
+      document.body.style.overflow = '';
+    });
   }, []);
 
   // Handle navigation
@@ -213,41 +194,42 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
 
     document.addEventListener('keydown', handleEscape);
     return () => {
-      document.body.style.overflow = '';
+      // Batch DOM write in cleanup to prevent reflows
+      requestAnimationFrame(() => {
+        document.body.style.overflow = '';
+      });
       document.removeEventListener('keydown', handleEscape);
     };
   }, [isMenuOpen, closeMenu]);
 
-  // Brand component
+  // Brand component - simplified without motion
   const Brand = (
     <Link 
       to="/" 
-      className="flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+      className="flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg group"
       aria-label="MIHAS-KATC Home"
     >
-      <motion.div
-        className="flex items-center space-x-2"
-        whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-        transition={{ type: 'spring', stiffness: 300 }}
-      >
+      <div className={cn(
+        "flex items-center space-x-2",
+        !prefersReducedMotion && "transition-transform duration-200 group-hover:scale-[1.02]"
+      )}>
         <GraduationCap className="h-8 w-8 text-primary" aria-hidden="true" />
         <span className="text-xl font-bold text-foreground">MIHAS-KATC</span>
-      </motion.div>
+      </div>
     </Link>
   );
 
   return (
     <>
-      {/* Header */}
-      <motion.header
+      {/* Header - CSS transitions instead of Framer Motion */}
+      <header
         className={cn(
           'fixed top-0 left-0 right-0 z-50',
           'bg-card/95 backdrop-blur-md border-b border-border/50 shadow-sm',
+          !prefersReducedMotion && 'transition-transform duration-300 ease-out',
+          !isHeaderVisible && !prefersReducedMotion && '-translate-y-full',
           className
         )}
-        initial={false}
-        animate={prefersReducedMotion ? {} : (isHeaderVisible ? 'visible' : 'hidden')}
-        variants={prefersReducedMotion ? {} : headerVariants}
         aria-label="Main navigation"
       >
         <div className="w-full px-4 sm:px-6 lg:px-8">
@@ -290,177 +272,167 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
               )}
             </nav>
 
-            {/* Mobile Menu Button */}
-            <motion.button
+            {/* Mobile Menu Button - CSS transitions */}
+            <button
               className={cn(
                 'lg:hidden p-3 rounded-xl',
                 'bg-card hover:bg-muted transition-colors duration-200',
                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                 'min-h-[48px] min-w-[48px] touch-target',
-                'border-2 border-border shadow-sm'
+                'border-2 border-border shadow-sm',
+                !prefersReducedMotion && 'active:scale-95 transition-transform'
               )}
               onClick={toggleMenu}
-              whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
               aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isMenuOpen}
               aria-controls="mobile-menu"
             >
-              <AnimatePresence mode="wait">
+              <div className={cn(
+                !prefersReducedMotion && 'transition-transform duration-200',
+                isMenuOpen && !prefersReducedMotion && 'rotate-90'
+              )}>
                 {isMenuOpen ? (
-                  <motion.div
-                    key="close"
-                    initial={prefersReducedMotion ? {} : { rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={prefersReducedMotion ? {} : { rotate: 90, opacity: 0 }}
-                    transition={{ duration: durations.fast }}
-                  >
-                    <X className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
-                  </motion.div>
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                 ) : (
-                  <motion.div
-                    key="menu"
-                    initial={prefersReducedMotion ? {} : { rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={prefersReducedMotion ? {} : { rotate: -90, opacity: 0 }}
-                    transition={{ duration: durations.fast }}
-                  >
-                    <Menu className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
-                  </motion.div>
+                  <Menu className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                 )}
-              </AnimatePresence>
-            </motion.button>
+              </div>
+            </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm lg:hidden"
-              style={{ zIndex: 9998 }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeMenu}
-              aria-hidden="true"
-            />
-
-            {/* Mobile Menu Panel */}
-            <motion.nav
-              id="mobile-menu"
-              className={cn(
-                'fixed top-0 right-0 h-full w-80 max-w-[85vw]',
-                'bg-card shadow-2xl lg:hidden',
-                'border-l-4 border-primary overflow-y-auto'
-              )}
-              style={{ zIndex: 9999 }}
-              variants={prefersReducedMotion ? {} : menuVariants}
-              initial="closed"
-              animate="open"
-              exit="closed"
-              aria-label="Mobile navigation"
-            >
-              <div className="flex flex-col h-full">
-                {/* Mobile Menu Header */}
-                <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-primary/5 to-secondary/5">
-                  <div className="flex items-center space-x-3">
-                    <GraduationCap className="h-7 w-7 text-primary" aria-hidden="true" />
-                    <span className="text-xl font-bold text-foreground">MIHAS-KATC</span>
-                  </div>
-                  <motion.button
-                    className={cn(
-                      'p-2 rounded-lg hover:bg-accent transition-colors duration-200',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                      'min-h-[44px] min-w-[44px] touch-target'
-                    )}
-                    onClick={closeMenu}
-                    whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
-                    aria-label="Close menu"
-                  >
-                    <X className="h-6 w-6" aria-hidden="true" />
-                  </motion.button>
-                </div>
-
-                {/* Navigation Items */}
-                <div className="flex flex-col flex-1 overflow-hidden">
-                  <div className="flex flex-col space-y-2 p-6 flex-1 overflow-y-auto">
-                    {navigationItems.map((item, index) => {
-                      const isActive = isActiveRoute(item.href);
-                      const Icon = item.icon;
-
-                      return (
-                        <motion.div
-                          key={item.href}
-                          variants={prefersReducedMotion ? {} : itemVariants}
-                          custom={index}
-                          initial="closed"
-                          animate="open"
-                        >
-                          <button
-                            onClick={() => handleNavigate(item.href)}
-                            className={cn(
-                              'w-full flex items-center justify-between px-4 py-4 rounded-xl',
-                              'transition-all duration-200 min-h-[48px] touch-target',
-                              'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                              isActive
-                                ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg'
-                                : 'bg-card text-foreground hover:bg-accent border-2 border-border hover:border-primary'
-                            )}
-                            aria-current={isActive ? 'page' : undefined}
-                          >
-                            <div className="flex items-center space-x-3">
-                              {Icon && <Icon className="h-5 w-5" aria-hidden="true" />}
-                              <div className="text-left">
-                                <span className="font-semibold">{item.label}</span>
-                                {isActive && (
-                                  <div className="text-xs opacity-80 mt-0.5">Current Page</div>
-                                )}
-                              </div>
-                            </div>
-                            <ChevronRight className="h-5 w-5 opacity-60" aria-hidden="true" />
-                          </button>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Mobile Menu Footer */}
-                  <div className="p-6 border-t border-border/70 bg-muted/50">
-                    {user ? (
-                      <button
-                        onClick={() => {
-                          closeMenu();
-                          handleSignOut();
-                        }}
-                        className={cn(
-                          'w-full flex items-center justify-center space-x-3 px-4 py-4',
-                          'bg-destructive text-destructive-foreground rounded-xl',
-                          'hover:bg-destructive/90 shadow-lg hover:shadow-xl',
-                          'transition-all duration-200 font-medium min-h-[48px] touch-target',
-                          'focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive'
-                        )}
-                      >
-                        <LogOut className="h-5 w-5" aria-hidden="true" />
-                        <span>Sign Out</span>
-                      </button>
-                    ) : (
-                      <p className="text-foreground text-base text-center font-medium">
-                        Your Future Starts Here
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.nav>
-          </>
+      {/* Mobile Menu Overlay - CSS transitions */}
+      {/* Backdrop */}
+      <div
+        className={cn(
+          'fixed inset-0 bg-black/70 backdrop-blur-sm lg:hidden',
+          !prefersReducedMotion && 'transition-opacity duration-300',
+          isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
-      </AnimatePresence>
+        style={{ zIndex: 9998 }}
+        onClick={closeMenu}
+        aria-hidden="true"
+      />
 
-      {/* Spacer to prevent content from going under fixed header */}
-      <div className="h-16 sm:h-[72px]" aria-hidden="true" />
+      {/* Mobile Menu Panel - CSS transitions */}
+      <nav
+        id="mobile-menu"
+        className={cn(
+          'fixed top-0 right-0 h-full w-80 max-w-[85vw]',
+          'bg-card shadow-2xl lg:hidden',
+          'border-l-4 border-primary overflow-y-auto',
+          !prefersReducedMotion && 'transition-transform duration-300 ease-out',
+          isMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        )}
+        style={{ zIndex: 9999 }}
+        aria-label="Mobile navigation"
+        aria-hidden={!isMenuOpen}
+      >
+        <div className="flex flex-col h-full">
+          {/* Mobile Menu Header */}
+          <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-primary/5 to-secondary/5">
+            <div className="flex items-center space-x-3">
+              <GraduationCap className="h-7 w-7 text-primary" aria-hidden="true" />
+              <span className="text-xl font-bold text-foreground">MIHAS-KATC</span>
+            </div>
+            <button
+              className={cn(
+                'p-2 rounded-lg hover:bg-accent transition-colors duration-200',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                'min-h-[44px] min-w-[44px] touch-target',
+                !prefersReducedMotion && 'active:scale-95 transition-transform'
+              )}
+              onClick={closeMenu}
+              aria-label="Close menu"
+            >
+              <X className="h-6 w-6" aria-hidden="true" />
+            </button>
+          </div>
+
+          {/* Navigation Items */}
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex flex-col space-y-2 p-6 flex-1 overflow-y-auto">
+              {navigationItems.map((item, index) => {
+                const isActive = isActiveRoute(item.href);
+                const Icon = item.icon;
+
+                return (
+                  <div
+                    key={item.href}
+                    className={cn(
+                      !prefersReducedMotion && 'transition-all duration-200',
+                      isMenuOpen && !prefersReducedMotion && 'animate-fade-in-right'
+                    )}
+                    style={!prefersReducedMotion ? { animationDelay: `${index * 50}ms` } : undefined}
+                  >
+                    <button
+                      onClick={() => handleNavigate(item.href)}
+                      className={cn(
+                        'w-full flex items-center justify-between px-4 py-4 rounded-xl',
+                        'transition-all duration-200 min-h-[48px] touch-target',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                        isActive
+                          ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg'
+                          : 'bg-card text-foreground hover:bg-accent border-2 border-border hover:border-primary'
+                      )}
+                      aria-current={isActive ? 'page' : undefined}
+                    >
+                      <div className="flex items-center space-x-3">
+                        {Icon && <Icon className="h-5 w-5" aria-hidden="true" />}
+                        <div className="text-left">
+                          <span className="font-semibold">{item.label}</span>
+                          {isActive && (
+                            <div className="text-xs opacity-80 mt-0.5">Current Page</div>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 opacity-60" aria-hidden="true" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Mobile Menu Footer */}
+            <div className="p-6 border-t border-border/70 bg-muted/50">
+              {user ? (
+                <button
+                  onClick={() => {
+                    closeMenu();
+                    handleSignOut();
+                  }}
+                  className={cn(
+                    'w-full flex items-center justify-center space-x-3 px-4 py-4',
+                    'bg-destructive text-destructive-foreground rounded-xl',
+                    'hover:bg-destructive/90 shadow-lg hover:shadow-xl',
+                    'transition-all duration-200 font-medium min-h-[48px] touch-target',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive'
+                  )}
+                >
+                  <LogOut className="h-5 w-5" aria-hidden="true" />
+                  <span>Sign Out</span>
+                </button>
+              ) : (
+                <p className="text-foreground text-base text-center font-medium">
+                  Your Future Starts Here
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Spacer to prevent content from going under fixed header - uses CSS variable for height */}
+      <div 
+        className="h-16 sm:h-[72px]" 
+        style={{ 
+          // Use CSS custom property for potential dynamic height adjustments
+          // This avoids layout recalculations when the value is read
+          '--header-height': 'var(--header-height, 4rem)'
+        } as React.CSSProperties}
+        aria-hidden="true" 
+      />
     </>
   );
 }

@@ -1,7 +1,23 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 
+/**
+ * FloatingOrbs Component
+ * 
+ * Decorative animated background orbs.
+ * Disabled on mobile devices and when user prefers reduced motion for performance.
+ * 
+ * @requirements 6.2 - Mobile performance optimization
+ */
 export const FloatingOrbs: React.FC = () => {
+  const { shouldAnimate, isMobile } = useOptimizedAnimation()
+
+  // Don't render on mobile or when animations are disabled
+  if (isMobile || !shouldAnimate) {
+    return null
+  }
+
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
       <motion.div

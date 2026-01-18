@@ -138,6 +138,7 @@ module.exports = {
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
         'fade-in-up': 'fadeInUp 0.5s ease-out',
+        'fade-in-right': 'fadeInRight 0.3s ease-out forwards',
         'slide-in-left': 'slideInLeft 0.3s ease-out',
         'shimmer': 'shimmer 2s infinite linear',
         'bounce-gentle': 'bounceGentle 2s infinite',
@@ -150,6 +151,10 @@ module.exports = {
         fadeInUp: {
           '0%': { opacity: '0', transform: 'translateY(20px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        fadeInRight: {
+          '0%': { opacity: '0', transform: 'translateX(20px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
         },
         slideInLeft: {
           '0%': { opacity: '0', transform: 'translateX(-20px)' },

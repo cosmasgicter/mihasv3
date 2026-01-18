@@ -1,14 +1,14 @@
 /**
  * AnimatedCounter Component - SmoothUI-style animated number counter
  * Animates numbers from 0 to target value when scrolled into view
+ * Uses native requestAnimationFrame for performance (no Framer Motion)
  * 
  * @requirements 8.1, 8.6 - SmoothUI animations with reduced-motion support
  */
 
-import { useEffect, useState, useRef } from 'react';
-import { motion, useReducedMotion, useSpring, useTransform } from 'framer-motion';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { counterConfig } from '@/lib/animation-config';
+import { counterConfig, prefersReducedMotion as checkReducedMotion } from '@/lib/animation-config';
 
 interface AnimatedCounterProps {
   value: number;
@@ -31,53 +31,82 @@ export function AnimatedCounter({
   decimals = 0,
   threshold = 0.3,
 }: AnimatedCounterProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const { ref, inView } = useInView({
     threshold,
     triggerOnce: true,
   });
   
-  const [hasAnimated, setHasAnimated] = useState(false);
   const [displayValue, setDisplayValue] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const animationRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number | null>(null);
 
-  // Spring animation for smooth counting
-  const springValue = useSpring(0, {
-    duration: prefersReducedMotion ? 0 : duration * 1000,
-    bounce: 0,
-  });
+  // Check reduced motion preference on mount
+  useEffect(() => {
+    setPrefersReducedMotion(checkReducedMotion());
+  }, []);
 
-  // Transform spring value to display value
-  const transformedValue = useTransform(springValue, (latest) => {
-    return decimals > 0 ? latest.toFixed(decimals) : Math.round(latest);
-  });
+  // Easing function for smooth animation
+  const easeOutQuart = useCallback((t: number): number => {
+    return 1 - Math.pow(1 - t, 4);
+  }, []);
 
   useEffect(() => {
-    if (inView && !hasAnimated) {
-      setHasAnimated(true);
-      
-      if (prefersReducedMotion) {
-        // Instant update for reduced motion
-        setDisplayValue(value);
-      } else {
-        // Delayed start for animation
-        const timer = setTimeout(() => {
-          springValue.set(value);
-        }, delay * 1000);
-        
-        return () => clearTimeout(timer);
+    if (!inView) return;
+
+    // Show the element
+    setIsVisible(true);
+
+    // If reduced motion is preferred, show final value immediately
+    if (prefersReducedMotion) {
+      setDisplayValue(value);
+      return;
+    }
+
+    // Cancel any existing animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+
+    // Reset start time for new animation
+    startTimeRef.current = null;
+
+    const animate = (timestamp: number) => {
+      if (!startTimeRef.current) {
+        startTimeRef.current = timestamp + (delay * 1000);
       }
-    }
-  }, [inView, hasAnimated, value, springValue, delay, prefersReducedMotion]);
 
-  // Subscribe to spring value changes
-  useEffect(() => {
-    if (!prefersReducedMotion) {
-      const unsubscribe = transformedValue.on('change', (latest) => {
-        setDisplayValue(Number(latest));
-      });
-      return unsubscribe;
-    }
-  }, [transformedValue, prefersReducedMotion]);
+      const elapsed = timestamp - startTimeRef.current;
+      
+      // Wait for delay
+      if (elapsed < 0) {
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      const durationMs = duration * 1000;
+      const progress = Math.min(elapsed / durationMs, 1);
+      const easedProgress = easeOutQuart(progress);
+      const currentValue = easedProgress * value;
+
+      setDisplayValue(currentValue);
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        setDisplayValue(value);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [inView, value, duration, delay, prefersReducedMotion, easeOutQuart]);
 
   const formattedValue = decimals > 0 
     ? displayValue.toFixed(decimals) 
@@ -86,13 +115,12 @@ export function AnimatedCounter({
   return (
     <span ref={ref} className={className}>
       {prefix}
-      <motion.span
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+      <span
+        className="transition-opacity duration-300"
+        style={{ opacity: isVisible ? 1 : 0 }}
       >
         {formattedValue}
-      </motion.span>
+      </span>
       {suffix}
     </span>
   );
@@ -114,13 +142,18 @@ export function SimpleCounter({
   prefix = '',
   className = '',
 }: SimpleCounterProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const { ref, inView } = useInView({
     threshold: 0.3,
     triggerOnce: true,
   });
   
   const [count, setCount] = useState(from);
+
+  // Check reduced motion preference on mount
+  useEffect(() => {
+    setPrefersReducedMotion(checkReducedMotion());
+  }, []);
 
   useEffect(() => {
     if (!inView) return;

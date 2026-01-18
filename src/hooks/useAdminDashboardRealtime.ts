@@ -11,7 +11,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured, dispatchRealtimeStatus } from '@/lib/supabase'
 import { useToastStore } from '@/components/ui/Toast'
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
@@ -380,6 +380,13 @@ export function useAdminDashboardRealtime(
         console.log('[AdminDashboardRealtime] Subscription status:', subscriptionStatus)
         setStatus(subscriptionStatus)
         onStatusChangeRef.current?.(subscriptionStatus)
+
+        // Dispatch status event for RealtimeStatusContext
+        dispatchRealtimeStatus({
+          connected: subscriptionStatus === 'SUBSCRIBED',
+          channelCount: subscriptionStatus === 'SUBSCRIBED' ? 1 : 0,
+          status: subscriptionStatus
+        })
 
         if (subscriptionStatus === 'SUBSCRIBED') {
           console.log('[AdminDashboardRealtime] Realtime subscription active for admin dashboard')

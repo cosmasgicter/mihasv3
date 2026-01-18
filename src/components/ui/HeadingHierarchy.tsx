@@ -7,7 +7,7 @@
  * Requirements: 10.4 - Proper heading hierarchy on all pages
  */
 
-import React, { createContext, useContext, ReactNode } from 'react'
+import React, { createContext, useContext, useMemo, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
@@ -30,8 +30,11 @@ interface HeadingLevelProviderProps {
 }
 
 export function HeadingLevelProvider({ children, level }: HeadingLevelProviderProps) {
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({ level }), [level])
+  
   return (
-    <HeadingContext.Provider value={{ level }}>
+    <HeadingContext.Provider value={value}>
       {children}
     </HeadingContext.Provider>
   )

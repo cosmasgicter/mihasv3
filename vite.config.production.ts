@@ -103,6 +103,23 @@ export default defineConfig({
               return 'vendor-supabase'
             }
             
+            // Framer Motion - separate chunk for animation library
+            // This allows pages without animations to load faster
+            if (id.includes('framer-motion')) {
+              return 'vendor-animation'
+            }
+            
+            // Lucide React icons - separate chunk
+            // Tree-shaking is limited with barrel exports, but at least it's not in main bundle
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons'
+            }
+            
+            // React Router - separate chunk for routing
+            if (id.includes('react-router') || id.includes('@remix-run/router')) {
+              return 'vendor-router'
+            }
+            
             // Let Vite handle everything else automatically
             // This ensures proper dependency ordering for React ecosystem
           }

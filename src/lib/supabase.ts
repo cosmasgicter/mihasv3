@@ -17,6 +17,17 @@ export interface SupabaseStatusDetail {
   message?: string
 }
 
+// Realtime connection status events
+export const REALTIME_STATUS_EVENT = 'supabase:realtime-status'
+export const REALTIME_RECONNECT_EVENT = 'supabase:realtime-reconnect'
+
+export interface RealtimeStatusDetail {
+  connected: boolean
+  channelCount: number
+  status: string
+  lastConnectedAt?: Date | null
+}
+
 export const SUPABASE_MISSING_CONFIG_MESSAGE =
   'Supabase environment variables are missing. Authentication features are disabled in this build.'
 
@@ -166,11 +177,6 @@ export function createSupabaseClient(options: SupabaseFactoryOptions = {}): Supa
           const sanitizedUrl = sanitizeUrl(url)
           if (!sanitizedUrl) {
             return Promise.reject(new Error('Invalid URL rejected for security'))
-          }
-          
-          // Skip realtime connections in development to prevent WebSocket errors
-          if (sanitizedUrl.includes('/realtime/') && import.meta.env.DEV) {
-            return Promise.reject(new Error('Realtime disabled in development'))
           }
           
           return fetch(sanitizedUrl, options)
@@ -479,4 +485,22 @@ export interface ApplicationDraft {
   is_offline_sync: boolean
   created_at: string
   updated_at: string
+}
+
+/**
+ * Reconnect all realtime subscriptions
+ * Removes all channels and dispatches event for hooks to re-subscribe
+ */
+export function reconnectRealtime(): void {
+  if (supabaseClient) {
+    supabaseClient.removeAllChannels()
+    window.dispatchEvent(new CustomEvent(REALTIME_RECONNECT_EVENT))
+  }
+}
+
+/**
+ * Dispatch realtime status event for UI indicators
+ */
+export function dispatchRealtimeStatus(detail: RealtimeStatusDetail): void {
+  window.dispatchEvent(new CustomEvent(REALTIME_STATUS_EVENT, { detail }))
 }

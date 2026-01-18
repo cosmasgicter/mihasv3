@@ -30,6 +30,7 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { Container } from '@/components/ui/Container'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardRealtime } from '@/hooks/useStudentDashboardRealtime'
+import { RealtimeStatusIndicator } from '@/components/ui/RealtimeStatusIndicator'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -341,7 +342,12 @@ export default function StudentDashboard() {
               variant="gradient"
               icon={<User style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />}
               title={`Welcome back, ${firstName}`}
-              description="Track your applications, manage drafts, and keep your profile information up to date."
+              description={
+                <span className="flex items-center gap-2">
+                  Track your applications, manage drafts, and keep your profile information up to date.
+                  <RealtimeStatusIndicator showLabel size="sm" />
+                </span>
+              }
               actions={
                 <div className="flex items-center gap-3">
                   <Button

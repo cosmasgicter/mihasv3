@@ -71,7 +71,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="fixed top-10 sm:p-20 right-4 z-40 shadow-lg"
+        className="fixed top-20 right-4 z-40 shadow-lg"
       >
         <FileText className="h-4 w-4 mr-2" />
         Drafts ({drafts.length})

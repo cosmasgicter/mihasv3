@@ -39,6 +39,7 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAdminRealtimeMetrics } from '@/hooks/admin'
 import type { AdminApplicationChange, AdminMetricsDelta } from '@/hooks/admin/useAdminRealtimeMetrics'
 import { useAdminDashboardRealtime } from '@/hooks/useAdminDashboardRealtime'
+import { RealtimeStatusIndicator } from '@/components/ui/RealtimeStatusIndicator'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
 import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
 import { PredictiveDashboard } from '@/components/admin/PredictiveDashboard'
@@ -334,6 +335,7 @@ export default function AdminDashboard() {
                       <Activity className="h-4 w-4" />
                       <span>{stats.activeUsers} active users</span>
                     </div>
+                    <RealtimeStatusIndicator showLabel size="sm" className="text-white/90" />
                   </div>
                 </div>
                 <div className="text-right space-y-2 flex-shrink-0">

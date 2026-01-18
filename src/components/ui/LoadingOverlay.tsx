@@ -1,7 +1,15 @@
-import React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+/**
+ * LoadingOverlay Component
+ * 
+ * Full-screen or container overlay with loading indicator.
+ * Uses CSS animations only - no Framer Motion.
+ * 
+ * @requirements 5.1, 5.2 - Fast page loading
+ */
+
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
-import { Spinner } from './Spinner'
+import { LoadingSpinner } from './LoadingSpinner'
 
 export interface LoadingOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
   message?: string
@@ -9,54 +17,34 @@ export interface LoadingOverlayProps extends React.HTMLAttributes<HTMLDivElement
 }
 
 export function LoadingOverlay({ className, message, transparent = false, ...props }: LoadingOverlayProps) {
-  const prefersReducedMotion = useReducedMotion()
+  const [isVisible, setIsVisible] = useState(false)
 
-  const overlayContent = (
-    <>
-      <Spinner size="lg" />
-      {message && (
-        <p className="mt-4 text-sm text-slate-700 font-medium max-w-xs text-center">
-          {message}
-        </p>
-      )}
-    </>
-  )
-
-  if (prefersReducedMotion) {
-    return (
-      <div
-        className={cn(
-          'absolute inset-0 flex flex-col items-center justify-center z-50',
-          transparent ? 'bg-white/60' : 'bg-white/90 backdrop-blur-sm',
-          className
-        )}
-        role="status"
-        aria-live="polite"
-        aria-busy="true"
-        {...props}
-      >
-        {overlayContent}
-      </div>
-    )
-  }
+  // Trigger fade-in on mount
+  useEffect(() => {
+    const timer = requestAnimationFrame(() => setIsVisible(true))
+    return () => cancelAnimationFrame(timer)
+  }, [])
 
   return (
-    <motion.div
+    <div
       className={cn(
         'absolute inset-0 flex flex-col items-center justify-center z-50',
+        'transition-opacity duration-150',
         transparent ? 'bg-white/60' : 'bg-white/90 backdrop-blur-sm',
+        isVisible ? 'opacity-100' : 'opacity-0',
         className
       )}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.1 }} // 100ms transition
       role="status"
       aria-live="polite"
       aria-busy="true"
       {...props}
     >
-      {overlayContent}
-    </motion.div>
+      <LoadingSpinner size="lg" />
+      {message && (
+        <p className="mt-4 text-sm text-muted-foreground font-medium max-w-xs text-center">
+          {message}
+        </p>
+      )}
+    </div>
   )
 }
