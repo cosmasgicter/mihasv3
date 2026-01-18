@@ -5,6 +5,7 @@ import {
   getLimiterConfig,
   attachRateLimitHeaders
 } from './rateLimiter.js'
+import { isAllowedOrigin, ALLOWED_ORIGINS } from './cors.js'
 
 function createAuthHandler(handler, options = {}) {
   const {
@@ -13,10 +14,13 @@ function createAuthHandler(handler, options = {}) {
   } = options
 
   return async function authRoute(req, res) {
-    // Add CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*')
+    // Add CORS headers with origin validation
+    const origin = req.headers?.origin || req.headers?.get?.('origin');
+    const allowedOrigin = isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0];
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin)
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, authorization, x-requested-with')
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
     
     if (req.method === 'OPTIONS') {
       return res.status(200).end()

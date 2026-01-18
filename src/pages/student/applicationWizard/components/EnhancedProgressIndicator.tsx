@@ -5,11 +5,12 @@
  * @requirements 7.1, 7.2 - Progress indicator with completion status and animated transitions
  */
 
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { durations, easings } from '@/lib/animation-config';
 import type { WizardStepConfig } from '../steps/config';
+import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation';
 
 interface EnhancedProgressIndicatorProps {
   steps: WizardStepConfig[];
@@ -29,6 +30,7 @@ interface StepItemProps {
   onClick?: () => void;
   totalSteps: number;
   prefersReducedMotion: boolean | null;
+  shouldAnimate: boolean;
 }
 
 const StepItem = ({
@@ -41,6 +43,7 @@ const StepItem = ({
   onClick,
   totalSteps,
   prefersReducedMotion,
+  shouldAnimate
 }: StepItemProps) => {
   const Icon = step.icon;
 
@@ -50,13 +53,13 @@ const StepItem = ({
       scale: 1, 
       opacity: 1,
       transition: {
-        delay: prefersReducedMotion ? 0 : index * 0.1,
-        duration: prefersReducedMotion ? 0 : durations.normal,
+        delay: shouldAnimate ? index * 0.1 : 0,
+        duration: shouldAnimate ? durations.normal : 0,
         ease: easings.easeOut,
       }
     },
-    hover: isClickable ? { scale: 1.05 } : {},
-    tap: isClickable ? { scale: 0.95 } : {},
+    hover: isClickable && shouldAnimate ? { scale: 1.05 } : {},
+    tap: isClickable && shouldAnimate ? { scale: 0.95 } : {},
   };
 
   const iconContainerVariants = {
@@ -64,7 +67,7 @@ const StepItem = ({
     completed: { 
       scale: [1, 1.2, 1],
       transition: {
-        duration: prefersReducedMotion ? 0 : durations.normal,
+        duration: shouldAnimate ? durations.normal : 0,
         ease: easings.bounce,
       }
     },
@@ -74,7 +77,7 @@ const StepItem = ({
         '0 0 0 8px rgba(59, 130, 246, 0)',
       ],
       transition: {
-        duration: prefersReducedMotion ? 0 : 1.5,
+        duration: shouldAnimate ? 1.5 : 0,
         repeat: Infinity,
         ease: 'easeInOut',
       }
@@ -92,7 +95,7 @@ const StepItem = ({
         isClickable ? 'cursor-pointer' : 'cursor-default'
       )}
       variants={stepVariants}
-      initial="initial"
+      initial={shouldAnimate ? "initial" : false}
       animate="animate"
       whileHover="hover"
       whileTap="tap"
@@ -122,7 +125,7 @@ const StepItem = ({
               animate={{ scale: 1, rotate: 0 }}
               exit={{ scale: 0, rotate: 180 }}
               transition={{ 
-                duration: prefersReducedMotion ? 0 : durations.normal,
+                duration: shouldAnimate ? durations.normal : 0,
                 ease: easings.bounce,
               }}
             >
@@ -137,7 +140,7 @@ const StepItem = ({
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
               transition={{ 
-                duration: prefersReducedMotion ? 0 : durations.fast,
+                duration: shouldAnimate ? durations.fast : 0,
               }}
             >
               <Icon 
@@ -148,7 +151,7 @@ const StepItem = ({
         </AnimatePresence>
 
         {/* Pulse ring for current step */}
-        {isCurrent && !prefersReducedMotion && (
+        {isCurrent && shouldAnimate && (
           <motion.div
             className="absolute inset-0 rounded-full border-2 border-primary"
             initial={{ scale: 1, opacity: 0.6 }}
@@ -174,8 +177,8 @@ const StepItem = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ 
-          delay: prefersReducedMotion ? 0 : index * 0.1 + 0.1,
-          duration: prefersReducedMotion ? 0 : durations.normal,
+          delay: shouldAnimate ? index * 0.1 + 0.1 : 0,
+          duration: shouldAnimate ? durations.normal : 0,
         }}
       >
         {step.progressTitle}
@@ -190,8 +193,8 @@ const StepItem = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ 
-          delay: prefersReducedMotion ? 0 : index * 0.1 + 0.15,
-          duration: prefersReducedMotion ? 0 : durations.normal,
+          delay: shouldAnimate ? index * 0.1 + 0.15 : 0,
+          duration: shouldAnimate ? durations.normal : 0,
         }}
       >
         Step {step.id} of {totalSteps}
@@ -222,8 +225,56 @@ const MobileStepItem = ({
   onClick,
   totalSteps,
   prefersReducedMotion,
+  shouldAnimate
 }: StepItemProps) => {
   const Icon = step.icon;
+
+  // Render a simple div for mobile if animation is disabled to prevent jitter
+  if (!shouldAnimate) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={!isClickable}
+        className={cn(
+          'flex items-center gap-3 w-full p-2 rounded-lg transition-colors',
+          'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+          isClickable ? 'cursor-pointer hover:bg-accent/50' : 'cursor-default',
+          isCurrent && 'bg-primary/5'
+        )}
+        aria-label={`Step ${step.id}: ${step.progressTitle}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
+        aria-current={isCurrent ? 'step' : undefined}
+      >
+        <div
+          className={cn(
+            'w-10 h-10 rounded-full flex items-center justify-center',
+            'text-sm font-semibold border-2 flex-shrink-0',
+            isCompleted
+              ? 'bg-success border-success text-white'
+              : isCurrent
+              ? 'bg-primary border-primary text-white ring-4 ring-primary/20'
+              : 'bg-background border-border text-muted-foreground'
+          )}
+        >
+          {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+        </div>
+
+        <div className="flex-1 min-w-0 text-left">
+          <div className={cn(
+            'text-sm font-semibold truncate',
+            isCurrent ? 'text-primary' : isActive ? 'text-foreground' : 'text-muted-foreground'
+          )}>
+            {step.progressTitle}
+          </div>
+          <div className="text-xs text-caption mt-0.5">
+            Step {step.id} of {totalSteps}
+          </div>
+        </div>
+        
+        {isCompleted && <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />}
+      </button>
+    )
+  }
 
   return (
     <motion.button
@@ -239,8 +290,8 @@ const MobileStepItem = ({
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ 
-        delay: prefersReducedMotion ? 0 : index * 0.1,
-        duration: prefersReducedMotion ? 0 : durations.normal,
+        delay: index * 0.1,
+        duration: durations.normal,
       }}
       aria-label={`Step ${step.id}: ${step.progressTitle}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
       aria-current={isCurrent ? 'step' : undefined}
@@ -257,7 +308,7 @@ const MobileStepItem = ({
             : 'bg-background border-border text-muted-foreground'
         )}
         animate={isCompleted ? { scale: [1, 1.1, 1] } : {}}
-        transition={{ duration: prefersReducedMotion ? 0 : durations.fast }}
+        transition={{ duration: durations.fast }}
       >
         <AnimatePresence mode="wait">
           {isCompleted ? (
@@ -319,7 +370,7 @@ const MobileStepItem = ({
             opacity: [1, 0.7, 1],
           }}
           transition={{
-            duration: prefersReducedMotion ? 0 : 1.5,
+            duration: 1.5,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
@@ -336,7 +387,7 @@ export const EnhancedProgressIndicator = ({
   completedSteps = new Set(),
   className,
 }: EnhancedProgressIndicatorProps) => {
-  const prefersReducedMotion = useReducedMotion();
+  const { shouldAnimate, prefersReducedMotion } = useOptimizedAnimation();
 
   const handleStepClick = (stepIndex: number) => {
     if (stepIndex < currentStepIndex && onStepClick) {
@@ -359,7 +410,7 @@ export const EnhancedProgressIndicator = ({
           initial={{ width: 0 }}
           animate={{ width: `${progressPercentage}%` }}
           transition={{ 
-            duration: prefersReducedMotion ? 0 : durations.slow,
+            duration: shouldAnimate ? durations.slow : 0,
             ease: easings.easeOut,
           }}
         />
@@ -384,6 +435,7 @@ export const EnhancedProgressIndicator = ({
                 onClick={() => handleStepClick(index)}
                 totalSteps={steps.length}
                 prefersReducedMotion={prefersReducedMotion}
+                shouldAnimate={shouldAnimate}
               />
             );
           })}
@@ -410,6 +462,7 @@ export const EnhancedProgressIndicator = ({
               onClick={() => handleStepClick(index)}
               totalSteps={steps.length}
               prefersReducedMotion={prefersReducedMotion}
+              shouldAnimate={shouldAnimate}
             />
           );
         })}
@@ -427,7 +480,7 @@ export const EnhancedProgressIndicator = ({
             initial={{ width: 0 }}
             animate={{ width: `${progressPercentage}%` }}
             transition={{ 
-              duration: prefersReducedMotion ? 0 : durations.slow,
+              duration: shouldAnimate ? durations.slow : 0,
               ease: easings.easeOut,
             }}
           />

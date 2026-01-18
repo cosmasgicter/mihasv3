@@ -1,0 +1,11 @@
+{
+  "name": "supabase",
+  "version": "1.0.0",
+  "description": "Supabase MCP Server",
+  "mcpServers": {
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp",
+      "autoApprove": ["apply_migration", "list_tables", "list_projects", "execute_sql"]
+    }
+  }
+}

@@ -235,6 +235,9 @@ export async function onRequest(context) {
       }
 
       const body = await request.json();
+      if (typeof body.hasW2 !== 'undefined') {
+        body.hasW2 = parseBoolean(body.hasW2);
+      }
       const { data, error } = await supabaseAdminClient
         .from('applications')
         .insert({ ...body, user_id: authContext.user.id })
@@ -285,6 +288,9 @@ export async function onRequest(context) {
       
       // Remove action field if present (used for routing, not a DB column)
       const { action, ...updateData } = body;
+      if (typeof updateData.hasW2 !== 'undefined') {
+        updateData.hasW2 = parseBoolean(updateData.hasW2);
+      }
       
       // Verify ownership or admin
       const { data: app } = await supabaseAdminClient

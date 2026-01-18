@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 
@@ -9,6 +9,7 @@ import { FormSelect } from '@/components/ui/form-select'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
 import { durations, easings } from '@/lib/animation-config'
 import { FieldHelp } from '../components/FieldHelp'
+import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 
 import type { WizardFormData, WizardProgram, WizardIntake } from '../types'
 
@@ -36,7 +37,7 @@ const BasicKycStep = ({
     control,
     formState: { errors }
   } = form
-  const prefersReducedMotion = useReducedMotion()
+  const { shouldAnimate, prefersReducedMotion } = useOptimizedAnimation()
 
   const selectedProgramDetails = useMemo(
     () => programs.find(program => program.id === selectedProgram),
@@ -67,19 +68,19 @@ const BasicKycStep = ({
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: prefersReducedMotion ? 0 : 0.05,
-        delayChildren: prefersReducedMotion ? 0 : 0.1,
+        staggerChildren: shouldAnimate ? 0.05 : 0,
+        delayChildren: shouldAnimate ? 0.1 : 0,
       },
     },
   }
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
+    hidden: { opacity: 0, y: shouldAnimate ? 15 : 0 },
     visible: { 
       opacity: 1, 
       y: 0,
       transition: {
-        duration: prefersReducedMotion ? 0 : durations.normal,
+        duration: shouldAnimate ? durations.normal : 0,
         ease: easings.easeOut,
       }
     },
@@ -88,10 +89,10 @@ const BasicKycStep = ({
   return (
     <motion.div
       key="step1"
-      initial={{ opacity: 0, x: 50 }}
+      initial={shouldAnimate ? { opacity: 0, x: 50 } : { opacity: 1, x: 0 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+      exit={shouldAnimate ? { opacity: 0, x: -50 } : undefined}
+      transition={{ duration: shouldAnimate ? 0.3 : 0 }}
       className="bg-card rounded-lg shadow-lg p-6 border border-border"
       data-testid="basic-kyc-step"
     >
@@ -104,7 +105,7 @@ const BasicKycStep = ({
 
       {hasAutoPopulatedData && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={shouldAnimate ? { opacity: 0, y: -10 } : false}
           animate={{ opacity: 1, y: 0 }}
           className="mb-4 p-3 bg-accent/10 border border-accent rounded-lg"
         >
@@ -121,7 +122,7 @@ const BasicKycStep = ({
       <motion.div 
         className="grid grid-cols-1 lg:grid-cols-2 gap-6"
         variants={containerVariants}
-        initial="hidden"
+        initial={shouldAnimate ? "hidden" : "visible"}
         animate="visible"
       >
         <motion.div className="lg:col-span-2" variants={itemVariants}>
@@ -279,7 +280,7 @@ const BasicKycStep = ({
       {selectedProgramDetails && (
         <motion.div
           className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20"
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={shouldAnimate ? { opacity: 0, scale: 0.95 } : false}
           animate={{ opacity: 1, scale: 1 }}
         >
           <p className="text-sm text-gray-900 font-medium">
