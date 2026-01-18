@@ -1,304 +1,261 @@
-# Design Document: Student Payment and Interview Pages
+# Design Document: Student Payment & Interview Pages Fix
 
 ## Overview
 
-This design creates two new student-facing pages to resolve 404 errors when clicking "Complete Payment" and "View Interview Details" quick actions. The pages integrate with existing Supabase tables (`applications` and `application_interviews`) and follow the established React patterns in the codebase.
+This design addresses three critical issues in the MIHAS student portal:
+1. React Error #130 occurring during session termination
+2. Missing Payment and Interview navigation links
+3. Incorrect navigation path for "Complete Payment" action
 
-**Key Design Decisions:**
-1. Create standalone pages rather than modifying the Application Wizard
-2. Use existing Supabase client and AuthContext for data fetching
-3. Follow established UI patterns with Card, Button, and Container components
-4. Implement lazy loading for code splitting
-5. Query data using Supabase's foreign key relationships for joins
+The solution involves updating navigation components, fixing component rendering guards, and correcting navigation targets.
 
 ## Architecture
 
+### Component Hierarchy
+
+```
+App
+├── AuthProvider (provides auth context)
+│   ├── AppLayout
+│   │   ├── DesktopSidebar (studentLinks array)
+│   │   ├── BottomNavigation (defaultStudentNavItems array)
+│   │   └── Routes
+│   │       ├── StudentDashboard
+│   │       │   ├── QuickActions (hasPendingPayment, hasScheduledInterview)
+│   │       │   └── DashboardStatusOverview
+│   │       ├── PaymentPage
+│   │       └── InterviewPage
+```
+
+### Data Flow
+
 ```mermaid
-graph TB
-    subgraph Frontend
-        QA[QuickActions]
-        PP[Payment Page]
-        IP[Interview Page]
-        RC[Routes Config]
-    end
-    
-    subgraph Hooks
-        UA[useAuth]
-    end
-    
-    subgraph Database
-        APPS[(applications)]
-        INT[(application_interviews)]
-        PROG[(programs)]
-    end
-    
-    QA -->|/student/payment| PP
-    QA -->|/student/interview| IP
-    RC -->|lazy load| PP
-    RC -->|lazy load| IP
-    PP --> UA
-    IP --> UA
-    PP -->|query| APPS
-    IP -->|query| INT
-    INT -->|join| APPS
-    APPS -->|join| PROG
+flowchart TD
+    A[Auth Context] --> B[Navigation Components]
+    A --> C[Dashboard Components]
+    B --> D[DesktopSidebar]
+    B --> E[BottomNavigation]
+    C --> F[QuickActions]
+    C --> G[DashboardStatusOverview]
+    F --> H[Payment Link /student/payment]
+    G --> H
+    D --> H
+    E --> H
+    D --> I[Interview Link /student/interview]
+    E --> I
 ```
 
 ## Components and Interfaces
 
-### 1. Payment Page Component
+### 1. DesktopSidebar Navigation Update
 
-**File:** `src/pages/student/Payment.tsx`
+**File:** `src/components/navigation/DesktopSidebar.tsx`
 
-**Purpose:** Display payment information and list applications with pending payments.
-
+**Current State:**
 ```typescript
-interface ApplicationWithPayment {
-  id: string
-  status: string
-  payment_status: string | null
-  payment_method: string | null
-  amount: number | null
-  momo_ref: string | null
-  created_at: string
-  program: string | null
+const studentLinks: NavItem[] = [
+  { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
+  { to: '/apply', icon: FileText, label: 'Application' },
+  { to: '/student/notifications', icon: Bell, label: 'Notifications' },
+  { to: '/student/profile', icon: User, label: 'Profile' },
+]
+```
+
+**Proposed Change:**
+```typescript
+const studentLinks: NavItem[] = [
+  { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
+  { to: '/apply', icon: FileText, label: 'Application' },
+  { to: '/student/payment', icon: CreditCard, label: 'Payment' },
+  { to: '/student/interview', icon: Calendar, label: 'Interview' },
+  { to: '/student/notifications', icon: Bell, label: 'Notifications' },
+  { to: '/student/profile', icon: User, label: 'Profile' },
+]
+```
+
+### 2. BottomNavigation Update
+
+**File:** `src/components/ui/BottomNavigation.tsx`
+
+**Current State:**
+```typescript
+export const defaultStudentNavItems: BottomNavItem[] = [
+  { href: '/', label: 'Home', icon: Home },
+  { href: '/track-application', label: 'Track', icon: Search },
+  { href: '/student/dashboard', label: 'Dashboard', icon: FileText, requiresAuth: true },
+  { href: '/student/profile', label: 'Profile', icon: User, requiresAuth: true },
+]
+```
+
+**Proposed Change:**
+```typescript
+export const defaultStudentNavItems: BottomNavItem[] = [
+  { href: '/student/dashboard', label: 'Dashboard', icon: Home, requiresAuth: true },
+  { href: '/student/payment', label: 'Payment', icon: CreditCard, requiresAuth: true },
+  { href: '/student/interview', label: 'Interview', icon: Calendar, requiresAuth: true },
+  { href: '/student/profile', label: 'Profile', icon: User, requiresAuth: true },
+]
+```
+
+### 3. QuickActions Navigation Fix
+
+**File:** `src/components/student/QuickActions.tsx`
+
+**Current State (Line 199-203):**
+```typescript
+<ActionCard
+  icon={<CreditCard className="h-5 w-5" />}
+  title="Complete Payment"
+  description="Finish your application payment"
+  href="/student/payment"  // This is correct but may not be rendering
+  variant="warning"
+/>
+```
+
+The QuickActions component already has the correct href. The issue is that `hasPendingPayment` may not be correctly calculated in the Dashboard.
+
+### 4. Dashboard Payment Detection Fix
+
+**File:** `src/pages/student/Dashboard.tsx`
+
+**Current State (Line 253-256):**
+```typescript
+const hasPendingPayment = applications.some(app => 
+  app.status === 'submitted' && app.payment_status !== 'verified'
+)
+```
+
+**Issue:** This only checks for `submitted` status, but applications may have other statuses with pending payments.
+
+**Proposed Change:**
+```typescript
+const hasPendingPayment = applications.some(app => 
+  app.payment_status === null || 
+  app.payment_status === 'pending_review' ||
+  (app.status !== 'draft' && app.payment_status !== 'verified')
+)
+```
+
+### 5. Session Termination Error Fix
+
+**Root Cause Analysis:**
+The React Error #130 occurs when a component type is `undefined`. This typically happens when:
+1. A lazy-loaded component fails to load
+2. A component is conditionally rendered with an undefined reference
+3. Auth state changes cause components to receive undefined props
+
+**File:** `src/contexts/AuthContext.tsx`
+
+The current implementation already handles logout gracefully, but the issue may be in components that don't guard against undefined auth state.
+
+**Proposed Guard Pattern:**
+```typescript
+// In components that use auth context
+const { user } = useAuth()
+
+// Guard against undefined user during logout
+if (!user) {
+  return null // or a loading state
 }
-
-interface PaymentPageState {
-  loading: boolean
-  error: string | null
-  pendingApplications: ApplicationWithPayment[]
-}
 ```
 
-**Data Flow:**
-```mermaid
-sequenceDiagram
-    participant User
-    participant PaymentPage
-    participant Supabase
-    participant DB as applications table
-    
-    User->>PaymentPage: Navigate to /student/payment
-    PaymentPage->>Supabase: Get current user
-    Supabase-->>PaymentPage: User data
-    PaymentPage->>Supabase: Query applications
-    Note right of PaymentPage: .eq('user_id', user.id)<br/>.or('payment_status.is.null,payment_status.eq.pending_review')
-    Supabase->>DB: SELECT with filters
-    DB-->>Supabase: Application rows
-    Supabase-->>PaymentPage: Applications data
-    PaymentPage->>User: Render payment info + applications list
-```
+### 6. DashboardStatusOverview Navigation Fix
 
-**Query Implementation:**
-```typescript
-const { data, error } = await supabase
-  .from('applications')
-  .select(`
-    id,
-    status,
-    payment_status,
-    payment_method,
-    amount,
-    momo_ref,
-    created_at,
-    program
-  `)
-  .eq('user_id', user.id)
-  .or('payment_status.is.null,payment_status.eq.pending_review')
-  .order('created_at', { ascending: false })
-```
+**File:** `src/components/student/DashboardStatusOverview.tsx`
 
-### 2. Interview Page Component
-
-**File:** `src/pages/student/Interview.tsx`
-
-**Purpose:** Display scheduled interviews for the student's applications.
-
-```typescript
-interface Interview {
-  id: string
-  scheduled_at: string
-  mode: 'in_person' | 'virtual' | 'phone'
-  location: string | null
-  status: 'scheduled' | 'rescheduled' | 'completed' | 'cancelled'
-  notes: string | null
-  application_id: string
-  program_name: string | null
-}
-
-interface InterviewPageState {
-  loading: boolean
-  error: string | null
-  upcomingInterviews: Interview[]
-  pastInterviews: Interview[]
-}
-```
-
-**Data Flow:**
-```mermaid
-sequenceDiagram
-    participant User
-    participant InterviewPage
-    participant Supabase
-    participant DB as application_interviews
-    
-    User->>InterviewPage: Navigate to /student/interview
-    InterviewPage->>Supabase: Get current user
-    Supabase-->>InterviewPage: User data
-    InterviewPage->>Supabase: Query interviews with join
-    Note right of InterviewPage: Join applications to get user_id<br/>Join programs to get program name
-    Supabase->>DB: SELECT with joins
-    DB-->>Supabase: Interview rows
-    Supabase-->>InterviewPage: Interviews data
-    InterviewPage->>InterviewPage: Separate upcoming/past
-    InterviewPage->>User: Render interview lists
-```
-
-**Query Implementation:**
-```typescript
-const { data, error } = await supabase
-  .from('application_interviews')
-  .select(`
-    id,
-    scheduled_at,
-    mode,
-    location,
-    status,
-    notes,
-    application_id,
-    applications!inner (
-      user_id,
-      program
-    )
-  `)
-  .eq('applications.user_id', user.id)
-  .order('scheduled_at', { ascending: true })
-```
-
-### 3. Route Configuration Updates
-
-**File:** `src/routes/config.tsx`
-
-**Changes:**
-```typescript
-// Add lazy imports
-const StudentPayment = React.lazy(() => import('@/pages/student/Payment'))
-const StudentInterview = React.lazy(() => import('@/pages/student/Interview'))
-
-// Add routes
-{ path: '/student/payment', element: StudentPayment, guard: 'student', lazy: true },
-{ path: '/student/interview', element: StudentInterview, guard: 'student', lazy: true },
-```
+Need to verify the "Complete Payment" link navigates to `/student/payment`.
 
 ## Data Models
 
-### Applications Table (Existing)
-```sql
-applications (
-  id uuid PRIMARY KEY,
-  user_id uuid REFERENCES auth.users,
-  status varchar CHECK (status IN ('draft', 'submitted', 'under_review', 'approved', 'rejected')),
-  payment_status varchar CHECK (payment_status IN ('pending_review', 'verified', 'rejected')),
-  payment_method varchar,
-  amount numeric,
-  momo_ref varchar,
-  pop_url varchar,
-  program varchar,
-  created_at timestamptz
-)
+No database changes required. The existing `applications` and `application_interviews` tables already support the required functionality.
+
+### Application Payment Status Flow
+```
+null → pending_review → verified | rejected
 ```
 
-### Application Interviews Table (Existing)
-```sql
-application_interviews (
-  id uuid PRIMARY KEY,
-  application_id uuid REFERENCES applications,
-  scheduled_at timestamptz,
-  mode text CHECK (mode IN ('in_person', 'virtual', 'phone')),
-  location text,
-  status text CHECK (status IN ('scheduled', 'rescheduled', 'completed', 'cancelled')),
-  notes text,
-  created_at timestamptz
-)
+### Interview Status Flow
+```
+scheduled → rescheduled | completed | cancelled
 ```
 
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system—essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-### Property 1: Pending Applications Display Completeness
+### Property 1: Navigation Links Presence
+*For any* authenticated student user, the navigation menu (both desktop and mobile) SHALL contain links to Payment (`/student/payment`) and Interview (`/student/interview`) pages.
+**Validates: Requirements 2.1, 2.2, 2.5, 2.6, 2.7**
 
-*For any* user with N applications where payment_status is null or 'pending_review', the Payment_Page SHALL display exactly N applications in the pending list, each showing the program name and payment status.
+### Property 2: Payment Link Highlighting
+*For any* student with applications where `payment_status` is null or 'pending_review', the Payment navigation link SHALL display a visual indicator (badge or highlight).
+**Validates: Requirements 2.3, 4.2**
 
-**Validates: Requirements 1.4, 2.1, 2.2, 2.5**
+### Property 3: Interview Link Highlighting
+*For any* student with scheduled interviews (status = 'scheduled' or 'rescheduled'), the Interview navigation link SHALL display a visual indicator.
+**Validates: Requirements 2.4, 4.3**
 
-### Property 2: Interview Data Display Completeness
+### Property 4: Complete Payment Navigation Target
+*For any* "Complete Payment" action in QuickActions or DashboardStatusOverview, clicking the action SHALL navigate to `/student/payment`, not `/student/application-wizard`.
+**Validates: Requirements 3.1, 3.2**
 
-*For any* interview record associated with the current user's applications, the Interview_Page SHALL display the scheduled_at date/time, mode, and status. Additionally, interviews SHALL be correctly categorized as upcoming (scheduled_at >= now) or past (scheduled_at < now).
+### Property 5: Pending Payment Display
+*For any* set of applications, the Payment page SHALL display exactly those applications where `payment_status` is null or 'pending_review'.
+**Validates: Requirements 3.3**
 
-**Validates: Requirements 3.2, 4.1, 4.2, 4.5, 4.6**
+### Property 6: Graceful Undefined State Handling
+*For any* component receiving undefined auth context or user props, the component SHALL render a safe fallback (null or loading state) without throwing errors.
+**Validates: Requirements 1.3, 5.4**
 
-### Property 3: Route Guard Enforcement
+### Property 7: Session Termination Resilience
+*For any* session termination attempt, even if errors occur during the signOut process, the user SHALL be navigated to the home page and local state SHALL be cleared.
+**Validates: Requirements 1.1, 1.2, 5.2**
 
-*For any* unauthenticated request to /student/payment or /student/interview, the system SHALL redirect to the sign-in page without rendering the protected content.
-
-**Validates: Requirements 1.5, 3.3, 5.4, 6.4**
+### Property 8: Navigation Reactivity
+*For any* change in application status (payment verified, interview scheduled), the navigation indicators SHALL update to reflect the new state without requiring a page refresh.
+**Validates: Requirements 4.4**
 
 ## Error Handling
 
-### Payment Page Errors
-- **Network failure:** Display error card with "Failed to load payment information" message
-- **No user session:** Redirect to sign-in page via route guard
-- **Empty results:** Display informational message "No pending payments"
+### Session Termination Errors
+- Clear local state immediately (non-blocking)
+- Navigate to home page before API call completes
+- Log errors silently without user-facing messages
+- Use fire-and-forget pattern for signOut API call
 
-### Interview Page Errors
-- **Network failure:** Display error card with "Failed to load interview information" message
-- **No user session:** Redirect to sign-in page via route guard
-- **Empty results:** Display empty state with calendar icon and "No scheduled interviews" message
+### Component Rendering Errors
+- Wrap critical components in error boundaries
+- Provide fallback UI for failed lazy loads
+- Guard against undefined props with early returns
 
-### Loading States
-- Both pages display a centered loading spinner during data fetch
-- Loading state prevents interaction until data is ready
+### Navigation Errors
+- Validate route existence before navigation
+- Handle 404 gracefully with redirect to dashboard
 
 ## Testing Strategy
 
-### Dual Testing Approach
+### Unit Tests
+- Test navigation link presence in DesktopSidebar
+- Test navigation link presence in BottomNavigation
+- Test QuickActions href values
+- Test DashboardStatusOverview href values
+- Test payment status detection logic
+- Test interview status detection logic
 
-This feature requires both unit tests and property-based tests:
+### Property-Based Tests
+Using Vitest with fast-check for property-based testing:
 
-**Unit Tests:** Verify specific examples, edge cases, and error conditions
-**Property Tests:** Verify universal properties across all inputs
+1. **Navigation Links Property Test** - Generate random auth states and verify navigation links are present for authenticated users
+2. **Payment Highlighting Property Test** - Generate random application arrays and verify highlighting logic
+3. **Interview Highlighting Property Test** - Generate random interview arrays and verify highlighting logic
+4. **Undefined State Handling Property Test** - Generate random undefined states and verify no crashes
 
-### Property-Based Testing Configuration
+### Integration Tests
+- Test complete logout flow without errors
+- Test navigation from dashboard to payment page
+- Test navigation from dashboard to interview page
+- Test payment page displays correct applications
 
-- **Framework:** fast-check (TypeScript property-based testing library)
-- **Minimum iterations:** 100 per property test
-- **Tag format:** `Feature: student-payment-interview-pages, Property {number}: {property_text}`
-
-### Test Categories
-
-#### Unit Tests
-1. Payment page renders without error
-2. Payment page displays K153 fee amount
-3. Payment page shows "Continue to Wizard" button
-4. Interview page renders without error
-5. Interview page shows empty state when no interviews
-6. Interview page shows "Join Meeting" button for virtual interviews
-7. Routes are correctly configured with student guard
-
-#### Property Tests
-1. **Property 1:** All pending applications displayed with required fields
-2. **Property 2:** All interviews displayed with correct categorization
-3. **Property 3:** Route guards redirect unauthenticated users
-
-#### Integration Tests
-1. End-to-end navigation from QuickActions to Payment page
-2. End-to-end navigation from QuickActions to Interview page
-3. Data fetching with real Supabase queries
-
-### Test File Locations
-- Unit tests: `tests/unit/student-pages/`
-- Property tests: `tests/property/student-pages/`
-- Integration tests: `tests/integration/student-pages/`
-
+### Configuration
+- Minimum 100 iterations per property test
+- Tag format: **Feature: student-payment-interview-pages, Property {number}: {property_text}**

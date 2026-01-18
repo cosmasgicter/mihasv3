@@ -1,97 +1,95 @@
-# Implementation Plan: Student Payment and Interview Pages
+# Implementation Plan: Student Payment & Interview Pages Fix
 
 ## Overview
 
-This plan implements two new student-facing pages to resolve 404 errors when clicking "Complete Payment" and "View Interview Details" quick actions. The implementation uses existing Supabase tables and follows established React patterns.
+This implementation plan addresses three critical issues: React Error #130 on session termination, missing Payment/Interview navigation links, and incorrect "Complete Payment" navigation. The tasks are ordered to fix the most impactful issues first.
 
 ## Tasks
 
-- [x] 1. Implement Payment Page Component
-  - [x] 1.1 Create Payment page with payment instructions
-    - Create `src/pages/student/Payment.tsx`
-    - Display K153 fee amount and payment instructions
-    - Add "Continue to Application Wizard" button
-    - Implement loading and error states
-    - _Requirements: 1.2, 1.3, 6.3_
+- [x] 1. Add Payment and Interview links to Desktop Sidebar
+  - Import CreditCard and Calendar icons from lucide-react
+  - Add Payment link (`/student/payment`) to studentLinks array
+  - Add Interview link (`/student/interview`) to studentLinks array
+  - Position links after Application and before Notifications
+  - _Requirements: 2.1, 2.2, 2.5, 2.6_
 
-  - [x] 1.2 Implement pending applications query and display
-    - Query applications where payment_status is null or 'pending_review'
-    - Display each application with program name and status indicator
-    - Add "View Application" button for each application
-    - _Requirements: 2.1, 2.2, 2.5_
+- [x] 2. Add Payment and Interview links to Bottom Navigation
+  - Import CreditCard and Calendar icons
+  - Update defaultStudentNavItems to include Payment and Interview
+  - Set requiresAuth: true for both new items
+  - Reorder items: Dashboard, Payment, Interview, Profile
+  - _Requirements: 2.1, 2.2, 2.5, 2.6, 2.7_
 
-  - [x] 1.3 Add payment status indicators
-    - Show success indicator for payment_status='verified'
-    - Show rejection indicator for payment_status='rejected'
-    - Display appropriate status badges
-    - _Requirements: 2.3, 2.4_
+- [x] 3. Fix payment detection logic in Student Dashboard
+  - [x] 3.1 Update hasPendingPayment calculation
+    - Change logic to check for null, 'pending_review', or non-verified status
+    - Ensure draft applications are excluded from pending payment count
+    - _Requirements: 2.3, 4.2_
+  
+  - [x] 3.2 Update hasScheduledInterview calculation
+    - Check for 'scheduled' or 'rescheduled' status in application_interviews
+    - Add query to fetch interview data if not already present
+    - _Requirements: 2.4, 4.3_
 
-  - [ ]* 1.4 Write property test for pending applications display
-    - **Property 1: Pending Applications Display Completeness**
-    - **Validates: Requirements 1.4, 2.1, 2.2, 2.5**
-
-- [x] 2. Implement Interview Page Component
-  - [x] 2.1 Create Interview page with interview list
-    - Create `src/pages/student/Interview.tsx`
-    - Query application_interviews with join to applications
-    - Implement loading and error states
-    - Add "Back to Dashboard" navigation link
-    - _Requirements: 3.2, 3.5, 6.3_
-
-  - [x] 2.2 Implement interview details display
-    - Display scheduled_at date and time
-    - Show interview mode (in_person, virtual, phone)
-    - Display location for in_person interviews
-    - Show interview status badge
-    - _Requirements: 4.1, 4.2, 4.4, 4.5_
-
-  - [x] 2.3 Separate upcoming and past interviews
-    - Filter interviews by scheduled_at compared to current time
-    - Display upcoming interviews section
-    - Display past interviews section
-    - Show empty state when no interviews
-    - _Requirements: 3.4, 4.6_
-
-  - [x] 2.4 Add virtual meeting join button
-    - Show "Join Meeting" button for virtual interviews
-    - Only display if meeting link exists in notes
-    - _Requirements: 4.3_
-
-  - [ ]* 2.5 Write property test for interview data display
-    - **Property 2: Interview Data Display Completeness**
-    - **Validates: Requirements 3.2, 4.1, 4.2, 4.5, 4.6**
-
-- [x] 3. Configure Routes
-  - [x] 3.1 Add lazy-loaded routes to config
-    - Add `/student/payment` route with 'student' guard
-    - Add `/student/interview` route with 'student' guard
-    - Use React.lazy for code splitting
-    - _Requirements: 5.1, 5.2, 5.3_
-
-  - [ ]* 3.2 Write property test for route guard enforcement
-    - **Property 3: Route Guard Enforcement**
-    - **Validates: Requirements 1.5, 3.3, 5.4, 6.4**
-
-- [x] 4. Checkpoint - Verify Core Functionality
-  - Ensure all pages load without 404 errors
-  - Verify navigation from QuickActions works
-
-
-- [ ]* 5. Write Integration Tests
-  - [ ]* 5.1 Write integration test for Payment page navigation
-    - Test navigation from QuickActions to Payment page
-    - Verify page renders with correct content
-    - _Requirements: 1.1_
-
-  - [ ]* 5.2 Write integration test for Interview page navigation
-    - Test navigation from QuickActions to Interview page
-    - Verify page renders with correct content
+- [x] 4. Verify and fix Complete Payment navigation targets
+  - [x] 4.1 Verify QuickActions href is `/student/payment`
+    - Confirm the ActionCard for "Complete Payment" has correct href
     - _Requirements: 3.1_
+  
+  - [x] 4.2 Verify DashboardStatusOverview navigation
+    - Check any "Complete Payment" links navigate to `/student/payment`
+    - _Requirements: 3.2_
 
-- [ ] 6. Final Checkpoint
+- [x] 5. Add auth state guards to prevent React Error #130
+  - [x] 5.1 Add guard to DesktopSidebar
+    - Return null early if user is undefined
+    - _Requirements: 1.3, 5.4_
+  
+  - [x] 5.2 Add guard to BottomNavigation
+    - Handle undefined auth state gracefully
+    - _Requirements: 1.3, 5.4_
+  
+  - [x] 5.3 Add guard to AppLayout
+    - Ensure layout doesn't render protected content when user is undefined
+    - _Requirements: 1.4, 5.4_
+
+- [x] 6. Checkpoint - Verify navigation changes work
+  - Ensure all navigation links appear correctly
+  - Test navigation to Payment and Interview pages
+  - Verify no console errors during navigation
+
+- [ ]* 7. Write unit tests for navigation components
+  - [ ]* 7.1 Test DesktopSidebar contains Payment and Interview links
+    - Verify links are present for authenticated students
+    - _Requirements: 2.1, 2.2_
+  
+  - [ ]* 7.2 Test BottomNavigation contains Payment and Interview links
+    - Verify links are present for authenticated students
+    - _Requirements: 2.1, 2.2, 2.7_
+
+- [ ]* 8. Write property tests for payment detection
+  - [ ]* 8.1 Write property test for pending payment detection
+    - **Property 5: Pending Payment Display**
+    - **Validates: Requirements 3.3**
+  
+  - [ ]* 8.2 Write property test for navigation highlighting
+    - **Property 2: Payment Link Highlighting**
+    - **Validates: Requirements 2.3, 4.2**
+
+- [x] 9. Test session termination flow
+  - [x] 9.1 Verify logout completes without errors
+    - Test signOut function clears cache and navigates
+    - _Requirements: 1.1, 1.2, 5.2_
+  
+  - [x] 9.2 Verify no React Error #130 during logout
+    - Test rapid auth state changes don't cause crashes
+    - _Requirements: 1.3, 5.4_
+
+- [x] 10. Final checkpoint - Full integration test
+  - Test complete user flow: Dashboard → Payment → Interview
+  - Test logout flow from each page
+  - Verify all navigation indicators update correctly
   - Ensure all tests pass, ask the user if questions arise
-  - Verify error handling works correctly
-  - Confirm loading states display properly
 
 ## Notes
 
@@ -100,5 +98,3 @@ This plan implements two new student-facing pages to resolve 404 errors when cli
 - Checkpoints ensure incremental validation
 - Property tests validate universal correctness properties
 - Unit tests validate specific examples and edge cases
-- Existing database tables are used - no migrations needed
-- Payment page redirects to Application Wizard (payment is Step 3)

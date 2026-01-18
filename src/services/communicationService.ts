@@ -254,13 +254,13 @@ async function sendInAppMessage(params: {
 }): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase
-      .from('notifications')
+      .from('in_app_notifications')
       .insert({
         user_id: params.userId,
         title: params.title,
-        message: params.message,
+        content: params.message,
         type: 'admin_message',
-        priority: 'high'
+        read: false
       })
 
     if (error) {

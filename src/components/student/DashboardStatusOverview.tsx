@@ -307,6 +307,12 @@ export function DashboardStatusOverview({
                 You have {pendingPaymentCount} application{pendingPaymentCount > 1 ? 's' : ''} awaiting payment. 
                 Complete payment to proceed with your application.
               </p>
+              <Link 
+                to="/student/payment"
+                className="inline-flex items-center gap-1 text-sm font-medium text-warning hover:text-warning/80 mt-2"
+              >
+                Complete Payment →
+              </Link>
             </div>
             <StatusBadge status="warning" label="Action Needed" />
           </div>

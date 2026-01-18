@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { useBulkOperations } from '@/hooks/useBulkOperations'
+import { useDebounce } from '@/hooks/useDebounce'
 import { exportToCSV, exportToExcel } from '@/lib/exportUtils'
 import { Eye, Download, Filter, Search, Mail, CheckSquare, Square } from 'lucide-react'
 import { ApplicationsSkeleton } from '@/components/admin/applications'
@@ -62,6 +63,7 @@ function ApplicationsAdminContent() {
   } = useApplicationsData()
   const [operationError, setOperationError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearchTerm = useDebounce(searchTerm, 300) // Debounce search for 300ms
   const [statusFilter, setStatusFilter] = useState('')
   const [paymentFilter, setPaymentFilter] = useState('')
   const [programFilter, setProgramFilter] = useState('')
@@ -166,10 +168,10 @@ function ApplicationsAdminContent() {
   const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
 
   const filteredApplications = useMemo(() => applications.filter(app => {
-    const matchesSearch = !searchTerm || 
-      app.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.application_number.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = !debouncedSearchTerm || 
+      app.full_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      app.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      app.application_number.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     
     const matchesStatus = !statusFilter || app.status === statusFilter
     const matchesPayment = !paymentFilter || app.payment_status === paymentFilter
@@ -177,7 +179,7 @@ function ApplicationsAdminContent() {
     const matchesInstitution = !institutionFilter || app.institution === institutionFilter
 
     return matchesSearch && matchesStatus && matchesPayment && matchesProgram && matchesInstitution
-  }), [applications, searchTerm, statusFilter, paymentFilter, programFilter, institutionFilter])
+  }), [applications, debouncedSearchTerm, statusFilter, paymentFilter, programFilter, institutionFilter])
 
   const getStatusBadge = (status: string) => {
     const colors = {

@@ -10,7 +10,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { Home, Search, FileText, User, Settings } from 'lucide-react'
+import { Home, Search, FileText, User, Settings, CreditCard, Calendar } from 'lucide-react'
 import { useSafeArea } from './SafeAreaProvider'
 
 export interface BottomNavItem {
@@ -41,9 +41,9 @@ interface BottomNavigationProps {
  * Default navigation items for students
  */
 export const defaultStudentNavItems: BottomNavItem[] = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/track-application', label: 'Track', icon: Search },
-  { href: '/student/dashboard', label: 'Dashboard', icon: FileText, requiresAuth: true },
+  { href: '/student/dashboard', label: 'Dashboard', icon: Home, requiresAuth: true },
+  { href: '/student/payment', label: 'Payment', icon: CreditCard, requiresAuth: true },
+  { href: '/student/interview', label: 'Interview', icon: Calendar, requiresAuth: true },
   { href: '/student/profile', label: 'Profile', icon: User, requiresAuth: true },
 ]
 

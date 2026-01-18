@@ -2,94 +2,79 @@
 
 ## Introduction
 
-This specification addresses the missing student payment and interview pages in the MIHAS application system. Currently, the QuickActions component links to `/student/payment` and `/student/interview` routes that do not exist, causing 404 errors. This feature creates dedicated pages for students to view payment information and interview schedules.
+This document specifies the requirements for fixing three critical issues in the MIHAS student portal:
 
-**Root Cause Analysis:**
-- QuickActions component links to `/student/payment` but no route or page exists
-- QuickActions component links to `/student/interview` but no route or page exists
-- Payment is currently handled as Step 3 in the Application Wizard
-- Interviews are stored in `application_interviews` table with scheduling data
-- Applications table contains payment fields: `payment_status`, `payment_method`, `momo_ref`, `pop_url`, `amount`, `paid_at`
+1. **React Error #130** - "Element type is invalid" error when terminating a session, indicating an undefined component is being rendered
+2. **Missing Navigation Items** - Payment and Interview links are not visible in the student navigation menu
+3. **Incorrect Payment Navigation** - "Complete Payment" action redirects to the application wizard start instead of directly to the payment page
 
 ## Glossary
 
-- **Payment_Page**: The dedicated student page for viewing payment status and instructions
-- **Interview_Page**: The dedicated student page for viewing scheduled interviews
-- **Application_Wizard**: The 4-step application form where payment is Step 3
-- **QuickActions**: The component displaying quick action cards on the student dashboard
-- **application_interviews**: Database table storing interview scheduling data (scheduled_at, mode, location, status)
-- **applications**: Database table containing payment fields (payment_status, payment_method, amount, pop_url)
+- **Student_Dashboard**: The main dashboard page for students at `/student/dashboard`
+- **Navigation_Menu**: The sidebar and bottom navigation components that provide navigation links
+- **Payment_Page**: The dedicated payment page at `/student/payment`
+- **Interview_Page**: The dedicated interview page at `/student/interview`
+- **Application_Wizard**: The multi-step application form at `/student/application-wizard`
+- **Quick_Actions**: The component displaying quick action cards on the student dashboard
+- **Session_Termination**: The process of ending a user's authenticated session
 
 ## Requirements
 
-### Requirement 1: Payment Page Navigation
+### Requirement 1: Fix React Error #130 on Session Termination
 
-**User Story:** As a student, I want to click "Complete Payment" in quick actions and see a payment information page, so that I can understand how to complete my application payment.
-
-#### Acceptance Criteria
-
-1. WHEN a student clicks "Complete Payment" quick action, THE Payment_Page SHALL load without 404 error
-2. THE Payment_Page SHALL display payment instructions including the K153 fee amount
-3. THE Payment_Page SHALL provide a button to navigate to the Application Wizard payment step
-4. WHEN the student has pending payment applications, THE Payment_Page SHALL list them with status indicators
-5. THE Payment_Page SHALL be accessible only to authenticated students (guard: 'student')
-
-### Requirement 2: Payment Status Display
-
-**User Story:** As a student, I want to see my payment status for each application, so that I know which applications need payment.
+**User Story:** As a student, I want to be able to sign out of my session without encountering errors, so that I can securely end my session.
 
 #### Acceptance Criteria
 
-1. WHEN the Payment_Page loads, THE Payment_Page SHALL query applications where payment_status is null or 'pending_review'
-2. THE Payment_Page SHALL display each pending application with program name and payment status
-3. WHEN an application has payment_status='verified', THE Payment_Page SHALL show a success indicator
-4. WHEN an application has payment_status='rejected', THE Payment_Page SHALL show rejection reason if available
-5. THE Payment_Page SHALL show a "View Application" button for each listed application
+1. WHEN a user terminates their session THEN the System SHALL navigate to the home page without rendering errors
+2. WHEN the signOut function is called THEN the System SHALL clear all cached queries before navigation
+3. IF a component receives undefined props during logout THEN the System SHALL handle the undefined state gracefully
+4. WHEN the auth state changes to unauthenticated THEN the System SHALL not attempt to render protected components
 
-### Requirement 3: Interview Page Navigation
+### Requirement 2: Add Payment and Interview Links to Student Navigation
 
-**User Story:** As a student, I want to click "View Interview Details" in quick actions and see my interview schedule, so that I can prepare for my interviews.
-
-#### Acceptance Criteria
-
-1. WHEN a student clicks "View Interview Details" quick action, THE Interview_Page SHALL load without 404 error
-2. THE Interview_Page SHALL query application_interviews for the student's applications
-3. THE Interview_Page SHALL be accessible only to authenticated students (guard: 'student')
-4. WHEN no interviews are scheduled, THE Interview_Page SHALL display an appropriate empty state message
-5. THE Interview_Page SHALL provide a "Back to Dashboard" navigation link
-
-### Requirement 4: Interview Details Display
-
-**User Story:** As a student, I want to see complete details of my scheduled interviews, so that I know when and where to attend.
+**User Story:** As a student, I want to see Payment and Interview links in my navigation menu, so that I can easily access these important pages.
 
 #### Acceptance Criteria
 
-1. WHEN displaying an interview, THE Interview_Page SHALL show scheduled_at date and time
-2. WHEN displaying an interview, THE Interview_Page SHALL show the interview mode (in_person, virtual, phone)
-3. WHEN the interview mode is 'virtual', THE Interview_Page SHALL display a "Join Meeting" button if meeting link exists
-4. WHEN the interview mode is 'in_person', THE Interview_Page SHALL display the location
-5. THE Interview_Page SHALL show interview status (scheduled, rescheduled, completed, cancelled)
-6. THE Interview_Page SHALL separate upcoming interviews from past interviews
+1. THE Navigation_Menu SHALL display a "Payment" link for authenticated students
+2. THE Navigation_Menu SHALL display an "Interview" link for authenticated students
+3. WHEN a student has pending payments THEN the Payment link SHALL be visually highlighted
+4. WHEN a student has scheduled interviews THEN the Interview link SHALL be visually highlighted
+5. THE Payment link SHALL navigate to `/student/payment`
+6. THE Interview link SHALL navigate to `/student/interview`
+7. THE Navigation_Menu SHALL display Payment and Interview links in both desktop sidebar and mobile bottom navigation
 
-### Requirement 5: Route Configuration
+### Requirement 3: Fix Complete Payment Navigation
 
-**User Story:** As a developer, I want the payment and interview routes properly configured, so that navigation works correctly.
-
-#### Acceptance Criteria
-
-1. THE routes config SHALL include `/student/payment` route with guard 'student'
-2. THE routes config SHALL include `/student/interview` route with guard 'student'
-3. THE routes SHALL use React.lazy for code splitting
-4. THE routes SHALL redirect unauthenticated users to sign-in page
-
-### Requirement 6: Error Handling
-
-**User Story:** As a student, I want to see helpful error messages when data fails to load, so that I understand what went wrong.
+**User Story:** As a student with a pending payment, I want the "Complete Payment" action to take me directly to the payment page, so that I can complete my payment without navigating through the application wizard.
 
 #### Acceptance Criteria
 
-1. IF the Payment_Page fails to load applications, THEN THE Payment_Page SHALL display an error message
-2. IF the Interview_Page fails to load interviews, THEN THE Interview_Page SHALL display an error message
-3. WHEN loading data, THE pages SHALL display a loading spinner
-4. IF the user is not authenticated, THEN THE pages SHALL redirect to sign-in
+1. WHEN a student clicks "Complete Payment" in Quick_Actions THEN the System SHALL navigate to `/student/payment`
+2. WHEN a student clicks "Complete Payment" in Dashboard_Status_Overview THEN the System SHALL navigate to `/student/payment`
+3. THE Payment_Page SHALL display all applications with pending payments
+4. THE Payment_Page SHALL provide clear instructions for completing payment
+5. IF a student needs to upload proof of payment THEN the Payment_Page SHALL provide a link to the relevant application's payment step
 
+### Requirement 4: Conditional Navigation Display
+
+**User Story:** As a student, I want to see relevant navigation items based on my application status, so that I only see options that are applicable to me.
+
+#### Acceptance Criteria
+
+1. WHEN a student has no applications THEN the Navigation_Menu SHALL still display Payment and Interview links
+2. WHEN a student has applications with pending payments THEN the Payment link SHALL show a visual indicator
+3. WHEN a student has scheduled interviews THEN the Interview link SHALL show a visual indicator
+4. THE Navigation_Menu SHALL update dynamically when application status changes
+
+### Requirement 5: Error Boundary Protection
+
+**User Story:** As a student, I want the application to handle errors gracefully, so that I can continue using the application even if something goes wrong.
+
+#### Acceptance Criteria
+
+1. IF a component fails to render during navigation THEN the System SHALL display a fallback UI
+2. WHEN an error occurs during session termination THEN the System SHALL still complete the logout process
+3. THE System SHALL log errors for debugging without exposing them to users
+4. IF the auth context becomes undefined THEN components SHALL render a safe fallback state

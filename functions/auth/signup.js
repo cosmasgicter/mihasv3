@@ -1,8 +1,12 @@
 import { supabaseAdminClient } from '../_lib/supabaseClient.js';
+import { checkRateLimit } from '../_lib/rateLimiter.js';
+import { AuditLogger } from '../_lib/auditLogger.js';
+
+// Rate limit: 3 signup attempts per minute per IP
+const SIGNUP_RATE_LIMIT = { maxAttempts: 3, windowMs: 60000 };
 
 export async function onRequestPost(context) {
   const { request } = context;
-  const body = await request.json();
   
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -14,8 +18,49 @@ export async function onRequestPost(context) {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
   
+  const clientIp = request.headers.get('cf-connecting-ip') || 
+                   request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                   'unknown';
+  const userAgent = request.headers.get('user-agent');
+  const auditLogger = new AuditLogger(supabaseAdminClient);
+  
   try {
-    console.log('[SIGNUP] Request body:', JSON.stringify(body, null, 2));
+    // Rate limiting by IP
+    const rateLimitKey = `auth:signup:${clientIp}`;
+    const rateLimit = await checkRateLimit(rateLimitKey, SIGNUP_RATE_LIMIT);
+    
+    if (rateLimit.isLimited) {
+      const retryAfter = Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / 1000);
+      
+      // Audit log rate limit hit (no PII)
+      try {
+        await auditLogger.log({
+          actorId: null,
+          action: 'signup_rate_limited',
+          entityType: 'auth',
+          entityId: null,
+          changes: { reason: 'rate_limit_exceeded' },
+          ipAddress: clientIp,
+          userAgent
+        });
+      } catch (auditError) {
+        console.error('Audit log error:', auditError.message);
+      }
+      
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Too many signup attempts. Please try again later.' 
+      }), {
+        status: 429,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'Retry-After': retryAfter.toString()
+        }
+      });
+    }
+    
+    const body = await request.json();
     const { email, password, ...userData } = body;
     
     // Check if email already exists
@@ -26,7 +71,23 @@ export async function onRequestPost(context) {
       .maybeSingle();
     
     if (existingUser) {
+      // Audit log duplicate signup attempt (no PII)
+      try {
+        await auditLogger.log({
+          actorId: null,
+          action: 'signup_duplicate_email',
+          entityType: 'auth',
+          entityId: null,
+          changes: { reason: 'email_already_registered' },
+          ipAddress: clientIp,
+          userAgent
+        });
+      } catch (auditError) {
+        console.error('Audit log error:', auditError.message);
+      }
+      
       return new Response(JSON.stringify({ 
+        success: false,
         error: 'This email is already registered. Please sign in instead.'
       }), {
         status: 400,
@@ -52,17 +113,27 @@ export async function onRequestPost(context) {
     });
     
     if (authError) {
-      console.error('[SIGNUP] Auth error FULL:', JSON.stringify({
-        message: authError.message,
-        name: authError.name,
-        code: authError.code,
-        status: authError.status,
-        stack: authError.stack
-      }, null, 2));
+      console.error('[SIGNUP] Auth error:', authError.message);
+      
+      // Audit log signup failure (no PII)
+      try {
+        await auditLogger.log({
+          actorId: null,
+          action: 'signup_failed',
+          entityType: 'auth',
+          entityId: null,
+          changes: { reason: 'auth_error' },
+          ipAddress: clientIp,
+          userAgent
+        });
+      } catch (auditError) {
+        console.error('Audit log error:', auditError.message);
+      }
       
       // Check for duplicate email
       if (authError.message?.includes('already registered') || authError.message?.includes('already exists')) {
         return new Response(JSON.stringify({ 
+          success: false,
           error: 'This email is already registered. Please sign in instead.'
         }), {
           status: 400,
@@ -71,10 +142,8 @@ export async function onRequestPost(context) {
       }
       
       return new Response(JSON.stringify({ 
-        error: authError.message || 'Failed to create account',
-        code: authError.code,
-        status: authError.status,
-        details: authError.message
+        success: false,
+        error: 'Failed to create account. Please try again.'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -84,7 +153,7 @@ export async function onRequestPost(context) {
     console.log('[SIGNUP] User created:', authData.user?.id);
     
     if (!authData.user) {
-      return new Response(JSON.stringify({ error: 'User creation failed' }), {
+      return new Response(JSON.stringify({ success: false, error: 'User creation failed' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -99,7 +168,24 @@ export async function onRequestPost(context) {
     
     if (existingProfile) {
       console.log('[SIGNUP] Profile already exists, skipping insert');
+      
+      // Audit log successful signup (use user ID only)
+      try {
+        await auditLogger.log({
+          actorId: authData.user.id,
+          action: 'signup_success',
+          entityType: 'auth',
+          entityId: authData.user.id,
+          changes: { profile_existed: true },
+          ipAddress: clientIp,
+          userAgent
+        });
+      } catch (auditError) {
+        console.error('Audit log error:', auditError.message);
+      }
+      
       return new Response(JSON.stringify({ 
+        success: true,
         user: authData.user,
         message: 'Account created successfully'
       }), {
@@ -130,23 +216,35 @@ export async function onRequestPost(context) {
       });
     
     if (profileError) {
-      console.error('[SIGNUP] Profile error:', JSON.stringify(profileError, null, 2));
-      console.error('[SIGNUP] Profile data attempted:', JSON.stringify({ id: authData.user.id, email: authData.user.email, role: 'student' }, null, 2));
+      console.error('[SIGNUP] Profile error:', profileError.message);
       await supabaseAdminClient.auth.admin.deleteUser(authData.user.id);
       return new Response(JSON.stringify({ 
-        error: 'Failed to create profile',
-        message: profileError.message,
-        code: profileError.code,
-        details: profileError.details,
-        hint: profileError.hint
+        success: false,
+        error: 'Failed to create profile. Please try again.'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     
+    // Audit log successful signup (use user ID only)
+    try {
+      await auditLogger.log({
+        actorId: authData.user.id,
+        action: 'signup_success',
+        entityType: 'auth',
+        entityId: authData.user.id,
+        changes: { profile_created: true },
+        ipAddress: clientIp,
+        userAgent
+      });
+    } catch (auditError) {
+      console.error('Audit log error:', auditError.message);
+    }
+    
     // Return success - frontend will auto-login with credentials
     return new Response(JSON.stringify({ 
+      success: true,
       user: authData.user,
       message: 'Account created successfully',
       autoLogin: true
@@ -155,14 +253,12 @@ export async function onRequestPost(context) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('[SIGNUP] Catch error:', error);
-    console.error('[SIGNUP] Error stack:', error.stack);
+    console.error('[SIGNUP] Error:', error.message);
     return new Response(JSON.stringify({ 
-      error: 'Database error creating new user',
-      details: error.message,
-      stack: error.stack?.split('\n').slice(0, 3).join('\n')
+      success: false,
+      error: 'An error occurred during registration. Please try again.'
     }), {
-      status: 400,
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }

@@ -158,7 +158,8 @@ async function processProfile(req, profile, payload) {
     role: profile.role
   }
   
-  console.log('[getUserFromRequest] User loaded:', user.id, user.email, 'role:', profile.role)
+  // Log user ID only - never log PII (email, name, phone)
+  console.log('[getUserFromRequest] User loaded:', user.id, 'role:', profile.role)
 
   let roles = profile.role ? [profile.role] : []
   
