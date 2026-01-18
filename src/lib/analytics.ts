@@ -119,9 +119,18 @@ export class AnalyticsService {
   // Event Tracking
   static async trackEvent(event: AnalyticsEvent) {
     try {
-      // Allow anonymous tracking for web vitals and basic events
+      // Check authentication before tracking to avoid 401/403 errors
       const { data: { session } } = await supabase.auth.getSession()
       
+      // If we don't have a session and no explicit user_id, we can't track to a protected table
+      // This prevents the browser console 401/403 spam
+      if (!session?.user && !event.user_id) {
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[Analytics] Skipping anonymous event tracking:', event.action_type)
+        }
+        return
+      }
+
       const { error } = await supabase
         .from('user_engagement_metrics')
         .insert({
@@ -135,8 +144,9 @@ export class AnalyticsService {
 
       if (error) throw error
     } catch (error) {
-      // Silently fail for anonymous users
+      // Silently fail for tracking errors to avoid disrupting user experience
       if (process.env.NODE_ENV === 'development') {
+        console.warn('[Analytics] Failed to track event:', error)
       }
     }
   }
