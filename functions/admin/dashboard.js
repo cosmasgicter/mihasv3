@@ -37,6 +37,7 @@ export async function onRequestGet(context) {
     
     const apps = allApps.data || [];
     const totalCount = apps.length;
+    const draftCount = apps.filter(a => a.status === 'draft').length;
     const submittedCount = apps.filter(a => a.status === 'submitted').length;
     const underReviewCount = apps.filter(a => a.status === 'under_review').length;
     const approvedCount = apps.filter(a => a.status === 'approved').length;
@@ -79,6 +80,7 @@ export async function onRequestGet(context) {
       },
       recentActivity,
       statusBreakdown: {
+        draft: draftCount,
         submitted: submittedCount,
         under_review: underReviewCount,
         approved: approvedCount,

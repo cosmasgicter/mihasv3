@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import type { Application, Intake } from '@/lib/supabase'
+import type { Application, Intake, ApplicationInterview } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { ContinueApplication } from '@/components/application/ContinueApplication'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
@@ -44,6 +45,7 @@ export default function StudentDashboard() {
   const [draftData, setDraftData] = useState<any>(null)
   const [isDeletingDraft, setIsDeletingDraft] = useState(false)
   const [isClearingAllDrafts, setIsClearingAllDrafts] = useState(false)
+  const [scheduledInterviews, setScheduledInterviews] = useState<ApplicationInterview[]>([])
   const hasLoadedRef = useRef(false)
   const abortControllerRef = useRef<AbortController | null>(null)
   const confirmDialog = useConfirmDialog()
@@ -210,6 +212,36 @@ export default function StudentDashboard() {
       if (signal.aborted) return
 
       setIntakes(intakesResponse.intakes || [])
+
+      // Fetch scheduled interviews for the user's applications
+      // Requirements: 2.4, 4.3 - Check for scheduled or rescheduled interviews
+      if (user?.id) {
+        try {
+          const { data: interviewData } = await supabase
+            .from('application_interviews')
+            .select(`
+              id,
+              application_id,
+              scheduled_at,
+              mode,
+              location,
+              status,
+              notes,
+              applications!inner (user_id)
+            `)
+            .eq('applications.user_id', user.id)
+            .in('status', ['scheduled', 'rescheduled'])
+
+          // Check if request was aborted
+          if (signal.aborted) return
+
+          setScheduledInterviews((interviewData || []) as ApplicationInterview[])
+        } catch (interviewError) {
+          // Silently handle interview fetch errors - not critical for dashboard
+          console.warn('Could not fetch interview data:', interviewError)
+          setScheduledInterviews([])
+        }
+      }
     } catch (error) {
       // Ignore abort errors
       if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted'))) {
@@ -279,12 +311,18 @@ export default function StudentDashboard() {
   const totalDraftCount = draftApplications.length + (hasLocalDraftOnly ? 1 : 0)
   
   // Check for pending payment and scheduled interviews
+  // Requirements: 2.3, 4.2 - Check for null, 'pending_review', or non-verified status
+  // Exclude draft applications from pending payment count
   const hasPendingPayment = applications.some(app => 
-    app.status === 'submitted' && app.payment_status !== 'verified'
+    app.status !== 'draft' && (
+      app.payment_status === null || 
+      app.payment_status === 'pending_review' ||
+      app.payment_status !== 'verified'
+    )
   )
-  const hasScheduledInterview = applications.some(app => 
-    app.status === 'interview_scheduled'
-  )
+  
+  // Requirements: 2.4, 4.3 - Check for 'scheduled' or 'rescheduled' status in application_interviews
+  const hasScheduledInterview = scheduledInterviews.length > 0
 
   // Handler for clearing all drafts
   const handleClearAllDrafts = async () => {

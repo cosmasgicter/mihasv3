@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/textarea'
 import { StandaloneSelect } from '@/components/ui/standalone-select'
+import { useToastStore } from '@/components/ui/Toast'
 import { Plus, Edit, Trash2, Save, X, Settings, BarChart3, Users, AlertTriangle } from 'lucide-react'
 import { RegulatoryGuidelinesTable } from '@/components/admin/RegulatoryGuidelinesTable'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
@@ -37,6 +38,7 @@ export default function EligibilityManagement() {
   const [showRuleForm, setShowRuleForm] = useState(false)
   const [editingRule, setEditingRule] = useState<EligibilityRule | null>(null)
   const confirmDialog = useConfirmDialog()
+  const { error: showError } = useToastStore()
 
   const [ruleForm, setRuleForm] = useState({
     program_id: '',
@@ -117,7 +119,7 @@ export default function EligibilityManagement() {
       resetRuleForm()
     } catch (error) {
       console.error('Error saving rule:', error)
-      toast.error('Error', 'Failed to save rule')
+      showError('Failed to save rule')
     }
   }
 
@@ -140,7 +142,7 @@ export default function EligibilityManagement() {
       await loadRules()
     } catch (error) {
       console.error('Error deleting rule:', error)
-      toast.error('Error', 'Failed to delete rule')
+      showError('Failed to delete rule')
     }
   }
 

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch, TrendingUp, Activity, LineChart, Gauge } from 'lucide-react'
+import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch, TrendingUp, Activity, LineChart, Gauge, CreditCard } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
@@ -71,6 +71,8 @@ const adminSections: NavSection[] = [
 const studentLinks: NavItem[] = [
   { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
   { to: '/apply', icon: FileText, label: 'Application' },
+  { to: '/student/payment', icon: CreditCard, label: 'Payment' },
+  { to: '/student/interview', icon: Calendar, label: 'Interview' },
   { to: '/student/notifications', icon: Bell, label: 'Notifications' },
   { to: '/student/profile', icon: User, label: 'Profile' },
 ]

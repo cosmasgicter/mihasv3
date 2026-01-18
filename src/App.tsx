@@ -48,7 +48,18 @@ const renderRoute = (route: RouteConfig) => {
   
   let routeElement: React.ReactElement
   
-  if (React.isValidElement(element)) {
+  // Handle undefined/null components to prevent React Error #130
+  if (!element) {
+    console.error(`Route ${route.path} has undefined element`)
+    routeElement = (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center p-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Page Not Found</h2>
+          <p className="text-gray-600">The requested page could not be loaded.</p>
+        </div>
+      </div>
+    )
+  } else if (React.isValidElement(element)) {
     routeElement = element
   } else {
     const Component = element as React.ComponentType
