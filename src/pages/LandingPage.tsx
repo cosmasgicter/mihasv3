@@ -169,10 +169,10 @@ function HeroSection() {
 
       {/* Scroll indicator */}
       <div 
-        className="absolute bottom-4 sm:bottom-8 left-1/2 transform -translate-x-1/2 cursor-pointer animate-bounce touch-target"
+        className="absolute bottom-8 sm:bottom-12 left-1/2 transform -translate-x-1/2 cursor-pointer animate-bounce touch-target z-20"
         onClick={scrollToStats}
       >
-        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-border transition-colors">
+        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-border transition-colors shadow-sm">
           <div className="w-1 h-3 bg-card rounded-full mt-2" />
         </div>
       </div>

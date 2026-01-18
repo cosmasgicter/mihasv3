@@ -76,6 +76,11 @@
       },
       "disabled": true,
       "autoApprove": []
+    },
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp",
+      "disabled": false,
+      "autoApprove": []
     }
   },
   "powers": {

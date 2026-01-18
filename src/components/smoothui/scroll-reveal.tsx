@@ -5,7 +5,7 @@
  * @requirements 8.1, 8.6 - SmoothUI animations with reduced-motion support
  */
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { 
   scrollRevealVariants, 
@@ -13,6 +13,7 @@ import {
   durations,
   type ScrollDirection 
 } from '@/lib/animation-config';
+import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation';
 
 interface ScrollRevealProps {
   children: React.ReactNode;
@@ -33,20 +34,21 @@ export function ScrollReveal({
   className = '',
   once = true,
 }: ScrollRevealProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const { shouldAnimate } = useOptimizedAnimation();
   const { ref, inView } = useInView({
     threshold,
     triggerOnce: once,
   });
 
-  // Use reduced motion variants if user prefers
-  const variants = prefersReducedMotion 
-    ? reducedMotionScrollRevealVariants 
-    : scrollRevealVariants[direction];
+  // Use reduced motion/mobile variants (which are essentially "no animation" or "instant appear")
+  // if animation is disabled.
+  const variants = shouldAnimate 
+    ? scrollRevealVariants[direction]
+    : reducedMotionScrollRevealVariants;
 
-  // Override duration if provided
+  // Override duration if provided, or set to 0 if animation disabled
   const customTransition = duration !== undefined 
-    ? { duration: prefersReducedMotion ? 0 : duration }
+    ? { duration: shouldAnimate ? duration : 0 }
     : undefined;
 
   return (
@@ -56,7 +58,7 @@ export function ScrollReveal({
       animate={inView ? 'visible' : 'hidden'}
       variants={variants}
       transition={{
-        delay: prefersReducedMotion ? 0 : delay,
+        delay: shouldAnimate ? delay : 0,
         ...customTransition,
       }}
       className={className}
@@ -82,7 +84,7 @@ export function StaggerReveal({
   className = '',
   once = true,
 }: StaggerRevealProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const { shouldAnimate } = useOptimizedAnimation();
   const { ref, inView } = useInView({
     threshold,
     triggerOnce: once,
@@ -93,8 +95,8 @@ export function StaggerReveal({
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: prefersReducedMotion ? 0 : staggerDelay,
-        delayChildren: prefersReducedMotion ? 0 : 0.1,
+        staggerChildren: shouldAnimate ? staggerDelay : 0,
+        delayChildren: shouldAnimate ? 0.1 : 0,
       },
     },
   };
@@ -119,15 +121,15 @@ interface StaggerItemProps {
 }
 
 export function StaggerItem({ children, className = '' }: StaggerItemProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const { shouldAnimate } = useOptimizedAnimation();
 
   const itemVariants = {
-    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
+    hidden: { opacity: 0, y: shouldAnimate ? 20 : 0 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: prefersReducedMotion ? 0 : durations.normal,
+        duration: shouldAnimate ? durations.normal : 0,
       },
     },
   };
