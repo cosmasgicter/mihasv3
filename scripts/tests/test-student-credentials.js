@@ -1,5 +1,5 @@
 // Student credential testing
-const baseUrl = '***REMOVED***'
+const baseUrl = 'https://mihasv3.pages.dev'
 
 const studentCredentials = { 
   email: 'alexisstar8@gmail.com', 

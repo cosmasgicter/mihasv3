@@ -12,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Configuration
-const BASE_URL = '***REMOVED***';
+const BASE_URL = 'https://mihasv3.pages.dev';
 const TEST_EMAIL = 'alexisstar8@gmail.com';
 const TEST_PASSWORD = 'Skyl3rL0m1s';
 const TEST_FULL_NAME = 'Alexis Star Test User';

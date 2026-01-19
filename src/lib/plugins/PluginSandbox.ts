@@ -51,7 +51,7 @@ export class PluginSandbox {
       cpuLimit: 10, // 10% CPU default
       allowedDomains: [
         'api.mihas.edu.zm',
-        'apply.mihas.edu.zm'
+        'mihasv3.pages.dev'
       ],
       blockedAPIs: [
         'eval',

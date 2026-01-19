@@ -56,7 +56,7 @@ After deployment, check Cloudflare dashboard:
 ./test-email-queue.sh
 
 # Option B: Using curl directly
-curl -X POST ***REMOVED***/cron/process-email-queue
+curl -X POST https://mihasv3.pages.dev/cron/process-email-queue
 ```
 
 ### Step 4: Process Stuck Emails

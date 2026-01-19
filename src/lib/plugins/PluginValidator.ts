@@ -242,7 +242,7 @@ export class PluginValidator {
     // Check external API permissions
     if (apiPerms.external) {
       const allowedDomains = [
-        'api.mihas.edu.zm', 'apply.mihas.edu.zm', 'hpcz.org.zm',
+        'api.mihas.edu.zm', 'mihasv3.pages.dev', 'hpcz.org.zm',
         'gnc.org.zm', 'ecz.org.zm'
       ]
       

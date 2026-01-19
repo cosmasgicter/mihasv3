@@ -21,7 +21,7 @@ wrangler pages deploy dist
 
 ## 2️⃣ VERIFY APIs (5 minutes)
 
-Open browser console on ***REMOVED***:
+Open browser console on https://mihasv3.pages.dev:
 
 ```javascript
 // Get your token

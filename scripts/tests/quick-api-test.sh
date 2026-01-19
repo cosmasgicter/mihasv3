@@ -5,7 +5,7 @@
 
 set -e
 
-BASE_URL="***REMOVED***/.netlify/functions"
+BASE_URL="https://mihasv3.pages.dev/.netlify/functions"
 STUDENT_EMAIL="cosmaskanchepa8@gmail.com"
 STUDENT_PASSWORD="Beanola2025"
 ADMIN_EMAIL="cosmas@beanola.com"

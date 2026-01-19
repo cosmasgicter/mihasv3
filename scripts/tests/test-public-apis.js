@@ -8,7 +8,7 @@
 import fetch from 'node-fetch';
 import fs from 'fs';
 
-const BASE_URL = '***REMOVED***';
+const BASE_URL = 'https://mihasv3.pages.dev';
 
 const testResults = {
   timestamp: new Date().toISOString(),

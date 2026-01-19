@@ -334,7 +334,7 @@ export async function onRequest(context) {
                   program: data.program,
                   studentName: data.full_name,
                   notes,
-                  appUrl: `${context.env.VITE_APP_URL || '***REMOVED***'}/student/application/${id}`
+                  appUrl: `${context.env.VITE_APP_URL || 'https://mihasv3.pages.dev'}/student/application/${id}`
                 }),
                 priority: status === 'approved' ? 'high' : 'normal'
               }).catch(err => console.error('Email queue error:', err));
@@ -471,7 +471,7 @@ export async function onRequest(context) {
                     applicationNumber: data.application_number,
                     amount: data.amount,
                     studentName: data.full_name,
-                    appUrl: `${context.env.VITE_APP_URL || '***REMOVED***'}/student/application/${id}`
+                  appUrl: `${context.env.VITE_APP_URL || 'https://mihasv3.pages.dev'}/student/application/${id}`
                   }),
                   priority: paymentStatus === 'verified' ? 'high' : 'normal'
                 }).catch(err => console.error('Email queue error:', err));
@@ -521,7 +521,7 @@ export async function onRequest(context) {
                   <hr style="margin: 20px 0;">
                   <p style="color: #666; font-size: 14px;">
                     This message is regarding your application #${app.application_number}.<br>
-                    <a href="${context.env.VITE_APP_URL || '***REMOVED***'}/student/application/${id}">View Application</a>
+                    <a href="${context.env.VITE_APP_URL || 'https://mihasv3.pages.dev'}/student/application/${id}">View Application</a>
                   </p>
                 </div>
               `,

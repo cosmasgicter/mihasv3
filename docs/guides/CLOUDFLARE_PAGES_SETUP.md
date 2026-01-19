@@ -51,14 +51,14 @@ Once deployed, test the endpoints:
 
 ```bash
 # Health check
-curl ***REMOVED***/health
+curl https://mihasv3.pages.dev/health
 
 # Login
-curl -X POST ***REMOVED***/auth/login \
+curl -X POST https://mihasv3.pages.dev/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"cosmas@beanola.com","password":"Beanola2025"}'
 
 # Applications (with token)
-curl ***REMOVED***/applications \
+curl https://mihasv3.pages.dev/applications \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```

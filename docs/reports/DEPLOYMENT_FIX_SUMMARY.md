@@ -66,7 +66,7 @@ netlify env:set VITE_SUPABASE_URL "https://mylgegkqoddcrxtwcclb.supabase.co"
 netlify env:set VITE_SUPABASE_ANON_KEY "your-anon-key-here"
 netlify env:set SUPABASE_SERVICE_ROLE_KEY "your-service-role-key-here"
 netlify env:set SUPABASE_URL "https://mylgegkqoddcrxtwcclb.supabase.co"
-netlify env:set VITE_API_BASE_URL "***REMOVED***"
+netlify env:set VITE_API_BASE_URL "https://mihasv3.pages.dev"
 netlify env:set VITE_NODE_ENV "production"
 netlify env:set EMAIL_PROVIDER "resend"
 netlify env:set RESEND_API_KEY "your-resend-key-here"
@@ -92,7 +92,7 @@ netlify deploy --prod
 
 ```bash
 # Test health endpoint
-curl ***REMOVED***/api/health
+curl https://mihasv3.pages.dev/api/health
 
 # Expected response:
 {
@@ -165,7 +165,7 @@ netlify dev
 netlify deploy --prod
 
 # Test health endpoint
-curl ***REMOVED***/api/health
+curl https://mihasv3.pages.dev/api/health
 ```
 
 ---

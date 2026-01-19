@@ -2,12 +2,12 @@
 const testEndpoints = [
   {
     name: 'Predictive Dashboard',
-    url: '***REMOVED***/api/analytics/predictive-dashboard',
+    url: 'https://mihasv3.pages.dev/api/analytics/predictive-dashboard',
     method: 'GET'
   },
   {
     name: 'Application Update',
-    url: '***REMOVED***/api/applications/test-id',
+    url: 'https://mihasv3.pages.dev/api/applications/test-id',
     method: 'PATCH',
     body: { action: 'update_payment_status', paymentStatus: 'verified' }
   }

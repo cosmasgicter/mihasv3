@@ -93,7 +93,7 @@ export class SecuritySanitizer {
 
 ```typescript
 // SSRF Prevention
-const allowedHosts = ['apply.mihas.edu.zm', 'mylgegkqoddcrxtwcclb.supabase.co']
+const allowedHosts = ['mihasv3.pages.dev', 'mylgegkqoddcrxtwcclb.supabase.co']
 if (!allowedHosts.includes(urlObj.hostname)) {
   throw new Error('Invalid URL - host not allowed')
 }

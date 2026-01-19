@@ -3,7 +3,7 @@
 ## Getting Started
 
 ### Login
-1. Visit ***REMOVED***/admin
+1. Visit https://mihasv3.pages.dev/admin
 2. Enter admin credentials
 3. You'll be redirected to admin dashboard
 

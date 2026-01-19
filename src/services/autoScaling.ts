@@ -215,7 +215,7 @@ class AutoScalingService {
       servers: [
         {
           id: 'server_1',
-          url: '***REMOVED***',
+          url: 'https://mihasv3.pages.dev',
           weight: 100,
           status: 'healthy',
           currentConnections: 45,

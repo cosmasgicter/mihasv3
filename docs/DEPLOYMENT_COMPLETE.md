@@ -41,7 +41,7 @@
 ### Auto-Deploy Triggered
 - **Platform**: Cloudflare Pages
 - **Trigger**: GitHub push to main branch
-- **URL**: ***REMOVED***
+- **URL**: https://mihasv3.pages.dev
 - **Build Command**: `npm run build:prod`
 - **Output**: `dist/` + `functions/`
 
@@ -50,7 +50,7 @@
 2. ⏳ Cloudflare detects push (in progress)
 3. ⏳ Build starts (~2-3 minutes)
 4. ⏳ Deploy to production (~30 seconds)
-5. ⏳ Available at ***REMOVED***
+5. ⏳ Available at https://mihasv3.pages.dev
 
 **Estimated Total Time**: 3-4 minutes
 
@@ -91,15 +91,15 @@ TOKEN="<your_token>"
 
 # Test auth endpoints
 curl -H "Authorization: Bearer $TOKEN" \
-  ***REMOVED***/api/auth-roles
+  https://mihasv3.pages.dev/api/auth-roles
 
 # Test admin endpoints
 curl -H "Authorization: Bearer $TOKEN" \
-  ***REMOVED***/api/admin-settings
+  https://mihasv3.pages.dev/api/admin-settings
 
 # Test notifications
 curl -H "Authorization: Bearer $TOKEN" \
-  ***REMOVED***/api/notifications
+  https://mihasv3.pages.dev/api/notifications
 ```
 
 ### Test Frontend
@@ -248,4 +248,4 @@ The API migration is complete and deployed to production:
 **Deployed**: 2025-01-23
 **Commit**: 9c6511cf8
 **Status**: ✅ LIVE
-**URL**: ***REMOVED***
+**URL**: https://mihasv3.pages.dev

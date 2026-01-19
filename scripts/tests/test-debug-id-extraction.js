@@ -1,5 +1,5 @@
 // Debug ID extraction issue
-const baseUrl = '***REMOVED***'
+const baseUrl = 'https://mihasv3.pages.dev'
 const studentCredentials = { email: 'alexisstar8@gmail.com', password: '***REMOVED***' }
 
 async function authenticate() {

@@ -74,7 +74,7 @@
    ```
 
 4. **Verify in browser**:
-   - Navigate to ***REMOVED***/admin/dashboard
+   - Navigate to https://mihasv3.pages.dev/admin/dashboard
    - Check that data loads correctly
    - Verify no console errors
 

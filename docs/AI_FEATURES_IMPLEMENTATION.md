@@ -258,7 +258,7 @@ import { AITrendsPanel } from '@/components/admin/AITrendsPanel'
 
 ### Test Prediction API
 ```bash
-curl -X POST ***REMOVED***/api/ai/predict \
+curl -X POST https://mihasv3.pages.dev/api/ai/predict \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"application_id": "uuid"}'
@@ -266,7 +266,7 @@ curl -X POST ***REMOVED***/api/ai/predict \
 
 ### Test Trends API
 ```bash
-curl -X GET ***REMOVED***/api/ai/trends \
+curl -X GET https://mihasv3.pages.dev/api/ai/trends \
   -H "Authorization: Bearer ADMIN_TOKEN"
 ```
 

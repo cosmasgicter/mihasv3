@@ -3,7 +3,7 @@
 # MIHAS Admin API Test Script for Ubuntu
 # Usage: ./test-admin-apis.sh
 
-API_BASE="***REMOVED***"
+API_BASE="https://mihasv3.pages.dev"
 ADMIN_EMAIL="alexisstar8@gmail.com"
 ADMIN_PASSWORD="***REMOVED***"
 

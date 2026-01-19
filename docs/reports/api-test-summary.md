@@ -3,7 +3,7 @@
 ## 🎯 Test Results Overview
 
 **Date:** 2025-09-24  
-**Base URL:** ***REMOVED***/.netlify/functions  
+**Base URL:** https://mihasv3.pages.dev/.netlify/functions
 **Success Rate:** 70.59% (12/17 tests passed)
 
 ## ✅ PASSED TESTS (12)
@@ -86,7 +86,7 @@
 - ✅ **Build Successful** - All TypeScript compiled, Vite built production bundle
 - ✅ **Functions Deployed** - All 25 API functions packaged and deployed
 - ✅ **Cache Cleared** - Functions cache cleared for fresh deployment
-- ✅ **Live Site** - ***REMOVED*** is operational
+- ✅ **Live Site** - https://mihasv3.pages.dev is operational
 
 ## 🔐 Authentication Details
 

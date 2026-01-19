@@ -74,7 +74,7 @@ POST /notifications/send
   "title": "Application Under Review",
   "message": "Your application is being reviewed",
   "type": "info",
-  "action_url": "***REMOVED***/student/applications"
+  "action_url": "https://mihasv3.pages.dev/student/applications"
 }
 ```
 

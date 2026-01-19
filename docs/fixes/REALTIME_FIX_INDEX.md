@@ -154,7 +154,7 @@
 ## 🔗 External Resources
 
 ### Live Site
-- **URL**: ***REMOVED***
+- **URL**: https://mihasv3.pages.dev
 - **Test Account**: cosmaskachepa8@gmail.com / Beanola2025
 
 ### Supabase

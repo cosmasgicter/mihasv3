@@ -1,5 +1,5 @@
 // Real credential testing with actual authentication
-const baseUrl = '***REMOVED***'
+const baseUrl = 'https://mihasv3.pages.dev'
 
 const credentials = {
   student: { email: 'alexisstar8@gmail.com', password: '***REMOVED***' },

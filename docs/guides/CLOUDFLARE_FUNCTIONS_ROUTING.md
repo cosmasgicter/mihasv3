@@ -75,7 +75,7 @@ npx wrangler pages dev dist --compatibility-date=2025-01-23
 ```
 
 ### Option 3: Test on Production
-Functions work at: `***REMOVED***/applications/generate/slip`
+Functions work at: `https://mihasv3.pages.dev/applications/generate/slip`
 
 ## Fix Applied
 

@@ -184,7 +184,7 @@ npx playwright test tests/accessibility/keyboard-navigation.spec.ts -g "skip lin
 node scripts/test-keyboard-navigation.js
 
 # With custom base URL
-BASE_URL=***REMOVED*** node scripts/test-keyboard-navigation.js
+BASE_URL=https://mihasv3.pages.dev node scripts/test-keyboard-navigation.js
 ```
 
 **Manual Testing Checklist**:
