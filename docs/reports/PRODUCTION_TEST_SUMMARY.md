@@ -5,8 +5,8 @@
 I have created a comprehensive production test suite for the MIHAS Application System with the following features:
 
 ### 🔧 Production Configuration
-- **Domain**: `apply.mihas.edu.zm` (corrected)
-- **API Endpoint**: `https://apply.mihas.edu.zm/.netlify/functions`
+- **Domain**: `mihasv3.pages.dev` (corrected)
+- **API Endpoint**: `https://mihasv3.pages.dev/.netlify/functions`
 - **Environment**: Production credentials and settings
 - **TestMonitor Integration**: Automatic submission enabled
 - **GitHub Integration**: Completely disabled
@@ -180,4 +180,4 @@ The MIHAS Application System now has:
 **Test Coverage**: 100% System Components  
 **TestMonitor**: ✅ Integrated  
 **GitHub**: ❌ Disabled  
-**Domain**: apply.mihas.edu.zm
+**Domain**: mihasv3.pages.dev

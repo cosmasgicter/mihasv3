@@ -1,6 +1,5 @@
 // Trusted origins for CORS
 const ALLOWED_ORIGINS = [
-  'https://apply.mihas.edu.zm',
   'https://mihasv3.pages.dev',
   'http://localhost:5173',
   'http://localhost:3000'

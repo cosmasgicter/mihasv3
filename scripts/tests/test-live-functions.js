@@ -1,5 +1,5 @@
 // Test live Netlify functions
-const baseUrl = 'https://apply.mihas.edu.zm'
+const baseUrl = 'https://mihasv3.pages.dev'
 
 const tests = [
   {

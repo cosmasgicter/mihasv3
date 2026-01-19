@@ -9,7 +9,7 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 
 // Configuration
-const BASE_URL = 'https://apply.mihas.edu.zm/.netlify/functions';
+const BASE_URL = 'https://mihasv3.pages.dev/.netlify/functions';
 const STUDENT_CREDENTIALS = {
   email: 'cosmaskanchepa8@gmail.com',
   password: 'Beanola2025'

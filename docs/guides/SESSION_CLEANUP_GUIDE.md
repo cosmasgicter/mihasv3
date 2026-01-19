@@ -24,7 +24,7 @@ async function cleanupOldSessions(userId) {
 
 ### 2. Scheduled Cleanup (System-wide)
 **File**: `functions/cron/cleanup-sessions.js`
-**Endpoint**: `https://apply.mihas.edu.zm/cron/cleanup-sessions`
+**Endpoint**: `https://mihasv3.pages.dev/cron/cleanup-sessions`
 **Trigger**: Manual or scheduled via cron job
 **Logic**: Deactivates all sessions inactive for 30+ days
 
@@ -62,7 +62,7 @@ Day 31+: Session hidden from user's active sessions list
 ### Recommended Cron Schedule
 ```
 # Run daily at 2 AM
-0 2 * * * curl -X POST https://apply.mihas.edu.zm/cron/cleanup-sessions
+0 2 * * * curl -X POST https://mihasv3.pages.dev/cron/cleanup-sessions
 ```
 
 ## Testing
@@ -74,7 +74,7 @@ Day 31+: Session hidden from user's active sessions list
 
 ### Test Scheduled Cleanup
 ```bash
-curl -X POST https://apply.mihas.edu.zm/cron/cleanup-sessions
+curl -X POST https://mihasv3.pages.dev/cron/cleanup-sessions
 ```
 
 Expected response:

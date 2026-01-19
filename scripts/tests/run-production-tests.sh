@@ -7,7 +7,7 @@ set -e
 
 echo "🚀 MIHAS Production Test Suite"
 echo "=============================="
-echo "🌐 Target: https://apply.mihas.edu.zm"
+echo "🌐 Target: https://mihasv3.pages.dev"
 echo "📊 TestMonitor: https://beanola.testmonitor.com"
 echo "🔄 Auto-submission: ENABLED"
 echo ""
@@ -58,7 +58,7 @@ cat > test-results/production-test-summary.md << EOF
 # MIHAS Production Test Results
 
 ## Environment Details
-- **Production URL**: https://apply.mihas.edu.zm
+- **Production URL**: https://mihasv3.pages.dev
 - **Test Date**: $(date)
 - **TestMonitor**: https://beanola.testmonitor.com
 - **Auto-Submission**: ✅ ENABLED
@@ -90,7 +90,7 @@ cat > test-results/production-test-summary.md << EOF
 
 ## Links
 - [TestMonitor Dashboard](https://beanola.testmonitor.com)
-- [Production Site](https://apply.mihas.edu.zm)
+- [Production Site](https://mihasv3.pages.dev)
 
 Generated: $(date)
 EOF

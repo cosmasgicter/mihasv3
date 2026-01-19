@@ -2,7 +2,7 @@
 
 import fetch from 'node-fetch';
 
-const BASE_URL = 'https://apply.mihas.edu.zm';
+const BASE_URL = 'https://mihasv3.pages.dev';
 const TEST_EMAIL = 'alexisstar8@gmail.com';
 const TEST_PASSWORD = 'Skyl3rL0m1s';
 const TEST_FULL_NAME = 'Alexis Star Test User';

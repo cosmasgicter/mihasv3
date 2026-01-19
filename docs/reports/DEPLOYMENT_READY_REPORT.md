@@ -24,7 +24,7 @@ After analyzing the minified production JavaScript file, we found the smoking gu
 ### The Evidence
 ```bash
 # Production file analysis
-curl https://apply.mihas.edu.zm/assets/js/ApplicationWizard-DiS8qSG6.js
+curl https://mihasv3.pages.dev/assets/js/ApplicationWizard-DiS8qSG6.js
 # Found: className:"rounded-xl border border-destructive/30/70 bg-destructive/5/300"
 ```
 
@@ -128,7 +128,7 @@ npm run deploy:cf
 ```
 
 ### Post-Deployment Verification
-1. Visit: https://apply.mihas.edu.zm/student/application-wizard
+1. Visit: https://mihasv3.pages.dev/student/application-wizard
 2. Open browser console (F12)
 3. Navigate through wizard steps
 4. Verify no "Cannot access 'M' before initialization" error

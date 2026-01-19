@@ -98,7 +98,7 @@ Required in `.env`:
 ```
 VITE_SUPABASE_URL=https://[project].supabase.co
 VITE_SUPABASE_ANON_KEY=[anon-key]
-VITE_API_BASE_URL=https://apply.mihas.edu.zm
+VITE_API_BASE_URL=https://mihasv3.pages.dev
 ```
 
 ### Build Optimizations (Already Configured)

@@ -179,7 +179,7 @@ export async function fetchWithCache<T>(
     try {
       // Validate URL to prevent SSRF attacks
       const urlObj = new URL(url)
-      const allowedHosts = ['apply.mihas.edu.zm', 'mylgegkqoddcrxtwcclb.supabase.co', 'localhost']
+      const allowedHosts = ['mihasv3.pages.dev', 'mylgegkqoddcrxtwcclb.supabase.co', 'localhost']
       if (!allowedHosts.includes(urlObj.hostname)) {
         throw new Error('Invalid URL - host not allowed')
       }

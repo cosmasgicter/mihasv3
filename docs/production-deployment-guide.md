@@ -58,7 +58,7 @@ Verify all required environment variables are set in Cloudflare Pages:
 # Required variables:
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_API_BASE_URL=https://apply.mihas.edu.zm
+VITE_API_BASE_URL=https://mihasv3.pages.dev
 VITE_APP_VERSION=3.0.0
 
 # Optional but recommended:
@@ -172,13 +172,13 @@ git push origin main
 
 ```bash
 # Test production URL
-curl -I https://apply.mihas.edu.zm
+curl -I https://mihasv3.pages.dev
 
 # Expected: HTTP 200 OK
 ```
 
 **Manual verification:**
-1. Open https://apply.mihas.edu.zm
+1. Open https://mihasv3.pages.dev
 2. Verify homepage loads (< 3 seconds)
 3. Check browser console (no errors)
 4. Verify service worker registers
@@ -220,7 +220,7 @@ Test these flows immediately after deployment:
 
 ```bash
 # Run Lighthouse audit on production
-npx lighthouse https://apply.mihas.edu.zm --view
+npx lighthouse https://mihasv3.pages.dev --view
 
 # Expected scores:
 # Performance: > 90
@@ -401,7 +401,7 @@ What's Improved:
 
 Everything is working smoothly. Your applications and data are safe.
 
-Explore the new features at: https://apply.mihas.edu.zm
+Explore the new features at: https://mihasv3.pages.dev
 
 Feedback? We'd love to hear from you: info@mihas.edu.zm
 
@@ -559,8 +559,8 @@ npm run deploy
 npx wrangler pages deploy dist --project-name=mihas-application-system
 
 # Verify
-curl -I https://apply.mihas.edu.zm
-npx lighthouse https://apply.mihas.edu.zm
+curl -I https://mihasv3.pages.dev
+npx lighthouse https://mihasv3.pages.dev
 
 # Monitor
 npx wrangler pages deployment list

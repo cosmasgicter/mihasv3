@@ -89,7 +89,7 @@ export async function onRequest(context) {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="padding: 20px 0;">
-                    <a href="${env.VITE_APP_URL || 'https://apply.mihas.edu.zm'}/student/application/${application.id}" 
+                    <a href="${env.VITE_APP_URL || 'https://mihasv3.pages.dev'}/student/application/${application.id}"
                        style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">
                       View Application
                     </a>

@@ -96,8 +96,8 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # App Configuration
-VITE_APP_BASE_URL=https://apply.mihas.edu.zm
-VITE_API_BASE_URL=https://apply.mihas.edu.zm
+VITE_APP_BASE_URL=https://mihasv3.pages.dev
+VITE_API_BASE_URL=https://mihasv3.pages.dev
 
 # Email Configuration
 EMAIL_PROVIDER=resend
@@ -109,7 +109,7 @@ RESEND_FROM_EMAIL="MIHAS Admissions <admissions@mihas.edu.zm>"
 
 1. **Navigate to Forgot Password Page**
    ```
-   https://apply.mihas.edu.zm/auth/forgot-password
+   https://mihasv3.pages.dev/auth/forgot-password
    ```
 
 2. **Enter Valid Email Address**

@@ -4,7 +4,7 @@
 
 ### Job Details
 - **Name**: Processing Email
-- **URL**: `https://apply.mihas.edu.zm/cron/process-email-queue`
+- **URL**: `https://mihasv3.pages.dev/cron/process-email-queue`
 - **Method**: POST
 - **Schedule**: `* * * * *` (Every 1 minute)
 
@@ -19,7 +19,7 @@ X-Cron-Key: C6MWtFE5fuFw90CA2KWqAKqlyaILQaL9B3SsIJWFWpc=
 2. Go to "Cronjobs" → "Create cronjob"
 3. Fill in:
    - **Title**: Processing Email
-   - **Address**: `https://apply.mihas.edu.zm/cron/process-email-queue`
+   - **Address**: `https://mihasv3.pages.dev/cron/process-email-queue`
    - **Schedule**: Every 1 minute (or use: `* * * * *`)
    - **Request method**: POST
 4. Click "Advanced" or "Headers"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE_URL="https://apply.mihas.edu.zm"
+BASE_URL="https://mihasv3.pages.dev"
 SUPABASE_URL="https://mylgegkqoddcrxtwcclb.supabase.co"
 ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MTIwODMsImV4cCI6MjA3MzA4ODA4M30.7f-TwYz7E6Pp07oH5Lkkfw9c8d8JkeE81EXJqpCWiLw"
 

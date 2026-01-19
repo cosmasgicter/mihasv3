@@ -19,13 +19,13 @@ All API requests require authentication using Bearer tokens:
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     https://apply.mihas.edu.zm/integrations/webhooks
+     https://mihasv3.pages.dev/integrations/webhooks
 ```
 
 ### 2. Register a Webhook
 
 ```bash
-curl -X POST https://apply.mihas.edu.zm/integrations/webhooks \
+curl -X POST https://mihasv3.pages.dev/integrations/webhooks \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

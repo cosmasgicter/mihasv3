@@ -161,20 +161,20 @@ git push origin main
 # 3. Cloudflare auto-deploys
 # - Builds: npm run build:prod
 # - Deploys: dist/ + functions/
-# - Available: https://apply.mihas.edu.zm
+# - Available: https://mihasv3.pages.dev
 ```
 
 ### Post-Deployment Testing
 ```bash
 # Test new endpoints
 curl -H "Authorization: Bearer <token>" \
-  https://apply.mihas.edu.zm/api/auth-roles
+  https://mihasv3.pages.dev/api/auth-roles
 
 curl -H "Authorization: Bearer <token>" \
-  https://apply.mihas.edu.zm/api/admin-settings
+  https://mihasv3.pages.dev/api/admin-settings
 
 curl -H "Authorization: Bearer <token>" \
-  https://apply.mihas.edu.zm/api/notifications
+  https://mihasv3.pages.dev/api/notifications
 ```
 
 ## Risk Assessment

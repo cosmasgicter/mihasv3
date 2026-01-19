@@ -39,7 +39,7 @@ VITE_SUPABASE_URL=https://mylgegkqoddcrxtwcclb.supabase.co
 VITE_SUPABASE_ANON_KEY=[from .env.production]
 SUPABASE_SERVICE_ROLE_KEY=[from .env.production]
 SUPABASE_URL=https://mylgegkqoddcrxtwcclb.supabase.co
-VITE_API_BASE_URL=https://apply.mihas.edu.zm
+VITE_API_BASE_URL=https://mihasv3.pages.dev
 VITE_NODE_ENV=production
 EMAIL_PROVIDER=resend
 RESEND_API_KEY=[from .env.production]
@@ -63,7 +63,7 @@ netlify deploy --prod
 
 ```bash
 # Test health endpoint
-curl https://apply.mihas.edu.zm/api/health
+curl https://mihasv3.pages.dev/api/health
 
 # Expected: {"status":"healthy","supabase":{"connected":true}}
 ```
@@ -74,9 +74,9 @@ curl https://apply.mihas.edu.zm/api/health
 
 After deployment, verify:
 
-- [ ] Health endpoint: `https://apply.mihas.edu.zm/api/health` returns 200
-- [ ] Programs: `https://apply.mihas.edu.zm/api/catalog/programs` returns data
-- [ ] Frontend loads: `https://apply.mihas.edu.zm`
+- [ ] Health endpoint: `https://mihasv3.pages.dev/api/health` returns 200
+- [ ] Programs: `https://mihasv3.pages.dev/api/catalog/programs` returns data
+- [ ] Frontend loads: `https://mihasv3.pages.dev`
 - [ ] Login works
 - [ ] Application submission works
 
