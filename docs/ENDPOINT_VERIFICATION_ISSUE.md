@@ -10,10 +10,10 @@ All API requests return HTML (React app) instead of JSON responses.
 # Expected: JSON response
 # Actual: HTML (React app)
 
-curl https://apply.mihas.edu.zm/api/auth-roles
+curl https://mihasv3.pages.dev/api/auth-roles
 # Returns: <!DOCTYPE html>...
 
-curl https://apply.mihas.edu.zm/api/catalog/programs
+curl https://mihasv3.pages.dev/api/catalog/programs
 # Returns: <!DOCTYPE html>...
 ```
 
@@ -131,9 +131,9 @@ Cloudflare Pages might need explicit functions configuration:
 Once fixed, test endpoints:
 ```bash
 # Should return JSON, not HTML
-curl https://apply.mihas.edu.zm/api/auth-roles
-curl https://apply.mihas.edu.zm/api/admin-settings
-curl https://apply.mihas.edu.zm/api/notifications
+curl https://mihasv3.pages.dev/api/auth-roles
+curl https://mihasv3.pages.dev/api/admin-settings
+curl https://mihasv3.pages.dev/api/notifications
 ```
 
 ## Next Steps

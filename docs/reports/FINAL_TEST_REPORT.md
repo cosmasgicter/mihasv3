@@ -4,7 +4,7 @@
 
 **Test Date:** October 12, 2025  
 **Test Credentials:** alexisstar8@gmail.com / Skyl3rL0m1s  
-**System URL:** https://apply.mihas.edu.zm  
+**System URL:** https://mihasv3.pages.dev
 **Final Status:** 🟡 **85% Functional** - Authentication fixed, database schema needs attention
 
 ## 📊 Final Test Results

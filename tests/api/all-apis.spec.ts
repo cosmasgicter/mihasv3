@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const API_BASE = process.env.VITE_API_URL || 'https://apply.mihas.edu.zm/.netlify/functions'
+const API_BASE = process.env.VITE_API_URL || 'https://mihasv3.pages.dev/.netlify/functions'
 
 test.describe('API Endpoints', () => {
   const endpoints = [

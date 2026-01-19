@@ -10,7 +10,7 @@ Use a free service to call the endpoint every 2 minutes:
 1. Go to https://cron-job.org
 2. Create account
 3. Add new cron job:
-   - URL: `https://apply.mihas.edu.zm/cron/process-email-queue`
+   - URL: `https://mihasv3.pages.dev/cron/process-email-queue`
    - Method: POST
    - Schedule: `*/2 * * * *` (every 2 minutes)
 
@@ -18,7 +18,7 @@ Use a free service to call the endpoint every 2 minutes:
 1. Go to https://www.easycron.com
 2. Create account
 3. Add cron job:
-   - URL: `https://apply.mihas.edu.zm/cron/process-email-queue`
+   - URL: `https://mihasv3.pages.dev/cron/process-email-queue`
    - Interval: Every 2 minutes
 
 ## Option 2: Cloudflare Worker (Paid)
@@ -33,7 +33,7 @@ Convert to a Worker with cron trigger (requires Workers Paid plan):
 
 Call manually when needed:
 ```bash
-curl -X POST https://apply.mihas.edu.zm/cron/process-email-queue
+curl -X POST https://mihasv3.pages.dev/cron/process-email-queue
 ```
 
 ## Current Status

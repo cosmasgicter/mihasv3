@@ -169,7 +169,7 @@ export async function onRequest(context) {
       status: application.status,
       programName: application.program,
       paymentStatus: application.payment_status,
-      slipUrl: `${context.env.VITE_APP_BASE_URL || 'https://apply.mihas.edu.zm'}/student/application/${application.id}`
+      slipUrl: `${context.env.VITE_APP_BASE_URL || 'https://mihasv3.pages.dev'}/student/application/${application.id}`
     };
 
     const emailHtml = renderApplicationSlipEmail(emailData);

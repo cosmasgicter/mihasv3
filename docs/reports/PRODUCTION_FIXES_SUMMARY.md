@@ -105,7 +105,7 @@ The code already has proper safeguards. Issue is likely:
 npm install qrcode jspdf jspdf-autotable
 
 # Set environment variable
-VITE_APP_BASE_URL=https://apply.mihas.edu.zm
+VITE_APP_BASE_URL=https://mihasv3.pages.dev
 ```
 
 ---
@@ -184,11 +184,11 @@ ALTER TABLE application_grades_backup_20250123 ENABLE ROW LEVEL SECURITY;
 ### Test API Endpoints
 ```bash
 # Test auth-roles
-curl https://apply.mihas.edu.zm/api/auth-roles \
+curl https://mihasv3.pages.dev/api/auth-roles \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # Test notifications
-curl https://apply.mihas.edu.zm/api/notifications \
+curl https://mihasv3.pages.dev/api/notifications \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

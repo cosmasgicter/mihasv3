@@ -5,4 +5,4 @@ Disallow: /admin/
 Disallow: /student/
 Disallow: /api/
 
-Sitemap: https://apply.mihas.edu.zm/sitemap.xml
+Sitemap: https://mihasv3.pages.dev/sitemap.xml

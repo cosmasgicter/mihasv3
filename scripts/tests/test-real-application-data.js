@@ -1,5 +1,5 @@
 // Test with real application data
-const baseUrl = 'https://apply.mihas.edu.zm'
+const baseUrl = 'https://mihasv3.pages.dev'
 
 const studentCredentials = { 
   email: 'alexisstar8@gmail.com', 

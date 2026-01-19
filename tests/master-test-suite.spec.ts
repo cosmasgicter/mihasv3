@@ -137,7 +137,7 @@ test.describe('Master Test Suite - Production Readiness Check', () => {
   })
 
   test('API endpoints respond correctly', async ({ request }) => {
-    const apiBase = process.env.VITE_API_URL || 'https://apply.mihas.edu.zm/.netlify/functions'
+    const apiBase = process.env.VITE_API_URL || 'https://mihasv3.pages.dev/.netlify/functions'
     
     // Test health endpoint
     const healthResponse = await request.get(`${apiBase}/health`)

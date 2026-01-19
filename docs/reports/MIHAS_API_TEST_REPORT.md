@@ -4,7 +4,7 @@
 
 **Test Date:** October 12, 2025  
 **Test Credentials:** alexisstar8@gmail.com / Skyl3rL0m1s  
-**System URL:** https://apply.mihas.edu.zm  
+**System URL:** https://mihasv3.pages.dev
 **Overall Status:** 🟡 **GOOD** - Core systems operational, authentication needs attention
 
 ## 📊 Test Results Overview
@@ -209,7 +209,7 @@ Once authentication is fixed, the following workflow should be tested:
 
 ## 📞 Support Information
 
-- **System Status:** Monitor at https://apply.mihas.edu.zm/.netlify/functions/health
+- **System Status:** Monitor at https://mihasv3.pages.dev/.netlify/functions/health
 - **Documentation:** Available in project README.md
 - **Environment:** Production deployment on Netlify
 - **Database:** Supabase (PostgreSQL)

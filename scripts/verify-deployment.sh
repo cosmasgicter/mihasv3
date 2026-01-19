@@ -17,7 +17,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-BASE_URL="${VITE_APP_BASE_URL:-https://apply.mihas.edu.zm}"
+BASE_URL="${VITE_APP_BASE_URL:-https://mihasv3.pages.dev}"
 
 echo "Testing deployment at: $BASE_URL"
 echo ""

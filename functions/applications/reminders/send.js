@@ -55,7 +55,7 @@ export async function onRequest(context) {
             ${draftName ? `<p><strong>Draft:</strong> ${draftName}</p>` : ''}
             ${lastUpdated ? `<p><strong>Last Updated:</strong> ${new Date(lastUpdated).toLocaleDateString()}</p>` : ''}
             <p>Don't miss out on your opportunity to join MIHAS! Complete your application today.</p>
-            <a href="${env.PUBLIC_URL || 'https://apply.mihas.edu.zm'}/student/application-wizard" class="button">
+            <a href="${env.PUBLIC_URL || 'https://mihasv3.pages.dev'}/student/application-wizard" class="button">
               Continue Application
             </a>
             <p>If you have any questions, please contact us at admissions@mihas.edu.zm</p>

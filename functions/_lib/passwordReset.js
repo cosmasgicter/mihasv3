@@ -11,7 +11,7 @@ function computeDefaultBaseUrls() {
     process.env.URL,
     process.env.DEPLOY_PRIME_URL,
     process.env.VITE_API_BASE_URL,
-    'https://apply.mihas.edu.zm',
+    'https://mihasv3.pages.dev',
     'https://mihas-application.netlify.app',
     'http://localhost:5173',
     'http://localhost:3000'
@@ -45,7 +45,7 @@ function buildFallbackRedirectUrl() {
     }
   }
 
-  return 'https://apply.mihas.edu.zm/auth/reset-password'
+  return 'https://mihasv3.pages.dev/auth/reset-password'
 }
 
 const FALLBACK_REDIRECT_URL = buildFallbackRedirectUrl()

@@ -119,7 +119,7 @@ const html = generateApplicationSlipEmail({
   program_name: 'Nursing',
   status: 'submitted',
   submitted_at: '2025-01-23T10:00:00Z',
-  slipUrl: 'https://apply.mihas.edu.zm/track-application?code=TRK-ABC123'
+  slipUrl: 'https://mihasv3.pages.dev/track-application?code=TRK-ABC123'
 });
 ```
 
@@ -186,7 +186,7 @@ const html = generatePaymentReceiptEmail({
 const html = generateGenericNotificationEmail({
   title: 'Important Update',
   message: 'Your application has been updated.',
-  actionUrl: 'https://apply.mihas.edu.zm/dashboard',
+  actionUrl: 'https://mihasv3.pages.dev/dashboard',
   actionText: 'View Dashboard'
 });
 ```

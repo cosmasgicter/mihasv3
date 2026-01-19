@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.test' });
 
-const PRODUCTION_URL = 'https://apply.mihas.edu.zm';
+const PRODUCTION_URL = 'https://mihasv3.pages.dev';
 
 export default defineConfig({
   testDir: './tests',
@@ -56,4 +56,5 @@ export default defineConfig({
       },
     },
   ],
+  // No web server for production tests
 });

@@ -1,5 +1,5 @@
 // Comprehensive function testing script
-const BASE_URL = 'https://apply.mihas.edu.zm/.netlify/functions'
+const BASE_URL = 'https://mihasv3.pages.dev/.netlify/functions'
 
 // Test credentials
 const STUDENT_CREDS = {

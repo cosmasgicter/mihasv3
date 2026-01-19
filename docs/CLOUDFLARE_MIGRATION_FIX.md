@@ -41,7 +41,7 @@ export function getApiBaseUrl(): string {
     return normalizeBaseUrl(window.location.origin)
   }
 
-  return normalizeBaseUrl('https://apply.mihas.edu.zm')
+  return normalizeBaseUrl('https://mihasv3.pages.dev')
 }
 ```
 
@@ -59,7 +59,7 @@ export function getApiBaseUrl(): string {
     return normalizeBaseUrl(window.location.origin)
   }
 
-  return normalizeBaseUrl('https://apply.mihas.edu.zm')
+  return normalizeBaseUrl('https://mihasv3.pages.dev')
 }
 ```
 
@@ -76,7 +76,7 @@ export function getApiBaseUrl(): string {
 ### Priority Order:
 1. **VITE_API_BASE_URL** - If explicitly set in environment variables
 2. **Browser Origin** - Uses `window.location.origin` (works for both dev and production)
-3. **Production Fallback** - `https://apply.mihas.edu.zm`
+3. **Production Fallback** - `https://mihasv3.pages.dev`
 
 ### Development Mode:
 - API calls now use the same origin as the frontend
@@ -84,7 +84,7 @@ export function getApiBaseUrl(): string {
 - Cloudflare Pages Functions are accessible at the same origin
 
 ### Production Mode:
-- API calls use `https://apply.mihas.edu.zm`
+- API calls use `https://mihasv3.pages.dev`
 - Cloudflare Workers handle all `/functions/*` routes
 - No special configuration needed
 

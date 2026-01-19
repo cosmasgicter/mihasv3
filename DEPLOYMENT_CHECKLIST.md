@@ -91,8 +91,8 @@ Once pushed to GitHub:
 
 ## Verify After Deployment
 
-1. **robots.txt**: https://apply.mihas.edu.zm/robots.txt
-2. **sitemap.xml**: https://apply.mihas.edu.zm/sitemap.xml
+1. **robots.txt**: https://mihasv3.pages.dev/robots.txt
+2. **sitemap.xml**: https://mihasv3.pages.dev/sitemap.xml
 3. **WebP images**: Check Network tab for .webp files
 4. **Static HTML**: View source, should see pre-rendered content
 5. **Lighthouse**: Run audit, expect 85-95/100

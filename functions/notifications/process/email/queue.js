@@ -60,7 +60,7 @@ export async function onRequest(context) {
             <p style="color: #374151; line-height: 1.6;">
               Our admissions team will review your application and notify you of the outcome.
             </p>
-            <a href="${env.PUBLIC_URL || 'https://apply.mihas.edu.zm'}/student/applications" 
+            <a href="${env.PUBLIC_URL || 'https://mihasv3.pages.dev'}/student/applications"
                style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
               View Application
             </a>

@@ -253,7 +253,7 @@ const testFallback = async () => {
 ### After Deployment
 ```bash
 # Test production endpoints
-curl -X POST https://apply.mihas.edu.zm/api/ai/chat \
+curl -X POST https://mihasv3.pages.dev/api/ai/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer PROD_JWT_TOKEN" \
   -d '{"message": "test", "context": {}}'

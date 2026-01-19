@@ -537,7 +537,7 @@ du -sh dist/
 
 ### Test 2: Lighthouse Audit
 ```bash
-lighthouse https://apply.mihas.edu.zm --output=html --output-path=./lighthouse-report.html
+lighthouse https://mihasv3.pages.dev --output=html --output-path=./lighthouse-report.html
 # Target: Performance >85
 ```
 

@@ -14,7 +14,7 @@ Interview functions properly configured at:
 ## Access Token Status
 ✅ **Working** - Tested signin endpoint, access_token is generated:
 ```bash
-curl -s https://apply.mihas.edu.zm/auth/signin \
+curl -s https://mihasv3.pages.dev/auth/signin \
   -X POST -H "Content-Type: application/json" \
   -d '{"email":"cosmas@beanola.com","password":"Beanola2025"}' \
   | jq '.session.access_token'

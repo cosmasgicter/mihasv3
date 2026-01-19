@@ -49,7 +49,7 @@ npm run test:security
 1. Run all validation checks above
 2. Commit changes: `git add . && git commit -m "Fix: Remove invalid Tailwind CSS patterns"`
 3. Deploy: `npm run deploy:cf`
-4. Verify production: Visit https://apply.mihas.edu.zm/student/application-wizard
+4. Verify production: Visit https://mihasv3.pages.dev/student/application-wizard
 5. Test ApplicationWizard loads without errors
 
 ---

@@ -4,7 +4,7 @@
 
 **Status:** ✅ **SUCCESSFULLY DEPLOYED**  
 **Date:** September 24, 2025  
-**URL:** https://apply.mihas.edu.zm  
+**URL:** https://mihasv3.pages.dev
 **Success Rate:** 70.59% (12/17 core API tests passed)
 
 ## 🚀 Deployment Details
@@ -231,9 +231,9 @@ node test-live-apis-fixed.js
 ## 📞 Support Information
 
 ### Access Details
-- **Production URL:** https://apply.mihas.edu.zm
-- **Admin Dashboard:** https://apply.mihas.edu.zm/admin
-- **Student Portal:** https://apply.mihas.edu.zm/student
+- **Production URL:** https://mihasv3.pages.dev
+- **Admin Dashboard:** https://mihasv3.pages.dev/admin
+- **Student Portal:** https://mihasv3.pages.dev/student
 
 ### Test Accounts
 - **Student:** cosmaskanchepa8@gmail.com / Beanola2025

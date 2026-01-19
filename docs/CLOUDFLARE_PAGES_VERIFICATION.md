@@ -112,7 +112,7 @@ export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin  // Same-origin calls ✅
   }
-  return 'https://apply.mihas.edu.zm'
+  return 'https://mihasv3.pages.dev'
 }
 ```
 
@@ -148,7 +148,7 @@ This is compatible with both Netlify and Cloudflare Pages ✅
 1. Push to GitHub main branch
 2. Cloudflare auto-builds: `npm run build:prod`
 3. Cloudflare deploys: `dist/` (static) + `functions/` (serverless)
-4. Functions available at: `https://apply.mihas.edu.zm/api/*`
+4. Functions available at: `https://mihasv3.pages.dev/api/*`
 
 ### What Gets Deployed
 - ✅ `dist/` → Static React app
@@ -173,13 +173,13 @@ curl http://localhost:8788/api/notifications
 ```bash
 # After deployment
 curl -H "Authorization: Bearer <token>" \
-  https://apply.mihas.edu.zm/api/auth-roles
+  https://mihasv3.pages.dev/api/auth-roles
 
 curl -H "Authorization: Bearer <token>" \
-  https://apply.mihas.edu.zm/api/admin-settings
+  https://mihasv3.pages.dev/api/admin-settings
 
 curl -H "Authorization: Bearer <token>" \
-  https://apply.mihas.edu.zm/api/notifications
+  https://mihasv3.pages.dev/api/notifications
 ```
 
 ## Action Required

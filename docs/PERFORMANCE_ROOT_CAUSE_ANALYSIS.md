@@ -12,7 +12,7 @@
 ### The Smoking Gun
 ```
 ReferenceError: Cannot access 'M' before initialization
-at https://apply.mihas.edu.zm/assets/js/index-C5pgu66_.js:14:96229
+at https://mihasv3.pages.dev/assets/js/index-C5pgu66_.js:14:96229
 ```
 
 **This is causing the white screen before the preloader even shows!**
@@ -392,7 +392,7 @@ rollupOptions: {
 npm run build && bundlesize
 
 # Lighthouse CI
-lighthouse https://apply.mihas.edu.zm --output=json
+lighthouse https://mihasv3.pages.dev --output=json
 
 # Circular dependency detection
 madge --circular --extensions ts,tsx src/

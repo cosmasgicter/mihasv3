@@ -25,7 +25,7 @@ export default defineConfig({
   ],
   
   use: {
-    baseURL: process.env.VITE_BASE_URL || 'https://apply.mihas.edu.zm',
+    baseURL: process.env.VITE_BASE_URL || 'https://mihasv3.pages.dev',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

@@ -105,7 +105,7 @@
 1. **Sign up**: https://uptimerobot.com/
 2. **Add Monitor**:
    - Type: HTTP(s)
-   - URL: `https://apply.mihas.edu.zm`
+   - URL: `https://mihasv3.pages.dev`
    - Name: "MIHAS Application System"
    - Interval: 5 minutes
 3. **Add Alert**:
@@ -116,7 +116,7 @@
 
 1. **Sign up**: https://www.pingdom.com/
 2. **Add Check**:
-   - URL: `https://apply.mihas.edu.zm`
+   - URL: `https://mihasv3.pages.dev`
    - Check interval: 1 minute
 3. **Configure Alerts**
 
@@ -132,7 +132,7 @@
 ### Test:
 ```bash
 # Test email notification
-curl -X POST https://apply.mihas.edu.zm/notifications/send \
+curl -X POST https://mihasv3.pages.dev/notifications/send \
   -H "Content-Type: application/json" \
   -d '{"user_id":"test","title":"Test","content":"Test notification"}'
 ```
@@ -209,7 +209,7 @@ export function trackPerformance(metric: string, value: number) {
 
 **5-Minute Setup** (Minimum):
 - [ ] Sign up for UptimeRobot
-- [ ] Add uptime monitor for apply.mihas.edu.zm
+- [ ] Add uptime monitor for mihasv3.pages.dev
 - [ ] Configure email alert to admin@mihas.edu.zm
 - [ ] Test alert by pausing monitor
 

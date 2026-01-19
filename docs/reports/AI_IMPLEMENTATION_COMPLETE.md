@@ -573,5 +573,5 @@ browserAI.analyzeText(documentText)
 
 **Report Generated**: 2025-01-25  
 **Status**: ✅ COMPLETE & DEPLOYED  
-**Production URL**: https://apply.mihas.edu.zm  
+**Production URL**: https://mihasv3.pages.dev
 **AI Version**: v1.0 (Cloudflare AI Integration)

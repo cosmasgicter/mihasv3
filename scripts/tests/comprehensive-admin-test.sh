@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Comprehensive Admin Workflow Test
-API_BASE="https://apply.mihas.edu.zm"
+API_BASE="https://mihasv3.pages.dev"
 ADMIN_EMAIL="alexisstar8@gmail.com"
 ADMIN_PASSWORD="Skyl3r@L0m1s"
 

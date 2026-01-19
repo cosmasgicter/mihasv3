@@ -107,11 +107,11 @@ All configured in Cloudflare Pages:
 
 ### Custom Domain Setup
 
-To add custom domain (apply.mihas.edu.zm):
+To add custom domain (mihasv3.pages.dev):
 1. Go to Cloudflare Pages dashboard
 2. Select `mihasv3` project
 3. Go to "Custom domains"
-4. Add `apply.mihas.edu.zm`
+4. Add `mihasv3.pages.dev`
 5. Update DNS records as instructed
 
 ### Rollback (if needed)

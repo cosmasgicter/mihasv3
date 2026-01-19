@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Production Authentication Tests', () => {
-  const baseUrl = process.env.VITE_BASE_URL || 'https://apply.mihas.edu.zm'
+  const baseUrl = process.env.VITE_BASE_URL || 'https://mihasv3.pages.dev'
   const adminEmail = process.env.TEST_ADMIN_EMAIL || 'cosmas@beanola.com'
   const adminPassword = process.env.TEST_ADMIN_PASSWORD || 'Beanola2025'
   const studentEmail = process.env.TEST_STUDENT_EMAIL || 'alexisstar8@gmail.com'
@@ -42,7 +42,7 @@ test.describe('Production Authentication Tests', () => {
   })
 
   test('Production API authentication', async ({ request }) => {
-    const apiBase = process.env.VITE_API_URL || 'https://apply.mihas.edu.zm/.netlify/functions'
+    const apiBase = process.env.VITE_API_URL || 'https://mihasv3.pages.dev/.netlify/functions'
     
     // Test login API
     const loginResponse = await request.post(`${apiBase}/auth-login`, {
