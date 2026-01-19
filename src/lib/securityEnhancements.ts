@@ -7,7 +7,7 @@ import DOMPurify from 'dompurify'
 export const SECURITY_CONFIG = {
   // Allowed hosts for API requests (prevents SSRF)
   ALLOWED_HOSTS: [
-    'apply.mihas.edu.zm',
+    'mihasv3.pages.dev',
     'mylgegkqoddcrxtwcclb.supabase.co',
     'localhost',
     '127.0.0.1'
@@ -44,7 +44,7 @@ export const SECURITY_CONFIG = {
     'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
     'font-src': ["'self'", 'https://fonts.gstatic.com'],
     'img-src': ["'self'", 'data:', 'https:', 'blob:'],
-    'connect-src': ["'self'", 'https://mylgegkqoddcrxtwcclb.supabase.co', '***REMOVED***'],
+    'connect-src': ["'self'", 'https://mylgegkqoddcrxtwcclb.supabase.co', 'https://mihasv3.pages.dev'],
     'frame-src': ["'none'"],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],

@@ -38,7 +38,7 @@ This explicitly tells Cloudflare Pages to route `/api/*` requests to functions i
 Wait 3-4 minutes for deployment, then test:
 ```bash
 curl -H "Authorization: Bearer <token>" \
-  ***REMOVED***/api/auth-roles
+  https://mihasv3.pages.dev/api/auth-roles
 ```
 
 Should return JSON, not HTML.

@@ -13,7 +13,7 @@
 import https from 'https';
 import http from 'http';
 
-const BASE_URL = process.env.VITE_APP_BASE_URL || '***REMOVED***';
+const BASE_URL = process.env.VITE_APP_BASE_URL || 'https://mihasv3.pages.dev';
 
 // Test cases for different asset types
 const TEST_CASES = [

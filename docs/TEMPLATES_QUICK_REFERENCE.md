@@ -35,7 +35,7 @@ const html = generateApplicationSlipEmail({
   program_name: 'Nursing',
   status: 'submitted',
   submitted_at: '2025-01-23T10:00:00Z',
-  slipUrl: '***REMOVED***/track'
+  slipUrl: 'https://mihasv3.pages.dev/track'
 });
 ```
 
@@ -96,7 +96,7 @@ const html = generatePaymentReceiptEmail({
 const html = generateGenericNotificationEmail({
   title: 'Important Update',
   message: 'Your application has been updated.',
-  actionUrl: '***REMOVED***/dashboard',
+  actionUrl: 'https://mihasv3.pages.dev/dashboard',
   actionText: 'View Dashboard' // optional
 });
 ```

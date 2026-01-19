@@ -57,6 +57,6 @@
 1. **Hard refresh**: Ctrl+Shift+R (Windows/Linux) or Cmd+Shift+R (Mac)
 2. **Or clear cache**: Browser settings → Clear browsing data → Cached images and files
 3. **Sign in again**: Use cosmas@beanola.com / Beanola2025
-4. **Navigate to**: ***REMOVED***/admin/dashboard
+4. **Navigate to**: https://mihasv3.pages.dev/admin/dashboard
 
 All admin pages should now load correctly! 🎉

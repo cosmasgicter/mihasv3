@@ -1,5 +1,5 @@
 // Comprehensive test of all Netlify functions
-const baseUrl = '***REMOVED***'
+const baseUrl = 'https://mihasv3.pages.dev'
 
 const allFunctions = [
   // Health & System

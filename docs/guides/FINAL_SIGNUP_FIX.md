@@ -52,7 +52,7 @@ npm run build
 
 ## Test Flow
 
-1. Go to: ***REMOVED***/auth/signup
+1. Go to: https://mihasv3.pages.dev/auth/signup
 2. Fill all fields
 3. Submit
 4. API creates auth user + profile atomically

@@ -5,7 +5,7 @@ echo ========================================
 echo.
 
 echo This will deploy the real-time sync fixes to:
-echo ***REMOVED***
+echo https://mihasv3.pages.dev
 echo.
 
 set /p confirm="Are you sure you want to deploy? (yes/no): "
@@ -40,7 +40,7 @@ echo Deployment Complete!
 echo ========================================
 echo.
 echo Next Steps:
-echo 1. Open ***REMOVED***
+echo 1. Open https://mihasv3.pages.dev
 echo 2. Test application submission
 echo 3. Verify immediate updates
 echo 4. Fill out LIVE_SITE_TEST_RESULTS.md

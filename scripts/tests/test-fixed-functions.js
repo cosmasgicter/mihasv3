@@ -1,5 +1,5 @@
 // Test the functions we just fixed
-const baseUrl = '***REMOVED***'
+const baseUrl = 'https://mihasv3.pages.dev'
 
 const fixedFunctions = [
   { name: 'Document Upload', url: `${baseUrl}/api/documents/upload`, method: 'POST' },

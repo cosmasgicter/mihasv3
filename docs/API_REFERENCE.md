@@ -3,7 +3,7 @@
 ## Base URL
 
 ```
-Production: ***REMOVED***
+Production: https://mihasv3.pages.dev
 Development: http://localhost:8788
 ```
 
@@ -583,11 +583,11 @@ const { data, error } = await supabase
 ### cURL
 ```bash
 # Get applications
-curl -X GET ***REMOVED***/applications \
+curl -X GET https://mihasv3.pages.dev/applications \
   -H "Authorization: Bearer <token>"
 
 # Create application
-curl -X POST ***REMOVED***/applications \
+curl -X POST https://mihasv3.pages.dev/applications \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"full_name":"John Doe","email":"john@example.com"}'
@@ -604,13 +604,13 @@ headers = {
 
 # Get applications
 response = requests.get(
-    '***REMOVED***/applications',
+    'https://mihasv3.pages.dev/applications',
     headers=headers
 )
 
 # Create application
 response = requests.post(
-    '***REMOVED***/applications',
+    'https://mihasv3.pages.dev/applications',
     headers=headers,
     json={'full_name': 'John Doe', 'email': 'john@example.com'}
 )

@@ -6,7 +6,7 @@ Migration `20250123_fix_signup_trigger.sql` has been applied to the database.
 ## Next Steps
 
 ### 1. Test Signup Flow
-1. Open: ***REMOVED***/auth/signup
+1. Open: https://mihasv3.pages.dev/auth/signup
 2. Fill in all fields:
    - Email (use a new email)
    - Password

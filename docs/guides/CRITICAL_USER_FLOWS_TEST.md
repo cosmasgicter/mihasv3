@@ -298,7 +298,7 @@
 
 ---
 
-**Test Environment**: Production (apply.mihas.edu.zm)  
+**Test Environment**: Production (mihasv3.pages.dev)
 **Test Date**: [To be filled]  
 **Tester**: [To be filled]  
 **Results**: [To be filled]

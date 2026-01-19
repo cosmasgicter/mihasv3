@@ -11,8 +11,8 @@ All environment variables have been set in Netlify for the production environmen
 - `SUPABASE_URL` = https://mylgegkqoddcrxtwcclb.supabase.co
 
 ### API Configuration
-- `VITE_API_BASE_URL` = ***REMOVED***
-- `VITE_APP_BASE_URL` = ***REMOVED***
+- `VITE_API_BASE_URL` = https://mihasv3.pages.dev
+- `VITE_APP_BASE_URL` = https://mihasv3.pages.dev
 
 ### Rate Limiting
 - `RATE_LIMIT_TABLE` = request_rate_limits

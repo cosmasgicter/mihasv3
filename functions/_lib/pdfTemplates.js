@@ -123,7 +123,7 @@ export async function generateApplicationSlip(data) {
   doc.text('Keep this information for your records. You can use your tracking code to', 14, finalY);
   doc.text('check the status of your application at any time.', 14, finalY + 5);
   
-  const trackingUrl = `${process.env.VITE_APP_BASE_URL || '***REMOVED***'}/track-application?code=${encodeURIComponent(data.public_tracking_code)}`;
+  const trackingUrl = `${process.env.VITE_APP_BASE_URL || 'https://mihasv3.pages.dev'}/track-application?code=${encodeURIComponent(data.public_tracking_code)}`;
   const qrDataUrl = await QRCode.toDataURL(trackingUrl, { margin: 1, width: 240 });
   doc.addImage(qrDataUrl, 'PNG', 150, finalY + 10, 40, 40);
   

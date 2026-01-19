@@ -438,7 +438,7 @@ Response with Predictions
 
 **API Test**:
 ```bash
-curl -X POST ***REMOVED***/api/ai/predict \
+curl -X POST https://mihasv3.pages.dev/api/ai/predict \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"application_id": "uuid"}'

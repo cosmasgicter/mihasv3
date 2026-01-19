@@ -103,8 +103,8 @@ npm run test:unit:coverage
 - **Student**: `student@mihas.edu.zm` / `ProductionStudent2024!`
 
 ### API Endpoints
-- **Base URL**: `***REMOVED***`
-- **API URL**: `***REMOVED***/.netlify/functions`
+- **Base URL**: `https://mihasv3.pages.dev`
+- **API URL**: `https://mihasv3.pages.dev/.netlify/functions`
 
 ## 📈 TestMonitor Integration
 

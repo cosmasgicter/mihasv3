@@ -1,7 +1,7 @@
 # Deployment Instructions - Real-Time Sync Fix
 
 ## 🎯 Overview
-This guide will help you deploy the real-time synchronization fixes to the live site at ***REMOVED***
+This guide will help you deploy the real-time synchronization fixes to the live site at https://mihasv3.pages.dev
 
 ---
 
@@ -49,7 +49,7 @@ wrangler pages deploy dist --project-name=mihasv3
 ## ✅ Post-Deployment Testing
 
 ### Test 1: Quick Smoke Test (5 minutes)
-1. Open ***REMOVED***
+1. Open https://mihasv3.pages.dev
 2. Login: cosmaskachepa8@gmail.com / Beanola2025
 3. Submit test application
 4. Check admin dashboard
@@ -74,7 +74,7 @@ wrangler pages deployment tail
 
 ### Check Site Health
 ```bash
-curl -I ***REMOVED***
+curl -I https://mihasv3.pages.dev
 ```
 
 ---
@@ -159,7 +159,7 @@ npm run deploy
 ### Test Credentials
 - **Email**: cosmaskachepa8@gmail.com
 - **Password**: Beanola2025
-- **Site**: ***REMOVED***
+- **Site**: https://mihasv3.pages.dev
 
 ### Supabase Dashboard
 - **URL**: https://supabase.com/dashboard/project/mylgegkqoddcrxtwcclb

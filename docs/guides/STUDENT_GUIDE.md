@@ -4,7 +4,7 @@
 
 ### 1. Create Your Account
 
-1. Visit ***REMOVED***
+1. Visit https://mihasv3.pages.dev
 2. Click "Register" or "Sign Up"
 3. Enter your email address
 4. Create a strong password (min 8 characters)
@@ -156,7 +156,7 @@ You'll receive email notifications when:
 ### Public Tracker
 
 Track without logging in:
-1. Visit ***REMOVED***/track
+1. Visit https://mihasv3.pages.dev/track
 2. Enter your application number
 3. View current status
 

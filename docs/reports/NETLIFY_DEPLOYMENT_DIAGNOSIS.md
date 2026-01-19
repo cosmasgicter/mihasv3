@@ -87,8 +87,8 @@ SUPABASE_URL=https://mylgegkqoddcrxtwcclb.supabase.co
 
 ### API Configuration
 ```bash
-VITE_API_BASE_URL=***REMOVED***
-VITE_APP_BASE_URL=***REMOVED***
+VITE_API_BASE_URL=https://mihasv3.pages.dev
+VITE_APP_BASE_URL=https://mihasv3.pages.dev
 VITE_NODE_ENV=production
 ```
 
@@ -153,7 +153,7 @@ netlify env:set SUPABASE_SERVICE_ROLE_KEY "your-service-role-key"
 netlify env:set SUPABASE_URL "https://mylgegkqoddcrxtwcclb.supabase.co"
 
 # API
-netlify env:set VITE_API_BASE_URL "***REMOVED***"
+netlify env:set VITE_API_BASE_URL "https://mihasv3.pages.dev"
 netlify env:set VITE_NODE_ENV "production"
 
 # Email
@@ -234,9 +234,9 @@ curl http://localhost:8888/api/health
 ### Production Testing
 ```bash
 # After deployment
-curl ***REMOVED***/api/health
-curl ***REMOVED***/api/catalog/programs
-curl ***REMOVED***/api/catalog/intakes
+curl https://mihasv3.pages.dev/api/health
+curl https://mihasv3.pages.dev/api/catalog/programs
+curl https://mihasv3.pages.dev/api/catalog/intakes
 ```
 
 ---

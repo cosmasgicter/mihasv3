@@ -26,7 +26,7 @@ VITE_SENTRY_DSN=https://your-sentry-dsn
 
 # App Config
 VITE_APP_NAME=MIHAS
-VITE_APP_URL=***REMOVED***
+VITE_APP_URL=https://mihasv3.pages.dev
 ```
 
 ## Step 1: Database Setup (15 minutes)
@@ -103,11 +103,11 @@ wrangler pages deploy dist --project-name=mihas
 ## Step 4: Configure Supabase Auth (5 minutes)
 
 1. Supabase Dashboard → Authentication → URL Configuration
-2. Site URL: `***REMOVED***`
+2. Site URL: `https://mihasv3.pages.dev`
 3. Redirect URLs: Add:
-   - `***REMOVED***/auth/callback`
-   - `***REMOVED***/admin`
-   - `***REMOVED***/student/dashboard`
+   - `https://mihasv3.pages.dev/auth/callback`
+   - `https://mihasv3.pages.dev/admin`
+   - `https://mihasv3.pages.dev/student/dashboard`
 
 ## Step 5: Setup Storage (5 minutes)
 
@@ -177,13 +177,13 @@ VALUES ('your-user-id', 'super_admin');
 1. Go to https://uptimerobot.com
 2. Add monitor:
    - Type: HTTPS
-   - URL: ***REMOVED***
+   - URL: https://mihasv3.pages.dev
    - Interval: 5 minutes
 
 ## Step 9: Custom Domain (15 minutes)
 
 1. Cloudflare Pages → Custom domains
-2. Add domain: `apply.mihas.edu.zm`
+2. Add domain: `mihasv3.pages.dev`
 3. Update DNS records (automatic if using Cloudflare DNS)
 4. Wait for SSL certificate (5-10 minutes)
 

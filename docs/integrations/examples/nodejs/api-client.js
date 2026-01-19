@@ -9,7 +9,7 @@ const axios = require('axios');
 
 class MihasApiClient {
   constructor(baseUrl, apiToken) {
-    this.baseUrl = baseUrl || '***REMOVED***';
+    this.baseUrl = baseUrl || 'https://mihasv3.pages.dev';
     this.apiToken = apiToken;
     
     this.client = axios.create({
@@ -139,7 +139,7 @@ class MihasApiClient {
 
 async function examples() {
   const client = new MihasApiClient(
-    '***REMOVED***',
+    'https://mihasv3.pages.dev',
     process.env.MIHAS_API_TOKEN
   );
 

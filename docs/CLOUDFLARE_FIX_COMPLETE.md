@@ -51,7 +51,7 @@ fetch(`${getApiBaseUrl()}/api/notifications`)     ✅
 // src/lib/apiConfig.ts
 export function getApiBaseUrl(): string {
   // Returns window.location.origin for same-origin calls
-  // Falls back to ***REMOVED***
+  // Falls back to https://mihasv3.pages.dev
 }
 ```
 ✅ Same-origin calls work with Cloudflare Pages
@@ -133,7 +133,7 @@ npm run build:prod
 2. Cloudflare auto-builds and deploys
 3. Static files: `dist/`
 4. Serverless functions: `functions/`
-5. Available at: `***REMOVED***`
+5. Available at: `https://mihasv3.pages.dev`
 
 ### Local Testing
 ```bash
@@ -227,15 +227,15 @@ Cloudflare Pages will auto-deploy in 2-3 minutes.
 ```bash
 # Test auth endpoints
 curl -H "Authorization: Bearer <token>" \
-  ***REMOVED***/api/auth-roles
+  https://mihasv3.pages.dev/api/auth-roles
 
 # Test admin endpoints
 curl -H "Authorization: Bearer <token>" \
-  ***REMOVED***/api/admin-settings
+  https://mihasv3.pages.dev/api/admin-settings
 
 # Test notifications
 curl -H "Authorization: Bearer <token>" \
-  ***REMOVED***/api/notifications
+  https://mihasv3.pages.dev/api/notifications
 ```
 
 ## Conclusion

@@ -52,7 +52,7 @@ Cloudflare will automatically redeploy with Sentry enabled.
 4. Fill in:
    - Monitor Type: HTTP(s)
    - Friendly Name: "MIHAS Application System"
-   - URL: `***REMOVED***`
+   - URL: `https://mihasv3.pages.dev`
    - Monitoring Interval: 5 minutes
 5. Add Alert Contact:
    - Email: `***REMOVED***`
