@@ -1,8 +1,7 @@
 /**
  * LoadingSpinner Component
  * 
- * Modern, smooth loading spinner using CSS animations only.
- * No Framer Motion dependency for better performance.
+ * Sleek, modern loading spinner using SVG animations.
  * 
  * @requirements 5.1, 5.2 - Fast page loading with minimal JS overhead
  */
@@ -12,36 +11,29 @@ import { cn } from '@/lib/utils'
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
-  color?: 'primary' | 'secondary' | 'white'
+  color?: 'primary' | 'secondary' | 'white' | 'current'
   message?: string
-  showPulse?: boolean
 }
 
 export function LoadingSpinner({ 
   size = 'md', 
   className, 
   color = 'primary',
-  message,
-  showPulse = false
+  message
 }: LoadingSpinnerProps) {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8',
-    xl: 'w-10 h-10'
+    sm: 'w-5 h-5',
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12',
+    xl: 'w-16 h-16'
   }
 
-  const borderSizeClasses = {
-    sm: 'border-2',
-    md: 'border-2',
-    lg: 'border-[3px]',
-    xl: 'border-[3px]'
-  }
-
+  // Map color prop to Tailwind text classes
   const colorClasses = {
-    primary: 'border-primary/20 border-t-primary',
-    secondary: 'border-secondary/20 border-t-secondary', 
-    white: 'border-white/20 border-t-white'
+    primary: 'text-primary',
+    secondary: 'text-secondary',
+    white: 'text-white',
+    current: 'text-current'
   }
 
   const textSizeClasses = {
@@ -53,34 +45,42 @@ export function LoadingSpinner({
 
   return (
     <div className="flex flex-col items-center justify-center gap-3">
-      {/* Main spinner with smooth gradient effect */}
-      <div className="relative">
-        <div 
-          className={cn(
-            'rounded-full animate-spin',
-            sizeClasses[size],
-            borderSizeClasses[size],
-            colorClasses[color],
-            className
-          )}
-          style={{
-            animationDuration: '0.8s',
-            animationTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
-          }}
-        />
-        {/* Subtle glow effect for larger sizes */}
-        {(size === 'lg' || size === 'xl') && color === 'primary' && (
-          <div 
-            className={cn(
-              'absolute inset-0 rounded-full opacity-30 blur-sm animate-pulse',
-              sizeClasses[size],
-              'bg-primary/20'
-            )}
-          />
+      <div
+        className={cn(
+          "relative flex items-center justify-center",
+          sizeClasses[size],
+          colorClasses[color],
+          className
         )}
+      >
+        <svg
+          className="animate-spin w-full h-full"
+          viewBox="0 0 50 50"
+        >
+          <circle
+            className="opacity-10"
+            cx="25"
+            cy="25"
+            r="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <circle
+            className="opacity-90"
+            cx="25"
+            cy="25"
+            r="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeDasharray="80"
+            strokeDashoffset="60"
+            strokeLinecap="round"
+          />
+        </svg>
       </div>
 
-      {/* Message with fade-in animation */}
       {message && (
         <p 
           className={cn(
@@ -92,46 +92,10 @@ export function LoadingSpinner({
         </p>
       )}
 
-      {/* Pulse dots indicator */}
-      {showPulse && (
-        <div className="flex items-center gap-1">
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              className={cn(
-                'w-1.5 h-1.5 rounded-full',
-                color === 'white' ? 'bg-white' : 'bg-primary'
-              )}
-              style={{
-                animation: 'pulse-dot 1.4s ease-in-out infinite',
-                animationDelay: `${i * 0.16}s`
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* CSS keyframes injected via style tag (only once) */}
       <style>{`
-        @keyframes pulse-dot {
-          0%, 80%, 100% {
-            opacity: 0.3;
-            transform: scale(0.8);
-          }
-          40% {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
         @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(4px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
           animation: fade-in 0.3s ease-out forwards;
