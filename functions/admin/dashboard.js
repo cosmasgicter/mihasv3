@@ -27,25 +27,48 @@ export async function onRequestGet(context) {
     
     const now = new Date();
     const today = now.toISOString().split('T')[0];
+    const tomorrowDate = new Date(now);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrow = tomorrowDate.toISOString().split('T')[0];
+
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
     
-    const [allApps, recentApps] = await Promise.all([
-      supabaseAdminClient.from('applications').select('status, created_at'),
-      supabaseAdminClient.from('applications').select('id, application_number, full_name, status, program, created_at').order('created_at', { ascending: false }).limit(5)
+    // Use parallel database aggregations instead of loading all rows
+    // This reduces memory usage from O(N) to O(1) and saves significant bandwidth
+    const [
+      recentApps,
+      totalResult,
+      draftResult,
+      submittedResult,
+      underReviewResult,
+      approvedResult,
+      rejectedResult,
+      todayResult,
+      weekResult,
+      monthResult
+    ] = await Promise.all([
+      supabaseAdminClient.from('applications').select('id, application_number, full_name, status, program, created_at').order('created_at', { ascending: false }).limit(5),
+      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }),
+      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'draft'),
+      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'submitted'),
+      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'under_review'),
+      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
+      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).gte('created_at', today).lt('created_at', tomorrow),
+      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo),
+      supabaseAdminClient.from('applications').select('*', { count: 'exact', head: true }).gte('created_at', monthAgo)
     ]);
     
-    const apps = allApps.data || [];
-    const totalCount = apps.length;
-    const draftCount = apps.filter(a => a.status === 'draft').length;
-    const submittedCount = apps.filter(a => a.status === 'submitted').length;
-    const underReviewCount = apps.filter(a => a.status === 'under_review').length;
-    const approvedCount = apps.filter(a => a.status === 'approved').length;
-    const rejectedCount = apps.filter(a => a.status === 'rejected').length;
-    const todayCount = apps.filter(a => a.created_at && a.created_at.startsWith(today)).length;
-    const weekCount = apps.filter(a => a.created_at && a.created_at >= weekAgo).length;
-    
-    const monthCount = apps.filter(a => a.created_at && a.created_at >= monthAgo).length;
+    const totalCount = totalResult.count || 0;
+    const draftCount = draftResult.count || 0;
+    const submittedCount = submittedResult.count || 0;
+    const underReviewCount = underReviewResult.count || 0;
+    const approvedCount = approvedResult.count || 0;
+    const rejectedCount = rejectedResult.count || 0;
+    const todayCount = todayResult.count || 0;
+    const weekCount = weekResult.count || 0;
+    const monthCount = monthResult.count || 0;
     const pendingCount = submittedCount + underReviewCount;
     
     const recentActivity = (recentApps.data || []).map(app => ({
