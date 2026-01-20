@@ -68,9 +68,8 @@ export default function SignInPage() {
         }).catch(() => {}); // Silent fail
       }
 
-      // Show loading overlay and wait for auth state to settle
+      // Show loading overlay
       setIsAuthenticating(true);
-      await new Promise((resolve) => setTimeout(resolve, 800));
 
       // Redirect to intended destination or dashboard
       const from = (location.state as any)?.from?.pathname;

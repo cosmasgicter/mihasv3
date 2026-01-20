@@ -77,12 +77,6 @@ export { LoadingOverlay } from './LoadingOverlay'
 export { SkeletonLoader, SkeletonCard, SkeletonTable, SkeletonAvatar } from './SkeletonLoader'
 export { ProgressIndicator, CircularProgress, IndeterminateProgress } from './ProgressIndicator'
 
-// Deprecated Loading Components - Use LoadingSpinner instead
-/** @deprecated Use LoadingSpinner instead */
-export { Loading } from './Loading'
-/** @deprecated Use LoadingSpinner instead */
-export { Spinner } from './Spinner'
-
 // Form Components
 export { FileUpload } from './FileUpload'
 export { EnhancedFileUpload } from './EnhancedFileUpload'
