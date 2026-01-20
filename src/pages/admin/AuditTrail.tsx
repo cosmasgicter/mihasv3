@@ -62,6 +62,11 @@ function sanitizeFilters(filters: AuditLogFilters): AuditLogFilters {
 
 function AuditListItem({ entry }: { entry: AuditLogEntry }) {
   const [showDetails, setShowDetails] = useState(false)
+
+  const metadataLength = useMemo(
+    () => (entry.metadata ? Object.keys(entry.metadata).length : 0),
+    [entry.metadata]
+  )
   
   const relativeTime = useMemo(() => {
     try {
@@ -301,13 +306,13 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
           )}
           
           {/* Metadata */}
-          {entry.metadata && Object.keys(entry.metadata).length > 0 && (
+          {metadataLength > 0 && (
             <div className="bg-card rounded-lg p-3 border border-border mt-4">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="h-4 w-4 text-secondary" />
                 <span className="text-sm font-semibold text-gray-900">Additional Data</span>
                 <span className="text-xs bg-skeleton px-2 py-0.5 rounded-full">
-                  {Object.keys(entry.metadata).length} fields
+                  {metadataLength} fields
                 </span>
               </div>
               <pre className="text-xs bg-accent p-3 rounded-lg overflow-auto max-h-40 border font-mono">
