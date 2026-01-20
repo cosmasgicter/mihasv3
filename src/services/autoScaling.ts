@@ -117,7 +117,7 @@ export interface CapacityPlan {
  * Implements automatic scaling and load balancing strategies
  * Validates Requirements 8.4
  */
-class AutoScalingService {
+export class AutoScalingService {
   private scalingConfigurations: Map<string, ScalingConfiguration> = new Map()
   private loadBalancingStrategies: Map<string, LoadBalancingStrategy> = new Map()
   private scalingHistory: Array<{
@@ -469,7 +469,7 @@ class AutoScalingService {
     for (const [strategyId, strategy] of this.loadBalancingStrategies) {
       if (!strategy.enabled || !strategy.healthCheck.enabled) continue
 
-      for (const server of strategy.servers) {
+      await Promise.all(strategy.servers.map(async (server) => {
         try {
           const healthStatus = await this.checkServerHealth(server, strategy.healthCheck)
           server.status = healthStatus.healthy ? 'healthy' : 'unhealthy'
@@ -480,7 +480,7 @@ class AutoScalingService {
           server.status = 'unhealthy'
           server.lastHealthCheck = new Date().toISOString()
         }
-      }
+      }))
     }
   }
 
