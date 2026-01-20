@@ -1,3 +1,5 @@
+import { monitoring } from '@/lib/monitoring'
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 interface LogEntry {
@@ -31,15 +33,12 @@ class Logger {
   }
 
   private sendToMonitoring(entry: LogEntry) {
-    // Send to external monitoring service (Sentry, LogRocket, etc.)
-    // For now, just store in localStorage for debugging
-    try {
-      const logs = JSON.parse(localStorage.getItem('error_logs') || '[]')
-      logs.push(entry)
-      localStorage.setItem('error_logs', JSON.stringify(logs.slice(-50))) // Keep last 50
-    } catch (e) {
-      // Silently fail if localStorage is not available
-    }
+    // Send to monitoring service without duplicating console logs
+    monitoring.trackException('logger', entry.message, {
+      level: entry.level,
+      data: entry.data,
+      originalTimestamp: entry.timestamp
+    })
   }
 
   debug(message: string, data?: any) {
