@@ -157,7 +157,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
 
 
   return (
-    <div className={`relative bg-card rounded-xl border p-6 hover:shadow-lg transition-all duration-200 group ${
+    <div className={`relative bg-card rounded-xl border p-4 sm:p-6 hover:shadow-lg transition-all duration-200 group ${
       isSelected ? 'border-primary bg-blue-50' : 'border-border hover:border-input'
     }`}>
       {/* Selection Checkbox */}

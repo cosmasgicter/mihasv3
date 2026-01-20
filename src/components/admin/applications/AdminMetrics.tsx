@@ -67,11 +67,11 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
     color: string
     trend?: number 
   }) => (
-    <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
+    <div className="bg-card rounded-xl p-4 sm:p-6 border border-border shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-700 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{value}</p>
           {trend !== undefined && (
             <div className={`flex items-center mt-1 text-sm ${
               trend > 0 ? 'text-success' : trend < 0 ? 'text-error' : 'text-gray-700'
@@ -89,9 +89,9 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
   )
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
       <MetricCard
-        title="Today's Submissions"
+        title="Today"
         value={metrics.todaySubmissions}
         icon={Users}
         color="text-primary"
