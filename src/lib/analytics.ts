@@ -122,11 +122,11 @@ export class AnalyticsService {
       // Check authentication before tracking to avoid 401/403 errors
       const { data: { session } } = await supabase.auth.getSession()
       
-      // If we don't have a session and no explicit user_id, we can't track to a protected table
+      // If we don't have a session, we can't track to a protected table
       // This prevents the browser console 401/403 spam
-      if (!session?.user && !event.user_id) {
+      if (!session?.user) {
         if (process.env.NODE_ENV === 'development') {
-          console.debug('[Analytics] Skipping anonymous event tracking:', event.action_type)
+          console.debug('[Analytics] Skipping anonymous event tracking (no session):', event.action_type)
         }
         return
       }
