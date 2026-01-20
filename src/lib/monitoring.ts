@@ -442,11 +442,11 @@ export class MonitoringService {
     this.enqueue(event)
   }
 
-  logError(
+  private normalizeErrorArgs(
     source: string | Error,
     error?: string | Error | Record<string, any>,
     context?: Record<string, any>
-  ): void {
+  ) {
     let service = 'system'
     let message = 'Unknown error'
     let metadata: Record<string, any> = {}
@@ -471,6 +471,35 @@ export class MonitoringService {
     if (context) {
       metadata = { ...metadata, ...context }
     }
+
+    return { service, message, metadata }
+  }
+
+  trackException(
+    source: string | Error,
+    error?: string | Error | Record<string, any>,
+    context?: Record<string, any>
+  ): void {
+    const { service, message, metadata } = this.normalizeErrorArgs(source, error, context)
+
+    const event: TelemetryEvent = {
+      type: 'error',
+      service,
+      level: 'error',
+      message,
+      metadata,
+      occurred_at: safeNow()
+    }
+
+    this.enqueue(event)
+  }
+
+  logError(
+    source: string | Error,
+    error?: string | Error | Record<string, any>,
+    context?: Record<string, any>
+  ): void {
+    const { service, message, metadata } = this.normalizeErrorArgs(source, error, context)
 
     console.error(`[${service}] ${message}`, metadata)
 
