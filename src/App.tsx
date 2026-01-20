@@ -30,10 +30,10 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: true,
       refetchOnMount: true,
       refetchOnReconnect: true,
-      refetchInterval: 60000, // Poll every 60 seconds as fallback
-      staleTime: 30000, // 30 seconds
+      refetchInterval: 5000, // Poll every 5 seconds for better realtime feel
+      staleTime: 0, // Always consider data stale
       gcTime: 5 * 60 * 1000,
-      networkMode: 'offlineFirst',
+      networkMode: 'online', // Prefer online fetching
     },
   },
 })

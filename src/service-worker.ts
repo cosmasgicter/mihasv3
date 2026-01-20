@@ -156,22 +156,15 @@ registerRoute(
   })
 )
 
-// Cloudflare Functions API - Network first with 10-minute cache fallback
+// Cloudflare Functions API - Network Only for high volatility
 // High volatility endpoints (applications, realtime)
 registerRoute(
   ({ url }) => 
     url.pathname.startsWith('/api/applications') ||
     url.pathname.startsWith('/applications') ||
     url.pathname.startsWith('/notifications'),
-  new NetworkFirst({
-    cacheName: `${CACHE_PREFIX}-api-high-volatility-${CACHE_VERSION}`,
-    networkTimeoutSeconds: 3,
+  new NetworkOnly({
     plugins: [
-      new ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 60 * 1, // 1 minute (matches React Query config)
-        purgeOnQuotaError: true
-      }),
       new CacheableResponsePlugin({
         statuses: [0, 200]
       })
