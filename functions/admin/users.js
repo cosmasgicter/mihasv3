@@ -26,10 +26,23 @@ export async function onRequestGet(context) {
       });
     }
     
-    const { data, error } = await supabaseAdminClient
+    // Parse pagination parameters
+    const url = new URL(request.url);
+    let page = parseInt(url.searchParams.get('page') || '1', 10);
+    let limit = parseInt(url.searchParams.get('limit') || '50', 10);
+
+    // Validate parameters
+    if (isNaN(page) || page < 1) page = 1;
+    if (isNaN(limit) || limit < 1) limit = 50;
+    if (limit > 100) limit = 100; // Cap limit to prevent abuse
+
+    const offset = (page - 1) * limit;
+
+    const { data, count, error } = await supabaseAdminClient
       .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
     
     if (error) {
       console.error('Users query error:', error);
@@ -45,7 +58,15 @@ export async function onRequestGet(context) {
       user_id: user.id
     }));
     
-    return new Response(JSON.stringify({ data: users }), {
+    return new Response(JSON.stringify({
+      data: users,
+      meta: {
+        page,
+        limit,
+        total: count,
+        total_pages: Math.ceil(count / limit)
+      }
+    }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
