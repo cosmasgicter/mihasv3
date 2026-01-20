@@ -129,11 +129,6 @@
   --card-padding-md: 1.5rem; /* 24px */
   --section-padding: 1rem;
   --section-padding-md: 1.5rem;
-
-  /* Spinner sizes */
-  --spinner-sm: 1rem;
-  --spinner-md: 1.5rem;
-  --spinner-lg: 2rem;
 }
 
 /* Utility classes that use token values so components can stay small */
