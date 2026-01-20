@@ -189,17 +189,22 @@ export async function onRequest(context) {
           { includeStatus: false }
         );
         
-        const { count: baseCount } = await baseCountQuery;
-        const statusBreakdown = {};
-        
-        for (const statusValue of APPLICATION_STATUSES) {
-          const statusQuery = applyFilters(
+        const statusPromises = APPLICATION_STATUSES.map(statusValue =>
+          applyFilters(
             supabaseAdminClient.from(tableName).select('id', { count: 'exact', head: true }).eq('status', statusValue),
             filterOptions,
             { includeStatus: false }
-          );
-          const { count: statusCount } = await statusQuery;
-          statusBreakdown[statusValue] = statusCount || 0;
+          ).then(({ count }) => ({ status: statusValue, count: count || 0 }))
+        );
+
+        const [{ count: baseCount }, ...statusResults] = await Promise.all([
+          baseCountQuery,
+          ...statusPromises
+        ]);
+
+        const statusBreakdown = {};
+        for (const { status, count } of statusResults) {
+          statusBreakdown[status] = count;
         }
         
         stats = { total: baseCount || 0, statusBreakdown };
