@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
@@ -305,21 +305,37 @@ export default function StudentDashboard() {
   )
   const firstName = displayName?.split(' ')[0] || 'Student'
 
-  const draftApplications = applications.filter(app => app.status === 'draft')
-  const submittedApplications = applications.filter(app => app.status !== 'draft')
-  const hasLocalDraftOnly = hasDraft && draftApplications.length === 0
-  const totalDraftCount = draftApplications.length + (hasLocalDraftOnly ? 1 : 0)
-  
-  // Check for pending payment and scheduled interviews
-  // Requirements: 2.3, 4.2 - Check for null, 'pending_review', or non-verified status
-  // Exclude draft applications from pending payment count
-  const hasPendingPayment = applications.some(app => 
-    app.status !== 'draft' && (
-      app.payment_status === null || 
-      app.payment_status === 'pending_review' ||
-      app.payment_status !== 'verified'
+  const {
+    draftApplications,
+    submittedApplications,
+    hasLocalDraftOnly,
+    totalDraftCount,
+    hasPendingPayment
+  } = useMemo(() => {
+    const draftApps = applications.filter(app => app.status === 'draft')
+    const submittedApps = applications.filter(app => app.status !== 'draft')
+    const hasLocalOnly = hasDraft && draftApps.length === 0
+    const draftCount = draftApps.length + (hasLocalOnly ? 1 : 0)
+
+    // Check for pending payment and scheduled interviews
+    // Requirements: 2.3, 4.2 - Check for null, 'pending_review', or non-verified status
+    // Exclude draft applications from pending payment count
+    const pendingPayment = applications.some(app =>
+      app.status !== 'draft' && (
+        app.payment_status === null ||
+        app.payment_status === 'pending_review' ||
+        app.payment_status !== 'verified'
+      )
     )
-  )
+
+    return {
+      draftApplications: draftApps,
+      submittedApplications: submittedApps,
+      hasLocalDraftOnly: hasLocalOnly,
+      totalDraftCount: draftCount,
+      hasPendingPayment: pendingPayment
+    }
+  }, [applications, hasDraft])
   
   // Requirements: 2.4, 4.3 - Check for 'scheduled' or 'rescheduled' status in application_interviews
   const hasScheduledInterview = scheduledInterviews.length > 0
