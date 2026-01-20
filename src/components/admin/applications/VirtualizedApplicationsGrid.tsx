@@ -70,7 +70,7 @@ export function VirtualizedApplicationsGrid({
     count: Math.ceil(applications.length / columns),
     getScrollElement: () => parentRef.current,
     estimateSize: () => 480,
-    overscan: 2
+    overscan: 5 // Increased overscan for smoother mobile scrolling
   })
 
   return (
