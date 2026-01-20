@@ -177,15 +177,8 @@ registerRoute(
   ({ url }) => 
     url.pathname.startsWith('/api/users') ||
     url.pathname.startsWith('/api/profiles'),
-  new NetworkFirst({
-    cacheName: `${CACHE_PREFIX}-api-medium-volatility-${CACHE_VERSION}`,
-    networkTimeoutSeconds: 3,
+  new NetworkOnly({
     plugins: [
-      new ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 60 * 15, // 15 minutes (matches React Query config)
-        purgeOnQuotaError: true
-      }),
       new CacheableResponsePlugin({
         statuses: [0, 200]
       })
@@ -200,15 +193,8 @@ registerRoute(
     url.pathname.startsWith('/analytics') ||
     url.pathname.startsWith('/catalog') ||
     url.pathname.startsWith('/api/catalog'),
-  new NetworkFirst({
-    cacheName: `${CACHE_PREFIX}-api-low-volatility-${CACHE_VERSION}`,
-    networkTimeoutSeconds: 3,
+  new NetworkOnly({
     plugins: [
-      new ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 60 * 30, // 30 minutes (matches React Query config)
-        purgeOnQuotaError: true
-      }),
       new CacheableResponsePlugin({
         statuses: [0, 200]
       })
@@ -216,22 +202,15 @@ registerRoute(
   })
 )
 
-// Generic API fallback - Network first with 10-minute cache
+// Generic API fallback - Network Only
 registerRoute(
   ({ url }) => 
     url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/admin/') ||
     url.pathname.startsWith('/documents/') ||
     url.pathname.startsWith('/payments/'),
-  new NetworkFirst({
-    cacheName: `${CACHE_PREFIX}-api-generic-${CACHE_VERSION}`,
-    networkTimeoutSeconds: 3,
+  new NetworkOnly({
     plugins: [
-      new ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 60 * 10, // 10 minutes
-        purgeOnQuotaError: true
-      }),
       new CacheableResponsePlugin({
         statuses: [0, 200]
       })
@@ -251,16 +230,16 @@ registerRoute(
   new NetworkOnly()
 )
 
-// HTML Documents - Network first with 24-hour cache fallback
+// HTML Documents - Network first with 1-hour cache fallback
 registerRoute(
   ({ request }) => request.destination === 'document',
   new NetworkFirst({
     cacheName: `${CACHE_PREFIX}-pages-${CACHE_VERSION}`,
-    networkTimeoutSeconds: 3,
+    networkTimeoutSeconds: 5,
     plugins: [
       new ExpirationPlugin({
         maxEntries: 20,
-        maxAgeSeconds: 60 * 60 * 24, // 24 hours
+        maxAgeSeconds: 60 * 60, // 1 hour
         purgeOnQuotaError: true
       }),
       new CacheableResponsePlugin({

@@ -90,7 +90,6 @@ export function LoadingFallback({
         <LoadingSpinner 
           size="xl" 
           message={message}
-          showPulse={true}
         />
         
         {showProgress && (
