@@ -22,7 +22,7 @@ interface SyncStatus {
   failedRequests: number
 }
 
-class OfflineManager {
+export class OfflineManager {
   private requestQueue: Map<string, QueuedRequest> = new Map()
   private syncInProgress = false
   private readonly STORAGE_KEY = 'offline_request_queue'
@@ -103,7 +103,6 @@ class OfflineManager {
     try {
       const requests = Array.from(this.requestQueue.values())
         .filter(r => r.retryCount < r.maxRetries)
-        .sort((a, b) => a.timestamp - b.timestamp)
 
       for (const request of requests) {
         try {
@@ -201,7 +200,10 @@ class OfflineManager {
       const stored = localStorage.getItem(this.STORAGE_KEY)
       if (stored) {
         const data = JSON.parse(stored)
-        this.requestQueue = new Map(Object.entries(data))
+        // Sort entries by timestamp to ensure processing order
+        const entries = Object.entries(data) as [string, QueuedRequest][]
+        entries.sort(([, a], [, b]) => a.timestamp - b.timestamp)
+        this.requestQueue = new Map(entries)
       }
     } catch (error) {
       console.error('Failed to load request queue:', error)
