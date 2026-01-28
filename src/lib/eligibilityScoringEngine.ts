@@ -656,54 +656,6 @@ export class EligibilityScoringEngine {
       if (component.status === 'needs_improvement') {
         weaknesses.push(`${component.name}: ${component.feedback}`)
       } else if (component.status === 'satisfactory' && component.percentage < 70) {
-       
-  private determineEligibilityStatus(
-    overallPercentage: number,
-    components: ScoringComponent[]
-  ): 'highly_eligible' | 'eligible' | 'conditionally_eligible' | 'not_eligible' {
-    const criticalComponents = components.filter(c => c.status === 'critical')
-    const needsImprovementComponents = components.filter(c => c.status === 'needs_improvement')
-    
-    if (criticalComponents.length > 0) {
-      return 'not_eligible'
-    }
-    
-    if (overallPercentage >= 85 && needsImprovementComponents.length === 0) {
-      return 'highly_eligible'
-    }
-    
-    if (overallPercentage >= 70 && needsImprovementComponents.length <= 1) {
-      return 'eligible'
-    }
-    
-    if (overallPercentage >= 50) {
-      return 'conditionally_eligible'
-    }
-    
-    return 'not_eligible'
-  }
-
-  private identifyStrengths(components: ScoringComponent[]): string[] {
-    const strengths: string[] = []
-    
-    components.forEach(component => {
-      if (component.status === 'excellent') {
-        strengths.push(`${component.name}: ${component.feedback}`)
-      } else if (component.status === 'good' && component.percentage >= 80) {
-        strengths.push(`${component.name}: Strong performance (${component.percentage}%)`)
-      }
-    })
-    
-    return strengths
-  }
-
-  private identifyWeaknesses(components: ScoringComponent[]): string[] {
-    const weaknesses: string[] = []
-    
-    components.forEach(component => {
-      if (component.status === 'needs_improvement') {
-        weaknesses.push(`${component.name}: ${component.feedback}`)
-      } else if (component.status === 'satisfactory' && component.percentage < 70) {
         weaknesses.push(`${component.name}: Below optimal performance (${component.percentage}%)`)
       }
     })
