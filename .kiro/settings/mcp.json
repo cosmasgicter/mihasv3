@@ -12,7 +12,7 @@
       "autoApprove": []
     },
     "fetch": {
-      "command": "C:\\Users\\Cosma\\AppData\\Roaming\\Python\\Python314\\Scripts\\uvx.exe",
+      "command": "uvx",
       "args": [
         "mcp-server-fetch"
       ],
@@ -68,7 +68,7 @@
       "autoApprove": []
     },
     "sqlite": {
-      "command": "C:\\Users\\Cosma\\AppData\\Roaming\\Python\\Python314\\Scripts\\uvx.exe",
+      "command": "uvx",
       "args": [
         "mcp-server-sqlite",
         "--db-path",
@@ -91,7 +91,7 @@
       "autoApprove": []
     },
     "brave-search": {
-      "command": "C:\\Users\\Cosma\\AppData\\Roaming\\Python\\Python314\\Scripts\\uvx.exe",
+      "command": "uvx",
       "args": [
         "mcp-server-brave-search"
       ],
