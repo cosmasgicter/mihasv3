@@ -9,12 +9,13 @@ inclusion: always
 | Directory | Purpose | AI Action |
 |-----------|---------|-----------|
 | `src/` | React frontend | Primary modification target |
-| `functions/` | Cloudflare API endpoints | Use `_lib/` for shared code |
+| `api/` | Vercel Serverless Functions | Use `_lib/` for shared code |
 | `tests/` | Test files | Match test type to subdirectory |
 | `supabase/migrations/` | DB migrations | Append-only, never modify existing |
 | `public/` | Static assets, PWA | Rarely modify |
 | `scripts/` | Build/deploy utilities | Reference only, do not modify |
 | `docs/` | Documentation | **Do not modify unless explicitly asked** |
+| `functions/` | **DEPRECATED** - Cloudflare | Being migrated to `api/` |
 
 ## Frontend Structure (`src/`)
 
@@ -44,7 +45,7 @@ routes/        → Route config and guards
 | Hooks | `use` + PascalCase `.ts` | `useApplicationForm.ts` |
 | Services | camelCase `.ts` | `supabaseClient.ts` |
 | Types | PascalCase | `ApplicationFormData` |
-| API Functions | kebab-case `.js` | `send-email.js` |
+| API Functions | kebab-case `.ts` | `send-email.ts` |
 | Stores | camelCase + `Store` | `applicationStore.ts` |
 
 ## Import Rules
@@ -68,7 +69,7 @@ import { Button } from '../../../components/ui/Button'
 |--------|----------|-------|
 | Component | `src/components/{domain}/` | domain: admin, student, auth, forms, ui |
 | Hook | `src/hooks/useXxx.ts` | Must prefix with `use` |
-| API endpoint | `functions/{feature}/` | feature: admin, applications, auth, documents, notifications, payments |
+| API endpoint | `api/{feature}/` | feature: admin, applications, auth, documents, notifications, payments |
 | Page | `src/pages/` | Must register route in `src/routes/` |
 | Type | `src/types/` or co-locate | Co-locate component-specific types |
 | Store | `src/stores/xxxStore.ts` | Follow existing Zustand patterns |
@@ -89,26 +90,37 @@ Choose based on data type:
 - Extract to hooks/utilities when component exceeds 200 lines
 - Organize by feature domain, not technical layer
 
-## API Functions (`functions/`)
+## API Functions (`api/`)
 
 Structure:
-- `_lib/` → Shared utilities (auth helpers, response builders)
-- `_middleware.js` → Global CORS, auth, error handling
+- `_lib/` → Shared utilities (cors, auth helpers, response builders)
 - Feature directories: `admin/`, `applications/`, `auth/`, `documents/`, `notifications/`, `payments/`
 
 Pattern:
-```javascript
-// functions/{feature}/action.js
-export async function onRequest(context) {
+```typescript
+// api/{feature}/[action].ts
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Use helpers from _lib/
+  // Access env via process.env
 }
 ```
+
+## Removed Directories (Migration Cleanup)
+
+| Directory | Status |
+|-----------|--------|
+| `functions/ai/` | REMOVED - AI features deleted |
+| `functions/analytics/` | REMOVED - Analytics deleted |
+| `functions/mcp/` | REMOVED - MCP integration deleted |
+| `functions/` | DEPRECATED - Migrating to `api/` |
 
 ## Testing
 
 | Type | Directory | Framework |
 |------|-----------|-----------|
-| E2E flows | `tests/e2e/` | Playwright |
-| API tests | `tests/api/` | Playwright |
 | Unit tests | `tests/unit/` | Vitest |
-| Integration | `tests/integration/` | Playwright |
+| Property tests | `tests/property/` | fast-check |
+| Integration | `tests/integration/` | Vitest |
+| E2E flows | `tests/e2e/` | Playwright |

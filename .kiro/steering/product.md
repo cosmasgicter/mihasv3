@@ -21,8 +21,19 @@ Live production admissions platform for Mukuba Institute of Health and Allied Sc
 | Role | Capabilities |
 |------|-------------|
 | Student | Apply, upload documents, track status, pay, schedule interviews |
-| Admin | Review applications, verify eligibility, approve/reject, generate reports |
-| Super Admin | Full access + user management, system config, analytics, audit logs |
+| Admin | Review applications, verify eligibility, approve/reject (simplified) |
+| Super Admin | Full access + user management, system config, audit logs |
+
+## Simplified Admin (Migration)
+
+The admin interface has been simplified:
+- ✅ Application review and status management
+- ✅ Basic user management (CRUD)
+- ✅ Simple email notifications
+- ❌ Complex workflow engine (REMOVED)
+- ❌ Predictive analytics dashboards (REMOVED)
+- ❌ Bulk notification management (REMOVED)
+- ❌ AI-powered features (REMOVED except OCR)
 
 ## Application Flow
 
@@ -64,10 +75,20 @@ Live production admissions platform for Mukuba Institute of Health and Allied Sc
 | Service | Failure Handling |
 |---------|------------------|
 | Supabase (auth, DB, storage) | Critical—no fallback |
-| Cloudflare (hosting, CDN) | Infrastructure layer |
+| Vercel (hosting, serverless) | Infrastructure layer |
 | Resend (email) | Queue with retry |
-| Twilio (SMS/WhatsApp) | Graceful degradation |
 | HPCZ/GNC/NMCZ/ECZ (eligibility) | Advisory only, never blocking |
+
+## Removed Integrations (Migration Cleanup)
+
+| Service | Status |
+|---------|--------|
+| Cloudflare Pages | REMOVED - Migrated to Vercel |
+| Cloudflare AI | REMOVED - AI features deleted |
+| Supabase Realtime | REMOVED - Replaced with polling |
+| Twilio (SMS/WhatsApp) | REMOVED - Simplification |
+| Sentry | REMOVED - Analytics deleted |
+| Umami | REMOVED - Analytics deleted |
 
 ## Development Checklist
 
@@ -78,3 +99,6 @@ When modifying code, verify:
 - [ ] Graceful degradation for external API calls
 - [ ] Accessibility (screen reader support)
 - [ ] Audit trails for state changes (no PII in logs)
+- [ ] Using Bun commands (not npm)
+- [ ] API endpoints in `api/` directory (not `functions/`)
+- [ ] React Query polling for real-time data (not Supabase Realtime)
