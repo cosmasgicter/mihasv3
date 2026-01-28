@@ -1,0 +1,11 @@
+[install]
+# Use exact versions for reproducibility
+exact = true
+
+[install.lockfile]
+# Generate lockfile
+save = true
+
+[run]
+# Silent mode for cleaner output
+silent = false

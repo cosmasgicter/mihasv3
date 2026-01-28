@@ -135,7 +135,7 @@ export function CacheMonitorDashboard() {
       {/* Slow Queries */}
       {metrics.slowQueries.length > 0 && (
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Slow Queries (>{1000}ms)</h3>
+          <h3 className="text-lg font-semibold mb-4">Slow Queries (&gt;{1000}ms)</h3>
           <div className="space-y-2">
             {metrics.slowQueries.map((query, index) => (
               <div

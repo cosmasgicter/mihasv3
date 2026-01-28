@@ -6,32 +6,32 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
 
 ## Tasks
 
-- [ ] 1. Set up Vercel and Bun infrastructure
-  - [-] 1.1 Create vercel.json configuration file
+- [x] 1. Set up Vercel and Bun infrastructure
+  - [x] 1.1 Create vercel.json configuration file
     - Configure build command to use Bun (`bun run build`)
     - Configure install command (`bun install`)
     - Set up rewrites for SPA routing and API endpoints
     - Add security headers for API routes
     - _Requirements: 1.1, 1.5, 1.7_
   
-  - [~] 1.2 Create bunfig.toml configuration file
+  - [x] 1.2 Create bunfig.toml configuration file
     - Configure exact version locking
     - Set up lockfile generation
     - _Requirements: 2.7_
   
-  - [~] 1.3 Update package.json for Bun runtime
+  - [x] 1.3 Update package.json for Bun runtime
     - Replace npm scripts with bun/bunx commands
     - Update dev, build, test, and lint scripts
     - Remove Node.js engine requirement
     - _Requirements: 2.1, 2.2, 2.5_
   
-  - [~] 1.4 Update vite.config.ts for Bun compatibility
+  - [x] 1.4 Update vite.config.ts for Bun compatibility
     - Simplify configuration (remove Cloudflare-specific settings)
     - Ensure PWA plugin works with Bun
     - Preserve code splitting for vendor chunks
     - _Requirements: 2.4, 12.4, 12.5_
 
-- [~] 2. Checkpoint - Verify Bun build works
+- [-] 2. Checkpoint - Verify Bun build works
   - Run `bun install` and `bun run build`
   - Ensure all tests pass, ask the user if questions arise
 
@@ -96,7 +96,7 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Remove bulk notification complexity
     - _Requirements: 3.1, 6.6_
   
-  - [~] 4.5 Convert payments endpoints (api/payments/)
+  - [ ] 4.5 Convert payments endpoints (api/payments/)
     - Convert functions/payments/generate-receipt.js → api/payments/generate-receipt.ts
     - _Requirements: 3.1, 8.6_
   
@@ -104,29 +104,29 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - **Property 1: Function Conversion Equivalence**
     - **Validates: Requirements 1.2, 3.1, 3.5**
 
-- [~] 5. Checkpoint - Verify core API endpoints work
+- [ ] 5. Checkpoint - Verify core API endpoints work
   - Test auth, applications, documents, notifications, payments endpoints
   - Ensure all tests pass, ask the user if questions arise
 
 - [ ] 6. Convert admin endpoints
-  - [~] 6.1 Convert admin dashboard endpoint (api/admin/)
+  - [ ] 6.1 Convert admin dashboard endpoint (api/admin/)
     - Convert functions/admin/dashboard.js → api/admin/dashboard.ts
     - Simplify to return basic stats without complex analytics
     - _Requirements: 6.1, 6.2_
   
-  - [~] 6.2 Convert admin users endpoint
+  - [ ] 6.2 Convert admin users endpoint
     - Convert functions/admin/users.js → api/admin/users.ts
     - Preserve basic CRUD operations
     - _Requirements: 6.2_
   
-  - [~] 6.3 Convert catalog endpoints (api/catalog/)
+  - [ ] 6.3 Convert catalog endpoints (api/catalog/)
     - Convert functions/catalog/programs.js → api/catalog/programs.ts
     - Convert functions/catalog/intakes.js → api/catalog/intakes.ts
     - Convert functions/catalog/subjects.js → api/catalog/subjects.ts
     - _Requirements: 3.1_
 
 - [ ] 7. Remove AI features
-  - [~] 7.1 Delete AI function files
+  - [ ] 7.1 Delete AI function files
     - Delete functions/ai/chat.ts
     - Delete functions/ai/predict.ts
     - Delete functions/ai/analyze-document.ts
@@ -134,19 +134,19 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Delete functions/_lib/cloudflareAI.js
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
   
-  - [~] 7.2 Remove AI client from frontend
+  - [ ] 7.2 Remove AI client from frontend
     - Delete src/lib/cloudflareAI.ts
     - Remove AIAssistant component references
     - Remove AI-related imports from components
     - _Requirements: 4.6, 4.7_
 
 - [ ] 8. Remove analytics features
-  - [~] 8.1 Delete analytics function files
+  - [ ] 8.1 Delete analytics function files
     - Delete functions/analytics/ directory
     - Delete functions/_lib/analytics/ directory
     - _Requirements: 5.3_
   
-  - [~] 8.2 Remove analytics from frontend
+  - [ ] 8.2 Remove analytics from frontend
     - Remove Umami analytics tracking code
     - Remove Sentry error monitoring
     - Remove telemetry collection
@@ -154,24 +154,24 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - _Requirements: 5.1, 5.2, 5.4, 5.5, 5.6_
 
 - [ ] 9. Replace Supabase Realtime with polling
-  - [~] 9.1 Create useAdminDashboardPolling hook
+  - [ ] 9.1 Create useAdminDashboardPolling hook
     - Replace useAdminDashboardRealtime with React Query polling
     - Configure 30-second refetch interval
     - Handle offline state gracefully
     - _Requirements: 7.2, 7.3, 7.8_
   
-  - [~] 9.2 Create useStudentDashboardPolling hook
+  - [ ] 9.2 Create useStudentDashboardPolling hook
     - Replace useStudentDashboardRealtime with React Query polling
     - Configure 30-second refetch interval
     - _Requirements: 7.2, 7.3, 7.6, 7.7_
   
-  - [~] 9.3 Remove Supabase Realtime components
+  - [ ] 9.3 Remove Supabase Realtime components
     - Delete src/components/supabase-ui/realtime-provider.tsx
     - Delete src/components/supabase-ui/realtime-indicator.tsx
     - Remove RealtimeProvider from component tree
     - _Requirements: 7.1, 7.4, 7.5_
   
-  - [~] 9.4 Delete old realtime hooks
+  - [ ] 9.4 Delete old realtime hooks
     - Delete src/hooks/useAdminDashboardRealtime.ts
     - Delete src/hooks/useStudentDashboardRealtime.ts
     - Delete src/hooks/admin/useAdminRealtimeMetrics.ts
@@ -181,14 +181,14 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - **Property 8: Polling Interval Configuration**
     - **Validates: Requirements 7.3**
 
-- [~] 10. Checkpoint - Verify feature removal complete
+- [ ] 10. Checkpoint - Verify feature removal complete
   - Verify AI endpoints return 404
   - Verify analytics endpoints return 404
   - Verify polling works for dashboards
   - Ensure all tests pass, ask the user if questions arise
 
 - [ ] 11. Verify core functionality preserved
-  - [~] 11.1 Verify auto-save functionality
+  - [ ] 11.1 Verify auto-save functionality
     - Test 8-second auto-save interval works
     - Test localStorage persistence
     - Test draft restoration on page reload
@@ -198,7 +198,7 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - **Property 3: Auto-Save Round-Trip**
     - **Validates: Requirements 8.2, 8.3, 8.4**
   
-  - [~] 11.3 Verify PWA offline functionality
+  - [ ] 11.3 Verify PWA offline functionality
     - Test service worker caches static assets
     - Test offline status indicators display
     - Test form submissions queue when offline
@@ -208,7 +208,7 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - **Property 4: Offline Queue and Sync**
     - **Validates: Requirements 9.1, 9.3, 9.5**
   
-  - [~] 11.5 Verify Zambian data format support
+  - [ ] 11.5 Verify Zambian data format support
     - Test +260 phone number validation
     - Test ECZ grade 1-9 validation and pass/fail classification
     - _Requirements: 8.7_
@@ -217,7 +217,7 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - **Property 5: Zambian Data Format Validation**
     - **Validates: Requirements 8.7**
   
-  - [~] 11.7 Verify non-blocking validation
+  - [ ] 11.7 Verify non-blocking validation
     - Test that validation errors don't prevent wizard progression
     - _Requirements: 8.8_
   
@@ -226,48 +226,48 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - **Validates: Requirements 8.8**
 
 - [ ] 12. Update environment configuration
-  - [~] 12.1 Create .env.vercel template
+  - [ ] 12.1 Create .env.vercel template
     - Document required Vercel environment variables
     - Remove Cloudflare-specific variables (Turnstile, AI binding)
     - Remove analytics variables (Umami, Sentry)
     - _Requirements: 1.4, 4.8, 5.6_
   
-  - [~] 12.2 Update CORS origins for Vercel
+  - [ ] 12.2 Update CORS origins for Vercel
     - Update allowed origins in api/_lib/cors.ts
     - Add mihas.vercel.app domain
     - _Requirements: 11.4_
 
 - [ ] 13. Clean up Cloudflare artifacts
-  - [~] 13.1 Delete Cloudflare configuration files
+  - [ ] 13.1 Delete Cloudflare configuration files
     - Delete wrangler.toml
     - Delete .cfignore
     - Delete functions/_middleware.js (replaced by Vercel middleware)
     - _Requirements: 1.1_
   
-  - [~] 13.2 Delete old functions directory
+  - [ ] 13.2 Delete old functions directory
     - Archive functions/ directory content
     - Delete functions/ directory after api/ is verified working
     - _Requirements: 3.2_
 
 - [ ] 14. Create Vercel middleware
-  - [~] 14.1 Create middleware.ts at project root
+  - [ ] 14.1 Create middleware.ts at project root
     - Implement security headers for API routes
     - Match /api/* routes
     - _Requirements: 3.3, 11.3, 11.6_
 
 - [ ] 15. Final checkpoint - Full system validation
-  - [~] 15.1 Run all property tests
+  - [ ] 15.1 Run all property tests
     - Execute property tests with 100+ iterations each
     - Verify all 8 properties pass
     - _Requirements: All correctness properties_
   
-  - [~] 15.2 Run integration tests
+  - [ ] 15.2 Run integration tests
     - Test complete application wizard flow
     - Test admin review workflow
     - Test document upload with OCR
     - _Requirements: 8.1, 8.5, 8.6_
   
-  - [~] 15.3 Verify performance targets
+  - [ ] 15.3 Verify performance targets
     - Check bundle size < 500KB
     - Verify lazy loading works
     - _Requirements: 12.3, 12.4_
