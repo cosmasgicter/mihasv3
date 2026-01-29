@@ -36,10 +36,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useAnalytics } from '@/hooks/useAnalytics'
-import { useAdminRealtimeMetrics } from '@/hooks/admin'
-import type { AdminApplicationChange, AdminMetricsDelta } from '@/hooks/admin/useAdminRealtimeMetrics'
-import { useAdminDashboardRealtime } from '@/hooks/useAdminDashboardRealtime'
-import { RealtimeStatusIndicator } from '@/components/ui/RealtimeStatusIndicator'
+import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
 import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
 import { PredictiveDashboard } from '@/components/admin/PredictiveDashboard'
@@ -103,53 +100,27 @@ export default function AdminDashboard() {
   const [networkError, setNetworkError] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  const updateStatsFromRealtime = useCallback((delta: AdminMetricsDelta) => {
-    setStats(prev => ({
-      ...prev,
-      totalApplications: Math.max(prev.totalApplications + delta.totalApplications, 0),
-      pendingApplications: Math.max(prev.pendingApplications + delta.pendingApplications, 0),
-      approvedApplications: Math.max(prev.approvedApplications + delta.approvedApplications, 0),
-      rejectedApplications: Math.max(prev.rejectedApplications + delta.rejectedApplications, 0),
-      todayApplications: Math.max(prev.todayApplications + delta.todayApplications, 0),
-      weekApplications: Math.max(prev.weekApplications + delta.weekApplications, 0),
-      monthApplications: Math.max(prev.monthApplications + delta.monthApplications, 0)
-    }))
-  }, [])
-
-  const handleRealtimeChange = useCallback((change: AdminApplicationChange) => {
-    updateStatsFromRealtime(change.metricsDelta)
-
-    if (change.activity) {
-      const activity = change.activity
-      setRecentActivity(prev => {
-        const filtered = prev.filter(item => item.id !== activity.id)
-        return [activity, ...filtered].slice(0, 10)
-      })
-    }
-  }, [updateStatsFromRealtime])
-
-  const { isConnected } = useAdminRealtimeMetrics({
-    currentUserId: user?.id ?? null,
-    onChange: handleRealtimeChange
-  })
-
-  // Additional realtime subscription for payments and status history
-  // Requirements: 1.1, 1.2, 2.1, 2.2, 2.3, 2.4, 2.5 - Admin Dashboard Real-time Updates
-  const { isSubscribed: isRealtimeSubscribed, isPolling } = useAdminDashboardRealtime({
+  // Use polling hook for dashboard data updates (replaces Supabase Realtime)
+  const { 
+    stats: pollingStats, 
+    isPolling, 
+    refresh: pollingRefresh,
+    lastUpdated: pollingLastUpdated 
+  } = useAdminDashboardPolling({
     enabled: !!user?.id,
-    showToasts: true,
-    onApplicationChange: () => {
-      // Reload dashboard stats when any application changes (including status changes)
-      // This ensures the UI updates immediately after admin approves/rejects an application
-      loadDashboardStats({ refresh: true })
-    },
-    onPaymentChange: () => {
-      // Reload dashboard stats when payment changes
-      loadDashboardStats({ refresh: true })
-    },
-    onStatusHistoryChange: () => {
-      // Reload dashboard stats when status history changes (audit trail updates)
-      loadDashboardStats({ refresh: true })
+    pollingInterval: 30000, // 30 seconds
+    onDataChange: (newStats) => {
+      // Update local stats when polling returns new data
+      setStats(prev => ({
+        ...prev,
+        totalApplications: newStats.totalApplications,
+        pendingApplications: newStats.pendingApplications,
+        approvedApplications: newStats.approvedApplications,
+        rejectedApplications: newStats.rejectedApplications,
+        todayApplications: newStats.todayApplications,
+        weekApplications: newStats.weekApplications,
+      }))
+      setLastUpdated(new Date())
     }
   })
 
@@ -242,16 +213,18 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!user || !profile) return
-    if (isConnected) return
 
-    const timeoutId = window.setTimeout(() => {
-      void loadDashboardStats({ refresh: true })
-    }, 60000)
+    // Fallback refresh if polling is not active
+    if (!isPolling) {
+      const timeoutId = window.setTimeout(() => {
+        void loadDashboardStats({ refresh: true })
+      }, 60000)
 
-    return () => {
-      window.clearTimeout(timeoutId)
+      return () => {
+        window.clearTimeout(timeoutId)
+      }
     }
-  }, [isConnected, loadDashboardStats, profile, user])
+  }, [isPolling, loadDashboardStats, profile, user])
 
   if (isInitialLoading) {
     return <DashboardSkeleton />
@@ -344,7 +317,11 @@ export default function AdminDashboard() {
                       <Activity className="h-4 w-4" />
                       <span>{stats.activeUsers} active users</span>
                     </div>
-                    <RealtimeStatusIndicator showLabel size="sm" className="text-white/90" />
+                    {/* Polling status indicator */}
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
+                      <span className="text-xs">{isPolling ? 'Live' : 'Paused'}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="text-right space-y-2 flex-shrink-0">
@@ -419,7 +396,7 @@ export default function AdminDashboard() {
             totalApplications={stats.totalApplications}
             avgProcessingTime={stats.avgProcessingTime}
             activeUsers={stats.activeUsers}
-            isConnected={isConnected}
+            isConnected={isPolling}
             lastUpdated={lastUpdated}
             onRefresh={handleManualRefresh}
             isRefreshing={isRefreshing || isManualRefreshing}

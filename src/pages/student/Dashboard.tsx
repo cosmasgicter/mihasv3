@@ -30,8 +30,7 @@ import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { Container } from '@/components/ui/Container'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
-import { useStudentDashboardRealtime } from '@/hooks/useStudentDashboardRealtime'
-import { RealtimeStatusIndicator } from '@/components/ui/RealtimeStatusIndicator'
+import { useStudentDashboardPolling } from '@/hooks/useStudentDashboardPolling'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -62,16 +61,16 @@ export default function StudentDashboard() {
     }
   })
 
-  // Real-time subscription for automatic dashboard updates
-  // Requirements: 1.1, 1.2 - Dashboard real-time data refresh
-  useStudentDashboardRealtime({
+  // Polling-based updates for dashboard (replaces Supabase Realtime)
+  // Requirements: 1.1, 1.2 - Dashboard data refresh via polling
+  useStudentDashboardPolling({
     onApplicationChange: () => {
-      // Reload local data when application changes are detected via realtime
+      // Reload local data when application changes are detected
       loadDashboardData()
     },
-    onNotificationChange: () => {
+    onDataChange: () => {
       // Could show a toast or update notification badge here
-      console.log('[StudentDashboard] New notification received via realtime')
+      console.log('[StudentDashboard] Data updated via polling')
     }
   })
 
@@ -399,7 +398,14 @@ export default function StudentDashboard() {
               description={
                 <span className="flex items-center gap-2">
                   Track your applications, manage drafts, and keep your profile information up to date.
-                  <RealtimeStatusIndicator showLabel size="sm" />
+                  {/* Polling status indicator */}
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="relative flex">
+                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" style={{ animationDuration: '2s' }} />
+                    </span>
+                    <span className="text-xs font-medium text-green-600 dark:text-green-400">Live</span>
+                  </span>
                 </span>
               }
               actions={

@@ -3,11 +3,6 @@ import { useQueryClient, QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { applicationService } from '@/services/applications'
 import { ApplicationFilters, DEFAULT_APPLICATION_FILTERS } from './useApplicationFilters'
-import {
-  useAdminRealtimeMetrics,
-  doesApplicationMatchFilters
-} from './useAdminRealtimeMetrics'
-import type { AdminApplicationChange, AdminApplicationFilters } from './useAdminRealtimeMetrics'
 import { calculatePointsFromSummary } from '@/utils/grades'
 
 interface ApplicationSummary {
@@ -133,23 +128,6 @@ const mapSupabaseApplication = (row: any): ApplicationSummary => ({
   completionPercentage: calculateCompletionPercentage(row),
   lastUpdated: row.updated_at ?? row.created_at ?? ''
 })
-
-const mapApplicationFiltersToAdminFilters = (
-  filters: ApplicationFilters
-): AdminApplicationFilters => {
-  const normalize = (value: string) => {
-    const trimmed = value.trim()
-    return trimmed ? trimmed : undefined
-  }
-
-  return {
-    status: normalize(filters.statusFilter),
-    search: normalize(filters.searchTerm),
-    paymentStatus: normalize(filters.paymentFilter),
-    program: normalize(filters.programFilter),
-    institution: normalize(filters.institutionFilter)
-  }
-}
 
 export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLICATION_FILTERS) {
   // Call useQueryClient at the top level of the hook (not inside callbacks)
@@ -320,109 +298,6 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
   const loadApplications = useCallback(async () => {
     await loadPage(1, 'initial')
   }, [loadPage])
-
-  const applyRealtimeChange = useCallback(async (change: AdminApplicationChange) => {
-    const activeFilters = filtersRef.current || DEFAULT_APPLICATION_FILTERS
-    const adminFilters = mapApplicationFiltersToAdminFilters(activeFilters)
-    const matchesNew = change.newRow ? doesApplicationMatchFilters(change.newRow, adminFilters) : false
-    const matchesOld = change.oldRow ? doesApplicationMatchFilters(change.oldRow, adminFilters) : false
-
-    if (change.type === 'insert') {
-      if (!matchesNew) {
-        return
-      }
-
-      try {
-        const detailed = await hydrateApplicationById(change.targetId)
-        if (!detailed) return
-
-        let existed = false
-        setApplications(prev => {
-          existed = prev.some(item => item.id === change.targetId)
-          const withoutTarget = prev.filter(item => item.id !== change.targetId)
-          const maxItems = Math.max(pageSize * currentPage, pageSize)
-          return [detailed, ...withoutTarget].slice(0, maxItems)
-        })
-        if (!existed) {
-          setTotalCount(prev => prev + 1)
-        }
-      } catch (err) {
-      }
-      return
-    }
-
-    if (change.type === 'update') {
-      if (matchesNew) {
-        try {
-          const detailed = await hydrateApplicationById(change.targetId)
-          if (detailed) {
-            setApplications(prev => {
-              const index = prev.findIndex(item => item.id === change.targetId)
-              if (index === -1) {
-                if (currentPage > 1) {
-                  return prev
-                }
-                const maxItems = Math.max(pageSize * currentPage, pageSize)
-                return [detailed, ...prev].slice(0, maxItems)
-              }
-
-              const next = [...prev]
-              next[index] = { ...next[index], ...detailed }
-              return next
-            })
-          }
-        } catch (err) {
-        }
-      }
-
-      if (!matchesOld && matchesNew) {
-        setTotalCount(prev => prev + 1)
-      }
-
-      if (matchesOld && !matchesNew) {
-        let removed = false
-        setApplications(prev => {
-          const next = prev.filter(item => {
-            if (item.id === change.targetId) {
-              removed = true
-              return false
-            }
-            return true
-          })
-          return next
-        })
-        if (removed) {
-          setTotalCount(prev => Math.max(prev - 1, 0))
-        }
-      }
-      return
-    }
-
-    if (change.type === 'delete') {
-      if (matchesOld) {
-        let removed = false
-        setApplications(prev => {
-          const next = prev.filter(item => {
-            if (item.id === change.targetId) {
-              removed = true
-              return false
-            }
-            return true
-          })
-          return next
-        })
-        if (removed) {
-          setTotalCount(prev => Math.max(prev - 1, 0))
-        }
-      }
-    }
-  }, [currentPage, hydrateApplicationById, pageSize])
-
-  useAdminRealtimeMetrics({
-    onChange: change => {
-      void applyRealtimeChange(change)
-    }
-  })
 
   const pagination: PaginationState = useMemo(() => ({
     pageSize,
