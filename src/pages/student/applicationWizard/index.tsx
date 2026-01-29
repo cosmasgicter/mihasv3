@@ -3,7 +3,6 @@ import { ArrowLeft, ArrowRight, CheckCircle, Send, Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect } from 'react'
 
-import { AIAssistant } from '@/components/application/AIAssistant'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
@@ -585,13 +584,6 @@ const ApplicationWizardContent = () => {
         </div>
         </Container>
       </div>
-
-      <AIAssistant
-        applicationData={watchValues()}
-        currentStep={currentStepIndex + 1}
-        onSuggestionApply={suggestion => {
-        }}
-      />
       
       <KeyboardShortcutsHelp />
       
