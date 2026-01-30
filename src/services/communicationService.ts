@@ -209,38 +209,19 @@ async function sendEmailMessage(params: {
 
 /**
  * Send SMS message
+ * Note: SMS functionality removed in migration (Twilio removed)
+ * Returns graceful failure - use email or in-app notifications instead
  */
 async function sendSMSMessage(params: {
   to: string
   message: string
 }): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    const response = await fetch('/api/notifications?action=sms', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session?.access_token}`
-      },
-      body: JSON.stringify({
-        to: params.to,
-        message: `MIHAS: ${params.message}`
-      })
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Failed to send SMS')
-    }
-
-    return { success: true }
-  } catch (error) {
-    console.error('SMS send error:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to send SMS'
-    }
+  // SMS functionality removed in Vercel migration (Twilio removed)
+  // Return graceful failure - callers should fall back to email
+  console.log('SMS not available - Twilio removed in migration. Use email instead.')
+  return {
+    success: false,
+    error: 'SMS notifications are not available. Please use email notifications.'
   }
 }
 
