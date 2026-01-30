@@ -152,6 +152,15 @@ describe('Feature: vercel-production-fixes, Catch-All 404 Handler', () => {
       expect(typeof response.code).toBe('string');
     });
 
+    it('should set Content-Type header to application/json (Requirement 4.4)', async () => {
+      const req = createMockRequest({ url: '/api/nonexistent' });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(res._headers['Content-Type']).toBe('application/json');
+    });
+
     it('should not expose internal details in error response', async () => {
       const req = createMockRequest({ url: '/api/some/nested/path' });
       const res = createMockResponse();

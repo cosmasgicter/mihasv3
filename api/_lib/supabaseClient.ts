@@ -1,5 +1,9 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { VercelRequest } from '@vercel/node';
+import { decodeBase64Url } from './base64';
+
+// Re-export the Bun-compatible Base64 utility for use by other modules
+export { decodeBase64Url } from './base64';
 
 /**
  * Admin roles that have elevated permissions
@@ -228,8 +232,8 @@ export async function getUserFromRequest(
 
     let payload: Record<string, unknown>;
     try {
-      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-      const decoded = Buffer.from(base64, 'base64').toString('utf-8');
+      // Use Bun-compatible Base64 URL-safe decoding (Requirements 3.1, 3.3)
+      const decoded = decodeBase64Url(parts[1]);
       payload = JSON.parse(decoded);
     } catch {
       return { error: 'Invalid token format' };

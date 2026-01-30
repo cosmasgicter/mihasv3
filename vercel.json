@@ -49,6 +49,7 @@
     { "source": "/api/notifications", "destination": "/api/notifications" },
     { "source": "/api/payments", "destination": "/api/payments" },
     { "source": "/api/sessions", "destination": "/api/sessions" },
+    { "source": "/api/auth-roles", "destination": "/api/auth-roles" },
     { "source": "/api/:path*", "destination": "/api/[...path]" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],

@@ -191,7 +191,7 @@ export function useSessionListener() {
       logger.log('[SignUp] Sending payload:', { ...payload, password: '***' })
       
       // Create account via API
-      const response = await fetch(`${apiBaseUrl}/auth/signup`, {
+      const response = await fetch(`${apiBaseUrl}/api/auth?action=signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

@@ -36,7 +36,8 @@ function useSessionQuery() {
 
       if (error) {
         console.error('[Auth] Session error:', error.message)
-        return null
+        // Throw error with status info for retry logic to handle
+        throw new Error(`Session error: ${error.message}`)
       }
 
       return session
@@ -45,7 +46,22 @@ function useSessionQuery() {
     gcTime: CACHE_CONFIG.auth.gcTime, // 10 minutes
     refetchOnMount: false, // Don't refetch on every mount
     refetchOnWindowFocus: false, // Don't refetch on window focus
-    retry: 1 // Only retry once on failure
+    // Smart retry logic: stop on auth errors (401, 403), retry once for other errors
+    // Requirements: 5.1, 5.3, 5.4
+    retry: (failureCount, error) => {
+      // Don't retry on auth errors (401, 403) - prevents infinite loops
+      if (error instanceof Error && 
+          (error.message.includes('401') || 
+           error.message.includes('403') ||
+           error.message.includes('unauthorized') ||
+           error.message.includes('Unauthorized'))) {
+        return false
+      }
+      // Maximum 1 retry for other errors (total 2 attempts)
+      return failureCount < 1
+    },
+    // Exponential backoff: 1s, 2s, 4s, 8s, max 10s
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000)
   })
 }
 
@@ -70,7 +86,8 @@ function useProfileQueryOptimized(userId: string | undefined) {
 
       if (error) {
         console.error('Profile query error:', error)
-        return null
+        // Throw error with status info for retry logic to handle
+        throw new Error(`Profile query error: ${error.message}`)
       }
 
       return data as UserProfile | null
@@ -79,7 +96,23 @@ function useProfileQueryOptimized(userId: string | undefined) {
     staleTime: CACHE_CONFIG.auth.staleTime, // 5 minutes
     gcTime: CACHE_CONFIG.auth.gcTime, // 10 minutes
     refetchOnMount: false, // Don't refetch on every mount
-    refetchOnWindowFocus: false // Don't refetch on window focus
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    // Smart retry logic: stop on auth errors (401, 403), retry once for other errors
+    // Requirements: 5.3
+    retry: (failureCount, error) => {
+      // Don't retry on auth errors (401, 403) - prevents infinite loops
+      if (error instanceof Error && 
+          (error.message.includes('401') || 
+           error.message.includes('403') ||
+           error.message.includes('unauthorized') ||
+           error.message.includes('Unauthorized'))) {
+        return false
+      }
+      // Maximum 1 retry for other errors (total 2 attempts)
+      return failureCount < 1
+    },
+    // Exponential backoff: 1s, 2s, 4s, 8s, max 10s
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000)
   })
 }
 

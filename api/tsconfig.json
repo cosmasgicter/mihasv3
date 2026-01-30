@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
-    "lib": ["ES2020"],
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
     "strict": false,
     "noImplicitAny": false,
     "skipLibCheck": true,
@@ -12,11 +12,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "../.vercel/output/functions",
-    "rootDir": ".",
-    "declaration": false,
-    "declarationMap": false,
-    "sourceMap": false,
     "types": ["node"]
   },
   "include": [
