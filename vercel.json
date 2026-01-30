@@ -4,6 +4,9 @@
   "outputDirectory": "dist",
   "framework": null,
   "functions": {
+    "api/ping.js": {
+      "maxDuration": 5
+    },
     "api/health.ts": {
       "maxDuration": 10
     },
@@ -42,6 +45,7 @@
     }
   },
   "rewrites": [
+    { "source": "/api/ping", "destination": "/api/ping" },
     { "source": "/api/health", "destination": "/api/health" },
     { "source": "/api/status", "destination": "/api/status" },
     { "source": "/api/auth", "destination": "/api/auth" },
