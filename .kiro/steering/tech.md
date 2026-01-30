@@ -17,7 +17,7 @@ inclusion: always
 | Forms | React Hook Form + Zod | All forms must have Zod schemas |
 | State | Zustand (client), React Query (server) | No Redux, polling for real-time |
 | Routing | React Router v6 | Lazy-load all page components |
-| Backend | Supabase + Vercel Functions | ~30 API endpoints in `api/` |
+| Backend | Supabase + Vercel Functions | 8 consolidated API endpoints in `api/` |
 | Email | Resend | Queue with retry on failure |
 | OCR | tesseract.js | Only AI feature retained |
 
@@ -55,36 +55,48 @@ inclusion: always
 
 ## API Development (api/)
 
-### Structure
+### Consolidated Structure (Vercel Hobby Plan: 12 function limit)
 
 ```
 api/
-├── _lib/           # Shared utilities (auth, db, cors, validation)
-│   ├── cors.ts     # CORS handler for Vercel
+├── _lib/              # Shared utilities (auth, db, cors, validation)
+│   ├── cors.ts        # CORS handler for Vercel
 │   ├── supabaseClient.ts
 │   ├── errorHandler.ts
 │   └── rateLimiter.ts
-├── admin/          # Admin endpoints
-├── applications/   # Application CRUD
-├── auth/           # Authentication
-├── documents/      # Document upload + OCR
-├── notifications/  # Email notifications
-└── payments/       # Payment processing
+├── admin.ts           # ?action=dashboard|users
+├── applications.ts    # ?action=details|documents|grades|summary|review or ?id=xxx
+├── auth.ts            # ?action=login|signin|register|signup|session
+├── catalog.ts         # ?type=programs|intakes|subjects
+├── documents.ts       # ?action=upload|extract
+├── notifications.ts   # ?action=preferences|send
+├── payments.ts        # ?action=receipt
+└── sessions.ts        # ?action=track
 ```
 
-### Vercel Function Pattern
+### Vercel Function Pattern (Query Parameter Routing)
 ```typescript
-// api/{feature}/[action].ts
+// api/{feature}.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from '../_lib/cors';
-import { supabaseAdmin } from '../_lib/supabaseClient';
+import { handleCors } from './_lib/cors';
+import { supabaseAdmin } from './_lib/supabaseClient';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return; // Handle OPTIONS preflight
   
+  const action = req.query.action as string;
+  
   try {
-    // Handler logic using process.env for env vars
-    return res.status(200).json({ success: true, data: result });
+    switch (action) {
+      case 'action1':
+        // Handler logic using process.env for env vars
+        return res.status(200).json({ success: true, data: result });
+      case 'action2':
+        // Another action
+        break;
+      default:
+        return res.status(400).json({ success: false, error: 'Invalid action' });
+    }
   } catch (error) {
     return res.status(500).json({ success: false, error: 'Internal error' });
   }
@@ -92,12 +104,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 ```
 
 ### Conventions
-- File naming: `kebab-case.ts` (TypeScript for all functions)
+- File naming: `{feature}.ts` (one file per domain, TypeScript)
+- Use query parameters for action routing (`?action=xxx`)
 - Use `process.env` for environment variables (not `context.env`)
 - Always import shared utilities from `_lib/`
 - Return consistent JSON: `{ success: boolean, data?: any, error?: string }`
 - Handle errors gracefully—never expose stack traces
 - Log errors but never log PII
+- Add new functionality as cases in existing consolidated endpoints
 
 ## Build & Deployment
 
@@ -174,14 +188,14 @@ EMAIL_FROM=noreply@mihas.edu.zm
 | `tsconfig.json` | TypeScript (strict: false) |
 | `vitest.config.ts` | Unit test configuration |
 
-## Removed (Migration Cleanup)
+## Removed (Migration Complete)
 
 | Removed | Reason |
 |---------|--------|
 | `wrangler.toml` | Cloudflare-specific |
 | `.cfignore` | Cloudflare-specific |
-| `functions/ai/*` | AI features removed (except OCR) |
-| `functions/analytics/*` | Analytics removed |
+| `functions/` directory | Fully migrated to `api/` (174 files, 26K lines removed) |
+| `api/*/` subdirectories | Consolidated into single-file endpoints |
 | Supabase Realtime | Replaced with polling |
 | Sentry | Error monitoring removed |
 | Umami | Analytics removed |
