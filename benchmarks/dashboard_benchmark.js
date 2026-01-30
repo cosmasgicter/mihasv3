@@ -1,5 +1,19 @@
-import { onRequestGet } from '../functions/admin/dashboard.js';
-import { supabaseAdminClient } from '../functions/_lib/supabaseClient.js';
+// Benchmark for admin dashboard performance
+// Note: functions/ directory has been migrated to api/ (Vercel serverless)
+// This benchmark tests direct Supabase queries for dashboard data
+
+import { createClient } from '@supabase/supabase-js';
+
+// Create Supabase client for benchmarking
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+  process.exit(1);
+}
+
+const supabaseAdminClient = createClient(supabaseUrl, supabaseKey);
 
 // Mock request and context
 const request = {

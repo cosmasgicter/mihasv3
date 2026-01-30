@@ -167,7 +167,7 @@ async function demonstrateAPIAssessment() {
     const mockSecurityReport = {
       results: mockEndpoints.map(endpoint => ({
         endpointId: endpoint.id,
-        url: `http://localhost:8788/${endpoint.path}`,
+        url: `http://localhost:5173/api/${endpoint.path}`,
         overallScore: Math.floor(Math.random() * 40) + 60, // 60-100
         violations: endpoint.id === 'auth_login' ? [
           {
