@@ -107,28 +107,28 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - Test service unavailable returns 503
     - _Requirements: 2.5, 2.7, 2.8_
 
-- [ ] 6. Auth middleware and RBAC
-  - [-] 6.1 Implement auth middleware (`api/_lib/auth/middleware.ts`)
+- [x] 6. Auth middleware and RBAC
+  - [x] 6.1 Implement auth middleware (`api/_lib/auth/middleware.ts`)
     - Implement `getAuthUser()` to extract user from token
     - Implement `requireAuth()` that throws if not authenticated
     - Implement `requireRole()` that throws if user lacks required role
     - Support both cookie-based and Bearer token authentication
     - _Requirements: 8.5, 8.6, 4.8_
 
-  - [~] 6.2 Implement role-based permissions (`api/_lib/auth/permissions.ts`)
+  - [x] 6.2 Implement role-based permissions (`api/_lib/auth/permissions.ts`)
     - Define `USER_ROLES` constant
     - Define `ROLE_PERMISSIONS` mapping (deterministic, no DB lookup)
     - Implement `hasPermission()` check
     - Log authorization failures to audit_logs
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.8_
 
-  - [~] 6.3 Write property tests for RBAC
+  - [x] 6.3 Write property tests for RBAC
     - **Property 6: Permission determinism**
     - *For any* user role, the permissions returned SHALL be identical across all invocations without database access
     - **Validates: Requirements 8.3**
 
-- [ ] 7. Auth API endpoint
-  - [~] 7.1 Implement login action (`api/auth.ts` - login case)
+- [x] 7. Auth API endpoint
+  - [x] 7.1 Implement login action (`api/auth.ts` - login case)
     - Wrap with Arcjet protection
     - Find user by email
     - Verify password with bcrypt
@@ -139,7 +139,7 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - Return 401 without revealing email/password specificity
     - _Requirements: 1.1, 1.2, 1.7, 3.8, 5.1_
 
-  - [~] 7.2 Implement logout action (`api/auth.ts` - logout case)
+  - [x] 7.2 Implement logout action (`api/auth.ts` - logout case)
     - Require authentication
     - Clear auth cookies
     - Revoke refresh token (set hash to null)
@@ -147,7 +147,7 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - Log to audit_logs
     - _Requirements: 1.3, 5.2_
 
-  - [~] 7.3 Implement refresh action (`api/auth.ts` - refresh case)
+  - [x] 7.3 Implement refresh action (`api/auth.ts` - refresh case)
     - Extract refresh token from cookie
     - Verify refresh token
     - Check token hash matches database (replay attack prevention)
@@ -155,12 +155,12 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - Update refresh token hash in database
     - _Requirements: 1.4, 1.9, 3.7_
 
-  - [~] 7.4 Implement session action (`api/auth.ts` - session case)
+  - [x] 7.4 Implement session action (`api/auth.ts` - session case)
     - Require authentication
     - Return user session info with role and permissions
     - _Requirements: 1.5_
 
-  - [~] 7.5 Write property tests for auth API
+  - [x] 7.5 Write property tests for auth API
     - **Property 7: Token rotation on refresh**
     - *For any* valid refresh operation, the new refresh token hash SHALL differ from the previous hash
     - **Validates: Requirements 1.4, 3.7**
@@ -175,8 +175,8 @@ This implementation plan covers the complete replacement of Supabase Auth with a
   - Verify Arcjet protection is active
   - Ask the user if questions arise
 
-- [ ] 9. Session management
-  - [~] 9.1 Implement session manager (`api/_lib/sessions.ts`)
+- [x] 9. Session management
+  - [x] 9.1 Implement session manager (`api/_lib/sessions.ts`)
     - Implement `createSession()` with device info and IP
     - Implement `updateActivity()` for last activity tracking
     - Implement `deactivateSession()` for logout
@@ -185,7 +185,7 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - Implement auto-deactivation for 30-day inactive sessions
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8_
 
-  - [~] 9.2 Implement sessions API (`api/sessions.ts`)
+  - [x] 9.2 Implement sessions API (`api/sessions.ts`)
     - Wrap with Arcjet protection (30/10min rate limit)
     - Implement `track` action for device session tracking
     - Implement `list` action for viewing active sessions
@@ -193,13 +193,13 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - Implement `revoke-all` action for deactivating all sessions
     - _Requirements: 5.6, 5.7_
 
-  - [~] 9.3 Write property tests for session management
+  - [x] 9.3 Write property tests for session management
     - **Property 9: Session deactivation cascade**
     - *For any* user with multiple sessions, revoking all sessions SHALL result in zero active sessions
     - **Validates: Requirements 5.3, 5.7**
 
 - [ ] 10. Error handling and logging
-  - [~] 10.1 Implement error handler (`api/_lib/errorHandler.ts`)
+  - [-] 10.1 Implement error handler (`api/_lib/errorHandler.ts`)
     - Create `AuthError` class with code and sanitized message
     - Implement `sanitizeError()` to remove PII
     - Implement consistent JSON error responses
