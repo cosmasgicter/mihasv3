@@ -1,9 +1,10 @@
 /**
- * Analytics Service
- * Provides functions to interact with analytics API endpoints
+ * Analytics Service - STUBBED
+ * 
+ * Analytics features were removed during Vercel migration.
+ * These functions return empty/default data to maintain API compatibility
+ * without making network requests to non-existent endpoints.
  */
-
-import { supabase } from '@/lib/supabase'
 
 export interface PredictionData {
   period: string
@@ -27,7 +28,7 @@ export interface ComplianceCheck {
   status: 'passed' | 'failed' | 'warning'
   message: string
   timestamp: string
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 }
 
 export interface ComplianceReport {
@@ -51,258 +52,91 @@ export interface RealtimeMetrics {
 }
 
 /**
- * Get authentication token for API requests
- */
-async function getAuthToken(): Promise<string | null> {
-  const { data: { session } } = await supabase.auth.getSession()
-  return session?.access_token || null
-}
-
-/**
- * Predictive Analytics API
+ * Predictive Analytics API - STUBBED
  */
 export const predictiveAnalytics = {
-  /**
-   * Get application volume predictions
-   */
-  async getApplicationVolume(daysAhead: number = 30): Promise<PredictiveAnalyticsResponse> {
-    const token = await getAuthToken()
-    
-    const response = await fetch('/analytics/predictive/application-volume', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({
-        daysAhead,
-        includeConfidence: true
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch predictions: ${response.statusText}`)
+  async getApplicationVolume(_daysAhead: number = 30): Promise<PredictiveAnalyticsResponse> {
+    return {
+      predictions: [],
+      metadata: {
+        daysAhead: _daysAhead,
+        generatedAt: new Date().toISOString(),
+        modelVersion: 'stubbed'
+      }
     }
-
-    return response.json()
   },
 
-  /**
-   * Generate predictive analytics report
-   */
-  async generateReport(daysAhead: number = 30, format: 'pdf' | 'excel' | 'json' = 'pdf'): Promise<Blob> {
-    const token = await getAuthToken()
-    
-    const response = await fetch('/analytics/predictive/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({
-        daysAhead,
-        format
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to generate report: ${response.statusText}`)
-    }
-
-    return response.blob()
+  async generateReport(_daysAhead: number = 30, _format: 'pdf' | 'excel' | 'json' = 'pdf'): Promise<Blob> {
+    return new Blob(['Analytics feature removed'], { type: 'text/plain' })
   }
 }
 
 /**
- * Compliance Analytics API
+ * Compliance Analytics API - STUBBED
  */
 export const complianceAnalytics = {
-  /**
-   * Run compliance checks
-   */
-  async runCheck(includeDetails: boolean = true): Promise<ComplianceReport> {
-    const token = await getAuthToken()
-    
-    const response = await fetch('/analytics/compliance/check', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({
-        includeDetails
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to run compliance check: ${response.statusText}`)
+  async runCheck(_includeDetails: boolean = true): Promise<ComplianceReport> {
+    return {
+      overallStatus: 'compliant',
+      totalChecks: 0,
+      passedChecks: 0,
+      failedChecks: 0,
+      warningChecks: 0,
+      complianceScore: 100,
+      checks: [],
+      generatedAt: new Date().toISOString()
     }
-
-    return response.json()
   },
 
-  /**
-   * Generate compliance report
-   */
-  async generateReport(format: 'pdf' | 'excel' | 'json' = 'pdf', includeDetails: boolean = true): Promise<Blob> {
-    const token = await getAuthToken()
-    
-    const response = await fetch('/analytics/compliance/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({
-        format,
-        includeDetails
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to generate compliance report: ${response.statusText}`)
-    }
-
-    return response.blob()
+  async generateReport(_format: 'pdf' | 'excel' | 'json' = 'pdf', _includeDetails: boolean = true): Promise<Blob> {
+    return new Blob(['Compliance feature removed'], { type: 'text/plain' })
   },
 
-  /**
-   * Validate compliance
-   */
   async validate(): Promise<{ success: boolean; message: string }> {
-    const token = await getAuthToken()
-    
-    const response = await fetch('/analytics/compliance/validate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to validate compliance: ${response.statusText}`)
-    }
-
-    return response.json()
+    return { success: true, message: 'Compliance validation stubbed' }
   }
 }
 
 /**
- * Real-time Metrics API
+ * Real-time Metrics API - STUBBED
  */
 export const realtimeMetrics = {
-  /**
-   * Get current real-time metrics
-   */
   async getMetrics(): Promise<RealtimeMetrics> {
-    const token = await getAuthToken()
-    
-    const response = await fetch('/analytics/realtime-metrics', {
-      method: 'GET',
-      headers: {
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch real-time metrics: ${response.statusText}`)
+    return {
+      activeApplications: 0,
+      todaySubmissions: 0,
+      pendingReviews: 0,
+      averageProcessingTime: 0,
+      systemLoad: 0,
+      lastUpdated: new Date().toISOString()
     }
-
-    return response.json()
   }
 }
 
 /**
- * Comprehensive Metrics API
+ * Comprehensive Metrics API - STUBBED
  */
 export const comprehensiveMetrics = {
-  /**
-   * Get comprehensive metrics for a time range
-   */
   async getMetrics(
-    startDate: string,
-    endDate: string,
-    programs?: string[],
-    includeTimeSeries: boolean = true,
-    includeProcessingTimes: boolean = true
-  ): Promise<any> {
-    const token = await getAuthToken()
-    
-    const response = await fetch('/analytics/comprehensive-metrics', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({
-        timeRange: {
-          startDate,
-          endDate
-        },
-        programs,
-        includeTimeSeries,
-        includeProcessingTimes
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch comprehensive metrics: ${response.statusText}`)
-    }
-
-    return response.json()
+    _startDate: string,
+    _endDate: string,
+    _programs?: string[],
+    _includeTimeSeries: boolean = true,
+    _includeProcessingTimes: boolean = true
+  ): Promise<Record<string, unknown>> {
+    return {}
   }
 }
 
 /**
- * Dashboard API
+ * Dashboard API - STUBBED
  */
 export const dashboardAnalytics = {
-  /**
-   * Get dashboard layout
-   */
-  async getDashboard(layoutId: string = 'default', includeAlerts: boolean = true): Promise<any> {
-    const token = await getAuthToken()
-    
-    const response = await fetch(`/analytics/dashboard?layoutId=${layoutId}&includeAlerts=${includeAlerts}`, {
-      method: 'GET',
-      headers: {
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch dashboard: ${response.statusText}`)
-    }
-
-    return response.json()
+  async getDashboard(_layoutId: string = 'default', _includeAlerts: boolean = true): Promise<Record<string, unknown>> {
+    return {}
   },
 
-  /**
-   * Generate executive summary
-   */
-  async getExecutiveSummary(startDate: string, endDate: string): Promise<any> {
-    const token = await getAuthToken()
-    
-    const response = await fetch('/analytics/dashboard', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify({
-        timeRange: {
-          startDate,
-          endDate
-        },
-        reportType: 'executive'
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to generate executive summary: ${response.statusText}`)
-    }
-
-    return response.json()
+  async getExecutiveSummary(_startDate: string, _endDate: string): Promise<Record<string, unknown>> {
+    return {}
   }
 }

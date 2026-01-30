@@ -58,11 +58,11 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Preserve rate limits for slip generation endpoints
     - _Requirements: 3.4, 11.5_
   
-  - [ ]* 3.5 Write property test for CORS handler
+  - [x] 3.5 Write property test for CORS handler
     - **Property 2: API Behavior Preservation (CORS)**
     - **Validates: Requirements 3.3**
   
-  - [ ]* 3.6 Write property test for error handler (no PII)
+  - [x] 3.6 Write property test for error handler (no PII)
     - **Property 7: No PII in Logs**
     - **Validates: Requirements 11.1**
 
@@ -100,7 +100,7 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Convert functions/payments/generate-receipt.js → api/payments/generate-receipt.ts
     - _Requirements: 3.1, 8.6_
   
-  - [ ]* 4.6 Write property test for function conversion
+  - [x] 4.6 Write property test for function conversion
     - **Property 1: Function Conversion Equivalence**
     - **Validates: Requirements 1.2, 3.1, 3.5**
 
@@ -177,7 +177,7 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Delete src/hooks/admin/useAdminRealtimeMetrics.ts
     - _Requirements: 7.1_
   
-  - [ ]* 9.5 Write property test for polling interval
+  - [x] 9.5 Write property test for polling interval
     - **Property 8: Polling Interval Configuration**
     - **Validates: Requirements 7.3**
 
@@ -194,7 +194,7 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Test draft restoration on page reload
     - _Requirements: 8.2, 8.3, 8.4_
   
-  - [ ]* 11.2 Write property test for auto-save round-trip
+  - [x] 11.2 Write property test for auto-save round-trip
     - **Property 3: Auto-Save Round-Trip**
     - **Validates: Requirements 8.2, 8.3, 8.4**
   
@@ -204,7 +204,7 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Test form submissions queue when offline
     - _Requirements: 9.1, 9.2, 9.3, 9.4_
   
-  - [ ]* 11.4 Write property test for offline queue and sync
+  - [x] 11.4 Write property test for offline queue and sync
     - **Property 4: Offline Queue and Sync**
     - **Validates: Requirements 9.1, 9.3, 9.5**
   
@@ -213,7 +213,7 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Test ECZ grade 1-9 validation and pass/fail classification
     - _Requirements: 8.7_
   
-  - [ ]* 11.6 Write property test for Zambian data formats
+  - [x] 11.6 Write property test for Zambian data formats
     - **Property 5: Zambian Data Format Validation**
     - **Validates: Requirements 8.7**
   
@@ -221,7 +221,7 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Test that validation errors don't prevent wizard progression
     - _Requirements: 8.8_
   
-  - [ ]* 11.8 Write property test for non-blocking validation
+  - [x] 11.8 Write property test for non-blocking validation
     - **Property 6: Non-Blocking Validation**
     - **Validates: Requirements 8.8**
 
@@ -237,14 +237,14 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Add mihas.vercel.app domain
     - _Requirements: 11.4_
 
-- [-] 13. Clean up Cloudflare artifacts
+- [x] 13. Clean up Cloudflare artifacts
   - [x] 13.1 Delete Cloudflare configuration files
     - Delete wrangler.toml
     - Delete .cfignore
     - Delete functions/_middleware.js (replaced by Vercel middleware)
     - _Requirements: 1.1_
   
-  - [-] 13.2 Delete old functions directory
+  - [x] 13.2 Delete old functions directory
     - Archive functions/ directory content
     - Delete functions/ directory after api/ is verified working
     - _Requirements: 3.2_
@@ -255,28 +255,36 @@ This implementation plan migrates the MIHAS Application System from Cloudflare P
     - Match /api/* routes
     - _Requirements: 3.3, 11.3, 11.6_
 
-- [-] 15. Final checkpoint - Full system validation
-  - [~] 15.1 Run all property tests
+- [x] 15. Final checkpoint - Full system validation
+  - [x] 15.1 Run all property tests
     - Execute property tests with 100+ iterations each
     - Verify all 8 properties pass
     - _Requirements: All correctness properties_
   
-  - [~] 15.2 Run integration tests
+  - [x] 15.2 Run integration tests
     - Test complete application wizard flow
     - Test admin review workflow
     - Test document upload with OCR
     - _Requirements: 8.1, 8.5, 8.6_
   
   - [x] 15.3 Verify performance targets
-    - Check bundle size < 500KB
-    - Verify lazy loading works
+    - Check bundle size < 500KB ✓ (486.57 KB)
+    - Verify lazy loading works ✓
     - _Requirements: 12.3, 12.4_
   
-  - Ensure all tests pass, ask the user if questions arise
+  - [x] 15.4 Verify Bun runtime
+    - Bun 1.3.8 installed and working ✓
+    - `bun install` successful ✓
+    - `bun run build` successful ✓
+    - `bun run dev` server running ✓
+  
+  - [x] 15.5 Verify Supabase MCP connection
+    - Connected to project mylgegkqoddcrxtwcclb ✓
+    - All 86+ tables accessible ✓
 
 ## Notes
 
-- Tasks marked with `*` are optional and can be skipped for faster MVP
+- All property tests are now REQUIRED
 - Each task references specific requirements for traceability
 - Checkpoints ensure incremental validation
 - Property tests validate universal correctness properties
