@@ -12,4 +12,3 @@ export const ApplicationWizard = lazy(() => import('@/pages/student/applicationW
 
 // Heavy Components
 export const EnhancedDashboard = lazy(() => import('@/components/admin/EnhancedDashboard'))
-export const PredictiveDashboard = lazy(() => import('@/components/admin/PredictiveDashboard'))

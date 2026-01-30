@@ -39,7 +39,6 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
 import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
-import { PredictiveDashboard } from '@/components/admin/PredictiveDashboard'
 import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDisplay'
 import { workflowAutomation } from '@/lib/workflowAutomation'
 import { sanitizeForDisplay } from '@/lib/sanitize'
@@ -408,16 +407,6 @@ export default function AdminDashboard() {
               auth: 'healthy',
             }}
           />
-        </motion.div>
-
-        {/* AI-Powered Predictive Dashboard */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mb-8"
-        >
-          <PredictiveDashboard />
         </motion.div>
 
         {/* Enhanced Dashboard Content */}

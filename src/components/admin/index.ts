@@ -13,7 +13,6 @@ export { AdminMobileNav } from './AdminMobileNav';
 export { DashboardSkeleton } from './DashboardSkeleton';
 export { EnhancedDashboard } from './EnhancedDashboard';
 export { QuickActionsPanel } from './QuickActionsPanel';
-export { PredictiveDashboard } from './PredictiveDashboard';
 export { RealtimeMetricsDisplay } from './RealtimeMetricsDisplay';
 
 // Data table components
