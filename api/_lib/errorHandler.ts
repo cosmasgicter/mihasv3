@@ -107,38 +107,38 @@ export function handleError(
 ): VercelResponse {
   logError(context, error);
 
-  // Determine appropriate status and message
-  let status = HttpStatus.INTERNAL_SERVER_ERROR;
-  let message = 'An unexpected error occurred';
-  let code = ErrorCode.INTERNAL_ERROR;
+  // Determine appropriate status and message - use explicit number/string types
+  let status: number = 500;
+  let message: string = 'An unexpected error occurred';
+  let code: string = 'INTERNAL_ERROR';
 
   if (error instanceof Error) {
     const errorMessage = error.message.toLowerCase();
 
     if (errorMessage.includes('unauthorized') || errorMessage.includes('no authorization')) {
-      status = HttpStatus.UNAUTHORIZED as number;
+      status = 401;
       message = 'Authentication required';
-      code = ErrorCode.AUTHENTICATION_ERROR as string;
+      code = 'AUTHENTICATION_ERROR';
     } else if (errorMessage.includes('forbidden') || errorMessage.includes('access denied') || errorMessage.includes('permission')) {
-      status = HttpStatus.FORBIDDEN as number;
+      status = 403;
       message = 'Access denied';
-      code = ErrorCode.AUTHORIZATION_ERROR as string;
+      code = 'AUTHORIZATION_ERROR';
     } else if (errorMessage.includes('not found')) {
-      status = HttpStatus.NOT_FOUND as number;
+      status = 404;
       message = 'Resource not found';
-      code = ErrorCode.NOT_FOUND as string;
+      code = 'NOT_FOUND';
     } else if (errorMessage.includes('validation') || errorMessage.includes('invalid')) {
-      status = HttpStatus.BAD_REQUEST as number;
+      status = 400;
       message = sanitizeErrorMessage(error.message);
-      code = ErrorCode.VALIDATION_ERROR as string;
+      code = 'VALIDATION_ERROR';
     } else if (errorMessage.includes('rate limit') || errorMessage.includes('too many')) {
-      status = HttpStatus.TOO_MANY_REQUESTS as number;
+      status = 429;
       message = 'Too many requests. Please try again later.';
-      code = ErrorCode.RATE_LIMITED as string;
+      code = 'RATE_LIMITED';
     } else if (errorMessage.includes('unavailable') || errorMessage.includes('timeout')) {
-      status = HttpStatus.SERVICE_UNAVAILABLE as number;
+      status = 503;
       message = 'Service temporarily unavailable';
-      code = ErrorCode.SERVICE_UNAVAILABLE as string;
+      code = 'SERVICE_UNAVAILABLE';
     }
   }
 
