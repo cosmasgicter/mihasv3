@@ -10,6 +10,9 @@
     "api/status.ts": {
       "maxDuration": 5
     },
+    "api/auth-roles.ts": {
+      "maxDuration": 10
+    },
     "api/auth.ts": {
       "maxDuration": 10
     },
