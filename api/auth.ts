@@ -183,6 +183,19 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
     if (error instanceof z.ZodError) {
       return sendError(res, error.errors[0].message, HttpStatus.BAD_REQUEST);
     }
+    
+    // Check for database schema errors
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes("password_hash") || errorMessage.includes("column")) {
+      console.error("[auth] Database schema error:", errorMessage);
+      return sendError(
+        res, 
+        "Database schema needs migration. Run: ALTER TABLE profiles ADD COLUMN password_hash TEXT;", 
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "SCHEMA_MIGRATION_REQUIRED"
+      );
+    }
+    
     console.error("[auth] Login error:", error);
     return sendError(res, "Login failed", HttpStatus.INTERNAL_SERVER_ERROR);
   }
