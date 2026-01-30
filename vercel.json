@@ -1,10 +1,12 @@
 {
   "buildCommand": "bunx --bun vite build",
   "installCommand": "bun install",
-  "framework": "vite",
+  "outputDirectory": "dist",
   "functions": {
-    "api/**/*.ts": {
-      "maxDuration": 10
+    "api/*.ts": {
+      "maxDuration": 10,
+      "runtime": "nodejs20.x",
+      "includeFiles": "api/_lib/**"
     }
   },
   "rewrites": [
@@ -12,6 +14,13 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
+    {
+      "source": "/manifest.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/manifest+json" },
+        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
+      ]
+    },
     {
       "source": "/api/(.*)",
       "headers": [
@@ -28,7 +37,9 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
       ]
     }
   ]
