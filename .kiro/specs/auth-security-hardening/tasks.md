@@ -108,7 +108,7 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - _Requirements: 2.5, 2.7, 2.8_
 
 - [ ] 6. Auth middleware and RBAC
-  - [~] 6.1 Implement auth middleware (`api/_lib/auth/middleware.ts`)
+  - [-] 6.1 Implement auth middleware (`api/_lib/auth/middleware.ts`)
     - Implement `getAuthUser()` to extract user from token
     - Implement `requireAuth()` that throws if not authenticated
     - Implement `requireRole()` that throws if user lacks required role
