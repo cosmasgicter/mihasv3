@@ -44,29 +44,47 @@ class AdminAuditService {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) throw new Error('Unauthorized')
 
-    const params = new URLSearchParams()
-    if (filters.page) params.append('page', filters.page.toString())
-    if (filters.pageSize) params.append('limit', filters.pageSize.toString())
-    if (filters.action) params.append('action', filters.action)
-    if (filters.targetTable) params.append('entity_type', filters.targetTable)
-    if (filters.actorEmail) params.append('actor_id', filters.actorEmail)
+    const page = filters.page || 1
+    const pageSize = filters.pageSize || 50
+    const offset = (page - 1) * pageSize
 
-    const response = await fetch(`/api/audit/logs?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${session.access_token}`
-      }
-    })
+    // Build query directly against Supabase audit_logs table
+    let query = supabase
+      .from('audit_logs')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1)
 
-    if (!response.ok) throw new Error('Failed to fetch audit logs')
+    // Apply filters
+    if (filters.action) {
+      query = query.eq('action', filters.action)
+    }
+    if (filters.targetTable) {
+      query = query.eq('entity_type', filters.targetTable)
+    }
+    if (filters.from) {
+      query = query.gte('created_at', filters.from)
+    }
+    if (filters.to) {
+      query = query.lte('created_at', filters.to)
+    }
 
-    const result = await response.json()
-    
+    const { data, error, count } = await query
+
+    if (error) {
+      console.error('Failed to fetch audit logs:', error)
+      throw new Error('Failed to fetch audit logs')
+    }
+
+    const totalCount = count || 0
+    const totalPages = Math.ceil(totalCount / pageSize)
+
     return {
-      data: result.data.map((log: any) => ({
+      data: (data || []).map((log: any) => ({
         id: log.id,
         actorId: log.actor_id,
-        actorEmail: log.actor?.email || null,
-        actorRoles: [],
+        actorEmail: log.actor_email || null,
+        actorRoles: log.actor_roles || [],
         action: log.action,
         entityType: log.entity_type,
         entityId: log.entity_id,
@@ -79,10 +97,10 @@ class AdminAuditService {
         requestIp: log.ip_address,
         metadata: log.changes
       })),
-      page: result.pagination.page,
-      pageSize: result.pagination.limit,
-      totalPages: result.pagination.pages,
-      totalCount: result.pagination.total
+      page,
+      pageSize,
+      totalPages,
+      totalCount
     }
   }
 }
