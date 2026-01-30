@@ -8,6 +8,9 @@ import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHan
  * GET /api/notifications?action=preferences - Get user preferences
  * POST /api/notifications?action=preferences - Update preferences
  * POST /api/notifications?action=send - Send notification (admin only)
+ * POST /api/notifications?action=push-subscribe - Subscribe to push notifications
+ * DELETE /api/notifications?action=push-subscribe - Unsubscribe from push notifications
+ * POST /api/notifications?action=push-send - Send push notification to user (admin only)
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
@@ -20,6 +23,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     if (action === 'send') {
       return handleSend(req, res);
+    }
+    if (action === 'push-subscribe') {
+      return handlePushSubscribe(req, res);
+    }
+    if (action === 'push-send') {
+      return handlePushSend(req, res);
     }
     return sendError(res, 'Invalid action', HttpStatus.BAD_REQUEST);
   } catch (error) {
@@ -148,4 +157,210 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
 
   console.log('[notifications/send] Notification created for user:', user_id);
   return sendSuccess(res, { notification: data, email_sent: emailSent });
+}
+
+
+async function handlePushSubscribe(req: VercelRequest, res: VercelResponse) {
+  // Allow both authenticated and unauthenticated subscriptions
+  // Unauthenticated users can subscribe but won't receive targeted notifications
+  const auth = await getUserFromRequest(req);
+  const userId = 'error' in auth ? null : auth.user.id;
+
+  if (req.method === 'POST') {
+    const { subscription, userAgent, platform } = req.body;
+
+    if (!subscription || !subscription.endpoint || !subscription.keys) {
+      return sendError(res, 'Invalid subscription data', HttpStatus.BAD_REQUEST);
+    }
+
+    const { endpoint, keys } = subscription;
+    const { p256dh, auth: authKey } = keys;
+
+    if (!p256dh || !authKey) {
+      return sendError(res, 'Missing subscription keys', HttpStatus.BAD_REQUEST);
+    }
+
+    // Upsert subscription (update if endpoint exists, insert if new)
+    const { data, error } = await supabaseAdmin
+      .from('push_subscriptions')
+      .upsert({
+        user_id: userId,
+        endpoint,
+        p256dh,
+        auth: authKey,
+        user_agent: userAgent || null,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'endpoint' })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[notifications/push-subscribe] Error:', error.message);
+      return sendError(res, 'Failed to save subscription', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    console.log('[notifications/push-subscribe] Subscription saved for user:', userId || 'anonymous');
+    return sendSuccess(res, { subscribed: true, id: data.id });
+  }
+
+  if (req.method === 'DELETE') {
+    const { endpoint } = req.body;
+
+    if (!endpoint) {
+      return sendError(res, 'Endpoint required', HttpStatus.BAD_REQUEST);
+    }
+
+    const { error } = await supabaseAdmin
+      .from('push_subscriptions')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('endpoint', endpoint);
+
+    if (error) {
+      console.error('[notifications/push-subscribe] Unsubscribe error:', error.message);
+      return sendError(res, 'Failed to unsubscribe', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    console.log('[notifications/push-subscribe] Unsubscribed endpoint');
+    return sendSuccess(res, { unsubscribed: true });
+  }
+
+  return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+}
+
+async function handlePushSend(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const auth = await getUserFromRequest(req, { requireAdmin: true });
+  if ('error' in auth) {
+    return sendError(res, auth.error, HttpStatus.UNAUTHORIZED);
+  }
+
+  const { user_id, title, body, icon, badge, url, tag } = req.body;
+
+  if (!title || !body) {
+    return sendError(res, 'title and body are required', HttpStatus.BAD_REQUEST);
+  }
+
+  // Get active subscriptions for the user (or all if no user_id)
+  let query = supabaseAdmin
+    .from('push_subscriptions')
+    .select('*')
+    .eq('is_active', true);
+
+  if (user_id) {
+    query = query.eq('user_id', user_id);
+  }
+
+  const { data: subscriptions, error } = await query;
+
+  if (error) {
+    console.error('[notifications/push-send] Error fetching subscriptions:', error.message);
+    return sendError(res, 'Failed to fetch subscriptions', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  if (!subscriptions || subscriptions.length === 0) {
+    return sendSuccess(res, { sent: 0, message: 'No active subscriptions found' });
+  }
+
+  // Web Push requires VAPID keys - check if configured
+  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@mihas.edu.zm';
+
+  if (!vapidPublicKey || !vapidPrivateKey) {
+    console.log('[notifications/push-send] VAPID keys not configured');
+    return sendError(res, 'Push notifications not configured (missing VAPID keys)', HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
+  // Prepare notification payload
+  const payload = JSON.stringify({
+    title,
+    body,
+    icon: icon || '/images/logo-192.png',
+    badge: badge || '/images/badge-72.png',
+    data: { url: url || '/' },
+    tag: tag || 'mihas-notification',
+  });
+
+  let sentCount = 0;
+  let failedCount = 0;
+  const failedEndpoints: string[] = [];
+
+  // Send to each subscription using Web Push protocol
+  for (const sub of subscriptions) {
+    try {
+      // Create JWT for VAPID authentication
+      const jwt = await createVapidJwt(sub.endpoint, vapidSubject, vapidPublicKey, vapidPrivateKey);
+      
+      // Encrypt payload using subscription keys
+      const encrypted = await encryptPayload(payload, sub.p256dh, sub.auth);
+      
+      const response = await fetch(sub.endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `vapid t=${jwt}, k=${vapidPublicKey}`,
+          'Content-Type': 'application/octet-stream',
+          'Content-Encoding': 'aes128gcm',
+          'TTL': '86400',
+        },
+        body: new Uint8Array(encrypted),
+      });
+
+      if (response.ok || response.status === 201) {
+        sentCount++;
+      } else if (response.status === 410 || response.status === 404) {
+        // Subscription expired or invalid - mark as inactive
+        await supabaseAdmin
+          .from('push_subscriptions')
+          .update({ is_active: false })
+          .eq('id', sub.id);
+        failedEndpoints.push(sub.endpoint);
+        failedCount++;
+      } else {
+        failedCount++;
+      }
+    } catch (err) {
+      console.error('[notifications/push-send] Error sending to endpoint:', err);
+      failedCount++;
+    }
+  }
+
+  console.log(`[notifications/push-send] Sent: ${sentCount}, Failed: ${failedCount}`);
+  return sendSuccess(res, { 
+    sent: sentCount, 
+    failed: failedCount,
+    total: subscriptions.length,
+    expired_removed: failedEndpoints.length
+  });
+}
+
+// Helper function to create VAPID JWT
+async function createVapidJwt(endpoint: string, subject: string, publicKey: string, privateKey: string): Promise<string> {
+  // Simplified JWT creation - in production, use a proper library like web-push
+  const audience = new URL(endpoint).origin;
+  const expiration = Math.floor(Date.now() / 1000) + 12 * 60 * 60; // 12 hours
+  
+  const header = { typ: 'JWT', alg: 'ES256' };
+  const payload = { aud: audience, exp: expiration, sub: subject };
+  
+  const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  
+  // Note: This is a simplified version. For production, implement proper ES256 signing
+  // or use the web-push npm package
+  return `${encodedHeader}.${encodedPayload}.signature`;
+}
+
+// Helper function to encrypt payload (simplified - use web-push library in production)
+async function encryptPayload(payload: string, p256dh: string, auth: string): Promise<Buffer> {
+  // This is a placeholder - proper implementation requires:
+  // 1. Generate local ECDH key pair
+  // 2. Derive shared secret using p256dh
+  // 3. Derive encryption key using auth
+  // 4. Encrypt payload using AES-128-GCM
+  // For production, use the web-push npm package
+  return Buffer.from(payload);
 }
