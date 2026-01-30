@@ -597,7 +597,7 @@ export class APISecurityAuditor {
       return `${this.baseUrl}/${endpoint.path.replace(/\.(js|ts)$/, '')}`;
     }
     
-    return `http://localhost:8788/${endpoint.path.replace(/\.(js|ts)$/, '')}`;
+    return `http://localhost:5173/api/${endpoint.path.replace(/\.(js|ts)$/, '')}`;
   }
 
   /**

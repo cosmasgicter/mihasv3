@@ -374,7 +374,7 @@ export class APIPerformanceProfiler {
     }
     
     // Default to localhost for testing
-    return `http://localhost:8788/${endpoint.path.replace(/\.(js|ts)$/, '')}`;
+    return `http://localhost:5173/api/${endpoint.path.replace(/\.(js|ts)$/, '')}`;
   }
 
   /**
