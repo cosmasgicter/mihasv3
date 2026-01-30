@@ -82,7 +82,8 @@ function getRequestRoleCache(req: VercelRequest | null): Map<string, string[]> |
     return null;
   }
 
-  const reqAny = req as Record<symbol, Map<string, string[]>>;
+  // Use unknown first, then narrow to the expected type
+  const reqAny = req as unknown as Record<symbol, Map<string, string[]>>;
   if (reqAny[REQUEST_ROLE_CACHE_SYMBOL]) {
     return reqAny[REQUEST_ROLE_CACHE_SYMBOL];
   }
@@ -361,7 +362,8 @@ export async function requireUser(
  * Clear role cache for a request
  */
 export function clearRequestRoleCache(req: VercelRequest): void {
-  const reqAny = req as Record<symbol, Map<string, string[]>>;
+  // Use unknown first, then narrow to the expected type
+  const reqAny = req as unknown as Record<symbol, Map<string, string[]>>;
   const cache = reqAny[REQUEST_ROLE_CACHE_SYMBOL];
   if (cache?.clear) {
     cache.clear();
