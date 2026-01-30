@@ -5,4 +5,4 @@ Disallow: /admin/
 Disallow: /student/
 Disallow: /api/
 
-Sitemap: https://mihasv3.pages.dev/sitemap.xml
+Sitemap: ***REMOVED***/sitemap.xml
