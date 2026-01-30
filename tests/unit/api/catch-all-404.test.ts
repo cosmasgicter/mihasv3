@@ -1,12 +1,14 @@
 /**
  * Unit Tests: Catch-All 404 Handler
- * Feature: vercel-production-fixes
+ * Feature: vercel-production-fixes, admin-system-health-fixes
  * Task: 7.1 Add 404 handler for non-existent API routes
+ * Task: 8.1 Add helpful 404 for legacy admin-settings endpoint
  * 
  * Tests the catch-all 404 handler for non-existent API routes.
  * 
- * **Validates: Requirements 1.5, 6.4**
+ * **Validates: Requirements 1.5, 2.5, 6.4**
  * - 1.5: Non-existent API paths return 404 JSON error response
+ * - 2.5: Legacy /api/admin-settings returns 404 with guidance to use /api/admin?action=settings
  * - 6.4: Error response format is consistent: { success: false, error: string, code?: string }
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -328,6 +330,77 @@ describe('Feature: vercel-production-fixes, Catch-All 404 Handler', () => {
 
       expect(res._status).toBe(404);
       expect((res._json as { success: boolean }).success).toBe(false);
+    });
+  });
+
+  describe('Legacy Admin Settings Endpoint Guidance (Requirement 2.5)', () => {
+    it('should return 404 with helpful message for /api/admin-settings', async () => {
+      const req = createMockRequest({ url: '/api/admin-settings' });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(res._status).toBe(404);
+      const response = res._json as { success: boolean; error: string; code?: string };
+      expect(response.success).toBe(false);
+      expect(response.error).toContain('/api/admin?action=settings');
+      expect(response.error).toContain('consolidated');
+    });
+
+    it('should return 404 with helpful message for /api/admin-settings with query params', async () => {
+      const req = createMockRequest({ url: '/api/admin-settings?id=123' });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(res._status).toBe(404);
+      const response = res._json as { success: boolean; error: string };
+      expect(response.error).toContain('/api/admin?action=settings');
+    });
+
+    it('should return 404 with helpful message for POST to /api/admin-settings', async () => {
+      const req = createMockRequest({ method: 'POST', url: '/api/admin-settings' });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(res._status).toBe(404);
+      const response = res._json as { success: boolean; error: string };
+      expect(response.error).toContain('/api/admin?action=settings');
+    });
+
+    it('should return 404 with helpful message for PUT to /api/admin-settings', async () => {
+      const req = createMockRequest({ method: 'PUT', url: '/api/admin-settings' });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(res._status).toBe(404);
+      const response = res._json as { success: boolean; error: string };
+      expect(response.error).toContain('/api/admin?action=settings');
+    });
+
+    it('should return 404 with helpful message for DELETE to /api/admin-settings', async () => {
+      const req = createMockRequest({ method: 'DELETE', url: '/api/admin-settings' });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(res._status).toBe(404);
+      const response = res._json as { success: boolean; error: string };
+      expect(response.error).toContain('/api/admin?action=settings');
+    });
+
+    it('should return generic 404 for other non-existent endpoints', async () => {
+      const req = createMockRequest({ url: '/api/other-endpoint' });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(res._status).toBe(404);
+      const response = res._json as { success: boolean; error: string };
+      expect(response.error).toBe('API endpoint not found');
+      expect(response.error).not.toContain('/api/admin?action=settings');
     });
   });
 });

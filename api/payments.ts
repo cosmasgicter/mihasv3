@@ -11,6 +11,11 @@ import { applyRateLimit } from './_lib/rateLimiter';
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
 
+  // Handle HEAD requests for health checks (no auth required)
+  if (req.method === 'HEAD') {
+    return res.status(200).end();
+  }
+
   if (applyRateLimit(req, res)) return;
 
   if (req.method !== 'GET') {
