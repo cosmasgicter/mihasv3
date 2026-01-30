@@ -83,35 +83,19 @@ export function useStudentNotifications() {
     }
   }
 
-  // Subscribe to real-time notifications
+  // Poll for notifications every 30 seconds (replaced Supabase Realtime)
   useEffect(() => {
     if (!user?.id) return
 
     loadNotifications()
 
-    const subscription = supabase
-      .channel('student_notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'in_app_notifications',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          const newNotification = formatNotification(payload.new)
-          
-          setNotifications(prev => [newNotification, ...prev])
-          if (!newNotification.read) {
-            setUnreadCount(prev => prev + 1)
-          }
-        }
-      )
-      .subscribe()
+    // Poll every 30 seconds for new notifications
+    const pollInterval = setInterval(() => {
+      loadNotifications()
+    }, 30000)
 
     return () => {
-      subscription.unsubscribe()
+      clearInterval(pollInterval)
     }
   }, [user?.id])
 

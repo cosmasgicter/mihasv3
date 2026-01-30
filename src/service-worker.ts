@@ -156,7 +156,7 @@ registerRoute(
   })
 )
 
-// Cloudflare Functions API - Network Only for high volatility
+// Vercel API - Network Only for high volatility
 // High volatility endpoints (applications, realtime)
 registerRoute(
   ({ url }) => 
