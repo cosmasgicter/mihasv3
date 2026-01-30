@@ -411,7 +411,7 @@ function SystemSettings() {
           <div>
             <label className="block text-sm font-medium mb-2">Plugin Registry URL</label>
             <Input 
-              defaultValue="https://registry.mihas.edu.zm/plugins"
+              defaultValue="***REMOVED***/plugins"
               placeholder="Registry URL"
             />
             <p className="text-xs text-gray-500 mt-1">

@@ -117,7 +117,7 @@ const pathArbitrary = fc.constantFrom(
 const headersArbitrary = fc.record({
   'Content-Type': fc.constantFrom('application/json', 'multipart/form-data'),
   'Authorization': fc.option(fc.string({ minLength: 10, maxLength: 100 }), { nil: undefined }),
-  'Origin': fc.constantFrom('https://mihas.vercel.app', 'http://localhost:5173'),
+  'Origin': fc.constantFrom('***REMOVED***', 'http://localhost:5173'),
 });
 
 const queryArbitrary = fc.option(

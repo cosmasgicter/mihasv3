@@ -18,5 +18,5 @@ export function getApiBaseUrl(): string {
     return normalizeBaseUrl(window.location.origin)
   }
 
-  return normalizeBaseUrl('https://mihasv3.pages.dev')
+  return normalizeBaseUrl('***REMOVED***')
 }
