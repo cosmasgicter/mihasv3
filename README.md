@@ -8,21 +8,27 @@ MIHAS (Mukuba Institute of Health and Allied Sciences) Application System V3 - A
 
 ```
 mihasv3/
-├── src/                          # Source code
-├── functions/                    # Cloudflare Pages Functions
+├── src/                          # React frontend source code
+├── api/                          # Vercel Serverless Functions (8 consolidated endpoints)
+│   ├── _lib/                     # Shared utilities (cors, auth, db)
+│   ├── admin.ts                  # Admin dashboard & user management
+│   ├── applications.ts           # Application CRUD operations
+│   ├── auth.ts                   # Authentication endpoints
+│   ├── catalog.ts                # Programs, intakes, subjects
+│   ├── documents.ts              # Document upload & OCR
+│   ├── notifications.ts          # Email notifications
+│   ├── payments.ts               # Payment processing
+│   └── sessions.ts               # Session tracking
+├── tests/                        # Test files (unit, property, integration)
 ├── docs/                         # Documentation
 │   ├── reports/                  # Analysis and audit reports
 │   ├── guides/                   # User guides and manuals
 │   └── analysis/                 # Technical analysis
 ├── scripts/                      # Utility scripts
-│   ├── tests/                    # Test scripts
-│   ├── setup/                    # Setup and deployment scripts
-│   └── deployment/               # Deployment utilities
-├── archive/                      # Archived files
-├── API_STRUCTURE_GUIDE.md        # API development standards ⭐
-├── COMPLETE_SOURCE_CODE_FINAL.md # Complete source code (2.6MB)
-├── package.json                  # Dependencies
-├── wrangler.toml                 # Cloudflare configuration
+├── supabase/                     # Database migrations and functions
+├── public/                       # Static assets, PWA files
+├── package.json                  # Dependencies (Bun)
+├── vercel.json                   # Vercel deployment config
 └── README.md                     # This file
 ```
 
@@ -30,19 +36,19 @@ mihasv3/
 
 ### Development
 ```bash
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 ### Production Build
 ```bash
-npm run build:prod
+bunx --bun vite build
 ```
 
 ### Testing
 ```bash
-npm run test
-npm run test:unit
+bun run test
+bun run test:property  # Property-based tests
 ```
 
 ## 📖 Documentation
@@ -75,8 +81,9 @@ npm run test:unit
 
 - **Frontend**: React 18 + TypeScript + Vite
 - **Backend**: Supabase (PostgreSQL + Auth + Storage)
-- **Deployment**: Cloudflare Pages with Functions
-- **State**: Zustand + React Query
+- **Deployment**: Vercel (Static + Serverless Functions)
+- **Runtime**: Bun (all dev and prod commands)
+- **State**: Zustand + React Query (polling for real-time)
 - **Forms**: React Hook Form + Zod
 - **Styling**: Tailwind CSS + Radix UI
 
@@ -95,9 +102,10 @@ npm run test:unit
 - **Database Tables**: 86
 - **Source Files**: 457
 - **Lines of Code**: ~56,000
-- **API Functions**: 47 (all in `functions/`)
+- **API Endpoints**: 8 consolidated (Vercel Hobby plan)
 - **React Components**: 120+
 - **Custom Hooks**: 38
+- **Property Tests**: 62 (8 test files)
 
 ## 🔐 Security
 
@@ -133,6 +141,7 @@ Powers provide specialized tools through MCP servers. To use them:
 ---
 
 **Version**: 3.0 (Enterprise Eligibility System)  
-**Status**: Production Ready (92/100)  
-**Last Updated**: 2026-01-17  
+**Status**: Production Ready  
+**Hosting**: Vercel (migrated from Cloudflare)  
+**Last Updated**: 2026-01-30  
 **Documentation**: 100% Complete ✅

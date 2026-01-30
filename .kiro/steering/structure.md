@@ -9,13 +9,12 @@ inclusion: always
 | Directory | Purpose | AI Action |
 |-----------|---------|-----------|
 | `src/` | React frontend | Primary modification target |
-| `api/` | Vercel Serverless Functions | Use `_lib/` for shared code |
+| `api/` | Vercel Serverless Functions (8 consolidated endpoints) | Use `_lib/` for shared code |
 | `tests/` | Test files | Match test type to subdirectory |
 | `supabase/migrations/` | DB migrations | Append-only, never modify existing |
 | `public/` | Static assets, PWA | Rarely modify |
 | `scripts/` | Build/deploy utilities | Reference only, do not modify |
 | `docs/` | Documentation | **Do not modify unless explicitly asked** |
-| `functions/` | **DEPRECATED** - Cloudflare | Being migrated to `api/` |
 
 ## Frontend Structure (`src/`)
 
@@ -69,7 +68,7 @@ import { Button } from '../../../components/ui/Button'
 |--------|----------|-------|
 | Component | `src/components/{domain}/` | domain: admin, student, auth, forms, ui |
 | Hook | `src/hooks/useXxx.ts` | Must prefix with `use` |
-| API endpoint | `api/{feature}/` | feature: admin, applications, auth, documents, notifications, payments |
+| API endpoint | `api/{feature}.ts` | Add action to existing consolidated endpoint |
 | Page | `src/pages/` | Must register route in `src/routes/` |
 | Type | `src/types/` or co-locate | Co-locate component-specific types |
 | Store | `src/stores/xxxStore.ts` | Follow existing Zustand patterns |
@@ -92,29 +91,63 @@ Choose based on data type:
 
 ## API Functions (`api/`)
 
-Structure:
-- `_lib/` → Shared utilities (cors, auth helpers, response builders)
-- Feature directories: `admin/`, `applications/`, `auth/`, `documents/`, `notifications/`, `payments/`
+**Consolidated Structure** (Vercel Hobby plan limit: 12 functions):
+```
+api/
+├── _lib/              # Shared utilities (cors, auth, db, validation)
+│   ├── cors.ts
+│   ├── supabaseClient.ts
+│   ├── errorHandler.ts
+│   └── rateLimiter.ts
+├── admin.ts           # ?action=dashboard|users
+├── applications.ts    # ?action=details|documents|grades|summary|review or ?id=xxx
+├── auth.ts            # ?action=login|signin|register|signup|session
+├── catalog.ts         # ?type=programs|intakes|subjects
+├── documents.ts       # ?action=upload|extract
+├── notifications.ts   # ?action=preferences|send
+├── payments.ts        # ?action=receipt
+└── sessions.ts        # ?action=track
+```
 
-Pattern:
+**Pattern** (query parameter routing):
 ```typescript
-// api/{feature}/[action].ts
+// api/{feature}.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { handleCors } from './_lib/cors';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Use helpers from _lib/
-  // Access env via process.env
+  if (handleCors(req, res)) return;
+  
+  const action = req.query.action as string;
+  
+  switch (action) {
+    case 'action1':
+      // Handle action1
+      break;
+    case 'action2':
+      // Handle action2
+      break;
+    default:
+      return res.status(400).json({ success: false, error: 'Invalid action' });
+  }
 }
 ```
 
-## Removed Directories (Migration Cleanup)
+**Adding new functionality**: Add a new `case` to the appropriate consolidated endpoint's switch statement.
+
+## Removed Directories (Migration Complete)
 
 | Directory | Status |
 |-----------|--------|
-| `functions/ai/` | REMOVED - AI features deleted |
-| `functions/analytics/` | REMOVED - Analytics deleted |
-| `functions/mcp/` | REMOVED - MCP integration deleted |
-| `functions/` | DEPRECATED - Migrating to `api/` |
+| `functions/` | DELETED - Fully migrated to `api/` (174 files removed) |
+| `api/admin/` | CONSOLIDATED into `api/admin.ts` |
+| `api/applications/` | CONSOLIDATED into `api/applications.ts` |
+| `api/auth/` | CONSOLIDATED into `api/auth.ts` |
+| `api/catalog/` | CONSOLIDATED into `api/catalog.ts` |
+| `api/documents/` | CONSOLIDATED into `api/documents.ts` |
+| `api/notifications/` | CONSOLIDATED into `api/notifications.ts` |
+| `api/payments/` | CONSOLIDATED into `api/payments.ts` |
+| `api/sessions/` | CONSOLIDATED into `api/sessions.ts` |
 
 ## Testing
 
