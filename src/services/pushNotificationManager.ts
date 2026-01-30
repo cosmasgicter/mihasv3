@@ -520,26 +520,19 @@ class PushNotificationManager {
 
   /**
    * Send subscription to server
+   * Note: Push subscription endpoint not implemented in consolidated API
+   * Subscriptions are stored locally for now
    */
   private async sendSubscriptionToServer(subscription: PushSubscription): Promise<void> {
     try {
-      const response = await fetch('/api/notifications?action=push-subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          subscription: subscription.toJSON(),
-          userAgent: navigator.userAgent,
-          platform: this.getPlatform()
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error(`Failed to send subscription: ${response.statusText}`)
-      }
+      // Push subscription endpoint not available in consolidated API
+      // Store subscription locally - server-side push not implemented
+      console.log('Push subscription stored locally (server endpoint not available)')
+      
+      // Store in localStorage as fallback
+      localStorage.setItem('push_subscription', JSON.stringify(subscription.toJSON()))
     } catch (error) {
-      console.error('Failed to send subscription to server:', error)
+      console.error('Failed to store subscription:', error)
     }
   }
 
