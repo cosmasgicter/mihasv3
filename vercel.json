@@ -12,7 +12,7 @@
       "maxDuration": 5,
       "includeFiles": "api/_lib/**"
     },
-    "api/auth.ts": { {
+    "api/auth.ts": {
       "maxDuration": 10,
       "includeFiles": "api/_lib/**"
     },
