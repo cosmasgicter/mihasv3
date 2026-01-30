@@ -116,29 +116,29 @@ export function handleError(
     const errorMessage = error.message.toLowerCase();
 
     if (errorMessage.includes('unauthorized') || errorMessage.includes('no authorization')) {
-      status = HttpStatus.UNAUTHORIZED;
+      status = HttpStatus.UNAUTHORIZED as number;
       message = 'Authentication required';
-      code = ErrorCode.AUTHENTICATION_ERROR;
+      code = ErrorCode.AUTHENTICATION_ERROR as string;
     } else if (errorMessage.includes('forbidden') || errorMessage.includes('access denied') || errorMessage.includes('permission')) {
-      status = HttpStatus.FORBIDDEN;
+      status = HttpStatus.FORBIDDEN as number;
       message = 'Access denied';
-      code = ErrorCode.AUTHORIZATION_ERROR;
+      code = ErrorCode.AUTHORIZATION_ERROR as string;
     } else if (errorMessage.includes('not found')) {
-      status = HttpStatus.NOT_FOUND;
+      status = HttpStatus.NOT_FOUND as number;
       message = 'Resource not found';
-      code = ErrorCode.NOT_FOUND;
+      code = ErrorCode.NOT_FOUND as string;
     } else if (errorMessage.includes('validation') || errorMessage.includes('invalid')) {
-      status = HttpStatus.BAD_REQUEST;
+      status = HttpStatus.BAD_REQUEST as number;
       message = sanitizeErrorMessage(error.message);
-      code = ErrorCode.VALIDATION_ERROR;
+      code = ErrorCode.VALIDATION_ERROR as string;
     } else if (errorMessage.includes('rate limit') || errorMessage.includes('too many')) {
-      status = HttpStatus.TOO_MANY_REQUESTS;
+      status = HttpStatus.TOO_MANY_REQUESTS as number;
       message = 'Too many requests. Please try again later.';
-      code = ErrorCode.RATE_LIMITED;
+      code = ErrorCode.RATE_LIMITED as string;
     } else if (errorMessage.includes('unavailable') || errorMessage.includes('timeout')) {
-      status = HttpStatus.SERVICE_UNAVAILABLE;
+      status = HttpStatus.SERVICE_UNAVAILABLE as number;
       message = 'Service temporarily unavailable';
-      code = ErrorCode.SERVICE_UNAVAILABLE;
+      code = ErrorCode.SERVICE_UNAVAILABLE as string;
     }
   }
 
