@@ -5,8 +5,10 @@
   "framework": null,
   "functions": {
     "api/health.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
+    "api/status.ts": { "maxDuration": 5, "includeFiles": "api/_lib/**" },
     "api/auth.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/auth-roles.ts": { "maxDuration": 10 },
+    "api/auth-v2.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
+    "api/auth-roles.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
     "api/admin.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
     "api/applications.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
     "api/catalog.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
@@ -18,7 +20,9 @@
   },
   "rewrites": [
     { "source": "/api/health", "destination": "/api/health" },
+    { "source": "/api/status", "destination": "/api/status" },
     { "source": "/api/auth", "destination": "/api/auth" },
+    { "source": "/api/auth-v2", "destination": "/api/auth-v2" },
     { "source": "/api/auth-roles", "destination": "/api/auth-roles" },
     { "source": "/api/admin", "destination": "/api/admin" },
     { "source": "/api/applications", "destination": "/api/applications" },
