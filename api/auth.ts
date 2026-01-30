@@ -57,8 +57,9 @@ const registerSchema = z.object({
 
 /**
  * Main handler with Arcjet protection
+ * FIXED: Return type is VercelResponse | void to satisfy TypeScript
  */
-async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   // Handle CORS
   if (handleCors(req, res)) return;
 
@@ -114,7 +115,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
  * Login handler
  * VERIFICATION: bcrypt password compare, JWT generation
  */
-async function handleLogin(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleLogin(req: VercelRequest, res: VercelResponse) {
   try {
     // Validate input
     const { email, password } = loginSchema.parse(req.body);
@@ -191,7 +192,7 @@ async function handleLogin(req: VercelRequest, res: VercelResponse): Promise<voi
  * Logout handler
  * VERIFICATION: Clears cookies, revokes refresh token
  */
-async function handleLogout(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleLogout(req: VercelRequest, res: VercelResponse) {
   try {
     // Get current user (if authenticated)
     const user = await getAuthUser(req);
@@ -222,7 +223,7 @@ async function handleLogout(req: VercelRequest, res: VercelResponse): Promise<vo
  * Token refresh handler
  * VERIFICATION: Refresh token validation, rotation
  */
-async function handleRefresh(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleRefresh(req: VercelRequest, res: VercelResponse) {
   try {
     // Get refresh token from cookie or body
     const refreshToken = req.cookies?.refresh_token || req.body?.refreshToken;
@@ -297,7 +298,7 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse): Promise<v
  * Session handler
  * VERIFICATION: Returns current session info
  */
-async function handleSession(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleSession(req: VercelRequest, res: VercelResponse) {
   try {
     const user = await getAuthUser(req);
 
@@ -325,7 +326,7 @@ async function handleSession(req: VercelRequest, res: VercelResponse): Promise<v
  * Registration handler
  * VERIFICATION: Admin only, strict validation
  */
-async function handleRegister(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleRegister(req: VercelRequest, res: VercelResponse) {
   try {
     // Only admins can register new users
     const currentUser = await requireAuth(req);

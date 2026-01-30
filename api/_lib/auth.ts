@@ -19,7 +19,7 @@
  */
 
 import bcrypt from "bcrypt";
-import { SignJWT, jwtVerify, JWTPayload } from "jose";
+import { SignJWT, jwtVerify, type JWTPayload as JoseJWTPayload } from "jose";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 // JWT CONFIGURATION VERIFICATION
