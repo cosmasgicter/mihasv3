@@ -467,3 +467,6 @@ export function SystemHealthDashboard() {
     </div>
   );
 }
+
+
+export default SystemHealthDashboard;
