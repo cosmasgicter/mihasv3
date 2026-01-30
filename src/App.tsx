@@ -2,6 +2,7 @@ import React, { Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SkeletonProvider } from '@/contexts/SkeletonContext'
 import { RealtimeStatusProvider } from '@/contexts/RealtimeStatusContext'
@@ -150,6 +151,7 @@ function App() {
         </SkeletonProvider>
       </QueryClientProvider>
       <Analytics />
+      <SpeedInsights />
     </ErrorBoundary>
   )
 }
