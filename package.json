@@ -102,17 +102,21 @@
     "@typescript-eslint/eslint-plugin": "^8.18.1",
     "@typescript-eslint/parser": "^8.18.1",
     "@vercel/node": "^5.5.28",
+    "@vitest/coverage-v8": "4.0.18",
     "baseline-browser-mapping": "^2.9.15",
     "concurrently": "^9.1.0",
     "critters": "^0.0.23",
     "eslint": "^9.17.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
+    "fast-check": "4.5.3",
     "globals": "^15.12.0",
+    "jsdom": "27.4.0",
     "shadcn": "^3.6.3",
     "sharp": "^0.34.4",
     "terser": "^5.37.0",
     "typescript-eslint": "^8.18.1",
+    "vitest": "4.0.18",
     "wrangler": "^4.43.0"
   }
 }

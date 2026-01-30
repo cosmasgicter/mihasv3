@@ -201,62 +201,21 @@ class HttpTelemetrySink implements TelemetrySink {
   }
 
   async persist(events: TelemetryEvent[]): Promise<void> {
+    // Analytics/telemetry was removed during Vercel migration
+    // Silently discard events to maintain API compatibility
     if (!events.length) {
       return
     }
-
-    try {
-      const payload = { events }
-      const response = await fetch(`${this.baseUrl}/analytics/telemetry`, {
-        method: 'POST',
-        headers: await this.buildHeaders(),
-        body: JSON.stringify(payload),
-        keepalive: typeof navigator !== 'undefined' && 'sendBeacon' in navigator ? true : undefined
-      })
-
-      if (!response.ok) {
-        // In development, API might not be available
-        if (process.env.NODE_ENV === 'development' || response.status === 404) {
-          // Silently ignore telemetry failures in development
-          return
-        }
-        const message = await response.text().catch(() => `${response.status}`)
-        throw new Error(`Failed to persist telemetry: ${message}`)
-      }
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        return
-      }
-      throw error
-    }
+    // No-op: telemetry endpoint no longer exists
+    return
   }
 
   async query(query: TelemetryQuery = {}): Promise<TelemetryQueryResult> {
-    const params = new URLSearchParams()
-    if (query.service) params.set('service', query.service)
-    if (query.endpoint) params.set('endpoint', query.endpoint)
-    if (query.type) params.set('type', query.type)
-    if (query.level) params.set('level', query.level)
-    if (query.limit) params.set('limit', String(query.limit))
-    if (query.since) params.set('since', query.since)
-    if (query.windowMinutes) params.set('windowMinutes', String(query.windowMinutes))
-
-    const queryString = params.toString()
-    const url = `${this.baseUrl}/analytics/telemetry${queryString ? `?${queryString}` : ''}`
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: await this.buildHeaders()
-    })
-
-    if (!response.ok) {
-      const message = await response.text().catch(() => `${response.status}`)
-      throw new Error(`Failed to load telemetry: ${message}`)
-    }
-
-    const payload = await response.json().catch(() => ({ events: [], summary: [] }))
+    // Analytics/telemetry was removed during Vercel migration
+    // Return empty results to maintain API compatibility
     return {
-      events: Array.isArray(payload.events) ? payload.events : [],
-      summary: Array.isArray(payload.summary) ? payload.summary : []
+      events: [],
+      summary: []
     }
   }
 }
