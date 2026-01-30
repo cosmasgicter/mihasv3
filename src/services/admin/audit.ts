@@ -48,12 +48,13 @@ class AdminAuditService {
     const pageSize = filters.pageSize || 50
     const offset = (page - 1) * pageSize
 
-    // Build query with join to profiles for actor email
+    // Build query with LEFT JOIN to profiles for actor email
+    // Using explicit foreign key reference to handle deleted users gracefully
     let query = supabase
       .from('audit_logs')
       .select(`
         *,
-        profiles:actor_id (
+        actor:profiles!audit_logs_actor_id_fkey (
           email,
           full_name,
           role
@@ -90,8 +91,9 @@ class AdminAuditService {
       data: (data || []).map((log: any) => ({
         id: log.id,
         actorId: log.actor_id,
-        actorEmail: log.profiles?.email || null,
-        actorRoles: log.profiles?.role ? [log.profiles.role] : [],
+        // Handle null actor data gracefully when user is deleted
+        actorEmail: log.actor?.email ?? null,
+        actorRoles: log.actor?.role ? [log.actor.role] : [],
         action: log.action,
         entityType: log.entity_type,
         entityId: log.entity_id,

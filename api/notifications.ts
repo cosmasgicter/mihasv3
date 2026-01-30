@@ -16,6 +16,11 @@ import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHan
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
 
+  // Handle HEAD requests for health checks (no auth required)
+  if (req.method === 'HEAD') {
+    return res.status(200).end();
+  }
+
   const action = req.query.action as string || 'preferences';
 
   try {

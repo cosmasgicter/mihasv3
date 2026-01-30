@@ -56,6 +56,9 @@ export class AnalysisOrchestrator {
   /**
    * Run comprehensive system analysis
    * Coordinates all analysis components
+   * 
+   * Graceful degradation: Returns default healthy status when analysis fails
+   * Requirements: 5.1, 5.2, 5.3, 5.4
    */
   async runComprehensiveAnalysis(): Promise<{
     securityResults: AnalysisResult;
@@ -66,45 +69,99 @@ export class AnalysisOrchestrator {
     console.log('🔍 Starting comprehensive MIHAS system analysis...');
     const startTime = new Date();
 
-    try {
-      // Run all analyses in parallel for efficiency
-      const [securityResults, schemaResults, performanceResults] = await Promise.all([
-        this.config.security_scan_enabled ? this.securityAnalyzer.performSecurityAnalysis() : this.createEmptyResult('security'),
-        this.config.schema_analysis_enabled ? this.schemaAnalyzer.performSchemaAnalysis() : this.createEmptyResult('schema'),
-        this.config.performance_monitoring_enabled ? this.performanceMonitor.performPerformanceAnalysis() : this.createEmptyResult('performance')
-      ]);
+    // Run all analyses with safe error handlers (Requirement 5.4)
+    const [securityResults, schemaResults, performanceResults] = await Promise.all([
+      this.safeAnalysis(
+        () => this.config.security_scan_enabled ? this.securityAnalyzer.performSecurityAnalysis() : this.createEmptyResult('security'),
+        'security'
+      ),
+      this.safeAnalysis(
+        () => this.config.schema_analysis_enabled ? this.schemaAnalyzer.performSchemaAnalysis() : this.createEmptyResult('schema'),
+        'schema'
+      ),
+      this.safeAnalysis(
+        () => this.config.performance_monitoring_enabled ? this.performanceMonitor.performPerformanceAnalysis() : this.createEmptyResult('performance'),
+        'performance'
+      )
+    ]);
 
-      // Generate comprehensive report
-      const report = this.reporter.generateComprehensiveReport(
+    // Generate comprehensive report with safe error handling
+    let report: AnalysisReport;
+    try {
+      report = this.reporter.generateComprehensiveReport(
         securityResults,
         schemaResults,
         performanceResults
       );
-
-      const endTime = new Date();
-      const duration = endTime.getTime() - startTime.getTime();
-
-      console.log(`✅ Comprehensive analysis completed in ${duration}ms`);
-      console.log(`📊 Report generated with ${report.summary.total_issues} total issues found`);
-
-      // Check for critical alerts
-      await this.checkCriticalAlerts(securityResults, schemaResults, performanceResults);
-
-      return {
-        securityResults,
-        schemaResults,
-        performanceResults,
-        report
-      };
-
     } catch (error) {
-      console.error('❌ Comprehensive analysis failed:', error);
-      throw error;
+      // Log warning instead of throwing (Requirement 5.4)
+      console.warn('Report generation failed, using default report:', error instanceof Error ? error.message : 'Unknown error');
+      report = this.createDefaultReport();
+    }
+
+    const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+
+    console.log(`✅ Comprehensive analysis completed in ${duration}ms`);
+    console.log(`📊 Report generated with ${report.summary.total_issues} total issues found`);
+
+    // Check for critical alerts with safe error handling
+    try {
+      await this.checkCriticalAlerts(securityResults, schemaResults, performanceResults);
+    } catch (error) {
+      console.warn('Critical alert check failed:', error instanceof Error ? error.message : 'Unknown error');
+    }
+
+    return {
+      securityResults,
+      schemaResults,
+      performanceResults,
+      report
+    };
+  }
+
+  /**
+   * Safe wrapper for analysis operations
+   * Returns default healthy result when analysis fails (Requirement 5.1, 5.3, 5.4)
+   */
+  private async safeAnalysis(
+    analysisFn: () => Promise<AnalysisResult>,
+    type: AnalysisResult['analysis_type']
+  ): Promise<AnalysisResult> {
+    try {
+      return await analysisFn();
+    } catch (error) {
+      // Log warning instead of throwing (Requirement 5.4)
+      console.warn(`${type} analysis failed, returning healthy status:`, error instanceof Error ? error.message : 'Unknown error');
+      // Return default healthy status (Requirement 5.1, 5.3)
+      return this.createEmptyResult(type);
     }
   }
 
   /**
+   * Create a default report when report generation fails
+   * Returns healthy status for all components (Requirement 5.3)
+   */
+  private createDefaultReport(): AnalysisReport {
+    return {
+      id: crypto.randomUUID(),
+      generated_at: new Date(),
+      summary: {
+        total_issues: 0,
+        critical_issues: 0,
+        warnings: 0,
+        info: 0
+      },
+      sections: [],
+      recommendations: []
+    };
+  }
+
+  /**
    * Run security-focused analysis
+   * 
+   * Graceful degradation: Returns default healthy status when analysis fails
+   * Requirements: 5.1, 5.3, 5.4
    */
   async runSecurityAnalysis(): Promise<{
     securityResults: AnalysisResult;
@@ -112,16 +169,30 @@ export class AnalysisOrchestrator {
   }> {
     console.log('🔒 Starting security analysis...');
 
-    const securityResults = await this.securityAnalyzer.performSecurityAnalysis();
-    const report = this.reporter.generateSecurityReport(securityResults);
+    const securityResults = await this.safeAnalysis(
+      () => this.securityAnalyzer.performSecurityAnalysis(),
+      'security'
+    );
 
-    // Check for critical security alerts
-    const vulnerabilities = securityResults.results?.vulnerabilities || [];
-    const criticalCount = vulnerabilities.filter((v: SecurityVulnerability) => v.severity === 'ERROR').length;
+    let report: AnalysisReport;
+    try {
+      report = this.reporter.generateSecurityReport(securityResults);
+    } catch (error) {
+      console.warn('Security report generation failed:', error instanceof Error ? error.message : 'Unknown error');
+      report = this.createDefaultReport();
+    }
 
-    if (criticalCount >= this.config.alert_thresholds.critical_vulnerabilities) {
-      console.warn(`🚨 CRITICAL ALERT: ${criticalCount} critical security vulnerabilities found!`);
-      await this.triggerSecurityAlert(vulnerabilities.filter((v: SecurityVulnerability) => v.severity === 'ERROR'));
+    // Check for critical security alerts with safe error handling
+    try {
+      const vulnerabilities = securityResults.results?.vulnerabilities || [];
+      const criticalCount = vulnerabilities.filter((v: SecurityVulnerability) => v.severity === 'ERROR').length;
+
+      if (criticalCount >= this.config.alert_thresholds.critical_vulnerabilities) {
+        console.warn(`🚨 CRITICAL ALERT: ${criticalCount} critical security vulnerabilities found!`);
+        await this.triggerSecurityAlert(vulnerabilities.filter((v: SecurityVulnerability) => v.severity === 'ERROR'));
+      }
+    } catch (error) {
+      console.warn('Security alert check failed:', error instanceof Error ? error.message : 'Unknown error');
     }
 
     return { securityResults, report };
@@ -129,6 +200,9 @@ export class AnalysisOrchestrator {
 
   /**
    * Run performance analysis
+   * 
+   * Graceful degradation: Returns default healthy status when analysis fails
+   * Requirements: 5.1, 5.3, 5.4
    */
   async runPerformanceAnalysis(): Promise<{
     performanceResults: AnalysisResult;
@@ -136,8 +210,18 @@ export class AnalysisOrchestrator {
   }> {
     console.log('⚡ Starting performance analysis...');
 
-    const performanceResults = await this.performanceMonitor.performPerformanceAnalysis();
-    const report = this.reporter.generatePerformanceReport(performanceResults);
+    const performanceResults = await this.safeAnalysis(
+      () => this.performanceMonitor.performPerformanceAnalysis(),
+      'performance'
+    );
+
+    let report: AnalysisReport;
+    try {
+      report = this.reporter.generatePerformanceReport(performanceResults);
+    } catch (error) {
+      console.warn('Performance report generation failed:', error instanceof Error ? error.message : 'Unknown error');
+      report = this.createDefaultReport();
+    }
 
     return { performanceResults, report };
   }
@@ -217,6 +301,9 @@ export class AnalysisOrchestrator {
 
   /**
    * Get analysis dashboard data
+   * 
+   * Graceful degradation: Returns default healthy status when analysis fails
+   * Requirements: 5.1, 5.2, 5.3, 5.4
    */
   async getDashboardData(): Promise<{
     security_summary: any;
@@ -225,23 +312,104 @@ export class AnalysisOrchestrator {
     recent_alerts: any[];
     system_health: 'healthy' | 'warning' | 'critical';
   }> {
-    // Get recent analysis results
-    const latestReport = this.reporter.getLatestReport();
-    
-    // If no report exists, run a quick analysis first
-    if (!latestReport) {
+    // Default healthy dashboard data (Requirement 5.3)
+    const defaultDashboardData = {
+      security_summary: { total_vulnerabilities: 0, critical_count: 0 },
+      schema_summary: { total_issues: 0, high_priority: 0 },
+      performance_summary: { active_alerts: 0, avg_response_time: 150 },
+      recent_alerts: [],
+      system_health: 'healthy' as const
+    };
+
+    try {
+      // Get recent analysis results
+      const latestReport = this.reporter.getLatestReport();
+      
+      // If no report exists, try to run a quick analysis
+      if (!latestReport) {
+        try {
+          await this.runComprehensiveAnalysis();
+          const newReport = this.reporter.getLatestReport();
+          if (newReport) {
+            return this.extractDashboardDataFromReport(newReport);
+          }
+        } catch (error) {
+          // Log warning instead of throwing (Requirement 5.4)
+          console.warn('Could not run analysis, returning default healthy data:', error instanceof Error ? error.message : 'Unknown error');
+        }
+        
+        // Return default healthy state if analysis fails (Requirement 5.1, 5.3)
+        return defaultDashboardData;
+      }
+
+      return this.extractDashboardDataFromReport(latestReport);
+    } catch (error) {
+      // Log warning instead of throwing (Requirement 5.4)
+      console.warn('Dashboard data retrieval failed, returning default healthy data:', error instanceof Error ? error.message : 'Unknown error');
+      // Return default healthy state (Requirement 5.1, 5.3)
+      return defaultDashboardData;
+    }
+  }
+
+  /**
+   * Extract dashboard data from a report
+   * 
+   * Graceful degradation: Returns default healthy status when extraction fails
+   * Requirements: 5.1, 5.3, 5.4
+   */
+  private extractDashboardDataFromReport(report: AnalysisReport): {
+    security_summary: any;
+    schema_summary: any;
+    performance_summary: any;
+    recent_alerts: any[];
+    system_health: 'healthy' | 'warning' | 'critical';
+  } {
+    try {
+      // Extract summaries from the report
+      const securitySection = report.sections.find(s => s.title === 'Security Analysis');
+      const schemaSection = report.sections.find(s => s.title === 'Database Schema Analysis');
+      const performanceSection = report.sections.find(s => s.title === 'Performance Analysis');
+
+      // Determine system health
+      let systemHealth: 'healthy' | 'warning' | 'critical' = 'healthy';
+      if (report.summary.critical_issues > 0) {
+        systemHealth = 'critical';
+      } else if (report.summary.total_issues > 5) {
+        systemHealth = 'warning';
+      }
+
+      // Get recent metrics with safe error handling
+      let avgResponseTime = 150;
       try {
-        // Try to run a quick analysis
-        await this.runComprehensiveAnalysis();
-        const newReport = this.reporter.getLatestReport();
-        if (newReport) {
-          return this.extractDashboardDataFromReport(newReport);
+        const recentMetrics = this.performanceMonitor.getRecentMetrics(5);
+        const responseTimeMetrics = recentMetrics.filter(m => m.metric_type === 'response_time');
+        if (responseTimeMetrics.length > 0) {
+          avgResponseTime = responseTimeMetrics.reduce((sum, m) => sum + m.value, 0) / responseTimeMetrics.length;
         }
       } catch (error) {
-        console.warn('Could not run analysis, returning default data:', error);
+        console.warn('Could not get recent metrics:', error instanceof Error ? error.message : 'Unknown error');
       }
-      
-      // Return default healthy state if analysis fails
+
+      return {
+        security_summary: {
+          total_vulnerabilities: securitySection?.issues.length || 0,
+          critical_count: report.summary.critical_issues
+        },
+        schema_summary: {
+          total_issues: schemaSection?.issues.length || 0,
+          high_priority: Math.floor((schemaSection?.issues.length || 0) * 0.3)
+        },
+        performance_summary: {
+          active_alerts: performanceSection?.issues.length || 0,
+          avg_response_time: avgResponseTime
+        },
+        recent_alerts: this.getRecentAlerts(),
+        system_health: systemHealth
+      };
+    } catch (error) {
+      // Log warning instead of throwing (Requirement 5.4)
+      console.warn('Dashboard data extraction failed:', error instanceof Error ? error.message : 'Unknown error');
+      // Return default healthy state (Requirement 5.1, 5.3)
       return {
         security_summary: { total_vulnerabilities: 0, critical_count: 0 },
         schema_summary: { total_issues: 0, high_priority: 0 },
@@ -250,48 +418,6 @@ export class AnalysisOrchestrator {
         system_health: 'healthy'
       };
     }
-
-    return this.extractDashboardDataFromReport(latestReport);
-  }
-
-  private extractDashboardDataFromReport(report: AnalysisReport): {
-    security_summary: any;
-    schema_summary: any;
-    performance_summary: any;
-    recent_alerts: any[];
-    system_health: 'healthy' | 'warning' | 'critical';
-  } {
-    // Extract summaries from the report
-    const securitySection = report.sections.find(s => s.title === 'Security Analysis');
-    const schemaSection = report.sections.find(s => s.title === 'Database Schema Analysis');
-    const performanceSection = report.sections.find(s => s.title === 'Performance Analysis');
-
-    // Determine system health
-    let systemHealth: 'healthy' | 'warning' | 'critical' = 'healthy';
-    if (report.summary.critical_issues > 0) {
-      systemHealth = 'critical';
-    } else if (report.summary.total_issues > 5) {
-      systemHealth = 'warning';
-    }
-
-    return {
-      security_summary: {
-        total_vulnerabilities: securitySection?.issues.length || 0,
-        critical_count: report.summary.critical_issues
-      },
-      schema_summary: {
-        total_issues: schemaSection?.issues.length || 0,
-        high_priority: Math.floor((schemaSection?.issues.length || 0) * 0.3)
-      },
-      performance_summary: {
-        active_alerts: performanceSection?.issues.length || 0,
-        avg_response_time: this.performanceMonitor.getRecentMetrics(5)
-          .filter(m => m.metric_type === 'response_time')
-          .reduce((sum, m, _, arr) => sum + m.value / arr.length, 0) || 150
-      },
-      recent_alerts: this.getRecentAlerts(),
-      system_health: systemHealth
-    };
   }
 
   /**
@@ -370,21 +496,33 @@ export class AnalysisOrchestrator {
     // This would integrate with email, Slack, SMS, etc.
   }
 
+  /**
+   * Get recent alerts with safe error handling
+   * 
+   * Graceful degradation: Returns empty array when retrieval fails
+   * Requirements: 5.4
+   */
   private getRecentAlerts(): any[] {
-    // Get recent alerts from performance monitor
-    const recentMetrics = this.performanceMonitor.getRecentMetrics(60); // Last hour
-    return recentMetrics
-      .filter(m => 
-        (m.threshold_critical && m.value > m.threshold_critical) ||
-        (m.threshold_warning && m.value > m.threshold_warning)
-      )
-      .slice(0, 10) // Latest 10 alerts
-      .map(m => ({
-        type: m.value > (m.threshold_critical || Infinity) ? 'critical' : 'warning',
-        message: `${m.metric_name}: ${m.value} ${m.unit}`,
-        timestamp: m.timestamp,
-        endpoint: m.endpoint
-      }));
+    try {
+      // Get recent alerts from performance monitor
+      const recentMetrics = this.performanceMonitor.getRecentMetrics(60); // Last hour
+      return recentMetrics
+        .filter(m => 
+          (m.threshold_critical && m.value > m.threshold_critical) ||
+          (m.threshold_warning && m.value > m.threshold_warning)
+        )
+        .slice(0, 10) // Latest 10 alerts
+        .map(m => ({
+          type: m.value > (m.threshold_critical || Infinity) ? 'critical' : 'warning',
+          message: `${m.metric_name}: ${m.value} ${m.unit}`,
+          timestamp: m.timestamp,
+          endpoint: m.endpoint
+        }));
+    } catch (error) {
+      // Log warning instead of throwing (Requirement 5.4)
+      console.warn('Could not get recent alerts:', error instanceof Error ? error.message : 'Unknown error');
+      return [];
+    }
   }
 
   /**
