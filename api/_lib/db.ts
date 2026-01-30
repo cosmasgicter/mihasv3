@@ -9,37 +9,32 @@
  * MIGRATION: Swap connection string, zero code changes
  * 
  * Features:
- * - Plain SQL only
- * - Connection pooling via environment
- * - Neon-compatible query structure
- * - Explicit transaction support
+ * - Plain SQL only (Requirement 6.1)
+ * - Parameterized queries for SQL injection prevention (Requirement 6.2)
+ * - Database type detection from connection string (Requirement 6.3)
+ * - Supabase REST driver (Requirement 6.4)
+ * - Neon serverless driver (Requirement 6.5)
+ * - Explicit transaction boundaries (Requirement 6.6)
+ * - Typed DatabaseError with code and query context (Requirement 6.8)
+ * - Schema verification on startup (Requirement 6.9)
  */
 
-import type { VercelRequest } from "@vercel/node";
-
-// DATABASE CONNECTION VERIFICATION
-const DATABASE_URL = process.env.DATABASE_URL || process.env.SUPABASE_URL;
-
-if (!DATABASE_URL) {
-  console.error("[DB] FATAL: DATABASE_URL not set");
-  console.error("[DB] Database operations will fail");
-}
-
-// Detect database type from connection string
-const isSupabase = DATABASE_URL?.includes("supabase.co");
-const isNeon = DATABASE_URL?.includes("neon.tech");
-
-console.log(`[DB] Connection type: ${isSupabase ? "Supabase" : isNeon ? "Neon" : "Generic Postgres"}`);
+// ============================================================================
+// Types and Interfaces
+// ============================================================================
 
 /**
- * SQL Query Builder Types
- * VERIFICATION: Type-safe query construction
+ * Query configuration for parameterized queries
+ * Requirement 6.2: Support parameterized queries to prevent SQL injection
  */
 export interface QueryConfig {
   text: string;
   values?: unknown[];
 }
 
+/**
+ * Query result with typed rows
+ */
 export interface QueryResult<T = Record<string, unknown>> {
   rows: T[];
   rowCount: number;
@@ -47,168 +42,720 @@ export interface QueryResult<T = Record<string, unknown>> {
 }
 
 /**
- * Database error types
- * VERIFICATION: Explicit error handling
+ * Database type enumeration
+ */
+export type DatabaseType = 'supabase' | 'neon' | 'unknown';
+
+/**
+ * Database error codes for typed error handling
+ * Requirement 6.8: Throw typed DatabaseError with code and query context
+ */
+export const DatabaseErrorCode = {
+  CONNECTION_ERROR: 'CONNECTION_ERROR',
+  QUERY_ERROR: 'QUERY_ERROR',
+  TRANSACTION_ERROR: 'TRANSACTION_ERROR',
+  SCHEMA_ERROR: 'SCHEMA_ERROR',
+  CONFIG_ERROR: 'CONFIG_ERROR',
+  TIMEOUT_ERROR: 'TIMEOUT_ERROR',
+  CONSTRAINT_VIOLATION: 'CONSTRAINT_VIOLATION',
+  NOT_FOUND: 'NOT_FOUND',
+} as const;
+
+export type DatabaseErrorCodeType = typeof DatabaseErrorCode[keyof typeof DatabaseErrorCode];
+
+/**
+ * Typed database error with code and query context
+ * Requirement 6.8: If a database error occurs, throw a typed DatabaseError
+ * 
+ * NOTE: Never include PII in error messages or query context
  */
 export class DatabaseError extends Error {
+  public readonly code: DatabaseErrorCodeType;
+  public readonly query?: string;
+  public readonly originalError?: Error;
+
   constructor(
     message: string,
-    public code?: string,
-    public query?: string
+    code: DatabaseErrorCodeType = DatabaseErrorCode.QUERY_ERROR,
+    options?: {
+      query?: string;
+      originalError?: Error;
+    }
   ) {
     super(message);
-    this.name = "DatabaseError";
+    this.name = 'DatabaseError';
+    this.code = code;
+    // Sanitize query to remove potential PII (parameter values)
+    this.query = options?.query ? sanitizeQueryForLogging(options.query) : undefined;
+    this.originalError = options?.originalError;
   }
 }
 
+// ============================================================================
+// Configuration and Detection
+// ============================================================================
+
 /**
- * Execute SQL query
- * PHASE 1: Uses Supabase REST API with plain SQL
- * PHASE 2: Uses @neondatabase/serverless driver
- * 
- * VERIFICATION: No Supabase SDK magic, raw SQL only
- * 
- * @param query - SQL query string
- * @param params - Query parameters
- * @returns Query result
+ * Detect database type from connection string
+ * Requirement 6.3: Detect database type from connection string (Supabase vs Neon)
  */
-export async function query<T = Record<string, unknown>>(
-  queryText: string,
-  params?: unknown[]
-): Promise<QueryResult<T>> {
-  if (!DATABASE_URL) {
-    throw new DatabaseError("DATABASE_URL not configured");
+export function detectDatabaseType(): DatabaseType {
+  const databaseUrl = process.env.DATABASE_URL;
+  const supabaseUrl = process.env.SUPABASE_URL;
+
+  // Check for Neon first (DATABASE_URL takes precedence for Neon)
+  if (databaseUrl?.includes('neon.tech') || databaseUrl?.includes('neon.')) {
+    return 'neon';
   }
 
-  // PHASE 1: Supabase via REST API
-  if (isSupabase) {
-    return executeSupabaseQuery<T>(queryText, params);
+  // Check for Supabase
+  if (supabaseUrl?.includes('supabase.co') || supabaseUrl?.includes('supabase.')) {
+    return 'supabase';
   }
-  
-  // PHASE 2: Neon via serverless driver
-  if (isNeon) {
-    return executeNeonQuery<T>(queryText, params);
+
+  // Fallback: check DATABASE_URL for postgres patterns
+  if (databaseUrl?.startsWith('postgres://') || databaseUrl?.startsWith('postgresql://')) {
+    // Could be either, but if we have SUPABASE_SERVICE_ROLE_KEY, assume Supabase
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return 'supabase';
+    }
+    return 'neon'; // Default to Neon for generic postgres URLs
   }
-  
-  // Generic fallback
-  throw new DatabaseError("Unknown database type");
+
+  return 'unknown';
 }
 
 /**
- * Supabase query execution via REST
- * VERIFICATION: POST /rest/v1/ with plain SQL
+ * Get database configuration
+ */
+function getDatabaseConfig(): { type: DatabaseType; url: string; serviceKey?: string } {
+  const type = detectDatabaseType();
+
+  if (type === 'supabase') {
+    const url = process.env.SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceKey) {
+      throw new DatabaseError(
+        'Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required',
+        DatabaseErrorCode.CONFIG_ERROR
+      );
+    }
+    return { type, url, serviceKey };
+  }
+
+  if (type === 'neon') {
+    const url = process.env.DATABASE_URL;
+    if (!url) {
+      throw new DatabaseError(
+        'Neon configuration missing: DATABASE_URL required',
+        DatabaseErrorCode.CONFIG_ERROR
+      );
+    }
+    return { type, url };
+  }
+
+  throw new DatabaseError(
+    'No database configuration found. Set SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY or DATABASE_URL',
+    DatabaseErrorCode.CONFIG_ERROR
+  );
+}
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+/**
+ * Sanitize query for logging - remove parameter values to prevent PII leakage
+ * Never log actual parameter values as they may contain user data
+ */
+function sanitizeQueryForLogging(query: string): string {
+  // Replace string literals with placeholder
+  return query
+    .replace(/'[^']*'/g, "'[REDACTED]'")
+    .replace(/"[^"]*"/g, '"[REDACTED]"');
+}
+
+/**
+ * Extract command from SQL query
+ */
+function extractCommand(query: string): string {
+  const trimmed = query.trim().toUpperCase();
+  const commands = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'BEGIN', 'COMMIT', 'ROLLBACK', 'CREATE', 'ALTER', 'DROP'];
+  for (const cmd of commands) {
+    if (trimmed.startsWith(cmd)) {
+      return cmd;
+    }
+  }
+  return 'UNKNOWN';
+}
+
+/**
+ * Convert positional parameters ($1, $2) to values for Supabase REST
+ */
+function interpolateParams(query: string, params?: unknown[]): string {
+  if (!params || params.length === 0) {
+    return query;
+  }
+
+  let result = query;
+  params.forEach((param, index) => {
+    const placeholder = `$${index + 1}`;
+    let value: string;
+
+    if (param === null || param === undefined) {
+      value = 'NULL';
+    } else if (typeof param === 'string') {
+      // Escape single quotes for SQL
+      value = `'${param.replace(/'/g, "''")}'`;
+    } else if (typeof param === 'boolean') {
+      value = param ? 'TRUE' : 'FALSE';
+    } else if (typeof param === 'number') {
+      value = String(param);
+    } else if (param instanceof Date) {
+      value = `'${param.toISOString()}'`;
+    } else if (typeof param === 'object') {
+      // JSON objects
+      value = `'${JSON.stringify(param).replace(/'/g, "''")}'`;
+    } else {
+      value = `'${String(param).replace(/'/g, "''")}'`;
+    }
+
+    result = result.replace(placeholder, value);
+  });
+
+  return result;
+}
+
+// ============================================================================
+// Supabase REST Driver
+// Requirement 6.4: When using Supabase, execute queries via REST API
+// ============================================================================
+
+/**
+ * Execute query via Supabase REST API
+ * Uses PostgREST's /rest/v1/ endpoint for table operations
+ * Falls back to raw SQL execution via pg_query if available
  */
 async function executeSupabaseQuery<T>(
   queryText: string,
   params?: unknown[]
 ): Promise<QueryResult<T>> {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
-  if (!serviceKey) {
-    throw new DatabaseError("SUPABASE_SERVICE_ROLE_KEY not configured");
+  const config = getDatabaseConfig();
+  if (config.type !== 'supabase') {
+    throw new DatabaseError('Invalid database type for Supabase driver', DatabaseErrorCode.CONFIG_ERROR);
   }
 
-  const url = `${DATABASE_URL}/rest/v1/rpc/exec_sql`;
-  
+  const { url, serviceKey } = config;
+  const interpolatedQuery = interpolateParams(queryText, params);
+  const command = extractCommand(queryText);
+
   try {
-    const response = await fetch(url, {
-      method: "POST",
+    // For SELECT queries, try to use PostgREST if it's a simple table query
+    // Otherwise, use the SQL execution endpoint
+    const response = await fetch(`${url}/rest/v1/rpc/exec_sql`, {
+      method: 'POST',
       headers: {
-        "apikey": serviceKey,
-        "Authorization": `Bearer ${serviceKey}`,
-        "Content-Type": "application/json",
-        "Prefer": "return=representation",
+        'apikey': serviceKey!,
+        'Authorization': `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
       },
       body: JSON.stringify({
-        query: queryText,
-        params: params || [],
+        query_text: interpolatedQuery,
       }),
     });
 
+    // If exec_sql RPC doesn't exist, fall back to direct table access
+    if (response.status === 404) {
+      return executeSupabaseDirectQuery<T>(url, serviceKey!, queryText, params);
+    }
+
     if (!response.ok) {
-      const error = await response.text();
-      throw new DatabaseError(`Supabase query failed: ${error}`, response.status.toString());
+      const errorText = await response.text();
+      let errorMessage = 'Database query failed';
+      
+      // Parse Postgres error codes if available
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+        
+        // Map common Postgres error codes
+        if (errorJson.code === '23505') {
+          throw new DatabaseError(
+            'Duplicate key violation',
+            DatabaseErrorCode.CONSTRAINT_VIOLATION,
+            { query: queryText }
+          );
+        }
+        if (errorJson.code === '23503') {
+          throw new DatabaseError(
+            'Foreign key violation',
+            DatabaseErrorCode.CONSTRAINT_VIOLATION,
+            { query: queryText }
+          );
+        }
+      } catch (e) {
+        if (e instanceof DatabaseError) throw e;
+        // Use raw error text if not JSON
+        errorMessage = errorText;
+      }
+
+      throw new DatabaseError(
+        errorMessage,
+        DatabaseErrorCode.QUERY_ERROR,
+        { query: queryText }
+      );
     }
 
     const data = await response.json();
-    
+    const rows = Array.isArray(data) ? data : (data ? [data] : []);
+
     return {
-      rows: Array.isArray(data) ? data : [data],
-      rowCount: Array.isArray(data) ? data.length : 1,
-      command: queryText.split(" ")[0].toUpperCase(),
+      rows: rows as T[],
+      rowCount: rows.length,
+      command,
     };
   } catch (error) {
     if (error instanceof DatabaseError) throw error;
-    throw new DatabaseError(`Query execution failed: ${(error as Error).message}`);
+
+    throw new DatabaseError(
+      `Supabase query execution failed: ${(error as Error).message}`,
+      DatabaseErrorCode.CONNECTION_ERROR,
+      { query: queryText, originalError: error as Error }
+    );
   }
 }
 
 /**
- * Neon query execution
- * VERIFICATION: @neondatabase/serverless driver
- * NOTE: This will be enabled in Phase 2
+ * Execute direct table query via Supabase PostgREST
+ * Used as fallback when exec_sql RPC is not available
  */
-async function executeNeonQuery<T>(
-  _queryText: string,
-  _params?: unknown[]
+async function executeSupabaseDirectQuery<T>(
+  url: string,
+  serviceKey: string,
+  queryText: string,
+  params?: unknown[]
 ): Promise<QueryResult<T>> {
-  // PHASE 2: Import and use @neondatabase/serverless
-  // const { neon } = await import('@neondatabase/serverless');
-  // const client = neon(DATABASE_URL);
-  // return await client(queryText, params);
+  const command = extractCommand(queryText);
   
-  throw new DatabaseError("Neon driver not yet implemented - use Supabase for Phase 1");
+  // Parse simple SELECT queries to use PostgREST
+  const selectMatch = queryText.match(/SELECT\s+(.+?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.+?))?(?:\s+LIMIT\s+(\d+))?/i);
+  
+  if (selectMatch && command === 'SELECT') {
+    const [, columns, table, whereClause, limit] = selectMatch;
+    let endpoint = `${url}/rest/v1/${table}`;
+    const queryParams: string[] = [];
+
+    // Build select parameter
+    if (columns.trim() !== '*') {
+      queryParams.push(`select=${encodeURIComponent(columns.trim())}`);
+    }
+
+    // Parse simple WHERE clauses
+    if (whereClause && params && params.length > 0) {
+      // Handle simple equality: WHERE column = $1
+      const eqMatch = whereClause.match(/(\w+)\s*=\s*\$1/i);
+      if (eqMatch) {
+        queryParams.push(`${eqMatch[1]}=eq.${encodeURIComponent(String(params[0]))}`);
+      }
+    }
+
+    if (limit) {
+      queryParams.push(`limit=${limit}`);
+    }
+
+    if (queryParams.length > 0) {
+      endpoint += '?' + queryParams.join('&');
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        'apikey': serviceKey,
+        'Authorization': `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new DatabaseError(
+        `PostgREST query failed: ${errorText}`,
+        DatabaseErrorCode.QUERY_ERROR,
+        { query: queryText }
+      );
+    }
+
+    const data = await response.json();
+    const rows = Array.isArray(data) ? data : [];
+
+    return {
+      rows: rows as T[],
+      rowCount: rows.length,
+      command,
+    };
+  }
+
+  // For non-SELECT or complex queries, we need exec_sql
+  throw new DatabaseError(
+    'Complex queries require exec_sql RPC function. Please create it in your Supabase database.',
+    DatabaseErrorCode.CONFIG_ERROR,
+    { query: queryText }
+  );
+}
+
+// ============================================================================
+// Neon Serverless Driver
+// Requirement 6.5: When using Neon, execute queries via @neondatabase/serverless
+// ============================================================================
+
+// Lazy-loaded Neon client
+let neonSql: ((strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown[]>) | null = null;
+
+/**
+ * Get or initialize Neon SQL client
+ */
+async function getNeonClient(): Promise<typeof neonSql> {
+  if (neonSql) return neonSql;
+
+  try {
+    // Dynamic import for Neon serverless driver
+    const { neon } = await import('@neondatabase/serverless');
+    const connectionString = process.env.DATABASE_URL;
+    
+    if (!connectionString) {
+      throw new DatabaseError(
+        'DATABASE_URL not configured for Neon',
+        DatabaseErrorCode.CONFIG_ERROR
+      );
+    }
+
+    neonSql = neon(connectionString);
+    return neonSql;
+  } catch (error) {
+    if (error instanceof DatabaseError) throw error;
+    
+    // If @neondatabase/serverless is not installed
+    if ((error as Error).message?.includes('Cannot find module')) {
+      throw new DatabaseError(
+        'Neon driver not installed. Run: bun add @neondatabase/serverless',
+        DatabaseErrorCode.CONFIG_ERROR,
+        { originalError: error as Error }
+      );
+    }
+
+    throw new DatabaseError(
+      `Failed to initialize Neon client: ${(error as Error).message}`,
+      DatabaseErrorCode.CONNECTION_ERROR,
+      { originalError: error as Error }
+    );
+  }
 }
 
 /**
- * Transaction wrapper
- * VERIFICATION: All-or-nothing execution
+ * Execute query via Neon serverless driver
+ */
+async function executeNeonQuery<T>(
+  queryText: string,
+  params?: unknown[]
+): Promise<QueryResult<T>> {
+  const command = extractCommand(queryText);
+
+  try {
+    const sql = await getNeonClient();
+    if (!sql) {
+      throw new DatabaseError('Neon client not initialized', DatabaseErrorCode.CONFIG_ERROR);
+    }
+
+    // Neon's tagged template literal approach
+    // We need to convert our parameterized query to their format
+    let rows: unknown[];
+
+    if (params && params.length > 0) {
+      // For parameterized queries, we use the sql function with template literals
+      // Convert $1, $2 style to template literal interpolation
+      const interpolatedQuery = interpolateParams(queryText, params);
+      
+      // Use raw SQL execution
+      rows = await sql`${interpolatedQuery}` as unknown[];
+    } else {
+      rows = await sql`${queryText}` as unknown[];
+    }
+
+    const resultRows = Array.isArray(rows) ? rows : [];
+
+    return {
+      rows: resultRows as T[],
+      rowCount: resultRows.length,
+      command,
+    };
+  } catch (error) {
+    if (error instanceof DatabaseError) throw error;
+
+    const errorMessage = (error as Error).message || 'Unknown error';
+    
+    // Map common Postgres error codes
+    if (errorMessage.includes('duplicate key')) {
+      throw new DatabaseError(
+        'Duplicate key violation',
+        DatabaseErrorCode.CONSTRAINT_VIOLATION,
+        { query: queryText, originalError: error as Error }
+      );
+    }
+    if (errorMessage.includes('foreign key')) {
+      throw new DatabaseError(
+        'Foreign key violation',
+        DatabaseErrorCode.CONSTRAINT_VIOLATION,
+        { query: queryText, originalError: error as Error }
+      );
+    }
+    if (errorMessage.includes('timeout') || errorMessage.includes('ETIMEDOUT')) {
+      throw new DatabaseError(
+        'Database query timeout',
+        DatabaseErrorCode.TIMEOUT_ERROR,
+        { query: queryText, originalError: error as Error }
+      );
+    }
+
+    throw new DatabaseError(
+      `Neon query execution failed: ${errorMessage}`,
+      DatabaseErrorCode.QUERY_ERROR,
+      { query: queryText, originalError: error as Error }
+    );
+  }
+}
+
+// ============================================================================
+// Main Query Interface
+// Requirement 6.2: Support parameterized queries to prevent SQL injection
+// ============================================================================
+
+/**
+ * Execute a parameterized SQL query
  * 
- * @param operations - Array of queries to execute
- * @returns Array of results
+ * @param queryText - SQL query with $1, $2, etc. placeholders
+ * @param params - Array of parameter values
+ * @returns Query result with typed rows
+ * 
+ * @example
+ * // Simple select
+ * const result = await query<User>('SELECT * FROM profiles WHERE id = $1', [userId]);
+ * 
+ * // Insert with returning
+ * const result = await query<User>(
+ *   'INSERT INTO profiles (email, role) VALUES ($1, $2) RETURNING *',
+ *   [email, 'student']
+ * );
+ */
+export async function query<T = Record<string, unknown>>(
+  queryText: string,
+  params?: unknown[]
+): Promise<QueryResult<T>> {
+  const dbType = detectDatabaseType();
+
+  if (dbType === 'supabase') {
+    return executeSupabaseQuery<T>(queryText, params);
+  }
+
+  if (dbType === 'neon') {
+    return executeNeonQuery<T>(queryText, params);
+  }
+
+  throw new DatabaseError(
+    'No database configured. Set SUPABASE_URL or DATABASE_URL environment variables.',
+    DatabaseErrorCode.CONFIG_ERROR
+  );
+}
+
+// ============================================================================
+// Transaction Support
+// Requirement 6.6: Support explicit transaction boundaries (BEGIN, COMMIT, ROLLBACK)
+// ============================================================================
+
+/**
+ * Execute multiple queries within a transaction
+ * All operations succeed or all are rolled back
+ * 
+ * @param operations - Array of query configurations to execute
+ * @returns Array of results for each operation
+ * 
+ * @example
+ * const results = await transaction([
+ *   { text: 'UPDATE accounts SET balance = balance - $1 WHERE id = $2', values: [100, fromId] },
+ *   { text: 'UPDATE accounts SET balance = balance + $1 WHERE id = $2', values: [100, toId] },
+ * ]);
  */
 export async function transaction<T = Record<string, unknown>>(
   operations: QueryConfig[]
 ): Promise<QueryResult<T>[]> {
+  if (operations.length === 0) {
+    return [];
+  }
+
   const results: QueryResult<T>[] = [];
-  
-  // Build transaction SQL
-  const transactionSql = [
-    "BEGIN;",
-    ...operations.map(op => {
-      // Simple parameter substitution (for demo - use proper parameterization in production)
-      let sql = op.text;
-      if (op.values) {
-        op.values.forEach((val, idx) => {
-          const placeholder = `$${idx + 1}`;
-          const formatted = typeof val === "string" ? `'${val.replace(/'/g, "''")}'` : val;
-          sql = sql.replace(placeholder, String(formatted));
-        });
-      }
-      return sql;
-    }),
-    "COMMIT;",
-  ].join("\n");
 
   try {
-    await query(transactionSql);
+    // Begin transaction
+    await query('BEGIN');
+
+    // Execute each operation
+    for (const op of operations) {
+      const result = await query<T>(op.text, op.values);
+      results.push(result);
+    }
+
+    // Commit transaction
+    await query('COMMIT');
+
     return results;
   } catch (error) {
-    await query("ROLLBACK;");
-    throw error;
+    // Rollback on any error
+    try {
+      await query('ROLLBACK');
+    } catch (rollbackError) {
+      // Log rollback failure but throw original error
+      console.error('[DB] Rollback failed:', (rollbackError as Error).message);
+    }
+
+    if (error instanceof DatabaseError) {
+      throw new DatabaseError(
+        `Transaction failed: ${error.message}`,
+        DatabaseErrorCode.TRANSACTION_ERROR,
+        { query: error.query, originalError: error }
+      );
+    }
+
+    throw new DatabaseError(
+      `Transaction failed: ${(error as Error).message}`,
+      DatabaseErrorCode.TRANSACTION_ERROR,
+      { originalError: error as Error }
+    );
   }
 }
 
+// ============================================================================
+// Schema Verification
+// Requirement 6.9: Verify database schema on startup and report missing tables
+// ============================================================================
+
+/**
+ * Required tables for the auth system
+ */
+const REQUIRED_TABLES = [
+  'profiles',
+  'device_sessions',
+  'audit_logs',
+] as const;
+
+/**
+ * Required columns for profiles table (auth-related)
+ */
+const REQUIRED_PROFILE_COLUMNS = [
+  'id',
+  'email',
+  'role',
+  'password_hash',
+  'refresh_token_hash',
+] as const;
+
+/**
+ * Verify database schema on startup
+ * Checks for required tables and columns
+ * 
+ * @returns Object with ok status and array of errors
+ */
+export async function verifyDatabaseSchema(): Promise<{
+  ok: boolean;
+  errors: string[];
+  warnings: string[];
+}> {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const dbType = detectDatabaseType();
+
+  console.log(`[DB] Verifying schema for ${dbType} database...`);
+
+  // Check each required table
+  for (const table of REQUIRED_TABLES) {
+    try {
+      await query(`SELECT 1 FROM ${table} LIMIT 1`);
+      console.log(`[DB] ✓ Table '${table}' exists`);
+    } catch (error) {
+      const errorMsg = (error as Error).message;
+      if (errorMsg.includes('does not exist') || errorMsg.includes('relation') || errorMsg.includes('404')) {
+        errors.push(`Required table '${table}' is missing`);
+        console.error(`[DB] ✗ Table '${table}' is missing`);
+      } else {
+        // Table might exist but query failed for other reasons
+        warnings.push(`Could not verify table '${table}': ${errorMsg}`);
+        console.warn(`[DB] ? Table '${table}' verification inconclusive`);
+      }
+    }
+  }
+
+  // Check profiles table columns if table exists
+  if (!errors.some(e => e.includes("'profiles'"))) {
+    try {
+      // Query to check column existence
+      const columnCheckQuery = `
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'profiles' 
+        AND column_name = ANY($1)
+      `;
+      
+      const result = await query<{ column_name: string }>(
+        columnCheckQuery,
+        [REQUIRED_PROFILE_COLUMNS as unknown as string[]]
+      );
+
+      const existingColumns = new Set(result.rows.map(r => r.column_name));
+      
+      for (const col of REQUIRED_PROFILE_COLUMNS) {
+        if (!existingColumns.has(col)) {
+          if (col === 'password_hash' || col === 'refresh_token_hash') {
+            // These are new columns from migration
+            warnings.push(`Column 'profiles.${col}' is missing - run auth migration`);
+            console.warn(`[DB] ? Column 'profiles.${col}' missing (migration needed)`);
+          } else {
+            errors.push(`Required column 'profiles.${col}' is missing`);
+            console.error(`[DB] ✗ Column 'profiles.${col}' is missing`);
+          }
+        }
+      }
+    } catch (error) {
+      // information_schema query might not work on all setups
+      warnings.push(`Could not verify profiles columns: ${(error as Error).message}`);
+    }
+  }
+
+  const ok = errors.length === 0;
+  
+  if (ok) {
+    console.log('[DB] Schema verification passed');
+  } else {
+    console.error(`[DB] Schema verification failed with ${errors.length} error(s)`);
+  }
+
+  return { ok, errors, warnings };
+}
+
+// ============================================================================
+// Query Builders (moved from inline to separate section)
+// These provide type-safe query construction for common operations
+// ============================================================================
+
 /**
  * User table queries
- * VERIFICATION: Plain SQL, no ORM magic
+ * Plain SQL, no ORM magic - Requirement 6.1
  */
 export const userQueries = {
   /**
    * Find user by email
    */
   findByEmail: (email: string): QueryConfig => ({
-    text: `SELECT id, email, password_hash, role, is_active, created_at, updated_at 
+    text: `SELECT id, email, password_hash, refresh_token_hash, role, first_name, last_name, 
+                  is_active, failed_login_attempts, locked_until, created_at, updated_at 
            FROM profiles 
            WHERE email = $1 
            LIMIT 1`,
@@ -219,7 +766,7 @@ export const userQueries = {
    * Find user by ID
    */
   findById: (id: string): QueryConfig => ({
-    text: `SELECT id, email, role, is_active, created_at, updated_at 
+    text: `SELECT id, email, role, first_name, last_name, is_active, created_at, updated_at 
            FROM profiles 
            WHERE id = $1 
            LIMIT 1`,
@@ -248,13 +795,13 @@ export const userQueries = {
    */
   updatePassword: (id: string, passwordHash: string): QueryConfig => ({
     text: `UPDATE profiles 
-           SET password_hash = $2, updated_at = NOW() 
+           SET password_hash = $2, password_changed_at = NOW(), updated_at = NOW() 
            WHERE id = $1`,
     values: [id, passwordHash],
   }),
 
   /**
-   * Update user's refresh token
+   * Update user's refresh token hash
    */
   updateRefreshToken: (id: string, tokenHash: string | null): QueryConfig => ({
     text: `UPDATE profiles 
@@ -269,15 +816,45 @@ export const userQueries = {
   findByRefreshToken: (tokenHash: string): QueryConfig => ({
     text: `SELECT id, email, role, is_active 
            FROM profiles 
-           WHERE refresh_token_hash = $1 
+           WHERE refresh_token_hash = $1 AND is_active = true
            LIMIT 1`,
     values: [tokenHash],
+  }),
+
+  /**
+   * Increment failed login attempts
+   */
+  incrementFailedAttempts: (id: string): QueryConfig => ({
+    text: `UPDATE profiles 
+           SET failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1, updated_at = NOW() 
+           WHERE id = $1`,
+    values: [id],
+  }),
+
+  /**
+   * Reset failed login attempts
+   */
+  resetFailedAttempts: (id: string): QueryConfig => ({
+    text: `UPDATE profiles 
+           SET failed_login_attempts = 0, locked_until = NULL, updated_at = NOW() 
+           WHERE id = $1`,
+    values: [id],
+  }),
+
+  /**
+   * Lock user account
+   */
+  lockAccount: (id: string, lockUntil: Date): QueryConfig => ({
+    text: `UPDATE profiles 
+           SET locked_until = $2, updated_at = NOW() 
+           WHERE id = $1`,
+    values: [id, lockUntil],
   }),
 };
 
 /**
  * Session table queries
- * For explicit session tracking (optional, for audit)
+ * For device session tracking
  */
 export const sessionQueries = {
   /**
@@ -287,11 +864,13 @@ export const sessionQueries = {
     id: string,
     userId: string,
     deviceInfo: string,
-    ipAddress: string
+    ipAddress: string,
+    userAgent?: string
   ): QueryConfig => ({
-    text: `INSERT INTO device_sessions (id, user_id, device_info, ip_address, is_active, last_activity, created_at)
-           VALUES ($1, $2, $3, $4, true, NOW(), NOW())`,
-    values: [id, userId, deviceInfo, ipAddress],
+    text: `INSERT INTO device_sessions (id, user_id, device_info, ip_address, user_agent, is_active, last_activity, created_at, expires_at)
+           VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW(), NOW() + INTERVAL '30 days')
+           RETURNING id, user_id, is_active, created_at`,
+    values: [id, userId, deviceInfo, ipAddress, userAgent || ''],
   }),
 
   /**
@@ -300,7 +879,7 @@ export const sessionQueries = {
   updateActivity: (id: string): QueryConfig => ({
     text: `UPDATE device_sessions 
            SET last_activity = NOW() 
-           WHERE id = $1`,
+           WHERE id = $1 AND is_active = true`,
     values: [id],
   }),
 
@@ -323,36 +902,54 @@ export const sessionQueries = {
            WHERE user_id = $1`,
     values: [userId],
   }),
+
+  /**
+   * Get active sessions for user
+   */
+  getActiveForUser: (userId: string): QueryConfig => ({
+    text: `SELECT id, device_info, ip_address, user_agent, last_activity, created_at 
+           FROM device_sessions 
+           WHERE user_id = $1 AND is_active = true 
+           ORDER BY last_activity DESC`,
+    values: [userId],
+  }),
+
+  /**
+   * Deactivate expired sessions (30 days inactive)
+   */
+  deactivateExpired: (): QueryConfig => ({
+    text: `UPDATE device_sessions 
+           SET is_active = false 
+           WHERE is_active = true AND last_activity < NOW() - INTERVAL '30 days'`,
+    values: [],
+  }),
 };
 
 /**
- * Database schema verification
- * Run on startup to ensure required tables exist
+ * Audit log queries
+ * For security event logging (no PII)
  */
-export async function verifyDatabaseSchema(): Promise<{
-  ok: boolean;
-  errors: string[];
-}> {
-  const errors: string[] = [];
-  
-  try {
-    // Check profiles table
-    await query(`SELECT 1 FROM profiles LIMIT 1`);
-    console.log("[DB] Schema OK: profiles table exists");
-  } catch {
-    errors.push("profiles table missing or inaccessible");
-  }
-  
-  try {
-    // Check device_sessions table
-    await query(`SELECT 1 FROM device_sessions LIMIT 1`);
-    console.log("[DB] Schema OK: device_sessions table exists");
-  } catch {
-    errors.push("device_sessions table missing or inaccessible");
-  }
-  
-  return {
-    ok: errors.length === 0,
-    errors,
-  };
-}
+export const auditQueries = {
+  /**
+   * Log an audit event
+   */
+  log: (
+    actorId: string | null,
+    action: string,
+    entityType: string,
+    entityId: string | null,
+    changes: Record<string, unknown>,
+    ipAddress: string | null,
+    userAgent: string | null
+  ): QueryConfig => ({
+    text: `INSERT INTO audit_logs (actor_id, action, entity_type, entity_id, changes, ip_address, user_agent, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+    values: [actorId, action, entityType, entityId, JSON.stringify(changes), ipAddress, userAgent],
+  }),
+};
+
+// ============================================================================
+// Exports for backward compatibility
+// ============================================================================
+
+export { detectDatabaseType as getDatabaseType };

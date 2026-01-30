@@ -22,7 +22,14 @@ Live production admissions platform for Mukuba Institute of Health and Allied Sc
 |------|-------------|
 | Student | Apply, upload documents, track status, pay, schedule interviews |
 | Admin | Review applications, verify eligibility, approve/reject (simplified) |
+| Reviewer | Review applications, view documents (read-only) |
 | Super Admin | Full access + user management, system config, audit logs |
+
+### Role Permissions (Embedded in JWT, No DB Lookup)
+- **super_admin**: Full CRUD on users, applications, programs, payments, documents, analytics, settings
+- **admin**: Read users, manage applications, verify payments/documents, view analytics
+- **reviewer**: Read/review applications, read documents only
+- **student**: Own applications, documents, payments, profile only
 
 ## Simplified Admin (Migration)
 
@@ -74,8 +81,9 @@ The admin interface has been simplified:
 
 | Service | Failure Handling |
 |---------|------------------|
-| Supabase (auth, DB, storage) | Critical—no fallback |
+| Postgres (Supabase/Neon) | Critical—no fallback |
 | Vercel (hosting, serverless) | Infrastructure layer |
+| Arcjet (security) | Fail secure—block on unavailable |
 | Resend (email) | Queue with retry |
 | HPCZ/GNC/NMCZ/ECZ (eligibility) | Advisory only, never blocking |
 
@@ -85,7 +93,8 @@ The admin interface has been simplified:
 |---------|--------|
 | Cloudflare Pages | REMOVED - Migrated to Vercel |
 | Cloudflare AI | REMOVED - AI features deleted |
-| Supabase Realtime | REMOVED - Replaced with polling |
+| Supabase Realtime | REMOVED - Replaced with Bun-native SSE/polling |
+| Supabase Auth SDK | REMOVED - Replaced with custom JWT auth |
 | Twilio (SMS/WhatsApp) | REMOVED - Simplification |
 | Sentry | REMOVED - Analytics deleted |
 | Umami | REMOVED - Analytics deleted |
@@ -101,4 +110,7 @@ When modifying code, verify:
 - [ ] Audit trails for state changes (no PII in logs)
 - [ ] Using Bun commands (not npm)
 - [ ] API endpoints in `api/` directory (not `functions/`)
-- [ ] React Query polling for real-time data (not Supabase Realtime)
+- [ ] SSE/polling for real-time data (not Supabase Realtime)
+- [ ] Arcjet protection on sensitive routes
+- [ ] HTTP-only cookies for auth tokens (not localStorage)
+- [ ] Deterministic RBAC from JWT (no DB lookup for permissions)

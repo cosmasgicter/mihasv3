@@ -15,9 +15,11 @@ inclusion: always
 | Styling | Tailwind CSS | Custom design tokens in `tailwind.config.js` |
 | Components | Radix UI | Accessible primitives—prefer over custom implementations |
 | Forms | React Hook Form + Zod | All forms must have Zod schemas |
-| State | Zustand (client), React Query (server) | No Redux, polling for real-time |
+| State | Zustand (client), React Query (server) | No Redux, SSE/polling for real-time |
 | Routing | React Router v6 | Lazy-load all page components |
-| Backend | Supabase + Vercel Functions | 8 consolidated API endpoints in `api/` |
+| Backend | Vercel Functions + DB Abstraction | Custom Bun-native auth, Supabase/Neon Postgres |
+| Security | Arcjet | Shield rules, bot detection, rate limiting |
+| Auth | Custom JWT (jose) | HTTP-only cookies, bcrypt passwords |
 | Email | Resend | Queue with retry on failure |
 | OCR | tesseract.js | Only AI feature retained |
 
@@ -59,19 +61,32 @@ inclusion: always
 
 ```
 api/
-├── _lib/              # Shared utilities (auth, db, cors, validation)
+├── _lib/              # Shared utilities
+│   ├── arcjet.ts      # Arcjet security perimeter (shield, bot, rate limits)
+│   ├── auth.ts        # Auth middleware (getAuthUser, requireAuth, requireRole)
+│   ├── auth/          # Auth components
+│   │   ├── password.ts   # bcrypt hashing (12 rounds)
+│   │   ├── jwt.ts        # JWT manager (jose, HS256)
+│   │   ├── cookies.ts    # HTTP-only cookie manager
+│   │   ├── middleware.ts # Auth middleware
+│   │   ├── permissions.ts # RBAC (deterministic, no DB lookup)
+│   │   └── legacy.ts     # Supabase token migration support
 │   ├── cors.ts        # CORS handler for Vercel
-│   ├── supabaseClient.ts
-│   ├── errorHandler.ts
-│   └── rateLimiter.ts
-├── admin.ts           # ?action=dashboard|users
-├── applications.ts    # ?action=details|documents|grades|summary|review or ?id=xxx
-├── auth.ts            # ?action=login|signin|register|signup|session
+│   ├── db.ts          # Database abstraction (Supabase REST / Neon serverless)
+│   ├── queries.ts     # Typed query builders
+│   ├── errorHandler.ts # Sanitized error responses
+│   ├── auditLogger.ts # Audit logging (no PII)
+│   ├── realtime.ts    # SSE + polling fallback
+│   └── sessions.ts    # Device session manager
+├── admin.ts           # ?action=dashboard|users|settings (Arcjet: 20/10min)
+├── applications.ts    # ?action=details|documents|grades|summary|review
+├── auth.ts            # ?action=login|logout|refresh|session|register (Arcjet: 5/5min)
 ├── catalog.ts         # ?type=programs|intakes|subjects
 ├── documents.ts       # ?action=upload|extract
-├── notifications.ts   # ?action=preferences|send
+├── notifications.ts   # ?action=preferences|send (Arcjet: 50/10min)
 ├── payments.ts        # ?action=receipt
-└── sessions.ts        # ?action=track
+├── realtime.ts        # ?action=connect|poll (SSE/polling)
+└── sessions.ts        # ?action=track|list|revoke|revoke-all (Arcjet: 30/10min)
 ```
 
 ### Vercel Function Pattern (Query Parameter Routing)
@@ -108,10 +123,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 - Use query parameters for action routing (`?action=xxx`)
 - Use `process.env` for environment variables (not `context.env`)
 - Always import shared utilities from `_lib/`
-- Return consistent JSON: `{ success: boolean, data?: any, error?: string }`
+- Return consistent JSON: `{ success: boolean, data?: any, error?: string, code?: string }`
 - Handle errors gracefully—never expose stack traces
 - Log errors but never log PII
 - Add new functionality as cases in existing consolidated endpoints
+
+### Security Conventions (Arcjet + Custom Auth)
+- Wrap all sensitive routes with `withArcjetProtection()` before handler logic
+- Use `requireAuth()` middleware for authenticated routes
+- Use `requireRole(['admin', 'super_admin'])` for admin-only routes
+- Store tokens in HTTP-only cookies (not localStorage)
+- Use separate secrets: `JWT_SECRET` (access), `JWT_REFRESH_SECRET` (refresh)
+- Return 403 with code `SECURITY_VIOLATION` for Arcjet blocks
+- Return 401 without revealing email/password specificity on login failure
+- Rotate refresh tokens on every use (replay attack prevention)
 
 ## Build & Deployment
 
@@ -128,10 +153,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 ### Environment Variables
 Required in Vercel dashboard and `.env`:
 ```
-VITE_SUPABASE_URL=https://[project].supabase.co
-VITE_SUPABASE_ANON_KEY=[anon-key]
+# Database (Supabase or Neon)
 SUPABASE_URL=https://[project].supabase.co
 SUPABASE_SERVICE_ROLE_KEY=[service-key]
+# OR for Neon migration:
+# DATABASE_URL=postgres://[user]:[pass]@[host]/[db]?sslmode=require
+
+# Frontend (Vite)
+VITE_SUPABASE_URL=https://[project].supabase.co
+VITE_SUPABASE_ANON_KEY=[anon-key]
+
+# Custom Auth (NEW - required)
+JWT_SECRET=[32+ char secret for access tokens]
+JWT_REFRESH_SECRET=[32+ char secret for refresh tokens]
+
+# Security (NEW - required)
+ARCJET_KEY=[arcjet-api-key]
+
+# Email
 RESEND_API_KEY=[resend-key]
 EMAIL_FROM=noreply@mihas.edu.zm
 ```
@@ -141,6 +180,7 @@ EMAIL_FROM=noreply@mihas.edu.zm
 - `VITE_ANALYTICS_*` - Analytics removed
 - `VITE_SENTRY_DSN` - Sentry removed
 - `CLOUDFLARE_AI_*` - AI features removed
+- Supabase Auth SDK dependencies - Replaced with custom JWT auth
 
 ### Build Optimizations (Already Configured)
 - Manual code splitting for vendor chunks (React, Supabase, forms)
@@ -170,12 +210,16 @@ EMAIL_FROM=noreply@mihas.edu.zm
 
 | Use Case | Library | Notes |
 |----------|---------|-------|
+| JWT tokens | jose | Bun-native, HS256 signing |
+| Password hashing | bcrypt | 12 rounds minimum |
+| Security perimeter | @arcjet/node | Shield, bot detection, rate limiting |
+| Database (Neon) | @neondatabase/serverless | For Neon migration |
 | PDF generation | jspdf, pdf-lib | Server-side preferred |
 | Excel export | xlsx, exceljs | Use exceljs for styling |
 | File uploads | react-dropzone | With validation |
 | Charts | recharts | Lazy-load chart components |
 | OCR | tesseract.js | Web worker for performance—ONLY AI feature |
-| Real-time | React Query polling | 30-second intervals, replaces Supabase Realtime |
+| Real-time | SSE + polling | Bun-native, replaces Supabase Realtime |
 
 ## Configuration Files
 
@@ -196,6 +240,34 @@ EMAIL_FROM=noreply@mihas.edu.zm
 | `.cfignore` | Cloudflare-specific |
 | `functions/` directory | Fully migrated to `api/` (174 files, 26K lines removed) |
 | `api/*/` subdirectories | Consolidated into single-file endpoints |
-| Supabase Realtime | Replaced with polling |
+| Supabase Realtime | Replaced with Bun-native SSE/polling |
+| Supabase Auth SDK | Replaced with custom JWT auth (jose + bcrypt) |
 | Sentry | Error monitoring removed |
 | Umami | Analytics removed |
+
+## Auth System Architecture
+
+### Token Flow
+```
+Login → Generate Access (15min) + Refresh (7d) → HTTP-only Cookies
+     ↓
+API Request → Extract from Cookie/Bearer → Verify JWT → AuthContext
+     ↓
+Token Expired → Auto-refresh via /api/auth?action=refresh → Rotate both tokens
+```
+
+### Role-Based Access Control
+| Role | Permissions (deterministic, no DB lookup) |
+|------|------------------------------------------|
+| super_admin | Full access: users, applications, programs, payments, documents, analytics, settings |
+| admin | Read users, manage applications, verify payments/documents, view analytics |
+| reviewer | Read/review applications, read documents |
+| student | Own applications, documents, payments, profile only |
+
+### Arcjet Rate Limits
+| Route | Limit | Window |
+|-------|-------|--------|
+| /api/auth/* | 5 requests | 5 minutes |
+| /api/sessions/* | 30 requests | 10 minutes |
+| /api/admin/* | 20 requests | 10 minutes |
+| /api/notifications/* | 50 requests | 10 minutes |

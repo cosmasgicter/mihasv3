@@ -94,46 +94,69 @@ Choose based on data type:
 **Consolidated Structure** (Vercel Hobby plan limit: 12 functions):
 ```
 api/
-├── _lib/              # Shared utilities (cors, auth, db, validation)
-│   ├── cors.ts
-│   ├── supabaseClient.ts
-│   ├── errorHandler.ts
-│   └── rateLimiter.ts
-├── admin.ts           # ?action=dashboard|users
+├── _lib/              # Shared utilities
+│   ├── arcjet.ts         # Security perimeter (shield, bot, rate limits)
+│   ├── auth.ts           # Auth middleware exports
+│   ├── auth/             # Auth components
+│   │   ├── password.ts   # bcrypt hashing
+│   │   ├── jwt.ts        # JWT manager (jose)
+│   │   ├── cookies.ts    # HTTP-only cookies
+│   │   ├── middleware.ts # getAuthUser, requireAuth, requireRole
+│   │   ├── permissions.ts # RBAC (deterministic)
+│   │   └── legacy.ts     # Supabase migration support
+│   ├── cors.ts           # CORS handler
+│   ├── db.ts             # Database abstraction (Supabase/Neon)
+│   ├── queries.ts        # Typed query builders
+│   ├── errorHandler.ts   # Sanitized errors
+│   ├── auditLogger.ts    # Audit logging
+│   ├── realtime.ts       # SSE + polling
+│   └── sessions.ts       # Device session manager
+├── admin.ts           # ?action=dashboard|users|settings
 ├── applications.ts    # ?action=details|documents|grades|summary|review or ?id=xxx
-├── auth.ts            # ?action=login|signin|register|signup|session
+├── auth.ts            # ?action=login|logout|refresh|session|register
 ├── catalog.ts         # ?type=programs|intakes|subjects
 ├── documents.ts       # ?action=upload|extract
 ├── notifications.ts   # ?action=preferences|send
 ├── payments.ts        # ?action=receipt
-└── sessions.ts        # ?action=track
+├── realtime.ts        # ?action=connect|poll
+└── sessions.ts        # ?action=track|list|revoke|revoke-all
 ```
 
-**Pattern** (query parameter routing):
+**Pattern** (query parameter routing with Arcjet protection):
 ```typescript
 // api/{feature}.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from './_lib/cors';
+import { withArcjetProtection } from './_lib/arcjet';
+import { requireAuth, requireRole } from './_lib/auth';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
   
   const action = req.query.action as string;
   
   switch (action) {
     case 'action1':
-      // Handle action1
+      // Public action
       break;
-    case 'action2':
-      // Handle action2
+    case 'protected':
+      const user = await requireAuth(req);
+      // Authenticated action
+      break;
+    case 'admin-only':
+      const admin = await requireRole(req, ['admin', 'super_admin']);
+      // Admin action
       break;
     default:
       return res.status(400).json({ success: false, error: 'Invalid action' });
   }
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, 'general');
 ```
 
-**Adding new functionality**: Add a new `case` to the appropriate consolidated endpoint's switch statement.
+**Adding new functionality**: Add a new `case` to the appropriate consolidated endpoint's switch statement. Wrap with appropriate auth middleware.
 
 ## Removed Directories (Migration Complete)
 
