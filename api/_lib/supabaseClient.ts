@@ -61,10 +61,20 @@ export function getSupabaseAnon(): SupabaseClient {
   return _supabaseAnon;
 }
 
-// Legacy exports for backward compatibility
+// Legacy exports for backward compatibility - proxy to lazy-loaded clients
 export const supabaseAdmin = {
   from: (table: string) => getSupabaseAdmin().from(table),
-  auth: { admin: { getUserById: (id: string) => getSupabaseAdmin().auth.admin.getUserById(id) } },
+  auth: {
+    signInWithPassword: (credentials: { email: string; password: string }) => 
+      getSupabaseAdmin().auth.signInWithPassword(credentials),
+    signUp: (credentials: { email: string; password: string; options?: object }) => 
+      getSupabaseAdmin().auth.signUp(credentials),
+    admin: {
+      getUserById: (id: string) => getSupabaseAdmin().auth.admin.getUserById(id),
+      createUser: (params: object) => getSupabaseAdmin().auth.admin.createUser(params),
+      deleteUser: (id: string) => getSupabaseAdmin().auth.admin.deleteUser(id),
+    },
+  },
   storage: { from: (bucket: string) => getSupabaseAdmin().storage.from(bucket) },
   rpc: (fn: string, params?: object) => getSupabaseAdmin().rpc(fn, params),
 };
