@@ -1,6 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from './_lib/cors';
-import { decodeBase64Url } from './_lib/base64';
 
 /**
  * Auth Roles API - CRITICAL: This endpoint must NEVER return 500
@@ -12,10 +10,16 @@ import { decodeBase64Url } from './_lib/base64';
  * - NEVER throws, NEVER 500s
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Set JSON content type for all responses
+  // Set JSON content type and CORS headers for all responses
   res.setHeader('Content-Type', 'application/json');
-  
-  if (handleCors(req, res)) return;
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle OPTIONS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
 
   // Handle HEAD requests for health checks
   if (req.method === 'HEAD') {
@@ -51,7 +55,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Decode JWT payload (no verification - just extract claims)
-    // This is safe because we're only reading, not trusting for sensitive ops
     const parts = token.split('.');
     if (parts.length !== 3) {
       return res.status(401).json({ 
@@ -63,7 +66,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let payload: any;
     try {
-      const payloadJson = decodeBase64Url(parts[1]);
+      // Inline base64url decode to avoid import issues
+      let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const padding = base64.length % 4;
+      if (padding) {
+        base64 += '='.repeat(4 - padding);
+      }
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const payloadJson = new TextDecoder().decode(bytes);
       payload = JSON.parse(payloadJson);
     } catch {
       return res.status(401).json({ 
