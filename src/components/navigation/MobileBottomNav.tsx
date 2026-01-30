@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Home, FileText, Bell, User, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch, TrendingUp } from 'lucide-react'
+import { Home, FileText, Bell, User, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, FileSearch, TrendingUp } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
@@ -38,7 +38,6 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
       title: 'Insights',
       links: [
         { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
-        { to: '/admin/ai-insights', icon: Brain, label: 'AI Insights' },
         { to: '/admin/audit', icon: FileSearch, label: 'Audit' },
       ]
     },

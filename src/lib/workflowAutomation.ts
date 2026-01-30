@@ -1,6 +1,5 @@
 import { supabase } from './supabase'
 import { multiChannelNotifications } from './multiChannelNotifications'
-import { predictiveAnalytics } from './predictiveAnalytics'
 import { sessionManager } from './session'
 import { sanitizeForLog, secureErrorHandler } from './securityEnhancements'
 import { SecureCodeExecution } from './securityPatches'
@@ -342,14 +341,8 @@ export class WorkflowAutomationEngine {
 
       switch (key) {
         case 'admissionProbability':
-          try {
-            const prediction = await predictiveAnalytics.predictAdmissionSuccess(application)
-            value = prediction.admissionProbability
-          } catch (error) {
-            const sanitizedError = sanitizeForLog(error instanceof Error ? error.message : 'Unknown error')
-            console.error('Failed to get admission probability:', sanitizedError)
-            return false
-          }
+          // AI prediction removed - use simple heuristic instead
+          value = this.calculateSimpleAdmissionProbability(application)
           break
         case 'documentsComplete':
           value = !!(application.result_slip_url && application.pop_url)
@@ -405,6 +398,39 @@ export class WorkflowAutomationEngine {
         grade.subject.toLowerCase().includes(required)
       )
     )
+  }
+
+  /**
+   * Simple admission probability calculation (replaces AI prediction)
+   * Based on: documents complete, payment verified, core subjects present, grade quality
+   */
+  private calculateSimpleAdmissionProbability(application: any): number {
+    let score = 0
+    
+    // Documents complete: +30%
+    if (application.result_slip_url && application.pop_url) {
+      score += 0.30
+    }
+    
+    // Payment verified: +25%
+    if (application.payment_status === 'verified' || application.pop_url) {
+      score += 0.25
+    }
+    
+    // Core subjects present: +25%
+    if (this.checkCoreSubjects(application)) {
+      score += 0.25
+    }
+    
+    // Has grades: +20%
+    const grades = application.grades || []
+    if (grades.length >= 5) {
+      score += 0.20
+    } else if (grades.length >= 3) {
+      score += 0.10
+    }
+    
+    return Math.min(score, 1.0)
   }
 
   private evaluateCondition(value: any, condition: any): boolean {

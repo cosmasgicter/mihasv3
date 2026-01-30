@@ -18,8 +18,7 @@ import {
   Users,
   Shield,
   BarChart3,
-  Activity,
-  TrendingUp
+  Activity
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -56,7 +55,6 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
     { href: '/admin/intakes', label: 'Intakes', icon: Calendar },
     { href: '/admin/users', label: 'Users', icon: Users, emoji: '👥' },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/admin/predictive-analytics', label: 'Predictive', icon: TrendingUp, emoji: '📈' },
     { href: '/admin/compliance-analytics', label: 'Compliance', icon: Shield, emoji: '🛡️' },
     { href: '/admin/realtime-metrics', label: 'Real-time', icon: Activity, emoji: '⚡' },
     { href: '/admin/audit', label: 'Audit trail', icon: Activity, emoji: '🛡️' },

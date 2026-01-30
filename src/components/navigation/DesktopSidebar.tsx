@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, Brain, FileSearch, TrendingUp, Activity, LineChart, Gauge, CreditCard } from 'lucide-react'
+import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, FileSearch, TrendingUp, Activity, Gauge, CreditCard } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
@@ -43,8 +43,6 @@ const adminSections: NavSection[] = [
     title: 'Analytics & Insights',
     items: [
       { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
-      { to: '/admin/ai-insights', icon: Brain, label: 'AI Insights' },
-      { to: '/admin/predictive-analytics', icon: LineChart, label: 'Predictive' },
       { to: '/admin/realtime-metrics', icon: Activity, label: 'Real-time' },
     ],
   },
