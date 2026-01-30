@@ -44,6 +44,7 @@
                                               "maxDuration":  10,
                                               "includeFiles":  "api/_lib/**"
                                           },
+                      "api/migrate.ts": { "maxDuration": 30, "includeFiles": "api/_lib/**" },
                       "api/[...path].ts":  {
                                                "maxDuration":  5,
                                                "includeFiles":  "api/_lib/**"
@@ -119,4 +120,5 @@
                     }
                 ]
 }
+
 
