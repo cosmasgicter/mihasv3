@@ -215,7 +215,7 @@ export class AutoScalingService {
       servers: [
         {
           id: 'server_1',
-          url: 'https://mihasv3.pages.dev',
+          url: 'https://apply.mihas.edu.zm',
           weight: 100,
           status: 'healthy',
           currentConnections: 45,

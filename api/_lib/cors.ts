@@ -2,11 +2,12 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 /**
  * Allowed origins for CORS requests.
- * - Production: mihas.vercel.app
+ * - Production: apply.mihas.edu.zm (custom domain)
  * - Development: localhost on common ports
  */
 const ALLOWED_ORIGINS = [
-  'https://mihas.vercel.app',
+  'https://apply.mihas.edu.zm',
+  'https://mihas.vercel.app',  // Vercel fallback
   'http://localhost:5173',  // Vite dev server
   'http://localhost:3000',  // Alternative dev port
 ];

@@ -54,7 +54,7 @@ export async function triggerSubmissionNotifications(data: NotificationData): Pr
   let emailNotificationSuccess = false
 
   const submittedAt = new Date().toISOString()
-  const applicationUrl = `https://mihasv3.pages.dev/student/application/${applicationId}`
+  const applicationUrl = `https://apply.mihas.edu.zm/student/application/${applicationId}`
 
   // 1. Insert into email_queue table with template data
   try {

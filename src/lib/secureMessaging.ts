@@ -2,11 +2,12 @@
 import { isValidOrigin, sanitizeForLog } from './security'
 
 const ALLOWED_ORIGINS = [
+  'https://apply.mihas.edu.zm',
+  'https://mihas.vercel.app',
   'https://mihas-katc.com',
   'https://www.mihas-katc.com',
   'https://katc.edu.zm',
   'https://mihas.edu.zm',
-  'https://application.mihas.edu.zm',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',

@@ -14,7 +14,7 @@ import { logger } from '../logger'
 import { supabase } from '../supabase'
 
 export class PluginRegistry {
-  private readonly REGISTRY_URL = 'https://registry.mihas.edu.zm/plugins'
+  private readonly REGISTRY_URL = 'https://apply.mihas.edu.zm/plugins'
   private readonly LOCAL_REGISTRY_TABLE = 'plugin_registry'
   
   constructor() {}
