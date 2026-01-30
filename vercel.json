@@ -1,5 +1,5 @@
 {
-  "buildCommand": "bun run build",
+  "buildCommand": "bunx --bun vite build",
   "installCommand": "bun install",
   "framework": "vite",
   "functions": {
