@@ -57,8 +57,18 @@ function extractUserId(req: VercelRequest): string {
         // Extract user ID from JWT payload (sub claim)
         const parts = token.split('.');
         if (parts.length === 3) {
-          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-          const decoded = Buffer.from(base64, 'base64').toString('utf-8');
+          // Bun-compatible Base64 URL-safe decoding
+          let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const padding = base64.length % 4;
+          if (padding) {
+            base64 += '='.repeat(4 - padding);
+          }
+          const binaryString = atob(base64);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const decoded = new TextDecoder().decode(bytes);
           const payload = JSON.parse(decoded);
           if (payload.sub) {
             return payload.sub;
