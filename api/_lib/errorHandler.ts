@@ -58,18 +58,22 @@ export const ErrorCode = {
  * Sanitize error message to remove any potential PII.
  * Never log or return user-specific data like emails, names, phone numbers.
  * 
+ * Note: Order matters - UUIDs must be sanitized before phone numbers
+ * because phone number regex can match parts of UUIDs.
+ * 
  * @param message - Raw error message
  * @returns Sanitized message safe for logging/response
  */
 function sanitizeErrorMessage(message: string): string {
+  // Remove potential UUIDs (user IDs) FIRST - before phone numbers
+  // Phone number regex can match parts of UUIDs if not done first
+  let sanitized = message.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '[ID]');
+  
   // Remove potential email addresses
-  let sanitized = message.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL]');
+  sanitized = sanitized.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL]');
   
   // Remove potential phone numbers (various formats)
   sanitized = sanitized.replace(/\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g, '[PHONE]');
-  
-  // Remove potential UUIDs (user IDs)
-  sanitized = sanitized.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '[ID]');
   
   // Remove potential JWT tokens
   sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g, '[TOKEN]');

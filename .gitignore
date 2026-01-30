@@ -186,3 +186,5 @@ supabase-helper.bat
 !CHANGELOG.md
 !LICENSE.md
 node_modules
+.vercel
+.env*.local
