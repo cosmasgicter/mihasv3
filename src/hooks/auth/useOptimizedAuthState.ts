@@ -22,6 +22,8 @@ interface AuthState {
 /**
  * Fetch current session with caching
  * Uses React Query to cache session data and avoid redundant API calls
+ * 
+ * CRITICAL FIX: Disabled retries to prevent infinite loops
  */
 function useSessionQuery() {
   return useQuery({
@@ -46,28 +48,16 @@ function useSessionQuery() {
     gcTime: CACHE_CONFIG.auth.gcTime, // 10 minutes
     refetchOnMount: false, // Don't refetch on every mount
     refetchOnWindowFocus: false, // Don't refetch on window focus
-    // Smart retry logic: stop on auth errors (401, 403), retry once for other errors
-    // Requirements: 5.1, 5.3, 5.4
-    retry: (failureCount, error) => {
-      // Don't retry on auth errors (401, 403) - prevents infinite loops
-      if (error instanceof Error && 
-          (error.message.includes('401') || 
-           error.message.includes('403') ||
-           error.message.includes('unauthorized') ||
-           error.message.includes('Unauthorized'))) {
-        return false
-      }
-      // Maximum 1 retry for other errors (total 2 attempts)
-      return failureCount < 1
-    },
-    // Exponential backoff: 1s, 2s, 4s, 8s, max 10s
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000)
+    // CRITICAL FIX: Disable all retries until auth is stable
+    retry: false,
   })
 }
 
 /**
  * Fetch user profile with caching
  * Leverages existing React Query cache from login flow
+ * 
+ * CRITICAL FIX: Disabled retries to prevent infinite loops
  */
 function useProfileQueryOptimized(userId: string | undefined) {
   return useQuery({
@@ -97,22 +87,8 @@ function useProfileQueryOptimized(userId: string | undefined) {
     gcTime: CACHE_CONFIG.auth.gcTime, // 10 minutes
     refetchOnMount: false, // Don't refetch on every mount
     refetchOnWindowFocus: false, // Don't refetch on window focus
-    // Smart retry logic: stop on auth errors (401, 403), retry once for other errors
-    // Requirements: 5.3
-    retry: (failureCount, error) => {
-      // Don't retry on auth errors (401, 403) - prevents infinite loops
-      if (error instanceof Error && 
-          (error.message.includes('401') || 
-           error.message.includes('403') ||
-           error.message.includes('unauthorized') ||
-           error.message.includes('Unauthorized'))) {
-        return false
-      }
-      // Maximum 1 retry for other errors (total 2 attempts)
-      return failureCount < 1
-    },
-    // Exponential backoff: 1s, 2s, 4s, 8s, max 10s
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000)
+    // CRITICAL FIX: Disable all retries until auth is stable
+    retry: false,
   })
 }
 

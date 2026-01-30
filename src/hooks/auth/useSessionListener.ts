@@ -33,6 +33,17 @@ export type PasswordResetResult = {
   error?: string
 }
 
+/**
+ * CRITICAL FIX: Simplified auth flow
+ * 
+ * Auth flow is now:
+ * Sign In → POST /api/auth?action=login → HTTP-only cookie set → GET /api/auth-roles → APP BOOTS
+ * 
+ * DISABLED:
+ * - Supabase onAuthStateChange listener (was causing infinite loops)
+ * - Supabase getSession on mount (was racing with API auth)
+ * - Token refresh monitoring (handled by API now)
+ */
 export function useSessionListener() {
   const apiBaseUrl = getApiBaseUrl()
   const queryClient = useQueryClient()
@@ -45,39 +56,56 @@ export function useSessionListener() {
       return
     }
 
-    if (!isSupabaseConfigured) {
-
-      if (typeof window !== 'undefined') {
-        const detail: SupabaseStatusDetail = {
-          available: false,
-          message: SUPABASE_MISSING_CONFIG_MESSAGE
-        }
-        window.dispatchEvent(new CustomEvent(SUPABASE_STATUS_EVENT, { detail }))
-      }
-
-      setLoading(false)
-      setUser(null)
-      return
-    }
-
-    const supabase = getSupabaseClient()
+    // CRITICAL FIX: Don't use Supabase auth state management
+    // Instead, check auth via API endpoint
     let mounted = true
 
-    async function initializeSession() {
+    async function checkAuthViaApi() {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
+        // Check if we have a stored session token
+        const storedToken = localStorage.getItem('mihas-auth-token')
+        if (!storedToken) {
+          if (mounted) {
+            setUser(null)
+            setLoading(false)
+          }
+          return
+        }
+
+        // Verify auth via API (single source of truth)
+        const response = await fetch(`${apiBaseUrl}/api/auth-roles`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${storedToken}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
         if (!mounted) return
 
-        if (error) {
-          console.error('[Auth] Session error:', error.message)
-          setUser(null)
-        } else if (session?.user) {
-          setUser(session.user)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.data?.user_id) {
+            // Create minimal user object from API response
+            setUser({
+              id: data.data.user_id,
+              email: data.data.email,
+              role: data.data.role,
+              user_metadata: { role: data.data.role },
+              app_metadata: { role: data.data.role }
+            } as User)
+          } else {
+            setUser(null)
+            localStorage.removeItem('mihas-auth-token')
+          }
         } else {
+          // Auth failed - clear token and set user to null
+          console.warn('[Auth] API auth check failed:', response.status)
           setUser(null)
+          localStorage.removeItem('mihas-auth-token')
         }
       } catch (error) {
-        console.error('[Auth] Session initialization failed:', error)
+        console.error('[Auth] API auth check error:', error)
         if (mounted) {
           setUser(null)
         }
@@ -88,85 +116,69 @@ export function useSessionListener() {
       }
     }
 
-    initializeSession()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return
-
-      if (event === 'SIGNED_OUT') {
-        setUser(null)
-        setLoading(false)
-        localStorage.removeItem('supabase.auth.token')
-        return
-      }
-
-      if (event === 'TOKEN_REFRESHED') {
-        if (session?.user) {
-          setUser(session.user)
-        } else {
-          await supabase.auth.signOut()
-          setUser(null)
-        }
-        return
-      }
-
-      if (session?.user) {
-        setUser(session.user)
-      } else if (event !== 'INITIAL_SESSION') {
-        setUser(null)
-      }
-
-      if (!['INITIAL_SESSION', 'TOKEN_REFRESHED'].includes(event)) {
-        setLoading(false)
-      }
-    })
-
-    authPersistence.init()
+    checkAuthViaApi()
 
     return () => {
       mounted = false
-      subscription.unsubscribe()
-      authPersistence.cleanup()
     }
-  }, [])
+  }, [apiBaseUrl])
 
   const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
-    if (!isSupabaseConfigured) {
-      return { error: SUPABASE_MISSING_CONFIG_MESSAGE }
-    }
-
     try {
       // Clear all cached data from previous sessions before login
-      // This prevents stale data from being shown after login
-      // Requirements: 4.3 - Login Cache Clear
       queryClient.clear()
 
-      // Use optimized login with parallel data fetching and dashboard preloading
-      const result = await optimizedLogin(email, password, queryClient)
+      // CRITICAL FIX: Use API-first auth flow
+      // POST /api/auth?action=login → Store token → GET /api/auth-roles → APP BOOTS
+      const response = await fetch(`${apiBaseUrl}/api/auth?action=login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
 
-      if ('error' in result) {
-        return { error: result.error }
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        return { error: result.error || 'Login failed' }
       }
 
-      // Update user state
-      setUser(result.user)
-
-      // Cache profile data in React Query for immediate availability
-      if (result.profile) {
-        queryClient.setQueryData(['user-profile', result.user.id], result.profile)
+      // Store the access token for subsequent API calls
+      const accessToken = result.data?.session?.access_token
+      if (accessToken) {
+        localStorage.setItem('mihas-auth-token', accessToken)
       }
 
-      // Dispatch custom event to notify components of successful login
-      // This allows components to refresh their data if needed
-      window.dispatchEvent(new CustomEvent('userLoggedIn', { 
-        detail: { userId: result.user.id } 
-      }))
+      // Create user object from API response
+      const userData = result.data?.user
+      if (userData) {
+        const user: User = {
+          id: userData.id,
+          email: userData.email,
+          role: userData.role || result.data?.profile?.role || 'student',
+          user_metadata: userData.user_metadata || {},
+          app_metadata: userData.app_metadata || {}
+        } as User
 
-      return {
-        session: result.session,
-        user: result.user,
-        profile: result.profile
+        setUser(user)
+
+        // Cache profile data in React Query for immediate availability
+        if (result.data?.profile) {
+          queryClient.setQueryData(['user-profile', user.id], result.data.profile)
+        }
+
+        // Dispatch custom event to notify components of successful login
+        window.dispatchEvent(new CustomEvent('userLoggedIn', { 
+          detail: { userId: user.id } 
+        }))
+
+        return {
+          session: result.data?.session,
+          user: user,
+          profile: result.data?.profile
+        }
       }
+
+      return { error: 'Login succeeded but no user data returned' }
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes('fetch')) {
@@ -176,7 +188,7 @@ export function useSessionListener() {
       }
       return { error: 'An unexpected error occurred. Please try again.' }
     }
-  }, [queryClient])
+  }, [apiBaseUrl, queryClient])
 
   const signUp = useCallback(async (email: string, password: string, userData: any): Promise<SignUpResult> => {
     if (!isSupabaseConfigured) {
@@ -248,14 +260,13 @@ export function useSessionListener() {
   }, [apiBaseUrl, queryClient])
 
   const signOut = useCallback(async () => {
-    // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
-    // Clear user state immediately (non-blocking) - Requirements: 13.2
+    // CRITICAL FIX: Clear local state immediately (non-blocking)
     setUser(null)
     
-    // Clear local storage immediately - Requirements: 13.2
+    // Clear all auth tokens from local storage
     try {
-      localStorage.removeItem('supabase.auth.token')
       localStorage.removeItem('mihas-auth-token')
+      localStorage.removeItem('supabase.auth.token')
       // Clear any other auth-related storage
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('sb-') || key.includes('supabase')) {
@@ -266,34 +277,21 @@ export function useSessionListener() {
       // Silent fail on storage clear
     }
     
-    if (!isSupabaseConfigured) {
-      return
+    // Clear React Query cache
+    queryClient.clear()
+    
+    // Fire-and-forget: notify API of logout (don't await)
+    const token = localStorage.getItem('mihas-auth-token')
+    if (token) {
+      fetch(`${apiBaseUrl}/api/auth?action=logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }).catch(() => {}) // Silent fail
     }
-
-    const supabase = getSupabaseClient()
-    
-    // Fire-and-forget pattern - Requirements: 13.3, 13.4
-    // Don't await these calls - they run in background
-    // Log logout event (fire-and-forget)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        fetch('/api/auth?action=session', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ action: 'logout' })
-        }).catch(() => {}) // Silent fail
-      }
-    }).catch(() => {}) // Silent fail
-    
-    // Sign out from Supabase (fire-and-forget) - Requirements: 13.3
-    supabase.auth.signOut().catch(() => {
-      // Silent fail - local state already cleared
-      // Requirements: 13.4 - If logout API call fails, still clear local state
-    })
-  }, [])
+  }, [apiBaseUrl, queryClient])
 
   const requestPasswordReset = useCallback(async (
     email: string,
