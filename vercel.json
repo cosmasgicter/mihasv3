@@ -1,45 +1,122 @@
 {
-  "buildCommand": "bunx --bun vite build",
-  "installCommand": "bun install",
-  "outputDirectory": "dist",
-  "framework": null,
-  "functions": {
-    "api/health.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/auth.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/auth-v2.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/auth-roles.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/admin.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/applications.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/catalog.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/documents.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/notifications.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/payments.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/sessions.ts": { "maxDuration": 10, "includeFiles": "api/_lib/**" },
-    "api/[...path].ts": { "maxDuration": 5, "includeFiles": "api/_lib/**" }
-  },
-  "rewrites": [
-    { "source": "/api/health", "destination": "/api/health" },
-    { "source": "/api/auth", "destination": "/api/auth" },
-    { "source": "/api/auth-v2", "destination": "/api/auth-v2" },
-    { "source": "/api/auth-roles", "destination": "/api/auth-roles" },
-    { "source": "/api/admin", "destination": "/api/admin" },
-    { "source": "/api/applications", "destination": "/api/applications" },
-    { "source": "/api/catalog", "destination": "/api/catalog" },
-    { "source": "/api/documents", "destination": "/api/documents" },
-    { "source": "/api/notifications", "destination": "/api/notifications" },
-    { "source": "/api/payments", "destination": "/api/payments" },
-    { "source": "/api/sessions", "destination": "/api/sessions" },
-    { "source": "/api/:path*", "destination": "/api/[...path]" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" }
-      ]
-    }
-  ]
+    "buildCommand":  "bunx --bun vite build",
+    "installCommand":  "bun install",
+    "outputDirectory":  "dist",
+    "framework":  null,
+    "functions":  {
+                      "api/health.ts":  {
+                                            "maxDuration":  10,
+                                            "includeFiles":  "api/_lib/**"
+                                        },
+                      "api/auth.ts":  {
+                                          "maxDuration":  10,
+                                          "includeFiles":  "api/_lib/**"
+                                      },
+                      "api/auth-roles.ts":  {
+                                                "maxDuration":  10,
+                                                "includeFiles":  "api/_lib/**"
+                                            },
+                      "api/admin.ts":  {
+                                           "maxDuration":  10,
+                                           "includeFiles":  "api/_lib/**"
+                                       },
+                      "api/applications.ts":  {
+                                                  "maxDuration":  10,
+                                                  "includeFiles":  "api/_lib/**"
+                                              },
+                      "api/catalog.ts":  {
+                                             "maxDuration":  10,
+                                             "includeFiles":  "api/_lib/**"
+                                         },
+                      "api/documents.ts":  {
+                                               "maxDuration":  10,
+                                               "includeFiles":  "api/_lib/**"
+                                           },
+                      "api/notifications.ts":  {
+                                                   "maxDuration":  10,
+                                                   "includeFiles":  "api/_lib/**"
+                                               },
+                      "api/payments.ts":  {
+                                              "maxDuration":  10,
+                                              "includeFiles":  "api/_lib/**"
+                                          },
+                      "api/sessions.ts":  {
+                                              "maxDuration":  10,
+                                              "includeFiles":  "api/_lib/**"
+                                          },
+                      "api/[...path].ts":  {
+                                               "maxDuration":  5,
+                                               "includeFiles":  "api/_lib/**"
+                                           }
+                  },
+    "rewrites":  [
+                     {
+                         "source":  "/api/health",
+                         "destination":  "/api/health"
+                     },
+                     {
+                         "source":  "/api/auth",
+                         "destination":  "/api/auth"
+                     },
+                     {
+                         "source":  "/api/auth-roles",
+                         "destination":  "/api/auth-roles"
+                     },
+                     {
+                         "source":  "/api/admin",
+                         "destination":  "/api/admin"
+                     },
+                     {
+                         "source":  "/api/applications",
+                         "destination":  "/api/applications"
+                     },
+                     {
+                         "source":  "/api/catalog",
+                         "destination":  "/api/catalog"
+                     },
+                     {
+                         "source":  "/api/documents",
+                         "destination":  "/api/documents"
+                     },
+                     {
+                         "source":  "/api/notifications",
+                         "destination":  "/api/notifications"
+                     },
+                     {
+                         "source":  "/api/payments",
+                         "destination":  "/api/payments"
+                     },
+                     {
+                         "source":  "/api/sessions",
+                         "destination":  "/api/sessions"
+                     },
+                     {
+                         "source":  "/api/:path*",
+                         "destination":  "/api/[...path]"
+                     },
+                     {
+                         "source":  "/(.*)",
+                         "destination":  "/index.html"
+                     }
+                 ],
+    "headers":  [
+                    {
+                        "source":  "/api/(.*)",
+                        "headers":  [
+                                        {
+                                            "key":  "X-Content-Type-Options",
+                                            "value":  "nosniff"
+                                        },
+                                        {
+                                            "key":  "X-Frame-Options",
+                                            "value":  "DENY"
+                                        },
+                                        {
+                                            "key":  "Strict-Transport-Security",
+                                            "value":  "max-age=31536000; includeSubDomains"
+                                        }
+                                    ]
+                    }
+                ]
 }
+
