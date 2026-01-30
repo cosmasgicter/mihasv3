@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import webpush from 'web-push';
 import { handleCors } from './_lib/cors';
 import { supabaseAdmin, getUserFromRequest } from './_lib/supabaseClient';
 import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHandler';
@@ -268,12 +269,15 @@ async function handlePushSend(req: VercelRequest, res: VercelResponse) {
   // Web Push requires VAPID keys - check if configured
   const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
   const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@mihas.edu.zm';
+  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admissions@mihas.edu.zm';
 
   if (!vapidPublicKey || !vapidPrivateKey) {
     console.log('[notifications/push-send] VAPID keys not configured');
     return sendError(res, 'Push notifications not configured (missing VAPID keys)', HttpStatus.SERVICE_UNAVAILABLE);
   }
+
+  // Configure web-push with VAPID details
+  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
   // Prepare notification payload
   const payload = JSON.stringify({
@@ -287,43 +291,34 @@ async function handlePushSend(req: VercelRequest, res: VercelResponse) {
 
   let sentCount = 0;
   let failedCount = 0;
-  const failedEndpoints: string[] = [];
+  const expiredEndpoints: string[] = [];
 
-  // Send to each subscription using Web Push protocol
+  // Send to each subscription using web-push library
   for (const sub of subscriptions) {
     try {
-      // Create JWT for VAPID authentication
-      const jwt = await createVapidJwt(sub.endpoint, vapidSubject, vapidPublicKey, vapidPrivateKey);
-      
-      // Encrypt payload using subscription keys
-      const encrypted = await encryptPayload(payload, sub.p256dh, sub.auth);
-      
-      const response = await fetch(sub.endpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `vapid t=${jwt}, k=${vapidPublicKey}`,
-          'Content-Type': 'application/octet-stream',
-          'Content-Encoding': 'aes128gcm',
-          'TTL': '86400',
+      const pushSubscription = {
+        endpoint: sub.endpoint,
+        keys: {
+          p256dh: sub.p256dh,
+          auth: sub.auth,
         },
-        body: new Uint8Array(encrypted),
-      });
+      };
 
-      if (response.ok || response.status === 201) {
-        sentCount++;
-      } else if (response.status === 410 || response.status === 404) {
+      await webpush.sendNotification(pushSubscription, payload, {
+        TTL: 86400, // 24 hours
+      });
+      sentCount++;
+    } catch (err: unknown) {
+      const pushError = err as { statusCode?: number };
+      if (pushError.statusCode === 410 || pushError.statusCode === 404) {
         // Subscription expired or invalid - mark as inactive
         await supabaseAdmin
           .from('push_subscriptions')
           .update({ is_active: false })
           .eq('id', sub.id);
-        failedEndpoints.push(sub.endpoint);
-        failedCount++;
-      } else {
-        failedCount++;
+        expiredEndpoints.push(sub.endpoint);
       }
-    } catch (err) {
-      console.error('[notifications/push-send] Error sending to endpoint:', err);
+      console.error('[notifications/push-send] Error sending to endpoint:', pushError.statusCode || err);
       failedCount++;
     }
   }
@@ -333,34 +328,6 @@ async function handlePushSend(req: VercelRequest, res: VercelResponse) {
     sent: sentCount, 
     failed: failedCount,
     total: subscriptions.length,
-    expired_removed: failedEndpoints.length
+    expired_removed: expiredEndpoints.length
   });
-}
-
-// Helper function to create VAPID JWT
-async function createVapidJwt(endpoint: string, subject: string, publicKey: string, privateKey: string): Promise<string> {
-  // Simplified JWT creation - in production, use a proper library like web-push
-  const audience = new URL(endpoint).origin;
-  const expiration = Math.floor(Date.now() / 1000) + 12 * 60 * 60; // 12 hours
-  
-  const header = { typ: 'JWT', alg: 'ES256' };
-  const payload = { aud: audience, exp: expiration, sub: subject };
-  
-  const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
-  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  
-  // Note: This is a simplified version. For production, implement proper ES256 signing
-  // or use the web-push npm package
-  return `${encodedHeader}.${encodedPayload}.signature`;
-}
-
-// Helper function to encrypt payload (simplified - use web-push library in production)
-async function encryptPayload(payload: string, p256dh: string, auth: string): Promise<Buffer> {
-  // This is a placeholder - proper implementation requires:
-  // 1. Generate local ECDH key pair
-  // 2. Derive shared secret using p256dh
-  // 3. Derive encryption key using auth
-  // 4. Encrypt payload using AES-128-GCM
-  // For production, use the web-push npm package
-  return Buffer.from(payload);
 }
