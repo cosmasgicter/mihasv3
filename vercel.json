@@ -5,48 +5,37 @@
   "framework": null,
   "functions": {
     "api/health.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 10
     },
     "api/status.ts": {
-      "maxDuration": 5,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 5
     },
     "api/auth.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 10
     },
     "api/admin.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 10
     },
     "api/applications.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 10
     },
     "api/catalog.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 10
     },
     "api/documents.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 10
     },
     "api/notifications.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 10
     },
     "api/payments.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 10
     },
     "api/sessions.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 10
     },
     "api/[...path].ts": {
-      "maxDuration": 5,
-      "includeFiles": "api/_lib/**"
+      "maxDuration": 5
     }
   },
   "rewrites": [
