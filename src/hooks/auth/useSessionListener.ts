@@ -277,7 +277,7 @@ export function useSessionListener() {
     // Log logout event (fire-and-forget)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        fetch('/api/auth/session', {
+        fetch('/api/auth?action=session', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${session.access_token}`,

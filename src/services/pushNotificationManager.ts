@@ -523,7 +523,7 @@ class PushNotificationManager {
    */
   private async sendSubscriptionToServer(subscription: PushSubscription): Promise<void> {
     try {
-      const response = await fetch('/api/push/subscribe', {
+      const response = await fetch('/api/notifications?action=push-subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

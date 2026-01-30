@@ -162,7 +162,7 @@ async function sendEmailMessage(params: {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     
-    const response = await fetch('/api/send/email', {
+    const response = await fetch('/api/notifications?action=send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -217,7 +217,7 @@ async function sendSMSMessage(params: {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     
-    const response = await fetch('/api/send/sms', {
+    const response = await fetch('/api/notifications?action=sms', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -169,7 +169,7 @@ function trackDeviceSession(accessToken: string): void {
     }
     
     // Fire and forget - don't await
-    fetch('/api/sessions/track', {
+    fetch('/api/sessions?action=track', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
