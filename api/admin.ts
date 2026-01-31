@@ -528,9 +528,7 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
 
   // Migration 1: Add password_hash column
   try {
-    await query({
-      text: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_hash TEXT`,
-    });
+    await query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_hash TEXT`);
     migrations.push('Added password_hash column');
   } catch (e) {
     errors.push(`password_hash: ${e instanceof Error ? e.message : String(e)}`);
@@ -538,9 +536,7 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
 
   // Migration 2: Add refresh_token_hash column
   try {
-    await query({
-      text: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS refresh_token_hash TEXT`,
-    });
+    await query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS refresh_token_hash TEXT`);
     migrations.push('Added refresh_token_hash column');
   } catch (e) {
     errors.push(`refresh_token_hash: ${e instanceof Error ? e.message : String(e)}`);
@@ -548,9 +544,7 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
 
   // Migration 3: Add role column
   try {
-    await query({
-      text: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'student'`,
-    });
+    await query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'student'`);
     migrations.push('Added role column');
   } catch (e) {
     errors.push(`role: ${e instanceof Error ? e.message : String(e)}`);
@@ -558,18 +552,14 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
 
   // Migration 4: Create indexes
   try {
-    await query({
-      text: `CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email)`,
-    });
+    await query(`CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email)`);
     migrations.push('Created idx_profiles_email index');
   } catch (e) {
     errors.push(`idx_profiles_email: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   try {
-    await query({
-      text: `CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role)`,
-    });
+    await query(`CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role)`);
     migrations.push('Created idx_profiles_role index');
   } catch (e) {
     errors.push(`idx_profiles_role: ${e instanceof Error ? e.message : String(e)}`);

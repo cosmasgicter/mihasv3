@@ -20,7 +20,7 @@ export async function fetchUserRole(): Promise<AuthUserRole | null> {
   const token = await getAuthToken();
   if (!token) return null;
 
-  const response = await fetch(`${getApiBaseUrl()}/api/auth-roles`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/auth?action=roles`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'

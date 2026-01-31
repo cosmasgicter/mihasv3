@@ -416,12 +416,12 @@ async function handleConnect(req: VercelRequest, res: VercelResponse): Promise<v
   // Check Accept header
   const accept = req.headers.accept || '';
   if (!accept.includes('text/event-stream')) {
-    sendError(res, "Client must accept text/event-stream for SSE connections", HttpStatus.NOT_ACCEPTABLE, "INVALID_ACCEPT_HEADER");
+    sendError(res, "Client must accept text/event-stream for SSE connections", HttpStatus.BAD_REQUEST, "INVALID_ACCEPT_HEADER");
     return;
   }
 
   // Establish SSE connection
-  await handleSSEConnection(req, res, user.id);
+  await handleSSEConnection(req, res, user.userId);
 }
 
 /**
@@ -446,7 +446,7 @@ async function handlePoll(req: VercelRequest, res: VercelResponse): Promise<void
   const lastEventId = req.query.lastEventId as string | undefined;
 
   // Get events since lastEventId
-  const events = getEventsForPolling(user.id, lastEventId);
+  const events = getEventsForPolling(user.userId, lastEventId);
 
   sendSuccess(res, {
     events,
