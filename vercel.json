@@ -12,10 +12,6 @@
                                           "maxDuration":  10,
                                           "includeFiles":  "api/_lib/**"
                                       },
-                      "api/auth-roles.ts":  {
-                                                "maxDuration":  10,
-                                                "includeFiles":  "api/_lib/**"
-                                            },
                       "api/admin.ts":  {
                                            "maxDuration":  10,
                                            "includeFiles":  "api/_lib/**"
