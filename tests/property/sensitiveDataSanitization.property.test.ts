@@ -13,50 +13,15 @@
  * - IP addresses
  * 
  * **Validates: Requirements 10.4, 7.2, 11.1**
+ * 
+ * Also validates auth-security-hardening requirements:
+ * - 9.2: THE Auth_System SHALL sanitize all error messages to remove PII (emails, IDs, tokens, paths)
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 
-/**
- * Recreate the sanitization logic for testing
- * This mirrors the implementation in errorHandler.ts
- */
-function sanitizeErrorMessage(message: string): string {
-  // Remove potential UUIDs (user IDs) FIRST - before phone numbers
-  let sanitized = message.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '[ID]');
-  
-  // Remove potential email addresses
-  sanitized = sanitized.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL]');
-  
-  // Remove potential JWT tokens
-  sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g, '[TOKEN]');
-  
-  // Remove database connection strings (PostgreSQL, MySQL, MongoDB, etc.)
-  sanitized = sanitized.replace(/(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|mssql):\/\/[^\s"']+/gi, '[CONNECTION_STRING]');
-  
-  // Remove Supabase URLs with keys
-  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.supabase\.co[^\s"']*/gi, '[SUPABASE_URL]');
-  
-  // Remove API keys and secrets (common patterns) - must be before phone numbers
-  sanitized = sanitized.replace(/(?:api[_-]?key|secret|password|token|auth)[=:]\s*["']?[a-zA-Z0-9_\-./+=]{16,}["']?/gi, '[CREDENTIAL]');
-  
-  // Remove service role keys (Supabase pattern)
-  sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]{100,}/g, '[SERVICE_KEY]');
-  
-  // Remove file paths (Unix and Windows)
-  sanitized = sanitized.replace(/(?:\/(?:home|var|usr|etc|tmp|app|opt|srv)[^\s"']*|[A-Z]:\\[^\s"']*)/gi, '[PATH]');
-  
-  // Remove IP addresses BEFORE phone numbers (IP addresses look like phone numbers)
-  sanitized = sanitized.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, '[IP]');
-  
-  // Remove port numbers in connection contexts
-  sanitized = sanitized.replace(/:\d{4,5}(?=\s|$|\/)/g, ':[PORT]');
-  
-  // Remove potential phone numbers (various formats) - AFTER IP addresses
-  sanitized = sanitized.replace(/\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g, '[PHONE]');
-  
-  return sanitized;
-}
+// Import the actual sanitizeError function from errorHandler
+import { sanitizeError } from '../../api/_lib/errorHandler';
 
 // Use constant values for fast, reliable testing
 const uuidExamples = [
@@ -129,7 +94,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.string({ minLength: 0, maxLength: 20 }),
           (uuid, context) => {
             const message = `Error for user ${uuid} in ${context}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(uuid);
             expect(sanitized).toContain('[ID]');
@@ -146,7 +111,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.string({ minLength: 0, maxLength: 20 }),
           (email, context) => {
             const message = `User ${email} failed to ${context}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(email);
             expect(sanitized).toContain('[EMAIL]');
@@ -163,7 +128,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.string({ minLength: 0, maxLength: 20 }),
           (phone, context) => {
             const message = `SMS failed for ${phone}: ${context}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(phone);
           }
@@ -178,7 +143,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.constantFrom(...jwtExamples),
           (jwt) => {
             const message = `Invalid token: ${jwt}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(jwt);
             expect(sanitized).toContain('[TOKEN]');
@@ -196,7 +161,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.constantFrom(...connectionStringExamples),
           (connStr) => {
             const message = `Database error: ${connStr}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(connStr);
             expect(sanitized).toContain('[CONNECTION_STRING]');
@@ -212,7 +177,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.constantFrom(...supabaseUrlExamples),
           (url) => {
             const message = `Supabase error at ${url}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(url);
             expect(sanitized).toContain('[SUPABASE_URL]');
@@ -228,7 +193,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.constantFrom(...apiKeyExamples),
           (apiKey) => {
             const message = `Authentication failed: ${apiKey}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(apiKey);
             expect(sanitized).toContain('[CREDENTIAL]');
@@ -246,7 +211,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.constantFrom(...filePathExamples),
           (path) => {
             const message = `File not found: ${path}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(path);
             expect(sanitized).toContain('[PATH]');
@@ -262,7 +227,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.constantFrom(...ipAddressExamples),
           (ip) => {
             const message = `Connection refused from ${ip}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(ip);
             expect(sanitized).toContain('[IP]');
@@ -282,7 +247,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.constantFrom(...ipAddressExamples),
           (uuid, email, ip) => {
             const message = `User ${uuid} (${email}) connected from ${ip}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(uuid);
             expect(sanitized).not.toContain(email);
@@ -303,7 +268,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.constantFrom(...ipAddressExamples),
           (connStr, ip) => {
             const message = `Database connection failed: ${connStr} at ${ip}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(connStr);
             expect(sanitized).not.toContain(ip);
@@ -323,7 +288,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
           fc.constantFrom(...emailExamples),
           (jwt, uuid, email) => {
             const message = `Auth failed for ${email} (${uuid}): invalid token ${jwt}`;
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             
             expect(sanitized).not.toContain(jwt);
             expect(sanitized).not.toContain(uuid);
@@ -336,9 +301,10 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
   });
 
   describe('Edge Cases', () => {
-    it('PROPERTY: Empty messages remain empty', () => {
-      const sanitized = sanitizeErrorMessage('');
-      expect(sanitized).toBe('');
+    it('PROPERTY: Empty messages return default error message', () => {
+      const sanitized = sanitizeError('');
+      // sanitizeError returns 'An error occurred' for empty/invalid input
+      expect(sanitized).toBe('An error occurred');
     });
 
     it('PROPERTY: Messages without sensitive data are unchanged', () => {
@@ -352,7 +318,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             'Rate limit exceeded'
           ),
           (message) => {
-            const sanitized = sanitizeErrorMessage(message);
+            const sanitized = sanitizeError(message);
             expect(sanitized).toBe(message);
           }
         ),
@@ -369,8 +335,8 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             fc.constantFrom(...connectionStringExamples).map(conn => `DB error: ${conn}`)
           ),
           (message) => {
-            const once = sanitizeErrorMessage(message);
-            const twice = sanitizeErrorMessage(once);
+            const once = sanitizeError(message);
+            const twice = sanitizeError(once);
             expect(twice).toBe(once);
           }
         ),
