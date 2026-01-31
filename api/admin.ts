@@ -1,7 +1,31 @@
+/**
+ * Consolidated Admin API
+ * 
+ * Protected by Arcjet security (20 requests per 10 minutes)
+ * Requires admin or super_admin role for all actions
+ * 
+ * REQUIREMENTS:
+ * - 2.3: Arcjet protection on admin routes (20/10min rate limit)
+ * - 8.6: Require admin role for all actions
+ * 
+ * ENDPOINTS:
+ * GET /api/admin?action=dashboard - Get dashboard stats
+ * GET /api/admin?action=users - List users with pagination
+ * GET /api/admin?action=settings - List all system settings
+ * POST /api/admin?action=settings - Create new setting
+ * PUT /api/admin?action=settings - Update existing setting
+ * DELETE /api/admin?action=settings - Delete setting
+ * POST /api/admin?action=register - Register new user (admin only)
+ */
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from './_lib/cors';
-import { supabaseAdmin, getUserFromRequest, AuthContext } from './_lib/supabaseClient';
+import { supabaseAdmin } from './_lib/supabaseClient';
 import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHandler';
+import { withArcjetProtection } from './_lib/arcjet';
+import { requireRole, AuthenticationError, AuthorizationError, type AuthContext } from './_lib/auth/middleware';
+import { hashPassword } from './_lib/auth/password';
+import { logAuditEvent } from './_lib/auditLogger';
 
 /**
  * System setting interface matching database schema
@@ -19,128 +43,143 @@ interface SystemSetting {
 }
 
 /**
- * Consolidated Admin API
- * GET /api/admin?action=dashboard - Get dashboard stats
- * GET /api/admin?action=users - List users with pagination
- * GET /api/admin?action=settings - List all system settings
- * POST /api/admin?action=settings - Create new setting
- * PUT /api/admin?action=settings - Update existing setting
- * DELETE /api/admin?action=settings - Delete setting
+ * Main handler - wrapped with Arcjet protection
  */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (handleCors(req, res)) return;
 
   // Handle HEAD requests for health checks (no auth required)
   if (req.method === 'HEAD') {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
 
   const action = req.query.action as string || 'dashboard';
 
-  // Settings action supports multiple HTTP methods
-  if (action === 'settings') {
-    // Require admin access for all settings operations
-    const auth = await getUserFromRequest(req, { requireAdmin: true });
-    if ('error' in auth) {
-      return sendError(res, auth.error, HttpStatus.UNAUTHORIZED);
-    }
-
-    try {
-      return handleSettings(req, res, auth);
-    } catch (error) {
-      return handleError(res, error, 'admin-settings');
-    }
-  }
-
-  // Other actions only support GET
-  if (req.method !== 'GET') {
-    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-  }
-
-  // Require admin access
-  const auth = await getUserFromRequest(req, { requireAdmin: true });
-  if ('error' in auth) {
-    return sendError(res, auth.error, HttpStatus.UNAUTHORIZED);
-  }
-
   try {
-    if (action === 'dashboard') {
-      return handleDashboard(res);
-    }
+    // Require admin or super_admin role for all actions
+    // Requirement: 8.6 - Require admin role for all actions
+    const auth = await requireRole(req, ['admin', 'super_admin']);
 
-    if (action === 'users') {
-      return handleUsers(req, res);
-    }
+    // Route to appropriate handler based on action
+    switch (action) {
+      case 'dashboard':
+        if (req.method !== 'GET') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleDashboard(res);
+        return;
 
-    return sendError(res, 'Invalid action', HttpStatus.BAD_REQUEST);
+      case 'users':
+        if (req.method !== 'GET') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleUsers(req, res);
+        return;
+
+      case 'settings':
+        await handleSettings(req, res, auth);
+        return;
+
+      case 'register':
+        if (req.method !== 'POST') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleRegisterUser(req, res, auth);
+        return;
+
+      default:
+        sendError(res, 'Invalid action', HttpStatus.BAD_REQUEST);
+        return;
+    }
   } catch (error) {
-    return handleError(res, error, 'admin');
+    // Handle authentication/authorization errors
+    if (error instanceof AuthenticationError) {
+      sendError(res, error.message, error.statusCode, error.code);
+      return;
+    }
+    if (error instanceof AuthorizationError) {
+      sendError(res, error.message, error.statusCode, error.code);
+      return;
+    }
+    handleError(res, error, 'admin');
   }
 }
 
 /**
- * Handle settings CRUD operations
- * GET - List all settings
- * POST - Create new setting
- * PUT - Update existing setting
- * DELETE - Delete setting
+ * Export handler with Arcjet protection
+ * Requirement: 2.3 - Admin routes: 20 requests per 10 minutes
  */
-async function handleSettings(req: VercelRequest, res: VercelResponse, auth: AuthContext) {
+export default withArcjetProtection(handler, 'admin');
+
+/**
+ * Handle settings CRUD operations
+ */
+async function handleSettings(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
   const method = req.method;
 
   switch (method) {
     case 'GET':
-      return handleGetSettings(res);
+      await handleGetSettings(res);
+      return;
     case 'POST':
-      return handleCreateSetting(req, res, auth);
+      await handleCreateSetting(req, res, auth);
+      return;
     case 'PUT':
-      return handleUpdateSetting(req, res, auth);
+      await handleUpdateSetting(req, res, auth);
+      return;
     case 'DELETE':
-      return handleDeleteSetting(req, res);
+      await handleDeleteSetting(req, res);
+      return;
     default:
-      return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+      sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+      return;
   }
 }
 
 /**
  * GET - List all system settings
  */
-async function handleGetSettings(res: VercelResponse) {
+async function handleGetSettings(res: VercelResponse): Promise<void> {
   const { data, error } = await supabaseAdmin
     .from('system_settings')
     .select('*')
     .order('setting_key', { ascending: true });
 
   if (error) {
-    return sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    return;
   }
 
-  return sendSuccess(res, { settings: data || [] });
+  sendSuccess(res, { settings: data || [] });
 }
 
 /**
  * POST - Create a new system setting
  */
-async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext) {
+async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
   const body = req.body as Partial<SystemSetting>;
 
-  // Validate required fields
   if (!body.setting_key || typeof body.setting_key !== 'string') {
-    return sendError(res, 'setting_key is required and must be a string', HttpStatus.BAD_REQUEST);
+    sendError(res, 'setting_key is required and must be a string', HttpStatus.BAD_REQUEST);
+    return;
   }
 
   if (body.setting_value === undefined || body.setting_value === null) {
-    return sendError(res, 'setting_value is required', HttpStatus.BAD_REQUEST);
+    sendError(res, 'setting_value is required', HttpStatus.BAD_REQUEST);
+    return;
   }
 
-  // Prepare setting data
   const settingData: Partial<SystemSetting> = {
     setting_key: body.setting_key.trim(),
     setting_value: String(body.setting_value),
     setting_type: body.setting_type || 'string',
     description: body.description || null,
     is_public: body.is_public ?? false,
-    updated_by: auth.user.id,
+    updated_by: auth.userId,
   };
 
   const { data, error } = await supabaseAdmin
@@ -150,52 +189,47 @@ async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth
     .single();
 
   if (error) {
-    // Check for unique constraint violation
     if (error.code === '23505') {
-      return sendError(res, `Setting with key '${body.setting_key}' already exists`, HttpStatus.CONFLICT);
+      sendError(res, `Setting with key '${body.setting_key}' already exists`, HttpStatus.CONFLICT);
+      return;
     }
-    return sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    return;
   }
 
-  return sendSuccess(res, { setting: data }, HttpStatus.CREATED);
+  sendSuccess(res, { setting: data }, HttpStatus.CREATED);
 }
 
 /**
  * PUT - Update an existing system setting
  */
-async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext) {
+async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
   const body = req.body as Partial<SystemSetting> & { id?: string };
 
-  // Require either id or setting_key to identify the setting
   if (!body.id && !body.setting_key) {
-    return sendError(res, 'Either id or setting_key is required to update a setting', HttpStatus.BAD_REQUEST);
+    sendError(res, 'Either id or setting_key is required to update a setting', HttpStatus.BAD_REQUEST);
+    return;
   }
 
-  // Build update data - only include fields that are provided
   const updateData: Partial<SystemSetting> = {
-    updated_by: auth.user.id,
+    updated_by: auth.userId,
     updated_at: new Date().toISOString(),
   };
 
   if (body.setting_value !== undefined) {
     updateData.setting_value = String(body.setting_value);
   }
-
   if (body.setting_type !== undefined) {
     updateData.setting_type = body.setting_type;
   }
-
   if (body.description !== undefined) {
     updateData.description = body.description;
   }
-
   if (body.is_public !== undefined) {
     updateData.is_public = body.is_public;
   }
 
-  // Update by id or setting_key
   let query = supabaseAdmin.from('system_settings').update(updateData);
-
   if (body.id) {
     query = query.eq('id', body.id);
   } else {
@@ -206,50 +240,53 @@ async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth
 
   if (error) {
     if (error.code === 'PGRST116') {
-      return sendError(res, 'Setting not found', HttpStatus.NOT_FOUND);
+      sendError(res, 'Setting not found', HttpStatus.NOT_FOUND);
+      return;
     }
-    return sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    return;
   }
 
-  return sendSuccess(res, { setting: data });
+  sendSuccess(res, { setting: data });
 }
 
 /**
  * DELETE - Delete a system setting
  */
-async function handleDeleteSetting(req: VercelRequest, res: VercelResponse) {
+async function handleDeleteSetting(req: VercelRequest, res: VercelResponse): Promise<void> {
   const body = req.body as { id?: string; setting_key?: string };
   const queryId = req.query.id as string;
   const queryKey = req.query.setting_key as string;
 
-  // Support both body and query parameters for identifying the setting
   const id = body.id || queryId;
   const settingKey = body.setting_key || queryKey;
 
   if (!id && !settingKey) {
-    return sendError(res, 'Either id or setting_key is required to delete a setting', HttpStatus.BAD_REQUEST);
+    sendError(res, 'Either id or setting_key is required to delete a setting', HttpStatus.BAD_REQUEST);
+    return;
   }
 
-  // Delete by id or setting_key
   let query = supabaseAdmin.from('system_settings').delete();
-
   if (id) {
     query = query.eq('id', id);
   } else {
     query = query.eq('setting_key', settingKey);
   }
 
-  const { error, count } = await query;
+  const { error } = await query;
 
   if (error) {
-    return sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    return;
   }
 
-  // Note: Supabase delete doesn't return count by default, so we just return success
-  return sendSuccess(res, { deleted: true });
+  sendSuccess(res, { deleted: true });
 }
 
-async function handleDashboard(res: VercelResponse) {
+/**
+ * Dashboard stats handler
+ */
+async function handleDashboard(res: VercelResponse): Promise<void> {
   const now = new Date();
   const today = now.toISOString().split('T')[0];
   const tomorrowDate = new Date(now);
@@ -304,7 +341,7 @@ async function handleDashboard(res: VercelResponse) {
 
   res.setHeader('Cache-Control', 'public, max-age=30');
 
-  return sendSuccess(res, {
+  sendSuccess(res, {
     stats: {
       totalApplications: totalCount,
       pendingApplications: pendingCount,
@@ -322,7 +359,10 @@ async function handleDashboard(res: VercelResponse) {
   });
 }
 
-async function handleUsers(req: VercelRequest, res: VercelResponse) {
+/**
+ * Users list handler
+ */
+async function handleUsers(req: VercelRequest, res: VercelResponse): Promise<void> {
   let page = parseInt(req.query.page as string || '1', 10);
   let limit = parseInt(req.query.limit as string || '50', 10);
 
@@ -339,15 +379,116 @@ async function handleUsers(req: VercelRequest, res: VercelResponse) {
     .range(offset, offset + limit - 1);
 
   if (error) {
-    return sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    return;
   }
 
   const users = (data || []).map((user) => ({ ...user, user_id: user.id }));
 
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
-  return sendSuccess(res, {
+  sendSuccess(res, {
     data: users,
     meta: { page, limit, total: count || 0, total_pages: Math.ceil((count || 0) / limit) },
   });
+}
+
+/**
+ * Register new user (admin only)
+ * Requirement: 8.6 - Admin can register new users
+ */
+async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+  const { email, password, firstName, lastName, role } = req.body as {
+    email?: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
+  };
+
+  // Validate required fields
+  if (!email || !password || !firstName || !lastName) {
+    sendError(res, 'Email, password, firstName, and lastName are required', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    sendError(res, 'Invalid email format', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  // Validate password strength
+  if (password.length < 8) {
+    sendError(res, 'Password must be at least 8 characters', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  // Validate role (only super_admin can create admin users)
+  const allowedRoles = ['student', 'reviewer'];
+  if (auth.role === 'super_admin') {
+    allowedRoles.push('admin');
+  }
+  const userRole = role && allowedRoles.includes(role) ? role : 'student';
+
+  try {
+    // Check if email already exists
+    const { data: existingUser } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (existingUser) {
+      sendError(res, 'Email already registered', HttpStatus.CONFLICT);
+      return;
+    }
+
+    // Hash password
+    const passwordHash = await hashPassword(password);
+
+    // Create user profile
+    const { data: newUser, error } = await supabaseAdmin
+      .from('profiles')
+      .insert({
+        email: email.toLowerCase(),
+        password_hash: passwordHash,
+        first_name: firstName,
+        last_name: lastName,
+        role: userRole,
+        email_verified: true, // Admin-created users are pre-verified
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select('id, email, first_name, last_name, role, created_at')
+      .single();
+
+    if (error) {
+      console.error('[ADMIN] User creation failed:', error.message);
+      sendError(res, 'Failed to create user', HttpStatus.INTERNAL_SERVER_ERROR);
+      return;
+    }
+
+    // Log the event (no PII in logs)
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: 'user_created',
+      entity_type: 'user',
+      entity_id: newUser.id,
+      changes: {
+        role: userRole,
+        created_by_admin: true,
+      },
+    });
+
+    sendSuccess(res, {
+      user: newUser,
+      message: 'User created successfully',
+    }, HttpStatus.CREATED);
+
+  } catch (error) {
+    console.error('[ADMIN] Registration error:', error instanceof Error ? error.message : 'Unknown error');
+    sendError(res, 'Registration failed', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
 }

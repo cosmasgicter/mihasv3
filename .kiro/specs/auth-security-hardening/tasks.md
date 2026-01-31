@@ -168,7 +168,7 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - *For any* refresh token that has been used once, subsequent use SHALL be rejected
     - **Validates: Requirements 1.9**
 
-- [ ] 8. Checkpoint - Auth API validation
+- [x] 8. Checkpoint - Auth API validation ✓
   - Test login flow end-to-end
   - Test logout clears cookies and revokes tokens
   - Test token refresh rotates tokens
@@ -198,8 +198,8 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - *For any* user with multiple sessions, revoking all sessions SHALL result in zero active sessions
     - **Validates: Requirements 5.3, 5.7**
 
-- [ ] 10. Error handling and logging
-  - [-] 10.1 Implement error handler (`api/_lib/errorHandler.ts`)
+- [x] 10. Error handling and logging
+  - [x] 10.1 Implement error handler (`api/_lib/errorHandler.ts`) ✓
     - Create `AuthError` class with code and sanitized message
     - Implement `sanitizeError()` to remove PII
     - Implement consistent JSON error responses
@@ -207,25 +207,25 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - Never expose stack traces in responses
     - _Requirements: 9.1, 9.2, 9.3, 9.5, 9.6_
 
-  - [~] 10.2 Implement audit logger (`api/_lib/auditLogger.ts`)
+  - [x] 10.2 Implement audit logger (`api/_lib/auditLogger.ts`)
     - Implement `logAuthEvent()` for authentication events
     - Implement `logAuthorizationFailure()` for RBAC failures
     - Sanitize all logged context (no passwords, tokens, secrets)
     - _Requirements: 9.4, 9.7, 8.8_
 
-  - [~] 10.3 Write property tests for error handling
+  - [x] 10.3 Write property tests for error handling
     - **Property 10: PII sanitization**
     - *For any* error message containing email, token, or password patterns, the sanitized output SHALL not contain those patterns
     - **Validates: Requirements 9.2, 9.7**
 
-- [ ] 11. Checkpoint - Core auth system complete
+- [x] 11. Checkpoint - Core auth system complete ✓
   - Verify all auth flows work end-to-end
   - Verify error responses are consistent
   - Verify audit logging captures events without PII
   - Ask the user if questions arise
 
-- [ ] 12. Realtime system
-  - [~] 12.1 Implement SSE handler (`api/_lib/realtime.ts`)
+- [x] 12. Realtime system
+  - [x] 12.1 Implement SSE handler (`api/_lib/realtime.ts`)
     - Implement `initializeSSE()` for connection setup
     - Implement `sendSSEEvent()` for event streaming
     - Send keepalive pings every 15 seconds
@@ -234,51 +234,51 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - Handle Vercel 10-second timeout with reconnection
     - _Requirements: 7.1, 7.3, 7.5, 7.6, 7.8_
 
-  - [~] 12.2 Implement polling fallback (`api/_lib/realtime.ts`)
+  - [x] 12.2 Implement polling fallback (`api/_lib/realtime.ts`)
     - Implement `getEventsForPolling()` for fallback
     - Support graceful degradation from SSE to polling
     - _Requirements: 7.2, 7.9_
 
-  - [~] 12.3 Implement event broadcasting (`api/_lib/realtime.ts`)
+  - [x] 12.3 Implement event broadcasting (`api/_lib/realtime.ts`)
     - Implement `broadcastToUser()` for user-specific events
     - Implement `broadcastToAll()` for global events
     - Support event types: application_update, notification, payment_update, interview_scheduled, document_processed, ping
     - _Requirements: 7.4, 7.7_
 
-  - [~] 12.4 Implement realtime API (`api/realtime.ts`)
+  - [x] 12.4 Implement realtime API (`api/realtime.ts`)
     - Require authentication for all actions
     - Implement `connect` action for SSE
     - Implement `poll` action for fallback
     - Zero Supabase Realtime dependencies
     - _Requirements: 7.10_
 
-  - [~] 12.5 Write unit tests for realtime system
+  - [x] 12.5 Write unit tests for realtime system
     - Test SSE event format is correct
     - Test event replay with lastEventId
     - Test polling returns correct events
     - _Requirements: 7.3, 7.6_
 
-- [ ] 13. Migration safety
-  - [~] 13.1 Implement legacy token support (`api/_lib/auth/legacy.ts`)
+- [x] 13. Migration safety
+  - [x] 13.1 Implement legacy token support (`api/_lib/auth/legacy.ts`)
     - Implement `verifyLegacySupabaseToken()` for migration period
     - Create profile for users authenticated via legacy tokens if missing
     - Update password hash to bcrypt on new login
     - _Requirements: 11.1, 11.2, 11.3_
 
-  - [~] 13.2 Ensure backward compatibility
+  - [x] 13.2 Ensure backward compatibility
     - Verify profiles table schema compatibility
     - Test existing users can authenticate
     - Test new columns don't break existing queries
     - _Requirements: 11.4, 11.6_
 
-- [ ] 14. Frontend integration
-  - [~] 14.1 Update auth store (`src/stores/authStore.ts`)
+- [x] 14. Frontend integration
+  - [x] 14.1 Update auth store (`src/stores/authStore.ts`)
     - Implement automatic token refresh on 401
     - Implement exponential backoff on auth failures
     - Clear local auth state on logout
     - _Requirements: 10.1, 10.4, 10.7_
 
-  - [~] 14.2 Update React Query auth hooks (`src/hooks/useAuth.ts`)
+  - [x] 14.2 Update React Query auth hooks (`src/hooks/useAuth.ts`) ✓
     - Implement `useSession()` hook with proper cache invalidation
     - Implement `useLogin()` mutation
     - Implement `useLogout()` mutation
@@ -286,20 +286,20 @@ This implementation plan covers the complete replacement of Supabase Auth with a
     - Redirect to login on refresh failure
     - _Requirements: 10.2, 10.3, 10.5, 10.6_
 
-  - [~] 14.3 Write unit tests for frontend auth
+  - [x] 14.3 Write unit tests for frontend auth ✓
     - Test automatic token refresh on 401
     - Test exponential backoff prevents retry storms
     - Test logout clears local state
     - _Requirements: 10.4, 10.7_
 
-- [ ] 15. Admin API updates
-  - [~] 15.1 Update admin API with Arcjet protection (`api/admin.ts`)
+- [x] 15. Admin API updates
+  - [x] 15.1 Update admin API with Arcjet protection (`api/admin.ts`) ✓
     - Wrap all actions with Arcjet protection (20/10min rate limit)
     - Require admin role for all actions
     - Implement user registration (admin only)
     - _Requirements: 2.3, 8.6_
 
-- [ ] 16. Final checkpoint - Full system validation
+- [x] 16. Final checkpoint - Full system validation ✓
   - Run all property tests and unit tests
   - Verify all Arcjet protections are active
   - Verify database abstraction works with both Supabase and Neon
