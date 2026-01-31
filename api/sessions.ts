@@ -1,7 +1,7 @@
 /**
  * Sessions API
  * 
- * Provides session management endpoints for users to view and manage their active sessions.
+ * Provides session management and realtime endpoints for users.
  * Protected by Arcjet with 30 requests per 10 minutes rate limit.
  * 
  * Endpoints:
@@ -9,10 +9,15 @@
  * - GET /api/sessions?action=list - List user's active sessions
  * - POST /api/sessions?action=revoke - Revoke a specific session
  * - POST /api/sessions?action=revoke-all - Revoke all sessions except current
+ * - GET /api/sessions?action=connect - SSE connection for real-time updates
+ * - GET /api/sessions?action=poll - Polling fallback for real-time updates
  * 
  * Requirements:
  * - 5.6: THE Session_Manager SHALL allow users to view their active sessions
  * - 5.7: THE Session_Manager SHALL allow users to deactivate sessions on other devices
+ * - 7.1: SSE for server-to-client streaming
+ * - 7.2: Polling fallback for graceful degradation
+ * - 7.10: Zero Supabase Realtime dependencies
  * 
  * Security:
  * - All endpoints require authentication
@@ -24,9 +29,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 import { withArcjetProtection } from "./_lib/arcjet";
-import { requireAuth, AuthenticationError, AuthorizationError } from "./_lib/auth/middleware";
+import { requireAuth, getAuthUser, AuthenticationError, AuthorizationError } from "./_lib/auth/middleware";
 import { handleCors } from "./_lib/cors";
 import { sendSuccess, sendError, HttpStatus } from "./_lib/errorHandler";
+import { handleSSEConnection, getEventsForPolling } from "./_lib/realtime";
 import {
   getActiveSessions,
   deactivateSession,
@@ -140,8 +146,24 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         await handleRevokeAll(req, res);
         return;
 
+      case "connect":
+        if (req.method !== "GET") {
+          sendError(res, "SSE connections require GET method", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleConnect(req, res);
+        return;
+
+      case "poll":
+        if (req.method !== "GET") {
+          sendError(res, "Polling requires GET method", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handlePoll(req, res);
+        return;
+
       default:
-        sendError(res, "Invalid action. Valid actions: track, list, revoke, revoke-all", HttpStatus.BAD_REQUEST);
+        sendError(res, "Invalid action. Valid actions: track, list, revoke, revoke-all, connect, poll", HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -371,3 +393,64 @@ async function handleRevokeAll(req: VercelRequest, res: VercelResponse): Promise
  * Requirement 2.2: Arcjet protection on /api/sessions/*
  */
 export default withArcjetProtection(handler, "session");
+
+/**
+ * Handle SSE connection request
+ * Requirement 7.1: SSE for server-to-client streaming
+ * 
+ * Establishes a Server-Sent Events connection for real-time updates.
+ * Client should use EventSource API which handles automatic reconnection.
+ * 
+ * @example
+ * // Client-side usage
+ * const eventSource = new EventSource('/api/sessions?action=connect');
+ * eventSource.onmessage = (event) => console.log(event.data);
+ */
+async function handleConnect(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const user = await getAuthUser(req);
+  if (!user) {
+    sendError(res, "Authentication required for realtime access", HttpStatus.UNAUTHORIZED, "AUTH_REQUIRED");
+    return;
+  }
+
+  // Check Accept header
+  const accept = req.headers.accept || '';
+  if (!accept.includes('text/event-stream')) {
+    sendError(res, "Client must accept text/event-stream for SSE connections", HttpStatus.NOT_ACCEPTABLE, "INVALID_ACCEPT_HEADER");
+    return;
+  }
+
+  // Establish SSE connection
+  await handleSSEConnection(req, res, user.id);
+}
+
+/**
+ * Handle polling request
+ * Requirement 7.2: Polling fallback for graceful degradation
+ * 
+ * Returns events since the last received event ID.
+ * Use this as a fallback when SSE is not available.
+ * 
+ * @example
+ * // Client-side usage
+ * const response = await fetch('/api/sessions?action=poll&lastEventId=123');
+ * const { data: { events } } = await response.json();
+ */
+async function handlePoll(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const user = await getAuthUser(req);
+  if (!user) {
+    sendError(res, "Authentication required for realtime access", HttpStatus.UNAUTHORIZED, "AUTH_REQUIRED");
+    return;
+  }
+
+  const lastEventId = req.query.lastEventId as string | undefined;
+
+  // Get events since lastEventId
+  const events = getEventsForPolling(user.id, lastEventId);
+
+  sendSuccess(res, {
+    events,
+    count: events.length,
+    lastEventId: events.length > 0 ? events[events.length - 1].id : lastEventId,
+  });
+}
