@@ -102,8 +102,14 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
         }
         return await handleRegister(req, res);
 
+      case "roles":
+        if (req.method !== "GET") {
+          return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        return await handleRoles(req, res);
+
       default:
-        return sendError(res, "Invalid action", HttpStatus.BAD_REQUEST);
+        return sendError(res, "Invalid action. Valid actions: login, logout, refresh, session, register, roles", HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     console.error("[auth] Unhandled error:", error);
@@ -850,3 +856,53 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
  * VERIFICATION: Arcjet shield applied
  */
 export default withArcjetProtection(handler, "auth");
+
+/**
+ * Roles handler
+ * 
+ * GET /api/auth?action=roles - Get current user's roles and permissions
+ * 
+ * DESIGN: Deterministic behavior, no DB calls
+ * - Valid token → 200 with role data
+ * - Invalid/missing token → 401 with { authenticated: false }
+ * - NEVER throws, NEVER 500s
+ */
+async function handleRoles(req: VercelRequest, res: VercelResponse) {
+  try {
+    // Get user from token (supports both cookie and Bearer header)
+    const user = await getAuthUser(req);
+
+    if (!user) {
+      return res.status(401).json({ 
+        success: false,
+        authenticated: false,
+        error: 'Not authenticated'
+      });
+    }
+
+    // Determine permissions based on role (deterministic, no DB lookup)
+    const permissions = getPermissionsForRole(user.role as UserRole);
+    const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+
+    return res.status(200).json({
+      success: true,
+      authenticated: true,
+      data: {
+        user_id: user.userId,
+        email: user.email,
+        role: user.role,
+        roles: [user.role],
+        permissions: permissions,
+        is_admin: isAdmin,
+      }
+    });
+  } catch (error) {
+    // CRITICAL: Never expose error details, never 500
+    console.error('[auth] Roles error:', error instanceof Error ? error.message : 'Unknown');
+    return res.status(401).json({ 
+      success: false,
+      authenticated: false,
+      error: 'Authentication failed'
+    });
+  }
+}

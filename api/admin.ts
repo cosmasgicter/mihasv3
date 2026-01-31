@@ -21,6 +21,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from './_lib/cors';
 import { supabaseAdmin } from './_lib/supabaseClient';
+import { query } from './_lib/db';
 import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHandler';
 import { withArcjetProtection } from './_lib/arcjet';
 import { requireRole, AuthenticationError, AuthorizationError, type AuthContext } from './_lib/auth/middleware';
@@ -91,8 +92,16 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         await handleRegisterUser(req, res, auth);
         return;
 
+      case 'migrate':
+        if (req.method !== 'POST') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleMigrate(req, res);
+        return;
+
       default:
-        sendError(res, 'Invalid action', HttpStatus.BAD_REQUEST);
+        sendError(res, 'Invalid action. Valid actions: dashboard, users, settings, register, migrate', HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -491,4 +500,87 @@ async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth:
     console.error('[ADMIN] Registration error:', error instanceof Error ? error.message : 'Unknown error');
     sendError(res, 'Registration failed', HttpStatus.INTERNAL_SERVER_ERROR);
   }
+}
+
+/**
+ * Handle database migration
+ * 
+ * POST /api/admin?action=migrate
+ * Body: { secret: string } // Must match MIGRATE_SECRET env var
+ * 
+ * Runs migrations to add required columns for Bun-native auth.
+ * Should be called once after deployment.
+ * 
+ * Note: Requires MIGRATE_SECRET env var OR super_admin role
+ */
+async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const MIGRATE_SECRET = process.env.MIGRATE_SECRET;
+  const { secret } = req.body || {};
+
+  // Allow migration if secret matches OR if user is super_admin (already verified by requireRole)
+  if (MIGRATE_SECRET && secret !== MIGRATE_SECRET) {
+    sendError(res, 'Invalid migration secret', HttpStatus.UNAUTHORIZED);
+    return;
+  }
+
+  const migrations: string[] = [];
+  const errors: string[] = [];
+
+  // Migration 1: Add password_hash column
+  try {
+    await query({
+      text: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_hash TEXT`,
+    });
+    migrations.push('Added password_hash column');
+  } catch (e) {
+    errors.push(`password_hash: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  // Migration 2: Add refresh_token_hash column
+  try {
+    await query({
+      text: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS refresh_token_hash TEXT`,
+    });
+    migrations.push('Added refresh_token_hash column');
+  } catch (e) {
+    errors.push(`refresh_token_hash: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  // Migration 3: Add role column
+  try {
+    await query({
+      text: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'student'`,
+    });
+    migrations.push('Added role column');
+  } catch (e) {
+    errors.push(`role: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  // Migration 4: Create indexes
+  try {
+    await query({
+      text: `CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email)`,
+    });
+    migrations.push('Created idx_profiles_email index');
+  } catch (e) {
+    errors.push(`idx_profiles_email: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  try {
+    await query({
+      text: `CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role)`,
+    });
+    migrations.push('Created idx_profiles_role index');
+  } catch (e) {
+    errors.push(`idx_profiles_role: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  // Return results
+  sendSuccess(res, {
+    migrations,
+    errors: errors.length > 0 ? errors : undefined,
+    message: errors.length > 0 
+      ? 'Some migrations failed' 
+      : 'All migrations completed successfully',
+  });
 }
