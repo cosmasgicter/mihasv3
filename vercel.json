@@ -60,10 +60,6 @@
                          "destination":  "/api/auth"
                      },
                      {
-                         "source":  "/api/auth-roles",
-                         "destination":  "/api/auth-roles"
-                     },
-                     {
                          "source":  "/api/admin",
                          "destination":  "/api/admin"
                      },

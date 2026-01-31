@@ -37,7 +37,7 @@ export type PasswordResetResult = {
  * CRITICAL FIX: Simplified auth flow
  * 
  * Auth flow is now:
- * Sign In → POST /api/auth?action=login → HTTP-only cookie set → GET /api/auth-roles → APP BOOTS
+ * Sign In → POST /api/auth?action=login → HTTP-only cookie set → GET /api/auth?action=roles → APP BOOTS
  * 
  * DISABLED:
  * - Supabase onAuthStateChange listener (was causing infinite loops)
@@ -73,7 +73,7 @@ export function useSessionListener() {
         }
 
         // Verify auth via API (single source of truth)
-        const response = await fetch(`${apiBaseUrl}/api/auth-roles`, {
+        const response = await fetch(`${apiBaseUrl}/api/auth?action=roles`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${storedToken}`,
@@ -129,7 +129,7 @@ export function useSessionListener() {
       queryClient.clear()
 
       // CRITICAL FIX: Use API-first auth flow
-      // POST /api/auth?action=login → Store token → GET /api/auth-roles → APP BOOTS
+      // POST /api/auth?action=login → Store token → GET /api/auth?action=roles → APP BOOTS
       const response = await fetch(`${apiBaseUrl}/api/auth?action=login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
