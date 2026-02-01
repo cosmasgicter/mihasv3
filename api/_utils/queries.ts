@@ -13,7 +13,7 @@
  * All parameter values are passed separately to prevent SQL injection.
  */
 
-import { QueryConfig } from './_db';
+import { QueryConfig } from './db';
 
 // ============================================================================
 // TypeScript Interfaces for Database Records

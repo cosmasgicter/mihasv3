@@ -19,7 +19,7 @@
  */
 
 import type { VercelRequest } from "@vercel/node";
-import { AuditQueries, type AuditEntityType } from "./_queries";
+import { AuditQueries, type AuditEntityType } from "./queries";
 
 /**
  * User role constants
@@ -380,7 +380,7 @@ export async function logAuthorizationFailure(
     );
     
     // Lazy import to avoid circular dependencies and test issues
-    const { query } = await import("./_db");
+    const { query } = await import("./db");
     await query(auditQuery.text, auditQuery.values);
     
     // Log to console for monitoring (without PII)

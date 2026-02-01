@@ -17,9 +17,9 @@
  */
 
 import { jwtVerify, decodeJwt, JWTPayload } from 'jose';
-import { query } from './_db';
-import { UserQueries, UserRecord, USER_ROLES, UserRole } from './_queries';
-import { hashPassword } from './_auth_password';
+import { query } from './db';
+import { UserQueries, UserRecord, USER_ROLES, UserRole } from './queries';
+import { hashPassword } from './auth_password';
 
 /**
  * Supabase JWT payload structure

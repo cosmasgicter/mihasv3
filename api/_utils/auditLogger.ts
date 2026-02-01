@@ -16,9 +16,9 @@
  * - Sanitize all context data before logging
  */
 
-import { query, QueryConfig } from './_db';
-import { AuditQueries, AuditLogInput, AuditEntityType } from './_queries';
-import { sanitizeError } from './_errorHandler';
+import { query, QueryConfig } from './db';
+import { AuditQueries, AuditLogInput, AuditEntityType } from './queries';
+import { sanitizeError } from './errorHandler';
 
 /**
  * Execute a query from a QueryConfig object

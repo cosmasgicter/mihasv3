@@ -7,7 +7,7 @@
  * @see migrations/RLS_REPLACEMENT.md for the full mapping
  */
 
-import { query } from './_db';
+import { query } from './db';
 
 /**
  * Roles that have admin-level access

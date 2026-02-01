@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query, detectDatabaseType } from './_db';
+import { query, detectDatabaseType } from './_utils/db';
 
 /**
  * Health Check API
@@ -242,7 +242,7 @@ async function handleArcjetTest(req: VercelRequest, res: VercelResponse): Promis
 
   // Test 2: Import local arcjet wrapper
   try {
-    const arcjetWrapper = await import('./_arcjet');
+    const arcjetWrapper = await import('./_utils/arcjet');
     results.arcjetWrapperImport = 'SUCCESS';
     results.arcjetWrapperExports = Object.keys(arcjetWrapper).join(', ');
   } catch (error) {
