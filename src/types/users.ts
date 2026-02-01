@@ -1,4 +1,4 @@
-import { UserProfile } from '@/lib/supabase'
+import { UserProfile } from '@/types/auth'
 
 export interface UserStatsSummary {
   total: number

@@ -27,7 +27,13 @@ export class SchemaAnalyzer {
       throw new Error('Supabase configuration missing for schema analysis');
     }
     
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+    this.supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false
+      }
+    });
   }
 
   /**

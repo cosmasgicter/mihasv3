@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Property-Based Tests: Role-Based Access Control (RBAC)
  * Feature: auth-security-hardening

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/Button'
 import { LoadingButton } from '@/components/ui/LoadingButton'
-import { ProgressBar } from '@/components/ui/ProgressIndicator'
+import { ProgressIndicator } from '@/components/ui/ProgressIndicator'
 import { Upload, X, FileText, CheckCircle, AlertCircle, ImageIcon, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { uploadApplicationFile, validateApplicationFile, type UploadResult } from '@/lib/storage'
@@ -302,11 +302,9 @@ export function SimpleFileUpload({
                   <p className="text-sm text-primary font-medium">Uploading...</p>
                     {uploadStats.progress > 0 && (
                       <div className="w-full max-w-xs">
-                        <ProgressBar
-                          value={uploadStats.progress}
-                          size="sm"
-                          showPercentage
-                          color="blue"
+                        <ProgressIndicator
+                          progress={uploadStats.progress}
+                          status="loading"
                         />
                       {uploadStats.speed > 0 && (
                         <div className="flex justify-between text-xs text-gray-900 mt-1">

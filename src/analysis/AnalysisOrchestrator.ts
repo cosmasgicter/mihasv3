@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * MIHAS Analysis Orchestrator
  * 

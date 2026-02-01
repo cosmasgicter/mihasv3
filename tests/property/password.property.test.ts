@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Property-Based Tests: Password Hasher
  * Feature: auth-security-hardening

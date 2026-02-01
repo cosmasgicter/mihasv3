@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
@@ -17,7 +18,9 @@ import {
   Maximize2,
   Minimize2,
   Eye,
-  EyeOff
+  EyeOff,
+  Rocket,
+  TrendingUp
 } from 'lucide-react'
 
 export default function EnhancedAdminDashboard() {

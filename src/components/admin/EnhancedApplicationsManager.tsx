@@ -19,7 +19,11 @@ import {
   ArrowDown,
   Calendar,
   Users,
-  TrendingUp
+  TrendingUp,
+  FileText,
+  User,
+  BarChart3,
+  GraduationCap
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 

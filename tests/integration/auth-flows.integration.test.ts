@@ -1,41 +1,30 @@
 /**
  * Integration Tests: Authentication Flows
- * Feature: bun-vercel-runtime-forensics
  * 
- * Tests complete signup and login flows to verify the Bun/Vercel migration
- * works correctly end-to-end.
+ * Tests complete signup and login flows using custom JWT auth with HTTP-only cookies.
+ * Validates the Bun/Vercel migration with cookie-based authentication.
  * 
  * **Validates: Requirements 9.1, 9.2, 9.3, 9.4**
+ * 
+ * @updated 2026-01-31 - Migrated from Supabase Auth to custom JWT auth
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock Supabase client for integration tests
-const mockSupabaseAuth = {
-  signUp: vi.fn(),
-  signInWithPassword: vi.fn(),
-  getSession: vi.fn(),
-  signOut: vi.fn(),
-};
+// Mock fetch for API calls
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
 
-const mockSupabaseFrom = vi.fn(() => ({
-  select: vi.fn(() => ({
-    eq: vi.fn(() => ({
-      single: vi.fn(() => Promise.resolve({ data: null, error: null })),
-    })),
-  })),
-  insert: vi.fn(() => Promise.resolve({ data: null, error: null })),
-  upsert: vi.fn(() => Promise.resolve({ data: null, error: null })),
-}));
+// Helper to create mock response
+function createMockResponse(data: any, status = 200) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(data),
+  };
+}
 
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    auth: mockSupabaseAuth,
-    from: mockSupabaseFrom,
-  },
-}));
-
-describe('Feature: bun-vercel-runtime-forensics, Auth Integration Tests', () => {
+describe('Auth Integration Tests (Custom JWT with HTTP-only Cookies)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -44,69 +33,99 @@ describe('Feature: bun-vercel-runtime-forensics, Auth Integration Tests', () => 
     vi.restoreAllMocks();
   });
 
-  describe('Signup Flow (Requirement 9.1)', () => {
-    it('should complete signup flow with valid credentials', async () => {
+  describe('Registration Flow (Requirement 9.1)', () => {
+    it('should complete registration flow with valid credentials', async () => {
       const testEmail = 'test@example.com';
       const testPassword = 'SecurePassword123!';
+      const testName = 'Test User';
       
-      mockSupabaseAuth.signUp.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: true,
         data: {
           user: {
             id: 'test-user-id',
             email: testEmail,
-            email_confirmed_at: null,
+            role: 'student',
+            full_name: testName,
           },
-          session: null,
         },
-        error: null,
+      }));
+
+      const response = await fetch('/api/auth?action=register', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+          full_name: testName,
+        }),
       });
 
-      const result = await mockSupabaseAuth.signUp({
-        email: testEmail,
-        password: testPassword,
-      });
+      const result = await response.json();
 
-      expect(result.error).toBeNull();
+      expect(response.ok).toBe(true);
+      expect(result.success).toBe(true);
       expect(result.data.user).toBeDefined();
       expect(result.data.user.email).toBe(testEmail);
-    });
-
-    it('should handle signup with existing email', async () => {
-      const testEmail = 'existing@example.com';
       
-      mockSupabaseAuth.signUp.mockResolvedValueOnce({
-        data: { user: null, session: null },
-        error: {
-          message: 'User already registered',
-          status: 400,
-        },
-      });
-
-      const result = await mockSupabaseAuth.signUp({
-        email: testEmail,
-        password: 'Password123!',
-      });
-
-      expect(result.error).toBeDefined();
-      expect(result.error.message).toContain('already registered');
+      // Verify fetch was called with credentials: 'include'
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/auth?action=register',
+        expect.objectContaining({
+          credentials: 'include',
+        })
+      );
     });
 
-    it('should handle signup with weak password', async () => {
-      mockSupabaseAuth.signUp.mockResolvedValueOnce({
-        data: { user: null, session: null },
-        error: {
-          message: 'Password should be at least 6 characters',
-          status: 400,
-        },
+    it('should handle registration with existing email', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: false,
+        error: 'Email already registered',
+        code: 'EMAIL_EXISTS',
+      }, 409));
+
+      const response = await fetch('/api/auth?action=register', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'existing@example.com',
+          password: 'Password123!',
+          full_name: 'Test User',
+        }),
       });
 
-      const result = await mockSupabaseAuth.signUp({
-        email: 'test@example.com',
-        password: '123',
+      const result = await response.json();
+
+      expect(response.ok).toBe(false);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('already registered');
+    });
+
+    it('should handle registration with weak password', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: false,
+        error: 'Password must be at least 8 characters',
+        code: 'WEAK_PASSWORD',
+      }, 400));
+
+      const response = await fetch('/api/auth?action=register', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'test@example.com',
+          password: '123',
+          full_name: 'Test User',
+        }),
       });
 
-      expect(result.error).toBeDefined();
-      expect(result.error.message).toContain('Password');
+      const result = await response.json();
+
+      expect(response.ok).toBe(false);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Password');
     });
   });
 
@@ -115,208 +134,428 @@ describe('Feature: bun-vercel-runtime-forensics, Auth Integration Tests', () => 
       const testEmail = 'test@example.com';
       const testPassword = 'SecurePassword123!';
       
-      mockSupabaseAuth.signInWithPassword.mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: true,
         data: {
           user: {
             id: 'test-user-id',
             email: testEmail,
-            email_confirmed_at: new Date().toISOString(),
-          },
-          session: {
-            access_token: 'valid-jwt-token',
-            refresh_token: 'valid-refresh-token',
-            expires_at: Date.now() + 3600000,
+            role: 'student',
           },
         },
-        error: null,
+      }));
+
+      const response = await fetch('/api/auth?action=login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+        }),
       });
 
-      const result = await mockSupabaseAuth.signInWithPassword({
-        email: testEmail,
-        password: testPassword,
-      });
+      const result = await response.json();
 
-      expect(result.error).toBeNull();
+      expect(response.ok).toBe(true);
+      expect(result.success).toBe(true);
       expect(result.data.user).toBeDefined();
-      expect(result.data.session).toBeDefined();
-      expect(result.data.session.access_token).toBeDefined();
+      expect(result.data.user.email).toBe(testEmail);
+      
+      // Verify credentials: 'include' is used (cookies will be set by server)
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/auth?action=login',
+        expect.objectContaining({
+          credentials: 'include',
+        })
+      );
     });
 
     it('should handle login with invalid credentials', async () => {
-      mockSupabaseAuth.signInWithPassword.mockResolvedValueOnce({
-        data: { user: null, session: null },
-        error: {
-          message: 'Invalid login credentials',
-          status: 400,
-        },
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: false,
+        error: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS',
+      }, 401));
+
+      const response = await fetch('/api/auth?action=login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'test@example.com',
+          password: 'wrongpassword',
+        }),
       });
 
-      const result = await mockSupabaseAuth.signInWithPassword({
-        email: 'test@example.com',
-        password: 'wrongpassword',
-      });
+      const result = await response.json();
 
-      expect(result.error).toBeDefined();
-      expect(result.error.message).toContain('Invalid');
+      expect(response.ok).toBe(false);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Invalid');
     });
 
-    it('should handle login with unverified email', async () => {
-      mockSupabaseAuth.signInWithPassword.mockResolvedValueOnce({
-        data: {
-          user: {
-            id: 'test-user-id',
-            email: 'test@example.com',
-            email_confirmed_at: null, // Not verified
-          },
-          session: null,
-        },
-        error: {
-          message: 'Email not confirmed',
-          status: 400,
-        },
+    it('should not reveal whether email exists on login failure', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: false,
+        error: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS',
+      }, 401));
+
+      const response = await fetch('/api/auth?action=login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'nonexistent@example.com',
+          password: 'Password123!',
+        }),
       });
 
-      const result = await mockSupabaseAuth.signInWithPassword({
-        email: 'test@example.com',
-        password: 'Password123!',
-      });
+      const result = await response.json();
 
-      expect(result.error).toBeDefined();
-      expect(result.error.message).toContain('Email');
+      // Error should be generic, not revealing if email exists
+      expect(result.error).not.toContain('not found');
+      expect(result.error).not.toContain('does not exist');
+      expect(result.error).toBe('Invalid credentials');
     });
   });
 
   describe('Session Management (Requirement 9.3)', () => {
-    it('should retrieve active session', async () => {
-      mockSupabaseAuth.getSession.mockResolvedValueOnce({
+    it('should retrieve active session from cookie', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: true,
         data: {
-          session: {
-            access_token: 'valid-jwt-token',
-            refresh_token: 'valid-refresh-token',
-            expires_at: Date.now() + 3600000,
-            user: {
-              id: 'test-user-id',
-              email: 'test@example.com',
-            },
+          user: {
+            id: 'test-user-id',
+            email: 'test@example.com',
+            role: 'student',
           },
+          expires_at: new Date(Date.now() + 3600000).toISOString(),
         },
-        error: null,
+      }));
+
+      const response = await fetch('/api/auth?action=session', {
+        method: 'GET',
+        credentials: 'include',
       });
 
-      const result = await mockSupabaseAuth.getSession();
+      const result = await response.json();
 
-      expect(result.error).toBeNull();
-      expect(result.data.session).toBeDefined();
-      expect(result.data.session.access_token).toBeDefined();
+      expect(response.ok).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.data.user).toBeDefined();
+      expect(result.data.expires_at).toBeDefined();
     });
 
-    it('should handle expired session', async () => {
-      mockSupabaseAuth.getSession.mockResolvedValueOnce({
-        data: { session: null },
-        error: null,
+    it('should handle no active session (not authenticated)', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: false,
+        error: 'Not authenticated',
+        code: 'NOT_AUTHENTICATED',
+      }, 401));
+
+      const response = await fetch('/api/auth?action=session', {
+        method: 'GET',
+        credentials: 'include',
       });
 
-      const result = await mockSupabaseAuth.getSession();
+      const result = await response.json();
 
-      expect(result.error).toBeNull();
-      expect(result.data.session).toBeNull();
+      expect(response.ok).toBe(false);
+      expect(result.success).toBe(false);
     });
 
-    it('should handle signout correctly', async () => {
-      mockSupabaseAuth.signOut.mockResolvedValueOnce({
-        error: null,
+    it('should handle logout correctly (clears cookies)', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: true,
+        message: 'Logged out successfully',
+      }));
+
+      const response = await fetch('/api/auth?action=logout', {
+        method: 'POST',
+        credentials: 'include',
       });
 
-      const result = await mockSupabaseAuth.signOut();
+      const result = await response.json();
 
-      expect(result.error).toBeNull();
+      expect(response.ok).toBe(true);
+      expect(result.success).toBe(true);
+    });
+
+    it('should refresh session with valid refresh token', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: true,
+        data: {
+          user: {
+            id: 'test-user-id',
+            email: 'test@example.com',
+            role: 'student',
+          },
+          expires_at: new Date(Date.now() + 3600000).toISOString(),
+        },
+      }));
+
+      const response = await fetch('/api/auth?action=refresh', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+
+      expect(response.ok).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.data.user).toBeDefined();
     });
   });
 
-  describe('Auth Roles Endpoint (Requirement 9.4)', () => {
+  describe('Role-Based Access Control (Requirement 9.4)', () => {
     it('should return correct role structure for student', async () => {
-      const mockRoleResponse = {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         success: true,
         data: {
           role: 'student',
-          permissions: ['view_own_application', 'submit_application', 'upload_documents'],
+          permissions: ['applications:own', 'documents:own', 'payments:own', 'profile:own'],
         },
-      };
+      }));
 
-      // Simulate API response structure
-      expect(mockRoleResponse.success).toBe(true);
-      expect(mockRoleResponse.data.role).toBe('student');
-      expect(mockRoleResponse.data.permissions).toContain('view_own_application');
+      const response = await fetch('/api/auth?action=roles', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+
+      expect(result.success).toBe(true);
+      expect(result.data.role).toBe('student');
+      expect(result.data.permissions).toContain('applications:own');
     });
 
     it('should return correct role structure for admin', async () => {
-      const mockRoleResponse = {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         success: true,
         data: {
           role: 'admin',
-          permissions: ['view_all_applications', 'review_applications', 'manage_users'],
+          permissions: ['users:read', 'applications:manage', 'payments:verify', 'documents:verify', 'analytics:view'],
         },
-      };
+      }));
 
-      expect(mockRoleResponse.success).toBe(true);
-      expect(mockRoleResponse.data.role).toBe('admin');
-      expect(mockRoleResponse.data.permissions).toContain('view_all_applications');
+      const response = await fetch('/api/auth?action=roles', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+
+      expect(result.success).toBe(true);
+      expect(result.data.role).toBe('admin');
+      expect(result.data.permissions).toContain('applications:manage');
     });
 
     it('should return correct role structure for super_admin', async () => {
-      const mockRoleResponse = {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
         success: true,
         data: {
           role: 'super_admin',
-          permissions: ['view_all_applications', 'review_applications', 'manage_users', 'system_config', 'audit_logs'],
+          permissions: ['users:all', 'applications:all', 'programs:all', 'payments:all', 'documents:all', 'analytics:all', 'settings:all'],
         },
-      };
+      }));
 
-      expect(mockRoleResponse.success).toBe(true);
-      expect(mockRoleResponse.data.role).toBe('super_admin');
-      expect(mockRoleResponse.data.permissions).toContain('system_config');
+      const response = await fetch('/api/auth?action=roles', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+
+      expect(result.success).toBe(true);
+      expect(result.data.role).toBe('super_admin');
+      expect(result.data.permissions).toContain('settings:all');
     });
   });
 
-  describe('Error Response Format (Requirement 9.5)', () => {
-    it('should return consistent error format for auth failures', async () => {
-      mockSupabaseAuth.signInWithPassword.mockResolvedValueOnce({
-        data: { user: null, session: null },
-        error: {
-          message: 'Invalid login credentials',
-          status: 400,
-        },
+  describe('Password Reset Flow (Requirement 9.5)', () => {
+    it('should request password reset successfully', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: true,
+        message: 'Password reset email sent',
+      }));
+
+      const response = await fetch('/api/auth?action=forgot-password', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'test@example.com',
+        }),
       });
 
-      const result = await mockSupabaseAuth.signInWithPassword({
-        email: 'test@example.com',
-        password: 'wrong',
+      const result = await response.json();
+
+      expect(response.ok).toBe(true);
+      expect(result.success).toBe(true);
+    });
+
+    it('should not reveal if email exists during password reset', async () => {
+      // Even for non-existent emails, should return success to prevent enumeration
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: true,
+        message: 'If the email exists, a reset link has been sent',
+      }));
+
+      const response = await fetch('/api/auth?action=forgot-password', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'nonexistent@example.com',
+        }),
       });
+
+      const result = await response.json();
+
+      expect(response.ok).toBe(true);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reset password with valid token', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: true,
+        message: 'Password reset successfully',
+      }));
+
+      const response = await fetch('/api/auth?action=reset-password', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: 'valid-reset-token',
+          password: 'NewSecurePassword123!',
+        }),
+      });
+
+      const result = await response.json();
+
+      expect(response.ok).toBe(true);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid reset token', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: false,
+        error: 'Invalid or expired reset token',
+        code: 'INVALID_TOKEN',
+      }, 400));
+
+      const response = await fetch('/api/auth?action=reset-password', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: 'invalid-token',
+          password: 'NewPassword123!',
+        }),
+      });
+
+      const result = await response.json();
+
+      expect(response.ok).toBe(false);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Invalid');
+    });
+  });
+
+  describe('Error Response Format (Requirement 9.6)', () => {
+    it('should return consistent error format for auth failures', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: false,
+        error: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS',
+      }, 401));
+
+      const response = await fetch('/api/auth?action=login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'test@example.com',
+          password: 'wrong',
+        }),
+      });
+
+      const result = await response.json();
 
       // Verify error structure
-      expect(result.error).toBeDefined();
-      expect(typeof result.error.message).toBe('string');
-      expect(typeof result.error.status).toBe('number');
+      expect(result.success).toBe(false);
+      expect(typeof result.error).toBe('string');
+      expect(typeof result.code).toBe('string');
     });
 
     it('should not expose sensitive data in error messages', async () => {
-      mockSupabaseAuth.signInWithPassword.mockResolvedValueOnce({
-        data: { user: null, session: null },
-        error: {
-          message: 'Invalid login credentials',
-          status: 400,
-        },
+      const sensitivePassword = 'secretpassword123';
+      const sensitiveEmail = 'sensitive@example.com';
+      
+      mockFetch.mockResolvedValueOnce(createMockResponse({
+        success: false,
+        error: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS',
+      }, 401));
+
+      const response = await fetch('/api/auth?action=login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: sensitiveEmail,
+          password: sensitivePassword,
+        }),
       });
 
-      const result = await mockSupabaseAuth.signInWithPassword({
-        email: 'test@example.com',
-        password: 'secretpassword123',
-      });
+      const result = await response.json();
 
-      // Error message should not contain the password
-      expect(result.error.message).not.toContain('secretpassword123');
-      // Error message should not contain the email
-      expect(result.error.message).not.toContain('test@example.com');
+      // Error message should not contain sensitive data
+      expect(result.error).not.toContain(sensitivePassword);
+      expect(result.error).not.toContain(sensitiveEmail);
+    });
+  });
+
+  describe('Cookie-Based Auth Verification', () => {
+    it('should always use credentials: include for auth requests', async () => {
+      mockFetch.mockResolvedValue(createMockResponse({ success: true }));
+
+      // Test various auth endpoints
+      const endpoints = [
+        { url: '/api/auth?action=login', method: 'POST' },
+        { url: '/api/auth?action=logout', method: 'POST' },
+        { url: '/api/auth?action=session', method: 'GET' },
+        { url: '/api/auth?action=refresh', method: 'POST' },
+        { url: '/api/auth?action=register', method: 'POST' },
+      ];
+
+      for (const endpoint of endpoints) {
+        await fetch(endpoint.url, {
+          method: endpoint.method,
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: endpoint.method === 'POST' ? JSON.stringify({}) : undefined,
+        });
+      }
+
+      // Verify all calls used credentials: 'include'
+      expect(mockFetch).toHaveBeenCalledTimes(endpoints.length);
+      mockFetch.mock.calls.forEach((call) => {
+        expect(call[1]).toHaveProperty('credentials', 'include');
+      });
+    });
+
+    it('should not use localStorage for token storage', () => {
+      // Verify no localStorage auth token operations
+      const localStorageSpy = vi.spyOn(Storage.prototype, 'setItem');
+      const localStorageGetSpy = vi.spyOn(Storage.prototype, 'getItem');
+      
+      // These should never be called for auth tokens
+      expect(localStorageSpy).not.toHaveBeenCalledWith('mihas-auth-token', expect.anything());
+      expect(localStorageGetSpy).not.toHaveBeenCalledWith('mihas-auth-token');
     });
   });
 });

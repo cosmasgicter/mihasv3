@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Security configuration and Content Security Policy setup
  * Prevents code injection vulnerabilities including Function() constructor usage

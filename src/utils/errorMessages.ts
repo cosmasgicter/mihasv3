@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Comprehensive Error Message System
  * 

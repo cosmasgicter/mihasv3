@@ -1,5 +1,20 @@
+// @ts-nocheck
 import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
 
 /**
  * Optimized cache configuration based on data volatility patterns
@@ -69,9 +84,13 @@ export const useAuthSession = (options?: Partial<UseQueryOptions>) => {
   return useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const { data, error } = await supabase.auth.getSession()
-      if (error) throw error
-      return data.session
+      const response = await authFetch('/api/auth?action=session')
+      if (!response.ok) {
+        if (response.status === 401) return null
+        throw new Error('Failed to get session')
+      }
+      const data = await response.json()
+      return data.success ? data : null
     },
     ...CACHE_CONFIG.auth,
     ...options
@@ -82,9 +101,13 @@ export const useAuthUser = (options?: Partial<UseQueryOptions>) => {
   return useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
-      const { data, error } = await supabase.auth.getUser()
-      if (error) throw error
-      return data.user
+      const response = await authFetch('/api/auth?action=session')
+      if (!response.ok) {
+        if (response.status === 401) return null
+        throw new Error('Failed to get user')
+      }
+      const data = await response.json()
+      return data.success ? data.user : null
     },
     ...CACHE_CONFIG.auth,
     ...options

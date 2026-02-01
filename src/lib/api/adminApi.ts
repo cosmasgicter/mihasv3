@@ -1,12 +1,14 @@
-import { getApiBaseUrl } from '../apiConfig';
-import { getSupabaseClient } from '../supabase';
-import type { StudentNotification } from '@/types/notifications';
+/**
+ * Admin API Client - Cookie-based authentication
+ * 
+ * All admin operations use HTTP-only cookies (credentials: 'include')
+ * NO Bearer token headers - cookies are managed by the browser
+ * 
+ * @module adminApi
+ */
 
-async function getAuthToken(): Promise<string | null> {
-  const supabase = getSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token || null;
-}
+import { getApiBaseUrl } from '../apiConfig';
+import type { StudentNotification } from '@/types/notifications';
 
 /**
  * Custom error class for HTML response detection
@@ -20,8 +22,6 @@ export class HtmlResponseError extends Error {
 
 /**
  * Checks if a response body contains HTML instead of JSON
- * @param text - The response text to check
- * @returns true if the response appears to be HTML
  */
 export function isHtmlResponse(text: string): boolean {
   if (!text || typeof text !== 'string') return false;
@@ -31,9 +31,6 @@ export function isHtmlResponse(text: string): boolean {
 
 /**
  * Parses a response as JSON, detecting and handling HTML responses
- * @param response - The fetch Response object
- * @throws HtmlResponseError if the response contains HTML instead of JSON
- * @returns The parsed JSON data
  */
 export async function parseJsonResponse<T>(response: Response): Promise<T> {
   const text = await response.text();
@@ -61,132 +58,114 @@ export interface SystemSetting {
   updated_at: string;
 }
 
-export async function fetchSettings(): Promise<SystemSetting[]> {
-  const token = await getAuthToken();
-  if (!token) return [];
+/**
+ * Fetch wrapper with credentials (HTTP-only cookies)
+ */
+async function adminFetch<T>(
+  url: string,
+  options: RequestInit = {}
+): Promise<{ ok: boolean; data?: T }> {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      credentials: 'include', // CRITICAL: Send HTTP-only cookies
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
 
-  const response = await fetch(`${getApiBaseUrl()}/api/admin?action=settings`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+    if (!response.ok) {
+      return { ok: false };
     }
-  });
 
-  if (!response.ok) return [];
-  
-  const result = await parseJsonResponse<{ data?: SystemSetting[] }>(response);
+    const result = await parseJsonResponse<{ data?: T }>(response);
+    return { ok: true, data: result.data };
+  } catch {
+    return { ok: false };
+  }
+}
+
+export async function fetchSettings(): Promise<SystemSetting[]> {
+  const result = await adminFetch<SystemSetting[]>(
+    `${getApiBaseUrl()}/api/admin?action=settings`
+  );
   return result.data || [];
 }
 
-export async function createSetting(setting: Omit<SystemSetting, 'id' | 'created_at' | 'updated_at' | 'updated_by'>): Promise<boolean> {
-  const token = await getAuthToken();
-  if (!token) return false;
-
-  const response = await fetch(`${getApiBaseUrl()}/api/admin?action=settings`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(setting)
-  });
-
-  return response.ok;
+export async function createSetting(
+  setting: Omit<SystemSetting, 'id' | 'created_at' | 'updated_at' | 'updated_by'>
+): Promise<boolean> {
+  const result = await adminFetch(
+    `${getApiBaseUrl()}/api/admin?action=settings`,
+    {
+      method: 'POST',
+      body: JSON.stringify(setting),
+    }
+  );
+  return result.ok;
 }
 
-export async function updateSetting(id: string, updates: Partial<SystemSetting>): Promise<boolean> {
-  const token = await getAuthToken();
-  if (!token) return false;
-
-  const response = await fetch(`${getApiBaseUrl()}/api/admin?action=settings`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ id, ...updates })
-  });
-
-  return response.ok;
+export async function updateSetting(
+  id: string,
+  updates: Partial<SystemSetting>
+): Promise<boolean> {
+  const result = await adminFetch(
+    `${getApiBaseUrl()}/api/admin?action=settings`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ id, ...updates }),
+    }
+  );
+  return result.ok;
 }
 
 export async function deleteSetting(id: string): Promise<boolean> {
-  const token = await getAuthToken();
-  if (!token) return false;
-
-  const response = await fetch(`${getApiBaseUrl()}/api/admin?action=settings`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ id })
-  });
-
-  return response.ok;
+  const result = await adminFetch(
+    `${getApiBaseUrl()}/api/admin?action=settings`,
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ id }),
+    }
+  );
+  return result.ok;
 }
 
 export async function fetchNotifications(): Promise<StudentNotification[]> {
-  const token = await getAuthToken();
-  if (!token) return [];
-
-  const response = await fetch(`${getApiBaseUrl()}/api/notifications`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  });
-
-  if (!response.ok) return [];
-  
-  const result = await parseJsonResponse<{ data?: StudentNotification[] }>(response);
+  const result = await adminFetch<StudentNotification[]>(
+    `${getApiBaseUrl()}/api/notifications?action=list`
+  );
   return result.data || [];
 }
 
 export async function markNotificationRead(notificationId: string): Promise<boolean> {
-  const token = await getAuthToken();
-  if (!token) return false;
-
-  const response = await fetch(`${getApiBaseUrl()}/api/notifications`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ notificationId })
-  });
-
-  return response.ok;
+  const result = await adminFetch(
+    `${getApiBaseUrl()}/api/notifications?action=mark-read`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ notificationId }),
+    }
+  );
+  return result.ok;
 }
 
 export async function markAllNotificationsRead(): Promise<boolean> {
-  const token = await getAuthToken();
-  if (!token) return false;
-
-  const response = await fetch(`${getApiBaseUrl()}/api/notifications`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ markAll: true })
-  });
-
-  return response.ok;
+  const result = await adminFetch(
+    `${getApiBaseUrl()}/api/notifications?action=mark-all-read`,
+    {
+      method: 'PUT',
+    }
+  );
+  return result.ok;
 }
 
 export async function deleteNotification(notificationId: string): Promise<boolean> {
-  const token = await getAuthToken();
-  if (!token) return false;
-
-  const response = await fetch(`${getApiBaseUrl()}/api/notifications`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ notificationId })
-  });
-
-  return response.ok;
+  const result = await adminFetch(
+    `${getApiBaseUrl()}/api/notifications?action=delete`,
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ notificationId }),
+    }
+  );
+  return result.ok;
 }

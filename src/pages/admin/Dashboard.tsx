@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useCallback, useEffect, useState } from 'react'
 import { logger } from '@/lib/logger'
 import { useAuth } from '@/contexts/AuthContext'

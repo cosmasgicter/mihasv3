@@ -27,8 +27,7 @@ import {
   Trash2,
   RefreshCw
 } from 'lucide-react';
-import { useToast } from '@/hooks/useToast';
-import { supabase } from '@/lib/supabase';
+import { useToastStore } from '@/components/ui/Toast';
 
 interface BulkJob {
   id: string;
@@ -60,7 +59,7 @@ export function BulkNotificationManager() {
   const [statistics, setStatistics] = useState<BulkJobStatistics | null>(null);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
-  const { toast } = useToast();
+  const toast = useToastStore();
 
   // Form state for creating new bulk job
   const [formData, setFormData] = useState({
@@ -89,10 +88,8 @@ export function BulkNotificationManager() {
 
   const loadJobs = async () => {
     try {
-      const response = await fetch('/api/notifications/bulk-manager?action=jobs&limit=20', {
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
+      const response = await fetch('/api/notifications?action=bulk-jobs&limit=20', {
+        credentials: 'include'
       });
       
       if (!response.ok) throw new Error('Failed to load jobs');
@@ -101,20 +98,14 @@ export function BulkNotificationManager() {
       setJobs(data.jobs || []);
     } catch (error) {
       console.error('Error loading jobs:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load bulk notification jobs',
-        variant: 'destructive'
-      });
+      toast.error('Failed to load bulk notification jobs');
     }
   };
 
   const loadStatistics = async () => {
     try {
-      const response = await fetch('/api/notifications/bulk-manager?action=statistics&hours=24', {
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
+      const response = await fetch('/api/notifications?action=bulk-statistics&hours=24', {
+        credentials: 'include'
       });
       
       if (!response.ok) throw new Error('Failed to load statistics');
@@ -128,11 +119,7 @@ export function BulkNotificationManager() {
 
   const createBulkJob = async () => {
     if (!formData.name || !formData.recipients || !formData.title || !formData.message) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please fill in all required fields',
-        variant: 'destructive'
-      });
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -144,12 +131,12 @@ export function BulkNotificationManager() {
         .map(r => r.trim())
         .filter(r => r.length > 0);
 
-      const response = await fetch('/api/notifications/bulk-manager?action=queue', {
+      const response = await fetch('/api/notifications?action=bulk-queue', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           name: formData.name,
           recipients,
@@ -171,10 +158,7 @@ export function BulkNotificationManager() {
 
       const result = await response.json();
       
-      toast({
-        title: 'Success',
-        description: `Bulk job created with ${result.total_recipients} recipients`
-      });
+      toast.success(`Bulk job created with ${result.total_recipients} recipients`);
 
       // Reset form
       setFormData({
@@ -193,11 +177,7 @@ export function BulkNotificationManager() {
       loadStatistics();
     } catch (error) {
       console.error('Error creating bulk job:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to create bulk job',
-        variant: 'destructive'
-      });
+      toast.error(error instanceof Error ? error.message : 'Failed to create bulk job');
     } finally {
       setCreating(false);
     }
@@ -205,40 +185,31 @@ export function BulkNotificationManager() {
 
   const cancelJob = async (jobId: string) => {
     try {
-      const response = await fetch(`/api/notifications/bulk-manager?action=cancel&job_id=${jobId}`, {
+      const response = await fetch(`/api/notifications?action=bulk-cancel&job_id=${jobId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) throw new Error('Failed to cancel job');
 
-      toast({
-        title: 'Success',
-        description: 'Bulk job cancelled successfully'
-      });
+      toast.success('Bulk job cancelled successfully');
 
       loadJobs();
     } catch (error) {
       console.error('Error cancelling job:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to cancel bulk job',
-        variant: 'destructive'
-      });
+      toast.error('Failed to cancel bulk job');
     }
   };
 
   const processQueue = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/notifications/bulk-manager?action=process', {
+      const response = await fetch('/api/notifications?action=bulk-process', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({})
       });
 
@@ -246,19 +217,12 @@ export function BulkNotificationManager() {
 
       const result = await response.json();
       
-      toast({
-        title: 'Success',
-        description: `Processed ${result.processed_jobs} jobs`
-      });
+      toast.success(`Processed ${result.processed_jobs} jobs`);
 
       loadJobs();
     } catch (error) {
       console.error('Error processing queue:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to process notification queue',
-        variant: 'destructive'
-      });
+      toast.error('Failed to process notification queue');
     } finally {
       setLoading(false);
     }

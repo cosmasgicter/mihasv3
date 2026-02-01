@@ -33,9 +33,12 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
       // Check if user exists
       const hasUser = !!user?.id
       
-      // Check session validity
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      const hasValidSession = !sessionError && !!session
+      // Check session validity via API
+      const response = await fetch('/api/auth?action=session', {
+        credentials: 'include'
+      })
+      const sessionResult = await response.json()
+      const hasValidSession = sessionResult.success && !!sessionResult.user
       
       // Check if user can actually make authenticated requests
       let canSubmitApplication = false
@@ -56,7 +59,7 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
         isAuthenticated: hasUser,
         hasValidSession,
         canSubmitApplication,
-        error: sessionError?.message
+        error: sessionResult.error
       }
       
       setAuthStatus(newStatus)

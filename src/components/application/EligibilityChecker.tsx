@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { CheckCircle, XCircle, AlertTriangle, TrendingUp, FileText, MessageSquare } from 'lucide-react'
 import { eligibilityEngine, EligibilityAssessment, MissingRequirement } from '../../lib/eligibilityEngine'
 import { Button } from '../ui/Button'
+import { toast } from '@/hooks/useToast'
 
 interface EligibilityCheckerProps {
   applicationId: string

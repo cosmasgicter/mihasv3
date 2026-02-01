@@ -201,8 +201,20 @@ export async function uploadFile(
       }
     }
 
-    // Get current user if not provided
-    const currentUserId = userId || (await supabase.auth.getUser()).data.user?.id
+    // Get current user if not provided via cookie-based auth
+    let currentUserId = userId
+    if (!currentUserId) {
+      try {
+        const response = await fetch('/api/auth?action=session', { credentials: 'include' })
+        if (response.ok) {
+          const data = await response.json()
+          currentUserId = data.user?.id
+        }
+      } catch {
+        // Ignore auth errors for storage operations
+      }
+    }
+    
     if (!currentUserId) {
       return {
         success: false,

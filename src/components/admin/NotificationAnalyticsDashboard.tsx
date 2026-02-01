@@ -175,10 +175,8 @@ export default function NotificationAnalyticsDashboard() {
         params.append('channel', dateRange.channel)
       }
 
-      const response = await fetch(`/notifications/analytics?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        }
+      const response = await fetch(`/api/notifications?${params}`, {
+        credentials: 'include'
       })
 
       if (!response.ok) {
@@ -205,10 +203,8 @@ export default function NotificationAnalyticsDashboard() {
         params.append('channel', dateRange.channel)
       }
 
-      const response = await fetch(`/notifications/analytics?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        }
+      const response = await fetch(`/api/notifications?${params}`, {
+        credentials: 'include'
       })
 
       if (!response.ok) {
@@ -232,10 +228,8 @@ export default function NotificationAnalyticsDashboard() {
         limit: '50'
       })
 
-      const response = await fetch(`/notifications/analytics?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        }
+      const response = await fetch(`/api/notifications?${params}`, {
+        credentials: 'include'
       })
 
       if (!response.ok) {
@@ -260,10 +254,8 @@ export default function NotificationAnalyticsDashboard() {
         params.append('channel', dateRange.channel)
       }
 
-      const response = await fetch(`/notifications/analytics?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        }
+      const response = await fetch(`/api/notifications?${params}`, {
+        credentials: 'include'
       })
 
       if (!response.ok) {
@@ -286,10 +278,8 @@ export default function NotificationAnalyticsDashboard() {
         days: dateRange.days.toString()
       })
 
-      const response = await fetch(`/notifications/analytics?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        }
+      const response = await fetch(`/api/notifications?${params}`, {
+        credentials: 'include'
       })
 
       if (!response.ok) {

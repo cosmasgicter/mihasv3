@@ -1,7 +1,22 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
-import { Search, Filter as FilterIcon, TrendingUp, Download, Settings, RefreshCw } from 'lucide-react'
+import { 
+  Search, 
+  Filter as FilterIcon, 
+  TrendingUp, 
+  Download, 
+  Settings, 
+  RefreshCw,
+  FileEdit,
+  FileText,
+  Calendar,
+  User,
+  BarChart3,
+  Target,
+  GraduationCap,
+  CreditCard
+} from 'lucide-react'
 
 interface ApplicationsFiltersProps {
   searchTerm: string

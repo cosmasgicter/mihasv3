@@ -4,24 +4,28 @@
  * Provides centralized realtime connection status tracking across the application.
  * Components can use this to show connection indicators and trigger reconnection.
  * 
+ * Now uses SSE/polling instead of Supabase Realtime.
+ * 
  * @requirements 1.4, 3.4, 4.4 - Connection status indicators
  */
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
-import { 
-  REALTIME_STATUS_EVENT, 
-  REALTIME_RECONNECT_EVENT, 
-  reconnectRealtime,
-  type RealtimeStatusDetail 
-} from '@/lib/supabase'
+
+// Custom events for SSE-based realtime
+export const SSE_STATUS_EVENT = 'mihas:sse-status'
+export const SSE_RECONNECT_EVENT = 'mihas:sse-reconnect'
+
+export interface SSEStatusDetail {
+  connected: boolean
+  status: 'connecting' | 'connected' | 'disconnected' | 'error'
+  lastConnectedAt?: Date | null
+}
 
 export interface RealtimeStatusContextValue {
   /** Whether realtime is currently connected */
   isConnected: boolean
   /** Whether a reconnection is in progress */
   isReconnecting: boolean
-  /** Number of active channels */
-  channelCount: number
   /** Current status string */
   status: string
   /** Timestamp of last successful connection */
@@ -38,18 +42,35 @@ interface RealtimeStatusProviderProps {
 
 const DEBOUNCE_MS = 300
 
+/**
+ * Dispatch SSE status event for UI indicators
+ */
+export function dispatchSSEStatus(detail: SSEStatusDetail): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(SSE_STATUS_EVENT, { detail }))
+  }
+}
+
+/**
+ * Trigger SSE reconnection
+ */
+export function triggerSSEReconnect(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(SSE_RECONNECT_EVENT))
+  }
+}
+
 export function RealtimeStatusProvider({ children }: RealtimeStatusProviderProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [isReconnecting, setIsReconnecting] = useState(false)
-  const [channelCount, setChannelCount] = useState(0)
-  const [status, setStatus] = useState('CLOSED')
+  const [status, setStatus] = useState('disconnected')
   const [lastConnectedAt, setLastConnectedAt] = useState<Date | null>(null)
   
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Handle status updates with debouncing
-  const handleStatusUpdate = useCallback((detail: RealtimeStatusDetail) => {
+  const handleStatusUpdate = useCallback((detail: SSEStatusDetail) => {
     // Clear existing debounce timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
@@ -58,7 +79,6 @@ export function RealtimeStatusProvider({ children }: RealtimeStatusProviderProps
     // Debounce rapid status updates
     debounceTimerRef.current = setTimeout(() => {
       setStatus(detail.status)
-      setChannelCount(detail.channelCount)
       
       if (detail.connected) {
         setIsConnected(true)
@@ -87,12 +107,12 @@ export function RealtimeStatusProvider({ children }: RealtimeStatusProviderProps
   // Manual reconnect function
   const reconnect = useCallback(() => {
     setIsReconnecting(true)
-    reconnectRealtime()
+    triggerSSEReconnect()
   }, [])
 
   // Set up event listeners
   useEffect(() => {
-    const handleStatus = (event: CustomEvent<RealtimeStatusDetail>) => {
+    const handleStatus = (event: CustomEvent<SSEStatusDetail>) => {
       handleStatusUpdate(event.detail)
     }
 
@@ -100,12 +120,12 @@ export function RealtimeStatusProvider({ children }: RealtimeStatusProviderProps
       handleReconnectEvent()
     }
 
-    window.addEventListener(REALTIME_STATUS_EVENT, handleStatus as EventListener)
-    window.addEventListener(REALTIME_RECONNECT_EVENT, handleReconnect)
+    window.addEventListener(SSE_STATUS_EVENT, handleStatus as EventListener)
+    window.addEventListener(SSE_RECONNECT_EVENT, handleReconnect)
 
     return () => {
-      window.removeEventListener(REALTIME_STATUS_EVENT, handleStatus as EventListener)
-      window.removeEventListener(REALTIME_RECONNECT_EVENT, handleReconnect)
+      window.removeEventListener(SSE_STATUS_EVENT, handleStatus as EventListener)
+      window.removeEventListener(SSE_RECONNECT_EVENT, handleReconnect)
       
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current)
@@ -119,7 +139,6 @@ export function RealtimeStatusProvider({ children }: RealtimeStatusProviderProps
   const value: RealtimeStatusContextValue = {
     isConnected,
     isReconnecting,
-    channelCount,
     status,
     lastConnectedAt,
     reconnect
@@ -157,8 +176,7 @@ export function useRealtimeStatus(): RealtimeStatusContextValue {
     return {
       isConnected: false,
       isReconnecting: false,
-      channelCount: 0,
-      status: 'CLOSED',
+      status: 'disconnected',
       lastConnectedAt: null,
       reconnect: () => {}
     }

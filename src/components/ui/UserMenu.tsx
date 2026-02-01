@@ -12,7 +12,7 @@ export function UserMenu() {
   const { profile } = useProfileQuery()
   const menuRef = useRef<HTMLDivElement>(null)
   
-  const fullName = profile?.full_name || user?.user_metadata?.full_name || 'User'
+  const fullName = profile?.full_name || (user?.user_metadata?.full_name as string) || 'User'
   const firstName = fullName.split(' ')[0] || 'User'
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function UserMenu() {
       >
         {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
           <img
-            src={profile?.avatar_url || user.user_metadata.avatar_url}
+            src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string)}
             alt="Profile"
             className="w-8 h-8 rounded-full border border-border"
           />

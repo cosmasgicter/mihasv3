@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getSupabaseClient } from '@/lib/supabase'
 
 export function AuthDebug() {
   const { user, loading } = useAuth()
@@ -10,19 +9,21 @@ export function AuthDebug() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const supabase = getSupabaseClient()
-        const { data: { session }, error } = await supabase.auth.getSession()
+        const response = await fetch('/api/auth?action=session', {
+          credentials: 'include'
+        })
+        const data = await response.json()
         
-        if (error) {
-          setError(error.message)
+        if (!data.success) {
+          setError(data.error || 'Session check failed')
         } else {
           setSessionInfo({
-            hasSession: !!session,
-            hasUser: !!session?.user,
-            hasToken: !!session?.access_token,
-            tokenExpiry: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
-            userId: session?.user?.id,
-            userEmail: session?.user?.email
+            hasSession: !!data.user,
+            hasUser: !!data.user,
+            hasToken: true, // Cookie-based, so we don't expose token
+            tokenExpiry: data.expiresAt ? new Date(data.expiresAt).toISOString() : null,
+            userId: data.user?.id,
+            userEmail: data.user?.email
           })
         }
       } catch (err) {
@@ -66,11 +67,7 @@ export function AuthDebug() {
         )}
         
         <div>
-          <strong>Local Storage Token:</strong> {
-            typeof window !== 'undefined' 
-              ? localStorage.getItem('mihas-auth-token') ? 'Present' : 'None'
-              : 'N/A (SSR)'
-          }
+          <strong>Auth Method:</strong> HTTP-only cookies (secure)
         </div>
       </div>
     </div>

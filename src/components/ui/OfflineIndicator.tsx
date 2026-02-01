@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @deprecated This component is deprecated. Use OfflineIndicator from '@/components/pwa/OfflineIndicator' instead.
  * This file will be removed in a future version.

@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { exportUsersToPDF, type UserPDFFieldDefinition } from '@/lib/exportUtils'
 import { UserProfile } from '@/lib/supabase'
 import { Download, FileText, FileSpreadsheet, Filter, Users, CheckSquare, Square } from 'lucide-react'
+import { toast } from '@/hooks/useToast'
 
 interface UserExportProps {
   users: UserProfile[]

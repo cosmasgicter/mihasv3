@@ -1,4 +1,7 @@
-// CRITICAL: Enhanced Authentication Security
+/**
+ * CRITICAL: Enhanced Authentication Security
+ * Uses HTTP-only cookie authentication
+ */
 import { supabase } from './supabase'
 import { sanitizeForLog } from './security'
 
@@ -6,6 +9,20 @@ export interface AuthValidationResult {
   isValid: boolean
   user: any | null
   error?: string
+}
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
 }
 
 export class AuthSecurityManager {
@@ -21,35 +38,30 @@ export class AuthSecurityManager {
   }
 
   /**
-   * Validate JWT token and user session
+   * Validate JWT token and user session via cookie-based auth
    */
   async validateAuth(): Promise<AuthValidationResult> {
     try {
-      // Get current session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      // Get current session via API
+      const response = await authFetch('/api/auth?action=session')
       
-      if (sessionError || !session) {
+      if (!response.ok) {
         return { isValid: false, user: null, error: 'No valid session' }
       }
 
-      // Check JWT expiration
-      const now = Math.floor(Date.now() / 1000)
-      if (session.expires_at && session.expires_at < now) {
-        return { isValid: false, user: null, error: 'Token expired' }
-      }
-
-      // Validate user exists and is active
-      const { data: user, error: userError } = await supabase.auth.getUser()
+      const sessionData = await response.json()
       
-      if (userError || !user.user) {
-        return { isValid: false, user: null, error: 'Invalid user' }
+      if (!sessionData.success || !sessionData.user) {
+        return { isValid: false, user: null, error: 'Invalid session' }
       }
 
-      // Check if user profile exists and is active
+      const user = sessionData.user
+
+      // Check if user profile exists and is active (using Supabase for data, not auth)
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, role, created_at')
-        .eq('id', user.user.id)
+        .eq('id', user.id)
         .single()
 
       if (profileError) {
@@ -60,7 +72,7 @@ export class AuthSecurityManager {
       return { 
         isValid: true, 
         user: { 
-          ...user.user, 
+          ...user, 
           profile: profile 
         } 
       }
@@ -170,19 +182,23 @@ export class AuthSecurityManager {
   }
 
   /**
-   * Force session refresh
+   * Force session refresh via cookie-based auth
    */
   async refreshSession(): Promise<boolean> {
     try {
-      const { data, error } = await supabase.auth.refreshSession()
+      const response = await authFetch('/api/auth?action=refresh', {
+        method: 'POST',
+      })
       
-      if (error) {
-        await this.logAuthEvent('session_refresh_failed', false, error.message)
+      if (!response.ok) {
+        await this.logAuthEvent('session_refresh_failed', false, response.statusText)
         return false
       }
 
-      if (data.session) {
-        await this.logAuthEvent('session_refreshed', true, undefined, data.session.user.id)
+      const data = await response.json()
+      
+      if (data.success && data.user) {
+        await this.logAuthEvent('session_refreshed', true, undefined, data.user.id)
         return true
       }
 
@@ -194,23 +210,23 @@ export class AuthSecurityManager {
   }
 
   /**
-   * Secure sign out
+   * Secure sign out via cookie-based auth
    */
   async secureSignOut(): Promise<void> {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      const userId = user?.id
-
-      // Invalidate all device sessions
-      if (userId) {
-        await supabase
-          .from('device_sessions')
-          .update({ is_active: false })
-          .eq('id', userId)
+      // Get current user before signing out
+      const sessionResponse = await authFetch('/api/auth?action=session')
+      let userId: string | undefined
+      
+      if (sessionResponse.ok) {
+        const sessionData = await sessionResponse.json()
+        userId = sessionData.user?.id
       }
 
-      // Sign out from Supabase
-      await supabase.auth.signOut()
+      // Sign out via API (clears HTTP-only cookies)
+      await authFetch('/api/auth?action=logout', {
+        method: 'POST',
+      })
 
       // Log the event
       if (userId) {

@@ -88,9 +88,9 @@ export async function createApplicationSlip(
 
           const response = await fetch('/send-email', {
             method: 'POST',
+            credentials: 'include', // Use HTTP-only cookie auth
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
             },
             body: JSON.stringify({
               to: data.email,

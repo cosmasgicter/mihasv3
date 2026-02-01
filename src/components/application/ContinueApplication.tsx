@@ -9,6 +9,7 @@ import { FileText, Clock, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
 import { clearAllDraftData } from '@/lib/draftCleanup'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
+import { toast } from '@/hooks/useToast'
 
 interface DraftInfo {
   exists: boolean

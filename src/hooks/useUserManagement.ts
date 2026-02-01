@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useCallback } from 'react'
 import { UserProfile, supabase } from '@/lib/supabase'
 import { UserStatsSummary } from '@/types/users'

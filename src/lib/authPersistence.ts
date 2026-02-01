@@ -1,5 +1,21 @@
-// Auth persistence utility to prevent automatic logout
-import { supabase } from './supabase'
+/**
+ * Auth persistence utility to prevent automatic logout
+ * Uses HTTP-only cookie authentication
+ */
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
 
 class AuthPersistence {
   private static instance: AuthPersistence
@@ -42,23 +58,20 @@ class AuthPersistence {
     this.isChecking = true
 
     try {
-      const { data: { session }, error } = await supabase.auth.getSession()
+      // Check current session via API
+      const sessionResponse = await authFetch('/api/auth?action=session')
       
-      if (error) {
-        console.error('Session check error:', error)
+      if (!sessionResponse.ok) {
+        // No valid session, nothing to refresh
         return
       }
 
-      if (session) {
-        // Session exists, check if it needs refresh
-        const expiresAt = session.expires_at
-        const now = Math.floor(Date.now() / 1000)
-        const timeUntilExpiry = expiresAt - now
-
-        // Refresh if expires in less than 10 minutes
-        if (timeUntilExpiry < 600) {
-          await supabase.auth.refreshSession()
-        }
+      const sessionData = await sessionResponse.json()
+      
+      if (sessionData.success && sessionData.user) {
+        // Session exists, proactively refresh to extend it
+        // The server handles token expiry checks
+        await authFetch('/api/auth?action=refresh', { method: 'POST' })
       }
     } catch (error) {
       console.error('Session refresh error:', error)

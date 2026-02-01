@@ -1,0 +1,54 @@
+FORENSIC RE-ANALYSIS REPORT
+Generated: 01/31/2026 07:12:27
+
+CRITICAL FINDINGS:
+==================
+
+1. MISSING FILE (Deployment Blocker)
+   - File: api/migrate.ts
+   - Status: Referenced in vercel.json, DOES NOT EXIST
+   - Impact: Deployment will fail
+
+2. RUNTIME MISMATCH
+   - Build: Uses Bun (bunx --bun vite build)
+   - Runtime: Node.js 18.x (default, not explicitly set to Bun)
+   - Evidence: No runtime key in vercel.json functions
+
+3. AUTH PARADIGM SCHISM
+   Backend:
+   - Bun-native JWT with bcrypt + jose
+   - HTTP-only cookies
+   - Modular auth library (api/_lib/auth/)
+   
+   Frontend:
+   - 106 files import Supabase
+   - AuthContext uses Supabase User type
+   - @supabase/supabase-js still in dependencies
+
+4. DATABASE STATE
+   - Migration script exists: api/_lib/migrations/001_add_auth_columns.sql
+   - Execution status: UNKNOWN
+   - Backend queries reference password_hash, refresh_token_hash
+
+VERIFICATION COUNTS:
+===================
+- API Functions: 11/12 configured
+- Frontend Supabase imports: 106 files
+- Retry logic files: 38 files
+- Arcjet implementation: 9628 bytes
+- Backend auth modules: 6 files in api/_lib/auth/
+
+CONTRADICTIONS:
+===============
+1. vercel.json claims Bun install but runtime is Node
+2. Backend auth is Bun-native but frontend expects Supabase
+3. Realtime backend is SSE but frontend has Supabase channel context
+4. "Zero Supabase" claimed but database uses Supabase REST driver
+
+ARCHITECTURAL STATE:
+====================
+The system is in HYBRID CHAOS state:
+- Backend successfully migrated to Bun-native
+- Frontend still operating on Supabase assumptions
+- Database abstraction ready for Neon but Supabase active
+- Deployment configuration has errors (missing migrate.ts)

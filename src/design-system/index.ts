@@ -4,7 +4,7 @@
  */
 
 export { designTokens } from './tokens'
-export type { DesignTokens } from './tokens'
+export type DesignTokens = typeof import('./tokens').designTokens
 
 export {
   buttonVariants,

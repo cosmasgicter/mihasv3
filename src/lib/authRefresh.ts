@@ -1,77 +1,69 @@
-import { getSupabaseClient } from './supabase'
+/**
+ * Auth Refresh - Uses HTTP-only cookie authentication
+ * Replaces Supabase Auth SDK with custom JWT auth
+ */
 import { logger } from '@/utils/logger'
 
-function clearStaleSession() {
-  if (typeof window === 'undefined') return
-  
-  try {
-    localStorage.removeItem('mihas-auth-token')
-    // Clear all Supabase auth keys
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('sb-') || key.includes('supabase')) {
-        localStorage.removeItem(key)
-      }
-    })
-    sessionStorage.clear()
-    logger.info('Cleared stale session data')
-  } catch (error) {
-    logger.error('Failed to clear session:', error)
-  }
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
 }
 
 export async function refreshAuthSession() {
   try {
-    const supabase = getSupabaseClient()
-    
     // First, try to get the current session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    const sessionResponse = await authFetch('/api/auth?action=session')
     
     logger.info('[AuthRefresh] Session check:', { 
-      hasSession: !!session, 
-      hasError: !!sessionError,
-      hasToken: !!session?.access_token 
+      ok: sessionResponse.ok, 
+      status: sessionResponse.status 
     })
     
-    if (sessionError) {
-      logger.error('[AuthRefresh] Session error:', sessionError)
-      return { success: false, error: sessionError.message }
+    if (!sessionResponse.ok) {
+      if (sessionResponse.status === 401) {
+        logger.warn('[AuthRefresh] No active session found')
+        return { success: false, error: 'No active session' }
+      }
+      logger.error('[AuthRefresh] Session error:', sessionResponse.statusText)
+      return { success: false, error: sessionResponse.statusText }
     }
     
-    if (!session) {
-      logger.warn('[AuthRefresh] No active session found - NOT clearing (might be loading)')
-      return { success: false, error: 'No active session' }
-    }
+    const sessionData = await sessionResponse.json()
     
-    // Validate session has required fields
-    if (!session.access_token || !session.user) {
+    if (!sessionData.success || !sessionData.user) {
       logger.error('Invalid session structure')
       return { success: false, error: 'Invalid session' }
     }
     
-    // Check if token is expired or about to expire (within 5 minutes)
-    const now = Date.now()
-    const expiresAt = (session.expires_at || 0) * 1000
-    const fiveMinutes = 5 * 60 * 1000
+    // Proactively refresh the token
+    logger.info('Refreshing token...')
     
-    if (expiresAt - now < fiveMinutes) {
-      logger.info('Token is expired or about to expire, refreshing...')
-      
-      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
-      
-      if (refreshError) {
-        logger.error('Token refresh failed:', refreshError)
-        return { success: false, error: refreshError.message }
-      }
-      
-      if (refreshData.session) {
-        logger.info('Token refreshed successfully')
-        return { success: true, session: refreshData.session }
-      }
-      
-      return { success: false, error: 'Refresh returned no session' }
+    const refreshResponse = await authFetch('/api/auth?action=refresh', {
+      method: 'POST',
+    })
+    
+    if (!refreshResponse.ok) {
+      logger.error('Token refresh failed:', refreshResponse.statusText)
+      return { success: false, error: refreshResponse.statusText }
     }
     
-    return { success: true, session }
+    const refreshData = await refreshResponse.json()
+    
+    if (refreshData.success) {
+      logger.info('Token refreshed successfully')
+      return { success: true, user: refreshData.user }
+    }
+    
+    return { success: false, error: 'Refresh returned no session' }
   } catch (error) {
     logger.error('Auth refresh error:', error)
     return { 
@@ -88,5 +80,5 @@ export async function ensureValidSession() {
     throw new Error(result.error || 'Authentication required')
   }
   
-  return result.session
+  return result.user
 }

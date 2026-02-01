@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Plugin API Provider
  * Provides secure API access for plugins

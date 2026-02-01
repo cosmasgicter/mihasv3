@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { z } from 'zod'
 
 import type { Institution, Program, Intake } from '@/lib/supabase'

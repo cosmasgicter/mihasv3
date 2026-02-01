@@ -1,8 +1,21 @@
-import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import type { ReportExportData, ReportFormat } from './reportExports.types'
 import { isReportManagerRole } from '@/lib/auth/roles'
 import { sanitizeForLog } from './security'
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
 
 export interface AnalyticsEvent {
   user_id?: string
@@ -57,43 +70,42 @@ export interface AutomatedReport {
 }
 
 export class AnalyticsService {
-  // Ensure user is authenticated before making requests
+  // Ensure user is authenticated before making requests via cookie-based auth
   static async ensureAuthenticated() {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.access_token) {
-      throw new Error('User not authenticated - JWT token missing')
+    const response = await authFetch('/api/auth?action=session')
+    if (!response.ok) {
+      throw new Error('User not authenticated')
     }
-    return session
+    const data = await response.json()
+    if (!data.success || !data.user) {
+      throw new Error('User not authenticated - no valid session')
+    }
+    return data
   }
 
-  private static async fetchCurrentUserRole(session: Session): Promise<string | null> {
-    const userId = session.user?.id
-
-    if (!userId) {
-      return null
-    }
-
-    if (session.user?.email === 'cosmas@beanola.com') {
-      return 'super_admin'
-    }
-
-    if (typeof fetch === 'undefined') {
-      return null
-    }
-
+  private static async fetchCurrentUserRole(): Promise<string | null> {
     try {
-      const response = await fetch(`/admin/users/${encodeURIComponent(userId)}/role`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      })
+      const sessionData = await this.ensureAuthenticated()
+      const userId = sessionData.user?.id
 
-      if (response.status === 404) {
+      if (!userId) {
         return null
       }
 
+      if (sessionData.user?.email === 'cosmas@beanola.com') {
+        return 'super_admin'
+      }
+
+      // Get role from session data if available
+      if (sessionData.user?.role) {
+        return sessionData.user.role
+      }
+
+      // Fallback to API call
+      const response = await authFetch(`/api/admin?action=users&userId=${encodeURIComponent(userId)}`)
+
       if (!response.ok) {
-        throw new Error(response.statusText || 'Failed to retrieve user role for analytics guard')
+        return null
       }
 
       const data = await response.json()
@@ -108,8 +120,7 @@ export class AnalyticsService {
   }
 
   static async ensureReportManagerAccess() {
-    const session = await this.ensureAuthenticated()
-    const role = await this.fetchCurrentUserRole(session)
+    const role = await this.fetchCurrentUserRole()
 
     if (!isReportManagerRole(role)) {
       throw new Error('You do not have permission to manage analytics reports.')
@@ -120,13 +131,22 @@ export class AnalyticsService {
   static async trackEvent(event: AnalyticsEvent) {
     try {
       // Check authentication before tracking to avoid 401/403 errors
-      const { data: { session } } = await supabase.auth.getSession()
+      const response = await authFetch('/api/auth?action=session')
       
       // If we don't have a session, we can't track to a protected table
-      // This prevents the browser console 401/403 spam
-      if (!session?.user) {
+      if (!response.ok) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('[Analytics] Skipping anonymous event tracking (no session):', event.action_type)
+        }
+        return
+      }
+      
+      const sessionData = await response.json()
+      const user = sessionData.user
+
+      if (!user) {
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[Analytics] Skipping anonymous event tracking (no user):', event.action_type)
         }
         return
       }
@@ -134,7 +154,7 @@ export class AnalyticsService {
       const { error } = await supabase
         .from('user_engagement_metrics')
         .insert({
-          user_id: session?.user?.id || event.user_id,
+          user_id: user.id || event.user_id,
           session_id: event.session_id,
           page_path: event.page_path,
           action_type: event.action_type,
@@ -393,7 +413,9 @@ export class AnalyticsService {
   static async createAutomatedReport(report: Omit<AutomatedReport, 'id' | 'createdAt'>) {
     await this.ensureReportManagerAccess()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    // Get current user from session
+    const sessionData = await this.ensureAuthenticated()
+    const user = sessionData.user
 
     const preparedReportData = report.reportData
       ? {

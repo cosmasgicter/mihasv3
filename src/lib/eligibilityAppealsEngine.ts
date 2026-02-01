@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Eligibility Appeals Management Engine
  * 

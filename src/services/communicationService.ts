@@ -7,6 +7,20 @@
 
 import { supabase } from '@/lib/supabase'
 
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
 export interface CommunicationRequest {
   applicantId: string
   channel: 'email' | 'sms' | 'in-app'
@@ -44,10 +58,15 @@ export async function sendToApplicant(
   request: CommunicationRequest
 ): Promise<CommunicationResponse> {
   try {
-    // Get current user session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    // Verify authentication via cookie-based session
+    const sessionResponse = await authFetch('/api/auth?action=session')
+    if (!sessionResponse.ok) {
+      throw new Error('Authentication required')
+    }
+    const sessionData = await sessionResponse.json()
+    const currentUserId = sessionData.user?.id
     
-    if (sessionError || !session) {
+    if (!currentUserId) {
       throw new Error('Authentication required')
     }
 
@@ -80,7 +99,7 @@ export async function sendToApplicant(
         subject: request.subject,
         message: request.message,
         template: request.template,
-        sent_by: session.user.id,
+        sent_by: currentUserId,
         status: 'pending'
       })
       .select()
@@ -160,14 +179,8 @@ async function sendEmailMessage(params: {
   applicantName: string
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    const response = await fetch('/api/notifications?action=send', {
+    const response = await authFetch('/api/notifications?action=send', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session?.access_token}`
-      },
       body: JSON.stringify({
         to: params.to,
         subject: params.subject,

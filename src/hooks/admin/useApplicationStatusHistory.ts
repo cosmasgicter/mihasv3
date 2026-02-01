@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from 'react'
 import { applicationService } from '@/services/applications'
 

@@ -1,10 +1,29 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from './_lib/cors';
-import { supabaseAdmin, getUserFromRequest } from './_lib/supabaseClient';
+import { query } from './_lib/db';
+import { getAuthUser } from './_lib/auth/middleware';
+import { withArcjetProtection } from './_lib/arcjet';
+import { 
+  ApplicationQueries, 
+  DocumentQueries, 
+  GradeQueries,
+  StatusHistoryQueries,
+  ApplicationRecord,
+  DocumentRecord,
+  GradeRecord,
+  StatusHistoryRecord,
+  ApplicationStatus,
+  PaymentStatus,
+  USER_ROLES
+} from './_lib/queries';
 import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHandler';
 
 /**
  * Consolidated Applications API
+ * 
+ * MIGRATED: Uses custom auth middleware and database abstraction
+ * PROTECTED: Arcjet rate limiting (60 requests per 10 minutes)
+ * 
  * GET /api/applications - List applications
  * GET /api/applications?id=xxx - Get single application
  * GET /api/applications?action=details - List all applications
@@ -17,7 +36,7 @@ import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHan
  * PATCH /api/applications?id=xxx - Patch application
  * DELETE /api/applications?id=xxx - Delete application
  */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
   // Handle HEAD requests for health checks (no auth required)
@@ -25,27 +44,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  const auth = await getUserFromRequest(req);
-  if ('error' in auth) {
-    return sendError(res, auth.error, HttpStatus.UNAUTHORIZED);
+  // Get authenticated user (supports both cookie and Bearer token)
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
+
+  // Determine if user is admin (check role string directly for flexibility)
+  const adminRoles = ['admin', 'super_admin', 'admissions_officer'];
+  const isAdmin = adminRoles.includes(user.role);
 
   const action = req.query.action as string;
   const id = req.query.id as string;
 
   try {
     // Handle specific actions
-    if (action === 'details') return handleDetails(req, res, auth);
+    if (action === 'details') return handleDetails(req, res, user.userId, isAdmin);
     if (action === 'documents') return handleDocuments(res);
     if (action === 'grades') return handleGrades(res);
     if (action === 'summary') return handleSummary(res);
-    if (action === 'review') return handleReview(req, res, auth);
+    if (action === 'review') return handleReview(req, res, user.userId, isAdmin);
 
     // Handle CRUD by ID
-    if (id) return handleById(req, res, auth, id);
+    if (id) return handleById(req, res, user.userId, isAdmin, id);
 
     // Default: list applications
-    if (req.method === 'GET') return handleDetails(req, res, auth);
+    if (req.method === 'GET') return handleDetails(req, res, user.userId, isAdmin);
 
     return sendError(res, 'Invalid request', HttpStatus.BAD_REQUEST);
   } catch (error) {
@@ -53,60 +77,59 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-async function handleDetails(req: VercelRequest, res: VercelResponse, auth: { user: { id: string }; isAdmin: boolean }) {
-  if (req.method !== 'GET') return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+async function handleDetails(
+  req: VercelRequest, 
+  res: VercelResponse, 
+  userId: string, 
+  isAdmin: boolean
+) {
+  if (req.method !== 'GET') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
 
-  let query = supabaseAdmin.from('applications').select('*');
-  if (!auth.isAdmin) query = query.eq('user_id', auth.user.id);
+  let q;
+  if (isAdmin) {
+    q = ApplicationQueries.findAll();
+  } else {
+    q = ApplicationQueries.findByUserId(userId);
+  }
 
-  const { data, error } = await query.order('created_at', { ascending: false });
-  if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
-
-  return sendSuccess(res, data || []);
+  const result = await query<ApplicationRecord>(q.text, q.values);
+  return sendSuccess(res, result.rows);
 }
 
 async function handleDocuments(res: VercelResponse) {
-  const { data, error } = await supabaseAdmin
-    .from('application_documents')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
-  return sendSuccess(res, data || []);
+  const q = DocumentQueries.findAll();
+  const result = await query<DocumentRecord>(q.text, q.values);
+  return sendSuccess(res, result.rows);
 }
 
 async function handleGrades(res: VercelResponse) {
-  const { data, error } = await supabaseAdmin
-    .from('application_grades')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
-  return sendSuccess(res, data || []);
+  const q = GradeQueries.findAll();
+  const result = await query<GradeRecord>(q.text, q.values);
+  return sendSuccess(res, result.rows);
 }
 
 async function handleSummary(res: VercelResponse) {
-  const { data, error } = await supabaseAdmin
-    .from('applications')
-    .select('id, status, created_at')
-    .order('created_at', { ascending: false });
-
-  if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
-  return sendSuccess(res, data || []);
+  const q = ApplicationQueries.getSummary();
+  const result = await query<{ id: string; status: string; created_at: string }>(q.text, q.values);
+  return sendSuccess(res, result.rows);
 }
 
-async function handleReview(req: VercelRequest, res: VercelResponse, auth: { user: { id: string }; isAdmin: boolean }) {
-  if (!auth.isAdmin) return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
+async function handleReview(
+  req: VercelRequest, 
+  res: VercelResponse, 
+  userId: string, 
+  isAdmin: boolean
+) {
+  if (!isAdmin) {
+    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
+  }
 
   if (req.method === 'GET') {
-    const { data, error } = await supabaseAdmin
-      .from('applications')
-      .select('*')
-      .eq('status', 'submitted')
-      .order('submitted_at', { ascending: true });
-
-    if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
-    return sendSuccess(res, data || []);
+    const q = ApplicationQueries.findPendingReview();
+    const result = await query<ApplicationRecord>(q.text, q.values);
+    return sendSuccess(res, result.rows);
   }
 
   if (req.method === 'POST') {
@@ -115,47 +138,58 @@ async function handleReview(req: VercelRequest, res: VercelResponse, auth: { use
       return sendError(res, 'application_id and status are required', HttpStatus.BAD_REQUEST);
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('applications')
-      .update({
-        status,
-        reviewed_by: auth.user.id,
-        reviewed_at: new Date().toISOString(),
-        review_notes: notes,
-      })
-      .eq('id', application_id)
-      .select()
-      .single();
+    // Update application status
+    const updateQ = ApplicationQueries.updateStatus(
+      application_id, 
+      status as ApplicationStatus, 
+      userId, 
+      notes
+    );
+    const updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
 
-    if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    if (updateResult.rowCount === 0) {
+      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+    }
 
-    await supabaseAdmin.from('application_status_history').insert({
+    // Create status history entry
+    const historyQ = StatusHistoryQueries.create(
       application_id,
-      status,
-      changed_by: auth.user.id,
-      notes,
-    });
+      status as ApplicationStatus,
+      userId,
+      notes
+    );
+    await query(historyQ.text, historyQ.values);
 
     console.log('[applications/review] Application reviewed:', application_id, status);
-    return sendSuccess(res, { application: data });
+    return sendSuccess(res, { application: updateResult.rows[0] });
   }
 
   return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
 }
 
-async function handleById(req: VercelRequest, res: VercelResponse, auth: { user: { id: string }; isAdmin: boolean }, applicationId: string) {
+async function handleById(
+  req: VercelRequest, 
+  res: VercelResponse, 
+  userId: string, 
+  isAdmin: boolean, 
+  applicationId: string
+) {
   // GET - Fetch application details
   if (req.method === 'GET') {
-    if (!auth.isAdmin) {
-      const { data: app } = await supabaseAdmin.from('applications').select('user_id').eq('id', applicationId).single();
-      if (!app || app.user_id !== auth.user.id) {
+    // Check ownership for non-admin users
+    if (!isAdmin) {
+      const ownerQ = ApplicationQueries.checkOwnership(applicationId, userId);
+      const ownerResult = await query<{ is_owner: boolean }>(ownerQ.text, ownerQ.values);
+      if (!ownerResult.rows[0]?.is_owner) {
         return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
       }
     }
 
     const include = req.query.include as string | undefined;
     const data = await fetchApplicationDetails(applicationId, include);
-    if (!data) return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+    if (!data) {
+      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+    }
 
     return sendSuccess(res, {
       application: data,
@@ -167,12 +201,21 @@ async function handleById(req: VercelRequest, res: VercelResponse, auth: { user:
 
   // DELETE
   if (req.method === 'DELETE') {
-    const { data: app } = await supabaseAdmin.from('applications').select('user_id, status').eq('id', applicationId).maybeSingle();
-    if (!app) return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
-    if (app.user_id !== auth.user.id && !auth.isAdmin) return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
+    // Check ownership
+    const appQ = ApplicationQueries.findById(applicationId);
+    const appResult = await query<ApplicationRecord>(appQ.text, appQ.values);
+    
+    if (appResult.rowCount === 0) {
+      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+    }
 
-    const { error } = await supabaseAdmin.from('applications').delete().eq('id', applicationId);
-    if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
+    const app = appResult.rows[0];
+    if (app.user_id !== userId && !isAdmin) {
+      return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
+    }
+
+    const deleteQ = ApplicationQueries.delete(applicationId);
+    await query(deleteQ.text, deleteQ.values);
 
     console.log('[applications] Deleted application:', applicationId);
     return sendSuccess(res, { deleted: true });
@@ -180,8 +223,16 @@ async function handleById(req: VercelRequest, res: VercelResponse, auth: { user:
 
   // PUT/PATCH
   if (req.method === 'PUT' || req.method === 'PATCH') {
-    const { data: app } = await supabaseAdmin.from('applications').select('user_id, status, payment_status').eq('id', applicationId).single();
-    if (!app || (app.user_id !== auth.user.id && !auth.isAdmin)) {
+    // Check ownership
+    const appQ = ApplicationQueries.findById(applicationId);
+    const appResult = await query<ApplicationRecord>(appQ.text, appQ.values);
+    
+    if (appResult.rowCount === 0) {
+      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+    }
+
+    const app = appResult.rows[0];
+    if (app.user_id !== userId && !isAdmin) {
       return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
     }
 
@@ -200,25 +251,15 @@ async function handleById(req: VercelRequest, res: VercelResponse, auth: { user:
           return sendError(res, 'Cannot approve without verified payment', HttpStatus.BAD_REQUEST);
         }
 
-        const { data, error } = await supabaseAdmin
-          .from('applications')
-          .update({ status, updated_at: new Date().toISOString() })
-          .eq('id', applicationId)
-          .select()
-          .single();
+        const updateQ = ApplicationQueries.updateStatus(applicationId, status as ApplicationStatus, userId, notes);
+        const updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
 
-        if (error) throw new Error(error.message);
-
-        await supabaseAdmin.from('application_status_history').insert({
-          application_id: applicationId,
-          status,
-          changed_by: auth.user.id,
-          notes: notes || null,
-          created_at: new Date().toISOString(),
-        });
+        // Create status history entry
+        const historyQ = StatusHistoryQueries.create(applicationId, status as ApplicationStatus, userId, notes);
+        await query(historyQ.text, historyQ.values);
 
         console.log('[applications] Status updated:', applicationId, status);
-        return sendSuccess(res, data);
+        return sendSuccess(res, updateResult.rows[0]);
       }
 
       if (action === 'update_payment_status') {
@@ -228,40 +269,33 @@ async function handleById(req: VercelRequest, res: VercelResponse, auth: { user:
           return sendError(res, `Invalid payment status. Must be one of: ${validPaymentStatuses.join(', ')}`, HttpStatus.BAD_REQUEST);
         }
 
-        const updateData: Record<string, unknown> = {
-          payment_status: paymentStatus,
-          updated_at: new Date().toISOString(),
-          payment_verified_by: auth.user.id,
-        };
-        if (paymentStatus === 'verified') updateData.payment_verified_at = new Date().toISOString();
-
-        const { data, error } = await supabaseAdmin
-          .from('applications')
-          .update(updateData)
-          .eq('id', applicationId)
-          .select()
-          .single();
-
-        if (error) throw new Error(error.message);
+        const updateQ = ApplicationQueries.updatePaymentStatus(
+          applicationId, 
+          paymentStatus as PaymentStatus, 
+          paymentStatus === 'verified' ? userId : null
+        );
+        const updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
 
         console.log('[applications] Payment status updated:', applicationId, paymentStatus);
-        return sendSuccess(res, data);
+        return sendSuccess(res, updateResult.rows[0]);
       }
 
       if (action === 'sync_grades') {
         const { grades } = payload;
-        if (!Array.isArray(grades)) return sendError(res, 'Grades must be an array', HttpStatus.BAD_REQUEST);
+        if (!Array.isArray(grades)) {
+          return sendError(res, 'Grades must be an array', HttpStatus.BAD_REQUEST);
+        }
 
-        await supabaseAdmin.from('application_grades').delete().eq('application_id', applicationId);
+        // Delete existing grades
+        const deleteQ = GradeQueries.deleteByApplication(applicationId);
+        await query(deleteQ.text, deleteQ.values);
 
+        // Insert new grades
         if (grades.length > 0) {
-          const gradesData = grades.map((g: { subject_id: string; grade: string }) => ({
-            application_id: applicationId,
-            subject_id: g.subject_id,
-            grade: g.grade,
-          }));
-          const { error: insertError } = await supabaseAdmin.from('application_grades').insert(gradesData);
-          if (insertError) throw new Error(insertError.message);
+          for (const g of grades) {
+            const upsertQ = GradeQueries.upsert(applicationId, g.subject_id, g.grade);
+            await query(upsertQ.text, upsertQ.values);
+          }
         }
 
         console.log('[applications] Grades synced:', applicationId);
@@ -270,48 +304,53 @@ async function handleById(req: VercelRequest, res: VercelResponse, auth: { user:
     }
 
     // Regular update
-    const { data, error } = await supabaseAdmin
-      .from('applications')
-      .update(body)
-      .eq('id', applicationId)
-      .select()
-      .single();
+    const updateQ = ApplicationQueries.update(applicationId, body);
+    const updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
+    
+    if (updateResult.rowCount === 0) {
+      return sendError(res, 'Update failed', HttpStatus.BAD_REQUEST);
+    }
 
-    if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
-    return sendSuccess(res, data);
+    return sendSuccess(res, updateResult.rows[0]);
   }
 
   return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
 }
 
 async function fetchApplicationDetails(id: string, include?: string) {
-  const { data: application, error } = await supabaseAdmin.from('applications').select('*').eq('id', id).maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!application) return null;
+  // Fetch application
+  const appQ = ApplicationQueries.findById(id);
+  const appResult = await query<ApplicationRecord>(appQ.text, appQ.values);
+  
+  if (appResult.rowCount === 0) {
+    return null;
+  }
 
+  const application = appResult.rows[0];
   const result: Record<string, unknown> = { ...application };
   const includes = include ? include.split(',') : ['grades', 'documents', 'statusHistory'];
 
-  const { data: grades } = await supabaseAdmin.from('application_grades').select('id, grade, subject_id').eq('application_id', id);
+  // Fetch grades with subject names
+  const gradesQ = GradeQueries.findByApplicationId(id);
+  const gradesResult = await query<GradeRecord & { subject_name?: string }>(gradesQ.text, gradesQ.values);
+  result.grades = gradesResult.rows;
 
-  if (grades?.length) {
-    const subjectIds = [...new Set(grades.map((g) => g.subject_id))];
-    const { data: subjects } = await supabaseAdmin.from('subjects').select('id, name').in('id', subjectIds);
-    const subjectNames = subjects?.reduce((acc, s) => ({ ...acc, [s.id]: s.name }), {} as Record<string, string>) || {};
-    result.grades = grades.map((g) => ({ ...g, subject_name: subjectNames[g.subject_id] || 'Unknown' }));
-  } else {
-    result.grades = [];
-  }
-
+  // Fetch documents
   if (includes.includes('documents')) {
-    const { data: documents } = await supabaseAdmin.from('application_documents').select('*').eq('application_id', id);
-    result.documents = documents || [];
+    const docsQ = DocumentQueries.findByApplicationId(id);
+    const docsResult = await query<DocumentRecord>(docsQ.text, docsQ.values);
+    result.documents = docsResult.rows;
   }
 
+  // Fetch status history
   if (includes.includes('statusHistory')) {
-    const { data: statusHistory } = await supabaseAdmin.from('application_status_history').select('*').eq('application_id', id).order('created_at', { ascending: false });
-    result.statusHistory = statusHistory || [];
+    const historyQ = StatusHistoryQueries.findByApplicationId(id);
+    const historyResult = await query<StatusHistoryRecord>(historyQ.text, historyQ.values);
+    result.statusHistory = historyResult.rows;
   }
 
   return result;
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, 'general');

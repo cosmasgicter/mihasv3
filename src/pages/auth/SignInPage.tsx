@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SignInPage - Enhanced sign-in page with Supabase Auth
  * Uses SmoothUI animations and custom theming

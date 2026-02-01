@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Notification Preferences Hook
  * Provides state management and operations for user notification preferences

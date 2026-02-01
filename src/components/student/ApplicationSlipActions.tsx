@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Download, Mail, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
-import { getSupabaseClient, isSupabaseConfigured, SUPABASE_MISSING_CONFIG_MESSAGE } from '@/lib/supabase'
 import { getApiBaseUrl } from '@/lib/apiConfig'
+import { toast } from '@/hooks/useToast'
 // Dynamic import for PDF generation
 
 interface ApplicationSlipActionsProps {
@@ -15,36 +15,19 @@ interface ApplicationSlipActionsProps {
 export function ApplicationSlipActions({ applicationId, applicationNumber }: ApplicationSlipActionsProps) {
   const { user } = useAuth()
   const apiBaseUrl = getApiBaseUrl()
-  const supabase = useMemo(() => {
-    if (!isSupabaseConfigured) {
-      return null
-    }
-
-    return getSupabaseClient()
-  }, [])
   const [isDownloading, setIsDownloading] = useState(false)
   const [isEmailing, setIsEmailing] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
 
-  const authUnavailable = !supabase
-
   const handleDownload = async () => {
-    if (!supabase) {
-      toast.error('Error', SUPABASE_MISSING_CONFIG_MESSAGE)
-      return
-    }
-
     setIsDownloading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const accessToken = session?.access_token
-
       const response = await fetch(`${apiBaseUrl}/applications/generate/slip`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ applicationId })
       })
 
@@ -77,22 +60,14 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
   }
 
   const handleEmailRequest = async () => {
-    if (!supabase) {
-      toast.error('Error', SUPABASE_MISSING_CONFIG_MESSAGE)
-      return
-    }
-
     setIsEmailing(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const accessToken = session?.access_token
-
       const response = await fetch(`${apiBaseUrl}/applications/email/slip`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ applicationId })
       })
 
@@ -120,7 +95,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
     <div className="flex flex-col sm:flex-row gap-3">
       <Button
         onClick={handleDownload}
-        disabled={isDownloading || authUnavailable}
+        disabled={isDownloading}
         className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200"
       >
         {isDownloading ? (
@@ -133,7 +108,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
 
       <Button
         onClick={handleEmailRequest}
-        disabled={isEmailing || emailSent || authUnavailable}
+        disabled={isEmailing || emailSent}
         variant="outline"
         className="flex items-center justify-center space-x-2 border-green-300 text-accent hover:bg-accent/10 hover:border-green-400 transition-all duration-200"
       >
@@ -156,12 +131,6 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         >
           ✓ Application slip will be sent to your email shortly
         </motion.div>
-      )}
-
-      {authUnavailable && (
-        <p className="text-sm text-accent font-medium">
-          {SUPABASE_MISSING_CONFIG_MESSAGE}
-        </p>
       )}
     </div>
   )

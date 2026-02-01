@@ -38,7 +38,7 @@ export class RLSPolicyAnalyzer {
   private vulnerabilities: RLSPolicyVulnerability[] = [];
 
   constructor() {
-    // Initialize Supabase client for database analysis
+    // Initialize Supabase client for database analysis (auth disabled)
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
@@ -46,7 +46,13 @@ export class RLSPolicyAnalyzer {
       throw new Error('Supabase configuration missing for RLS policy analysis');
     }
     
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+    this.supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false
+      }
+    });
   }
 
   /**

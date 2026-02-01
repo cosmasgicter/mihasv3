@@ -50,9 +50,11 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  role: z.enum([USER_ROLES.STUDENT]).default(USER_ROLES.STUDENT),
+  full_name: z.string().min(1).optional(),
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  phone: z.string().optional(),
+  role: z.enum([USER_ROLES.STUDENT, USER_ROLES.ADMIN, USER_ROLES.REVIEWER]).default(USER_ROLES.STUDENT),
 });
 
 /**
@@ -108,8 +110,26 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
         }
         return await handleRoles(req, res);
 
+      case "forgot-password":
+        if (req.method !== "POST") {
+          return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        return await handleForgotPassword(req, res);
+
+      case "reset-password":
+        if (req.method !== "POST") {
+          return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        return await handleResetPassword(req, res);
+
+      case "verify-email":
+        if (req.method !== "POST") {
+          return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        return await handleVerifyEmail(req, res);
+
       default:
-        return sendError(res, "Invalid action. Valid actions: login, logout, refresh, session, register, roles", HttpStatus.BAD_REQUEST);
+        return sendError(res, "Invalid action. Valid actions: login, logout, refresh, session, register, roles, forgot-password, reset-password, verify-email", HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     console.error("[auth] Unhandled error:", error);
@@ -426,7 +446,7 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
 
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return sendError(res, error.errors[0].message, HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+      return sendError(res, error.issues[0].message, HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
     }
     
     // Check for database schema errors
@@ -788,22 +808,41 @@ async function handleSession(req: VercelRequest, res: VercelResponse) {
 
 /**
  * Registration handler
- * VERIFICATION: Admin only, strict validation
+ * 
+ * Supports two modes:
+ * 1. Public registration: Students can self-register (role must be 'student')
+ * 2. Admin registration: Admins can create users with any role
  */
 async function handleRegister(req: VercelRequest, res: VercelResponse) {
   try {
-    // Only admins can register new users
-    const currentUser = await requireAuth(req);
-    
-    if (currentUser.role !== USER_ROLES.SUPER_ADMIN && currentUser.role !== USER_ROLES.ADMIN) {
-      return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN);
+    // Validate input first
+    const parsed = registerSchema.parse(req.body);
+    const { email, password, full_name, firstName, lastName, phone, role } = parsed;
+
+    // Determine if this is public registration or admin registration
+    const currentUser = await getAuthUser(req);
+    const isAdminRegistration = currentUser && 
+      (currentUser.role === USER_ROLES.SUPER_ADMIN || currentUser.role === USER_ROLES.ADMIN);
+
+    // Public registration is only allowed for students
+    if (!isAdminRegistration && role !== USER_ROLES.STUDENT) {
+      return sendError(res, "Public registration is only available for students", HttpStatus.FORBIDDEN);
     }
 
-    // Validate input
-    const { email, password, firstName, lastName, role } = registerSchema.parse(req.body);
+    // Admin registration can create any role
+    if (isAdminRegistration && role !== USER_ROLES.STUDENT) {
+      // Only super_admin can create admin/reviewer accounts
+      if (currentUser.role !== USER_ROLES.SUPER_ADMIN && 
+          (role === USER_ROLES.ADMIN || role === USER_ROLES.REVIEWER)) {
+        return sendError(res, "Only super admins can create admin accounts", HttpStatus.FORBIDDEN);
+      }
+    }
+
+    // Normalize email
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Check if email exists using typed query builder
-    const findExistingQuery = UserQueries.findByEmail(email);
+    const findExistingQuery = UserQueries.findByEmail(normalizedEmail);
     const existingResult = await query(findExistingQuery.text, findExistingQuery.values);
 
     if (existingResult.rowCount > 0) {
@@ -816,8 +855,19 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
     // Generate UUID
     const userId = crypto.randomUUID();
 
+    // Determine full name
+    const resolvedFullName = full_name || 
+      (firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || normalizedEmail.split('@')[0]);
+
     // Create user using typed query builder
-    const createUserQuery = UserQueries.create(userId, email, passwordHash, role as UserRole, firstName, lastName);
+    const createUserQuery = UserQueries.create(
+      userId, 
+      normalizedEmail, 
+      passwordHash, 
+      role as UserRole, 
+      firstName || resolvedFullName.split(' ')[0] || '', 
+      lastName || resolvedFullName.split(' ').slice(1).join(' ') || ''
+    );
     const createResult = await query(createUserQuery.text, createUserQuery.values);
 
     if (createResult.rowCount === 0) {
@@ -825,9 +875,79 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
     }
 
     const newUser = createResult.rows[0] as { id: string; email: string; role: string };
+
+    // Create profile record for the user
+    const createProfileQuery = {
+      text: `
+        INSERT INTO profiles (id, email, full_name, phone, role, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET
+          email = $2, full_name = $3, phone = $4, role = $5, updated_at = NOW()
+      `,
+      values: [userId, normalizedEmail, resolvedFullName, phone || null, role]
+    };
+
+    try {
+      await query(createProfileQuery.text, createProfileQuery.values);
+    } catch (profileError) {
+      // Profile creation is not critical - log but don't fail
+      console.error("[auth] Profile creation failed:", profileError);
+    }
+
     const permissions = getPermissionsForRole(newUser.role as UserRole);
 
-    console.log("[auth] User registered:", newUser.id.substring(0, 8) + "... by", currentUser.userId.substring(0, 8) + "...");
+    // For public registration, auto-login the user
+    if (!isAdminRegistration) {
+      // Generate tokens
+      const ipAddress = extractIpAddress(req);
+      const userAgent = extractUserAgent(req);
+      
+      const accessToken = await generateAccessToken(
+        newUser.id,
+        newUser.email,
+        newUser.role as UserRole,
+        permissions
+      );
+
+      const refreshToken = await generateRefreshToken(newUser.id);
+      const refreshTokenHash = await hashToken(refreshToken);
+
+      // Store refresh token hash
+      const updateRefreshQuery = UserQueries.updateRefreshToken(newUser.id, refreshTokenHash);
+      await query(updateRefreshQuery.text, updateRefreshQuery.values);
+
+      // Create session
+      const sessionId = crypto.randomUUID();
+      const deviceInfo = { type: 'web', browser: userAgent?.split('/')[0] || 'unknown' };
+      const createSessionQuery = SessionQueries.create(sessionId, newUser.id, deviceInfo, ipAddress, userAgent);
+      await query(createSessionQuery.text, createSessionQuery.values);
+
+      // Set auth cookies
+      setAuthCookies(res, accessToken, refreshToken);
+
+      console.log("[auth] Student self-registered and logged in:", newUser.id.substring(0, 8) + "...");
+
+      return sendSuccess(res, {
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          role: newUser.role,
+          full_name: resolvedFullName,
+          permissions,
+        },
+        profile: {
+          id: newUser.id,
+          email: newUser.email,
+          full_name: resolvedFullName,
+          phone: phone || null,
+          role: newUser.role,
+        },
+        message: "Registration successful",
+      }, HttpStatus.CREATED);
+    }
+
+    // Admin registration - don't auto-login
+    console.log("[auth] User registered by admin:", newUser.id.substring(0, 8) + "... by", currentUser!.userId.substring(0, 8) + "...");
 
     return sendSuccess(res, {
       user: {
@@ -841,10 +961,7 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
 
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return sendError(res, error.errors[0].message, HttpStatus.BAD_REQUEST);
-    }
-    if (error instanceof Error && error.message === "Authentication required") {
-      return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+      return sendError(res, error.issues[0].message, HttpStatus.BAD_REQUEST);
     }
     console.error("[auth] Registration error:", error);
     return sendError(res, "Registration failed", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -904,5 +1021,291 @@ async function handleRoles(req: VercelRequest, res: VercelResponse) {
       authenticated: false,
       error: 'Authentication failed'
     });
+  }
+}
+
+
+/**
+ * Forgot Password handler
+ * 
+ * POST /api/auth?action=forgot-password
+ * 
+ * Generates a password reset token and sends email
+ * SECURITY: Always returns success to prevent email enumeration
+ */
+async function handleForgotPassword(req: VercelRequest, res: VercelResponse) {
+  try {
+    const { email } = req.body || {};
+
+    if (!email || typeof email !== 'string') {
+      // Still return success to prevent enumeration
+      return sendSuccess(res, { 
+        message: 'If an account exists with this email, a reset link has been sent.' 
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Find user by email
+    const findUserQuery = UserQueries.findByEmail(normalizedEmail);
+    const userResult = await query(findUserQuery.text, findUserQuery.values);
+
+    if (userResult.rowCount === 0) {
+      // User not found - still return success to prevent enumeration
+      return sendSuccess(res, { 
+        message: 'If an account exists with this email, a reset link has been sent.' 
+      });
+    }
+
+    const user = userResult.rows[0] as unknown as UserAuthRecord;
+
+    // Generate reset token (32 bytes = 64 hex chars)
+    const resetToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, '');
+    const resetTokenHash = await hashToken(resetToken);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Store reset token hash in database
+    const storeTokenQuery = {
+      text: `
+        INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (user_id) DO UPDATE SET
+          token_hash = $2,
+          expires_at = $3,
+          created_at = NOW()
+      `,
+      values: [user.id, resetTokenHash, expiresAt.toISOString()]
+    };
+
+    try {
+      await query(storeTokenQuery.text, storeTokenQuery.values);
+    } catch (dbError) {
+      // Table might not exist - log but don't fail
+      console.error('[auth] Password reset token storage failed:', dbError);
+    }
+
+    // Send reset email via Resend (fire and forget)
+    const resetUrl = `${process.env.VITE_APP_URL || 'https://apply.mihas.edu.zm'}/auth/reset-password?token=${resetToken}`;
+    
+    try {
+      const resendApiKey = process.env.RESEND_API_KEY;
+      if (resendApiKey) {
+        fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: process.env.EMAIL_FROM || 'noreply@mihas.edu.zm',
+            to: normalizedEmail,
+            subject: 'Reset Your MIHAS Password',
+            html: `
+              <h2>Password Reset Request</h2>
+              <p>You requested to reset your password for your MIHAS account.</p>
+              <p>Click the link below to reset your password (valid for 1 hour):</p>
+              <p><a href="${resetUrl}">${resetUrl}</a></p>
+              <p>If you did not request this, please ignore this email.</p>
+              <p>- MIHAS Admissions Team</p>
+            `,
+          }),
+        }).catch(() => {
+          // Silent fail - don't block response
+        });
+      }
+    } catch {
+      // Silent fail for email
+    }
+
+    // Log password reset request (no PII)
+    console.log('[auth] Password reset requested for user:', user.id.substring(0, 8) + '...');
+
+    return sendSuccess(res, { 
+      message: 'If an account exists with this email, a reset link has been sent.' 
+    });
+
+  } catch (error) {
+    console.error('[auth] Forgot password error:', error);
+    // Still return success to prevent enumeration
+    return sendSuccess(res, { 
+      message: 'If an account exists with this email, a reset link has been sent.' 
+    });
+  }
+}
+
+/**
+ * Reset Password handler
+ * 
+ * POST /api/auth?action=reset-password
+ * 
+ * Verifies reset token and updates password
+ */
+async function handleResetPassword(req: VercelRequest, res: VercelResponse) {
+  try {
+    const { token, password } = req.body || {};
+
+    if (!token || typeof token !== 'string') {
+      return sendError(res, 'Reset token is required', HttpStatus.BAD_REQUEST);
+    }
+
+    if (!password || typeof password !== 'string' || password.length < 8) {
+      return sendError(res, 'Password must be at least 8 characters', HttpStatus.BAD_REQUEST);
+    }
+
+    // Find valid reset token
+    const findTokenQuery = {
+      text: `
+        SELECT user_id, token_hash, expires_at
+        FROM password_reset_tokens
+        WHERE expires_at > NOW()
+        ORDER BY created_at DESC
+        LIMIT 100
+      `,
+      values: []
+    };
+
+    let tokenResult;
+    try {
+      tokenResult = await query(findTokenQuery.text, findTokenQuery.values);
+    } catch (dbError) {
+      console.error('[auth] Token lookup failed:', dbError);
+      return sendError(res, 'Invalid or expired reset token', HttpStatus.BAD_REQUEST);
+    }
+
+    // Verify token hash against stored hashes
+    let matchedUserId: string | null = null;
+    for (const row of tokenResult.rows) {
+      const isValid = await verifyTokenHash(token, row.token_hash);
+      if (isValid) {
+        matchedUserId = row.user_id;
+        break;
+      }
+    }
+
+    if (!matchedUserId) {
+      return sendError(res, 'Invalid or expired reset token', HttpStatus.BAD_REQUEST);
+    }
+
+    // Hash new password
+    const passwordHash = await hashPassword(password);
+
+    // Update user password
+    const updatePasswordQuery = {
+      text: `UPDATE profiles SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+      values: [passwordHash, matchedUserId]
+    };
+
+    await query(updatePasswordQuery.text, updatePasswordQuery.values);
+
+    // Delete used reset token
+    const deleteTokenQuery = {
+      text: `DELETE FROM password_reset_tokens WHERE user_id = $1`,
+      values: [matchedUserId]
+    };
+
+    try {
+      await query(deleteTokenQuery.text, deleteTokenQuery.values);
+    } catch {
+      // Silent fail - token cleanup is not critical
+    }
+
+    // Invalidate all existing sessions for security
+    const invalidateSessionsQuery = SessionQueries.deactivateAllForUser(matchedUserId);
+    try {
+      await query(invalidateSessionsQuery.text, invalidateSessionsQuery.values);
+    } catch {
+      // Silent fail - session cleanup is not critical
+    }
+
+    console.log('[auth] Password reset completed for user:', matchedUserId.substring(0, 8) + '...');
+
+    return sendSuccess(res, { 
+      message: 'Password has been reset successfully. Please sign in with your new password.' 
+    });
+
+  } catch (error) {
+    console.error('[auth] Reset password error:', error);
+    return sendError(res, 'Password reset failed', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
+/**
+ * Verify Email handler
+ * 
+ * POST /api/auth?action=verify-email
+ * 
+ * Verifies email verification token
+ */
+async function handleVerifyEmail(req: VercelRequest, res: VercelResponse) {
+  try {
+    const { token } = req.body || {};
+
+    if (!token || typeof token !== 'string') {
+      return sendError(res, 'Verification token is required', HttpStatus.BAD_REQUEST);
+    }
+
+    // Find valid verification token
+    const findTokenQuery = {
+      text: `
+        SELECT user_id, token_hash, expires_at
+        FROM email_verification_tokens
+        WHERE expires_at > NOW()
+        ORDER BY created_at DESC
+        LIMIT 100
+      `,
+      values: []
+    };
+
+    let tokenResult;
+    try {
+      tokenResult = await query(findTokenQuery.text, findTokenQuery.values);
+    } catch (dbError) {
+      console.error('[auth] Email verification token lookup failed:', dbError);
+      return sendError(res, 'Invalid or expired verification token', HttpStatus.BAD_REQUEST);
+    }
+
+    // Verify token hash against stored hashes
+    let matchedUserId: string | null = null;
+    for (const row of tokenResult.rows) {
+      const isValid = await verifyTokenHash(token, row.token_hash);
+      if (isValid) {
+        matchedUserId = row.user_id;
+        break;
+      }
+    }
+
+    if (!matchedUserId) {
+      return sendError(res, 'Invalid or expired verification token', HttpStatus.BAD_REQUEST);
+    }
+
+    // Mark email as verified
+    const verifyEmailQuery = {
+      text: `UPDATE profiles SET email_verified = true, email_verified_at = NOW(), updated_at = NOW() WHERE id = $1`,
+      values: [matchedUserId]
+    };
+
+    await query(verifyEmailQuery.text, verifyEmailQuery.values);
+
+    // Delete used verification token
+    const deleteTokenQuery = {
+      text: `DELETE FROM email_verification_tokens WHERE user_id = $1`,
+      values: [matchedUserId]
+    };
+
+    try {
+      await query(deleteTokenQuery.text, deleteTokenQuery.values);
+    } catch {
+      // Silent fail - token cleanup is not critical
+    }
+
+    console.log('[auth] Email verified for user:', matchedUserId.substring(0, 8) + '...');
+
+    return sendSuccess(res, { 
+      message: 'Email has been verified successfully. You can now sign in.' 
+    });
+
+  } catch (error) {
+    console.error('[auth] Verify email error:', error);
+    return sendError(res, 'Email verification failed', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

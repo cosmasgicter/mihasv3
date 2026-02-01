@@ -14,8 +14,8 @@ import { AuthLayout } from '@/components/auth/AuthLayout';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { durations } from '@/lib/animation-config';
 import {
   Loader2,
@@ -49,7 +49,9 @@ export default function ResetPasswordPage() {
   const [status, setStatus] = useState<ResetState>('verifying');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetToken, setResetToken] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const prefersReducedMotion = useReducedMotion();
 
   const {
@@ -68,9 +70,10 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    // Get token from URL query params or hash
+    const token = searchParams.get('token') || (typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '');
 
-    if (!hash) {
+    if (!token) {
       setError('This password reset link is invalid or has expired.');
       setStatus('error');
       return;
@@ -78,20 +81,31 @@ export default function ResetPasswordPage() {
 
     let isMounted = true;
 
-    const verifySessionFromHash = async () => {
+    const verifyResetToken = async () => {
       try {
-        const { data, error } = await supabase.auth.exchangeCodeForSession(hash);
+        // Verify the reset token via our custom API
+        const response = await fetch('/api/auth?action=verify-reset-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ token })
+        });
+
+        const result = await response.json();
 
         if (!isMounted) return;
 
-        if (error || !data.session) {
-          setError(error?.message || 'This password reset link is invalid or has expired.');
+        if (!result.success) {
+          setError(result.error || 'This password reset link is invalid or has expired.');
           setStatus('error');
           return;
         }
 
+        // Store the token for use when submitting the new password
+        setResetToken(token);
+
         if (typeof window !== 'undefined') {
-          window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
 
         setStatus('ready');
@@ -102,22 +116,33 @@ export default function ResetPasswordPage() {
       }
     };
 
-    verifySessionFromHash();
+    verifyResetToken();
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [searchParams]);
 
   const onSubmit = async (values: ResetPasswordForm) => {
     setError('');
     setLoading(true);
 
     try {
-      const result = await updatePassword(values.password);
+      // Use the custom API to reset password with the token
+      const response = await fetch('/api/auth?action=reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          token: resetToken,
+          password: values.password 
+        })
+      });
 
-      if (result.error) {
-        setError(result.error);
+      const result = await response.json();
+
+      if (!result.success) {
+        setError(result.error || 'Failed to update password');
         setLoading(false);
         return;
       }

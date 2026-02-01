@@ -1,348 +1,299 @@
-import { useCallback, useEffect, useState } from 'react'
-import { logger } from '@/lib/logger'
-import { User } from '@supabase/supabase-js'
-import {
-  getPasswordResetRedirectUrl,
-  getSupabaseClient,
-  isSupabaseConfigured,
-  SUPABASE_STATUS_EVENT,
-  SUPABASE_MISSING_CONFIG_MESSAGE,
-  type SupabaseStatusDetail,
-  UserProfile
-} from '@/lib/supabase'
-import { sanitizeForLog } from '@/lib/security'
-import { authPersistence } from '@/lib/authPersistence'
-import { getApiBaseUrl } from '@/lib/apiConfig'
-import { optimizedLogin } from '@/services/optimizedAuthService'
-import { useQueryClient } from '@tanstack/react-query'
+/**
+ * Session Listener Hook - Cookie-based authentication
+ * 
+ * CRITICAL: This hook uses HTTP-only cookies ONLY
+ * - NO localStorage token storage (XSS vulnerable)
+ * - NO Supabase auth SDK (being removed)
+ * - All auth state comes from /api/auth endpoints
+ * 
+ * Auth flow:
+ * 1. On mount: GET /api/auth?action=session → Check cookie
+ * 2. Login: POST /api/auth?action=login → Cookie set by server
+ * 3. Logout: POST /api/auth?action=logout → Cookie cleared by server
+ * 
+ * @module useSessionListener
+ */
 
-export type SignInResult = {
-  session?: any
-  user?: User
-  profile?: UserProfile | null
-  error?: string
-}
+import { useCallback, useEffect, useState, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { getApiBaseUrl } from '@/lib/apiConfig';
+import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth';
 
-export type SignUpResult = {
-  user?: User | null
-  session?: any
-  error?: string
-}
+// Re-export types for backward compatibility
+export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth';
 
-export type PasswordResetResult = {
-  error?: string
-}
+// Legacy alias for backward compatibility
+export type AuthUser = User;
 
 /**
- * CRITICAL FIX: Simplified auth flow
- * 
- * Auth flow is now:
- * Sign In → POST /api/auth?action=login → HTTP-only cookie set → GET /api/auth?action=roles → APP BOOTS
- * 
- * DISABLED:
- * - Supabase onAuthStateChange listener (was causing infinite loops)
- * - Supabase getSession on mount (was racing with API auth)
- * - Token refresh monitoring (handled by API now)
+ * Session listener hook - manages auth state via HTTP-only cookies
  */
 export function useSessionListener() {
-  const apiBaseUrl = getApiBaseUrl()
-  const queryClient = useQueryClient()
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const apiBaseUrl = getApiBaseUrl();
+  const queryClient = useQueryClient();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const mountedRef = useRef(true);
 
+  // Check session on mount via API (cookies sent automatically)
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      setLoading(false)
-      return
-    }
+    mountedRef.current = true;
 
-    // CRITICAL FIX: Don't use Supabase auth state management
-    // Instead, check auth via API endpoint
-    let mounted = true
-
-    async function checkAuthViaApi() {
+    async function checkSession() {
       try {
-        // Check if we have a stored session token
-        const storedToken = localStorage.getItem('mihas-auth-token')
-        if (!storedToken) {
-          if (mounted) {
-            setUser(null)
-            setLoading(false)
-          }
-          return
-        }
-
-        // Verify auth via API (single source of truth)
-        const response = await fetch(`${apiBaseUrl}/api/auth?action=roles`, {
+        const response = await fetch(`${apiBaseUrl}/api/auth?action=session`, {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${storedToken}`,
-            'Content-Type': 'application/json'
-          }
-        })
+          credentials: 'include', // Send HTTP-only cookies
+          headers: { 'Content-Type': 'application/json' },
+        });
 
-        if (!mounted) return
+        if (!mountedRef.current) return;
 
         if (response.ok) {
-          const data = await response.json()
-          if (data.success && data.data?.user_id) {
-            // Create minimal user object from API response
-            setUser({
-              id: data.data.user_id,
-              email: data.data.email,
-              role: data.data.role,
-              user_metadata: { role: data.data.role },
-              app_metadata: { role: data.data.role }
-            } as User)
+          const data = await response.json();
+          if (data.success && data.data?.user) {
+            setUser(data.data.user);
           } else {
-            setUser(null)
-            localStorage.removeItem('mihas-auth-token')
+            setUser(null);
           }
         } else {
-          // Auth failed - clear token and set user to null
-          console.warn('[Auth] API auth check failed:', response.status)
-          setUser(null)
-          localStorage.removeItem('mihas-auth-token')
+          // Not authenticated or session expired
+          setUser(null);
         }
       } catch (error) {
-        console.error('[Auth] API auth check error:', error)
-        if (mounted) {
-          setUser(null)
+        console.error('[Auth] Session check error:', error);
+        if (mountedRef.current) {
+          setUser(null);
         }
       } finally {
-        if (mounted) {
-          setLoading(false)
+        if (mountedRef.current) {
+          setLoading(false);
         }
       }
     }
 
-    checkAuthViaApi()
+    checkSession();
 
     return () => {
-      mounted = false
-    }
-  }, [apiBaseUrl])
+      mountedRef.current = false;
+    };
+  }, [apiBaseUrl]);
 
-  const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
+  /**
+   * Sign in with email and password
+   * Server sets HTTP-only cookies on success
+   */
+  const signIn = useCallback(async (
+    email: string, 
+    password: string
+  ): Promise<SignInResult> => {
     try {
-      // Clear all cached data from previous sessions before login
-      queryClient.clear()
+      // Clear all cached data from previous sessions
+      queryClient.clear();
 
-      // CRITICAL FIX: Use API-first auth flow
-      // POST /api/auth?action=login → Store token → GET /api/auth?action=roles → APP BOOTS
       const response = await fetch(`${apiBaseUrl}/api/auth?action=login`, {
         method: 'POST',
+        credentials: 'include', // Receive HTTP-only cookies
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
+        body: JSON.stringify({ email, password }),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok || !result.success) {
-        return { error: result.error || 'Login failed' }
+        return { error: result.error || 'Login failed' };
       }
 
-      // Store the access token for subsequent API calls
-      const accessToken = result.data?.session?.access_token
-      if (accessToken) {
-        localStorage.setItem('mihas-auth-token', accessToken)
-      }
-
-      // Create user object from API response
-      const userData = result.data?.user
+      // Extract user from response
+      const userData = result.data?.user;
       if (userData) {
-        const user: User = {
+        const authUser: User = {
           id: userData.id,
           email: userData.email,
-          role: userData.role || result.data?.profile?.role || 'student',
-          user_metadata: userData.user_metadata || {},
-          app_metadata: userData.app_metadata || {}
-        } as User
+          role: userData.role || 'student',
+          full_name: userData.full_name,
+          user_metadata: { role: userData.role },
+          app_metadata: { role: userData.role },
+        };
 
-        setUser(user)
+        setUser(authUser);
 
-        // Cache profile data in React Query for immediate availability
+        // Cache profile data for immediate availability
         if (result.data?.profile) {
-          queryClient.setQueryData(['user-profile', user.id], result.data.profile)
+          queryClient.setQueryData(['user-profile', authUser.id], result.data.profile);
         }
 
-        // Dispatch custom event to notify components of successful login
-        window.dispatchEvent(new CustomEvent('userLoggedIn', { 
-          detail: { userId: user.id } 
-        }))
+        // Notify components of successful login
+        window.dispatchEvent(new CustomEvent('userLoggedIn', {
+          detail: { userId: authUser.id },
+        }));
 
         return {
-          session: result.data?.session,
-          user: user,
-          profile: result.data?.profile
-        }
+          user: authUser,
+          profile: result.data?.profile,
+        };
       }
 
-      return { error: 'Login succeeded but no user data returned' }
+      return { error: 'Login succeeded but no user data returned' };
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message.includes('fetch')) {
-          return { error: 'Network error. Please check your connection.' }
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          return { error: 'Network error. Please check your connection.' };
         }
-        return { error: error.message }
+        return { error: error.message };
       }
-      return { error: 'An unexpected error occurred. Please try again.' }
+      return { error: 'An unexpected error occurred. Please try again.' };
     }
-  }, [apiBaseUrl, queryClient])
+  }, [apiBaseUrl, queryClient]);
 
-  const signUp = useCallback(async (email: string, password: string, userData: any): Promise<SignUpResult> => {
-    if (!isSupabaseConfigured) {
-      return { error: SUPABASE_MISSING_CONFIG_MESSAGE }
-    }
-
+  /**
+   * Sign up with email, password, and user data
+   * Server sets HTTP-only cookies on success (auto-login)
+   */
+  const signUp = useCallback(async (
+    email: string, 
+    password: string, 
+    userData: Record<string, any>
+  ): Promise<SignUpResult> => {
     try {
       // Remove fields that shouldn't be sent to backend
-      const { confirmPassword, turnstileToken, ...cleanUserData } = userData
-      
-      const payload = { email, password, ...cleanUserData }
-      logger.log('[SignUp] Sending payload:', { ...payload, password: '***' })
-      
-      // Create account via API
-      const response = await fetch(`${apiBaseUrl}/api/auth?action=signup`, {
+      const { confirmPassword, turnstileToken, ...cleanUserData } = userData;
+
+      const response = await fetch(`${apiBaseUrl}/api/auth?action=register`, {
         method: 'POST',
+        credentials: 'include', // Receive HTTP-only cookies
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
+        body: JSON.stringify({ email, password, ...cleanUserData }),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
-      if (!response.ok) {
-        console.error('[SignUp] API Error:', { status: response.status, result })
-        if (result.error?.includes('already registered')) {
-          return { error: 'This email is already registered. Please sign in instead.' }
+      if (!response.ok || !result.success) {
+        if (result.error?.includes('already registered') || result.error?.includes('already exists')) {
+          return { error: 'This email is already registered. Please sign in instead.' };
         }
-        return { error: result.error || result.message || result.details || 'Unable to create account' }
+        return { error: result.error || 'Unable to create account' };
       }
 
-      // Clear any stale cached data before auto sign-in
-      // Requirements: 4.3 - Login Cache Clear (applies to signup auto-login too)
-      queryClient.clear()
+      // Clear any stale cached data
+      queryClient.clear();
 
-      // Auto sign in after successful signup
-      const supabase = getSupabaseClient()
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      // Extract user from response (auto-login)
+      const userData2 = result.data?.user;
+      if (userData2) {
+        const authUser: User = {
+          id: userData2.id,
+          email: userData2.email,
+          role: userData2.role || 'student',
+          full_name: userData2.full_name,
+          user_metadata: { role: userData2.role },
+          app_metadata: { role: userData2.role },
+        };
 
-      if (signInError) {
-        console.error('[SignUp] Auto-login error:', signInError)
-        return { user: result.user, error: 'Account created but auto sign-in failed. Please sign in manually.' }
+        setUser(authUser);
+
+        // Notify components of successful login
+        window.dispatchEvent(new CustomEvent('userLoggedIn', {
+          detail: { userId: authUser.id },
+        }));
+
+        return { user: authUser };
       }
 
-      if (!signInData.session || !signInData.user) {
-        return { user: result.user, error: 'Account created but session not established. Please sign in manually.' }
-      }
-
-      // Set user state and return session
-      setUser(signInData.user)
-      
-      // Dispatch custom event to notify components of successful login
-      window.dispatchEvent(new CustomEvent('userLoggedIn', { 
-        detail: { userId: signInData.user.id } 
-      }))
-      
-      return { user: signInData.user, session: signInData.session }
+      return { user: null };
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message.includes('fetch')) {
-          return { error: 'Network error. Please check your connection.' }
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          return { error: 'Network error. Please check your connection.' };
         }
-        return { error: error.message }
+        return { error: error.message };
       }
-      return { error: 'Unable to create account. Please try again.' }
+      return { error: 'Unable to create account. Please try again.' };
     }
-  }, [apiBaseUrl, queryClient])
+  }, [apiBaseUrl, queryClient]);
 
+  /**
+   * Sign out current user
+   * Server clears HTTP-only cookies
+   */
   const signOut = useCallback(async () => {
-    // CRITICAL FIX: Clear local state immediately (non-blocking)
-    setUser(null)
-    
-    // Clear all auth tokens from local storage
-    try {
-      localStorage.removeItem('mihas-auth-token')
-      localStorage.removeItem('supabase.auth.token')
-      // Clear any other auth-related storage
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('sb-') || key.includes('supabase')) {
-          localStorage.removeItem(key)
-        }
-      })
-    } catch {
-      // Silent fail on storage clear
-    }
-    
+    // Clear local state immediately (non-blocking UX)
+    setUser(null);
+
     // Clear React Query cache
-    queryClient.clear()
-    
-    // Fire-and-forget: notify API of logout (don't await)
-    const token = localStorage.getItem('mihas-auth-token')
-    if (token) {
-      fetch(`${apiBaseUrl}/api/auth?action=logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      }).catch(() => {}) // Silent fail
-    }
-  }, [apiBaseUrl, queryClient])
+    queryClient.clear();
 
+    // Fire-and-forget: notify API of logout
+    fetch(`${apiBaseUrl}/api/auth?action=logout`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    }).catch(() => {
+      // Silent fail - user is already logged out locally
+    });
+  }, [apiBaseUrl, queryClient]);
+
+  /**
+   * Request password reset email
+   */
   const requestPasswordReset = useCallback(async (
-    email: string,
-    turnstileToken?: string
+    email: string
   ): Promise<PasswordResetResult> => {
-    if (!isSupabaseConfigured) {
-      return { error: SUPABASE_MISSING_CONFIG_MESSAGE }
-    }
-
     try {
-      const supabase = getSupabaseClient()
-      const redirectTo = getPasswordResetRedirectUrl()
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo
-      })
+      const response = await fetch(`${apiBaseUrl}/api/auth?action=forgot-password`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-      if (error) {
-        return { error: error.message }
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        return { error: result.error || 'Unable to send reset instructions' };
       }
 
-      return {}
+      return {};
     } catch (error) {
       return {
-        error: error instanceof Error ? error.message : 'Unable to send reset instructions'
-      }
+        error: error instanceof Error ? error.message : 'Unable to send reset instructions',
+      };
     }
-  }, [])
+  }, [apiBaseUrl]);
 
-  const updatePassword = useCallback(async (password: string): Promise<PasswordResetResult> => {
-    if (!isSupabaseConfigured) {
-      return { error: SUPABASE_MISSING_CONFIG_MESSAGE }
-    }
-
+  /**
+   * Update password with reset token
+   */
+  const updatePassword = useCallback(async (
+    password: string,
+    token?: string
+  ): Promise<PasswordResetResult> => {
     try {
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase.auth.updateUser({ password })
+      const response = await fetch(`${apiBaseUrl}/api/auth?action=reset-password`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password, token }),
+      });
 
-      if (error) {
-        return { error: error.message }
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        return { error: result.error || 'Unable to reset password' };
       }
 
-      if (data.user) {
-        setUser(data.user)
+      // If auto-login after reset, update user state
+      if (result.data?.user) {
+        setUser(result.data.user);
       }
 
-      return {}
+      return {};
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Unable to reset password' }
+      return {
+        error: error instanceof Error ? error.message : 'Unable to reset password',
+      };
     }
-  }, [])
+  }, [apiBaseUrl]);
 
   return {
     user,
@@ -351,6 +302,6 @@ export function useSessionListener() {
     signUp,
     signOut,
     requestPasswordReset,
-    updatePassword
-  }
+    updatePassword,
+  };
 }

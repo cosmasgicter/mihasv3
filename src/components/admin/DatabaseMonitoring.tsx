@@ -5,6 +5,7 @@ import { useErrorHandling } from '@/hooks/useErrorHandling'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { AlertTriangle, CheckCircle, Database, RefreshCw, Archive, Shield } from 'lucide-react'
+import { toast } from '@/hooks/useToast'
 
 interface DatabaseMetric {
   metric: string

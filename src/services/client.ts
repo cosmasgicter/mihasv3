@@ -1,14 +1,21 @@
-import { monitoring } from '@/lib/monitoring'
-import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
-import { getApiBaseUrl } from '@/lib/apiConfig'
-import { fetchWithCache, invalidateCache } from '@/utils/api-cache'
-import { ApiErrorHandler } from '@/lib/apiErrorHandler'
-import { logger } from '@/utils/logger'
-import { refreshAuthSession } from '@/lib/authRefresh'
+/**
+ * API Client - Cookie-based authentication
+ * 
+ * All API requests use HTTP-only cookies (credentials: 'include')
+ * NO Bearer token headers - cookies are managed by the browser
+ * 
+ * @module client
+ */
 
-import type { FetchWithCacheOptions } from '@/utils/api-cache'
+import { monitoring } from '@/lib/monitoring';
+import { getApiBaseUrl } from '@/lib/apiConfig';
+import { fetchWithCache, invalidateCache } from '@/utils/api-cache';
+import { ApiErrorHandler } from '@/lib/apiErrorHandler';
+import { logger } from '@/utils/logger';
 
-const API_BASE = getApiBaseUrl()
+import type { FetchWithCacheOptions } from '@/utils/api-cache';
+
+const API_BASE = getApiBaseUrl();
 
 class ApiClient {
   private async parseJsonSafely<TResponse>(
@@ -17,114 +24,69 @@ class ApiClient {
     endpoint: string
   ): Promise<TResponse | null> {
     if (response.status === 204 || response.status === 205) {
-      return null
+      return null;
     }
 
-    const contentLengthHeader = response.headers.get('content-length')
+    const contentLengthHeader = response.headers.get('content-length');
     if (contentLengthHeader !== null) {
-      const contentLength = Number.parseInt(contentLengthHeader, 10)
+      const contentLength = Number.parseInt(contentLengthHeader, 10);
       if (!Number.isNaN(contentLength) && contentLength === 0) {
-        return null
+        return null;
       }
     }
 
-    const bodyText = await response.text()
-    const trimmedBody = bodyText.trim()
+    const bodyText = await response.text();
+    const trimmedBody = bodyText.trim();
 
     if (!trimmedBody) {
-      return null
+      return null;
     }
 
-    const contentType = response.headers.get('content-type') ?? ''
+    const contentType = response.headers.get('content-type') ?? '';
     const shouldParseJson =
       contentType.includes('application/json') ||
       trimmedBody.startsWith('{') ||
-      trimmedBody.startsWith('[')
+      trimmedBody.startsWith('[');
 
     if (!shouldParseJson) {
-      return bodyText
+      return bodyText as unknown as TResponse;
     }
 
     try {
-      return JSON.parse(bodyText) as TResponse
+      return JSON.parse(bodyText) as TResponse;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error'
-      throw new Error(`Failed to parse JSON response from ${endpoint}: ${message}`)
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to parse JSON response from ${endpoint}: ${message}`);
     }
   }
 
   private normalizeHeaders(headers?: HeadersInit): Record<string, string> {
     if (!headers) {
-      return {}
+      return {};
     }
 
     if (headers instanceof Headers) {
-      return Object.fromEntries(headers.entries())
+      return Object.fromEntries(headers.entries());
     }
 
     if (Array.isArray(headers)) {
       return headers.reduce((acc, [key, value]) => {
-        acc[key] = value
-        return acc
-      }, {} as Record<string, string>)
+        acc[key] = value;
+        return acc;
+      }, {} as Record<string, string>);
     }
 
-    return headers
+    return headers;
   }
 
-  private async getAuthHeaders() {
-    const baseHeaders: Record<string, string> = {
-      'Content-Type': 'application/json'
-    }
-
-    if (typeof window === 'undefined') {
-      return baseHeaders
-    }
-
-    if (!isSupabaseConfigured) {
-      return baseHeaders
-    }
-
-    try {
-      const supabase = getSupabaseClient()
-      
-      // First check current session
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session) {
-        logger.warn('[API Client] No active session')
-        return baseHeaders
-      }
-      
-      // Check if token will expire in next 5 minutes
-      const expiresAt = (session.expires_at || 0) * 1000
-      const now = Date.now()
-      const fiveMinutes = 5 * 60 * 1000
-      
-      if (expiresAt - now < fiveMinutes) {
-        logger.info('[API Client] Token expiring soon, refreshing...')
-        const { data: refreshData, error } = await supabase.auth.refreshSession()
-        
-        if (error || !refreshData.session) {
-          logger.error('[API Client] Token refresh failed:', error?.message)
-          // Use existing token even if refresh failed
-          baseHeaders.Authorization = `Bearer ${session.access_token}`
-          return baseHeaders
-        }
-        
-        logger.info('[API Client] Token refreshed successfully')
-        baseHeaders.Authorization = `Bearer ${refreshData.session.access_token}`
-        return baseHeaders
-      }
-      
-      // Token is still valid
-      baseHeaders.Authorization = `Bearer ${session.access_token}`
-      logger.info('[API Client] Using valid token')
-    } catch (error) {
-      logger.error('[API Client] Failed to get auth headers:', error)
-    }
-
-    return baseHeaders
+  /**
+   * Get base headers for API requests
+   * NO Authorization header - we use HTTP-only cookies
+   */
+  private getBaseHeaders(): Record<string, string> {
+    return {
+      'Content-Type': 'application/json',
+    };
   }
 
   private getInvalidationPatterns(
@@ -132,57 +94,57 @@ class ApiClient {
     customTargets?: string | string[] | false
   ): string[] {
     if (customTargets === false) {
-      return []
+      return [];
     }
 
-    const targets = new Set<string>()
+    const targets = new Set<string>();
 
     if (customTargets) {
-      const entries = Array.isArray(customTargets) ? customTargets : [customTargets]
+      const entries = Array.isArray(customTargets) ? customTargets : [customTargets];
       entries
         .filter((value): value is string => typeof value === 'string' && value.length > 0)
-        .forEach(value => targets.add(value))
+        .forEach(value => targets.add(value));
     }
 
-    const normalizedEndpoint = endpoint.split('?')[0]
+    const normalizedEndpoint = endpoint.split('?')[0];
     if (normalizedEndpoint) {
-      const segments = normalizedEndpoint.split('/').filter(Boolean)
+      const segments = normalizedEndpoint.split('/').filter(Boolean);
       if (segments.length > 0) {
-        const startIndex = segments[0] === 'api' ? 2 : 1
+        const startIndex = segments[0] === 'api' ? 2 : 1;
         for (let i = startIndex; i <= segments.length; i++) {
-          const pattern = `/${segments.slice(0, i).join('/')}`
+          const pattern = `/${segments.slice(0, i).join('/')}`;
           if (pattern.length > 1) {
-            targets.add(pattern)
+            targets.add(pattern);
           }
         }
 
         if (segments[0] !== 'api') {
           const fullPath = normalizedEndpoint.startsWith('/')
             ? normalizedEndpoint
-            : `/${normalizedEndpoint}`
-          targets.add(fullPath)
+            : `/${normalizedEndpoint}`;
+          targets.add(fullPath);
         }
       }
     }
 
-    return Array.from(targets)
+    return Array.from(targets);
   }
 
   private invalidateRelatedCaches(
     endpoint: string,
     customTargets?: string | string[] | false
   ) {
-    const patterns = this.getInvalidationPatterns(endpoint, customTargets)
-    patterns.forEach(pattern => invalidateCache(pattern))
+    const patterns = this.getInvalidationPatterns(endpoint, customTargets);
+    patterns.forEach(pattern => invalidateCache(pattern));
   }
 
   async request<TResponse = unknown>(
     endpoint: string,
     options: ApiRequestOptions = {}
   ): Promise<TResponse | null> {
-    const start = Date.now()
-    const service = endpoint.split('/')[2] || 'unknown'
-    const method = (options.method ?? 'GET').toString().toUpperCase()
+    const start = Date.now();
+    const service = endpoint.split('/')[2] || 'unknown';
+    const method = (options.method ?? 'GET').toString().toUpperCase();
 
     try {
       const {
@@ -193,198 +155,202 @@ class ApiClient {
         invalidateCache: invalidateTargets,
         headers,
         ...restOptions
-      } = options
+      } = options;
 
-      const authHeaders = await this.getAuthHeaders()
+      const baseHeaders = this.getBaseHeaders();
       const requestHeaders = {
-        ...authHeaders,
-        ...this.normalizeHeaders(headers)
-      }
+        ...baseHeaders,
+        ...this.normalizeHeaders(headers),
+      };
 
       const requestInit: RequestInit = {
         ...restOptions,
         method,
-        headers: requestHeaders
-      }
+        headers: requestHeaders,
+        credentials: 'include', // CRITICAL: Send HTTP-only cookies
+      };
 
       if (method === 'GET') {
-        const shouldUseCache = (useCache ?? true) && !(skipCache ?? false)
-        const url = `${API_BASE}${endpoint}`
+        const shouldUseCache = (useCache ?? true) && !(skipCache ?? false);
+        const url = `${API_BASE}${endpoint}`;
 
-        let responseMeta: { ok: boolean; statusCode: number; duration: number } | null = null
+        let responseMeta: { ok: boolean; statusCode: number; duration: number } | null = null;
 
-        const fetchOptions: RequestInit & FetchWithCacheOptions = {
-          ...requestInit,
+        // Build fetch options - use type assertion to handle cache property conflict
+        // FetchWithCacheOptions.cache is boolean, RequestInit.cache is RequestCache
+        const fetchOptions = {
+          method,
+          headers: requestHeaders,
+          credentials: 'include' as RequestCredentials,
           cache: shouldUseCache,
           ...(cacheTTL !== undefined ? { cacheTTL } : {}),
           ...(cacheKey ? { cacheKey } : {}),
           transformResponse: (response: Response) =>
             this.parseJsonSafely<TResponse>(response, service, endpoint),
-          onResponse: (response, duration) => {
+          onResponse: (response: Response, duration: number) => {
             responseMeta = {
               ok: response.ok,
               statusCode: response.status,
-              duration
-            }
-          }
-        }
+              duration,
+            };
+          },
+        } as RequestInit & FetchWithCacheOptions;
 
-        const data = await fetchWithCache<TResponse | null>(url, fetchOptions)
+        const data = await fetchWithCache<TResponse | null>(url, fetchOptions);
 
         if (responseMeta) {
           monitoring.trackApiCall(service, endpoint, responseMeta.duration, responseMeta.ok, {
             method,
-            statusCode: responseMeta.statusCode
-          })
-          monitoring.queueFlush(!responseMeta.ok)
+            statusCode: responseMeta.statusCode,
+          });
+          monitoring.queueFlush(!responseMeta.ok);
         } else {
-          const duration = Date.now() - start
+          const duration = Date.now() - start;
           monitoring.trackApiCall(service, endpoint, duration, true, {
             method,
-            statusCode: 200
-          })
-          monitoring.queueFlush(false)
+            statusCode: 200,
+          });
+          monitoring.queueFlush(false);
         }
 
-        return data
+        return data;
       }
 
-      const response = await fetch(`${API_BASE}${endpoint}`, requestInit)
+      const response = await fetch(`${API_BASE}${endpoint}`, requestInit);
 
-      const duration = Date.now() - start
+      const duration = Date.now() - start;
       monitoring.trackApiCall(service, endpoint, duration, response.ok, {
         method,
-        statusCode: response.status
-      })
-      monitoring.queueFlush(!response.ok)
+        statusCode: response.status,
+      });
+      monitoring.queueFlush(!response.ok);
 
       if (!response.ok) {
-        let errorMessage = `API Error: ${response.statusText}`
+        let errorMessage = `API Error: ${response.statusText}`;
         try {
-          const errorData = await response.text()
+          const errorData = await response.text();
           if (errorData) {
-            const parsed = JSON.parse(errorData)
-            errorMessage = parsed.error || parsed.message || errorMessage
+            const parsed = JSON.parse(errorData);
+            errorMessage = parsed.error || parsed.message || errorMessage;
           }
         } catch {
           // Use default error message
         }
-        
+
         // Handle 401 Unauthorized specifically
         if (response.status === 401) {
-          errorMessage = 'Authentication required. Please try again.'
-          logger.warn('[API Client] 401 Unauthorized - token may need refresh')
+          errorMessage = 'Authentication required. Please sign in again.';
+          logger.warn('[API Client] 401 Unauthorized - session may have expired');
         }
-        
+
         monitoring.logError(service, `${response.status}: ${errorMessage}`, {
           endpoint,
           method,
-          statusCode: response.status
-        })
-        
+          statusCode: response.status,
+        });
+
         // Enhance error message for better UX
         const enhancedError = ApiErrorHandler.enhanceError({
           endpoint,
           method,
           statusCode: response.status,
-          originalError: new Error(errorMessage)
-        })
-        throw enhancedError
+          originalError: new Error(errorMessage),
+        });
+        throw enhancedError;
       }
 
-      const payload = await this.parseJsonSafely<TResponse>(response, service, endpoint)
+      const payload = await this.parseJsonSafely<TResponse>(response, service, endpoint);
 
-      this.invalidateRelatedCaches(endpoint, invalidateTargets)
+      this.invalidateRelatedCaches(endpoint, invalidateTargets);
 
-      return payload
+      return payload;
     } catch (error) {
       // Check if this is an abort error (request cancelled)
-      const isAbortError = error instanceof Error && 
-        (error.name === 'AbortError' || 
-         error.message?.includes('aborted') ||
-         error.message?.includes('cancelled'))
-      
+      const isAbortError =
+        error instanceof Error &&
+        (error.name === 'AbortError' ||
+          error.message?.includes('aborted') ||
+          error.message?.includes('cancelled'));
+
       // Don't log or track abort errors (normal cancellation)
       if (!isAbortError) {
-        const duration = Date.now() - start
-        monitoring.trackApiCall(service, endpoint, duration, false, { method })
-        const errorPayload = error instanceof Error ? error : { message: 'Unknown error' }
-        const statusCode = typeof (error as any)?.status === 'number' ? (error as any).status : undefined
-        monitoring.logError(
-          service,
-          errorPayload,
-          {
-            endpoint,
-            method,
-            ...(statusCode ? { statusCode } : {})
-          }
-        )
-        monitoring.queueFlush(true)
+        const duration = Date.now() - start;
+        monitoring.trackApiCall(service, endpoint, duration, false, { method });
+        const errorPayload = error instanceof Error ? error : { message: 'Unknown error' };
+        const statusCode =
+          typeof (error as any)?.status === 'number' ? (error as any).status : undefined;
+        monitoring.logError(service, errorPayload, {
+          endpoint,
+          method,
+          ...(statusCode ? { statusCode } : {}),
+        });
+        monitoring.queueFlush(true);
       }
-      
+
       // For abort errors, just rethrow without enhancement
       if (isAbortError) {
-        throw error
+        throw error;
       }
-      
+
       // Handle authentication errors specifically
       if (error instanceof Error && error.message.includes('401')) {
-        logger.warn('[API Client] 401 error in catch block')
-        throw new Error('Authentication required. Please try again.')
+        logger.warn('[API Client] 401 error in catch block');
+        throw new Error('Authentication required. Please sign in again.');
       }
-      
+
       // Enhance error if not already enhanced
       if (!(error instanceof Error) || !error.message.includes('Please')) {
-        const errorStatusCode = typeof (error as any)?.status === 'number' ? (error as any).status : undefined
+        const errorStatusCode =
+          typeof (error as any)?.status === 'number' ? (error as any).status : undefined;
         const enhancedError = ApiErrorHandler.enhanceError({
           endpoint,
           method,
           statusCode: errorStatusCode,
-          originalError: error
-        })
-        throw enhancedError
+          originalError: error,
+        });
+        throw enhancedError;
       }
-      
-      throw error
+
+      throw error;
     }
   }
 }
 
-export const apiClient = new ApiClient()
+export const apiClient = new ApiClient();
 
-export type QueryParamValue = string | number | boolean
+export type QueryParamValue = string | number | boolean;
 
-export type QueryParams = Record<string, QueryParamValue | QueryParamValue[] | null | undefined>
+export type QueryParams = Record<string, QueryParamValue | QueryParamValue[] | null | undefined>;
 
 export function buildQueryString(params: QueryParams = {}) {
-  const query = new URLSearchParams()
+  const query = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
     if (value === undefined || value === null || value === '') {
-      return
+      return;
     }
 
     if (Array.isArray(value)) {
-      const validItems = value.filter(item => item !== undefined && item !== null && item !== '')
+      const validItems = value.filter(item => item !== undefined && item !== null && item !== '');
       if (validItems.length > 0) {
-        query.set(key, validItems.join(','))
+        query.set(key, validItems.join(','));
       }
-      return
+      return;
     }
 
-    query.set(key, String(value))
-  })
+    query.set(key, String(value));
+  });
 
-  const queryString = query.toString()
-  return queryString ? `?${queryString}` : ''
+  const queryString = query.toString();
+  return queryString ? `?${queryString}` : '';
 }
 
-export type ApiClientRequest = ApiClient['request']
+export type ApiClientRequest = ApiClient['request'];
 
 export interface ApiRequestOptions extends RequestInit {
-  cacheTTL?: number
-  skipCache?: boolean
-  useCache?: boolean
-  cacheKey?: string
-  invalidateCache?: string | string[] | false
+  cacheTTL?: number;
+  skipCache?: boolean;
+  useCache?: boolean;
+  cacheKey?: string;
+  invalidateCache?: string | string[] | false;
 }

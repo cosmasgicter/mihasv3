@@ -1,11 +1,30 @@
 import { useCallback, useMemo } from 'react'
 import { logger } from '@/lib/logger'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { User } from '@supabase/supabase-js'
 import { useAuth } from '@/contexts/AuthContext'
 import { getSupabaseClient, isSupabaseConfigured, SUPABASE_MISSING_CONFIG_MESSAGE, UserProfile } from '@/lib/supabase'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { sanitizeForLog } from '@/lib/security'
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+interface User {
+  id: string
+  email?: string
+  user_metadata?: Record<string, any>
+}
 
 export interface UseProfileQueryOptions {
   user?: User | null
@@ -128,11 +147,12 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       }
 
       const supabase = getSupabaseClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      const accessToken = session?.access_token
-
-      if (!accessToken) {
-        logger.log('[ProfileQuery] No access token found')
+      
+      // Check session via cookie-based auth
+      const sessionResponse = await authFetch('/api/auth?action=session')
+      
+      if (!sessionResponse.ok) {
+        logger.log('[ProfileQuery] No valid session')
         return null
       }
       

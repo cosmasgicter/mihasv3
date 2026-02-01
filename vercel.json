@@ -40,7 +40,6 @@
                                               "maxDuration":  10,
                                               "includeFiles":  "api/_lib/**"
                                           },
-                      "api/migrate.ts": { "maxDuration": 30, "includeFiles": "api/_lib/**" },
                       "api/[...path].ts":  {
                                                "maxDuration":  5,
                                                "includeFiles":  "api/_lib/**"
@@ -93,6 +92,19 @@
                      }
                  ],
     "headers":  [
+                    {
+                        "source":  "/(.*)",
+                        "headers":  [
+                                        {
+                                            "key":  "X-Content-Type-Options",
+                                            "value":  "nosniff"
+                                        },
+                                        {
+                                            "key":  "X-Frame-Options",
+                                            "value":  "DENY"
+                                        }
+                                    ]
+                    },
                     {
                         "source":  "/api/(.*)",
                         "headers":  [
