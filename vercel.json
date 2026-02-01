@@ -6,7 +6,7 @@
   "functions": {
     "api/*.ts": {
       "maxDuration": 10,
-      "includeFiles": "lib/**"
+      "includeFiles": ["lib/**/*.ts", "lib/**/*.js"]
     }
   },
   "rewrites": [
