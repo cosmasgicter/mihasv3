@@ -28,11 +28,11 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
-import { withArcjetProtection } from "./lib/arcjet";
-import { requireAuth, getAuthUser, AuthenticationError, AuthorizationError } from "./lib/auth/middleware";
-import { handleCors } from "./lib/cors";
-import { sendSuccess, sendError, HttpStatus } from "./lib/errorHandler";
-import { handleSSEConnection, getEventsForPolling } from "./lib/realtime";
+import { withArcjetProtection } from "../lib/arcjet";
+import { requireAuth, getAuthUser, AuthenticationError, AuthorizationError } from "../lib/auth/middleware";
+import { handleCors } from "../lib/cors";
+import { sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
+import { handleSSEConnection, getEventsForPolling } from "../lib/realtime";
 import {
   getActiveSessions,
   deactivateSession,
@@ -42,7 +42,7 @@ import {
   getSessionById,
   parseDeviceInfo,
   createSession,
-} from "./lib/sessions";
+} from "../lib/sessions";
 
 /**
  * Request validation schemas

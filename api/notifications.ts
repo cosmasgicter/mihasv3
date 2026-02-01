@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import webpush from 'web-push';
-import { handleCors } from './lib/cors';
-import { query } from './lib/db';
-import { getAuthUser } from './lib/auth/middleware';
-import { withArcjetProtection } from './lib/arcjet';
-import { USER_ROLES } from './lib/queries';
-import { handleError, sendSuccess, sendError, HttpStatus } from './lib/errorHandler';
+import { handleCors } from '../lib/cors';
+import { query } from '../lib/db';
+import { getAuthUser } from '../lib/auth/middleware';
+import { withArcjetProtection } from '../lib/arcjet';
+import { USER_ROLES } from '../lib/queries';
+import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
 
 /**
  * Consolidated Notifications API
