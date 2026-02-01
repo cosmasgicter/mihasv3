@@ -5,9 +5,13 @@ import { query, detectDatabaseType } from './lib/db';
  * Health Check API
  * 
  * GET /api/health - Returns system health status
+ * GET /api/health?action=ping - Minimal ping/pong response
  * GET /api/health?action=db - Check database connectivity (RPC replacement)
+ * GET /api/health?action=env - Check environment variables
+ * GET /api/health?action=arcjet - Test Arcjet security layer initialization
  * 
  * Replaces: check_database_health() Supabase RPC
+ * Consolidates: /api/ping, /api/arcjet-test (Vercel Hobby 12 function limit)
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Set headers directly
@@ -25,6 +29,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const action = req.query.action as string;
+
+  // Ping action (minimal response for uptime checks)
+  if (action === 'ping') {
+    return res.status(200).json({
+      success: true,
+      message: 'pong',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Arcjet security layer test
+  if (action === 'arcjet') {
+    return handleArcjetTest(req, res);
+  }
 
   // Database health check
   if (action === 'db') {
@@ -188,5 +206,90 @@ function handleEnvCheck(res: VercelResponse): void {
       missing: missing.length > 0 ? missing : undefined,
       timestamp: new Date().toISOString(),
     }
+  });
+}
+
+
+/**
+ * Test Arcjet security layer initialization
+ * GET /api/health?action=arcjet
+ * 
+ * Diagnostic endpoint to verify Arcjet is working correctly.
+ * Tests: module import, instance creation, protect call
+ */
+async function handleArcjetTest(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const results: Record<string, string | number | boolean | null> = {
+    timestamp: new Date().toISOString(),
+    nodeVersion: process.version,
+    platform: process.platform,
+    arch: process.arch,
+    arcjetKeySet: !!process.env.ARCJET_KEY,
+    arcjetKeyLength: process.env.ARCJET_KEY?.length || 0,
+  };
+
+  let allPassed = true;
+
+  // Test 1: Import @arcjet/node package
+  try {
+    const arcjetNode = await import('@arcjet/node');
+    results.arcjetNodeImport = 'SUCCESS';
+    results.arcjetNodeExports = Object.keys(arcjetNode).join(', ');
+  } catch (error) {
+    results.arcjetNodeImport = 'FAILED';
+    results.arcjetNodeError = error instanceof Error ? error.message : String(error);
+    allPassed = false;
+  }
+
+  // Test 2: Import local arcjet wrapper
+  try {
+    const arcjetWrapper = await import('./lib/arcjet');
+    results.arcjetWrapperImport = 'SUCCESS';
+    results.arcjetWrapperExports = Object.keys(arcjetWrapper).join(', ');
+  } catch (error) {
+    results.arcjetWrapperImport = 'FAILED';
+    results.arcjetWrapperError = error instanceof Error ? error.message : String(error);
+    allPassed = false;
+  }
+
+  // Test 3: Create Arcjet instance (if key is set)
+  if (process.env.ARCJET_KEY) {
+    try {
+      const { default: arcjet, shield, detectBot } = await import('@arcjet/node');
+      const testAj = arcjet({
+        key: process.env.ARCJET_KEY,
+        characteristics: ['ip.src'],
+        rules: [
+          shield({ mode: 'LIVE' }),
+          detectBot({ mode: 'LIVE', allow: ['CATEGORY:SEARCH_ENGINE'] }),
+        ],
+      });
+      results.arcjetInstanceCreate = 'SUCCESS';
+
+      // Test 4: Call protect (actual API call)
+      try {
+        const decision = await testAj.protect(req);
+        results.arcjetProtectCall = 'SUCCESS';
+        results.arcjetDecision = decision.isDenied() ? 'DENIED' : 'ALLOWED';
+        results.arcjetDecisionId = decision.id;
+      } catch (error) {
+        results.arcjetProtectCall = 'FAILED';
+        results.arcjetProtectError = error instanceof Error ? error.message : String(error);
+        allPassed = false;
+      }
+    } catch (error) {
+      results.arcjetInstanceCreate = 'FAILED';
+      results.arcjetInstanceError = error instanceof Error ? error.message : String(error);
+      allPassed = false;
+    }
+  } else {
+    results.arcjetInstanceCreate = 'SKIPPED';
+    results.arcjetProtectCall = 'SKIPPED';
+    results.arcjetSkipReason = 'ARCJET_KEY not set';
+  }
+
+  res.status(allPassed ? 200 : 500).json({
+    success: allPassed,
+    message: allPassed ? 'All Arcjet tests passed' : 'Arcjet initialization failed',
+    results,
   });
 }
