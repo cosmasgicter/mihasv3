@@ -5,7 +5,9 @@
   "framework": null,
   "functions": {
     "api/*.ts": {
-      "maxDuration": 10
+      "runtime": "nodejs20.x",
+      "maxDuration": 10,
+      "includeFiles": "lib/**"
     }
   },
   "rewrites": [
