@@ -18,10 +18,10 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            urlPattern: /^https:\/\/apply\.mihas\.edu\.zm\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'supabase-cache',
+              cacheName: 'api-cache',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24
@@ -76,11 +76,6 @@ export default defineConfig({
             }
             if (id.includes('recharts') || id.includes('d3-')) {
               return 'vendor-charts'
-            }
-            
-            // Supabase is independent and large
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase'
             }
             
             // Let Vite handle everything else automatically

@@ -1,6 +1,12 @@
-import { supabase } from '@/lib/supabase'
-import { SubmissionResult, SubmissionStatus, EmailReceipt, RetryConfig } from '@/types/submission'
-import { ApplicationFormData } from '@/forms/applicationSchema'
+/**
+ * Submission Utilities
+ * 
+ * NOTE: This module is deprecated and not currently in use.
+ * Keeping for reference only.
+ */
+
+// import { SubmissionResult, SubmissionStatus, EmailReceipt, RetryConfig } from '@/types/submission'
+// import { ApplicationFormData } from '@/forms/applicationSchema'
 import { sanitizeForLog } from './security'
 import { renderApplicationReceiptEmail } from './emailTemplates'
 

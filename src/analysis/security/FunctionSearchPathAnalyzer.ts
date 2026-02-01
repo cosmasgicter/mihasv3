@@ -6,7 +6,6 @@
  * Requirements: 1.2
  */
 
-import { createClient } from '@supabase/supabase-js';
 import type { SecurityVulnerability, AnalysisResult } from '../types';
 
 export interface DatabaseFunction {
@@ -27,26 +26,16 @@ export interface SearchPathVulnerability extends SecurityVulnerability {
   risk_factors: string[];
 }
 
+/**
+ * @deprecated This analyzer was designed for Supabase.
+ * Database functions are now in Neon Postgres. Use direct SQL queries for analysis.
+ */
 export class FunctionSearchPathAnalyzer {
-  private supabase;
   private vulnerabilities: SearchPathVulnerability[] = [];
 
   constructor() {
-    // Initialize Supabase client for database analysis (auth disabled)
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase configuration missing for function search path analysis');
-    }
-    
-    this.supabase = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false
-      }
-    });
+    // NOTE: Supabase has been removed. Database is now Neon Postgres.
+    console.warn('[DEPRECATED] FunctionSearchPathAnalyzer: Supabase removed. Database is now Neon Postgres.');
   }
 
   /**
@@ -116,96 +105,20 @@ export class FunctionSearchPathAnalyzer {
 
   /**
    * Get all database functions from information_schema
+   * @deprecated Supabase removed. Use Neon Postgres directly for function analysis.
    */
   private async getAllDatabaseFunctions(): Promise<DatabaseFunction[]> {
-    try {
-      // Query to get all functions with their definitions and settings
-      const query = `
-        SELECT 
-          n.nspname as schema_name,
-          p.proname as function_name,
-          pg_get_function_identity_arguments(p.oid) as function_signature,
-          pg_get_functiondef(p.oid) as function_definition,
-          p.prosecdef as is_security_definer,
-          l.lanname as language,
-          pg_catalog.format_type(p.prorettype, NULL) as return_type,
-          (
-            SELECT string_agg(pg_catalog.quote_ident(option_name) || '=' || pg_catalog.quote_literal(option_value), ', ')
-            FROM pg_catalog.pg_options_to_table(p.proconfig) 
-            WHERE option_name = 'search_path'
-          ) as search_path_setting
-        FROM pg_catalog.pg_proc p
-        LEFT JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
-        LEFT JOIN pg_catalog.pg_language l ON l.oid = p.prolang
-        WHERE n.nspname NOT IN ('information_schema', 'pg_catalog', 'pg_toast')
-        AND n.nspname NOT LIKE 'pg_temp_%'
-        AND n.nspname NOT LIKE 'pg_toast_temp_%'
-        ORDER BY n.nspname, p.proname;
-      `;
-
-      const { data, error } = await this.supabase.rpc('execute_sql', { 
-        sql_query: query 
-      });
-
-      if (error) {
-        console.warn('Could not query functions directly, using fallback method:', error.message);
-        return await this.getFunctionsFallback();
-      }
-
-      if (!data || !Array.isArray(data)) {
-        console.warn('No function data returned, using fallback method');
-        return await this.getFunctionsFallback();
-      }
-
-      return data.map((row: any) => ({
-        schema_name: row.schema_name,
-        function_name: row.function_name,
-        function_signature: row.function_signature || '',
-        function_definition: row.function_definition || '',
-        search_path_setting: row.search_path_setting,
-        is_security_definer: row.is_security_definer || false,
-        language: row.language || 'unknown',
-        return_type: row.return_type || 'unknown'
-      }));
-
-    } catch (error) {
-      console.error('Error getting database functions:', error);
-      return await this.getFunctionsFallback();
-    }
+    // NOTE: Supabase removed. Return mock data for backward compatibility.
+    console.warn('[DEPRECATED] getAllDatabaseFunctions: Supabase removed. Use Neon Postgres directly.');
+    return this.getMockFunctionData();
   }
 
   /**
    * Fallback method to get functions when direct query fails
+   * @deprecated Supabase removed.
    */
   private async getFunctionsFallback(): Promise<DatabaseFunction[]> {
-    try {
-      // Try to get functions from information_schema.routines
-      const { data, error } = await this.supabase
-        .from('information_schema.routines')
-        .select('*')
-        .not('routine_schema', 'in', '(information_schema,pg_catalog)');
-
-      if (error) {
-        console.warn('Fallback method also failed:', error.message);
-        // Return mock data based on known system structure
-        return this.getMockFunctionData();
-      }
-
-      return (data || []).map((routine: any) => ({
-        schema_name: routine.routine_schema,
-        function_name: routine.routine_name,
-        function_signature: `${routine.routine_name}(${routine.data_type})`,
-        function_definition: routine.routine_definition || '',
-        search_path_setting: undefined,
-        is_security_definer: routine.security_type === 'DEFINER',
-        language: routine.external_language || 'sql',
-        return_type: routine.data_type || 'unknown'
-      }));
-
-    } catch (error) {
-      console.error('Fallback method failed:', error);
-      return this.getMockFunctionData();
-    }
+    return this.getMockFunctionData();
   }
 
   /**

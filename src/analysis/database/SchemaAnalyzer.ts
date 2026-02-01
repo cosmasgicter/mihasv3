@@ -5,7 +5,6 @@
  * Requirements: 2.1, 2.2, 2.3, 2.5
  */
 
-import { createClient } from '@supabase/supabase-js';
 import type { 
   AnalysisResult, 
   SchemaRedundancy, 
@@ -13,27 +12,18 @@ import type {
   PerformanceMetric 
 } from '../types';
 
+/**
+ * @deprecated This analyzer was designed for Supabase.
+ * Schema analysis should now be done directly against Neon Postgres.
+ */
 export class SchemaAnalyzer {
-  private supabase;
   private redundancies: SchemaRedundancy[] = [];
   private integrityIssues: DatabaseIntegrityIssue[] = [];
   private performanceIssues: PerformanceMetric[] = [];
 
   constructor() {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase configuration missing for schema analysis');
-    }
-    
-    this.supabase = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false
-      }
-    });
+    // NOTE: Supabase has been removed. Database is now Neon Postgres.
+    console.warn('[DEPRECATED] SchemaAnalyzer: Supabase removed. Use Neon Postgres for schema analysis.');
   }
 
   /**
@@ -360,15 +350,9 @@ export class SchemaAnalyzer {
   }
 
   private async getTableRowCount(tableName: string): Promise<number> {
-    try {
-      const { count, error } = await this.supabase
-        .from(tableName)
-        .select('*', { count: 'exact', head: true });
-      
-      return error ? 0 : (count || 0);
-    } catch {
-      return 0;
-    }
+    // NOTE: Supabase removed. This method is deprecated.
+    console.warn(`[DEPRECATED] getTableRowCount: Cannot query ${tableName}. Use Neon Postgres directly.`);
+    return 0;
   }
 
   private generateSchemaSummary() {

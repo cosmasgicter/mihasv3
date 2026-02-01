@@ -30,7 +30,7 @@ const R2_ENDPOINT = `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
 const DATABASE_URL = process.env.DATABASE_URL || '';
 
 // Supabase storage buckets to migrate
-const STORAGE_BUCKETS = ['documents', 'avatars', 'attachments'];
+const STORAGE_BUCKETS = ['app_docs', 'application-documents'];
 
 interface MigrationResult {
   bucket: string;
@@ -108,7 +108,7 @@ class AwsV4Signer {
 }
 
 /**
- * List files in a Supabase storage bucket
+ * List files in a Supabase storage bucket (recursively)
  */
 async function listSupabaseFiles(bucket: string, path = ''): Promise<FileInfo[]> {
   const url = `${SUPABASE_URL}/storage/v1/object/list/${bucket}`;
@@ -127,12 +127,34 @@ async function listSupabaseFiles(bucket: string, path = ''): Promise<FileInfo[]>
   });
 
   if (!response.ok) {
-    console.error(`Failed to list files in ${bucket}:`, await response.text());
+    console.error(`Failed to list files in ${bucket}/${path}:`, await response.text());
     return [];
   }
 
-  const files = await response.json() as FileInfo[];
-  return files.filter(f => f.name && !f.name.endsWith('/'));
+  const items = await response.json() as Array<{ name: string; id?: string; metadata?: Record<string, unknown> }>;
+  const files: FileInfo[] = [];
+  
+  for (const item of items) {
+    const fullPath = path ? `${path}/${item.name}` : item.name;
+    
+    // If it's a folder (no id or metadata), recurse into it
+    if (!item.id && !item.metadata) {
+      const subFiles = await listSupabaseFiles(bucket, fullPath);
+      files.push(...subFiles);
+    } else if (item.name && !item.name.endsWith('/')) {
+      // It's a file
+      files.push({
+        name: fullPath,
+        id: item.id || '',
+        bucket_id: bucket,
+        created_at: '',
+        updated_at: '',
+        metadata: item.metadata || {},
+      });
+    }
+  }
+  
+  return files;
 }
 
 /**

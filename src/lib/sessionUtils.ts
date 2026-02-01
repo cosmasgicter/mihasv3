@@ -56,7 +56,7 @@ export async function makeAuthenticatedRequest(
   const urlObj = new URL(url, window.location.origin);
   const allowedHosts = [
     'apply.mihas.edu.zm',
-    'mylgegkqoddcrxtwcclb.supabase.co',
+    'a3ba1959935abd8777e64caee46d1de1.r2.cloudflarestorage.com',
     'localhost',
     window.location.hostname,
   ];

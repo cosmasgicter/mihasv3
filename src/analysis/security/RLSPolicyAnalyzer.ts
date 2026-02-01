@@ -7,7 +7,6 @@
  * Requirements: 1.3
  */
 
-import { createClient } from '@supabase/supabase-js';
 import type { SecurityVulnerability, AnalysisResult } from '../types';
 
 export interface RLSPolicy {
@@ -33,26 +32,16 @@ export interface RLSPolicyVulnerability extends SecurityVulnerability {
   alternative_policies: string[];
 }
 
+/**
+ * @deprecated RLS policies are no longer used. Security is handled via API middleware.
+ * See migrations/RLS_REPLACEMENT.md for the new security model.
+ */
 export class RLSPolicyAnalyzer {
-  private supabase;
   private vulnerabilities: RLSPolicyVulnerability[] = [];
 
   constructor() {
-    // Initialize Supabase client for database analysis (auth disabled)
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase configuration missing for RLS policy analysis');
-    }
-    
-    this.supabase = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false
-      }
-    });
+    // NOTE: Supabase RLS has been replaced with API middleware ownership checks.
+    console.warn('[DEPRECATED] RLSPolicyAnalyzer: RLS policies replaced with API middleware. See migrations/RLS_REPLACEMENT.md');
   }
 
   /**
@@ -122,88 +111,20 @@ export class RLSPolicyAnalyzer {
 
   /**
    * Get all RLS policies from the database
+   * @deprecated RLS policies are no longer used. Security is handled via API middleware.
    */
   private async getAllRLSPolicies(): Promise<RLSPolicy[]> {
-    try {
-      // Query to get all RLS policies with their expressions
-      const query = `
-        SELECT 
-          schemaname as schema_name,
-          tablename as table_name,
-          policyname as policy_name,
-          permissive as policy_type,
-          cmd as command,
-          roles,
-          qual as using_expression,
-          with_check as with_check_expression
-        FROM pg_policies
-        WHERE schemaname NOT IN ('information_schema', 'pg_catalog', 'pg_toast')
-        AND schemaname NOT LIKE 'pg_temp_%'
-        ORDER BY schemaname, tablename, policyname;
-      `;
-
-      const { data, error } = await this.supabase.rpc('execute_sql', { 
-        sql_query: query 
-      });
-
-      if (error) {
-        console.warn('Could not query RLS policies directly, using fallback method:', error.message);
-        return await this.getRLSPoliciesFallback();
-      }
-
-      if (!data || !Array.isArray(data)) {
-        console.warn('No RLS policy data returned, using fallback method');
-        return await this.getRLSPoliciesFallback();
-      }
-
-      return data.map((row: any) => ({
-        schema_name: row.schema_name,
-        table_name: row.table_name,
-        policy_name: row.policy_name,
-        policy_type: row.policy_type === 'PERMISSIVE' ? 'PERMISSIVE' : 'RESTRICTIVE',
-        command: row.command || 'ALL',
-        roles: Array.isArray(row.roles) ? row.roles : [row.roles].filter(Boolean),
-        using_expression: row.using_expression,
-        with_check_expression: row.with_check_expression,
-        is_enabled: true
-      }));
-
-    } catch (error) {
-      console.error('Error getting RLS policies:', error);
-      return await this.getRLSPoliciesFallback();
-    }
+    // NOTE: Supabase RLS has been replaced with API middleware ownership checks.
+    console.warn('[DEPRECATED] getAllRLSPolicies: RLS policies replaced with API middleware.');
+    return this.getMockRLSPolicyData();
   }
 
   /**
    * Fallback method to get RLS policies when direct query fails
+   * @deprecated RLS policies are no longer used.
    */
   private async getRLSPoliciesFallback(): Promise<RLSPolicy[]> {
-    try {
-      // Try to get policies using Supabase's built-in functions
-      const { data, error } = await this.supabase.rpc('get_permissive_rls_policies');
-
-      if (error) {
-        console.warn('Fallback method also failed:', error.message);
-        // Return mock data based on known system analysis
-        return this.getMockRLSPolicyData();
-      }
-
-      return (data || []).map((policy: any) => ({
-        schema_name: policy.schemaname || 'public',
-        table_name: policy.tablename,
-        policy_name: policy.policyname,
-        policy_type: 'PERMISSIVE' as const,
-        command: policy.cmd || 'ALL',
-        roles: policy.roles || ['public'],
-        using_expression: policy.qual,
-        with_check_expression: policy.with_check,
-        is_enabled: true
-      }));
-
-    } catch (error) {
-      console.error('Fallback method failed:', error);
-      return this.getMockRLSPolicyData();
-    }
+    return this.getMockRLSPolicyData();
   }
 
   /**

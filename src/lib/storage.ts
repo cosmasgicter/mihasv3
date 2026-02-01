@@ -1,4 +1,10 @@
-import { supabase } from './supabase'
+/**
+ * Storage Utilities - Uses R2 via API
+ * 
+ * MIGRATION COMPLETE: Supabase Storage → Cloudflare R2
+ * All storage operations now go through /api/documents endpoint
+ */
+
 import { sanitizeForLog } from './security'
 
 export interface UploadResult {
@@ -53,7 +59,9 @@ export const STORAGE_CONFIGS = {
   }
 } as const
 
-// Simple upload function for application wizard
+/**
+ * Upload application file via API
+ */
 export async function uploadApplicationFile(
   file: File,
   userId: string,
@@ -61,7 +69,6 @@ export async function uploadApplicationFile(
   fileType: string
 ): Promise<UploadResult> {
   try {
-    
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       return {
@@ -79,64 +86,33 @@ export async function uploadApplicationFile(
       }
     }
 
-    // Auth is already checked in the hook, skip redundant check
+    // Create form data for upload
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('applicationId', applicationId)
+    formData.append('documentType', fileType)
 
-    // Generate filename with better sanitization
-    const timestamp = Date.now()
-    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-    const fileName = `${userId}/${applicationId}/${fileType}/${timestamp}-${sanitizedFileName}`
-    
+    // Upload via API
+    const response = await fetch('/api/documents?action=upload', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    })
 
-    // Use public buckets for reliable URL access
-    const publicBuckets = ['app_docs', 'documents', 'application-documents']
-    let uploadError: any = null
-    let usedBucket = ''
-    let uploadData: any = null
-
-    for (const bucket of publicBuckets) {
-      
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(fileName, file, {
-          contentType: file.type,
-          upsert: true
-        })
-
-      if (!error && data) {
-        usedBucket = bucket
-        uploadData = data
-        break
-      } else {
-        uploadError = error
-      }
-    }
-
-    if (!usedBucket || !uploadData) {
-      console.error('All bucket uploads failed:', uploadError)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
       return {
         success: false,
-        error: uploadError?.message || 'Upload failed - storage not available'
+        error: errorData.error || `Upload failed: ${response.status}`
       }
     }
 
-    // Get public URL - ensure it's accessible
-    const { data: urlData } = supabase.storage
-      .from(usedBucket)
-      .getPublicUrl(uploadData.path)
-
-    if (!urlData.publicUrl) {
-      console.error('Failed to generate public URL')
-      return {
-        success: false,
-        error: 'Failed to generate file URL'
-      }
-    }
-
+    const data = await response.json()
     
     return {
       success: true,
-      path: uploadData.path,
-      url: urlData.publicUrl
+      path: data.path,
+      url: data.url
     }
   } catch (error) {
     console.error('Upload error:', error)
@@ -165,7 +141,9 @@ export function validateFile(file: File, config: StorageConfig): { valid: boolea
   return { valid: true }
 }
 
-// Simple file validation for application uploads
+/**
+ * Simple file validation for application uploads
+ */
 export function validateApplicationFile(file: File): { valid: boolean; error?: string } {
   if (file.size > 10 * 1024 * 1024) {
     return {
@@ -185,6 +163,9 @@ export function validateApplicationFile(file: File): { valid: boolean; error?: s
   return { valid: true }
 }
 
+/**
+ * Upload file via API
+ */
 export async function uploadFile(
   file: File,
   config: StorageConfig,
@@ -201,72 +182,33 @@ export async function uploadFile(
       }
     }
 
-    // Get current user if not provided via cookie-based auth
-    let currentUserId = userId
-    if (!currentUserId) {
-      try {
-        const response = await fetch('/api/auth?action=session', { credentials: 'include' })
-        if (response.ok) {
-          const data = await response.json()
-          currentUserId = data.user?.id
-        }
-      } catch {
-        // Ignore auth errors for storage operations
+    // Create form data for upload
+    const formData = new FormData()
+    formData.append('file', file)
+    if (path) formData.append('path', path)
+
+    // Upload via API
+    const response = await fetch('/api/documents?action=upload', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error('Storage upload error:', { error: sanitizeForLog(errorData.error || 'Upload failed') })
+      return {
+        success: false,
+        error: errorData.error || 'Upload failed'
       }
     }
+
+    const data = await response.json()
     
-    if (!currentUserId) {
-      return {
-        success: false,
-        error: 'User not authenticated'
-      }
-    }
-
-    // Generate unique filename with user folder structure
-    const fileExtension = file.name.split('.').pop()
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(2)
-    const fileName = path || `${currentUserId}/${timestamp}-${randomString}.${fileExtension}`
-
-    // Try multiple buckets in order of preference
-    const buckets = ['app_docs', 'documents', 'application-documents']
-    let uploadError
-    let usedBucket = ''
-    let uploadData
-
-    for (const bucket of buckets) {
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(fileName, file, {
-          contentType: file.type,
-          upsert: true
-        })
-
-      if (!error) {
-        usedBucket = bucket
-        uploadData = data
-        break
-      }
-      uploadError = error
-    }
-
-    if (!usedBucket) {
-      console.error('Storage upload error:', { error: sanitizeForLog(uploadError?.message || 'No available buckets') })
-      return {
-        success: false,
-        error: uploadError?.message || 'Upload failed - no available storage buckets'
-      }
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from(usedBucket)
-      .getPublicUrl(uploadData.path)
-
     return {
       success: true,
-      path: uploadData.path,
-      url: urlData.publicUrl
+      path: data.path,
+      url: data.url
     }
   } catch (error) {
     console.error('Upload error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
@@ -277,17 +219,22 @@ export async function uploadFile(
   }
 }
 
+/**
+ * Delete file via API
+ */
 export async function deleteFile(bucket: string, path: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase.storage
-      .from(bucket)
-      .remove([path])
+    const response = await fetch(`/api/documents?action=delete&path=${encodeURIComponent(path)}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    })
 
-    if (error) {
-      console.error('Storage delete error:', { error: sanitizeForLog(error.message || 'Unknown error') })
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error('Storage delete error:', { error: sanitizeForLog(errorData.error || 'Delete failed') })
       return {
         success: false,
-        error: error.message
+        error: errorData.error || 'Delete failed'
       }
     }
 
@@ -301,15 +248,27 @@ export async function deleteFile(bucket: string, path: string): Promise<{ succes
   }
 }
 
+/**
+ * Get signed URL for file via API
+ */
 export async function getFileUrl(bucket: string, path: string): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
-    const { data } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(path)
+    const response = await fetch(`/api/documents?action=url&path=${encodeURIComponent(path)}`, {
+      credentials: 'include'
+    })
 
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      return {
+        success: false,
+        error: errorData.error || 'Failed to get URL'
+      }
+    }
+
+    const data = await response.json()
     return {
       success: true,
-      url: data.publicUrl
+      url: data.url
     }
   } catch (error) {
     console.error('Get URL error:', error)
@@ -320,23 +279,26 @@ export async function getFileUrl(bucket: string, path: string): Promise<{ succes
   }
 }
 
+/**
+ * Download file via API
+ */
 export async function downloadFile(bucket: string, path: string): Promise<{ success: boolean; data?: Blob; error?: string }> {
   try {
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .download(path)
+    const response = await fetch(`/api/documents?action=download&path=${encodeURIComponent(path)}`, {
+      credentials: 'include'
+    })
 
-    if (error) {
-      console.error('Storage download error:', error)
+    if (!response.ok) {
       return {
         success: false,
-        error: error.message
+        error: `Download failed: ${response.status}`
       }
     }
 
+    const blob = await response.blob()
     return {
       success: true,
-      data
+      data: blob
     }
   } catch (error) {
     console.error('Download error:', error)
@@ -347,23 +309,30 @@ export async function downloadFile(bucket: string, path: string): Promise<{ succ
   }
 }
 
+/**
+ * List files via API
+ */
 export async function listFiles(bucket: string, folder?: string): Promise<{ success: boolean; files?: any[]; error?: string }> {
   try {
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .list(folder)
+    const params = new URLSearchParams({ action: 'list' })
+    if (folder) params.append('folder', folder)
+    
+    const response = await fetch(`/api/documents?${params}`, {
+      credentials: 'include'
+    })
 
-    if (error) {
-      console.error('Storage list error:', error)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
       return {
         success: false,
-        error: error.message
+        error: errorData.error || 'List failed'
       }
     }
 
+    const data = await response.json()
     return {
       success: true,
-      files: data
+      files: data.files || []
     }
   } catch (error) {
     console.error('List error:', error)
@@ -374,59 +343,35 @@ export async function listFiles(bucket: string, folder?: string): Promise<{ succ
   }
 }
 
-// Helper function to check if bucket exists and create if needed
+/**
+ * Check if bucket exists - always returns true since R2 bucket is pre-configured
+ */
 export async function ensureBucketExists(bucketName: string): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Try to get bucket info
-    const { data: buckets, error: listError } = await supabase.storage.listBuckets()
-    
-    if (listError) {
-      return { success: false, error: listError.message }
-    }
+  // R2 bucket is pre-configured, no need to create
+  return { success: true }
+}
 
-    const bucketExists = buckets.some(bucket => bucket.name === bucketName)
-    
-    if (!bucketExists) {
-      // Create bucket if it doesn't exist
-      const { error: createError } = await supabase.storage.createBucket(bucketName, {
-        public: true,
-        allowedMimeTypes: [...STORAGE_CONFIGS.appDocs.allowedTypes],
-        fileSizeLimit: STORAGE_CONFIGS.appDocs.maxFileSize
-      })
-      
-      if (createError) {
-        return { success: false, error: createError.message }
+/**
+ * Get file info via API
+ */
+export async function getFileInfo(bucket: string, path: string): Promise<{ success: boolean; info?: any; error?: string }> {
+  try {
+    const response = await fetch(`/api/documents?action=info&path=${encodeURIComponent(path)}`, {
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      return {
+        success: false,
+        error: errorData.error || 'Failed to get file info'
       }
     }
 
-    return { success: true }
-  } catch (error) {
-    console.error('Bucket check error:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to check bucket'
-    }
-  }
-}
-
-// Helper function to get file info
-export async function getFileInfo(bucket: string, path: string): Promise<{ success: boolean; info?: any; error?: string }> {
-  try {
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .list(path.split('/').slice(0, -1).join('/'), {
-        search: path.split('/').pop()
-      })
-
-    if (error) {
-      return { success: false, error: error.message }
-    }
-
-    const fileInfo = data.find(file => file.name === path.split('/').pop())
-    
+    const data = await response.json()
     return {
       success: true,
-      info: fileInfo
+      info: data.info
     }
   } catch (error) {
     console.error('File info error:', error)

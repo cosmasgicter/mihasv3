@@ -1,8 +1,15 @@
-import { supabase } from './supabase'
-import { multiChannelNotifications } from './multiChannelNotifications'
-import { sessionManager } from './session'
-import { sanitizeForLog, secureErrorHandler } from './securityEnhancements'
-import { SecureCodeExecution } from './securityPatches'
+/**
+ * Workflow Automation Engine
+ * 
+ * NOTE: This module is deprecated and not currently in use.
+ * The admin interface has been simplified per product requirements.
+ * Keeping for reference only.
+ */
+
+// import { multiChannelNotifications } from './multiChannelNotifications'
+// import { sessionManager } from './session'
+// import { sanitizeForLog, secureErrorHandler } from './securityEnhancements'
+// import { SecureCodeExecution } from './securityPatches'
 
 export interface WorkflowRule {
   id: string

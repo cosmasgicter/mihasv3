@@ -10,7 +10,7 @@ export const SECURITY_CONFIG = {
   ALLOWED_HOSTS: [
     'apply.mihas.edu.zm',
     'mihas.vercel.app',
-    'mylgegkqoddcrxtwcclb.supabase.co',
+    'a3ba1959935abd8777e64caee46d1de1.r2.cloudflarestorage.com',
     'localhost',
     '127.0.0.1'
   ],
@@ -46,7 +46,7 @@ export const SECURITY_CONFIG = {
     'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
     'font-src': ["'self'", 'https://fonts.gstatic.com'],
     'img-src': ["'self'", 'data:', 'https:', 'blob:'],
-    'connect-src': ["'self'", 'https://mylgegkqoddcrxtwcclb.supabase.co', '***REMOVED***'],
+    'connect-src': ["'self'", '***REMOVED***', '***REMOVED***'],
     'frame-src': ["'none'"],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
