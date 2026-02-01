@@ -937,3 +937,119 @@ After verification is complete:
 - ✅ Shield rules: Enabled
 
 **All sensitive endpoints are now protected.**
+
+
+---
+
+## FINAL RESOLUTION - February 2, 2026
+
+### Actual Root Cause Discovered
+
+**The original hypothesis was INCORRECT.**
+
+| Original Hypothesis | Actual Root Cause |
+|---------------------|-------------------|
+| Arcjet package initialization crashes during module import | Vercel excludes directories with underscore prefix (`_lib/`) from serverless function bundles |
+
+**Evidence from Vercel Logs:**
+```
+Cannot find module '/var/task/api/_lib/arcjet' imported from /var/task/api/auth.js
+Cannot find module '/var/task/api/_lib/db' imported from /var/task/api/health.js
+```
+
+**Root Cause Explanation:**
+- Vercel treats directories starting with `_` (underscore) as special/internal
+- The `api/_lib/` directory was NOT being bundled into the serverless function
+- Files existed locally but were NOT deployed to Vercel's `/var/task/` directory
+- This caused `MODULE_NOT_FOUND` errors, which Vercel reports as `FUNCTION_INVOCATION_FAILED`
+
+### Fix Applied
+
+**Renamed `api/_lib/` to `api/lib/`** (removed underscore prefix)
+
+**Files Updated:**
+1. Renamed directory: `api/_lib/` → `api/lib/`
+2. Updated imports in ALL API files:
+   - `api/auth.ts` - Changed `./_lib/` to `./lib/`
+   - `api/admin.ts` - Changed `./_lib/` to `./lib/`
+   - `api/applications.ts` - Changed `./_lib/` to `./lib/`
+   - `api/catalog.ts` - Changed `./_lib/` to `./lib/`
+   - `api/documents.ts` - Changed `./_lib/` to `./lib/`
+   - `api/health.ts` - Changed `./_lib/` to `./lib/`
+   - `api/notifications.ts` - Changed `./_lib/` to `./lib/`
+   - `api/payments.ts` - Changed `./_lib/` to `./lib/`
+   - `api/sessions.ts` - Changed `./_lib/` to `./lib/`
+   - `api/[...path].ts` - Changed `./_lib/` to `./lib/`
+   - `api/arcjet-test.ts` - Changed `./_lib/` to `./lib/`
+3. Updated `vercel.json` - Removed `includeFiles: "api/_lib/**"` (no longer needed)
+4. Updated `.kiro/steering/tech.md` - Documentation updated
+5. Updated `.kiro/steering/structure.md` - Documentation updated
+
+### vercel.json Final Configuration
+
+```json
+{
+  "buildCommand": "bunx --bun vite build",
+  "installCommand": "bun install",
+  "outputDirectory": "dist",
+  "framework": null,
+  "functions": {
+    "api/*.ts": {
+      "maxDuration": 10
+    }
+  }
+}
+```
+
+**Note:** The `"runtime": "nodejs20.x"` configuration was REMOVED because:
+1. It's only valid for custom runtimes, not standard Vercel functions
+2. Vercel automatically uses Node.js 20.x for TypeScript functions
+3. The actual issue was the `_lib` directory naming, not Node.js version
+
+### Deployment Instructions
+
+```bash
+# Deploy to Vercel
+vercel --prod
+
+# Or via git push
+git add -A
+git commit -m "Fix: Rename api/_lib to api/lib for Vercel compatibility"
+git push origin main
+```
+
+### Test Endpoints After Deployment
+
+```bash
+# Baseline test (should work)
+curl ***REMOVED***/api/ping
+
+# Health check (should now work)
+curl ***REMOVED***/api/health
+
+# Auth session (should return 401, not 500)
+curl ***REMOVED***/api/auth?action=session
+
+# Arcjet test (should show all SUCCESS)
+curl ***REMOVED***/api/arcjet-test
+```
+
+### Expected Results After Fix
+
+| Endpoint | Before Fix | After Fix |
+|----------|------------|-----------|
+| /api/ping | ✅ 200 OK | ✅ 200 OK |
+| /api/health | ❌ 500 Error | ✅ 200 OK |
+| /api/auth?action=session | ❌ 500 Error | ✅ 401 Unauthorized |
+| /api/arcjet-test | ❌ 500 Error | ✅ 200 OK (all tests pass) |
+
+### Lessons Learned
+
+1. **Vercel naming conventions matter**: Directories starting with `_` are treated specially
+2. **Check deployment logs first**: The actual error message was clear once we looked at Vercel logs
+3. **Local testing doesn't catch deployment issues**: Files existed locally but weren't bundled
+4. **The `includeFiles` config wasn't sufficient**: Even with explicit includes, `_` prefix caused issues
+
+### Status: COMPLETE ✅
+
+All tasks completed. Ready for deployment and verification.

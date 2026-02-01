@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from './_lib/cors';
-import { query } from './_lib/db';
-import { getAuthUser } from './_lib/auth/middleware';
-import { withArcjetProtection } from './_lib/arcjet';
-import { USER_ROLES } from './_lib/queries';
-import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHandler';
+import { handleCors } from './lib/cors';
+import { query } from './lib/db';
+import { getAuthUser } from './lib/auth/middleware';
+import { withArcjetProtection } from './lib/arcjet';
+import { USER_ROLES } from './lib/queries';
+import { handleError, sendSuccess, sendError, HttpStatus } from './lib/errorHandler';
 
 /**
  * Consolidated Payments API

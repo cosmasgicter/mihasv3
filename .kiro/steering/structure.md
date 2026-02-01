@@ -9,7 +9,7 @@ inclusion: always
 | Directory | Purpose | AI Action |
 |-----------|---------|-----------|
 | `src/` | React frontend | Primary modification target |
-| `api/` | Vercel Serverless Functions (8 consolidated endpoints) | Use `_lib/` for shared code |
+| `api/` | Vercel Serverless Functions (8 consolidated endpoints) | Use `lib/` for shared code |
 | `tests/` | Test files | Match test type to subdirectory |
 | `supabase/migrations/` | DB migrations | Append-only, never modify existing |
 | `public/` | Static assets, PWA | Rarely modify |
@@ -94,7 +94,7 @@ Choose based on data type:
 **Consolidated Structure** (Vercel Hobby plan limit: 12 functions):
 ```
 api/
-├── _lib/              # Shared utilities
+├── lib/               # Shared utilities (no underscore - Vercel compatible)
 │   ├── arcjet.ts         # Security perimeter (shield, bot, rate limits)
 │   ├── auth.ts           # Auth middleware exports
 │   ├── auth/             # Auth components
@@ -126,9 +126,9 @@ api/
 ```typescript
 // api/{feature}.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from './_lib/cors';
-import { withArcjetProtection } from './_lib/arcjet';
-import { requireAuth, requireRole } from './_lib/auth';
+import { handleCors } from './lib/cors';
+import { withArcjetProtection } from './lib/arcjet';
+import { requireAuth, requireRole } from './lib/auth';
 
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
