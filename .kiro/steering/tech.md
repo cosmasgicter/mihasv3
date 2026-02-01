@@ -61,7 +61,7 @@ inclusion: always
 
 ```
 api/
-├── _lib/              # Shared utilities
+├── lib/               # Shared utilities (NOTE: renamed from _lib for Vercel compatibility)
 │   ├── arcjet.ts      # Arcjet security perimeter (shield, bot, rate limits)
 │   ├── auth.ts        # Auth middleware (getAuthUser, requireAuth, requireRole)
 │   ├── auth/          # Auth components
@@ -93,8 +93,8 @@ api/
 ```typescript
 // api/{feature}.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from './_lib/cors';
-import { supabaseAdmin } from './_lib/supabaseClient';
+import { handleCors } from './lib/cors';
+import { supabaseAdmin } from './lib/supabaseClient';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return; // Handle OPTIONS preflight
@@ -122,7 +122,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 - File naming: `{feature}.ts` (one file per domain, TypeScript)
 - Use query parameters for action routing (`?action=xxx`)
 - Use `process.env` for environment variables (not `context.env`)
-- Always import shared utilities from `_lib/`
+- Always import shared utilities from `lib/`
 - Return consistent JSON: `{ success: boolean, data?: any, error?: string, code?: string }`
 - Handle errors gracefully—never expose stack traces
 - Log errors but never log PII

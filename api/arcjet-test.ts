@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Test 3: Try to import our arcjet.ts wrapper
   try {
-    const arcjetWrapper = await import('./_lib/arcjet');
+    const arcjetWrapper = await import('./lib/arcjet');
     results.arcjetWrapperImport = 'SUCCESS';
     results.arcjetWrapperExports = Object.keys(arcjetWrapper);
   } catch (error) {

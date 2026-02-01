@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query, detectDatabaseType } from './_lib/db';
+import { query, detectDatabaseType } from './lib/db';
 
 /**
  * Health Check API

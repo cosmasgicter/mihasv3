@@ -26,17 +26,17 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
-import { withArcjetProtection } from "./_lib/arcjet";
+import { withArcjetProtection } from "./lib/arcjet";
 // Import from modular auth components
-import { hashPassword, verifyPassword, hashToken, verifyTokenHash } from "./_lib/auth/password";
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "./_lib/auth/jwt";
-import { setAuthCookies, clearAuthCookies, extractRefreshTokenFromCookie } from "./_lib/auth/cookies";
-import { getAuthUser, requireAuth } from "./_lib/auth/middleware";
-import { getPermissionsForRole, USER_ROLES, type UserRole } from "./_lib/auth/permissions";
-import { query } from "./_lib/db";
-import { UserQueries, SessionQueries, AuditQueries, type UserAuthRecord } from "./_lib/queries";
-import { handleCors } from "./_lib/cors";
-import { sendSuccess, sendError, HttpStatus } from "./_lib/errorHandler";
+import { hashPassword, verifyPassword, hashToken, verifyTokenHash } from "./lib/auth/password";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "./lib/auth/jwt";
+import { setAuthCookies, clearAuthCookies, extractRefreshTokenFromCookie } from "./lib/auth/cookies";
+import { getAuthUser, requireAuth } from "./lib/auth/middleware";
+import { getPermissionsForRole, USER_ROLES, type UserRole } from "./lib/auth/permissions";
+import { query } from "./lib/db";
+import { UserQueries, SessionQueries, AuditQueries, type UserAuthRecord } from "./lib/queries";
+import { handleCors } from "./lib/cors";
+import { sendSuccess, sendError, HttpStatus } from "./lib/errorHandler";
 
 /**
  * Request validation schemas
