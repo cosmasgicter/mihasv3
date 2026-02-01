@@ -17,8 +17,8 @@
  */
 
 import type { VercelRequest } from "@vercel/node";
-import { verifyAccessToken, type AccessTokenPayload, type UserRole } from "./_auth_jwt";
-import { extractBearerToken, extractAccessTokenFromCookie } from "./_auth_cookies";
+import { verifyAccessToken, type AccessTokenPayload, type UserRole } from "./auth_jwt";
+import { extractBearerToken, extractAccessTokenFromCookie } from "./auth_cookies";
 
 /**
  * Auth context returned from middleware

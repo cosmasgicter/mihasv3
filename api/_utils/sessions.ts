@@ -18,8 +18,8 @@
  * Use user IDs and session IDs only.
  */
 
-import { query } from './_db';
-import { SessionQueries, AuditQueries, DeviceInfo, SessionRecord, SessionDisplayRecord } from './_queries';
+import { query } from './db';
+import { SessionQueries, AuditQueries, DeviceInfo, SessionRecord, SessionDisplayRecord } from './queries';
 
 // ============================================================================
 // Types
