@@ -2,11 +2,11 @@
  * Custom Bun-Native Authentication System
  * 
  * REPLACES: Supabase Auth entirely
- * IMPLEMENTATION: Bun-native crypto, JWT, bcrypt
+ * IMPLEMENTATION: Bun-native crypto, JWT, bcryptjs
  * VERIFICATION: Zero Supabase dependencies in auth flow
  * 
  * Features:
- * - Password hashing (bcrypt)
+ * - Password hashing (bcryptjs - pure JS, Vercel compatible)
  * - JWT access + refresh tokens
  * - HTTP-only cookies
  * - Role claims embedded in JWT
@@ -18,7 +18,7 @@
  * - Supabase session persistence
  */
 
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify, type JWTPayload as JoseJWTPayload } from "jose";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
