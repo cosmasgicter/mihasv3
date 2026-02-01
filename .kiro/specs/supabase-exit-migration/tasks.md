@@ -229,9 +229,10 @@
   - [x] 14.1.3 Create /api/health?action=env endpoint
 - [x] 14.2 Replace native bcrypt with bcryptjs
   - [x] 14.2.1 Update api/_lib/auth/password.ts to import bcryptjs
-  - [x] 14.2.2 Remove bcrypt from package.json dependencies
-  - [x] 14.2.3 Remove @types/bcrypt from devDependencies
-  - [x] 14.2.4 Keep bcryptjs and @types/bcryptjs
+  - [x] 14.2.2 Update api/_lib/auth.ts to import bcryptjs
+  - [x] 14.2.3 Remove bcrypt from package.json dependencies
+  - [x] 14.2.4 Remove @types/bcrypt from devDependencies
+  - [x] 14.2.5 Keep bcryptjs and @types/bcryptjs
 - [x] 14.3 Deploy fix to production
   - [x] 14.3.1 Verify build passes with bcryptjs
   - [x] 14.3.2 Commit and push changes - PUSHED (2026-02-01 CAT)
