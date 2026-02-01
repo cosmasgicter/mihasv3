@@ -1,22 +1,20 @@
 /**
- * Database Abstraction Layer
+ * Database Abstraction Layer - Neon Postgres
  * 
- * PHASE 1: Supabase Postgres (current)
- * PHASE 2: Neon Postgres (target)
- * 
- * ABSTRACTION: All SQL is vendor-agnostic
- * VERIFICATION: Zero Supabase-specific features (no RPC, no magic)
- * MIGRATION: Swap connection string, zero code changes
+ * MIGRATION COMPLETE: Supabase → Neon Postgres
  * 
  * Features:
- * - Plain SQL only (Requirement 6.1)
- * - Parameterized queries for SQL injection prevention (Requirement 6.2)
- * - Database type detection from connection string (Requirement 6.3)
- * - Supabase REST driver (Requirement 6.4)
- * - Neon serverless driver (Requirement 6.5)
- * - Explicit transaction boundaries (Requirement 6.6)
- * - Typed DatabaseError with code and query context (Requirement 6.8)
- * - Schema verification on startup (Requirement 6.9)
+ * - Plain SQL only (no ORM magic)
+ * - Parameterized queries for SQL injection prevention
+ * - Neon serverless driver (@neondatabase/serverless)
+ * - Explicit transaction boundaries (BEGIN, COMMIT, ROLLBACK)
+ * - Typed DatabaseError with code and query context
+ * - Schema verification on startup
+ * 
+ * Environment Variables:
+ * - DATABASE_URL: Neon connection string (required)
+ * 
+ * @see https://neon.tech/docs/serverless/serverless-driver
  */
 
 // ============================================================================
@@ -43,12 +41,12 @@ export interface QueryResult<T = Record<string, unknown>> {
 
 /**
  * Database type enumeration
+ * @deprecated - Now always 'neon' after migration
  */
-export type DatabaseType = 'supabase' | 'neon' | 'unknown';
+export type DatabaseType = 'neon';
 
 /**
  * Database error codes for typed error handling
- * Requirement 6.8: Throw typed DatabaseError with code and query context
  */
 export const DatabaseErrorCode = {
   CONNECTION_ERROR: 'CONNECTION_ERROR',
@@ -92,72 +90,29 @@ export class DatabaseError extends Error {
 }
 
 // ============================================================================
-// Configuration and Detection
+// Configuration
 // ============================================================================
 
 /**
- * Detect database type from connection string
- * Requirement 6.3: Detect database type from connection string (Supabase vs Neon)
+ * Detect database type - always returns 'neon' after migration
+ * @deprecated - Kept for backward compatibility
  */
 export function detectDatabaseType(): DatabaseType {
-  const databaseUrl = process.env.DATABASE_URL;
-  const supabaseUrl = process.env.SUPABASE_URL;
-
-  // Check for Neon first (DATABASE_URL takes precedence for Neon)
-  if (databaseUrl?.includes('neon.tech') || databaseUrl?.includes('neon.')) {
-    return 'neon';
-  }
-
-  // Check for Supabase
-  if (supabaseUrl?.includes('supabase.co') || supabaseUrl?.includes('supabase.')) {
-    return 'supabase';
-  }
-
-  // Fallback: check DATABASE_URL for postgres patterns
-  if (databaseUrl?.startsWith('postgres://') || databaseUrl?.startsWith('postgresql://')) {
-    // Could be either, but if we have SUPABASE_SERVICE_ROLE_KEY, assume Supabase
-    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      return 'supabase';
-    }
-    return 'neon'; // Default to Neon for generic postgres URLs
-  }
-
-  return 'unknown';
+  return 'neon';
 }
 
 /**
  * Get database configuration
  */
-function getDatabaseConfig(): { type: DatabaseType; url: string; serviceKey?: string } {
-  const type = detectDatabaseType();
-
-  if (type === 'supabase') {
-    const url = process.env.SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !serviceKey) {
-      throw new DatabaseError(
-        'Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required',
-        DatabaseErrorCode.CONFIG_ERROR
-      );
-    }
-    return { type, url, serviceKey };
+function getDatabaseConfig(): { url: string } {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new DatabaseError(
+      'DATABASE_URL not configured. Set the Neon connection string.',
+      DatabaseErrorCode.CONFIG_ERROR
+    );
   }
-
-  if (type === 'neon') {
-    const url = process.env.DATABASE_URL;
-    if (!url) {
-      throw new DatabaseError(
-        'Neon configuration missing: DATABASE_URL required',
-        DatabaseErrorCode.CONFIG_ERROR
-      );
-    }
-    return { type, url };
-  }
-
-  throw new DatabaseError(
-    'No database configuration found. Set SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY or DATABASE_URL',
-    DatabaseErrorCode.CONFIG_ERROR
-  );
+  return { url };
 }
 
 // ============================================================================
@@ -227,186 +182,7 @@ function interpolateParams(query: string, params?: unknown[]): string {
 }
 
 // ============================================================================
-// Supabase REST Driver
-// Requirement 6.4: When using Supabase, execute queries via REST API
-// ============================================================================
-
-/**
- * Execute query via Supabase REST API
- * Uses PostgREST's /rest/v1/ endpoint for table operations
- * Falls back to raw SQL execution via pg_query if available
- */
-async function executeSupabaseQuery<T>(
-  queryText: string,
-  params?: unknown[]
-): Promise<QueryResult<T>> {
-  const config = getDatabaseConfig();
-  if (config.type !== 'supabase') {
-    throw new DatabaseError('Invalid database type for Supabase driver', DatabaseErrorCode.CONFIG_ERROR);
-  }
-
-  const { url, serviceKey } = config;
-  const interpolatedQuery = interpolateParams(queryText, params);
-  const command = extractCommand(queryText);
-
-  try {
-    // For SELECT queries, try to use PostgREST if it's a simple table query
-    // Otherwise, use the SQL execution endpoint
-    const response = await fetch(`${url}/rest/v1/rpc/exec_sql`, {
-      method: 'POST',
-      headers: {
-        'apikey': serviceKey!,
-        'Authorization': `Bearer ${serviceKey}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation',
-      },
-      body: JSON.stringify({
-        query_text: interpolatedQuery,
-      }),
-    });
-
-    // If exec_sql RPC doesn't exist, fall back to direct table access
-    if (response.status === 404) {
-      return executeSupabaseDirectQuery<T>(url, serviceKey!, queryText, params);
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorMessage = 'Database query failed';
-      
-      // Parse Postgres error codes if available
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || errorJson.error || errorMessage;
-        
-        // Map common Postgres error codes
-        if (errorJson.code === '23505') {
-          throw new DatabaseError(
-            'Duplicate key violation',
-            DatabaseErrorCode.CONSTRAINT_VIOLATION,
-            { query: queryText }
-          );
-        }
-        if (errorJson.code === '23503') {
-          throw new DatabaseError(
-            'Foreign key violation',
-            DatabaseErrorCode.CONSTRAINT_VIOLATION,
-            { query: queryText }
-          );
-        }
-      } catch (e) {
-        if (e instanceof DatabaseError) throw e;
-        // Use raw error text if not JSON
-        errorMessage = errorText;
-      }
-
-      throw new DatabaseError(
-        errorMessage,
-        DatabaseErrorCode.QUERY_ERROR,
-        { query: queryText }
-      );
-    }
-
-    const data = await response.json();
-    const rows = Array.isArray(data) ? data : (data ? [data] : []);
-
-    return {
-      rows: rows as T[],
-      rowCount: rows.length,
-      command,
-    };
-  } catch (error) {
-    if (error instanceof DatabaseError) throw error;
-
-    throw new DatabaseError(
-      `Supabase query execution failed: ${(error as Error).message}`,
-      DatabaseErrorCode.CONNECTION_ERROR,
-      { query: queryText, originalError: error as Error }
-    );
-  }
-}
-
-/**
- * Execute direct table query via Supabase PostgREST
- * Used as fallback when exec_sql RPC is not available
- */
-async function executeSupabaseDirectQuery<T>(
-  url: string,
-  serviceKey: string,
-  queryText: string,
-  params?: unknown[]
-): Promise<QueryResult<T>> {
-  const command = extractCommand(queryText);
-  
-  // Parse simple SELECT queries to use PostgREST
-  const selectMatch = queryText.match(/SELECT\s+(.+?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.+?))?(?:\s+LIMIT\s+(\d+))?/i);
-  
-  if (selectMatch && command === 'SELECT') {
-    const [, columns, table, whereClause, limit] = selectMatch;
-    let endpoint = `${url}/rest/v1/${table}`;
-    const queryParams: string[] = [];
-
-    // Build select parameter
-    if (columns.trim() !== '*') {
-      queryParams.push(`select=${encodeURIComponent(columns.trim())}`);
-    }
-
-    // Parse simple WHERE clauses
-    if (whereClause && params && params.length > 0) {
-      // Handle simple equality: WHERE column = $1
-      const eqMatch = whereClause.match(/(\w+)\s*=\s*\$1/i);
-      if (eqMatch) {
-        queryParams.push(`${eqMatch[1]}=eq.${encodeURIComponent(String(params[0]))}`);
-      }
-    }
-
-    if (limit) {
-      queryParams.push(`limit=${limit}`);
-    }
-
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
-
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers: {
-        'apikey': serviceKey,
-        'Authorization': `Bearer ${serviceKey}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new DatabaseError(
-        `PostgREST query failed: ${errorText}`,
-        DatabaseErrorCode.QUERY_ERROR,
-        { query: queryText }
-      );
-    }
-
-    const data = await response.json();
-    const rows = Array.isArray(data) ? data : [];
-
-    return {
-      rows: rows as T[],
-      rowCount: rows.length,
-      command,
-    };
-  }
-
-  // For non-SELECT or complex queries, we need exec_sql
-  throw new DatabaseError(
-    'Complex queries require exec_sql RPC function. Please create it in your Supabase database.',
-    DatabaseErrorCode.CONFIG_ERROR,
-    { query: queryText }
-  );
-}
-
-// ============================================================================
 // Neon Serverless Driver
-// Requirement 6.5: When using Neon, execute queries via @neondatabase/serverless
 // ============================================================================
 
 // Lazy-loaded Neon client
@@ -527,7 +303,6 @@ async function executeNeonQuery<T>(
 
 // ============================================================================
 // Main Query Interface
-// Requirement 6.2: Support parameterized queries to prevent SQL injection
 // ============================================================================
 
 /**
@@ -551,25 +326,15 @@ export async function query<T = Record<string, unknown>>(
   queryText: string,
   params?: unknown[]
 ): Promise<QueryResult<T>> {
-  const dbType = detectDatabaseType();
-
-  if (dbType === 'supabase') {
-    return executeSupabaseQuery<T>(queryText, params);
-  }
-
-  if (dbType === 'neon') {
-    return executeNeonQuery<T>(queryText, params);
-  }
-
-  throw new DatabaseError(
-    'No database configured. Set SUPABASE_URL or DATABASE_URL environment variables.',
-    DatabaseErrorCode.CONFIG_ERROR
-  );
+  // Validate configuration
+  getDatabaseConfig();
+  
+  // Execute via Neon
+  return executeNeonQuery<T>(queryText, params);
 }
 
 // ============================================================================
 // Transaction Support
-// Requirement 6.6: Support explicit transaction boundaries (BEGIN, COMMIT, ROLLBACK)
 // ============================================================================
 
 /**
@@ -635,11 +400,10 @@ export async function transaction<T = Record<string, unknown>>(
 
 // ============================================================================
 // Schema Verification
-// Requirement 6.9: Verify database schema on startup and report missing tables
 // ============================================================================
 
 /**
- * Required tables for the auth system
+ * Required tables for the application system
  */
 const REQUIRED_TABLES = [
   'profiles',
@@ -671,9 +435,8 @@ export async function verifyDatabaseSchema(): Promise<{
 }> {
   const errors: string[] = [];
   const warnings: string[] = [];
-  const dbType = detectDatabaseType();
 
-  console.log(`[DB] Verifying schema for ${dbType} database...`);
+  console.log('[DB] Verifying Neon database schema...');
 
   // Check each required table
   for (const table of REQUIRED_TABLES) {
@@ -741,13 +504,13 @@ export async function verifyDatabaseSchema(): Promise<{
 }
 
 // ============================================================================
-// Query Builders (moved from inline to separate section)
-// These provide type-safe query construction for common operations
+// Query Builders
+// Type-safe query construction for common operations
 // ============================================================================
 
 /**
  * User table queries
- * Plain SQL, no ORM magic - Requirement 6.1
+ * Plain SQL, no ORM magic
  */
 export const userQueries = {
   /**

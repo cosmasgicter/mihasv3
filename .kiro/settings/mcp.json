@@ -122,7 +122,8 @@
         "list_migrations",
         "list_tables",
         "search_docs",
-        "get_logs"
+        "get_logs",
+        "list_extensions"
       ]
     },
     "context7": {

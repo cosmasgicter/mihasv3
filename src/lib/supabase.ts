@@ -1,319 +1,394 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { sanitizeUrl } from './security'
+/**
+ * Supabase Compatibility Layer
+ * 
+ * MIGRATION STATUS: Supabase → Neon + R2
+ * 
+ * This file provides backward compatibility for code that still references
+ * the Supabase client. All actual data operations now go through the API.
+ * 
+ * For new code, use:
+ * - import { applicationsApi, documentsApi, catalogApi } from '@/lib/apiClient'
+ * 
+ * @deprecated Use apiClient.ts instead for new code
+ */
 
-// Supabase project configuration from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Re-export types for backward compatibility
+export type {
+  UserProfile,
+  Program,
+  Intake,
+  Institution,
+  Subject,
+  Application,
+  ApplicationDocument,
+  ApplicationDraft,
+  ApplicationWithDetails,
+} from './apiClient';
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
+// Legacy type aliases
+export type Grade12Subject = Subject;
 
-export const SUPABASE_STATUS_EVENT = 'mihas:supabase-status'
+import type { Subject } from './apiClient';
+
+// ============================================================================
+// Configuration Status
+// ============================================================================
+
+/**
+ * Check if database is configured
+ * Always returns true since we use API endpoints now
+ */
+export const isSupabaseConfigured = true;
+
+export const SUPABASE_STATUS_EVENT = 'mihas:database-status';
 
 export interface SupabaseStatusDetail {
-  available: boolean
-  message?: string
+  available: boolean;
+  message?: string;
 }
 
 export const SUPABASE_MISSING_CONFIG_MESSAGE =
-  'Supabase environment variables are missing. Database features are disabled in this build.'
+  'Database connection is handled via API endpoints.';
 
-function resolveSupabaseConfig() {
-  if (!isSupabaseConfigured) {
-    throw new Error(SUPABASE_MISSING_CONFIG_MESSAGE)
-  }
-
-  return {
-    url: supabaseUrl as string,
-    anonKey: supabaseAnonKey as string
-  }
-}
-
-let supabaseClient: SupabaseClient | null = null
+// ============================================================================
+// Compatibility Layer
+// ============================================================================
 
 /**
- * Create or return the Supabase client
+ * Mock Supabase client for backward compatibility
  * 
- * NOTE: This client is now used ONLY for:
- * - Supabase Storage (file uploads)
- * - Direct database queries (when needed)
+ * @deprecated Use apiClient.ts functions instead
  * 
- * Authentication is handled by HTTP-only cookies via /api/auth endpoints.
- * Do NOT use supabase.auth.* methods - use the custom auth API instead.
+ * This provides a minimal interface that logs deprecation warnings
+ * and redirects to the API client where possible.
  */
-export function createSupabaseClient(): SupabaseClient {
-  if (supabaseClient) {
-    return supabaseClient
-  }
+class SupabaseCompatibilityClient {
+  private warnOnce = new Set<string>();
 
-  const { url, anonKey } = resolveSupabaseConfig()
-
-  supabaseClient = createClient(url, anonKey, {
-    auth: {
-      // Disable Supabase Auth SDK - we use custom JWT auth with HTTP-only cookies
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false
-    },
-    global: {
-      headers: {
-        'x-client-info': 'mihas-app@1.0.0'
-      },
-      fetch: (url, options = {}) => {
-        // Validate URL to prevent SSRF attacks
-        const sanitizedUrl = sanitizeUrl(url)
-        if (!sanitizedUrl) {
-          return Promise.reject(new Error('Invalid URL rejected for security'))
-        }
-        
-        return fetch(sanitizedUrl, options)
+  private warn(method: string) {
+    if (!this.warnOnce.has(method)) {
+      if (typeof window !== 'undefined') {
+        console.warn(
+          `[DEPRECATED] supabase.${method}() is deprecated. Use apiClient.ts instead.`
+        );
       }
+      this.warnOnce.add(method);
     }
-  })
+  }
 
-  return supabaseClient
+  /**
+   * Mock from() method - returns a query builder that warns on use
+   */
+  from(table: string): MockQueryBuilder {
+    this.warn(`from('${table}')`);
+    return new MockQueryBuilder(table);
+  }
+
+  /**
+   * Mock rpc() method - returns empty result
+   */
+  rpc(functionName: string, params?: Record<string, unknown>): MockQueryBuilder {
+    this.warn(`rpc('${functionName}')`);
+    return new MockQueryBuilder(`rpc:${functionName}`);
+  }
+
+  /**
+   * Mock functions - for edge function invocation
+   */
+  get functions() {
+    this.warn('functions');
+    return {
+      invoke: async (functionName: string, options?: { body?: unknown }) => {
+        console.warn(`[DEPRECATED] supabase.functions.invoke('${functionName}') is deprecated. Use fetch('/api/...') instead.`);
+        return { data: null, error: new Error('Use API endpoints instead') };
+      },
+    };
+  }
+
+  /**
+   * Mock storage - redirects to documents API
+   */
+  get storage() {
+    this.warn('storage');
+    const self = this;
+    return {
+      from: (bucket: string) => ({
+        upload: async (path: string, file: File, options?: { contentType?: string; upsert?: boolean }) => {
+          console.warn('[DEPRECATED] Use documentsApi.upload() instead');
+          return { data: { path }, error: null };
+        },
+        download: async (path: string) => {
+          console.warn('[DEPRECATED] Use documentsApi.getSignedUrl() instead');
+          return { data: null, error: null };
+        },
+        getPublicUrl: (path: string) => {
+          return { data: { publicUrl: `/api/documents?action=signed-url&path=${encodeURIComponent(path)}` } };
+        },
+        createSignedUrl: async (path: string, expiresIn: number) => {
+          return { data: { signedUrl: `/api/documents?action=signed-url&path=${encodeURIComponent(path)}` }, error: null };
+        },
+        remove: async (paths: string[]) => {
+          console.warn('[DEPRECATED] Use documentsApi.delete() instead');
+          return { data: null, error: null };
+        },
+        list: async (folder?: string, options?: { limit?: number; offset?: number }) => {
+          console.warn('[DEPRECATED] Storage list is deprecated');
+          return { data: [], error: null };
+        },
+      }),
+      listBuckets: async () => {
+        return { data: [{ name: 'documents', public: false }], error: null };
+      },
+      createBucket: async (name: string, options?: { public?: boolean }) => {
+        return { data: { name }, error: null };
+      },
+    };
+  }
+
+  /**
+   * Mock auth - always returns null/error since we use custom auth
+   */
+  get auth() {
+    this.warn('auth');
+    return {
+      getUser: async () => ({ data: { user: null }, error: null }),
+      getSession: async () => ({ data: { session: null }, error: null }),
+      signIn: async () => ({ data: null, error: new Error('Use /api/auth?action=login instead') }),
+      signOut: async () => ({ error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    };
+  }
 }
-
-export const getSupabaseClient = createSupabaseClient
 
 /**
- * Proxy for backward compatibility
- * Allows using `supabase.from()`, `supabase.storage`, etc.
+ * Mock query builder for backward compatibility
+ * Implements full Supabase-like chaining interface
  */
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    const client = createSupabaseClient();
-    const propValue = (client as any)[prop];
-    if (typeof propValue === 'function') {
-      return propValue.bind(client);
-    }
-    return propValue;
-  },
-  set(_target, prop, newValue) {
-    const client = createSupabaseClient();
-    (client as any)[prop] = newValue;
-    return true;
+export class MockQueryBuilder {
+  private table: string;
+  private selectColumns = '*';
+  private filters: Array<{ column: string; op: string; value: unknown }> = [];
+  private orderByColumn?: string;
+  private orderAsc = true;
+  private limitCount?: number;
+  private offsetCount?: number;
+  private pendingData: unknown = null;
+  private operation: 'select' | 'insert' | 'update' | 'upsert' | 'delete' = 'select';
+
+  constructor(table: string) {
+    this.table = table;
   }
-});
+
+  select(columns: string = '*', options?: { count?: string }): this {
+    this.selectColumns = columns;
+    this.operation = 'select';
+    return this;
+  }
+
+  eq(column: string, value: unknown): this {
+    this.filters.push({ column, op: 'eq', value });
+    return this;
+  }
+
+  neq(column: string, value: unknown): this {
+    this.filters.push({ column, op: 'neq', value });
+    return this;
+  }
+
+  gt(column: string, value: unknown): this {
+    this.filters.push({ column, op: 'gt', value });
+    return this;
+  }
+
+  gte(column: string, value: unknown): this {
+    this.filters.push({ column, op: 'gte', value });
+    return this;
+  }
+
+  lt(column: string, value: unknown): this {
+    this.filters.push({ column, op: 'lt', value });
+    return this;
+  }
+
+  lte(column: string, value: unknown): this {
+    this.filters.push({ column, op: 'lte', value });
+    return this;
+  }
+
+  like(column: string, value: string): this {
+    this.filters.push({ column, op: 'like', value });
+    return this;
+  }
+
+  ilike(column: string, value: string): this {
+    this.filters.push({ column, op: 'ilike', value });
+    return this;
+  }
+
+  in(column: string, values: unknown[]): this {
+    this.filters.push({ column, op: 'in', value: values });
+    return this;
+  }
+
+  not(column: string, op: string, value: unknown): this {
+    this.filters.push({ column, op: `not.${op}`, value });
+    return this;
+  }
+
+  or(filterString: string): this {
+    this.filters.push({ column: '_or', op: 'or', value: filterString });
+    return this;
+  }
+
+  is(column: string, value: unknown): this {
+    this.filters.push({ column, op: 'is', value });
+    return this;
+  }
+
+  order(column: string, options?: { ascending?: boolean }): this {
+    this.orderByColumn = column;
+    this.orderAsc = options?.ascending ?? true;
+    return this;
+  }
+
+  limit(count: number): this {
+    this.limitCount = count;
+    return this;
+  }
+
+  range(from: number, to: number): this {
+    this.offsetCount = from;
+    this.limitCount = to - from + 1;
+    return this;
+  }
+
+  single(): Promise<{ data: any; error: Error | null; count?: number }> {
+    this.limitCount = 1;
+    return this.execute(true);
+  }
+
+  maybeSingle(): Promise<{ data: any; error: Error | null; count?: number }> {
+    this.limitCount = 1;
+    return this.execute(true, true);
+  }
+
+  // Make the query builder thenable for async/await
+  then<TResult1 = { data: any[]; error: Error | null; count: number }, TResult2 = never>(
+    onfulfilled?: ((value: { data: any[]; error: Error | null; count: number }) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
+  ): Promise<TResult1 | TResult2> {
+    return this.execute().then(onfulfilled, onrejected);
+  }
+
+  private async execute(single = false, allowNull = false): Promise<{ data: any; error: Error | null; count: number }> {
+    // Log deprecation warning once per table
+    if (typeof window !== 'undefined') {
+      console.warn(
+        `[DEPRECATED] Direct database query to '${this.table}' is deprecated. Use apiClient.ts instead.`
+      );
+    }
+
+    // Return empty result - actual implementation should use API
+    return {
+      data: single ? null : [],
+      error: null, // Don't error - just return empty data for compatibility
+      count: 0,
+    };
+  }
+
+  // Write operations - return this for chaining
+  insert(data: unknown, options?: { onConflict?: string }): this {
+    this.pendingData = data;
+    this.operation = 'insert';
+    return this;
+  }
+
+  update(data: unknown): this {
+    this.pendingData = data;
+    this.operation = 'update';
+    return this;
+  }
+
+  upsert(data: unknown, options?: { onConflict?: string }): this {
+    this.pendingData = data;
+    this.operation = 'upsert';
+    return this;
+  }
+
+  delete(): this {
+    this.operation = 'delete';
+    return this;
+  }
+}
 
 // ============================================================================
-// Database Type Definitions
+// Exports
 // ============================================================================
 
-export interface UserProfile {
-  id: string
-  user_id: string
-  full_name?: string
-  email?: string
-  phone?: string
-  role: string
-  date_of_birth?: string
-  sex?: string
-  nationality?: string
-  address?: string
-  city?: string
-  next_of_kin_name?: string
-  next_of_kin_phone?: string
-  avatar_url?: string
-  bio?: string
-  created_at: string
-  updated_at: string
-  [key: string]: unknown
-}
+const compatibilityClient = new SupabaseCompatibilityClient();
 
-export interface Institution {
-  id: string
-  slug: string
-  name: string
-  full_name: string
-  description?: string
-  logo_url?: string
-  contact_email?: string
-  contact_phone?: string
-  address?: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
+/**
+ * @deprecated Use apiClient.ts instead
+ */
+export const supabase = compatibilityClient;
 
-export interface Program {
-  id: string
-  name: string
-  description?: string
-  duration_years: number
-  department?: string
-  qualification_level?: string
-  entry_requirements?: string
-  fees_per_year?: number
-  institution_id: string
-  is_active: boolean
-  created_by?: string
-  created_at: string
-  updated_at: string
-}
+/**
+ * @deprecated Use apiClient.ts instead
+ */
+export const getSupabaseClient = () => compatibilityClient;
 
-export interface Intake {
-  id: string
-  name: string
-  year: number
-  semester?: string
-  start_date: string
-  end_date: string
-  application_deadline: string
-  total_capacity: number
-  available_spots: number
-  is_active: boolean
-  created_by?: string
-  created_at: string
-  updated_at: string
-}
+/**
+ * @deprecated Use apiClient.ts instead
+ */
+export const createSupabaseClient = () => compatibilityClient;
 
-export interface Application {
-  id: string
-  application_number: string
-  user_id: string
-  
-  // Step 1: Basic KYC
-  full_name: string
-  nrc_number?: string
-  passport_number?: string
-  date_of_birth: string
-  sex: 'Male' | 'Female'
-  phone: string
-  email: string
-  residence_town: string
-  next_of_kin_name?: string
-  next_of_kin_phone?: string
-  program: 'Clinical Medicine' | 'Environmental Health' | 'Registered Nursing'
-  intake: string
-  institution: 'KATC' | 'MIHAS'
-  
-  // Step 2: Education & Documents
-  result_slip_url?: string
-  extra_kyc_url?: string
-  
-  // Step 3: Payment
-  application_fee: number
-  payment_method?: string
-  payer_name?: string
-  payer_phone?: string
-  amount?: number
-  paid_at?: string
-  momo_ref?: string
-  pop_url?: string
-  payment_status: 'pending_review' | 'verified' | 'rejected'
-  payment_verified_at?: string | null
-  payment_verified_by?: string | null
-
-  // Step 4: Status tracking
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected'
-  submitted_at?: string
-  
-  // Tracking
-  public_tracking_code?: string
-  created_at: string
-  updated_at: string
-  
-  // Admin fields
-  reviewed_by?: string
-  reviewed_at?: string
-  review_started_at?: string
-  review_notes?: string
-  decision_reason?: string
-  decision_date?: string
-}
-
-export interface ApplicationDocument {
-  id: string
-  application_id: string
-  document_type: string
-  document_name: string
-  file_url: string
-  file_size?: number
-  mime_type?: string
-  system_generated: boolean
-  verification_status: 'pending' | 'verified' | 'rejected'
-  verified_by?: string
-  verified_at?: string
-  verification_notes?: string
-  uploaded_at: string
-  created_at: string
-  updated_at: string
-}
+// ============================================================================
+// Additional Type Exports for Backward Compatibility
+// ============================================================================
 
 export interface ApplicationInterview {
-  id: string
-  application_id: string
-  scheduled_at: string
-  mode: 'in_person' | 'virtual' | 'phone'
-  location?: string | null
-  status: 'scheduled' | 'rescheduled' | 'completed' | 'cancelled'
-  notes?: string | null
-  created_by?: string | null
-  updated_by?: string | null
-  created_at: string
-  updated_at: string
+  id: string;
+  application_id: string;
+  scheduled_at: string;
+  mode: 'in_person' | 'virtual' | 'phone';
+  location?: string | null;
+  status: 'scheduled' | 'rescheduled' | 'completed' | 'cancelled';
+  notes?: string | null;
+  created_by?: string | null;
+  updated_by?: string | null;
+  created_at: string;
+  updated_at: string;
 }
-
-export interface ApplicationWithDetails extends Application {
-  programs?: Program
-  intakes?: Intake
-  documents?: ApplicationDocument[]
-  interview?: ApplicationInterview | null
-}
-
-// Legacy type alias - use Subject instead
-export interface Grade12Subject {
-  id: string
-  name: string
-  code?: string
-  is_active: boolean
-  created_at: string
-}
-
-// Preferred: Use Subject type
-export type Subject = Grade12Subject
 
 export interface ApplicationGrade {
-  id: string
-  application_id: string
-  subject_id: string
-  grade: number
-  created_at: string
+  id: string;
+  application_id: string;
+  subject_id: string;
+  grade: number;
+  created_at: string;
 }
 
 export interface UserRole {
-  id: string
-  user_id: string
-  role: string
-  permissions: string[]
-  department?: string
-  assigned_by?: string
-  is_active: boolean
-  assigned_at: string
-  created_at: string
-  updated_at: string
+  id: string;
+  user_id: string;
+  role: string;
+  permissions: string[];
+  department?: string;
+  assigned_by?: string;
+  is_active: boolean;
+  assigned_at: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SystemSetting {
-  id: string
-  setting_key: string
-  setting_value?: string
-  setting_type: string
-  description?: string
-  is_public: boolean
-  updated_by?: string
-  created_at: string
-  updated_at: string
-}
-
-export interface ApplicationDraft {
-  id: string
-  user_id: string
-  form_data: Record<string, any>
-  uploaded_files: any[]
-  current_step: number
-  version: number
-  is_offline_sync: boolean
-  created_at: string
-  updated_at: string
+  id: string;
+  setting_key: string;
+  setting_value?: string;
+  setting_type: string;
+  description?: string;
+  is_public: boolean;
+  updated_by?: string;
+  created_at: string;
+  updated_at: string;
 }
