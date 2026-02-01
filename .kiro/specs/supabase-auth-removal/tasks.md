@@ -114,20 +114,20 @@ This plan removes all Supabase Auth SDK dependencies from the frontend while pre
   - Ensure dist/ directory is created
   - _Requirements: 7.1, 7.3_
 
-- [ ] 11. Write property tests for auth removal verification
-  - [~] 11.1 Create tests/property/supabase-auth-removal.property.test.ts
+- [x] 11. Write property tests for auth removal verification
+  - [x] 11.1 Create tests/property/supabase-auth-removal.property.test.ts
     - **Property 1: Config File Reference Integrity**
     - **Validates: Requirements 1.3**
   
-  - [~] 11.2 Add property test for no Supabase auth imports
+  - [x] 11.2 Add property test for no Supabase auth imports
     - **Property 2: No Supabase Auth Imports**
     - **Validates: Requirements 2.2, 3.4**
   
-  - [~] 11.3 Add property test for no localStorage token storage
+  - [x] 11.3 Add property test for no localStorage token storage
     - **Property 3: No LocalStorage Token Storage**
     - **Validates: Requirements 5.4**
   
-  - [~] 11.4 Add property test for no supabase.auth method calls
+  - [x] 11.4 Add property test for no supabase.auth method calls
     - **Property 4: No Supabase Auth Method Calls**
     - **Validates: Requirements 5.5**
 
