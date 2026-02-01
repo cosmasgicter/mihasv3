@@ -1,12 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from './lib/cors';
-import { query } from './lib/db';
-import { getAuthUser } from './lib/auth/middleware';
-import { withArcjetProtection } from './lib/arcjet';
-import { getSupabaseAdmin } from './lib/supabaseClient';
-import { handleError, sendSuccess, sendError, HttpStatus } from './lib/errorHandler';
-import { checkDocumentUploadAccess, isAdmin } from './lib/auth/ownership';
-import { getR2Storage, isR2Available } from './lib/storage';
+import { handleCors } from '../lib/cors';
+import { query } from '../lib/db';
+import { getAuthUser } from '../lib/auth/middleware';
+import { withArcjetProtection } from '../lib/arcjet';
+import { getSupabaseAdmin } from '../lib/supabaseClient';
+import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
+import { checkDocumentUploadAccess, isAdmin } from '../lib/auth/ownership';
+import { getR2Storage, isR2Available } from '../lib/storage';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
