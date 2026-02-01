@@ -5,7 +5,8 @@
   "framework": null,
   "functions": {
     "api/*.ts": {
-      "maxDuration": 10
+      "maxDuration": 10,
+      "includeFiles": "api/_utils/**"
     }
   },
   "rewrites": [
