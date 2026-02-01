@@ -93,42 +93,44 @@ Choose based on data type:
 
 **Consolidated Structure** (Vercel Hobby plan limit: 12 functions):
 ```
-api/
-├── lib/               # Shared utilities (no underscore - Vercel compatible)
-│   ├── arcjet.ts         # Security perimeter (shield, bot, rate limits)
-│   ├── auth.ts           # Auth middleware exports
-│   ├── auth/             # Auth components
-│   │   ├── password.ts   # bcrypt hashing
-│   │   ├── jwt.ts        # JWT manager (jose)
-│   │   ├── cookies.ts    # HTTP-only cookies
-│   │   ├── middleware.ts # getAuthUser, requireAuth, requireRole
-│   │   ├── permissions.ts # RBAC (deterministic)
-│   │   └── legacy.ts     # Supabase migration support
-│   ├── cors.ts           # CORS handler
-│   ├── db.ts             # Database abstraction (Supabase/Neon)
-│   ├── queries.ts        # Typed query builders
-│   ├── errorHandler.ts   # Sanitized errors
-│   ├── auditLogger.ts    # Audit logging
-│   ├── realtime.ts       # SSE + polling
-│   └── sessions.ts       # Device session manager
-├── admin.ts           # ?action=dashboard|users|settings
+lib/                   # Shared utilities at PROJECT ROOT (not api/lib/)
+├── arcjet.ts          # Security perimeter (shield, bot, rate limits)
+├── auth.ts            # Auth middleware exports
+├── auth/              # Auth components
+│   ├── password.ts    # bcrypt hashing
+│   ├── jwt.ts         # JWT manager (jose)
+│   ├── cookies.ts     # HTTP-only cookies
+│   ├── middleware.ts  # getAuthUser, requireAuth, requireRole
+│   ├── permissions.ts # RBAC (deterministic)
+│   └── legacy.ts      # Supabase migration support
+├── cors.ts            # CORS handler
+├── db.ts              # Database abstraction (Supabase/Neon)
+├── queries.ts         # Typed query builders
+├── errorHandler.ts    # Sanitized errors
+├── auditLogger.ts     # Audit logging
+├── realtime.ts        # SSE + polling
+└── sessions.ts        # Device session manager
+
+api/                   # Vercel Serverless Functions (10 endpoints)
+├── admin.ts           # ?action=dashboard|users|settings|stats|errors|migrate
 ├── applications.ts    # ?action=details|documents|grades|summary|review or ?id=xxx
 ├── auth.ts            # ?action=login|logout|refresh|session|register
 ├── catalog.ts         # ?type=programs|intakes|subjects
 ├── documents.ts       # ?action=upload|extract
+├── health.ts          # ?action=ping|db|env|arcjet (consolidated)
 ├── notifications.ts   # ?action=preferences|send
 ├── payments.ts        # ?action=receipt
-├── realtime.ts        # ?action=connect|poll
-└── sessions.ts        # ?action=track|list|revoke|revoke-all
+├── sessions.ts        # ?action=track|list|revoke|revoke-all
+└── [...path].ts       # Catch-all for unmatched routes
 ```
 
 **Pattern** (query parameter routing with Arcjet protection):
 ```typescript
 // api/{feature}.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from './lib/cors';
-import { withArcjetProtection } from './lib/arcjet';
-import { requireAuth, requireRole } from './lib/auth';
+import { handleCors } from '../lib/cors';           // Note: ../lib/ (project root)
+import { withArcjetProtection } from '../lib/arcjet';
+import { requireAuth, requireRole } from '../lib/auth';
 
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;

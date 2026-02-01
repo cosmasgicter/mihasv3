@@ -59,44 +59,52 @@ inclusion: always
 
 ### Consolidated Structure (Vercel Hobby Plan: 12 function limit)
 
+**IMPORTANT**: Shared utilities are at PROJECT ROOT `lib/`, NOT `api/lib/`.
+This is because Vercel counts any directory inside `api/` toward the function limit.
+
 ```
-api/
-├── lib/               # Shared utilities (NOTE: renamed from _lib for Vercel compatibility)
-│   ├── arcjet.ts      # Arcjet security perimeter (shield, bot, rate limits)
-│   ├── auth.ts        # Auth middleware (getAuthUser, requireAuth, requireRole)
-│   ├── auth/          # Auth components
-│   │   ├── password.ts   # bcrypt hashing (12 rounds)
-│   │   ├── jwt.ts        # JWT manager (jose, HS256)
-│   │   ├── cookies.ts    # HTTP-only cookie manager
-│   │   ├── middleware.ts # Auth middleware
-│   │   ├── permissions.ts # RBAC (deterministic, no DB lookup)
-│   │   └── legacy.ts     # Supabase token migration support
-│   ├── cors.ts        # CORS handler for Vercel
-│   ├── db.ts          # Database abstraction (Supabase REST / Neon serverless)
-│   ├── queries.ts     # Typed query builders
-│   ├── errorHandler.ts # Sanitized error responses
-│   ├── auditLogger.ts # Audit logging (no PII)
-│   ├── realtime.ts    # SSE + polling fallback
-│   └── sessions.ts    # Device session manager
-├── admin.ts           # ?action=dashboard|users|settings (Arcjet: 20/10min)
+lib/                   # PROJECT ROOT - shared utilities
+├── arcjet.ts          # Arcjet security perimeter (shield, bot, rate limits)
+├── auth.ts            # Auth middleware (getAuthUser, requireAuth, requireRole)
+├── auth/              # Auth components
+│   ├── password.ts    # bcrypt hashing (12 rounds)
+│   ├── jwt.ts         # JWT manager (jose, HS256)
+│   ├── cookies.ts     # HTTP-only cookie manager
+│   ├── middleware.ts  # Auth middleware
+│   ├── permissions.ts # RBAC (deterministic, no DB lookup)
+│   └── legacy.ts      # Supabase token migration support
+├── cors.ts            # CORS handler for Vercel
+├── db.ts              # Database abstraction (Supabase REST / Neon serverless)
+├── queries.ts         # Typed query builders
+├── errorHandler.ts    # Sanitized error responses
+├── auditLogger.ts     # Audit logging (no PII)
+├── realtime.ts        # SSE + polling fallback
+├── storage.ts         # R2 storage abstraction
+├── sessions.ts        # Device session manager
+└── supabaseClient.ts  # Legacy Supabase compatibility layer
+
+api/                   # Vercel Serverless Functions (10 endpoints)
+├── admin.ts           # ?action=dashboard|users|settings|stats|errors|migrate
 ├── applications.ts    # ?action=details|documents|grades|summary|review
-├── auth.ts            # ?action=login|logout|refresh|session|register (Arcjet: 5/5min)
+├── auth.ts            # ?action=login|logout|refresh|session|register
 ├── catalog.ts         # ?type=programs|intakes|subjects
 ├── documents.ts       # ?action=upload|extract
-├── notifications.ts   # ?action=preferences|send (Arcjet: 50/10min)
+├── health.ts          # ?action=ping|db|env|arcjet (consolidated)
+├── notifications.ts   # ?action=preferences|send
 ├── payments.ts        # ?action=receipt
-├── realtime.ts        # ?action=connect|poll (SSE/polling)
-└── sessions.ts        # ?action=track|list|revoke|revoke-all (Arcjet: 30/10min)
+├── sessions.ts        # ?action=track|list|revoke|revoke-all
+└── [...path].ts       # Catch-all for unmatched routes
 ```
 
 ### Vercel Function Pattern (Query Parameter Routing)
 ```typescript
 // api/{feature}.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from './lib/cors';
-import { supabaseAdmin } from './lib/supabaseClient';
+import { handleCors } from '../lib/cors';           // Note: ../lib/ (project root)
+import { withArcjetProtection } from '../lib/arcjet';
+import { query } from '../lib/db';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return; // Handle OPTIONS preflight
   
   const action = req.query.action as string;
@@ -116,13 +124,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ success: false, error: 'Internal error' });
   }
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, 'general');
 ```
 
 ### Conventions
 - File naming: `{feature}.ts` (one file per domain, TypeScript)
 - Use query parameters for action routing (`?action=xxx`)
 - Use `process.env` for environment variables (not `context.env`)
-- Always import shared utilities from `lib/`
+- Import shared utilities from `../lib/` (project root, NOT `./lib/`)
 - Return consistent JSON: `{ success: boolean, data?: any, error?: string, code?: string }`
 - Handle errors gracefully—never expose stack traces
 - Log errors but never log PII
