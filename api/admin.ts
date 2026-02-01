@@ -92,6 +92,22 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         await handleRegisterUser(req, res, auth);
         return;
 
+      case 'stats':
+        if (req.method !== 'GET') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleDashboardStats(res);
+        return;
+
+      case 'errors':
+        if (req.method !== 'GET') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleErrorStatistics(res);
+        return;
+
       case 'migrate':
         if (req.method !== 'POST') {
           sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
@@ -101,7 +117,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         return;
 
       default:
-        sendError(res, 'Invalid action. Valid actions: dashboard, users, settings, register, migrate', HttpStatus.BAD_REQUEST);
+        sendError(res, 'Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors', HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -499,6 +515,149 @@ async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth:
   } catch (error) {
     console.error('[ADMIN] Registration error:', error instanceof Error ? error.message : 'Unknown error');
     sendError(res, 'Registration failed', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
+/**
+ * Get admin dashboard stats (RPC function replacement)
+ * Replaces: get_admin_dashboard_stats() Supabase RPC
+ * 
+ * GET /api/admin?action=stats
+ */
+async function handleDashboardStats(res: VercelResponse): Promise<void> {
+  try {
+    // Get counts using direct SQL queries (Neon-compatible)
+    const [
+      totalAppsResult,
+      statusCountsResult,
+      programCountsResult,
+      recentAppsResult,
+      userCountsResult,
+    ] = await Promise.all([
+      query<{ count: string }>('SELECT COUNT(*) as count FROM applications'),
+      query<{ status: string; count: string }>(
+        `SELECT status, COUNT(*) as count FROM applications GROUP BY status`
+      ),
+      query<{ program: string; count: string }>(
+        `SELECT program, COUNT(*) as count FROM applications GROUP BY program ORDER BY count DESC LIMIT 10`
+      ),
+      query<{ id: string; application_number: string; full_name: string; status: string; created_at: string }>(
+        `SELECT id, application_number, full_name, status, created_at 
+         FROM applications 
+         ORDER BY created_at DESC 
+         LIMIT 5`
+      ),
+      query<{ role: string; count: string }>(
+        `SELECT role, COUNT(*) as count FROM profiles GROUP BY role`
+      ),
+    ]);
+
+    const totalApplications = parseInt(totalAppsResult.rows[0]?.count || '0', 10);
+    
+    const statusBreakdown: Record<string, number> = {};
+    for (const row of statusCountsResult.rows) {
+      statusBreakdown[row.status] = parseInt(row.count, 10);
+    }
+
+    const programBreakdown: Record<string, number> = {};
+    for (const row of programCountsResult.rows) {
+      programBreakdown[row.program] = parseInt(row.count, 10);
+    }
+
+    const userBreakdown: Record<string, number> = {};
+    for (const row of userCountsResult.rows) {
+      userBreakdown[row.role] = parseInt(row.count, 10);
+    }
+
+    const pendingCount = (statusBreakdown['submitted'] || 0) + (statusBreakdown['under_review'] || 0);
+
+    res.setHeader('Cache-Control', 'public, max-age=60');
+
+    sendSuccess(res, {
+      totalApplications,
+      pendingApplications: pendingCount,
+      approvedApplications: statusBreakdown['approved'] || 0,
+      rejectedApplications: statusBreakdown['rejected'] || 0,
+      statusBreakdown,
+      programBreakdown,
+      userBreakdown,
+      recentApplications: recentAppsResult.rows,
+      systemHealth: pendingCount > 100 ? 'critical' : pendingCount > 50 ? 'warning' : 'good',
+      generatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[ADMIN] Stats error:', error instanceof Error ? error.message : 'Unknown error');
+    sendError(res, 'Failed to fetch dashboard stats', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
+/**
+ * Get error statistics (RPC function replacement)
+ * Replaces: get_error_statistics() Supabase RPC
+ * 
+ * GET /api/admin?action=errors
+ */
+async function handleErrorStatistics(res: VercelResponse): Promise<void> {
+  try {
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Get error-related audit logs
+    const [
+      errorCountsResult,
+      recentErrorsResult,
+      errorsByDayResult,
+    ] = await Promise.all([
+      query<{ action: string; count: string }>(
+        `SELECT action, COUNT(*) as count 
+         FROM audit_logs 
+         WHERE action LIKE '%error%' OR action LIKE '%fail%'
+         AND created_at > $1
+         GROUP BY action`,
+        [weekAgo]
+      ),
+      query<{ id: string; action: string; entity_type: string; created_at: string }>(
+        `SELECT id, action, entity_type, created_at 
+         FROM audit_logs 
+         WHERE action LIKE '%error%' OR action LIKE '%fail%'
+         ORDER BY created_at DESC 
+         LIMIT 20`
+      ),
+      query<{ day: string; count: string }>(
+        `SELECT DATE(created_at) as day, COUNT(*) as count 
+         FROM audit_logs 
+         WHERE (action LIKE '%error%' OR action LIKE '%fail%')
+         AND created_at > $1
+         GROUP BY DATE(created_at)
+         ORDER BY day DESC`,
+        [weekAgo]
+      ),
+    ]);
+
+    const errorsByType: Record<string, number> = {};
+    for (const row of errorCountsResult.rows) {
+      errorsByType[row.action] = parseInt(row.count, 10);
+    }
+
+    const errorsByDay: Record<string, number> = {};
+    for (const row of errorsByDayResult.rows) {
+      errorsByDay[row.day] = parseInt(row.count, 10);
+    }
+
+    const totalErrors = Object.values(errorsByType).reduce((sum, count) => sum + count, 0);
+
+    res.setHeader('Cache-Control', 'public, max-age=60');
+
+    sendSuccess(res, {
+      totalErrors,
+      errorsByType,
+      errorsByDay,
+      recentErrors: recentErrorsResult.rows,
+      period: '7 days',
+      generatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[ADMIN] Error stats error:', error instanceof Error ? error.message : 'Unknown error');
+    sendError(res, 'Failed to fetch error statistics', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
 

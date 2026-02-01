@@ -17,7 +17,7 @@ This plan removes all Supabase Auth SDK dependencies from the frontend while pre
     - Include role enum: 'student' | 'reviewer' | 'admin' | 'super_admin'
     - _Requirements: 2.3_
   
-  - [~] 2.2 Write unit test verifying auth types exist and have required fields
+  - [ ] 2.2 Write unit test verifying auth types exist and have required fields
     - Test User interface has id, email, role fields
     - Test UserProfile interface has required fields
     - _Requirements: 2.3_
@@ -28,7 +28,7 @@ This plan removes all Supabase Auth SDK dependencies from the frontend while pre
     - Remove @ts-nocheck comment after fixing types
     - _Requirements: 2.1_
   
-  - [~] 3.2 Write unit test verifying AuthContext imports from @/types/auth
+  - [ ] 3.2 Write unit test verifying AuthContext imports from @/types/auth
     - Verify no @supabase/supabase-js User import
     - _Requirements: 2.1_
 
@@ -42,7 +42,7 @@ This plan removes all Supabase Auth SDK dependencies from the frontend while pre
     - Replace `import { User } from '@supabase/supabase-js'` with `import { User } from '@/types/auth'`
     - _Requirements: 2.4_
   
-  - [~] 4.3 Write unit tests for auth hook imports
+  - [ ] 4.3 Write unit tests for auth hook imports
     - Verify useOptimizedAuthState uses custom User type
     - Verify useRoleQuery uses custom User type
     - _Requirements: 2.2, 2.4_
@@ -54,7 +54,7 @@ This plan removes all Supabase Auth SDK dependencies from the frontend while pre
     - Verify auth config has autoRefreshToken: false, persistSession: false, detectSessionInUrl: false
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
   
-  - [~] 5.2 Write unit test verifying Supabase client auth is disabled
+  - [ ] 5.2 Write unit test verifying Supabase client auth is disabled
     - Check auth configuration values
     - _Requirements: 4.1, 4.2, 4.3_
 
@@ -95,7 +95,7 @@ This plan removes all Supabase Auth SDK dependencies from the frontend while pre
     - Keep any non-auth exports if they exist
     - _Requirements: 3.3, 3.4_
   
-  - [~] 8.3 Write unit test verifying no supabase-ui auth imports exist
+  - [ ] 8.3 Write unit test verifying no supabase-ui auth imports exist
     - Scan src/ for imports from supabase-ui auth components
     - _Requirements: 3.4_
 
