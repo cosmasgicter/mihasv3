@@ -1,12 +1,11 @@
 {
-  "buildCommand": "bunx --bun vite build",
+  "buildCommand": "bun run scripts/bundle-api.mjs && bunx --bun vite build",
   "installCommand": "bun install",
   "outputDirectory": "dist",
   "framework": null,
   "functions": {
-    "api/*.ts": {
-      "maxDuration": 10,
-      "includeFiles": "lib/**"
+    "api/*.js": {
+      "maxDuration": 10
     }
   },
   "rewrites": [
