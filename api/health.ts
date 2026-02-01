@@ -1,17 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query, detectDatabaseType } from './_utils/db';
 
 /**
- * Health Check API
+ * Health Check API - Simplified version with inline db code
  * 
  * GET /api/health - Returns system health status
  * GET /api/health?action=ping - Minimal ping/pong response
- * GET /api/health?action=db - Check database connectivity (RPC replacement)
+ * GET /api/health?action=db - Check database connectivity
  * GET /api/health?action=env - Check environment variables
- * GET /api/health?action=arcjet - Test Arcjet security layer initialization
- * 
- * Replaces: check_database_health() Supabase RPC
- * Consolidates: /api/ping, /api/arcjet-test (Vercel Hobby 12 function limit)
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Set headers directly
@@ -39,11 +34,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Arcjet security layer test
-  if (action === 'arcjet') {
-    return handleArcjetTest(req, res);
-  }
-
   // Database health check
   if (action === 'db') {
     return handleDatabaseHealth(res);
@@ -62,104 +52,97 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       timestamp: new Date().toISOString(),
       environment: process.env.VERCEL_ENV || 'development',
       version: process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7),
-      databaseType: detectDatabaseType(),
+      databaseType: 'neon',
     }
   });
 }
 
 /**
  * Check database health and connectivity
- * Replaces: check_database_health() Supabase RPC
  */
 async function handleDatabaseHealth(res: VercelResponse): Promise<void> {
   const startTime = Date.now();
   const checks: Record<string, { status: string; latency?: number; error?: string }> = {};
 
-  // Check 1: Basic connectivity
   try {
-    const connectStart = Date.now();
-    await query('SELECT 1 as test');
-    checks.connectivity = {
-      status: 'ok',
-      latency: Date.now() - connectStart,
-    };
-  } catch (error) {
-    checks.connectivity = {
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-
-  // Check 2: Table existence (profiles table)
-  try {
-    const tableStart = Date.now();
-    await query('SELECT COUNT(*) FROM profiles LIMIT 1');
-    checks.profiles_table = {
-      status: 'ok',
-      latency: Date.now() - tableStart,
-    };
-  } catch (error) {
-    checks.profiles_table = {
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-
-  // Check 3: Applications table
-  try {
-    const appsStart = Date.now();
-    await query('SELECT COUNT(*) FROM applications LIMIT 1');
-    checks.applications_table = {
-      status: 'ok',
-      latency: Date.now() - appsStart,
-    };
-  } catch (error) {
-    checks.applications_table = {
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-
-  // Check 4: Extensions
-  try {
-    const extStart = Date.now();
-    const result = await query<{ extname: string }>('SELECT extname FROM pg_extension');
-    const extensions = result.rows.map(r => r.extname);
-    checks.extensions = {
-      status: extensions.includes('uuid-ossp') && extensions.includes('pgcrypto') ? 'ok' : 'warning',
-      latency: Date.now() - extStart,
-    };
-  } catch (error) {
-    checks.extensions = {
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-
-  const totalLatency = Date.now() - startTime;
-  const allOk = Object.values(checks).every(c => c.status === 'ok');
-  const hasErrors = Object.values(checks).some(c => c.status === 'error');
-
-  const overallStatus = hasErrors ? 'unhealthy' : allOk ? 'healthy' : 'degraded';
-
-  res.status(hasErrors ? 503 : 200).json({
-    success: !hasErrors,
-    data: {
-      status: overallStatus,
-      databaseType: detectDatabaseType(),
-      checks,
-      totalLatency,
-      timestamp: new Date().toISOString(),
+    // Dynamic import for Neon serverless driver
+    const { neon } = await import('@neondatabase/serverless');
+    const connectionString = process.env.DATABASE_URL;
+    
+    if (!connectionString) {
+      res.status(503).json({
+        success: false,
+        data: {
+          status: 'unhealthy',
+          error: 'DATABASE_URL not configured',
+          timestamp: new Date().toISOString(),
+        }
+      });
+      return;
     }
-  });
-}
 
+    const sql = neon(connectionString);
+
+    // Check 1: Basic connectivity
+    try {
+      const connectStart = Date.now();
+      await sql`SELECT 1 as test`;
+      checks.connectivity = {
+        status: 'ok',
+        latency: Date.now() - connectStart,
+      };
+    } catch (error) {
+      checks.connectivity = {
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+
+    // Check 2: Table existence (profiles table)
+    try {
+      const tableStart = Date.now();
+      await sql`SELECT COUNT(*) FROM profiles LIMIT 1`;
+      checks.profiles_table = {
+        status: 'ok',
+        latency: Date.now() - tableStart,
+      };
+    } catch (error) {
+      checks.profiles_table = {
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+
+    const totalLatency = Date.now() - startTime;
+    const allOk = Object.values(checks).every(c => c.status === 'ok');
+    const hasErrors = Object.values(checks).some(c => c.status === 'error');
+
+    const overallStatus = hasErrors ? 'unhealthy' : allOk ? 'healthy' : 'degraded';
+
+    res.status(hasErrors ? 503 : 200).json({
+      success: !hasErrors,
+      data: {
+        status: overallStatus,
+        databaseType: 'neon',
+        checks,
+        totalLatency,
+        timestamp: new Date().toISOString(),
+      }
+    });
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      data: {
+        status: 'unhealthy',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      }
+    });
+  }
+}
 
 /**
  * Check required environment variables
- * GET /api/health?action=env
- * 
- * Returns which required env vars are set (not their values)
  */
 function handleEnvCheck(res: VercelResponse): void {
   const requiredVars = [
@@ -167,17 +150,6 @@ function handleEnvCheck(res: VercelResponse): void {
     'JWT_SECRET',
     'JWT_REFRESH_SECRET',
     'ARCJET_KEY',
-    'R2_ACCOUNT_ID',
-    'R2_ACCESS_KEY_ID',
-    'R2_SECRET_ACCESS_KEY',
-    'R2_BUCKET_NAME',
-    'RESEND_API_KEY',
-  ];
-
-  const optionalVars = [
-    'VITE_API_BASE_URL',
-    'VITE_APP_BASE_URL',
-    'EMAIL_FROM',
   ];
 
   const envStatus: Record<string, boolean> = {};
@@ -191,10 +163,6 @@ function handleEnvCheck(res: VercelResponse): void {
     }
   }
 
-  for (const varName of optionalVars) {
-    envStatus[varName] = !!process.env[varName];
-  }
-
   const allRequired = missing.length === 0;
 
   res.status(allRequired ? 200 : 503).json({
@@ -206,90 +174,5 @@ function handleEnvCheck(res: VercelResponse): void {
       missing: missing.length > 0 ? missing : undefined,
       timestamp: new Date().toISOString(),
     }
-  });
-}
-
-
-/**
- * Test Arcjet security layer initialization
- * GET /api/health?action=arcjet
- * 
- * Diagnostic endpoint to verify Arcjet is working correctly.
- * Tests: module import, instance creation, protect call
- */
-async function handleArcjetTest(req: VercelRequest, res: VercelResponse): Promise<void> {
-  const results: Record<string, string | number | boolean | null> = {
-    timestamp: new Date().toISOString(),
-    nodeVersion: process.version,
-    platform: process.platform,
-    arch: process.arch,
-    arcjetKeySet: !!process.env.ARCJET_KEY,
-    arcjetKeyLength: process.env.ARCJET_KEY?.length || 0,
-  };
-
-  let allPassed = true;
-
-  // Test 1: Import @arcjet/node package
-  try {
-    const arcjetNode = await import('@arcjet/node');
-    results.arcjetNodeImport = 'SUCCESS';
-    results.arcjetNodeExports = Object.keys(arcjetNode).join(', ');
-  } catch (error) {
-    results.arcjetNodeImport = 'FAILED';
-    results.arcjetNodeError = error instanceof Error ? error.message : String(error);
-    allPassed = false;
-  }
-
-  // Test 2: Import local arcjet wrapper
-  try {
-    const arcjetWrapper = await import('./_utils/arcjet');
-    results.arcjetWrapperImport = 'SUCCESS';
-    results.arcjetWrapperExports = Object.keys(arcjetWrapper).join(', ');
-  } catch (error) {
-    results.arcjetWrapperImport = 'FAILED';
-    results.arcjetWrapperError = error instanceof Error ? error.message : String(error);
-    allPassed = false;
-  }
-
-  // Test 3: Create Arcjet instance (if key is set)
-  if (process.env.ARCJET_KEY) {
-    try {
-      const { default: arcjet, shield, detectBot } = await import('@arcjet/node');
-      const testAj = arcjet({
-        key: process.env.ARCJET_KEY,
-        characteristics: ['ip.src'],
-        rules: [
-          shield({ mode: 'LIVE' }),
-          detectBot({ mode: 'LIVE', allow: ['CATEGORY:SEARCH_ENGINE'] }),
-        ],
-      });
-      results.arcjetInstanceCreate = 'SUCCESS';
-
-      // Test 4: Call protect (actual API call)
-      try {
-        const decision = await testAj.protect(req);
-        results.arcjetProtectCall = 'SUCCESS';
-        results.arcjetDecision = decision.isDenied() ? 'DENIED' : 'ALLOWED';
-        results.arcjetDecisionId = decision.id;
-      } catch (error) {
-        results.arcjetProtectCall = 'FAILED';
-        results.arcjetProtectError = error instanceof Error ? error.message : String(error);
-        allPassed = false;
-      }
-    } catch (error) {
-      results.arcjetInstanceCreate = 'FAILED';
-      results.arcjetInstanceError = error instanceof Error ? error.message : String(error);
-      allPassed = false;
-    }
-  } else {
-    results.arcjetInstanceCreate = 'SKIPPED';
-    results.arcjetProtectCall = 'SKIPPED';
-    results.arcjetSkipReason = 'ARCJET_KEY not set';
-  }
-
-  res.status(allPassed ? 200 : 500).json({
-    success: allPassed,
-    message: allPassed ? 'All Arcjet tests passed' : 'Arcjet initialization failed',
-    results,
   });
 }
