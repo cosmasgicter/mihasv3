@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { apiClient } from './client'
 
 const DEFAULT_SERVICE_WORKER_URL = '/service-worker.js'

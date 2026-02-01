@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getSupabaseClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { formatDistanceToNow } from 'date-fns'
@@ -31,18 +30,9 @@ export function ActiveSessions() {
     
     try {
       setLoading(true)
-      const supabase = getSupabaseClient()
-      const { data: { session } } = await supabase.auth.getSession()
       
-      if (!session?.access_token) {
-        setSessions([])
-        return
-      }
-      
-      const response = await fetch('/api/sessions', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+      const response = await fetch('/api/sessions?action=list', {
+        credentials: 'include'
       })
       
       if (!response.ok) {
@@ -75,14 +65,10 @@ export function ActiveSessions() {
     
     try {
       setTerminating(deviceId)
-      const supabase = getSupabaseClient()
-      const { data: { session } } = await supabase.auth.getSession()
       
-      const response = await fetch(`/api/sessions?device_id=${deviceId}`, {
+      const response = await fetch(`/api/sessions?action=revoke&device_id=${deviceId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${session?.access_token}`
-        }
+        credentials: 'include'
       })
       
       if (response.ok) {
@@ -102,10 +88,7 @@ export function ActiveSessions() {
     const otherSessionsCount = sessions.filter(s => s.device_id !== currentDeviceId).length
     
     if (otherSessionsCount === 0) {
-      addToast({
-        type: 'info',
-        message: 'No other sessions to terminate'
-      })
+      addToast('info', 'No other sessions to terminate')
       return
     }
     
@@ -117,24 +100,18 @@ export function ActiveSessions() {
         // Update local state to remove terminated sessions
         setSessions(prev => prev.filter(s => s.device_id === currentDeviceId))
         
-        addToast({
-          type: 'success',
-          message: result.terminatedCount > 0 
+        addToast(
+          'success',
+          result.terminatedCount > 0 
             ? `Successfully terminated ${result.terminatedCount} session${result.terminatedCount > 1 ? 's' : ''}`
             : 'No other sessions to terminate'
-        })
+        )
       } else {
-        addToast({
-          type: 'error',
-          message: result.error || 'Failed to terminate sessions. Please try again.'
-        })
+        addToast('error', result.error || 'Failed to terminate sessions. Please try again.')
       }
     } catch (error) {
       console.error('Failed to terminate all sessions:', error)
-      addToast({
-        type: 'error',
-        message: 'Failed to terminate sessions. Please try again.'
-      })
+      addToast('error', 'Failed to terminate sessions. Please try again.')
     } finally {
       setTerminatingAll(false)
     }

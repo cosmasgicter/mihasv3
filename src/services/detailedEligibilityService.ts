@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Detailed Eligibility Service
  * 

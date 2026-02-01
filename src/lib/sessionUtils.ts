@@ -1,61 +1,84 @@
-import { supabase } from './supabase'
+/**
+ * Session Utilities - Cookie-based authentication
+ * 
+ * All session operations use HTTP-only cookies (credentials: 'include')
+ * NO Bearer token headers - cookies are managed by the browser
+ * 
+ * @module sessionUtils
+ */
 
 export interface SessionResult {
-  token: string | null
-  error: string | null
+  authenticated: boolean;
+  error: string | null;
 }
 
 /**
- * Safely retrieves the current session token
- * @returns Promise with token and error information
+ * Checks if the current session is valid via API
+ * Uses HTTP-only cookies for authentication
  */
-export async function getSessionToken(): Promise<SessionResult> {
+export async function checkSession(): Promise<SessionResult> {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession()
-    
-    if (error) {
-      return { token: null, error: error.message }
+    const response = await fetch('/api/auth?action=session', {
+      method: 'GET',
+      credentials: 'include', // Send HTTP-only cookies
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      return { authenticated: false, error: 'Session expired or invalid' };
     }
+
+    const data = await response.json();
     
-    if (!session?.access_token) {
-      return { token: null, error: 'No active session' }
+    if (data.success && data.data?.user) {
+      return { authenticated: true, error: null };
     }
-    
-    return { token: session.access_token, error: null }
+
+    return { authenticated: false, error: 'No active session' };
   } catch (err) {
-    return { 
-      token: null, 
-      error: err instanceof Error ? err.message : 'Failed to get session' 
-    }
+    return {
+      authenticated: false,
+      error: err instanceof Error ? err.message : 'Failed to check session',
+    };
   }
 }
 
 /**
- * Makes an authenticated API request with proper session handling
+ * Makes an authenticated API request using HTTP-only cookies
+ * @param url - The URL to fetch
+ * @param options - Fetch options
  */
 export async function makeAuthenticatedRequest(
-  url: string, 
+  url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  const { token, error } = await getSessionToken()
-  
-  if (!token) {
-    throw new Error(error || 'Authentication required')
-  }
-  
   // Validate URL to prevent SSRF attacks
-  const urlObj = new URL(url)
-  const allowedHosts = ['apply.mihas.edu.zm', 'mylgegkqoddcrxtwcclb.supabase.co', 'localhost']
-  if (!allowedHosts.includes(urlObj.hostname)) {
-    throw new Error('Invalid URL - host not allowed')
-  }
+  const urlObj = new URL(url, window.location.origin);
+  const allowedHosts = [
+    'apply.mihas.edu.zm',
+    'mylgegkqoddcrxtwcclb.supabase.co',
+    'localhost',
+    window.location.hostname,
+  ];
   
+  if (!allowedHosts.includes(urlObj.hostname)) {
+    throw new Error('Invalid URL - host not allowed');
+  }
+
   return fetch(url, {
     ...options,
+    credentials: 'include', // CRITICAL: Send HTTP-only cookies
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
-      Authorization: `Bearer ${token}`
-    }
-  })
+    },
+  });
+}
+
+/**
+ * @deprecated Use makeAuthenticatedRequest instead
+ * This function is kept for backward compatibility during migration
+ */
+export async function getSessionToken(): Promise<SessionResult> {
+  return checkSession();
 }

@@ -32,7 +32,7 @@ export class FunctionSearchPathAnalyzer {
   private vulnerabilities: SearchPathVulnerability[] = [];
 
   constructor() {
-    // Initialize Supabase client for database analysis
+    // Initialize Supabase client for database analysis (auth disabled)
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
@@ -40,7 +40,13 @@ export class FunctionSearchPathAnalyzer {
       throw new Error('Supabase configuration missing for function search path analysis');
     }
     
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+    this.supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false
+      }
+    });
   }
 
   /**

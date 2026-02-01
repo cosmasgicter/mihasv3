@@ -1,6 +1,7 @@
 import React from 'react'
 import { CheckCircle, Download, Mail, ExternalLink, Copy } from 'lucide-react'
 import { Button } from './Button'
+import { toast } from '@/hooks/useToast'
 
 interface SubmissionConfirmationProps {
   referenceNumber: string

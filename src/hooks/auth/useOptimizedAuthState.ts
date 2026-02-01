@@ -3,13 +3,28 @@
  * 
  * Leverages React Query caching to avoid redundant session validations.
  * Moves auth checks to non-blocking code paths.
+ * Uses HTTP-only cookie authentication.
  * Requirements: 4.5
  */
 
-import { useQuery } from '@tanstack/react-query'
-import { User } from '@supabase/supabase-js'
-import { getSupabaseClient, isSupabaseConfigured, UserProfile } from '@/lib/supabase'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
+import type { User, UserProfile } from '@/types/auth'
 import { CACHE_CONFIG } from '@/hooks/queries/useSupabaseQuery'
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
 
 interface AuthState {
   user: User | null
@@ -20,7 +35,7 @@ interface AuthState {
 }
 
 /**
- * Fetch current session with caching
+ * Fetch current session with caching via cookie-based auth
  * Uses React Query to cache session data and avoid redundant API calls
  * 
  * CRITICAL FIX: Disabled retries to prevent infinite loops
@@ -29,23 +44,20 @@ function useSessionQuery() {
   return useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      if (!isSupabaseConfigured) {
-        return null
+      const response = await authFetch('/api/auth?action=session')
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          return null
+        }
+        throw new Error(`Session error: ${response.statusText}`)
       }
 
-      const supabase = getSupabaseClient()
-      const { data: { session }, error } = await supabase.auth.getSession()
-
-      if (error) {
-        console.error('[Auth] Session error:', error.message)
-        // Throw error with status info for retry logic to handle
-        throw new Error(`Session error: ${error.message}`)
-      }
-
-      return session
+      const data = await response.json()
+      return data.success ? data : null
     },
-    staleTime: CACHE_CONFIG.auth.staleTime, // 5 minutes
-    gcTime: CACHE_CONFIG.auth.gcTime, // 10 minutes
+    staleTime: CACHE_CONFIG.auth.staleTime, // 10 minutes
+    gcTime: CACHE_CONFIG.auth.gcTime, // 30 minutes
     refetchOnMount: false, // Don't refetch on every mount
     refetchOnWindowFocus: false, // Don't refetch on window focus
     // CRITICAL FIX: Disable all retries until auth is stable
@@ -76,15 +88,14 @@ function useProfileQueryOptimized(userId: string | undefined) {
 
       if (error) {
         console.error('Profile query error:', error)
-        // Throw error with status info for retry logic to handle
         throw new Error(`Profile query error: ${error.message}`)
       }
 
       return data as UserProfile | null
     },
     enabled: Boolean(userId), // Only run if userId exists
-    staleTime: CACHE_CONFIG.auth.staleTime, // 5 minutes
-    gcTime: CACHE_CONFIG.auth.gcTime, // 10 minutes
+    staleTime: CACHE_CONFIG.auth.staleTime, // 10 minutes
+    gcTime: CACHE_CONFIG.auth.gcTime, // 30 minutes
     refetchOnMount: false, // Don't refetch on every mount
     refetchOnWindowFocus: false, // Don't refetch on window focus
     // CRITICAL FIX: Disable all retries until auth is stable
@@ -119,14 +130,14 @@ function checkIsAdmin(user: User | null, profile: UserProfile | null): boolean {
  */
 export function useOptimizedAuthState(): AuthState {
   // Fetch session with caching
-  const { data: session, isLoading: sessionLoading } = useSessionQuery()
+  const { data: sessionData, isLoading: sessionLoading } = useSessionQuery()
   
   // Fetch profile with caching (only if user exists)
   const { data: profile, isLoading: profileLoading } = useProfileQueryOptimized(
-    session?.user?.id
+    sessionData?.user?.id
   )
 
-  const user = session?.user || null
+  const user = sessionData?.user || null
   const isAuthenticated = Boolean(user)
   const isAdmin = checkIsAdmin(user, profile)
   const isLoading = sessionLoading || (isAuthenticated && profileLoading)
@@ -150,12 +161,12 @@ export function useAuthCheck(): {
   isLoading: boolean
   user: User | null
 } {
-  const { data: session, isLoading } = useSessionQuery()
+  const { data: sessionData, isLoading } = useSessionQuery()
   
   return {
-    isAuthenticated: Boolean(session?.user),
+    isAuthenticated: Boolean(sessionData?.user),
     isLoading,
-    user: session?.user || null
+    user: sessionData?.user || null
   }
 }
 
@@ -164,7 +175,6 @@ export function useAuthCheck(): {
  * Call this after login/logout to refresh auth state
  */
 export function useInvalidateAuthCache() {
-  const { useQueryClient } = require('@tanstack/react-query')
   const queryClient = useQueryClient()
 
   return {

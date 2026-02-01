@@ -15,6 +15,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@neondatabase/serverless': path.resolve(__dirname, './node_modules/@neondatabase/serverless'),
     },
   },
 });

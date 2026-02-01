@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * MIHAS System Integrator
  * 

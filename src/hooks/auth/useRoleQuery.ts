@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { User } from '@supabase/supabase-js'
+import type { User } from '@/types/auth'
 import { useAuth } from '@/contexts/AuthContext'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { isAdminRole } from '@/lib/auth/roles'

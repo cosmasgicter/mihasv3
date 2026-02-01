@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Bell, Mail, MessageSquare, Check } from 'lucide-react'
 
 export function NotificationPreferences() {
+  const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [preferences, setPreferences] = useState({
@@ -20,13 +22,15 @@ export function NotificationPreferences() {
 
   useEffect(() => {
     loadPreferences()
-  }, [])
+  }, [user])
 
   const loadPreferences = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
+    try {
       const { data, error } = await supabase
         .from('user_notification_preferences')
         .select('*')
@@ -51,10 +55,10 @@ export function NotificationPreferences() {
   }
 
   const savePreferences = async () => {
+    if (!user) return
+
     try {
       setSaving(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
 
       const { error } = await supabase
         .from('user_notification_preferences')

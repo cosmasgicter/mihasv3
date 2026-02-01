@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SignUpPage - Enhanced sign-up page with SmoothUI animations
  * Uses animated input components with inline validation

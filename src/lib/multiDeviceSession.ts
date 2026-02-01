@@ -1,3 +1,6 @@
+/**
+ * Multi-Device Session Manager - Uses HTTP-only cookie authentication
+ */
 import { supabase } from './supabase'
 
 interface DeviceSession {
@@ -9,6 +12,20 @@ interface DeviceSession {
   last_activity: string
   is_active: boolean
   created_at: string
+}
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
 }
 
 class MultiDeviceSessionManager {
@@ -34,16 +51,15 @@ class MultiDeviceSessionManager {
     return `${navigator.userAgent.substring(0, 100)} | ${window.screen.width}x${window.screen.height}`
   }
 
-  async registerSession(userId: string, sessionToken: string): Promise<void> {
+  async registerSession(userId: string): Promise<void> {
     try {
-      // Register current device session
+      // Register current device session (using Supabase for data storage, not auth)
       await supabase
         .from('device_sessions')
         .upsert({
           user_id: userId,
           device_id: this.deviceId,
           device_info: this.getDeviceInfo(),
-          session_token: sessionToken,
           last_activity: new Date().toISOString(),
           is_active: true
         }, {
@@ -54,7 +70,7 @@ class MultiDeviceSessionManager {
       await supabase
         .from('device_sessions')
         .delete()
-        .eq('id', userId)
+        .eq('user_id', userId)
         .lt('last_activity', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
     } catch (error) {
       console.error('Failed to register session:', error)
@@ -69,7 +85,7 @@ class MultiDeviceSessionManager {
           last_activity: new Date().toISOString(),
           is_active: true
         })
-        .eq('id', userId)
+        .eq('user_id', userId)
         .eq('device_id', this.deviceId)
     } catch (error) {
       console.error('Failed to update activity:', error)
@@ -81,7 +97,7 @@ class MultiDeviceSessionManager {
       const query = supabase
         .from('device_sessions')
         .update({ is_active: false })
-        .eq('id', userId)
+        .eq('user_id', userId)
 
       if (deviceId) {
         query.eq('device_id', deviceId)
@@ -103,7 +119,7 @@ class MultiDeviceSessionManager {
       const { data: sessions, error } = await supabase
         .from('device_sessions')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .eq('is_active', true)
         .order('last_activity', { ascending: false })
 
@@ -145,7 +161,7 @@ class MultiDeviceSessionManager {
       const { data, error } = await supabase
         .from('device_sessions')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .eq('is_active', true)
         .order('last_activity', { ascending: false })
 
@@ -163,14 +179,25 @@ class MultiDeviceSessionManager {
   private startSessionMonitoring(): void {
     // Check session every 5 minutes
     this.sessionCheckInterval = setInterval(async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await this.updateActivity(user.id)
-        const isValid = await this.checkSessionConflicts(user.id)
+      try {
+        // Get current user via cookie-based auth
+        const response = await authFetch('/api/auth?action=session')
+        if (!response.ok) return
+        
+        const data = await response.json()
+        if (!data.success || !data.user) return
+        
+        const userId = data.user.id
+        await this.updateActivity(userId)
+        
+        const isValid = await this.checkSessionConflicts(userId)
         if (!isValid) {
-          await supabase.auth.signOut()
+          // Sign out via API
+          await authFetch('/api/auth?action=logout', { method: 'POST' })
           window.location.href = '/auth/signin?reason=session_expired'
         }
+      } catch (error) {
+        console.error('Session monitoring error:', error)
       }
     }, 5 * 60 * 1000)
   }

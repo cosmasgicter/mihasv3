@@ -1,4 +1,7 @@
-import { supabase } from '../lib/supabase'
+/**
+ * MCP Service - Database query interface
+ * Uses HTTP-only cookie authentication
+ */
 
 export class MCPService {
   private static resolveUrl(path: string) {
@@ -19,15 +22,8 @@ export class MCPService {
   }
 
   private static async makeRequest(path: string, options: RequestInit = {}) {
-    // Get the current session token
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.access_token) {
-      throw new Error('Authentication required')
-    }
-
     const endpoint = this.resolveUrl(path)
-    const headers = {
-      Authorization: `Bearer ${session.access_token}`,
+    const headers: Record<string, string> = {
       ...(options.headers as Record<string, string> ?? {})
     }
 
@@ -37,10 +33,14 @@ export class MCPService {
 
     const response = await fetch(endpoint, {
       ...options,
+      credentials: 'include', // Use HTTP-only cookie auth
       headers
     })
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Authentication required')
+      }
       throw new Error(`MCP API error: ${response.statusText}`)
     }
 

@@ -39,10 +39,24 @@ export interface AuditLogResponse {
   totalCount: number
 }
 
+/**
+ * Helper to check if user is authenticated via cookie-based session
+ */
+async function checkAuth(): Promise<boolean> {
+  try {
+    const response = await fetch('/api/auth?action=session', {
+      credentials: 'include',
+    })
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
 class AdminAuditService {
   async list(filters: AuditLogFilters = {}): Promise<AuditLogResponse> {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) throw new Error('Unauthorized')
+    const isAuthenticated = await checkAuth()
+    if (!isAuthenticated) throw new Error('Unauthorized')
 
     const page = filters.page || 1
     const pageSize = filters.pageSize || 50

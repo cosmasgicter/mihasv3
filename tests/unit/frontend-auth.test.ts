@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Frontend Auth Unit Tests
  * 

@@ -140,13 +140,13 @@ export default defineConfig({
         drop_debugger: true,
         pure_funcs: ['console.log', 'console.info', 'console.debug'],
         passes: 2,
-        ecma: 2022
+        ecma: 2020
       },
       mangle: {
         safari10: false // No Safari 10 support needed
       },
       format: {
-        ecma: 2022
+        ecma: 2020
       }
     }
   },

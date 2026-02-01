@@ -1,6 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from './_lib/cors';
-import { supabaseAdmin, getUserFromRequest } from './_lib/supabaseClient';
+import { query } from './_lib/db';
+import { getAuthUser } from './_lib/auth/middleware';
+import { withArcjetProtection } from './_lib/arcjet';
+import { getSupabaseAdmin } from './_lib/supabaseClient';
 import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHandler';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -8,10 +11,15 @@ const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'
 
 /**
  * Consolidated Documents API
+ * 
+ * MIGRATED: Uses custom auth middleware
+ * PROTECTED: Arcjet rate limiting (30 requests per 10 minutes)
+ * NOTE: Still uses Supabase Storage for file uploads (not auth)
+ * 
  * POST /api/documents?action=upload - Upload document
  * POST /api/documents?action=extract - Extract PDF metadata
  */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
   // Handle HEAD requests for health checks (no auth required)
@@ -23,16 +31,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const auth = await getUserFromRequest(req);
-  if ('error' in auth) {
-    return sendError(res, auth.error, HttpStatus.UNAUTHORIZED);
+  // Get authenticated user
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
   const action = req.query.action as string || 'upload';
 
   try {
     if (action === 'upload') {
-      return handleUpload(req, res, auth);
+      return handleUpload(req, res, user.userId);
     }
     if (action === 'extract') {
       return handleExtract(req, res);
@@ -43,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-async function handleUpload(req: VercelRequest, res: VercelResponse, auth: { user: { id: string } }) {
+async function handleUpload(req: VercelRequest, res: VercelResponse, authUserId: string) {
   const { file, fileName, fileType, contentType, userId, applicationId, documentType } = req.body;
 
   if (!file || !fileName) {
@@ -61,11 +70,13 @@ async function handleUpload(req: VercelRequest, res: VercelResponse, auth: { use
     return sendError(res, 'Only PDF, JPG, JPEG, and PNG files are allowed', HttpStatus.BAD_REQUEST);
   }
 
-  const effectiveUserId = userId || auth.user.id;
+  const effectiveUserId = userId || authUserId;
   const timestamp = Date.now();
   const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
   const storagePath = `${effectiveUserId}/${applicationId}/${documentType}/${timestamp}-${sanitizedFileName}`;
 
+  // Use Supabase Storage for file uploads (keeping storage, not auth)
+  const supabaseAdmin = getSupabaseAdmin();
   const { data, error } = await supabaseAdmin.storage
     .from('app_docs')
     .upload(storagePath, fileBuffer, { contentType: mimeType, upsert: true });
@@ -118,19 +129,36 @@ async function handleExtract(req: VercelRequest, res: VercelResponse) {
   const isScanned = true;
   const result = { metadata, isScanned, text: '' };
 
+  // Store analysis results using database abstraction
   if (applicationId) {
     try {
       const quality = isScanned ? 'needs_ocr' : 'good';
-      await supabaseAdmin.from('document_analysis').upsert({
-        application_id: applicationId,
-        document_type: 'pdf',
-        quality,
-        completeness: isScanned ? 0 : 100,
-        ocr_confidence: isScanned ? 0 : 0.95,
-        extracted_data: { text: '', metadata, isScanned, documentUrl },
-        suggestions: isScanned ? ['Document appears to be scanned. OCR processing may be required.'] : [],
-        analyzed_at: new Date().toISOString(),
-      }, { onConflict: 'application_id,document_type' });
+      const upsertQuery = {
+        text: `
+          INSERT INTO document_analysis (
+            application_id, document_type, quality, completeness, 
+            ocr_confidence, extracted_data, suggestions, analyzed_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+          ON CONFLICT (application_id, document_type) DO UPDATE SET
+            quality = $3,
+            completeness = $4,
+            ocr_confidence = $5,
+            extracted_data = $6,
+            suggestions = $7,
+            analyzed_at = NOW()
+        `,
+        values: [
+          applicationId,
+          'pdf',
+          quality,
+          isScanned ? 0 : 100,
+          isScanned ? 0 : 0.95,
+          JSON.stringify({ text: '', metadata, isScanned, documentUrl }),
+          JSON.stringify(isScanned ? ['Document appears to be scanned. OCR processing may be required.'] : []),
+        ],
+      };
+      await query(upsertQuery.text, upsertQuery.values);
     } catch {
       console.log('[documents/extract] Failed to store results');
     }
@@ -139,3 +167,6 @@ async function handleExtract(req: VercelRequest, res: VercelResponse) {
   console.log('[documents/extract] PDF processed, pages:', metadata.pageCount);
   return sendSuccess(res, result);
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, 'general');

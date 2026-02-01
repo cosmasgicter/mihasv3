@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Activity, Database, AlertCircle, TrendingUp, Users, FileText } from 'lucide-react'
 
 interface Metrics {
@@ -16,11 +15,8 @@ export function MonitoringDashboard() {
 
   const fetchMetrics = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
-
-      const response = await fetch('/api/monitoring/metrics', {
-        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      const response = await fetch('/api/admin?action=monitoring', {
+        credentials: 'include'
       })
       
       if (response.ok) {

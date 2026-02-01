@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { supabase } from '@/lib/supabase'
 import { Upload, FileText, AlertTriangle, CheckCircle, XCircle, Users, Download } from 'lucide-react'
 import { sanitizeForLog, sanitizeText, sanitizeEmail } from '@/lib/sanitize'
+import { toast } from '@/hooks/useToast'
 
 interface UserImportProps {
   isOpen: boolean
@@ -197,28 +198,25 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               continue
             }
 
-            // Create auth user
+            // Create user via admin API (which handles auth user creation)
             const password = userData.password || `temp${Math.random().toString(36).slice(-8)}`
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-              email: userData.email,
-              password: password,
-            })
-
-            if (authError) throw authError
-            if (!authData.user) throw new Error('Failed to create auth user')
-
-            // Create user profile
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .insert({
-                user_id: authData.user.id,
-                full_name: userData.full_name,
+            const response = await fetch('/api/admin?action=create-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
                 email: userData.email,
+                password: password,
+                full_name: userData.full_name,
                 phone: userData.phone,
                 role: userData.role
               })
+            })
 
-            if (profileError) throw profileError
+            const createResult = await response.json()
+            if (!createResult.success) {
+              throw new Error(createResult.error || 'Failed to create user')
+            }
 
             result.success++
           } catch (error) {

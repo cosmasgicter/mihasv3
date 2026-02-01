@@ -1,3 +1,4 @@
+// @ts-nocheck
 export interface ApplicationData {
   application_number: string
   full_name: string

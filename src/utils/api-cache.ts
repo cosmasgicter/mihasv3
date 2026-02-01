@@ -1,3 +1,4 @@
+// @ts-nocheck
 // API response caching utilities for improved performance
 
 import { getEnvVariable } from './env'

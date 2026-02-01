@@ -1,18 +1,19 @@
 /**
  * Supabase UI Components Index
- * Re-exports all Supabase UI wrapper components
  * 
- * @requirements 8.3 - Supabase UI components for auth
+ * NOTE: Auth components have been removed.
+ * Authentication is now handled by custom JWT auth via /api/auth endpoints.
+ * 
+ * Supabase client is retained ONLY for:
+ * - Supabase Storage (file uploads)
+ * - Direct database queries
+ * 
+ * For authentication, use:
+ * - src/contexts/AuthContext.tsx
+ * - src/hooks/auth/useSessionListener.ts
+ * - src/lib/api/authApi.ts
  */
 
-// Authentication forms
-export { 
-  AuthForm,
-  SignInForm,
-  SignUpForm,
-  ForgotPasswordForm,
-  UpdatePasswordForm,
-} from './auth-form';
-
-// Note: Realtime components removed in Vercel migration
+// No exports - auth components removed
+// Realtime components removed in Vercel migration
 // Use useAdminDashboardPolling and useStudentDashboardPolling hooks instead

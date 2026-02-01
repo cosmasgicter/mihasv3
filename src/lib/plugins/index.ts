@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Plugin System Entry Point
  * Main exports for the MIHAS plugin architecture

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 
-import { supabase } from '@/lib/supabase'
 import { sanitizeForLog } from '@/lib/security'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -226,16 +225,15 @@ export function useApplicationFileUploads({
           throw new Error('User or application ID not available')
         }
 
-        // Check auth and refresh if needed
-        let { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
-        if (authError || !currentUser) {
-          // Try refreshing session before failing
-          const { data: refreshData } = await supabase.auth.refreshSession()
-          if (refreshData?.user) {
-            currentUser = refreshData.user
-          } else {
-            throw new Error('Session expired. Please refresh the page.')
-          }
+        // Verify session via API (cookie-based auth)
+        const sessionResponse = await fetch('/api/auth?action=session', {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        
+        if (!sessionResponse.ok) {
+          throw new Error('Session expired. Please refresh the page.')
         }
 
         setUploadProgress(prev => ({ ...prev, [fileType]: 0 }))

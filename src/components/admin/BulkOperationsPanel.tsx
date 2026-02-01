@@ -1,45 +1,40 @@
 import React, { useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Mail, RefreshCw, Download, Upload } from 'lucide-react'
-import { useToastStore } from '@/stores/toastStore'
+import { useToastStore } from '@/components/ui/Toast'
 
 export function BulkOperationsPanel() {
   const [loading, setLoading] = useState(false)
   const [emailData, setEmailData] = useState({ subject: '', message: '', userIds: [] as string[] })
   const [statusData, setStatusData] = useState({ status: 'pending', applicationIds: [] as string[] })
-  const { addToast } = useToastStore()
+  const toast = useToastStore()
 
   const handleBulkEmail = async () => {
     if (!emailData.subject || !emailData.message || !emailData.userIds.length) {
-      addToast({ type: 'error', message: 'Please fill all fields and select users' })
+      toast.error('Please fill all fields and select users')
       return
     }
 
     setLoading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const response = await fetch('/api/batch/email', {
+      const response = await fetch('/api/admin?action=bulk-email', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(emailData)
       })
 
       const result = await response.json()
       if (response.ok) {
-        addToast({ 
-          type: 'success', 
-          message: `Sent ${result.success} emails. ${result.failed} failed.` 
-        })
+        toast.success(`Sent ${result.success} emails. ${result.failed} failed.`)
         setEmailData({ subject: '', message: '', userIds: [] })
       } else {
         throw new Error(result.error)
       }
-    } catch (error) {
-      addToast({ type: 'error', message: error.message })
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send emails')
     } finally {
       setLoading(false)
     }
@@ -47,34 +42,30 @@ export function BulkOperationsPanel() {
 
   const handleBulkStatusUpdate = async () => {
     if (!statusData.applicationIds.length) {
-      addToast({ type: 'error', message: 'Please select applications' })
+      toast.error('Please select applications')
       return
     }
 
     setLoading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const response = await fetch('/api/batch/status', {
+      const response = await fetch('/api/admin?action=bulk-status', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(statusData)
       })
 
       const result = await response.json()
       if (response.ok) {
-        addToast({ 
-          type: 'success', 
-          message: `Updated ${result.success} applications. ${result.failed} failed.` 
-        })
+        toast.success(`Updated ${result.success} applications. ${result.failed} failed.`)
         setStatusData({ status: 'pending', applicationIds: [] })
       } else {
         throw new Error(result.error)
       }
-    } catch (error) {
-      addToast({ type: 'error', message: error.message })
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update status')
     } finally {
       setLoading(false)
     }
@@ -83,9 +74,8 @@ export function BulkOperationsPanel() {
   const handleExport = async () => {
     setLoading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const response = await fetch('/api/batch/export', {
-        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+      const response = await fetch('/api/admin?action=export-users', {
+        credentials: 'include'
       })
 
       if (response.ok) {
@@ -95,12 +85,12 @@ export function BulkOperationsPanel() {
         a.href = url
         a.download = `users-export-${Date.now()}.csv`
         a.click()
-        addToast({ type: 'success', message: 'Export completed' })
+        toast.success('Export completed')
       } else {
         throw new Error('Export failed')
       }
-    } catch (error) {
-      addToast({ type: 'error', message: error.message })
+    } catch (error: any) {
+      toast.error(error.message || 'Export failed')
     } finally {
       setLoading(false)
     }

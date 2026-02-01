@@ -1,12 +1,8 @@
 import React, { createContext, useContext, useMemo, useCallback } from 'react'
-import { User } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
-import { getSupabaseClient, UserProfile } from '@/lib/supabase'
+import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 import {
   useSessionListener,
-  type SignInResult,
-  type SignUpResult,
-  type PasswordResetResult,
 } from '@/hooks/auth/useSessionListener'
 import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
 

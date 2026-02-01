@@ -4,6 +4,7 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useRoleQuery, isAdminRole } from '@/hooks/auth/useRoleQuery'
 import { Button } from '@/components/ui/Button'
 import { Link } from 'react-router-dom'
+import { User, FileText, GraduationCap, Search } from 'lucide-react'
 
 export default function AdminTest() {
   const { user, signOut } = useAuth()

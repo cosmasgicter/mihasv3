@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getSupabaseClient } from '@/lib/supabase'
 import { refreshAuthSession } from '@/lib/authRefresh'
 import { useTokenRefresh } from '@/hooks/auth/useTokenRefresh'
 import { useRoleVerification } from '@/hooks/auth/useRoleVerification'
+import { toast } from '@/hooks/useToast'
 
 export function AuthDebugPage() {
   const { user, loading } = useAuth()
@@ -19,9 +19,15 @@ export function AuthDebugPage() {
   }, [])
 
   const checkSession = async () => {
-    const supabase = getSupabaseClient()
-    const { data, error } = await supabase.auth.getSession()
-    setSessionInfo({ data, error })
+    try {
+      const response = await fetch('/api/auth?action=session', {
+        credentials: 'include'
+      })
+      const data = await response.json()
+      setSessionInfo({ data, error: data.success ? null : data.error })
+    } catch (error) {
+      setSessionInfo({ data: null, error: String(error) })
+    }
   }
 
   const checkStorage = () => {

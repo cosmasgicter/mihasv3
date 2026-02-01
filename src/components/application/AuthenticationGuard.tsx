@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 
 interface AuthenticationGuardProps {
@@ -32,20 +31,15 @@ export function AuthenticationGuard({ children, onAuthenticationRequired }: Auth
         return
       }
 
-      // Verify session is still valid
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      // Verify session is still valid via API
+      const response = await fetch('/api/auth?action=session', {
+        credentials: 'include'
+      })
       
-      if (sessionError || !session) {
+      const result = await response.json()
+      
+      if (!result.success || !result.user) {
         setAuthError('Your session has expired. Please sign in again.')
-        onAuthenticationRequired?.()
-        return
-      }
-
-      // Double-check user authentication
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
-      
-      if (userError || !currentUser) {
-        setAuthError('Authentication verification failed. Please sign in again.')
         onAuthenticationRequired?.()
         return
       }

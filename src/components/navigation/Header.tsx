@@ -18,7 +18,7 @@ export const Header = React.memo(function Header() {
 
   if (!user) return null
 
-  const fullName = profile?.full_name || user.user_metadata?.full_name || 'User'
+  const fullName = profile?.full_name || (user.user_metadata?.full_name as string) || 'User'
 
   const collapsedWidth = designTokens.layout.sidebarCollapsed
   const expandedWidth = designTokens.layout.sidebarExpanded

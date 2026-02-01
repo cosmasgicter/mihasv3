@@ -1,14 +1,36 @@
 import { supabase } from '@/lib/supabase'
 import { sanitizeForLog } from '@/lib/security'
 
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
 export async function debugAuthState() {
   try {
+    // Check current user via cookie-based auth
+    const response = await authFetch('/api/auth?action=session')
     
-    // Check current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (!response.ok) {
+      console.log('[AuthDebug] No active session')
+      return null
+    }
+    
+    const sessionData = await response.json()
+    const user = sessionData.user
     
     if (!user) {
-      return
+      console.log('[AuthDebug] No user in session')
+      return null
     }
     
     // Check user profile
@@ -18,7 +40,6 @@ export async function debugAuthState() {
       .eq('id', user.id)
       .maybeSingle()
     
-    
     // Check user role
     const { data: role, error: roleError } = await supabase
       .from('user_roles')
@@ -27,14 +48,11 @@ export async function debugAuthState() {
       .eq('is_active', true)
       .maybeSingle()
     
-    
-    
     return {
       user,
       profile,
       role,
       errors: {
-        userError,
         profileError,
         roleError
       }

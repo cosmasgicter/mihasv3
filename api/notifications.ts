@@ -1,11 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import webpush from 'web-push';
 import { handleCors } from './_lib/cors';
-import { supabaseAdmin, getUserFromRequest } from './_lib/supabaseClient';
+import { query } from './_lib/db';
+import { getAuthUser } from './_lib/auth/middleware';
+import { withArcjetProtection } from './_lib/arcjet';
+import { USER_ROLES } from './_lib/queries';
 import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHandler';
 
 /**
  * Consolidated Notifications API
+ * 
+ * MIGRATED: Uses custom auth middleware and database abstraction
+ * PROTECTED: Arcjet rate limiting (50 requests per 10 minutes)
+ * 
  * GET /api/notifications?action=preferences - Get user preferences
  * POST /api/notifications?action=preferences - Update preferences
  * POST /api/notifications?action=send - Send notification (admin only)
@@ -13,7 +20,7 @@ import { handleError, sendSuccess, sendError, HttpStatus } from './_lib/errorHan
  * DELETE /api/notifications?action=push-subscribe - Unsubscribe from push notifications
  * POST /api/notifications?action=push-send - Send push notification to user (admin only)
  */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
   // Handle HEAD requests for health checks (no auth required)
@@ -43,22 +50,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 async function handlePreferences(req: VercelRequest, res: VercelResponse) {
-  const auth = await getUserFromRequest(req);
-  if ('error' in auth) {
-    return sendError(res, auth.error, HttpStatus.UNAUTHORIZED);
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
   if (req.method === 'GET') {
-    const { data, error } = await supabaseAdmin
-      .from('notification_preferences')
-      .select('*')
-      .eq('user_id', auth.user.id)
-      .maybeSingle();
+    const q = {
+      text: `SELECT * FROM notification_preferences WHERE user_id = $1 LIMIT 1`,
+      values: [user.userId],
+    };
+    const result = await query<Record<string, unknown>>(q.text, q.values);
 
-    if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
-
-    const preferences = data || {
-      user_id: auth.user.id,
+    const preferences = result.rows[0] || {
+      user_id: user.userId,
       email_enabled: true,
       push_enabled: true,
       in_app_enabled: true,
@@ -72,27 +77,35 @@ async function handlePreferences(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'POST') {
     const { email_enabled, push_enabled, in_app_enabled, quiet_hours_start, quiet_hours_end } = req.body;
 
-    const updateData: Record<string, unknown> = {
-      user_id: auth.user.id,
-      updated_at: new Date().toISOString(),
+    const upsertQ = {
+      text: `
+        INSERT INTO notification_preferences (
+          user_id, email_enabled, push_enabled, in_app_enabled, 
+          quiet_hours_start, quiet_hours_end, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        ON CONFLICT (user_id) DO UPDATE SET
+          email_enabled = COALESCE($2, notification_preferences.email_enabled),
+          push_enabled = COALESCE($3, notification_preferences.push_enabled),
+          in_app_enabled = COALESCE($4, notification_preferences.in_app_enabled),
+          quiet_hours_start = COALESCE($5, notification_preferences.quiet_hours_start),
+          quiet_hours_end = COALESCE($6, notification_preferences.quiet_hours_end),
+          updated_at = NOW()
+        RETURNING *
+      `,
+      values: [
+        user.userId,
+        email_enabled ?? true,
+        push_enabled ?? true,
+        in_app_enabled ?? true,
+        quiet_hours_start ?? null,
+        quiet_hours_end ?? null,
+      ],
     };
+    const result = await query<Record<string, unknown>>(upsertQ.text, upsertQ.values);
 
-    if (email_enabled !== undefined) updateData.email_enabled = email_enabled;
-    if (push_enabled !== undefined) updateData.push_enabled = push_enabled;
-    if (in_app_enabled !== undefined) updateData.in_app_enabled = in_app_enabled;
-    if (quiet_hours_start !== undefined) updateData.quiet_hours_start = quiet_hours_start;
-    if (quiet_hours_end !== undefined) updateData.quiet_hours_end = quiet_hours_end;
-
-    const { data, error } = await supabaseAdmin
-      .from('notification_preferences')
-      .upsert(updateData, { onConflict: 'user_id' })
-      .select()
-      .single();
-
-    if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
-
-    console.log('[notifications/preferences] Updated for user:', auth.user.id);
-    return sendSuccess(res, { preferences: data });
+    console.log('[notifications/preferences] Updated for user:', user.userId.substring(0, 8) + '...');
+    return sendSuccess(res, { preferences: result.rows[0] });
   }
 
   return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
@@ -103,9 +116,15 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const auth = await getUserFromRequest(req, { requireAdmin: true });
-  if ('error' in auth) {
-    return sendError(res, auth.error, HttpStatus.UNAUTHORIZED);
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  }
+
+  // Check admin role
+  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdmin) {
+    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
   }
 
   const { user_id, title, message, type, action_url } = req.body;
@@ -114,21 +133,26 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'user_id, title, and message are required', HttpStatus.BAD_REQUEST);
   }
 
-  const { data, error } = await supabaseAdmin
-    .from('notifications')
-    .insert({ user_id, title, message, type: type || 'info', action_url, is_read: false })
-    .select()
-    .single();
-
-  if (error) return sendError(res, error.message, HttpStatus.BAD_REQUEST);
+  // Insert notification
+  const insertQ = {
+    text: `
+      INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+      VALUES ($1, $2, $3, $4, $5, false, NOW())
+      RETURNING *
+    `,
+    values: [user_id, title, message, type || 'info', action_url || null],
+  };
+  const result = await query<Record<string, unknown>>(insertQ.text, insertQ.values);
 
   let emailSent = false;
   try {
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('email, full_name')
-      .eq('id', user_id)
-      .single();
+    // Get user profile for email
+    const profileQ = {
+      text: `SELECT email, full_name FROM profiles WHERE id = $1 LIMIT 1`,
+      values: [user_id],
+    };
+    const profileResult = await query<{ email: string; full_name: string }>(profileQ.text, profileQ.values);
+    const profile = profileResult.rows[0];
 
     if (profile?.email && process.env.RESEND_API_KEY) {
       const emailHtml = `
@@ -161,19 +185,17 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
     console.log('[notifications/send] Email send failed');
   }
 
-  console.log('[notifications/send] Notification created for user:', user_id);
-  return sendSuccess(res, { notification: data, email_sent: emailSent });
+  console.log('[notifications/send] Notification created for user:', user_id.substring(0, 8) + '...');
+  return sendSuccess(res, { notification: result.rows[0], email_sent: emailSent });
 }
-
 
 async function handlePushSubscribe(req: VercelRequest, res: VercelResponse) {
   // Allow both authenticated and unauthenticated subscriptions
-  // Unauthenticated users can subscribe but won't receive targeted notifications
-  const auth = await getUserFromRequest(req);
-  const userId = 'error' in auth ? null : auth.user.id;
+  const user = await getAuthUser(req);
+  const userId = user?.userId || null;
 
   if (req.method === 'POST') {
-    const { subscription, userAgent, platform } = req.body;
+    const { subscription, userAgent } = req.body;
 
     if (!subscription || !subscription.endpoint || !subscription.keys) {
       return sendError(res, 'Invalid subscription data', HttpStatus.BAD_REQUEST);
@@ -186,28 +208,26 @@ async function handlePushSubscribe(req: VercelRequest, res: VercelResponse) {
       return sendError(res, 'Missing subscription keys', HttpStatus.BAD_REQUEST);
     }
 
-    // Upsert subscription (update if endpoint exists, insert if new)
-    const { data, error } = await supabaseAdmin
-      .from('push_subscriptions')
-      .upsert({
-        user_id: userId,
-        endpoint,
-        p256dh,
-        auth: authKey,
-        user_agent: userAgent || null,
-        is_active: true,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'endpoint' })
-      .select()
-      .single();
+    // Upsert subscription
+    const upsertQ = {
+      text: `
+        INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, user_agent, is_active, updated_at)
+        VALUES ($1, $2, $3, $4, $5, true, NOW())
+        ON CONFLICT (endpoint) DO UPDATE SET
+          user_id = COALESCE($1, push_subscriptions.user_id),
+          p256dh = $3,
+          auth = $4,
+          user_agent = $5,
+          is_active = true,
+          updated_at = NOW()
+        RETURNING id
+      `,
+      values: [userId, endpoint, p256dh, authKey, userAgent || null],
+    };
+    const result = await query<{ id: string }>(upsertQ.text, upsertQ.values);
 
-    if (error) {
-      console.error('[notifications/push-subscribe] Error:', error.message);
-      return sendError(res, 'Failed to save subscription', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    console.log('[notifications/push-subscribe] Subscription saved for user:', userId || 'anonymous');
-    return sendSuccess(res, { subscribed: true, id: data.id });
+    console.log('[notifications/push-subscribe] Subscription saved for user:', userId?.substring(0, 8) || 'anonymous');
+    return sendSuccess(res, { subscribed: true, id: result.rows[0]?.id });
   }
 
   if (req.method === 'DELETE') {
@@ -217,15 +237,11 @@ async function handlePushSubscribe(req: VercelRequest, res: VercelResponse) {
       return sendError(res, 'Endpoint required', HttpStatus.BAD_REQUEST);
     }
 
-    const { error } = await supabaseAdmin
-      .from('push_subscriptions')
-      .update({ is_active: false, updated_at: new Date().toISOString() })
-      .eq('endpoint', endpoint);
-
-    if (error) {
-      console.error('[notifications/push-subscribe] Unsubscribe error:', error.message);
-      return sendError(res, 'Failed to unsubscribe', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    const updateQ = {
+      text: `UPDATE push_subscriptions SET is_active = false, updated_at = NOW() WHERE endpoint = $1`,
+      values: [endpoint],
+    };
+    await query(updateQ.text, updateQ.values);
 
     console.log('[notifications/push-subscribe] Unsubscribed endpoint');
     return sendSuccess(res, { unsubscribed: true });
@@ -239,9 +255,15 @@ async function handlePushSend(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const auth = await getUserFromRequest(req, { requireAdmin: true });
-  if ('error' in auth) {
-    return sendError(res, auth.error, HttpStatus.UNAUTHORIZED);
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  }
+
+  // Check admin role
+  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdmin) {
+    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
   }
 
   const { user_id, title, body, icon, badge, url, tag } = req.body;
@@ -250,28 +272,33 @@ async function handlePushSend(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'title and body are required', HttpStatus.BAD_REQUEST);
   }
 
-  // Get active subscriptions for the user (or all if no user_id)
-  let query = supabaseAdmin
-    .from('push_subscriptions')
-    .select('*')
-    .eq('is_active', true);
-
+  // Get active subscriptions
+  let selectQ;
   if (user_id) {
-    query = query.eq('user_id', user_id);
+    selectQ = {
+      text: `SELECT * FROM push_subscriptions WHERE is_active = true AND user_id = $1`,
+      values: [user_id],
+    };
+  } else {
+    selectQ = {
+      text: `SELECT * FROM push_subscriptions WHERE is_active = true`,
+      values: [],
+    };
   }
+  const subsResult = await query<{
+    id: string;
+    endpoint: string;
+    p256dh: string;
+    auth: string;
+  }>(selectQ.text, selectQ.values);
 
-  const { data: subscriptions, error } = await query;
-
-  if (error) {
-    console.error('[notifications/push-send] Error fetching subscriptions:', error.message);
-    return sendError(res, 'Failed to fetch subscriptions', HttpStatus.INTERNAL_SERVER_ERROR);
-  }
+  const subscriptions = subsResult.rows;
 
   if (!subscriptions || subscriptions.length === 0) {
     return sendSuccess(res, { sent: 0, message: 'No active subscriptions found' });
   }
 
-  // Web Push requires VAPID keys - check if configured
+  // Web Push requires VAPID keys
   const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
   const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
   const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:***REMOVED***';
@@ -281,10 +308,8 @@ async function handlePushSend(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Push notifications not configured (missing VAPID keys)', HttpStatus.SERVICE_UNAVAILABLE);
   }
 
-  // Configure web-push with VAPID details
   webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
-  // Prepare notification payload
   const payload = JSON.stringify({
     title,
     body,
@@ -298,7 +323,6 @@ async function handlePushSend(req: VercelRequest, res: VercelResponse) {
   let failedCount = 0;
   const expiredEndpoints: string[] = [];
 
-  // Send to each subscription using web-push library
   for (const sub of subscriptions) {
     try {
       const pushSubscription = {
@@ -309,18 +333,17 @@ async function handlePushSend(req: VercelRequest, res: VercelResponse) {
         },
       };
 
-      await webpush.sendNotification(pushSubscription, payload, {
-        TTL: 86400, // 24 hours
-      });
+      await webpush.sendNotification(pushSubscription, payload, { TTL: 86400 });
       sentCount++;
     } catch (err: unknown) {
       const pushError = err as { statusCode?: number };
       if (pushError.statusCode === 410 || pushError.statusCode === 404) {
-        // Subscription expired or invalid - mark as inactive
-        await supabaseAdmin
-          .from('push_subscriptions')
-          .update({ is_active: false })
-          .eq('id', sub.id);
+        // Mark expired subscription as inactive
+        const deactivateQ = {
+          text: `UPDATE push_subscriptions SET is_active = false WHERE id = $1`,
+          values: [sub.id],
+        };
+        await query(deactivateQ.text, deactivateQ.values);
         expiredEndpoints.push(sub.endpoint);
       }
       console.error('[notifications/push-send] Error sending to endpoint:', pushError.statusCode || err);
@@ -329,10 +352,13 @@ async function handlePushSend(req: VercelRequest, res: VercelResponse) {
   }
 
   console.log(`[notifications/push-send] Sent: ${sentCount}, Failed: ${failedCount}`);
-  return sendSuccess(res, { 
-    sent: sentCount, 
+  return sendSuccess(res, {
+    sent: sentCount,
     failed: failedCount,
     total: subscriptions.length,
-    expired_removed: expiredEndpoints.length
+    expired_removed: expiredEndpoints.length,
   });
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, 'general');

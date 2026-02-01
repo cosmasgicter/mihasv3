@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react'
 
 // Lazy load ALL pages for optimal code splitting

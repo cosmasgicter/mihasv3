@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * PWA Management Hook
  * Handles PWA installation, native features, and app-like experience

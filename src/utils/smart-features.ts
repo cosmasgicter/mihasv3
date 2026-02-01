@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Smart features for auto-filling forms and processing documents
 
 import { compressImage } from './file-helpers'

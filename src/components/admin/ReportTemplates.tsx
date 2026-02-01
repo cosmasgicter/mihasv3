@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { FileText, Calendar, Clock, Plus } from 'lucide-react'
-import { useToastStore } from '@/stores/toastStore'
+import { useToastStore } from '@/components/ui/Toast'
 
 interface ReportTemplate {
   id: string
@@ -24,7 +23,7 @@ export function ReportTemplates() {
     scheduleEnabled: false,
     scheduleFrequency: 'monthly'
   })
-  const { addToast } = useToastStore()
+  const toast = useToastStore()
 
   useEffect(() => {
     loadTemplates()
@@ -32,9 +31,8 @@ export function ReportTemplates() {
 
   const loadTemplates = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
       const response = await fetch('/api/reports/templates', {
-        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+        credentials: 'include'
       })
       
       if (response.ok) {
@@ -42,7 +40,7 @@ export function ReportTemplates() {
         setTemplates(data.reports || [])
       }
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to load templates' })
+      toast.error('Failed to load templates')
     } finally {
       setLoading(false)
     }
@@ -50,54 +48,52 @@ export function ReportTemplates() {
 
   const createTemplate = async () => {
     if (!newTemplate.reportName) {
-      addToast({ type: 'error', message: 'Report name is required' })
+      toast.error('Report name is required')
       return
     }
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
       const response = await fetch('/api/reports/templates', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(newTemplate)
       })
 
       if (response.ok) {
-        addToast({ type: 'success', message: 'Template created successfully' })
+        toast.success('Template created successfully')
         setShowCreate(false)
         setNewTemplate({ reportName: '', reportType: 'monthly', scheduleEnabled: false, scheduleFrequency: 'monthly' })
         loadTemplates()
       } else {
         throw new Error('Failed to create template')
       }
-    } catch (error) {
-      addToast({ type: 'error', message: error.message })
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create template')
     }
   }
 
   const toggleSchedule = async (reportId: string, enabled: boolean, frequency: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
       const response = await fetch('/api/reports/schedule', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ reportId, scheduleEnabled: enabled, scheduleFrequency: frequency })
       })
 
       if (response.ok) {
-        addToast({ type: 'success', message: `Schedule ${enabled ? 'enabled' : 'disabled'}` })
+        toast.success(`Schedule ${enabled ? 'enabled' : 'disabled'}`)
         loadTemplates()
       } else {
         throw new Error('Failed to update schedule')
       }
-    } catch (error) {
-      addToast({ type: 'error', message: error.message })
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update schedule')
     }
   }
 

@@ -1,9 +1,26 @@
-import { supabase } from './supabase'
+/**
+ * Session Manager - Uses HTTP-only cookie authentication
+ * Replaces Supabase Auth SDK with custom JWT auth
+ */
 
 export interface SessionManager {
   refreshSession: () => Promise<boolean>
   isSessionValid: () => Promise<boolean>
   clearSession: () => Promise<void>
+}
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
 }
 
 class SessionManagerImpl implements SessionManager {
@@ -26,12 +43,17 @@ class SessionManagerImpl implements SessionManager {
 
   private async performRefresh(): Promise<boolean> {
     try {
-      const { data, error } = await supabase.auth.refreshSession()
-      if (error) {
-        console.error('Session refresh failed:', error.message)
+      const response = await authFetch('/api/auth?action=refresh', {
+        method: 'POST',
+      })
+      
+      if (!response.ok) {
+        console.error('Session refresh failed:', response.statusText)
         return false
       }
-      return !!data.session
+      
+      const data = await response.json()
+      return data.success === true
     } catch (error) {
       console.error('Session refresh error:', error)
       return false
@@ -40,22 +62,18 @@ class SessionManagerImpl implements SessionManager {
 
   async isSessionValid(): Promise<boolean> {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession()
-      if (error) {
+      const response = await authFetch('/api/auth?action=session')
+      
+      if (!response.ok) {
+        // Try to refresh if session check fails
+        if (response.status === 401) {
+          return await this.refreshSession()
+        }
         return false
       }
       
-      if (!session) {
-        return false
-      }
-
-      // Check if session is expired
-      const now = Math.floor(Date.now() / 1000)
-      if (session.expires_at && session.expires_at < now) {
-        return await this.refreshSession()
-      }
-
-      return true
+      const data = await response.json()
+      return data.success === true && !!data.user
     } catch {
       return false
     }
@@ -63,7 +81,9 @@ class SessionManagerImpl implements SessionManager {
 
   async clearSession(): Promise<void> {
     try {
-      await supabase.auth.signOut()
+      await authFetch('/api/auth?action=logout', {
+        method: 'POST',
+      })
     } catch (error) {
       console.error('Error clearing session:', error)
     }

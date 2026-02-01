@@ -1,4 +1,6 @@
-import { supabase } from './supabase'
+/**
+ * Enhanced Session Manager - Uses HTTP-only cookie authentication
+ */
 import { multiDeviceSessionManager } from './multiDeviceSession'
 
 export interface EnhancedSessionManager {
@@ -6,6 +8,20 @@ export interface EnhancedSessionManager {
   isSessionValid: () => Promise<boolean>
   clearSession: () => Promise<void>
   handleAuthStateChange: (event: string, session: any) => Promise<void>
+}
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
 }
 
 class EnhancedSessionManagerImpl implements EnhancedSessionManager {
@@ -37,20 +53,23 @@ class EnhancedSessionManagerImpl implements EnhancedSessionManager {
 
   private async performRefresh(): Promise<boolean> {
     try {
-      const { data, error } = await supabase.auth.refreshSession()
-      if (error) {
-        console.error('Session refresh failed:', error.message)
+      const response = await authFetch('/api/auth?action=refresh', {
+        method: 'POST',
+      })
+      
+      if (!response.ok) {
+        console.error('Session refresh failed:', response.statusText)
         return false
       }
       
-      if (data.session?.user) {
-        await multiDeviceSessionManager.registerSession(
-          data.session.user.id,
-          data.session.access_token
-        )
+      const data = await response.json()
+      
+      if (data.success && data.user) {
+        await multiDeviceSessionManager.registerSession(data.user.id)
+        return true
       }
       
-      return !!data.session
+      return false
     } catch (error) {
       console.error('Session refresh error:', error)
       return false
@@ -59,25 +78,26 @@ class EnhancedSessionManagerImpl implements EnhancedSessionManager {
 
   async isSessionValid(): Promise<boolean> {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession()
-      if (error || !session) {
+      const response = await authFetch('/api/auth?action=session')
+      
+      if (!response.ok) {
+        return false
+      }
+      
+      const data = await response.json()
+      
+      if (!data.success || !data.user) {
         return false
       }
 
       // Check multi-device session validity
-      const isValidMultiDevice = await multiDeviceSessionManager.checkSessionConflicts(session.user.id)
+      const isValidMultiDevice = await multiDeviceSessionManager.checkSessionConflicts(data.user.id)
       if (!isValidMultiDevice) {
         return false
       }
 
-      // Check if session is expired
-      const now = Math.floor(Date.now() / 1000)
-      if (session.expires_at && session.expires_at < now) {
-        return await this.refreshSession()
-      }
-
       // Update activity
-      await multiDeviceSessionManager.updateActivity(session.user.id)
+      await multiDeviceSessionManager.updateActivity(data.user.id)
       return true
     } catch (error) {
       console.error('Session validation error:', error)
@@ -87,11 +107,17 @@ class EnhancedSessionManagerImpl implements EnhancedSessionManager {
 
   async clearSession(): Promise<void> {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await multiDeviceSessionManager.invalidateSession(user.id)
+      // Get current user before signing out
+      const sessionResponse = await authFetch('/api/auth?action=session')
+      if (sessionResponse.ok) {
+        const sessionData = await sessionResponse.json()
+        if (sessionData.user) {
+          await multiDeviceSessionManager.invalidateSession(sessionData.user.id)
+        }
       }
-      await supabase.auth.signOut()
+      
+      // Sign out via API
+      await authFetch('/api/auth?action=logout', { method: 'POST' })
     } catch (error) {
       console.error('Error clearing session:', error)
     }
@@ -105,10 +131,7 @@ class EnhancedSessionManagerImpl implements EnhancedSessionManager {
       switch (event) {
         case 'SIGNED_IN':
           if (session?.user) {
-            await multiDeviceSessionManager.registerSession(
-              session.user.id,
-              session.access_token
-            )
+            await multiDeviceSessionManager.registerSession(session.user.id)
           }
           break
         case 'SIGNED_OUT':

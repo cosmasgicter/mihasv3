@@ -1,6 +1,22 @@
+/**
+ * Token Refresh Hook - Uses HTTP-only cookie authentication
+ */
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
 
 export function useTokenRefresh() {
   const { user } = useAuth()
@@ -9,39 +25,40 @@ export function useTokenRefresh() {
   const [refreshCount, setRefreshCount] = useState(0)
 
   useEffect(() => {
-    if (!user || !isSupabaseConfigured) return
+    if (!user) return
 
-    const supabase = getSupabaseClient()
     let mounted = true
+    let refreshInterval: NodeJS.Timeout | null = null
 
-    async function checkToken() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (mounted && session?.expires_at) {
-        setTokenExpiry(new Date(session.expires_at * 1000))
+    async function checkAndRefreshToken() {
+      try {
+        // Proactively refresh the token
+        const response = await authFetch('/api/auth?action=refresh', {
+          method: 'POST',
+        })
+        
+        if (mounted && response.ok) {
+          setLastRefresh(new Date())
+          // Estimate expiry as 15 minutes from now (access token lifetime)
+          setTokenExpiry(new Date(Date.now() + 15 * 60 * 1000))
+          setRefreshCount(prev => prev + 1)
+        }
+      } catch (error) {
+        console.error('Token refresh error:', error)
       }
     }
 
-    checkToken()
+    // Initial check
+    checkAndRefreshToken()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return
-
-      if (event === 'TOKEN_REFRESHED' && session?.expires_at) {
-        setLastRefresh(new Date())
-        setTokenExpiry(new Date(session.expires_at * 1000))
-        setRefreshCount(prev => prev + 1)
-      }
-      
-      if (event === 'SIGNED_OUT') {
-        setTokenExpiry(null)
-        setLastRefresh(null)
-        setRefreshCount(0)
-      }
-    })
+    // Refresh every 10 minutes (before 15-minute expiry)
+    refreshInterval = setInterval(checkAndRefreshToken, 10 * 60 * 1000)
 
     return () => {
       mounted = false
-      subscription.unsubscribe()
+      if (refreshInterval) {
+        clearInterval(refreshInterval)
+      }
     }
   }, [user])
 

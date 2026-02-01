@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { logger } from '@/utils/logger'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 
@@ -13,27 +12,34 @@ export default function AuthCallbackPage() {
 
     const handleAuthCallback = async () => {
       try {
-        // Get the hash fragment from the URL
+        // Get the hash fragment or query params from the URL
         const hashFragment = window.location.hash
+        const searchParams = new URLSearchParams(window.location.search)
+        const token = searchParams.get('token') || hashFragment.replace('#', '')
 
-        if (hashFragment && hashFragment.length > 0) {
-          // Exchange the auth code for a session
-          const { data, error } = await supabase.auth.exchangeCodeForSession(hashFragment)
+        if (token && token.length > 0) {
+          // Exchange the auth code for a session via our custom API
+          const response = await fetch('/api/auth?action=callback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ token })
+          })
 
-          if (error) {
-            logger.error('Error exchanging code for session:', error.message)
-            setError(error.message)
+          const result = await response.json()
+
+          if (!result.success) {
+            logger.error('Error exchanging code for session:', result.error)
+            setError(result.error || 'Authentication failed')
             timeoutId = setTimeout(() => {
-              navigate('/auth/signin?error=' + encodeURIComponent(error.message))
+              navigate('/auth/signin?error=' + encodeURIComponent(result.error || 'Authentication failed'))
             }, 3000)
             return
           }
 
-          if (data.session) {
-            // Successfully signed in, redirect to dashboard
-            navigate('/dashboard')
-            return
-          }
+          // Successfully signed in, redirect to dashboard
+          navigate('/dashboard')
+          return
         }
 
         // If we get here, something went wrong

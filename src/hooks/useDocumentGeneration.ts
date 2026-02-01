@@ -1,63 +1,71 @@
-import { useState } from 'react'
-import { logger } from '@/lib/logger'
-import { generateApplicationSlip } from '@/lib/applicationSlip'
-import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator'
-import { generatePaymentReceipt } from '@/lib/receiptGenerator'
-import { getApiBaseUrl } from '@/lib/apiConfig'
-import { getSupabaseClient } from '@/lib/supabase'
+/**
+ * Document Generation Hook - Cookie-based authentication
+ * 
+ * Uses HTTP-only cookies (credentials: 'include') for authentication
+ * 
+ * @module useDocumentGeneration
+ */
+
+import { useState } from 'react';
+import { logger } from '@/lib/logger';
+import { generateApplicationSlip } from '@/lib/applicationSlip';
+import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator';
+import { generatePaymentReceipt } from '@/lib/receiptGenerator';
+import { getApiBaseUrl } from '@/lib/apiConfig';
 
 export function useDocumentGeneration() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const generateDocument = async (type: 'slip' | 'acceptance' | 'receipt', applicationId: string) => {
-    setLoading(true)
-    setError(null)
+  const generateDocument = async (
+    type: 'slip' | 'acceptance' | 'receipt',
+    applicationId: string
+  ) => {
+    setLoading(true);
+    setError(null);
 
     try {
-      logger.log('[useDocumentGeneration] Starting generation for type:', type)
-      const supabase = getSupabaseClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session?.access_token) {
-        throw new Error('Not authenticated')
-      }
-      logger.log('[useDocumentGeneration] Authenticated')
+      logger.log('[useDocumentGeneration] Starting generation for type:', type);
 
-      // Fetch application data
+      // Fetch application data using cookie auth
       const response = await fetch(
-        `${getApiBaseUrl()}/applications/${applicationId}`,
+        `${getApiBaseUrl()}/api/applications?id=${applicationId}`,
         {
+          method: 'GET',
+          credentials: 'include', // CRITICAL: Send HTTP-only cookies
           headers: {
-            'Authorization': `Bearer ${session.access_token}`
-          }
+            'Content-Type': 'application/json',
+          },
         }
-      )
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch application data')
+        if (response.status === 401) {
+          throw new Error('Please sign in to generate documents');
+        }
+        throw new Error('Failed to fetch application data');
       }
 
-      const result = await response.json()
-      const application = result.application || result.data
-      logger.log('[useDocumentGeneration] Application data:', application)
-      
+      const result = await response.json();
+      const application = result.data || result.application;
+      logger.log('[useDocumentGeneration] Application data:', application);
+
       if (!application) {
-        console.error('No application data in response:', result)
-        throw new Error('No application data received')
+        console.error('No application data in response:', result);
+        throw new Error('No application data received');
       }
 
       if (!application.application_number || !application.public_tracking_code) {
-        console.error('Missing required fields:', application)
-        throw new Error('Missing required application fields')
+        console.error('Missing required fields:', application);
+        throw new Error('Missing required application fields');
       }
-      
-      let pdfBlob: Blob
-      let filename: string
+
+      let pdfBlob: Blob;
+      let filename: string;
 
       switch (type) {
         case 'slip':
-          logger.log('[useDocumentGeneration] Generating slip PDF...')
+          logger.log('[useDocumentGeneration] Generating slip PDF...');
           pdfBlob = await generateApplicationSlip({
             public_tracking_code: application.public_tracking_code,
             application_number: application.application_number,
@@ -70,15 +78,15 @@ export function useDocumentGeneration() {
             institution: application.institution,
             full_name: application.full_name,
             email: application.email || '',
-            phone: application.phone
-          })
-          logger.log('[useDocumentGeneration] Slip PDF generated successfully')
-          filename = `application_slip_${application.application_number}.pdf`
-          break
+            phone: application.phone,
+          });
+          logger.log('[useDocumentGeneration] Slip PDF generated successfully');
+          filename = `application_slip_${application.application_number}.pdf`;
+          break;
 
         case 'acceptance':
           if (application.status !== 'approved') {
-            throw new Error('Application must be approved to generate acceptance letter')
+            throw new Error('Application must be approved to generate acceptance letter');
           }
           pdfBlob = await generateAcceptanceLetter({
             applicationNumber: application.application_number,
@@ -86,59 +94,61 @@ export function useDocumentGeneration() {
             program: application.program,
             institution: application.institution || 'MIHAS',
             intake: application.intake,
-            approvedDate: application.updated_at
-          })
-          filename = `acceptance_letter_${application.application_number}.pdf`
-          break
+            approvedDate: application.updated_at,
+          });
+          filename = `acceptance_letter_${application.application_number}.pdf`;
+          break;
 
         case 'receipt':
           if (application.payment_status !== 'verified') {
-            throw new Error('Payment must be verified to generate receipt')
+            throw new Error('Payment must be verified to generate receipt');
           }
-          
-          // Fetch receipt data
+
+          // Fetch receipt data using cookie auth
           const receiptResponse = await fetch(
-            `${getApiBaseUrl()}/payments/generate-receipt?applicationId=${applicationId}`,
+            `${getApiBaseUrl()}/api/payments?action=receipt&applicationId=${applicationId}`,
             {
+              method: 'GET',
+              credentials: 'include', // CRITICAL: Send HTTP-only cookies
               headers: {
-                'Authorization': `Bearer ${session.access_token}`
-              }
+                'Content-Type': 'application/json',
+              },
             }
-          )
-          
+          );
+
           if (!receiptResponse.ok) {
-            throw new Error('Failed to fetch receipt data')
+            throw new Error('Failed to fetch receipt data');
           }
-          
-          const { data: receiptData } = await receiptResponse.json()
-          pdfBlob = await generatePaymentReceipt(receiptData)
-          filename = `receipt_${receiptData.receiptNumber}.pdf`
-          break
+
+          const { data: receiptData } = await receiptResponse.json();
+          pdfBlob = await generatePaymentReceipt(receiptData);
+          filename = `receipt_${receiptData.receiptNumber}.pdf`;
+          break;
 
         default:
-          throw new Error('Invalid document type')
+          throw new Error('Invalid document type');
       }
 
       // Download PDF
-      const url = URL.createObjectURL(pdfBlob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
 
-      return true
+      return true;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to generate document'
-      console.error('[useDocumentGeneration] Error:', err)
-      setError(message)
-      return false
+      const message = err instanceof Error ? err.message : 'Failed to generate document';
+      console.error('[useDocumentGeneration] Error:', err);
+      setError(message);
+      return false;
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  return { generateDocument, loading, error }
+  return { generateDocument, loading, error };
 }

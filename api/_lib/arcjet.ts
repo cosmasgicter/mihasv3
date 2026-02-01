@@ -28,8 +28,8 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 // Route type for rate limiting configuration
 export type RouteType = "auth" | "session" | "admin" | "notification" | "general";
 
-// Protected handler type
-export type ProtectedHandler = (req: VercelRequest, res: VercelResponse) => Promise<void>;
+// Protected handler type - allows returning VercelResponse or void
+export type ProtectedHandler = (req: VercelRequest, res: VercelResponse) => Promise<VercelResponse | void>;
 
 // ARCJET KEY VERIFICATION
 const ARCJET_KEY = process.env.ARCJET_KEY;
@@ -203,7 +203,7 @@ export function withArcjetProtection(
   handler: ProtectedHandler,
   routeType: RouteType = "general"
 ): ProtectedHandler {
-  return async (req: VercelRequest, res: VercelResponse): Promise<void> => {
+  return async (req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> => {
     // Skip Arcjet if key not configured (development only)
     if (!ARCJET_KEY) {
       console.warn("[ARCJET] WARNING: Running without Arcjet protection");

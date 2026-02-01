@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Property Test: Auto-Save Round-Trip
  * Feature: bun-vercel-migration

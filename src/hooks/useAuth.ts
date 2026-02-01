@@ -395,3 +395,12 @@ export function useRevokeAllSessions() {
     },
   });
 }
+
+
+/**
+ * useAuth hook
+ * 
+ * Re-exports the useAuth from AuthContext for convenience.
+ * This allows importing from @/hooks/useAuth instead of @/contexts/AuthContext
+ */
+export { useAuth } from '@/contexts/AuthContext';

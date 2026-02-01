@@ -200,19 +200,12 @@ export function useApplicationSlip({
 
       toast.showInfo?.('Sending email', 'Sending your application slip...')
 
-      // Call endpoint with application number
-      const { supabase } = await import('@/lib/supabase')
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session?.access_token) {
-        throw new Error('Please sign in to send email')
-      }
-
-      const emailResponse = await fetch('/applications/email/slip', {
+      // Call endpoint with cookie-based auth
+      const emailResponse = await fetch('/api/applications?action=email-slip', {
         method: 'POST',
+        credentials: 'include', // CRITICAL: Send HTTP-only cookies
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ 
           applicationNumber: submittedApplication.applicationNumber,
@@ -231,6 +224,9 @@ export function useApplicationSlip({
       }
 
       if (!emailResponse.ok) {
+        if (emailResponse.status === 401) {
+          throw new Error('Please sign in to send email')
+        }
         if (emailResponse.status === 405) {
           throw new Error('Email service temporarily unavailable. Please try downloading the slip instead.')
         }
@@ -249,7 +245,7 @@ export function useApplicationSlip({
     } finally {
       setEmailLoading(false)
     }
-  }, [submittedApplication, slipCache, toast, handleDownloadSlip])
+  }, [submittedApplication, toast])
 
   return {
     slipCache,

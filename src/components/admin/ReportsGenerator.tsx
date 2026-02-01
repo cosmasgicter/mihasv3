@@ -22,6 +22,7 @@ import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { isReportManagerRole } from '@/lib/auth/roles'
 import { AnalyticsService } from '@/lib/analytics'
 import { applicationService } from '@/services/applications'
+import { toast } from '@/hooks/useToast'
 
 interface ReportConfig {
   type: 'daily' | 'weekly' | 'monthly' | 'regulatory'
@@ -349,7 +350,7 @@ export function ReportsGenerator() {
         if (action === 'pdf') {
           const { blob: generatedBlob, bytes } = result.pdf
           const byteSource = bytes instanceof Uint8Array
-            ? bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+            ? (bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer)
             : bytes
           const blob = generatedBlob ?? new Blob([byteSource], { type: 'application/pdf' })
           downloadPdfDocument(blob, result.pdf.fileName)

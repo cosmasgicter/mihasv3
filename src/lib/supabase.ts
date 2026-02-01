@@ -1,12 +1,9 @@
-import { createClient, type SupabaseClient, type SupportedStorage } from '@supabase/supabase-js'
-import { sanitizeForLog, sanitizeUrl } from './security'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { sanitizeUrl } from './security'
 
 // Supabase project configuration from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const passwordResetRedirectOverride = import.meta.env
-  .VITE_SUPABASE_PASSWORD_RESET_REDIRECT as string | undefined
-const appBaseUrl = import.meta.env.VITE_APP_BASE_URL as string | undefined
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
@@ -17,76 +14,8 @@ export interface SupabaseStatusDetail {
   message?: string
 }
 
-// Realtime connection status events
-export const REALTIME_STATUS_EVENT = 'supabase:realtime-status'
-export const REALTIME_RECONNECT_EVENT = 'supabase:realtime-reconnect'
-
-export interface RealtimeStatusDetail {
-  connected: boolean
-  channelCount: number
-  status: string
-  lastConnectedAt?: Date | null
-}
-
 export const SUPABASE_MISSING_CONFIG_MESSAGE =
-  'Supabase environment variables are missing. Authentication features are disabled in this build.'
-
-const PASSWORD_RESET_PATH = '/auth/reset-password'
-
-function appendPasswordResetPath(baseUrl: string | undefined): string | undefined {
-  if (!baseUrl) {
-    return undefined
-  }
-
-  const trimmed = baseUrl.trim()
-  if (!trimmed) {
-    return undefined
-  }
-
-  const sanitizedBase = sanitizeUrl(trimmed)
-  if (!sanitizedBase) {
-    return undefined
-  }
-
-  try {
-    const url = new URL(sanitizedBase)
-    if (url.pathname === PASSWORD_RESET_PATH) {
-      return sanitizeUrl(url.toString()) ?? undefined
-    }
-
-    url.pathname = PASSWORD_RESET_PATH
-    url.search = ''
-    url.hash = ''
-
-    return sanitizeUrl(url.toString()) ?? undefined
-  } catch {
-    return undefined
-  }
-}
-
-export function getPasswordResetRedirectUrl(): string | undefined {
-  if (passwordResetRedirectOverride) {
-    const override = sanitizeUrl(passwordResetRedirectOverride.trim())
-    if (override) {
-      return override
-    }
-  }
-
-  const candidates: Array<string | undefined> = [appBaseUrl]
-
-  if (typeof window !== 'undefined') {
-    candidates.push(window.location.origin)
-  }
-
-  for (const candidate of candidates) {
-    const redirectUrl = appendPasswordResetPath(candidate)
-    if (redirectUrl) {
-      return redirectUrl
-    }
-  }
-
-  return undefined
-}
+  'Supabase environment variables are missing. Database features are disabled in this build.'
 
 function resolveSupabaseConfig() {
   if (!isSupabaseConfigured) {
@@ -99,175 +28,77 @@ function resolveSupabaseConfig() {
   }
 }
 
-const AUTH_STORAGE_KEY = 'mihas-auth-token'
-
-type SupabaseFactoryOptions = {
-  storage?: SupportedStorage
-}
-
 let supabaseClient: SupabaseClient | null = null
-let usingServerStorage = false
-let authHandlersInitialized = false
-let sessionInterval: NodeJS.Timeout | null = null
-let refreshRetryCount = 0
 
-const MAX_REFRESH_RETRIES = 3
-
-function createMemoryStorage(): SupportedStorage {
-  const store = new Map<string, string>()
-
-  return {
-    getItem: key => store.get(key) ?? null,
-    setItem: (key, value) => {
-      store.set(key, value)
-    },
-    removeItem: key => {
-      store.delete(key)
-    },
-    isServer: true
-  }
-}
-
-function resolveStorage(adapter?: SupportedStorage) {
-  if (adapter) {
-    return { storage: adapter, isServerStorage: adapter.isServer === true }
+/**
+ * Create or return the Supabase client
+ * 
+ * NOTE: This client is now used ONLY for:
+ * - Supabase Storage (file uploads)
+ * - Direct database queries (when needed)
+ * 
+ * Authentication is handled by HTTP-only cookies via /api/auth endpoints.
+ * Do NOT use supabase.auth.* methods - use the custom auth API instead.
+ */
+export function createSupabaseClient(): SupabaseClient {
+  if (supabaseClient) {
+    return supabaseClient
   }
 
-  if (typeof window !== 'undefined' && window.localStorage) {
-    return { storage: window.localStorage, isServerStorage: false }
-  }
-
-  const memoryStorage = createMemoryStorage()
-  return { storage: memoryStorage, isServerStorage: true }
-}
-
-export function createSupabaseClient(options: SupabaseFactoryOptions = {}): SupabaseClient {
   const { url, anonKey } = resolveSupabaseConfig()
-  const { storage, isServerStorage } = resolveStorage(options.storage)
-  const shouldRecreateClient =
-    !supabaseClient || (!isServerStorage && usingServerStorage)
 
-  if (shouldRecreateClient) {
-    if (sessionInterval) {
-      clearInterval(sessionInterval)
-      sessionInterval = null
-    }
-
-    supabaseClient = createClient(url, anonKey, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false,
-        storage,
-        storageKey: AUTH_STORAGE_KEY,
-        // Only enable debug logging in development mode to reduce console noise in production
-        debug: import.meta.env.DEV
+  supabaseClient = createClient(url, anonKey, {
+    auth: {
+      // Disable Supabase Auth SDK - we use custom JWT auth with HTTP-only cookies
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false
+    },
+    global: {
+      headers: {
+        'x-client-info': 'mihas-app@1.0.0'
       },
-      realtime: {
-        params: {
-          eventsPerSecond: 2
+      fetch: (url, options = {}) => {
+        // Validate URL to prevent SSRF attacks
+        const sanitizedUrl = sanitizeUrl(url)
+        if (!sanitizedUrl) {
+          return Promise.reject(new Error('Invalid URL rejected for security'))
         }
-      },
-      global: {
-        headers: {
-          'x-client-info': 'mihas-app@1.0.0'
-        },
-        fetch: (url, options = {}) => {
-          // Validate URL to prevent SSRF attacks
-          const sanitizedUrl = sanitizeUrl(url)
-          if (!sanitizedUrl) {
-            return Promise.reject(new Error('Invalid URL rejected for security'))
-          }
-          
-          return fetch(sanitizedUrl, options)
-        }
+        
+        return fetch(sanitizedUrl, options)
       }
-    })
+    }
+  })
 
-    usingServerStorage = isServerStorage
-    authHandlersInitialized = false
-    refreshRetryCount = 0
-  }
-
-  if (typeof window !== 'undefined' && supabaseClient && !authHandlersInitialized) {
-    initializeBrowserAuthHandlers(supabaseClient, storage)
-  }
-
-  return supabaseClient!
+  return supabaseClient
 }
 
 export const getSupabaseClient = createSupabaseClient
 
-function initializeBrowserAuthHandlers(client: SupabaseClient, storage: SupportedStorage) {
-  if (authHandlersInitialized || typeof window === 'undefined') {
-    return
-  }
-
-  // Auth state changes are handled by useSessionListener hook
-  // Removed duplicate listener to prevent race conditions
-  
-  authHandlersInitialized = true
-}
-
-// Session monitoring with retry logic
-function startSessionMonitoring(client: SupabaseClient) {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  if (sessionInterval) clearInterval(sessionInterval)
-
-  sessionInterval = setInterval(async () => {
-    try {
-      const { data: { session }, error } = await client.auth.getSession()
-
-      if (!session || error) return
-
-      const timeUntilExpiry = (session.expires_at! * 1000) - Date.now()
-      const fiveMinutes = 5 * 60 * 1000
-
-      if (timeUntilExpiry < fiveMinutes && timeUntilExpiry > 0) {
-        await retryTokenRefresh(client)
-      }
-    } catch (error) {
-    }
-  }, 60000)
-}
-
-async function retryTokenRefresh(client: SupabaseClient) {
-  for (let i = 0; i < MAX_REFRESH_RETRIES; i++) {
-    try {
-      const { error } = await client.auth.refreshSession()
-      if (!error) {
-        return
-      }
-    } catch (error) {
-    }
-
-    if (i < MAX_REFRESH_RETRIES - 1) {
-      await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1))) // Exponential backoff
-    }
-  }
-  console.error('All token refresh attempts failed')
-}
-
-export const supabase = new Proxy({}, {
+/**
+ * Proxy for backward compatibility
+ * Allows using `supabase.from()`, `supabase.storage`, etc.
+ */
+export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
-    const client = createSupabaseClient()
-    const value = (client as any)[prop]
-    if (typeof value === 'function') {
-      return value.bind(client)
+    const client = createSupabaseClient();
+    const propValue = (client as any)[prop];
+    if (typeof propValue === 'function') {
+      return propValue.bind(client);
     }
-    return value
+    return propValue;
   },
-  set(_target, prop, value) {
-    const client = createSupabaseClient()
-    (client as any)[prop] = value
-    return true
+  set(_target, prop, newValue) {
+    const client = createSupabaseClient();
+    (client as any)[prop] = newValue;
+    return true;
   }
-}) as SupabaseClient
+});
 
-// Database type definitions (keeping existing types)
+// ============================================================================
+// Database Type Definitions
+// ============================================================================
+
 export interface UserProfile {
   id: string
   user_id: string
@@ -485,22 +316,4 @@ export interface ApplicationDraft {
   is_offline_sync: boolean
   created_at: string
   updated_at: string
-}
-
-/**
- * Reconnect all realtime subscriptions
- * Removes all channels and dispatches event for hooks to re-subscribe
- */
-export function reconnectRealtime(): void {
-  if (supabaseClient) {
-    supabaseClient.removeAllChannels()
-    window.dispatchEvent(new CustomEvent(REALTIME_RECONNECT_EVENT))
-  }
-}
-
-/**
- * Dispatch realtime status event for UI indicators
- */
-export function dispatchRealtimeStatus(detail: RealtimeStatusDetail): void {
-  window.dispatchEvent(new CustomEvent(REALTIME_STATUS_EVENT, { detail }))
 }
