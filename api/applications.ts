@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from './_utils/cors';
-import { query } from './_utils/db';
-import { getAuthUser } from './_utils/auth_middleware';
-import { withArcjetProtection } from './_utils/arcjet';
+import { handleCors } from './utils/cors';
+import { query } from './utils/db';
+import { getAuthUser } from './utils/auth_middleware';
+import { withArcjetProtection } from './utils/arcjet';
 import { 
   ApplicationQueries, 
   DocumentQueries, 
@@ -15,8 +15,8 @@ import {
   ApplicationStatus,
   PaymentStatus,
   USER_ROLES
-} from './_utils/queries';
-import { handleError, sendSuccess, sendError, HttpStatus } from './_utils/errorHandler';
+} from './utils/queries';
+import { handleError, sendSuccess, sendError, HttpStatus } from './utils/errorHandler';
 
 /**
  * Consolidated Applications API

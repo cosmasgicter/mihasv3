@@ -8,20 +8,20 @@
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { handleCors } from "./_utils/cors";
-import { query } from "./_utils/db";
-import { hashPassword, verifyPassword } from "./_utils/auth_password";
+import { handleCors } from "./utils/cors";
+import { query } from "./utils/db";
+import { hashPassword, verifyPassword } from "./utils/auth_password";
 import { 
   generateAccessToken, 
   generateRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
   type UserRole 
-} from "./_utils/auth_jwt";
-import { getPermissionsForRole } from "./_utils/auth_permissions";
-import { setAuthCookies, clearAuthCookies, extractAccessTokenFromCookie, extractRefreshTokenFromCookie } from "./_utils/auth_cookies";
-import { withArcjetProtection } from "./_utils/arcjet";
-import { handleError, sendSuccess, sendError, HttpStatus } from "./_utils/errorHandler";
+} from "./utils/auth_jwt";
+import { getPermissionsForRole } from "./utils/auth_permissions";
+import { setAuthCookies, clearAuthCookies, extractAccessTokenFromCookie, extractRefreshTokenFromCookie } from "./utils/auth_cookies";
+import { withArcjetProtection } from "./utils/arcjet";
+import { handleError, sendSuccess, sendError, HttpStatus } from "./utils/errorHandler";
 
 /**
  * Auth API Handler
