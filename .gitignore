@@ -12,6 +12,10 @@ node_modules
 dist/
 build/
 
+# Bundled API files (generated during Vercel build)
+api/*.js
+api/*.bundle.js
+
 # Environment variables
 .env
 .env.*
