@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { detectDatabaseType, query } from './_db';
 
 /**
  * Database test endpoint - tests if _db.ts can be imported
@@ -16,17 +17,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   };
 
   try {
-    // Test 1: Import _db module
-    results.step2_import_start = 'attempting';
-    const dbModule = await import('./_db');
-    results.step2_import_done = 'ok';
-    results.step2_exports = Object.keys(dbModule).join(', ');
-
-    // Test 2: Check detectDatabaseType
-    results.step3_detect_start = 'attempting';
-    const dbType = dbModule.detectDatabaseType();
-    results.step3_detect_done = 'ok';
-    results.step3_dbType = dbType;
+    // Test 1: Check detectDatabaseType (static import)
+    results.step2_detect_start = 'attempting';
+    const dbType = detectDatabaseType();
+    results.step2_detect_done = 'ok';
+    results.step2_dbType = dbType;
 
     return res.status(200).json({
       success: true,
