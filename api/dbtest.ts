@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { detectDatabaseType, query } from './_utils/db';
+import { detectDatabaseType, query } from './utils/db';
 
 /**
  * Database test endpoint - tests if _db.ts can be imported
