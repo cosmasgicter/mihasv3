@@ -185,14 +185,23 @@ function interpolateParams(query: string, params?: unknown[]): string {
 // Neon Serverless Driver
 // ============================================================================
 
-// Lazy-loaded Neon client
-let neonSql: ((strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown[]>) | null = null;
+// Type for the Neon query function with query method
+type NeonSqlFunction = {
+  (strings: TemplateStringsArray, ...params: unknown[]): Promise<Record<string, unknown>[]>;
+  query: (queryText: string, params?: unknown[]) => Promise<Record<string, unknown>[]>;
+};
 
 /**
- * Get or initialize Neon SQL client
+ * Execute query via Neon serverless driver
+ * 
+ * Uses the sql.query() method for parameterized queries with $1, $2 placeholders
+ * or tagged template literals for simple queries
  */
-async function getNeonClient(): Promise<typeof neonSql> {
-  if (neonSql) return neonSql;
+async function executeNeonQuery<T>(
+  queryText: string,
+  params?: unknown[]
+): Promise<QueryResult<T>> {
+  const command = extractCommand(queryText);
 
   try {
     // Dynamic import for Neon serverless driver
@@ -206,60 +215,15 @@ async function getNeonClient(): Promise<typeof neonSql> {
       );
     }
 
-    neonSql = neon(connectionString);
-    return neonSql;
-  } catch (error) {
-    if (error instanceof DatabaseError) throw error;
-    
-    // If @neondatabase/serverless is not installed
-    if ((error as Error).message?.includes('Cannot find module')) {
-      throw new DatabaseError(
-        'Neon driver not installed. Run: bun add @neondatabase/serverless',
-        DatabaseErrorCode.CONFIG_ERROR,
-        { originalError: error as Error }
-      );
-    }
-
-    throw new DatabaseError(
-      `Failed to initialize Neon client: ${(error as Error).message}`,
-      DatabaseErrorCode.CONNECTION_ERROR,
-      { originalError: error as Error }
-    );
-  }
-}
-
-/**
- * Execute query via Neon serverless driver
- */
-async function executeNeonQuery<T>(
-  queryText: string,
-  params?: unknown[]
-): Promise<QueryResult<T>> {
-  const command = extractCommand(queryText);
-
-  try {
-    const sql = await getNeonClient();
-    if (!sql) {
-      throw new DatabaseError('Neon client not initialized', DatabaseErrorCode.CONFIG_ERROR);
-    }
-
-    // Neon's sql function with query method for parameterized queries
-    let rows: unknown[];
+    const sql = neon(connectionString) as unknown as NeonSqlFunction;
+    let rows: Record<string, unknown>[];
 
     if (params && params.length > 0) {
-      // Use sql.query for parameterized queries with $1, $2 placeholders
-      const { neon } = await import('@neondatabase/serverless');
-      const connectionString = process.env.DATABASE_URL!;
-      const sqlClient = neon(connectionString);
-      
-      // Execute with parameters using the query method
-      rows = await sqlClient.query(queryText, params) as unknown[];
+      // Use sql.query() for parameterized queries with $1, $2 placeholders
+      rows = await sql.query(queryText, params);
     } else {
-      // For queries without parameters, use tagged template
-      const { neon } = await import('@neondatabase/serverless');
-      const connectionString = process.env.DATABASE_URL!;
-      const sqlClient = neon(connectionString);
-      rows = await sqlClient.query(queryText) as unknown[];
+      // For queries without parameters, also use sql.query()
+      rows = await sql.query(queryText);
     }
 
     const resultRows = Array.isArray(rows) ? rows : [];
