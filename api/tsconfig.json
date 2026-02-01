@@ -12,10 +12,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node"]
+    "types": ["node"],
+    "rootDir": "..",
+    "baseUrl": ".."
   },
   "include": [
-    "./**/*.ts"
+    "./**/*.ts",
+    "../lib/**/*.ts"
   ],
   "exclude": [
     "node_modules"
