@@ -13,12 +13,11 @@
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["node"],
-    "rootDir": "..",
-    "baseUrl": ".."
+    "rootDir": ".",
+    "baseUrl": "."
   },
   "include": [
-    "./**/*.ts",
-    "../lib/**/*.ts"
+    "./**/*.ts"
   ],
   "exclude": [
     "node_modules"
