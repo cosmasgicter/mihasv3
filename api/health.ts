@@ -31,6 +31,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return handleDatabaseHealth(res);
   }
 
+  // Environment variable check (for debugging)
+  if (action === 'env') {
+    return handleEnvCheck(res);
+  }
+
   // Basic health check
   return res.status(200).json({
     success: true,
@@ -126,6 +131,61 @@ async function handleDatabaseHealth(res: VercelResponse): Promise<void> {
       databaseType: detectDatabaseType(),
       checks,
       totalLatency,
+      timestamp: new Date().toISOString(),
+    }
+  });
+}
+
+
+/**
+ * Check required environment variables
+ * GET /api/health?action=env
+ * 
+ * Returns which required env vars are set (not their values)
+ */
+function handleEnvCheck(res: VercelResponse): void {
+  const requiredVars = [
+    'DATABASE_URL',
+    'JWT_SECRET',
+    'JWT_REFRESH_SECRET',
+    'ARCJET_KEY',
+    'R2_ACCOUNT_ID',
+    'R2_ACCESS_KEY_ID',
+    'R2_SECRET_ACCESS_KEY',
+    'R2_BUCKET_NAME',
+    'RESEND_API_KEY',
+  ];
+
+  const optionalVars = [
+    'VITE_API_BASE_URL',
+    'VITE_APP_BASE_URL',
+    'EMAIL_FROM',
+  ];
+
+  const envStatus: Record<string, boolean> = {};
+  const missing: string[] = [];
+
+  for (const varName of requiredVars) {
+    const isSet = !!process.env[varName];
+    envStatus[varName] = isSet;
+    if (!isSet) {
+      missing.push(varName);
+    }
+  }
+
+  for (const varName of optionalVars) {
+    envStatus[varName] = !!process.env[varName];
+  }
+
+  const allRequired = missing.length === 0;
+
+  res.status(allRequired ? 200 : 503).json({
+    success: allRequired,
+    data: {
+      status: allRequired ? 'ok' : 'missing_env_vars',
+      environment: process.env.VERCEL_ENV || 'development',
+      envStatus,
+      missing: missing.length > 0 ? missing : undefined,
       timestamp: new Date().toISOString(),
     }
   });
