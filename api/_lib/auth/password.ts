@@ -21,7 +21,7 @@
  * Therefore, SHA-256 MUST be used for token hashing to ensure replay attack prevention works.
  */
 
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { createHash, timingSafeEqual } from "crypto";
 
 /**
