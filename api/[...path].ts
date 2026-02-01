@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from '../lib/cors';
-import { sendError, HttpStatus, ErrorCode } from '../lib/errorHandler';
+import { handleCors } from './_cors';
+import { sendError, HttpStatus, ErrorCode } from './_errorHandler';
 
 /**
  * Catch-All 404 Handler for Non-Existent API Routes
