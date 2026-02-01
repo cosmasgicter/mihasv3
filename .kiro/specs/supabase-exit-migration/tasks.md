@@ -221,3 +221,27 @@
 - [x] 13.3 Write property tests for storage integrity
   - [x] 13.3.1 Test file path preservation
   - [x] 13.3.2 Test content type mapping
+
+## Task 14: Production 500 Error Fix (2026-02-01)
+- [x] 14.1 Diagnose FUNCTION_INVOCATION_FAILED errors
+  - [x] 14.1.1 Identify bcrypt native module as root cause
+  - [x] 14.1.2 Create /api/ping debug endpoint
+  - [x] 14.1.3 Create /api/health?action=env endpoint
+- [x] 14.2 Replace native bcrypt with bcryptjs
+  - [x] 14.2.1 Update api/_lib/auth/password.ts to import bcryptjs
+  - [x] 14.2.2 Remove bcrypt from package.json dependencies
+  - [x] 14.2.3 Remove @types/bcrypt from devDependencies
+  - [x] 14.2.4 Keep bcryptjs and @types/bcryptjs
+- [x] 14.3 Deploy fix to production
+  - [x] 14.3.1 Verify build passes with bcryptjs
+  - [x] 14.3.2 Commit and push changes - PUSHED (2026-02-01 CAT)
+  - [ ] 14.3.3 Verify /api/ping returns 200
+  - [ ] 14.3.4 Verify /api/health?action=env shows all env vars set
+  - [ ] 14.3.5 Verify /api/auth?action=session works
+- [ ] 14.4 Verify Vercel environment variables are set
+  - [ ] 14.4.1 DATABASE_URL - Neon connection string
+  - [ ] 14.4.2 JWT_SECRET - Access token signing
+  - [ ] 14.4.3 JWT_REFRESH_SECRET - Refresh token signing
+  - [ ] 14.4.4 ARCJET_KEY - Security perimeter
+  - [ ] 14.4.5 R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME
+  - [ ] 14.4.6 RESEND_API_KEY - Email service
