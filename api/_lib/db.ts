@@ -243,19 +243,23 @@ async function executeNeonQuery<T>(
       throw new DatabaseError('Neon client not initialized', DatabaseErrorCode.CONFIG_ERROR);
     }
 
-    // Neon's tagged template literal approach
-    // We need to convert our parameterized query to their format
+    // Neon's sql function with query method for parameterized queries
     let rows: unknown[];
 
     if (params && params.length > 0) {
-      // For parameterized queries, we use the sql function with template literals
-      // Convert $1, $2 style to template literal interpolation
-      const interpolatedQuery = interpolateParams(queryText, params);
+      // Use sql.query for parameterized queries with $1, $2 placeholders
+      const { neon } = await import('@neondatabase/serverless');
+      const connectionString = process.env.DATABASE_URL!;
+      const sqlClient = neon(connectionString);
       
-      // Use raw SQL execution
-      rows = await sql`${interpolatedQuery}` as unknown[];
+      // Execute with parameters using the query method
+      rows = await sqlClient.query(queryText, params) as unknown[];
     } else {
-      rows = await sql`${queryText}` as unknown[];
+      // For queries without parameters, use tagged template
+      const { neon } = await import('@neondatabase/serverless');
+      const connectionString = process.env.DATABASE_URL!;
+      const sqlClient = neon(connectionString);
+      rows = await sqlClient.query(queryText) as unknown[];
     }
 
     const resultRows = Array.isArray(rows) ? rows : [];
