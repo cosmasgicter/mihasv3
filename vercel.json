@@ -4,45 +4,8 @@
   "outputDirectory": "dist",
   "framework": null,
   "functions": {
-    "api/health.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
-    },
-    "api/auth.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
-    },
-    "api/admin.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
-    },
-    "api/applications.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
-    },
-    "api/catalog.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
-    },
-    "api/documents.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
-    },
-    "api/notifications.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
-    },
-    "api/payments.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
-    },
-    "api/sessions.ts": {
-      "maxDuration": 10,
-      "includeFiles": "api/_lib/**"
-    },
-    "api/[...path].ts": {
-      "maxDuration": 5,
-      "includeFiles": "api/_lib/**"
+    "api/*.ts": {
+      "maxDuration": 10
     }
   },
   "rewrites": [
