@@ -5,33 +5,22 @@
  * Requirements: 1.1, 1.2, 1.3, 1.4
  */
 
-import { createClient } from '@supabase/supabase-js';
 import type { 
   SecurityVulnerability, 
   AnalysisResult, 
   RemediationStep 
 } from '../types';
 
+/**
+ * @deprecated This analyzer was designed for Supabase. 
+ * Security analysis now happens via API endpoints and Neon database.
+ */
 export class SecurityAnalyzer {
-  private supabase;
   private vulnerabilities: SecurityVulnerability[] = [];
 
   constructor() {
-    // Initialize Supabase client for database analysis (auth disabled)
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase configuration missing for security analysis');
-    }
-    
-    this.supabase = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false
-      }
-    });
+    // NOTE: Supabase has been removed. Security analysis now uses API endpoints.
+    console.warn('[DEPRECATED] SecurityAnalyzer: Supabase has been removed. Use API endpoints for security analysis.');
   }
 
   /**

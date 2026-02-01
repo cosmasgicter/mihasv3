@@ -32,11 +32,11 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
-            // Cache Supabase API calls with network-first strategy
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            // Cache API calls with network-first strategy
+            urlPattern: /^https:\/\/apply\.mihas\.edu\.zm\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'supabase-cache',
+              cacheName: 'api-cache',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24 // 24 hours
@@ -86,18 +86,12 @@ export default defineConfig({
          * Let Vite handle React ecosystem automatically to prevent createContext errors.
          * 
          * Vendor chunks for:
-         * - Supabase (large, independent)
          * - Excel/PDF (dynamically imported, heavy)
          * - OCR (tesseract.js, heavy)
          * - Charts (recharts, dynamically imported)
          */
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // Supabase - large and independent
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase'
-            }
-            
             // Excel libraries - dynamically imported
             if (id.includes('xlsx') || id.includes('exceljs')) {
               return 'vendor-excel'
