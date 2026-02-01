@@ -969,8 +969,8 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
 }
 
 /**
- * Export with Arcjet protection
- * VERIFICATION: Arcjet shield applied
+ * Export with Arcjet protection restored
+ * Arcjet provides: Shield rules, bot detection, rate limiting (5 req/5 min)
  */
 export default withArcjetProtection(handler, "auth");
 

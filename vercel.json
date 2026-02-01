@@ -5,42 +5,52 @@
     "framework":  null,
     "functions":  {
                       "api/health.ts":  {
+                                            "runtime": "nodejs20.x",
                                             "maxDuration":  10,
                                             "includeFiles":  "api/_lib/**"
                                         },
                       "api/auth.ts":  {
+                                          "runtime": "nodejs20.x",
                                           "maxDuration":  10,
                                           "includeFiles":  "api/_lib/**"
                                       },
                       "api/admin.ts":  {
+                                           "runtime": "nodejs20.x",
                                            "maxDuration":  10,
                                            "includeFiles":  "api/_lib/**"
                                        },
                       "api/applications.ts":  {
+                                                  "runtime": "nodejs20.x",
                                                   "maxDuration":  10,
                                                   "includeFiles":  "api/_lib/**"
                                               },
                       "api/catalog.ts":  {
+                                             "runtime": "nodejs20.x",
                                              "maxDuration":  10,
                                              "includeFiles":  "api/_lib/**"
                                          },
                       "api/documents.ts":  {
+                                               "runtime": "nodejs20.x",
                                                "maxDuration":  10,
                                                "includeFiles":  "api/_lib/**"
                                            },
                       "api/notifications.ts":  {
+                                                   "runtime": "nodejs20.x",
                                                    "maxDuration":  10,
                                                    "includeFiles":  "api/_lib/**"
                                                },
                       "api/payments.ts":  {
+                                              "runtime": "nodejs20.x",
                                               "maxDuration":  10,
                                               "includeFiles":  "api/_lib/**"
                                           },
                       "api/sessions.ts":  {
+                                              "runtime": "nodejs20.x",
                                               "maxDuration":  10,
                                               "includeFiles":  "api/_lib/**"
                                           },
                       "api/[...path].ts":  {
+                                               "runtime": "nodejs20.x",
                                                "maxDuration":  5,
                                                "includeFiles":  "api/_lib/**"
                                            }
