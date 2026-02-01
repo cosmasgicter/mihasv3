@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from './utils/cors';
-import { query } from './utils/db';
-import { CatalogQueries, ProgramRecord, IntakeRecord, SubjectRecord } from './utils/queries';
-import { withArcjetProtection } from './utils/arcjet';
-import { handleError, sendSuccess, sendError, HttpStatus } from './utils/errorHandler';
+import { handleCors } from '../lib/cors';
+import { query } from '../lib/db';
+import { CatalogQueries, ProgramRecord, IntakeRecord, SubjectRecord } from '../lib/queries';
+import { withArcjetProtection } from '../lib/arcjet';
+import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
 
 /**
  * Consolidated Catalog API

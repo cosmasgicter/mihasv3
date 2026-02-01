@@ -19,14 +19,14 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from './utils/cors';
-import { supabaseAdmin } from './utils/supabaseClient';
-import { query } from './utils/db';
-import { handleError, sendSuccess, sendError, HttpStatus } from './utils/errorHandler';
-import { withArcjetProtection } from './utils/arcjet';
-import { requireRole, AuthenticationError, AuthorizationError, type AuthContext } from './utils/auth_middleware';
-import { hashPassword } from './utils/auth_password';
-import { logAuditEvent } from './utils/auditLogger';
+import { handleCors } from '../lib/cors';
+import { supabaseAdmin } from '../lib/supabaseClient';
+import { query } from '../lib/db';
+import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
+import { withArcjetProtection } from '../lib/arcjet';
+import { requireRole, AuthenticationError, AuthorizationError, type AuthContext } from '../lib/auth/middleware';
+import { hashPassword } from '../lib/auth/password';
+import { logAuditEvent } from '../lib/auditLogger';
 
 /**
  * System setting interface matching database schema
