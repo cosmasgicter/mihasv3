@@ -14,11 +14,19 @@
  * @deprecated Use db.ts and storage.ts instead
  */
 
-import { query, QueryResult } from './db';
+import { query } from './db';
 import { getR2Storage } from './storage';
 
 // Re-export the Bun-compatible Base64 utility for use by other modules
 export { decodeBase64Url } from './base64';
+
+type QueryOperation = 'select' | 'insert' | 'update' | 'delete' | 'upsert';
+
+interface Filter {
+  column: string;
+  op: string;
+  value: unknown;
+}
 
 /**
  * Mock query builder for backward compatibility
@@ -26,91 +34,139 @@ export { decodeBase64Url } from './base64';
  */
 class MockQueryBuilder<T = Record<string, unknown>> {
   private table: string;
+  private operation: QueryOperation = 'select';
   private selectColumns = '*';
-  private filters: Array<{ column: string; op: string; value: unknown }> = [];
+  private filters: Filter[] = [];
   private orderByColumn?: string;
   private orderAsc = true;
   private limitCount?: number;
   private offsetCount?: number;
-  private returningColumns?: string;
+  private insertData?: Partial<T> | Partial<T>[];
+  private updateData?: Partial<T>;
+  private upsertConflict?: string;
+  private countOnly = false;
+  private headOnly = false;
 
   constructor(table: string) {
     this.table = table;
   }
 
-  select(columns: string = '*', _options?: { count?: string }) {
+  select(columns: string = '*', options?: { count?: string; head?: boolean }): this {
+    this.operation = 'select';
     this.selectColumns = columns;
+    if (options?.count === 'exact') {
+      this.countOnly = true;
+    }
+    if (options?.head) {
+      this.headOnly = true;
+    }
     return this;
   }
 
-  eq(column: string, value: unknown) {
+  insert(data: Partial<T> | Partial<T>[]): this {
+    this.operation = 'insert';
+    this.insertData = data;
+    return this;
+  }
+
+  update(data: Partial<T>): this {
+    this.operation = 'update';
+    this.updateData = data;
+    return this;
+  }
+
+  upsert(data: Partial<T> | Partial<T>[], options?: { onConflict?: string }): this {
+    this.operation = 'upsert';
+    this.insertData = data;
+    this.upsertConflict = options?.onConflict || 'id';
+    return this;
+  }
+
+  delete(): this {
+    this.operation = 'delete';
+    return this;
+  }
+
+  eq(column: string, value: unknown): this {
     this.filters.push({ column, op: '=', value });
     return this;
   }
 
-  neq(column: string, value: unknown) {
+  neq(column: string, value: unknown): this {
     this.filters.push({ column, op: '!=', value });
     return this;
   }
 
-  gt(column: string, value: unknown) {
+  gt(column: string, value: unknown): this {
     this.filters.push({ column, op: '>', value });
     return this;
   }
 
-  gte(column: string, value: unknown) {
+  gte(column: string, value: unknown): this {
     this.filters.push({ column, op: '>=', value });
     return this;
   }
 
-  lt(column: string, value: unknown) {
+  lt(column: string, value: unknown): this {
     this.filters.push({ column, op: '<', value });
     return this;
   }
 
-  lte(column: string, value: unknown) {
+  lte(column: string, value: unknown): this {
     this.filters.push({ column, op: '<=', value });
     return this;
   }
 
-  like(column: string, value: string) {
+  like(column: string, value: string): this {
     this.filters.push({ column, op: 'LIKE', value });
     return this;
   }
 
-  ilike(column: string, value: string) {
+  ilike(column: string, value: string): this {
     this.filters.push({ column, op: 'ILIKE', value });
     return this;
   }
 
-  in(column: string, values: unknown[]) {
+  in(column: string, values: unknown[]): this {
     this.filters.push({ column, op: 'IN', value: values });
     return this;
   }
 
-  is(column: string, value: unknown) {
+  is(column: string, value: unknown): this {
     this.filters.push({ column, op: 'IS', value });
     return this;
   }
 
-  order(column: string, options?: { ascending?: boolean }) {
+  order(column: string, options?: { ascending?: boolean }): this {
     this.orderByColumn = column;
     this.orderAsc = options?.ascending ?? true;
     return this;
   }
 
-  limit(count: number) {
+  limit(count: number): this {
     this.limitCount = count;
     return this;
   }
 
-  range(from: number, to: number) {
+  range(from: number, to: number): this {
     this.offsetCount = from;
     this.limitCount = to - from + 1;
     return this;
   }
 
-  async single(): Promise<{ data: T | null; error: Error | null }> {
+  async single(): Promise<{ data: T | null; error: Error | null; code?: string }> {
+    this.limitCount = 1;
+    const result = await this.execute();
+    if (result.error) {
+      return { data: null, error: result.error, code: (result.error as Error & { code?: string }).code };
+    }
+    if (!result.data || result.data.length === 0) {
+      return { data: null, error: new Error('No rows returned'), code: 'PGRST116' };
+    }
+    return { data: result.data[0], error: null };
+  }
+
+  async maybeSingle(): Promise<{ data: T | null; error: Error | null }> {
     this.limitCount = 1;
     const result = await this.execute();
     return {
@@ -119,13 +175,9 @@ class MockQueryBuilder<T = Record<string, unknown>> {
     };
   }
 
-  async maybeSingle(): Promise<{ data: T | null; error: Error | null }> {
-    return this.single();
-  }
-
-  private buildWhereClause(): { sql: string; params: unknown[] } {
+  private buildWhereClause(): { sql: string; params: unknown[]; nextIndex: number } {
     if (this.filters.length === 0) {
-      return { sql: '', params: [] };
+      return { sql: '', params: [], nextIndex: 1 };
     }
 
     const conditions: string[] = [];
@@ -145,52 +197,62 @@ class MockQueryBuilder<T = Record<string, unknown>> {
       }
     }
 
-    return { sql: ` WHERE ${conditions.join(' AND ')}`, params };
+    return { sql: ` WHERE ${conditions.join(' AND ')}`, params, nextIndex: paramIndex };
   }
 
-  private async execute(): Promise<{ data: T[] | null; error: Error | null; count?: number }> {
+  private async executeSelect(): Promise<{ data: T[] | null; error: Error | null; count?: number }> {
     try {
       const { sql: whereClause, params } = this.buildWhereClause();
-      
+
+      // Handle count-only queries
+      if (this.countOnly && this.headOnly) {
+        const countQuery = `SELECT COUNT(*) as count FROM ${this.table}${whereClause}`;
+        const result = await query<{ count: string }>(countQuery, params);
+        const count = parseInt(result.rows[0]?.count || '0', 10);
+        return { data: null, error: null, count };
+      }
+
       let sqlQuery = `SELECT ${this.selectColumns} FROM ${this.table}${whereClause}`;
-      
+
       if (this.orderByColumn) {
         sqlQuery += ` ORDER BY ${this.orderByColumn} ${this.orderAsc ? 'ASC' : 'DESC'}`;
       }
-      
+
       if (this.limitCount !== undefined) {
         sqlQuery += ` LIMIT ${this.limitCount}`;
       }
-      
+
       if (this.offsetCount !== undefined) {
         sqlQuery += ` OFFSET ${this.offsetCount}`;
       }
 
       const result = await query<T>(sqlQuery, params);
-      return { data: result.rows, error: null, count: result.rowCount };
+
+      // If count was requested, get it separately
+      let count: number | undefined;
+      if (this.countOnly) {
+        const countQuery = `SELECT COUNT(*) as count FROM ${this.table}${whereClause}`;
+        const countResult = await query<{ count: string }>(countQuery, params);
+        count = parseInt(countResult.rows[0]?.count || '0', 10);
+      }
+
+      return { data: result.rows, error: null, count };
     } catch (error) {
       return { data: null, error: error as Error };
     }
   }
 
-  async then<TResult>(
-    resolve: (value: { data: T[] | null; error: Error | null }) => TResult
-  ): Promise<TResult> {
-    const result = await this.execute();
-    return resolve(result);
-  }
-
-  // Write operations
-  async insert(data: Partial<T> | Partial<T>[]): Promise<{ data: T[] | null; error: Error | null }> {
+  private async executeInsert(): Promise<{ data: T[] | null; error: Error | null }> {
     try {
-      const rows = Array.isArray(data) ? data : [data];
+      const rows = Array.isArray(this.insertData) ? this.insertData : [this.insertData];
       const results: T[] = [];
 
       for (const row of rows) {
+        if (!row) continue;
         const columns = Object.keys(row);
         const values = Object.values(row);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
-        
+
         const sqlQuery = `INSERT INTO ${this.table} (${columns.join(', ')}) VALUES (${placeholders}) RETURNING *`;
         const result = await query<T>(sqlQuery, values);
         if (result.rows[0]) {
@@ -200,45 +262,61 @@ class MockQueryBuilder<T = Record<string, unknown>> {
 
       return { data: results, error: null };
     } catch (error) {
-      return { data: null, error: error as Error };
+      const err = error as Error & { code?: string };
+      return { data: null, error: err };
     }
   }
 
-  async update(data: Partial<T>): Promise<{ data: T[] | null; error: Error | null }> {
+  private async executeUpdate(): Promise<{ data: T[] | null; error: Error | null }> {
     try {
-      const { sql: whereClause, params: whereParams } = this.buildWhereClause();
-      
-      const columns = Object.keys(data);
-      const values = Object.values(data);
-      const setClause = columns.map((col, i) => `${col} = $${whereParams.length + i + 1}`).join(', ');
-      
+      if (!this.updateData) {
+        return { data: [], error: null };
+      }
+
+      const { sql: whereClause, params: whereParams, nextIndex } = this.buildWhereClause();
+
+      const columns = Object.keys(this.updateData);
+      const values = Object.values(this.updateData);
+      const setClause = columns.map((col, i) => `${col} = $${nextIndex + i}`).join(', ');
+
       const sqlQuery = `UPDATE ${this.table} SET ${setClause}${whereClause} RETURNING *`;
       const result = await query<T>(sqlQuery, [...whereParams, ...values]);
-      
+
       return { data: result.rows, error: null };
     } catch (error) {
       return { data: null, error: error as Error };
     }
   }
 
-  async upsert(
-    data: Partial<T> | Partial<T>[],
-    options?: { onConflict?: string }
-  ): Promise<{ data: T[] | null; error: Error | null }> {
+  private async executeDelete(): Promise<{ data: T[] | null; error: Error | null }> {
     try {
-      const rows = Array.isArray(data) ? data : [data];
+      const { sql: whereClause, params } = this.buildWhereClause();
+      const sqlQuery = `DELETE FROM ${this.table}${whereClause} RETURNING *`;
+      const result = await query<T>(sqlQuery, params);
+      return { data: result.rows, error: null };
+    } catch (error) {
+      return { data: null, error: error as Error };
+    }
+  }
+
+  private async executeUpsert(): Promise<{ data: T[] | null; error: Error | null }> {
+    try {
+      const rows = Array.isArray(this.insertData) ? this.insertData : [this.insertData];
       const results: T[] = [];
 
       for (const row of rows) {
+        if (!row) continue;
         const columns = Object.keys(row);
         const values = Object.values(row);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
-        const updateClause = columns.map((col, i) => `${col} = $${i + 1}`).join(', ');
-        
-        const conflictTarget = options?.onConflict || 'id';
+        const updateClause = columns
+          .filter(col => col !== this.upsertConflict)
+          .map((col, i) => `${col} = EXCLUDED.${col}`)
+          .join(', ');
+
         const sqlQuery = `INSERT INTO ${this.table} (${columns.join(', ')}) VALUES (${placeholders}) 
-                          ON CONFLICT (${conflictTarget}) DO UPDATE SET ${updateClause} RETURNING *`;
-        
+                          ON CONFLICT (${this.upsertConflict}) DO UPDATE SET ${updateClause} RETURNING *`;
+
         const result = await query<T>(sqlQuery, values);
         if (result.rows[0]) {
           results.push(result.rows[0]);
@@ -251,14 +329,35 @@ class MockQueryBuilder<T = Record<string, unknown>> {
     }
   }
 
-  async delete(): Promise<{ data: T[] | null; error: Error | null }> {
+  private async execute(): Promise<{ data: T[] | null; error: Error | null; count?: number }> {
+    switch (this.operation) {
+      case 'insert':
+        return this.executeInsert();
+      case 'update':
+        return this.executeUpdate();
+      case 'delete':
+        return this.executeDelete();
+      case 'upsert':
+        return this.executeUpsert();
+      case 'select':
+      default:
+        return this.executeSelect();
+    }
+  }
+
+  // Make the builder thenable so it can be awaited directly
+  async then<TResult1 = { data: T[] | null; error: Error | null; count?: number }, TResult2 = never>(
+    onfulfilled?: ((value: { data: T[] | null; error: Error | null; count?: number }) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
+  ): Promise<TResult1 | TResult2> {
     try {
-      const { sql: whereClause, params } = this.buildWhereClause();
-      const sqlQuery = `DELETE FROM ${this.table}${whereClause} RETURNING *`;
-      const result = await query<T>(sqlQuery, params);
-      return { data: result.rows, error: null };
+      const result = await this.execute();
+      return onfulfilled ? onfulfilled(result) : result as unknown as TResult1;
     } catch (error) {
-      return { data: null, error: error as Error };
+      if (onrejected) {
+        return onrejected(error);
+      }
+      throw error;
     }
   }
 }
@@ -269,12 +368,12 @@ class MockQueryBuilder<T = Record<string, unknown>> {
 const mockStorage = {
   from: (bucket: string) => {
     const r2 = getR2Storage();
-    
+
     return {
-      async upload(path: string, file: Buffer | Blob, options?: { contentType?: string }) {
+      async upload(path: string, file: Buffer | Blob, options?: { contentType?: string; upsert?: boolean }) {
         const buffer = file instanceof Blob ? Buffer.from(await file.arrayBuffer()) : file;
         const result = await r2.upload(`${bucket}/${path}`, buffer, options?.contentType);
-        
+
         if (result.success) {
           return { data: { path: result.path }, error: null };
         }
@@ -323,18 +422,9 @@ const mockStorage = {
 /**
  * Mock RPC function - converts to direct SQL
  */
-async function mockRpc(fn: string, params?: Record<string, unknown>) {
+async function mockRpc(fn: string, _params?: Record<string, unknown>) {
   console.warn(`[DEPRECATED] supabaseAdmin.rpc('${fn}') is deprecated. Use direct SQL queries instead.`);
-  
-  // Handle common RPC functions
-  switch (fn) {
-    case 'get_admin_dashboard_stats':
-      // This should be called via /api/admin?action=stats instead
-      return { data: null, error: new Error('Use /api/admin?action=stats instead') };
-    
-    default:
-      return { data: null, error: new Error(`RPC function '${fn}' not supported. Use direct SQL.`) };
-  }
+  return { data: null, error: new Error(`RPC function '${fn}' not supported. Use direct SQL.`) };
 }
 
 /**
