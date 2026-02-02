@@ -1708,18 +1708,18 @@ export interface SubjectRecord {
  */
 export const CatalogQueries = {
   /**
-   * Get all programs with institution info
+   * Get all programs
+   * Note: Programs table doesn't have institution_id - institutions are separate entities
    */
   getPrograms: (): QueryConfig => ({
     text: `
       SELECT 
-        p.*,
-        i.name as institution_name,
-        i.slug as institution_slug,
-        i.full_name as institution_full_name
-      FROM programs p
-      LEFT JOIN institutions i ON i.id = p.institution_id
-      ORDER BY p.created_at DESC
+        id, name, code, description, duration_months,
+        application_fee, tuition_fee, requirements,
+        regulatory_body, accreditation_status, is_active,
+        created_at, updated_at
+      FROM programs
+      ORDER BY created_at DESC
     `,
     values: [],
   }),
@@ -1730,14 +1730,13 @@ export const CatalogQueries = {
   getActivePrograms: (): QueryConfig => ({
     text: `
       SELECT 
-        p.*,
-        i.name as institution_name,
-        i.slug as institution_slug,
-        i.full_name as institution_full_name
-      FROM programs p
-      LEFT JOIN institutions i ON i.id = p.institution_id
-      WHERE p.is_active = true
-      ORDER BY p.name ASC
+        id, name, code, description, duration_months,
+        application_fee, tuition_fee, requirements,
+        regulatory_body, accreditation_status, is_active,
+        created_at, updated_at
+      FROM programs
+      WHERE is_active = true
+      ORDER BY name ASC
     `,
     values: [],
   }),
@@ -1748,13 +1747,12 @@ export const CatalogQueries = {
   getProgramById: (id: string): QueryConfig => ({
     text: `
       SELECT 
-        p.*,
-        i.name as institution_name,
-        i.slug as institution_slug,
-        i.full_name as institution_full_name
-      FROM programs p
-      LEFT JOIN institutions i ON i.id = p.institution_id
-      WHERE p.id = $1
+        id, name, code, description, duration_months,
+        application_fee, tuition_fee, requirements,
+        regulatory_body, accreditation_status, is_active,
+        created_at, updated_at
+      FROM programs
+      WHERE id = $1
       LIMIT 1
     `,
     values: [id],
