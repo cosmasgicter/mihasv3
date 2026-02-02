@@ -1,6 +1,424 @@
 import { createRequire } from "node:module";
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
+// lib/cors.ts
+var ALLOWED_ORIGINS = [
+  "https://apply.mihas.edu.zm",
+  "https://mihas.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000"
+];
+function getCorsHeaders(origin) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Max-Age": "86400"
+  };
+}
+function handleCors(req, res) {
+  const origin = req.headers.origin;
+  const headers = getCorsHeaders(origin);
+  Object.entries(headers).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return true;
+  }
+  return false;
+}
+
+// lib/arcjet.ts
+import arcjet, { shield, detectBot, fixedWindow } from "@arcjet/node";
+var ARCJET_KEY = process.env.ARCJET_KEY;
+if (!ARCJET_KEY) {
+  console.error("[ARCJET] FATAL: ARCJET_KEY environment variable not set");
+  console.error("[ARCJET] Security layer DISABLED - set ARCJET_KEY immediately");
+}
+var rateLimitConfigs = {
+  auth: { window: "5m", max: 5 },
+  session: { window: "10m", max: 30 },
+  admin: { window: "10m", max: 20 },
+  notification: { window: "10m", max: 50 },
+  general: { window: "10m", max: 100 }
+};
+function getBlockReasonType(decision) {
+  if (decision.reason.isRateLimit()) {
+    return "RATE_LIMIT";
+  }
+  if (decision.reason.isBot()) {
+    return "BOT_DETECTED";
+  }
+  if (decision.reason.isShield()) {
+    return "SHIELD_BLOCK";
+  }
+  return "POLICY_VIOLATION";
+}
+function handleArcjetDecision(decision, res) {
+  if (decision.isDenied()) {
+    const reasonType = getBlockReasonType(decision);
+    console.log("[ARCJET] BLOCKED: reason=" + reasonType + ", id=" + decision.id);
+    res.status(403).json({
+      success: false,
+      error: "Request blocked by security policy",
+      code: "SECURITY_VIOLATION"
+    });
+    return true;
+  }
+  return false;
+}
+function createProtectedArcjet(routeType) {
+  const config = rateLimitConfigs[routeType];
+  return arcjet({
+    key: ARCJET_KEY,
+    characteristics: ["ip.src"],
+    rules: [
+      shield({ mode: "LIVE" }),
+      detectBot({
+        mode: "LIVE",
+        allow: ["CATEGORY:SEARCH_ENGINE"]
+      }),
+      fixedWindow({
+        mode: "LIVE",
+        window: config.window,
+        max: config.max
+      })
+    ]
+  });
+}
+function withArcjetProtection(handler, routeType = "general") {
+  return async (req, res) => {
+    if (!ARCJET_KEY) {
+      console.warn("[ARCJET] WARNING: Running without Arcjet protection");
+      return handler(req, res);
+    }
+    try {
+      const protectedAj = createProtectedArcjet(routeType);
+      const decision = await protectedAj.protect(req);
+      if (handleArcjetDecision(decision, res)) {
+        return;
+      }
+      return handler(req, res);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      console.error("[ARCJET] Service error: " + errorMsg);
+      res.status(503).json({
+        success: false,
+        error: "Security service unavailable",
+        code: "SECURITY_SERVICE_ERROR"
+      });
+    }
+  };
+}
+var aj = ARCJET_KEY ? arcjet({
+  key: ARCJET_KEY,
+  characteristics: ["ip.src"],
+  rules: [
+    shield({ mode: "LIVE" }),
+    detectBot({
+      mode: "LIVE",
+      allow: ["CATEGORY:SEARCH_ENGINE"]
+    })
+  ]
+}) : null;
+
+// lib/errorHandler.ts
+var HttpStatus = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  METHOD_NOT_ALLOWED: 405,
+  CONFLICT: 409,
+  UNPROCESSABLE_ENTITY: 422,
+  TOO_MANY_REQUESTS: 429,
+  INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503
+};
+var ErrorCode = {
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  INVALID_INPUT: "INVALID_INPUT",
+  MISSING_REQUIRED_FIELD: "MISSING_REQUIRED_FIELD",
+  AUTHENTICATION_ERROR: "AUTHENTICATION_ERROR",
+  AUTHENTICATION_REQUIRED: "AUTHENTICATION_REQUIRED",
+  INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+  TOKEN_EXPIRED: "TOKEN_EXPIRED",
+  INVALID_TOKEN: "INVALID_TOKEN",
+  AUTHORIZATION_ERROR: "AUTHORIZATION_ERROR",
+  INSUFFICIENT_PERMISSIONS: "INSUFFICIENT_PERMISSIONS",
+  SECURITY_VIOLATION: "SECURITY_VIOLATION",
+  NOT_FOUND: "NOT_FOUND",
+  RESOURCE_NOT_FOUND: "RESOURCE_NOT_FOUND",
+  RATE_LIMITED: "RATE_LIMITED",
+  TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+  DATABASE_ERROR: "DATABASE_ERROR",
+  SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE"
+};
+
+class AuthError extends Error {
+  code;
+  statusCode;
+  isOperational;
+  constructor(message, code = ErrorCode.INTERNAL_ERROR, statusCode = HttpStatus.BAD_REQUEST, isOperational = true) {
+    super(sanitizeError(message));
+    this.name = "AuthError";
+    this.code = code;
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, AuthError);
+    }
+  }
+  static validation(message) {
+    return new AuthError(message, ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST);
+  }
+  static authentication(message = "Authentication required") {
+    return new AuthError(message, ErrorCode.AUTHENTICATION_ERROR, HttpStatus.UNAUTHORIZED);
+  }
+  static invalidCredentials() {
+    return new AuthError("Invalid email or password", ErrorCode.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
+  }
+  static tokenExpired() {
+    return new AuthError("Token has expired", ErrorCode.TOKEN_EXPIRED, HttpStatus.UNAUTHORIZED);
+  }
+  static invalidToken() {
+    return new AuthError("Invalid token", ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
+  }
+  static forbidden(message = "Access denied") {
+    return new AuthError(message, ErrorCode.AUTHORIZATION_ERROR, HttpStatus.FORBIDDEN);
+  }
+  static insufficientPermissions() {
+    return new AuthError("Insufficient permissions", ErrorCode.INSUFFICIENT_PERMISSIONS, HttpStatus.FORBIDDEN);
+  }
+  static securityViolation() {
+    return new AuthError("Request blocked by security policy", ErrorCode.SECURITY_VIOLATION, HttpStatus.FORBIDDEN);
+  }
+  static rateLimited() {
+    return new AuthError("Too many requests. Please try again later.", ErrorCode.RATE_LIMITED, HttpStatus.TOO_MANY_REQUESTS);
+  }
+  static notFound(resource = "Resource") {
+    return new AuthError(`${resource} not found`, ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND);
+  }
+  static internal() {
+    return new AuthError("An unexpected error occurred", ErrorCode.INTERNAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, false);
+  }
+  static serviceUnavailable() {
+    return new AuthError("Service temporarily unavailable", ErrorCode.SERVICE_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE);
+  }
+  static database() {
+    return new AuthError("Database operation failed", ErrorCode.DATABASE_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, false);
+  }
+  toJSON() {
+    return {
+      success: false,
+      error: this.message,
+      code: this.code
+    };
+  }
+}
+function sanitizeError(message) {
+  if (!message || typeof message !== "string") {
+    return "An error occurred";
+  }
+  let sanitized = message;
+  sanitized = sanitized.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "[ID]");
+  sanitized = sanitized.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL]");
+  sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g, "[TOKEN]");
+  sanitized = sanitized.replace(/(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|mssql):\/\/[^\s"']+/gi, "[CONNECTION_STRING]");
+  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.supabase\.co[^\s"']*/gi, "[SUPABASE_URL]");
+  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.neon\.tech[^\s"']*/gi, "[NEON_URL]");
+  sanitized = sanitized.replace(/(?:api[_-]?key|secret|password|token|auth|bearer)[=:]\s*["']?[a-zA-Z0-9_\-./+=]{16,}["']?/gi, "[CREDENTIAL]");
+  sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]{100,}/g, "[SERVICE_KEY]");
+  sanitized = sanitized.replace(/\$2[aby]?\$\d{1,2}\$[./A-Za-z0-9]{53}/g, "[HASH]");
+  sanitized = sanitized.replace(/\b[a-f0-9]{64}\b/gi, "[HASH]");
+  sanitized = sanitized.replace(/(?:\/(?:home|var|usr|etc|tmp|app|opt|srv)[^\s"']*|[A-Z]:\\[^\s"']*)/gi, "[PATH]");
+  sanitized = sanitized.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[IP]");
+  sanitized = sanitized.replace(/:\d{4,5}(?=\s|$|\/)/g, ":[PORT]");
+  sanitized = sanitized.replace(/\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g, "[PHONE]");
+  sanitized = sanitized.replace(/(?:user|profile|account)\s+['"]?[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?['"]?/gi, "[USER]");
+  return sanitized;
+}
+function logError(context, error) {
+  const message = error instanceof Error ? error.message : String(error);
+  const sanitized = sanitizeError(message);
+  if (error instanceof AuthError) {
+    console.error(`[${context}] Error (${error.code}):`, sanitized);
+  } else {
+    console.error(`[${context}] Error:`, sanitized);
+  }
+}
+function handleError(res, error, context = "API") {
+  logError(context, error);
+  res.setHeader("Content-Type", "application/json");
+  if (error instanceof AuthError) {
+    return res.status(error.statusCode).json(error.toJSON());
+  }
+  let status = HttpStatus.INTERNAL_SERVER_ERROR;
+  let message = "An unexpected error occurred";
+  let code = ErrorCode.INTERNAL_ERROR;
+  if (error instanceof Error) {
+    const errorMessage = error.message.toLowerCase();
+    if (errorMessage.includes("unauthorized") || errorMessage.includes("no authorization") || errorMessage.includes("authentication")) {
+      status = HttpStatus.UNAUTHORIZED;
+      message = "Authentication required";
+      code = ErrorCode.AUTHENTICATION_ERROR;
+    } else if (errorMessage.includes("forbidden") || errorMessage.includes("access denied") || errorMessage.includes("permission") || errorMessage.includes("insufficient")) {
+      status = HttpStatus.FORBIDDEN;
+      message = "Access denied";
+      code = ErrorCode.AUTHORIZATION_ERROR;
+    } else if (errorMessage.includes("not found")) {
+      status = HttpStatus.NOT_FOUND;
+      message = "Resource not found";
+      code = ErrorCode.NOT_FOUND;
+    } else if (errorMessage.includes("validation") || errorMessage.includes("invalid")) {
+      status = HttpStatus.BAD_REQUEST;
+      message = sanitizeError(error.message);
+      code = ErrorCode.VALIDATION_ERROR;
+    } else if (errorMessage.includes("rate limit") || errorMessage.includes("too many")) {
+      status = HttpStatus.TOO_MANY_REQUESTS;
+      message = "Too many requests. Please try again later.";
+      code = ErrorCode.RATE_LIMITED;
+    } else if (errorMessage.includes("unavailable") || errorMessage.includes("timeout")) {
+      status = HttpStatus.SERVICE_UNAVAILABLE;
+      message = "Service temporarily unavailable";
+      code = ErrorCode.SERVICE_UNAVAILABLE;
+    } else if (errorMessage.includes("expired")) {
+      status = HttpStatus.UNAUTHORIZED;
+      message = "Token has expired";
+      code = ErrorCode.TOKEN_EXPIRED;
+    }
+  }
+  const response = {
+    success: false,
+    error: message,
+    code
+  };
+  return res.status(status).json(response);
+}
+function sendSuccess(res, data, status = HttpStatus.OK) {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: true,
+    data
+  };
+  return res.status(status).json(response);
+}
+function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCode.VALIDATION_ERROR) {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: false,
+    error: sanitizeError(message),
+    code
+  };
+  return res.status(status).json(response);
+}
+
+// lib/auth/jwt.ts
+import { SignJWT, jwtVerify } from "jose";
+var TOKEN_ISSUER = "mihas-auth";
+var TOKEN_AUDIENCE = "mihas-app";
+var ALGORITHM = "HS256";
+function getAccessTokenSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET environment variable is not configured");
+  }
+  return new TextEncoder().encode(secret);
+}
+async function verifyAccessToken(token) {
+  if (!token || token.trim().length === 0) {
+    throw new Error("Token is required for verification");
+  }
+  try {
+    const secret = getAccessTokenSecret();
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: TOKEN_ISSUER,
+      audience: TOKEN_AUDIENCE,
+      algorithms: [ALGORITHM]
+    });
+    if (payload.type !== "access") {
+      throw new Error("Invalid token type: expected access token");
+    }
+    if (!payload.sub) {
+      throw new Error("Token missing required subject claim");
+    }
+    if (!payload.email || typeof payload.email !== "string") {
+      throw new Error("Token missing required email claim");
+    }
+    if (!payload.role || typeof payload.role !== "string") {
+      throw new Error("Token missing required role claim");
+    }
+    const accessPayload = {
+      sub: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      permissions: Array.isArray(payload.permissions) ? payload.permissions : [],
+      type: "access",
+      iat: payload.iat,
+      exp: payload.exp,
+      iss: payload.iss,
+      aud: typeof payload.aud === "string" ? payload.aud : payload.aud?.[0]
+    };
+    return accessPayload;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    if (errorMessage.includes("expired")) {
+      throw new Error("Access token has expired");
+    }
+    if (errorMessage.includes("signature")) {
+      throw new Error("Invalid token signature");
+    }
+    if (errorMessage.includes("issuer")) {
+      throw new Error("Invalid token issuer");
+    }
+    if (errorMessage.includes("audience")) {
+      throw new Error("Invalid token audience");
+    }
+    if (errorMessage.includes("token type")) {
+      throw new Error(errorMessage);
+    }
+    if (errorMessage.includes("missing required")) {
+      throw new Error(errorMessage);
+    }
+    throw new Error("Access token verification failed");
+  }
+}
+
+// lib/auth/cookies.ts
+var ACCESS_TOKEN_COOKIE = "access_token";
+function parseCookies(req) {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) {
+    return {};
+  }
+  const cookies = {};
+  const pairs = cookieHeader.split(";");
+  for (const pair of pairs) {
+    const equalsIndex = pair.indexOf("=");
+    if (equalsIndex > 0) {
+      const name = pair.substring(0, equalsIndex).trim();
+      const value = pair.substring(equalsIndex + 1);
+      cookies[name] = value;
+    }
+  }
+  return cookies;
+}
+function extractAccessTokenFromCookie(req) {
+  const cookies = parseCookies(req);
+  const token = cookies[ACCESS_TOKEN_COOKIE];
+  if (!token || token.length === 0) {
+    return null;
+  }
+  return token;
+}
+
 // lib/db.ts
 var DatabaseErrorCode = {
   CONNECTION_ERROR: "CONNECTION_ERROR",
@@ -384,112 +802,49 @@ var AuditQueries = {
   })
 };
 
-// api-src/sessions.ts
+// lib/sessions.ts
 function generateSessionId() {
   return crypto.randomUUID();
 }
 function parseDeviceInfo(userAgent) {
   if (!userAgent) {
-    return {
-      browser: "Unknown",
-      os: "Unknown",
-      device_type: "unknown",
-      is_mobile: false
-    };
+    return { browser: "Unknown", os: "Unknown", device_type: "unknown", is_mobile: false };
   }
   const ua = userAgent.toLowerCase();
   let browser = "Unknown";
-  let browser_version = "";
-  if (ua.includes("firefox")) {
+  if (ua.includes("firefox"))
     browser = "Firefox";
-    const match = userAgent.match(/Firefox\/(\d+)/i);
-    browser_version = match ? match[1] : "";
-  } else if (ua.includes("edg/")) {
+  else if (ua.includes("edg/"))
     browser = "Edge";
-    const match = userAgent.match(/Edg\/(\d+)/i);
-    browser_version = match ? match[1] : "";
-  } else if (ua.includes("chrome")) {
+  else if (ua.includes("chrome"))
     browser = "Chrome";
-    const match = userAgent.match(/Chrome\/(\d+)/i);
-    browser_version = match ? match[1] : "";
-  } else if (ua.includes("safari") && !ua.includes("chrome")) {
+  else if (ua.includes("safari") && !ua.includes("chrome"))
     browser = "Safari";
-    const match = userAgent.match(/Version\/(\d+)/i);
-    browser_version = match ? match[1] : "";
-  } else if (ua.includes("opera") || ua.includes("opr/")) {
-    browser = "Opera";
-    const match = userAgent.match(/(?:Opera|OPR)\/(\d+)/i);
-    browser_version = match ? match[1] : "";
-  }
   let os = "Unknown";
-  let os_version = "";
-  if (ua.includes("windows")) {
+  if (ua.includes("windows"))
     os = "Windows";
-    if (ua.includes("windows nt 10"))
-      os_version = "10";
-    else if (ua.includes("windows nt 11"))
-      os_version = "11";
-    else if (ua.includes("windows nt 6.3"))
-      os_version = "8.1";
-    else if (ua.includes("windows nt 6.2"))
-      os_version = "8";
-    else if (ua.includes("windows nt 6.1"))
-      os_version = "7";
-  } else if (ua.includes("mac os x")) {
+  else if (ua.includes("mac os x"))
     os = "macOS";
-    const match = userAgent.match(/Mac OS X (\d+[._]\d+)/i);
-    os_version = match ? match[1].replace("_", ".") : "";
-  } else if (ua.includes("linux")) {
+  else if (ua.includes("linux"))
     os = "Linux";
-    if (ua.includes("ubuntu"))
-      os_version = "Ubuntu";
-    else if (ua.includes("fedora"))
-      os_version = "Fedora";
-    else if (ua.includes("debian"))
-      os_version = "Debian";
-  } else if (ua.includes("android")) {
+  else if (ua.includes("android"))
     os = "Android";
-    const match = userAgent.match(/Android (\d+)/i);
-    os_version = match ? match[1] : "";
-  } else if (ua.includes("iphone") || ua.includes("ipad") || ua.includes("ipod")) {
+  else if (ua.includes("iphone") || ua.includes("ipad"))
     os = "iOS";
-    const match = userAgent.match(/OS (\d+)/i);
-    os_version = match ? match[1] : "";
-  }
-  let device_type = "desktop";
-  const is_mobile = ua.includes("mobile") || ua.includes("android") || ua.includes("iphone") || ua.includes("ipod");
-  const is_tablet = ua.includes("tablet") || ua.includes("ipad");
-  if (is_tablet) {
-    device_type = "tablet";
-  } else if (is_mobile) {
-    device_type = "mobile";
-  }
-  return {
-    browser,
-    browser_version,
-    os,
-    os_version,
-    device_type,
-    is_mobile: is_mobile || is_tablet
-  };
+  const is_mobile = ua.includes("mobile") || ua.includes("android") || ua.includes("iphone");
+  const device_type = ua.includes("tablet") || ua.includes("ipad") ? "tablet" : is_mobile ? "mobile" : "desktop";
+  return { browser, os, device_type, is_mobile };
 }
 async function createSession(input) {
   const { userId, deviceInfo, ipAddress, userAgent } = input;
   const sessionId = generateSessionId();
   const createQuery = SessionQueries.create(sessionId, userId, deviceInfo, ipAddress, userAgent);
   const result = await query(createQuery.text, createQuery.values);
-  if (result.rows.length === 0) {
+  if (result.rows.length === 0)
     throw new Error("Failed to create session");
-  }
   const session = result.rows[0];
-  const auditQuery = AuditQueries.logSessionEvent(userId, "session_create", sessionId, ipAddress, userAgent, {
-    device_type: deviceInfo.device_type,
-    browser: deviceInfo.browser,
-    os: deviceInfo.os
-  });
-  query(auditQuery.text, auditQuery.values).catch((err) => {
-    console.error("[SessionManager] Failed to log session creation:", err.message);
-  });
+  const auditQuery = AuditQueries.logSessionEvent(userId, "session_create", sessionId, ipAddress, userAgent, { device_type: deviceInfo.device_type, browser: deviceInfo.browser, os: deviceInfo.os });
+  query(auditQuery.text, auditQuery.values).catch(() => {});
   return {
     id: session.id,
     userId: session.user_id,
@@ -497,43 +852,6 @@ async function createSession(input) {
     lastActivity: new Date(session.last_activity),
     createdAt: new Date(session.created_at),
     expiresAt: new Date(session.expires_at)
-  };
-}
-async function updateActivity(sessionId) {
-  const updateQuery = SessionQueries.updateActivity(sessionId);
-  const result = await query(updateQuery.text, updateQuery.values);
-  return result.rowCount > 0;
-}
-async function deactivateSession(sessionId, userId, ipAddress = null, userAgent = null) {
-  const deactivateQuery = SessionQueries.deactivate(sessionId);
-  const result = await query(deactivateQuery.text, deactivateQuery.values);
-  const success = result.rowCount > 0;
-  if (success) {
-    const auditQuery = AuditQueries.logSessionEvent(userId, "session_revoke", sessionId, ipAddress, userAgent);
-    query(auditQuery.text, auditQuery.values).catch((err) => {
-      console.error("[SessionManager] Failed to log session deactivation:", err.message);
-    });
-  }
-  return {
-    success,
-    sessionId
-  };
-}
-async function deactivateAllSessions(userId, ipAddress = null, userAgent = null) {
-  const deactivateQuery = SessionQueries.deactivateAllForUser(userId);
-  const result = await query(deactivateQuery.text, deactivateQuery.values);
-  const sessionIds = result.rows.map((row) => row.id);
-  const deactivatedCount = result.rowCount;
-  if (deactivatedCount > 0) {
-    const auditQuery = AuditQueries.logSessionEvent(userId, "session_revoke_all", null, ipAddress, userAgent, { deactivated_count: deactivatedCount });
-    query(auditQuery.text, auditQuery.values).catch((err) => {
-      console.error("[SessionManager] Failed to log session revoke-all:", err.message);
-    });
-  }
-  return {
-    success: true,
-    deactivatedCount,
-    sessionIds
   };
 }
 async function getActiveSessions(userId, currentSessionId) {
@@ -560,119 +878,127 @@ async function getActiveSessions(userId, currentSessionId) {
       is_current: currentSessionId ? row.id === currentSessionId : undefined
     };
   });
-  return {
-    sessions,
-    count: sessions.length
-  };
+  return { sessions, count: sessions.length };
+}
+async function deactivateSession(sessionId, userId, ipAddress = null, userAgent = null) {
+  const deactivateQuery = SessionQueries.deactivate(sessionId);
+  const result = await query(deactivateQuery.text, deactivateQuery.values);
+  const success = result.rowCount > 0;
+  if (success) {
+    const auditQuery = AuditQueries.logSessionEvent(userId, "session_revoke", sessionId, ipAddress, userAgent);
+    query(auditQuery.text, auditQuery.values).catch(() => {});
+  }
+  return { success, sessionId };
+}
+async function deactivateAllSessions(userId, ipAddress = null, userAgent = null) {
+  const deactivateQuery = SessionQueries.deactivateAllForUser(userId);
+  const result = await query(deactivateQuery.text, deactivateQuery.values);
+  const sessionIds = result.rows.map((row) => row.id);
+  if (result.rowCount > 0) {
+    const auditQuery = AuditQueries.logSessionEvent(userId, "session_revoke_all", null, ipAddress, userAgent, { deactivated_count: result.rowCount });
+    query(auditQuery.text, auditQuery.values).catch(() => {});
+  }
+  return { success: true, deactivatedCount: result.rowCount, sessionIds };
 }
 async function deactivateOtherSessions(userId, currentSessionId, ipAddress = null, userAgent = null) {
   const deactivateQuery = SessionQueries.deactivateAllExcept(userId, currentSessionId);
   const result = await query(deactivateQuery.text, deactivateQuery.values);
   const sessionIds = result.rows.map((row) => row.id);
-  const deactivatedCount = result.rowCount;
-  if (deactivatedCount > 0) {
-    const auditQuery = AuditQueries.logSessionEvent(userId, "session_revoke_all", currentSessionId, ipAddress, userAgent, {
-      deactivated_count: deactivatedCount,
-      kept_session: currentSessionId
-    });
-    query(auditQuery.text, auditQuery.values).catch((err) => {
-      console.error("[SessionManager] Failed to log session revoke-others:", err.message);
-    });
+  if (result.rowCount > 0) {
+    const auditQuery = AuditQueries.logSessionEvent(userId, "session_revoke_all", currentSessionId, ipAddress, userAgent, { deactivated_count: result.rowCount, kept_session: currentSessionId });
+    query(auditQuery.text, auditQuery.values).catch(() => {});
   }
-  return {
-    success: true,
-    deactivatedCount,
-    sessionIds
-  };
+  return { success: true, deactivatedCount: result.rowCount, sessionIds };
 }
-async function cleanupExpiredSessions() {
-  const cleanupQuery = SessionQueries.deactivateExpired();
-  const result = await query(cleanupQuery.text, cleanupQuery.values);
-  const sessionIds = result.rows.map((row) => row.id);
-  const deactivatedCount = result.rowCount;
-  if (deactivatedCount > 0) {
-    console.log(`[SessionManager] Cleaned up ${deactivatedCount} expired sessions`);
-  }
-  return {
-    success: true,
-    deactivatedCount,
-    sessionIds
-  };
-}
-async function isSessionValid(sessionId) {
-  const checkQuery = SessionQueries.isValid(sessionId);
-  const result = await query(checkQuery.text, checkQuery.values);
-  return result.rows.length > 0 && result.rows[0].is_valid === true;
-}
-async function getSessionById(sessionId) {
-  const getQuery = SessionQueries.findById(sessionId);
-  const result = await query(getQuery.text, getQuery.values);
-  if (result.rows.length === 0) {
+
+// api-src/sessions.ts
+async function getUserFromRequest(req) {
+  const token = extractAccessTokenFromCookie(req);
+  if (!token)
+    return null;
+  try {
+    const payload = await verifyAccessToken(token);
+    return { userId: payload.sub, sessionId: undefined };
+  } catch {
     return null;
   }
-  const row = result.rows[0];
-  let deviceInfo;
-  if (typeof row.device_info === "string") {
-    try {
-      deviceInfo = JSON.parse(row.device_info);
-    } catch {
-      deviceInfo = { browser: "Unknown", os: "Unknown", device_type: "unknown" };
+}
+async function handler(req, res) {
+  if (handleCors(req, res))
+    return;
+  const action = req.query.action;
+  try {
+    const auth = await getUserFromRequest(req);
+    if (!auth) {
+      return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
     }
+    const ipAddress = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress || null;
+    const userAgent = req.headers["user-agent"] || null;
+    switch (action) {
+      case "list":
+        return handleList(req, res, auth.userId, auth.sessionId);
+      case "track":
+        return handleTrack(req, res, auth.userId, ipAddress, userAgent);
+      case "revoke":
+        return handleRevoke(req, res, auth.userId, ipAddress, userAgent);
+      case "revoke-all":
+        return handleRevokeAll(req, res, auth.userId, auth.sessionId, ipAddress, userAgent);
+      default:
+        return sendError(res, "Invalid action. Use: list, track, revoke, revoke-all", HttpStatus.BAD_REQUEST);
+    }
+  } catch (error) {
+    return handleError(res, error, "sessions");
+  }
+}
+async function handleList(req, res, userId, currentSessionId) {
+  if (req.method !== "GET") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const result = await getActiveSessions(userId, currentSessionId);
+  return sendSuccess(res, { sessions: result.sessions, count: result.count });
+}
+async function handleTrack(req, res, userId, ipAddress, userAgent) {
+  if (req.method !== "POST") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const deviceInfo = parseDeviceInfo(userAgent);
+  const session = await createSession({
+    userId,
+    deviceInfo,
+    ipAddress,
+    userAgent
+  });
+  return sendSuccess(res, { session }, HttpStatus.CREATED);
+}
+async function handleRevoke(req, res, userId, ipAddress, userAgent) {
+  if (req.method !== "POST") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const { sessionId } = req.body || {};
+  if (!sessionId) {
+    return sendError(res, "sessionId is required", HttpStatus.BAD_REQUEST);
+  }
+  const result = await deactivateSession(sessionId, userId, ipAddress, userAgent);
+  return sendSuccess(res, { revoked: result.success, sessionId: result.sessionId });
+}
+async function handleRevokeAll(req, res, userId, currentSessionId, ipAddress, userAgent) {
+  if (req.method !== "POST") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const { keepCurrent } = req.body || {};
+  let result;
+  if (keepCurrent && currentSessionId) {
+    result = await deactivateOtherSessions(userId, currentSessionId, ipAddress, userAgent);
   } else {
-    deviceInfo = row.device_info || { browser: "Unknown", os: "Unknown", device_type: "unknown" };
+    result = await deactivateAllSessions(userId, ipAddress, userAgent);
   }
-  return {
-    id: row.id,
-    user_id: row.user_id,
-    device_info: deviceInfo,
-    ip_address: row.ip_address,
-    user_agent: row.user_agent,
-    is_active: row.is_active,
-    last_activity: new Date(row.last_activity),
-    created_at: new Date(row.created_at),
-    expires_at: new Date(row.expires_at)
-  };
+  return sendSuccess(res, {
+    revoked: result.success,
+    count: result.deactivatedCount,
+    sessionIds: result.sessionIds
+  });
 }
-async function countActiveSessions(userId) {
-  const countQuery = SessionQueries.countActiveForUser(userId);
-  const result = await query(countQuery.text, countQuery.values);
-  if (result.rows.length === 0) {
-    return 0;
-  }
-  const count = result.rows[0].count;
-  return typeof count === "string" ? parseInt(count, 10) : count;
-}
-async function extendSessionExpiration(sessionId, days = 30) {
-  const extendQuery = SessionQueries.extendExpiration(sessionId, days);
-  const result = await query(extendQuery.text, extendQuery.values);
-  return result.rowCount > 0;
-}
-var sessions_default = {
-  createSession,
-  updateActivity,
-  deactivateSession,
-  deactivateAllSessions,
-  getActiveSessions,
-  deactivateOtherSessions,
-  cleanupExpiredSessions,
-  isSessionValid,
-  getSessionById,
-  countActiveSessions,
-  extendSessionExpiration,
-  parseDeviceInfo
-};
+var sessions_default = withArcjetProtection(handler, "session");
 export {
-  updateActivity,
-  parseDeviceInfo,
-  isSessionValid,
-  getSessionById,
-  getActiveSessions,
-  extendSessionExpiration,
-  sessions_default as default,
-  deactivateSession,
-  deactivateOtherSessions,
-  deactivateAllSessions,
-  createSession,
-  countActiveSessions,
-  cleanupExpiredSessions
+  sessions_default as default
 };
