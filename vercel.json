@@ -8,6 +8,7 @@
     { "source": "/api/auth", "destination": "/api/auth" },
     { "source": "/api/admin", "destination": "/api/admin" },
     { "source": "/api/applications", "destination": "/api/applications" },
+    { "source": "/api/bootstrap", "destination": "/api/bootstrap" },
     { "source": "/api/catalog", "destination": "/api/catalog" },
     { "source": "/api/documents", "destination": "/api/documents" },
     { "source": "/api/notifications", "destination": "/api/notifications" },
