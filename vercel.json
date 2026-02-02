@@ -3,11 +3,6 @@
   "installCommand": "bun install",
   "outputDirectory": "dist",
   "framework": null,
-  "functions": {
-    "api/*.js": {
-      "maxDuration": 10
-    }
-  },
   "rewrites": [
     { "source": "/api/health", "destination": "/api/health" },
     { "source": "/api/auth", "destination": "/api/auth" },
