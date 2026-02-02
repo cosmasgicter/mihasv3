@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { applicationsApi, ApplicationVersion } from '@/lib/apiClient'
 import { formatDate } from '@/lib/utils'
 import { History, Eye, Download, Clock } from 'lucide-react'
 
-interface ApplicationVersion {
-  id: string
-  version_number: number
-  form_data: any
-  change_summary?: string
-  created_at: string
-}
+// Use the ApplicationVersion type from apiClient.ts - no local redefinition needed
 
 interface ApplicationVersionsProps {
   applicationId?: string
-  onRestoreVersion?: (versionData: any) => void
+  onRestoreVersion?: (versionData: unknown) => void
 }
 
 export function ApplicationVersions({ applicationId, onRestoreVersion }: ApplicationVersionsProps) {
@@ -36,14 +30,10 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
 
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('application_versions')
-        .select('*')
-        .eq('application_id', applicationId)
-        .order('version_number', { ascending: false })
-
-      if (error) throw error
-      setVersions(data || [])
+      const response = await applicationsApi.getVersions(applicationId)
+      if (response.success && response.data?.versions) {
+        setVersions(response.data.versions)
+      }
     } catch (error) {
       console.error('Error loading versions:', error)
     } finally {
@@ -51,27 +41,15 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
     }
   }
 
-  const createVersion = async (formData: any, changeSummary?: string) => {
+  const createVersion = async (formData: unknown, changeSummary?: string) => {
     if (!applicationId || !user) return
 
     try {
-      const nextVersion = Math.max(...versions.map(v => v.version_number), 0) + 1
-      
-      const { error } = await supabase
-        .from('application_versions')
-        .insert({
-          application_id: applicationId,
-          user_id: user.id,
-          version_number: nextVersion,
-          form_data: formData,
-          change_summary: changeSummary,
-          created_by: user.id
-        })
-
-      if (error) throw error
-      
-      // Reload versions
-      await loadVersions()
+      const response = await applicationsApi.createVersion(applicationId, formData, changeSummary)
+      if (response.success) {
+        // Reload versions
+        await loadVersions()
+      }
     } catch (error) {
       console.error('Error creating version:', error)
     }
@@ -289,22 +267,14 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
 export function useApplicationVersions(applicationId?: string) {
   const { user } = useAuth()
 
-  const createVersion = async (formData: any, changeSummary?: string) => {
+  const createVersion = async (formData: unknown, changeSummary?: string) => {
     if (!applicationId || !user) return
 
     try {
-      const { error } = await supabase
-        .from('application_versions')
-        .insert({
-          application_id: applicationId,
-          user_id: user.id,
-          version_number: Date.now(), // Simple versioning
-          form_data: formData,
-          change_summary: changeSummary,
-          created_by: user.id
-        })
-
-      if (error) throw error
+      const response = await applicationsApi.createVersion(applicationId, formData, changeSummary)
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to create version')
+      }
       return { success: true }
     } catch (error) {
       console.error('Error creating version:', error)

@@ -24,7 +24,7 @@ import { Container } from '@/components/ui/Container'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/badge'
-import { supabase } from '@/lib/supabase'
+import { applicationsApi } from '@/lib/apiClient'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface ApplicationWithPayment {
@@ -95,24 +95,14 @@ export default function PaymentPage() {
         
         // Fetch all applications for the user to show payment status
         // @requirements 2.1, 2.2 - Query and display applications with payment status
-        const { data, error: fetchError } = await supabase
-          .from('applications')
-          .select(`
-            id,
-            status,
-            payment_status,
-            payment_method,
-            amount,
-            momo_ref,
-            created_at,
-            program
-          `)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+        // MIGRATED: Using API client instead of direct Supabase calls
+        const response = await applicationsApi.list({ mine: true })
 
-        if (fetchError) throw fetchError
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to load applications')
+        }
 
-        const applications = (data || []).map((app) => ({
+        const applications = (response.data || []).map((app) => ({
           id: app.id,
           status: app.status,
           payment_status: app.payment_status,

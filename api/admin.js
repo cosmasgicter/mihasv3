@@ -117,628 +117,6 @@ async function query(queryText, params) {
   return executeNeonQuery(queryText, params);
 }
 
-// lib/storage.ts
-import { createHmac, createHash } from "crypto";
-var R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || "";
-var R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || "";
-var R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY || "";
-var R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "***REMOVED***";
-var R2_ENDPOINT = `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
-var R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || `***REMOVED***/${R2_BUCKET_NAME}`;
-
-class AwsV4Signer {
-  accessKeyId;
-  secretAccessKey;
-  region;
-  service;
-  constructor(accessKeyId, secretAccessKey, region = "auto", service = "s3") {
-    this.accessKeyId = accessKeyId;
-    this.secretAccessKey = secretAccessKey;
-    this.region = region;
-    this.service = service;
-  }
-  sign(method, url, headers, body) {
-    const parsedUrl = new URL(url);
-    const datetime = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
-    const date = datetime.substring(0, 8);
-    headers["x-amz-date"] = datetime;
-    headers["x-amz-content-sha256"] = body ? createHash("sha256").update(body).digest("hex") : "UNSIGNED-PAYLOAD";
-    headers["host"] = parsedUrl.host;
-    const signedHeaders = Object.keys(headers).map((k) => k.toLowerCase()).sort().join(";");
-    const canonicalHeaders = Object.keys(headers).map((k) => `${k.toLowerCase()}:${headers[k].trim()}`).sort().join(`
-`);
-    const canonicalRequest = [
-      method,
-      parsedUrl.pathname,
-      parsedUrl.search.substring(1),
-      canonicalHeaders + `
-`,
-      signedHeaders,
-      headers["x-amz-content-sha256"]
-    ].join(`
-`);
-    const credentialScope = `${date}/${this.region}/${this.service}/aws4_request`;
-    const stringToSign = [
-      "AWS4-HMAC-SHA256",
-      datetime,
-      credentialScope,
-      createHash("sha256").update(canonicalRequest).digest("hex")
-    ].join(`
-`);
-    const kDate = createHmac("sha256", `AWS4${this.secretAccessKey}`).update(date).digest();
-    const kRegion = createHmac("sha256", kDate).update(this.region).digest();
-    const kService = createHmac("sha256", kRegion).update(this.service).digest();
-    const kSigning = createHmac("sha256", kService).update("aws4_request").digest();
-    const signature = createHmac("sha256", kSigning).update(stringToSign).digest("hex");
-    headers["Authorization"] = [
-      `AWS4-HMAC-SHA256 Credential=${this.accessKeyId}/${credentialScope}`,
-      `SignedHeaders=${signedHeaders}`,
-      `Signature=${signature}`
-    ].join(", ");
-    return headers;
-  }
-  getSignedUrl(method, url, expiresIn = 3600) {
-    const parsedUrl = new URL(url);
-    const datetime = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
-    const date = datetime.substring(0, 8);
-    const credentialScope = `${date}/${this.region}/${this.service}/aws4_request`;
-    const params = new URLSearchParams(parsedUrl.search);
-    params.set("X-Amz-Algorithm", "AWS4-HMAC-SHA256");
-    params.set("X-Amz-Credential", `${this.accessKeyId}/${credentialScope}`);
-    params.set("X-Amz-Date", datetime);
-    params.set("X-Amz-Expires", String(expiresIn));
-    params.set("X-Amz-SignedHeaders", "host");
-    const sortedParams = new URLSearchParams([...params.entries()].sort());
-    parsedUrl.search = sortedParams.toString();
-    const canonicalRequest = [
-      method,
-      parsedUrl.pathname,
-      sortedParams.toString(),
-      `host:${parsedUrl.host}
-`,
-      "host",
-      "UNSIGNED-PAYLOAD"
-    ].join(`
-`);
-    const stringToSign = [
-      "AWS4-HMAC-SHA256",
-      datetime,
-      credentialScope,
-      createHash("sha256").update(canonicalRequest).digest("hex")
-    ].join(`
-`);
-    const kDate = createHmac("sha256", `AWS4${this.secretAccessKey}`).update(date).digest();
-    const kRegion = createHmac("sha256", kDate).update(this.region).digest();
-    const kService = createHmac("sha256", kRegion).update(this.service).digest();
-    const kSigning = createHmac("sha256", kService).update("aws4_request").digest();
-    const signature = createHmac("sha256", kSigning).update(stringToSign).digest("hex");
-    sortedParams.set("X-Amz-Signature", signature);
-    parsedUrl.search = sortedParams.toString();
-    return parsedUrl.toString();
-  }
-}
-
-class R2StorageAdapter {
-  signer;
-  bucketName;
-  endpoint;
-  publicUrl;
-  constructor() {
-    if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
-      console.warn("[R2Storage] Missing R2 credentials - storage operations will fail");
-    }
-    this.signer = new AwsV4Signer(R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY);
-    this.bucketName = R2_BUCKET_NAME;
-    this.endpoint = R2_ENDPOINT;
-    this.publicUrl = R2_PUBLIC_URL;
-  }
-  isConfigured() {
-    return !!(R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_ACCOUNT_ID);
-  }
-  async upload(path, data, contentType = "application/octet-stream") {
-    if (!this.isConfigured()) {
-      return { success: false, error: "R2 storage not configured" };
-    }
-    const url = `${this.endpoint}/${this.bucketName}/${path}`;
-    const headers = {
-      "Content-Type": contentType,
-      "Content-Length": String(data.length)
-    };
-    try {
-      const signedHeaders = this.signer.sign("PUT", url, headers, data);
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: signedHeaders,
-        body: data
-      });
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[R2Storage] Upload failed:", response.status, errorText);
-        return { success: false, error: `Upload failed: ${response.status}` };
-      }
-      console.log("[R2Storage] File uploaded:", path);
-      return {
-        success: true,
-        path,
-        url: `${this.publicUrl}/${path}`,
-        size: data.length,
-        contentType
-      };
-    } catch (error) {
-      console.error("[R2Storage] Upload error:", error);
-      return { success: false, error: error.message };
-    }
-  }
-  async download(path) {
-    if (!this.isConfigured()) {
-      console.error("[R2Storage] R2 storage not configured");
-      return null;
-    }
-    const url = `${this.endpoint}/${this.bucketName}/${path}`;
-    const headers = {};
-    try {
-      const signedHeaders = this.signer.sign("GET", url, headers);
-      const response = await fetch(url, {
-        method: "GET",
-        headers: signedHeaders
-      });
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null;
-        }
-        console.error("[R2Storage] Download failed:", response.status);
-        return null;
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      return Buffer.from(arrayBuffer);
-    } catch (error) {
-      console.error("[R2Storage] Download error:", error);
-      return null;
-    }
-  }
-  async delete(path) {
-    if (!this.isConfigured()) {
-      console.error("[R2Storage] R2 storage not configured");
-      return false;
-    }
-    const url = `${this.endpoint}/${this.bucketName}/${path}`;
-    const headers = {};
-    try {
-      const signedHeaders = this.signer.sign("DELETE", url, headers);
-      const response = await fetch(url, {
-        method: "DELETE",
-        headers: signedHeaders
-      });
-      if (!response.ok && response.status !== 204) {
-        console.error("[R2Storage] Delete failed:", response.status);
-        return false;
-      }
-      console.log("[R2Storage] File deleted:", path);
-      return true;
-    } catch (error) {
-      console.error("[R2Storage] Delete error:", error);
-      return false;
-    }
-  }
-  getSignedUrl(path, expiresIn = 3600) {
-    const url = `${this.endpoint}/${this.bucketName}/${path}`;
-    return this.signer.getSignedUrl("GET", url, expiresIn);
-  }
-  getPublicUrl(path) {
-    return `${this.publicUrl}/${path}`;
-  }
-  async exists(path) {
-    if (!this.isConfigured()) {
-      return false;
-    }
-    const url = `${this.endpoint}/${this.bucketName}/${path}`;
-    const headers = {};
-    try {
-      const signedHeaders = this.signer.sign("HEAD", url, headers);
-      const response = await fetch(url, {
-        method: "HEAD",
-        headers: signedHeaders
-      });
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }
-  async getMetadata(path) {
-    if (!this.isConfigured()) {
-      return null;
-    }
-    const url = `${this.endpoint}/${this.bucketName}/${path}`;
-    const headers = {};
-    try {
-      const signedHeaders = this.signer.sign("HEAD", url, headers);
-      const response = await fetch(url, {
-        method: "HEAD",
-        headers: signedHeaders
-      });
-      if (!response.ok) {
-        return null;
-      }
-      return {
-        path,
-        size: parseInt(response.headers.get("content-length") || "0", 10),
-        contentType: response.headers.get("content-type") || "application/octet-stream",
-        lastModified: new Date(response.headers.get("last-modified") || Date.now()),
-        etag: response.headers.get("etag") || undefined
-      };
-    } catch {
-      return null;
-    }
-  }
-  async list(prefix = "", maxKeys = 1000) {
-    if (!this.isConfigured()) {
-      return [];
-    }
-    const url = new URL(`${this.endpoint}/${this.bucketName}`);
-    if (prefix) {
-      url.searchParams.set("prefix", prefix);
-    }
-    url.searchParams.set("max-keys", String(maxKeys));
-    const headers = {};
-    try {
-      const signedHeaders = this.signer.sign("GET", url.toString(), headers);
-      const response = await fetch(url.toString(), {
-        method: "GET",
-        headers: signedHeaders
-      });
-      if (!response.ok) {
-        console.error("[R2Storage] List failed:", response.status);
-        return [];
-      }
-      const xml = await response.text();
-      const keys = [];
-      const keyMatches = xml.matchAll(/<Key>([^<]+)<\/Key>/g);
-      for (const match of keyMatches) {
-        keys.push(match[1]);
-      }
-      return keys;
-    } catch (error) {
-      console.error("[R2Storage] List error:", error);
-      return [];
-    }
-  }
-}
-var r2Instance = null;
-function getR2Storage() {
-  if (!r2Instance) {
-    r2Instance = new R2StorageAdapter;
-  }
-  return r2Instance;
-}
-
-// lib/supabaseClient.ts
-class MockQueryBuilder {
-  table;
-  operation = "select";
-  selectColumns = "*";
-  filters = [];
-  orderByColumn;
-  orderAsc = true;
-  limitCount;
-  offsetCount;
-  insertData;
-  updateData;
-  upsertConflict;
-  countOnly = false;
-  headOnly = false;
-  constructor(table) {
-    this.table = table;
-  }
-  select(columns = "*", options) {
-    this.operation = "select";
-    this.selectColumns = columns;
-    if (options?.count === "exact") {
-      this.countOnly = true;
-    }
-    if (options?.head) {
-      this.headOnly = true;
-    }
-    return this;
-  }
-  insert(data) {
-    this.operation = "insert";
-    this.insertData = data;
-    return this;
-  }
-  update(data) {
-    this.operation = "update";
-    this.updateData = data;
-    return this;
-  }
-  upsert(data, options) {
-    this.operation = "upsert";
-    this.insertData = data;
-    this.upsertConflict = options?.onConflict || "id";
-    return this;
-  }
-  delete() {
-    this.operation = "delete";
-    return this;
-  }
-  eq(column, value) {
-    this.filters.push({ column, op: "=", value });
-    return this;
-  }
-  neq(column, value) {
-    this.filters.push({ column, op: "!=", value });
-    return this;
-  }
-  gt(column, value) {
-    this.filters.push({ column, op: ">", value });
-    return this;
-  }
-  gte(column, value) {
-    this.filters.push({ column, op: ">=", value });
-    return this;
-  }
-  lt(column, value) {
-    this.filters.push({ column, op: "<", value });
-    return this;
-  }
-  lte(column, value) {
-    this.filters.push({ column, op: "<=", value });
-    return this;
-  }
-  like(column, value) {
-    this.filters.push({ column, op: "LIKE", value });
-    return this;
-  }
-  ilike(column, value) {
-    this.filters.push({ column, op: "ILIKE", value });
-    return this;
-  }
-  in(column, values) {
-    this.filters.push({ column, op: "IN", value: values });
-    return this;
-  }
-  is(column, value) {
-    this.filters.push({ column, op: "IS", value });
-    return this;
-  }
-  order(column, options) {
-    this.orderByColumn = column;
-    this.orderAsc = options?.ascending ?? true;
-    return this;
-  }
-  limit(count) {
-    this.limitCount = count;
-    return this;
-  }
-  range(from, to) {
-    this.offsetCount = from;
-    this.limitCount = to - from + 1;
-    return this;
-  }
-  async single() {
-    this.limitCount = 1;
-    const result = await this.execute();
-    if (result.error) {
-      return { data: null, error: result.error, code: result.error.code };
-    }
-    if (!result.data || result.data.length === 0) {
-      return { data: null, error: new Error("No rows returned"), code: "PGRST116" };
-    }
-    return { data: result.data[0], error: null };
-  }
-  async maybeSingle() {
-    this.limitCount = 1;
-    const result = await this.execute();
-    return {
-      data: result.data?.[0] || null,
-      error: result.error
-    };
-  }
-  buildWhereClause() {
-    if (this.filters.length === 0) {
-      return { sql: "", params: [], nextIndex: 1 };
-    }
-    const conditions = [];
-    const params = [];
-    let paramIndex = 1;
-    for (const filter of this.filters) {
-      if (filter.op === "IN" && Array.isArray(filter.value)) {
-        const placeholders = filter.value.map(() => `$${paramIndex++}`).join(", ");
-        conditions.push(`${filter.column} IN (${placeholders})`);
-        params.push(...filter.value);
-      } else if (filter.op === "IS") {
-        conditions.push(`${filter.column} IS ${filter.value === null ? "NULL" : "NOT NULL"}`);
-      } else {
-        conditions.push(`${filter.column} ${filter.op} $${paramIndex++}`);
-        params.push(filter.value);
-      }
-    }
-    return { sql: ` WHERE ${conditions.join(" AND ")}`, params, nextIndex: paramIndex };
-  }
-  async executeSelect() {
-    try {
-      const { sql: whereClause, params } = this.buildWhereClause();
-      if (this.countOnly && this.headOnly) {
-        const countQuery = `SELECT COUNT(*) as count FROM ${this.table}${whereClause}`;
-        const result2 = await query(countQuery, params);
-        const count2 = parseInt(result2.rows[0]?.count || "0", 10);
-        return { data: null, error: null, count: count2 };
-      }
-      let sqlQuery = `SELECT ${this.selectColumns} FROM ${this.table}${whereClause}`;
-      if (this.orderByColumn) {
-        sqlQuery += ` ORDER BY ${this.orderByColumn} ${this.orderAsc ? "ASC" : "DESC"}`;
-      }
-      if (this.limitCount !== undefined) {
-        sqlQuery += ` LIMIT ${this.limitCount}`;
-      }
-      if (this.offsetCount !== undefined) {
-        sqlQuery += ` OFFSET ${this.offsetCount}`;
-      }
-      const result = await query(sqlQuery, params);
-      let count;
-      if (this.countOnly) {
-        const countQuery = `SELECT COUNT(*) as count FROM ${this.table}${whereClause}`;
-        const countResult = await query(countQuery, params);
-        count = parseInt(countResult.rows[0]?.count || "0", 10);
-      }
-      return { data: result.rows, error: null, count };
-    } catch (error) {
-      return { data: null, error };
-    }
-  }
-  async executeInsert() {
-    try {
-      const rows = Array.isArray(this.insertData) ? this.insertData : [this.insertData];
-      const results = [];
-      for (const row of rows) {
-        if (!row)
-          continue;
-        const columns = Object.keys(row);
-        const values = Object.values(row);
-        const placeholders = columns.map((_, i) => `$${i + 1}`).join(", ");
-        const sqlQuery = `INSERT INTO ${this.table} (${columns.join(", ")}) VALUES (${placeholders}) RETURNING *`;
-        const result = await query(sqlQuery, values);
-        if (result.rows[0]) {
-          results.push(result.rows[0]);
-        }
-      }
-      return { data: results, error: null };
-    } catch (error) {
-      const err = error;
-      return { data: null, error: err };
-    }
-  }
-  async executeUpdate() {
-    try {
-      if (!this.updateData) {
-        return { data: [], error: null };
-      }
-      const { sql: whereClause, params: whereParams, nextIndex } = this.buildWhereClause();
-      const columns = Object.keys(this.updateData);
-      const values = Object.values(this.updateData);
-      const setClause = columns.map((col, i) => `${col} = $${nextIndex + i}`).join(", ");
-      const sqlQuery = `UPDATE ${this.table} SET ${setClause}${whereClause} RETURNING *`;
-      const result = await query(sqlQuery, [...whereParams, ...values]);
-      return { data: result.rows, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
-  }
-  async executeDelete() {
-    try {
-      const { sql: whereClause, params } = this.buildWhereClause();
-      const sqlQuery = `DELETE FROM ${this.table}${whereClause} RETURNING *`;
-      const result = await query(sqlQuery, params);
-      return { data: result.rows, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
-  }
-  async executeUpsert() {
-    try {
-      const rows = Array.isArray(this.insertData) ? this.insertData : [this.insertData];
-      const results = [];
-      for (const row of rows) {
-        if (!row)
-          continue;
-        const columns = Object.keys(row);
-        const values = Object.values(row);
-        const placeholders = columns.map((_, i) => `$${i + 1}`).join(", ");
-        const updateClause = columns.filter((col) => col !== this.upsertConflict).map((col, i) => `${col} = EXCLUDED.${col}`).join(", ");
-        const sqlQuery = `INSERT INTO ${this.table} (${columns.join(", ")}) VALUES (${placeholders}) 
-                          ON CONFLICT (${this.upsertConflict}) DO UPDATE SET ${updateClause} RETURNING *`;
-        const result = await query(sqlQuery, values);
-        if (result.rows[0]) {
-          results.push(result.rows[0]);
-        }
-      }
-      return { data: results, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
-  }
-  async execute() {
-    switch (this.operation) {
-      case "insert":
-        return this.executeInsert();
-      case "update":
-        return this.executeUpdate();
-      case "delete":
-        return this.executeDelete();
-      case "upsert":
-        return this.executeUpsert();
-      case "select":
-      default:
-        return this.executeSelect();
-    }
-  }
-  async then(onfulfilled, onrejected) {
-    try {
-      const result = await this.execute();
-      return onfulfilled ? onfulfilled(result) : result;
-    } catch (error) {
-      if (onrejected) {
-        return onrejected(error);
-      }
-      throw error;
-    }
-  }
-}
-var mockStorage = {
-  from: (bucket) => {
-    const r2 = getR2Storage();
-    return {
-      async upload(path, file, options) {
-        const buffer = file instanceof Blob ? Buffer.from(await file.arrayBuffer()) : file;
-        const result = await r2.upload(`${bucket}/${path}`, buffer, options?.contentType);
-        if (result.success) {
-          return { data: { path: result.path }, error: null };
-        }
-        return { data: null, error: new Error(result.error) };
-      },
-      async download(path) {
-        const data = await r2.download(`${bucket}/${path}`);
-        if (data) {
-          return { data, error: null };
-        }
-        return { data: null, error: new Error("File not found") };
-      },
-      getPublicUrl(path) {
-        return { data: { publicUrl: r2.getPublicUrl(`${bucket}/${path}`) } };
-      },
-      async createSignedUrl(path, expiresIn) {
-        const url = r2.getSignedUrl(`${bucket}/${path}`, expiresIn);
-        return { data: { signedUrl: url }, error: null };
-      },
-      async remove(paths) {
-        const errors = [];
-        for (const path of paths) {
-          const success = await r2.delete(`${bucket}/${path}`);
-          if (!success) {
-            errors.push(path);
-          }
-        }
-        if (errors.length > 0) {
-          return { data: null, error: new Error(`Failed to delete: ${errors.join(", ")}`) };
-        }
-        return { data: { message: "Deleted" }, error: null };
-      },
-      async list(prefix, options) {
-        const files = await r2.list(prefix ? `${bucket}/${prefix}` : bucket, options?.limit);
-        return { data: files.map((f) => ({ name: f })), error: null };
-      }
-    };
-  }
-};
-async function mockRpc(fn, _params) {
-  console.warn(`[DEPRECATED] supabaseAdmin.rpc('${fn}') is deprecated. Use direct SQL queries instead.`);
-  return { data: null, error: new Error(`RPC function '${fn}' not supported. Use direct SQL.`) };
-}
-var supabaseAdmin = {
-  from: (table) => new MockQueryBuilder(table),
-  storage: mockStorage,
-  rpc: mockRpc
-};
-
 // lib/errorHandler.ts
 var HttpStatus = {
   OK: 200,
@@ -1547,8 +925,39 @@ async function handler(req, res) {
         }
         await handleSetPassword(req, res, auth);
         return;
+      case "import-settings":
+        if (req.method !== "POST") {
+          sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleImportSettings(req, res, auth);
+        return;
+      case "reset-settings":
+        if (req.method !== "POST") {
+          sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleResetSettings(res, auth);
+        return;
+      case "eligibility-rules":
+        await handleEligibilityRules(req, res, auth);
+        return;
+      case "update-role":
+        if (req.method !== "PUT" && req.method !== "POST") {
+          sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleUpdateRole(req, res, auth);
+        return;
+      case "eligibility-assessments":
+        if (req.method !== "GET") {
+          sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleEligibilityAssessments(req, res);
+        return;
       default:
-        sendError(res, "Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors, set-password", HttpStatus.BAD_REQUEST);
+        sendError(res, "Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments", HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -1585,12 +994,13 @@ async function handleSettings(req, res, auth) {
   }
 }
 async function handleGetSettings(res) {
-  const { data, error } = await supabaseAdmin.from("system_settings").select("*").order("setting_key", { ascending: true });
-  if (error) {
-    sendError(res, error.message, HttpStatus.BAD_REQUEST);
-    return;
+  try {
+    const result = await query("SELECT * FROM system_settings ORDER BY setting_key ASC");
+    sendSuccess(res, { settings: result.rows || [] });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    sendError(res, message, HttpStatus.BAD_REQUEST);
   }
-  sendSuccess(res, { settings: data || [] });
 }
 async function handleCreateSetting(req, res, auth) {
   const body = req.body;
@@ -1602,24 +1012,30 @@ async function handleCreateSetting(req, res, auth) {
     sendError(res, "setting_value is required", HttpStatus.BAD_REQUEST);
     return;
   }
-  const settingData = {
-    setting_key: body.setting_key.trim(),
-    setting_value: String(body.setting_value),
-    setting_type: body.setting_type || "string",
-    description: body.description || null,
-    is_public: body.is_public ?? false,
-    updated_by: auth.userId
-  };
-  const { data, error } = await supabaseAdmin.from("system_settings").insert(settingData).select().single();
-  if (error) {
-    if ("code" in error && error.code === "23505") {
+  try {
+    const result = await query(`INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public, updated_by, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+       RETURNING *`, [
+      body.setting_key.trim(),
+      String(body.setting_value),
+      body.setting_type || "string",
+      body.description || null,
+      body.is_public ?? false,
+      auth.userId
+    ]);
+    if (result.rows.length === 0) {
+      sendError(res, "Failed to create setting", HttpStatus.INTERNAL_SERVER_ERROR);
+      return;
+    }
+    sendSuccess(res, { setting: result.rows[0] }, HttpStatus.CREATED);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message.includes("duplicate key") || message.includes("23505")) {
       sendError(res, `Setting with key '${body.setting_key}' already exists`, HttpStatus.CONFLICT);
       return;
     }
-    sendError(res, error.message, HttpStatus.BAD_REQUEST);
-    return;
+    sendError(res, message, HttpStatus.BAD_REQUEST);
   }
-  sendSuccess(res, { setting: data }, HttpStatus.CREATED);
 }
 async function handleUpdateSetting(req, res, auth) {
   const body = req.body;
@@ -1627,38 +1043,48 @@ async function handleUpdateSetting(req, res, auth) {
     sendError(res, "Either id or setting_key is required to update a setting", HttpStatus.BAD_REQUEST);
     return;
   }
-  const updateData = {
-    updated_by: auth.userId,
-    updated_at: new Date().toISOString()
-  };
-  if (body.setting_value !== undefined) {
-    updateData.setting_value = String(body.setting_value);
-  }
-  if (body.setting_type !== undefined) {
-    updateData.setting_type = body.setting_type;
-  }
-  if (body.description !== undefined) {
-    updateData.description = body.description;
-  }
-  if (body.is_public !== undefined) {
-    updateData.is_public = body.is_public;
-  }
-  let query2 = supabaseAdmin.from("system_settings").update(updateData);
-  if (body.id) {
-    query2 = query2.eq("id", body.id);
-  } else {
-    query2 = query2.eq("setting_key", body.setting_key);
-  }
-  const { data, error } = await query2.select().single();
-  if (error) {
-    if (error.code === "PGRST116") {
+  try {
+    const updates = ["updated_by = $1", "updated_at = NOW()"];
+    const values = [auth.userId];
+    let paramIndex = 2;
+    if (body.setting_value !== undefined) {
+      updates.push(`setting_value = $${paramIndex}`);
+      values.push(String(body.setting_value));
+      paramIndex++;
+    }
+    if (body.setting_type !== undefined) {
+      updates.push(`setting_type = $${paramIndex}`);
+      values.push(body.setting_type);
+      paramIndex++;
+    }
+    if (body.description !== undefined) {
+      updates.push(`description = $${paramIndex}`);
+      values.push(body.description);
+      paramIndex++;
+    }
+    if (body.is_public !== undefined) {
+      updates.push(`is_public = $${paramIndex}`);
+      values.push(body.is_public);
+      paramIndex++;
+    }
+    let whereClause;
+    if (body.id) {
+      whereClause = `id = $${paramIndex}`;
+      values.push(body.id);
+    } else {
+      whereClause = `setting_key = $${paramIndex}`;
+      values.push(body.setting_key);
+    }
+    const result = await query(`UPDATE system_settings SET ${updates.join(", ")} WHERE ${whereClause} RETURNING *`, values);
+    if (result.rows.length === 0) {
       sendError(res, "Setting not found", HttpStatus.NOT_FOUND);
       return;
     }
-    sendError(res, error.message, HttpStatus.BAD_REQUEST);
-    return;
+    sendSuccess(res, { setting: result.rows[0] });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    sendError(res, message, HttpStatus.BAD_REQUEST);
   }
-  sendSuccess(res, { setting: data });
 }
 async function handleDeleteSetting(req, res) {
   const body = req.body;
@@ -1670,85 +1096,93 @@ async function handleDeleteSetting(req, res) {
     sendError(res, "Either id or setting_key is required to delete a setting", HttpStatus.BAD_REQUEST);
     return;
   }
-  let query2 = supabaseAdmin.from("system_settings").delete();
-  if (id) {
-    query2 = query2.eq("id", id);
-  } else {
-    query2 = query2.eq("setting_key", settingKey);
+  try {
+    let result;
+    if (id) {
+      result = await query("DELETE FROM system_settings WHERE id = $1", [id]);
+    } else {
+      result = await query("DELETE FROM system_settings WHERE setting_key = $1", [settingKey]);
+    }
+    if (result.rowCount === 0) {
+      sendError(res, "Setting not found", HttpStatus.NOT_FOUND);
+      return;
+    }
+    sendSuccess(res, { deleted: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    sendError(res, message, HttpStatus.BAD_REQUEST);
   }
-  const { error } = await query2;
-  if (error) {
-    sendError(res, error.message, HttpStatus.BAD_REQUEST);
-    return;
-  }
-  sendSuccess(res, { deleted: true });
 }
 async function handleDashboard(res) {
-  const now = new Date;
-  const today = now.toISOString().split("T")[0];
-  const tomorrowDate = new Date(now);
-  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-  const tomorrow = tomorrowDate.toISOString().split("T")[0];
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [
-    recentApps,
-    totalResult,
-    draftResult,
-    submittedResult,
-    underReviewResult,
-    approvedResult,
-    rejectedResult,
-    todayResult,
-    weekResult,
-    monthResult
-  ] = await Promise.all([
-    supabaseAdmin.from("applications").select("id, application_number, full_name, status, program, created_at").order("created_at", { ascending: false }).limit(5),
-    supabaseAdmin.from("applications").select("*", { count: "exact", head: true }),
-    supabaseAdmin.from("applications").select("*", { count: "exact", head: true }).eq("status", "draft"),
-    supabaseAdmin.from("applications").select("*", { count: "exact", head: true }).eq("status", "submitted"),
-    supabaseAdmin.from("applications").select("*", { count: "exact", head: true }).eq("status", "under_review"),
-    supabaseAdmin.from("applications").select("*", { count: "exact", head: true }).eq("status", "approved"),
-    supabaseAdmin.from("applications").select("*", { count: "exact", head: true }).eq("status", "rejected"),
-    supabaseAdmin.from("applications").select("*", { count: "exact", head: true }).gte("created_at", today).lt("created_at", tomorrow),
-    supabaseAdmin.from("applications").select("*", { count: "exact", head: true }).gte("created_at", weekAgo),
-    supabaseAdmin.from("applications").select("*", { count: "exact", head: true }).gte("created_at", monthAgo)
-  ]);
-  const totalCount = totalResult.count || 0;
-  const draftCount = draftResult.count || 0;
-  const submittedCount = submittedResult.count || 0;
-  const underReviewCount = underReviewResult.count || 0;
-  const approvedCount = approvedResult.count || 0;
-  const rejectedCount = rejectedResult.count || 0;
-  const todayCount = todayResult.count || 0;
-  const weekCount = weekResult.count || 0;
-  const monthCount = monthResult.count || 0;
-  const pendingCount = submittedCount + underReviewCount;
-  const recentActivity = (recentApps.data || []).map((app) => ({
-    id: app.id,
-    type: "application",
-    message: `New application from ${app.full_name} for ${app.program}`,
-    timestamp: app.created_at,
-    user: app.full_name,
-    status: app.status
-  }));
-  res.setHeader("Cache-Control", "public, max-age=30");
-  sendSuccess(res, {
-    stats: {
-      totalApplications: totalCount,
-      pendingApplications: pendingCount,
-      approvedApplications: approvedCount,
-      rejectedApplications: rejectedCount,
-      todayApplications: todayCount,
-      weekApplications: weekCount,
-      monthApplications: monthCount,
-      systemHealth: pendingCount > 100 ? "critical" : pendingCount > 50 ? "warning" : "good"
-    },
-    recentActivity,
-    statusBreakdown: { draft: draftCount, submitted: submittedCount, under_review: underReviewCount, approved: approvedCount, rejected: rejectedCount },
-    periodTotals: { today: todayCount, week: weekCount, month: monthCount },
-    generatedAt: now.toISOString()
-  });
+  try {
+    const now = new Date;
+    const today = now.toISOString().split("T")[0];
+    const tomorrowDate = new Date(now);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrow = tomorrowDate.toISOString().split("T")[0];
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const [
+      recentAppsResult,
+      countsResult,
+      todayResult,
+      weekResult,
+      monthResult
+    ] = await Promise.all([
+      query(`SELECT id, application_number, full_name, status, program, created_at 
+         FROM applications 
+         ORDER BY created_at DESC 
+         LIMIT 5`),
+      query(`SELECT status, COUNT(*) as count FROM applications GROUP BY status`),
+      query(`SELECT COUNT(*) as count FROM applications WHERE created_at >= $1 AND created_at < $2`, [today, tomorrow]),
+      query(`SELECT COUNT(*) as count FROM applications WHERE created_at >= $1`, [weekAgo]),
+      query(`SELECT COUNT(*) as count FROM applications WHERE created_at >= $1`, [monthAgo])
+    ]);
+    const statusCounts = {};
+    let totalCount = 0;
+    for (const row of countsResult.rows) {
+      const count = parseInt(row.count, 10);
+      statusCounts[row.status] = count;
+      totalCount += count;
+    }
+    const draftCount = statusCounts["draft"] || 0;
+    const submittedCount = statusCounts["submitted"] || 0;
+    const underReviewCount = statusCounts["under_review"] || 0;
+    const approvedCount = statusCounts["approved"] || 0;
+    const rejectedCount = statusCounts["rejected"] || 0;
+    const todayCount = parseInt(todayResult.rows[0]?.count || "0", 10);
+    const weekCount = parseInt(weekResult.rows[0]?.count || "0", 10);
+    const monthCount = parseInt(monthResult.rows[0]?.count || "0", 10);
+    const pendingCount = submittedCount + underReviewCount;
+    const recentActivity = recentAppsResult.rows.map((app) => ({
+      id: app.id,
+      type: "application",
+      message: `New application from ${app.full_name} for ${app.program}`,
+      timestamp: app.created_at,
+      user: app.full_name,
+      status: app.status
+    }));
+    res.setHeader("Cache-Control", "public, max-age=30");
+    sendSuccess(res, {
+      stats: {
+        totalApplications: totalCount,
+        pendingApplications: pendingCount,
+        approvedApplications: approvedCount,
+        rejectedApplications: rejectedCount,
+        todayApplications: todayCount,
+        weekApplications: weekCount,
+        monthApplications: monthCount,
+        systemHealth: pendingCount > 100 ? "critical" : pendingCount > 50 ? "warning" : "good"
+      },
+      recentActivity,
+      statusBreakdown: { draft: draftCount, submitted: submittedCount, under_review: underReviewCount, approved: approvedCount, rejected: rejectedCount },
+      periodTotals: { today: todayCount, week: weekCount, month: monthCount },
+      generatedAt: now.toISOString()
+    });
+  } catch (error) {
+    console.error("[ADMIN] Dashboard error:", error instanceof Error ? error.message : "Unknown error");
+    sendError(res, "Failed to fetch dashboard data", HttpStatus.INTERNAL_SERVER_ERROR);
+  }
 }
 async function handleUsers(req, res) {
   let page = parseInt(req.query.page || "1", 10);
@@ -1760,17 +1194,22 @@ async function handleUsers(req, res) {
   if (limit > 100)
     limit = 100;
   const offset = (page - 1) * limit;
-  const { data, count, error } = await supabaseAdmin.from("profiles").select("*", { count: "exact" }).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
-  if (error) {
-    sendError(res, error.message, HttpStatus.BAD_REQUEST);
-    return;
+  try {
+    const [dataResult, countResult] = await Promise.all([
+      query(`SELECT * FROM profiles ORDER BY created_at DESC LIMIT $1 OFFSET $2`, [limit, offset]),
+      query("SELECT COUNT(*) as count FROM profiles")
+    ]);
+    const users = dataResult.rows.map((user) => ({ ...user, user_id: user.id }));
+    const total = parseInt(countResult.rows[0]?.count || "0", 10);
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    sendSuccess(res, {
+      data: users,
+      meta: { page, limit, total, total_pages: Math.ceil(total / limit) }
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    sendError(res, message, HttpStatus.BAD_REQUEST);
   }
-  const users = (data || []).map((user) => ({ ...user, user_id: user.id }));
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  sendSuccess(res, {
-    data: users,
-    meta: { page, limit, total: count || 0, total_pages: Math.ceil((count || 0) / limit) }
-  });
 }
 async function handleRegisterUser(req, res, auth) {
   const { email, password, firstName, lastName, role } = req.body;
@@ -1793,27 +1232,20 @@ async function handleRegisterUser(req, res, auth) {
   }
   const userRole = role && allowedRoles.includes(role) ? role : "student";
   try {
-    const { data: existingUser } = await supabaseAdmin.from("profiles").select("id").eq("email", email.toLowerCase()).single();
-    if (existingUser) {
+    const existingResult = await query("SELECT id FROM profiles WHERE email = $1 LIMIT 1", [email.toLowerCase()]);
+    if (existingResult.rows.length > 0) {
       sendError(res, "Email already registered", HttpStatus.CONFLICT);
       return;
     }
     const passwordHash = await hashPassword(password);
-    const { data: newUser, error } = await supabaseAdmin.from("profiles").insert({
-      email: email.toLowerCase(),
-      password_hash: passwordHash,
-      first_name: firstName,
-      last_name: lastName,
-      role: userRole,
-      email_verified: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }).select("id, email, first_name, last_name, role, created_at").single();
-    if (error) {
-      console.error("[ADMIN] User creation failed:", error.message);
+    const result = await query(`INSERT INTO profiles (email, password_hash, first_name, last_name, role, email_verified, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
+       RETURNING id, email, first_name, last_name, role, created_at`, [email.toLowerCase(), passwordHash, firstName, lastName, userRole]);
+    if (result.rows.length === 0) {
       sendError(res, "Failed to create user", HttpStatus.INTERNAL_SERVER_ERROR);
       return;
     }
+    const newUser = result.rows[0];
     await logAuditEvent({
       actor_id: auth.userId,
       action: "user_created",
@@ -1946,18 +1378,15 @@ async function handleSetPassword(req, res, auth) {
     return;
   }
   try {
-    const { data: user, error: findError } = await supabaseAdmin.from("profiles").select("id, email, first_name, last_name, role").eq("email", email.toLowerCase()).single();
-    if (findError || !user) {
+    const findResult = await query("SELECT id, email, first_name, last_name, role FROM profiles WHERE email = $1 LIMIT 1", [email.toLowerCase()]);
+    if (findResult.rows.length === 0) {
       sendError(res, "User not found", HttpStatus.NOT_FOUND);
       return;
     }
+    const user = findResult.rows[0];
     const passwordHash = await hashPassword(password);
-    const { error: updateError } = await supabaseAdmin.from("profiles").update({
-      password_hash: passwordHash,
-      updated_at: new Date().toISOString()
-    }).eq("id", user.id);
-    if (updateError) {
-      console.error("[ADMIN] Password update failed:", updateError.message);
+    const updateResult = await query("UPDATE profiles SET password_hash = $1, updated_at = NOW() WHERE id = $2", [passwordHash, user.id]);
+    if (updateResult.rowCount === 0) {
       sendError(res, "Failed to update password", HttpStatus.INTERNAL_SERVER_ERROR);
       return;
     }
@@ -2030,6 +1459,363 @@ async function handleMigrate(req, res) {
     errors: errors.length > 0 ? errors : undefined,
     message: errors.length > 0 ? "Some migrations failed" : "All migrations completed successfully"
   });
+}
+async function handleImportSettings(req, res, auth) {
+  const { settings } = req.body;
+  if (!settings || !Array.isArray(settings)) {
+    sendError(res, "settings array is required", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  if (settings.length === 0) {
+    sendError(res, "settings array cannot be empty", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  const imported = [];
+  const errors = [];
+  for (const setting of settings) {
+    if (!setting.setting_key || setting.setting_value === undefined) {
+      errors.push(`Invalid setting: missing key or value`);
+      continue;
+    }
+    try {
+      await query(`INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public, updated_by, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+         ON CONFLICT (setting_key) 
+         DO UPDATE SET 
+           setting_value = EXCLUDED.setting_value,
+           setting_type = EXCLUDED.setting_type,
+           description = EXCLUDED.description,
+           is_public = EXCLUDED.is_public,
+           updated_by = EXCLUDED.updated_by,
+           updated_at = NOW()`, [
+        setting.setting_key,
+        String(setting.setting_value),
+        setting.setting_type || "string",
+        setting.description || null,
+        setting.is_public ?? false,
+        auth.userId
+      ]);
+      imported.push(setting.setting_key);
+    } catch (e) {
+      errors.push(`${setting.setting_key}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+  await logAuditEvent({
+    actor_id: auth.userId,
+    action: "settings_imported",
+    entity_type: "system_settings",
+    entity_id: "bulk",
+    changes: {
+      imported_count: imported.length,
+      error_count: errors.length
+    }
+  });
+  sendSuccess(res, {
+    imported,
+    errors: errors.length > 0 ? errors : undefined,
+    message: `Successfully imported ${imported.length} settings${errors.length > 0 ? `, ${errors.length} failed` : ""}`
+  });
+}
+async function handleResetSettings(res, auth) {
+  try {
+    await query("DELETE FROM system_settings WHERE 1=1");
+    const defaultSettings = [
+      {
+        setting_key: "site_name",
+        setting_value: "MIHAS-KATC Application System",
+        setting_type: "string",
+        description: "Name of the application system",
+        is_public: true
+      },
+      {
+        setting_key: "contact_email",
+        setting_value: "admissions@mihas-katc.ac.zm",
+        setting_type: "string",
+        description: "Main contact email for admissions",
+        is_public: true
+      },
+      {
+        setting_key: "contact_phone",
+        setting_value: "+260-123-456-789",
+        setting_type: "string",
+        description: "Main contact phone number",
+        is_public: true
+      },
+      {
+        setting_key: "application_fee",
+        setting_value: "50.00",
+        setting_type: "decimal",
+        description: "Application processing fee in USD",
+        is_public: true
+      },
+      {
+        setting_key: "max_applications_per_user",
+        setting_value: "3",
+        setting_type: "integer",
+        description: "Maximum number of applications a user can submit",
+        is_public: false
+      },
+      {
+        setting_key: "enable_online_applications",
+        setting_value: "true",
+        setting_type: "boolean",
+        description: "Enable or disable online application submissions",
+        is_public: true
+      }
+    ];
+    for (const setting of defaultSettings) {
+      await query(`INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public, updated_by, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`, [
+        setting.setting_key,
+        setting.setting_value,
+        setting.setting_type,
+        setting.description,
+        setting.is_public,
+        auth.userId
+      ]);
+    }
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: "settings_reset_to_defaults",
+      entity_type: "system_settings",
+      entity_id: "all",
+      changes: {
+        reset_count: defaultSettings.length
+      }
+    });
+    sendSuccess(res, {
+      message: "Settings reset to defaults successfully",
+      count: defaultSettings.length
+    });
+  } catch (error) {
+    console.error("[ADMIN] Reset settings error:", error instanceof Error ? error.message : "Unknown error");
+    sendError(res, "Failed to reset settings", HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+async function handleEligibilityRules(req, res, auth) {
+  const method = req.method;
+  switch (method) {
+    case "GET":
+      await handleGetEligibilityRules(res);
+      return;
+    case "POST":
+      await handleCreateEligibilityRule(req, res, auth);
+      return;
+    case "PUT":
+      await handleUpdateEligibilityRule(req, res, auth);
+      return;
+    case "DELETE":
+      await handleDeleteEligibilityRule(req, res);
+      return;
+    default:
+      sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+      return;
+  }
+}
+async function handleGetEligibilityRules(res) {
+  try {
+    const result = await query(`SELECT er.*, p.name as program_name 
+       FROM eligibility_rules er 
+       LEFT JOIN programs p ON er.program_id = p.id 
+       ORDER BY er.created_at DESC`);
+    const rules = result.rows.map((row) => ({
+      ...row,
+      programs: row.program_name ? { name: row.program_name } : null
+    }));
+    sendSuccess(res, { rules });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    sendError(res, message, HttpStatus.BAD_REQUEST);
+  }
+}
+async function handleCreateEligibilityRule(req, res, auth) {
+  const body = req.body;
+  if (!body.program_id || !body.rule_name || !body.rule_type) {
+    sendError(res, "program_id, rule_name, and rule_type are required", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  try {
+    const result = await query(`INSERT INTO eligibility_rules (program_id, rule_name, rule_type, condition_json, weight, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+       RETURNING *`, [
+      body.program_id,
+      body.rule_name,
+      body.rule_type,
+      JSON.stringify(body.condition_json || {}),
+      body.weight ?? 1,
+      body.is_active ?? true
+    ]);
+    if (result.rows.length === 0) {
+      sendError(res, "Failed to create rule", HttpStatus.INTERNAL_SERVER_ERROR);
+      return;
+    }
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: "eligibility_rule_created",
+      entity_type: "eligibility_rule",
+      entity_id: result.rows[0].id || "unknown",
+      changes: { rule_name: body.rule_name }
+    });
+    sendSuccess(res, { rule: result.rows[0] }, HttpStatus.CREATED);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    sendError(res, message, HttpStatus.BAD_REQUEST);
+  }
+}
+async function handleUpdateEligibilityRule(req, res, auth) {
+  const body = req.body;
+  if (!body.id) {
+    sendError(res, "id is required to update a rule", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  try {
+    const updates = ["updated_at = NOW()"];
+    const values = [];
+    let paramIndex = 1;
+    if (body.program_id !== undefined) {
+      updates.push(`program_id = $${paramIndex}`);
+      values.push(body.program_id);
+      paramIndex++;
+    }
+    if (body.rule_name !== undefined) {
+      updates.push(`rule_name = $${paramIndex}`);
+      values.push(body.rule_name);
+      paramIndex++;
+    }
+    if (body.rule_type !== undefined) {
+      updates.push(`rule_type = $${paramIndex}`);
+      values.push(body.rule_type);
+      paramIndex++;
+    }
+    if (body.condition_json !== undefined) {
+      updates.push(`condition_json = $${paramIndex}`);
+      values.push(JSON.stringify(body.condition_json));
+      paramIndex++;
+    }
+    if (body.weight !== undefined) {
+      updates.push(`weight = $${paramIndex}`);
+      values.push(body.weight);
+      paramIndex++;
+    }
+    if (body.is_active !== undefined) {
+      updates.push(`is_active = $${paramIndex}`);
+      values.push(body.is_active);
+      paramIndex++;
+    }
+    values.push(body.id);
+    const result = await query(`UPDATE eligibility_rules SET ${updates.join(", ")} WHERE id = $${paramIndex} RETURNING *`, values);
+    if (result.rows.length === 0) {
+      sendError(res, "Rule not found", HttpStatus.NOT_FOUND);
+      return;
+    }
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: "eligibility_rule_updated",
+      entity_type: "eligibility_rule",
+      entity_id: body.id,
+      changes: { updated_fields: Object.keys(body).filter((k) => k !== "id") }
+    });
+    sendSuccess(res, { rule: result.rows[0] });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    sendError(res, message, HttpStatus.BAD_REQUEST);
+  }
+}
+async function handleDeleteEligibilityRule(req, res) {
+  const body = req.body;
+  const queryId = req.query.id;
+  const id = body.id || queryId;
+  if (!id) {
+    sendError(res, "id is required to delete a rule", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  try {
+    const result = await query("DELETE FROM eligibility_rules WHERE id = $1", [id]);
+    if (result.rowCount === 0) {
+      sendError(res, "Rule not found", HttpStatus.NOT_FOUND);
+      return;
+    }
+    sendSuccess(res, { deleted: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    sendError(res, message, HttpStatus.BAD_REQUEST);
+  }
+}
+async function handleUpdateRole(req, res, auth) {
+  const { userId, role } = req.body;
+  if (!userId || !role) {
+    sendError(res, "userId and role are required", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  const validRoles = ["student", "reviewer", "admin", "super_admin"];
+  if (!validRoles.includes(role)) {
+    sendError(res, `Invalid role. Valid roles: ${validRoles.join(", ")}`, HttpStatus.BAD_REQUEST);
+    return;
+  }
+  if ((role === "admin" || role === "super_admin") && auth.role !== "super_admin") {
+    sendError(res, "Only super_admin can assign admin or super_admin roles", HttpStatus.FORBIDDEN);
+    return;
+  }
+  if (userId === auth.userId) {
+    sendError(res, "Cannot change your own role", HttpStatus.FORBIDDEN);
+    return;
+  }
+  try {
+    const result = await query("UPDATE profiles SET role = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email, first_name, last_name, role", [role, userId]);
+    if (result.rows.length === 0) {
+      sendError(res, "User not found", HttpStatus.NOT_FOUND);
+      return;
+    }
+    try {
+      await query(`INSERT INTO user_roles (user_id, role, is_active, created_at, updated_at)
+         VALUES ($1, $2, true, NOW(), NOW())
+         ON CONFLICT (user_id) 
+         DO UPDATE SET role = EXCLUDED.role, is_active = true, updated_at = NOW()`, [userId, role]);
+    } catch {}
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: "user_role_updated",
+      entity_type: "user",
+      entity_id: userId,
+      changes: { new_role: role }
+    });
+    sendSuccess(res, { user: result.rows[0] });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    sendError(res, message, HttpStatus.BAD_REQUEST);
+  }
+}
+async function handleEligibilityAssessments(req, res) {
+  const programId = req.query.program_id;
+  try {
+    let sql = `
+      SELECT ea.*, p.name as program_name, p.code as program_code
+      FROM eligibility_assessments ea
+      LEFT JOIN programs p ON ea.program_id = p.id
+    `;
+    const params = [];
+    if (programId && programId !== "all") {
+      sql += " WHERE ea.program_id = $1";
+      params.push(programId);
+    }
+    sql += " ORDER BY ea.created_at DESC";
+    const result = await query(sql, params);
+    const assessments = result.rows.map((row) => ({
+      id: row.id,
+      application_id: row.application_id,
+      program_id: row.program_id,
+      overall_score: row.overall_score,
+      eligibility_status: row.eligibility_status,
+      missing_requirements: row.missing_requirements,
+      created_at: row.created_at,
+      programs: row.program_name ? { name: row.program_name, code: row.program_code } : null
+    }));
+    res.setHeader("Cache-Control", "public, max-age=60");
+    sendSuccess(res, { assessments });
+  } catch (error) {
+    console.error("[ADMIN] Eligibility assessments error:", error instanceof Error ? error.message : "Unknown error");
+    sendError(res, "Failed to fetch eligibility assessments", HttpStatus.INTERNAL_SERVER_ERROR);
+  }
 }
 export {
   admin_default as default

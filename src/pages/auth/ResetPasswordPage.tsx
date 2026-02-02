@@ -14,7 +14,6 @@ import { AuthLayout } from '@/components/auth/AuthLayout';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
-import { isSupabaseConfigured } from '@/lib/supabase';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { durations } from '@/lib/animation-config';
 import {
@@ -64,12 +63,6 @@ export default function ResetPasswordPage() {
   });
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setError('Password reset is currently unavailable. Please contact support.');
-      setStatus('error');
-      return;
-    }
-
     // Get token from URL query params or hash
     const token = searchParams.get('token') || (typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '');
 

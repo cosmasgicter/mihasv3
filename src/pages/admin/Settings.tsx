@@ -7,8 +7,7 @@ import { StandaloneSelect } from '@/components/ui/standalone-select'
 import { ArrowLeft, Plus, Edit2, Trash2, Save, X, Settings, Globe, Lock, Database, Grid, List } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
-import { fetchSettings, createSetting, updateSetting, deleteSetting, type SystemSetting } from '@/lib/api/adminApi'
-import { supabase } from '@/lib/supabase'
+import { fetchSettings, createSetting, updateSetting, deleteSetting, importSettings, resetSettings, type SystemSetting } from '@/lib/api/adminApi'
 
 
 
@@ -242,14 +241,13 @@ export default function AdminSettings() {
       setSaving(true)
       setError('')
       
-      for (const setting of data.settings) {
-        const { error } = await supabase
-          .from('system_settings')
-          .upsert([setting], { onConflict: 'setting_key' })
-        if (error) throw error
+      const result = await importSettings(data.settings)
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Import failed')
       }
       
-      setSuccess(`Successfully imported ${data.settings.length} settings!`)
+      setSuccess(result.message || `Successfully imported ${data.settings.length} settings!`)
       loadSettings()
     } catch (error: any) {
       setError(`Import failed: ${error.message}`)
@@ -272,67 +270,13 @@ export default function AdminSettings() {
       setSaving(true)
       setError('')
       
-      // Delete all existing settings
-      const { error: deleteError } = await supabase
-        .from('system_settings')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all
+      const result = await resetSettings()
       
-      if (deleteError) throw deleteError
+      if (!result.success) {
+        throw new Error(result.message || 'Reset failed')
+      }
       
-      // Insert default settings
-      const defaultSettings = [
-        {
-          setting_key: 'site_name',
-          setting_value: 'MIHAS-KATC Application System',
-          setting_type: 'string',
-          description: 'Name of the application system',
-          is_public: true
-        },
-        {
-          setting_key: 'contact_email',
-          setting_value: 'admissions@mihas-katc.ac.zm',
-          setting_type: 'string',
-          description: 'Main contact email for admissions',
-          is_public: true
-        },
-        {
-          setting_key: 'contact_phone',
-          setting_value: '+260-123-456-789',
-          setting_type: 'string',
-          description: 'Main contact phone number',
-          is_public: true
-        },
-        {
-          setting_key: 'application_fee',
-          setting_value: '50.00',
-          setting_type: 'decimal',
-          description: 'Application processing fee in USD',
-          is_public: true
-        },
-        {
-          setting_key: 'max_applications_per_user',
-          setting_value: '3',
-          setting_type: 'integer',
-          description: 'Maximum number of applications a user can submit',
-          is_public: false
-        },
-        {
-          setting_key: 'enable_online_applications',
-          setting_value: 'true',
-          setting_type: 'boolean',
-          description: 'Enable or disable online application submissions',
-          is_public: true
-        }
-      ]
-      
-      const { error: insertError } = await supabase
-        .from('system_settings')
-        .insert(defaultSettings)
-      
-      if (insertError) throw insertError
-      
-      setSuccess('Settings reset to defaults successfully!')
+      setSuccess(result.message || 'Settings reset to defaults successfully!')
       loadSettings()
     } catch (error: any) {
       setError(error.message)

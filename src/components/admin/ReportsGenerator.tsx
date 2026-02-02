@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { supabase } from '@/lib/supabase'
+import { applicationsApi, adminApi } from '@/lib/apiClient'
 import {
   Download,
   FileText,
@@ -224,6 +224,13 @@ export function ReportsGenerator() {
       const app = response.application
       const interview = response.interview || app.interview || null
 
+      // Type-safe extraction of optional fields
+      const reviewNotes = typeof app.review_notes === 'string' ? app.review_notes : ''
+      const decisionDate = typeof app.decision_date === 'string' ? app.decision_date : undefined
+      const applicationFee = typeof app.application_fee === 'number' ? app.application_fee : undefined
+      const amount = typeof app.amount === 'number' ? app.amount : undefined
+      const momoRef = typeof app.momo_ref === 'string' ? app.momo_ref : ''
+
       setDocumentForm(prev => ({
         ...prev,
         studentName: app.full_name || '',
@@ -236,7 +243,7 @@ export function ReportsGenerator() {
         responseDeadline: prev.responseDeadline,
         orientationDate: prev.orientationDate,
         referenceNumber: app.application_number || '',
-        decisionDate: toDateInput(app.decision_date),
+        decisionDate: toDateInput(decisionDate),
         interviewDate: toDateInput(interview?.scheduled_at),
         interviewTime: toTimeInput(interview?.scheduled_at),
         interviewLocation: interview?.location || '',
@@ -244,17 +251,17 @@ export function ReportsGenerator() {
         feedbackSummary: prev.feedbackSummary,
         feedbackStrengths: prev.feedbackStrengths,
         feedbackImprovements: prev.feedbackImprovements,
-        feedbackRecommendation: app.review_notes || prev.feedbackRecommendation,
+        feedbackRecommendation: reviewNotes || prev.feedbackRecommendation,
         staffName: prev.staffName,
         staffTitle: prev.staffTitle,
         staffDepartment: prev.staffDepartment,
         staffEmail: prev.staffEmail,
         staffPhone: prev.staffPhone,
-        paymentAmountDue: app.application_fee ? String(app.application_fee) : prev.paymentAmountDue,
-        paymentAmountPaid: app.amount ? String(app.amount) : prev.paymentAmountPaid,
+        paymentAmountDue: applicationFee ? String(applicationFee) : prev.paymentAmountDue,
+        paymentAmountPaid: amount ? String(amount) : prev.paymentAmountPaid,
         paymentBalance: prev.paymentBalance,
         paymentDueDate: prev.paymentDueDate,
-        paymentReference: app.momo_ref || prev.paymentReference,
+        paymentReference: momoRef || prev.paymentReference,
         paymentLastPaymentDate: prev.paymentLastPaymentDate,
         paymentBreakdown: prev.paymentBreakdown
       }))
@@ -387,18 +394,18 @@ export function ReportsGenerator() {
 
       await AnalyticsService.ensureReportManagerAccess()
 
-      // Fetch application data
-      const { data: applications, error: appsError } = await supabase
-        .from('applications')
-        .select(`
-          *,
-          programs(name),
-          intakes(name, year)
-        `)
-        .gte('created_at', config.startDate)
-        .lte('created_at', config.endDate)
+      // Fetch application data via API
+      const response = await applicationsApi.list({ limit: 1000 })
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch applications')
+      }
 
-      if (appsError) throw appsError
+      const applications = (response.data || []).filter(app => {
+        const createdAt = new Date(app.created_at)
+        const startDate = new Date(config.startDate)
+        const endDate = new Date(config.endDate)
+        return createdAt >= startDate && createdAt <= endDate
+      })
 
       // Calculate statistics
       const stats = {
@@ -410,8 +417,8 @@ export function ReportsGenerator() {
       }
 
       // Program breakdown
-      const programStats = applications?.reduce((acc: any, app) => {
-        const programName = app.programs?.name || 'Unknown'
+      const programStats = applications?.reduce((acc: Record<string, { total: number; approved: number; rejected: number; pending: number }>, app) => {
+        const programName = app.program || 'Unknown'
         if (!acc[programName]) {
           acc[programName] = { total: 0, approved: 0, rejected: 0, pending: 0 }
         }
@@ -443,16 +450,8 @@ export function ReportsGenerator() {
         }
       }
 
-      // Save report to database
-      const { error: saveError } = await supabase
-        .from('automated_reports')
-        .insert({
-          report_type: config.type,
-          report_name: reportName,
-          report_data: reportData
-        })
-
-      if (saveError) throw saveError
+      // Note: Report saving to database is skipped as automated_reports table 
+      // operations are not exposed via API. Reports are generated and downloaded directly.
 
       await exportReport(reportData, config.format, reportName)
 

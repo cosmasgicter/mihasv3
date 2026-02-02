@@ -64,6 +64,10 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     if (action === 'grades') return handleGrades(res);
     if (action === 'summary') return handleSummary(res);
     if (action === 'review') return handleReview(req, res, user.userId, isAdmin);
+    if (action === 'interviews') return handleInterviews(req, res, user.userId);
+    if (action === 'stats') return handleStats(req, res, user.userId);
+    if (action === 'export') return handleExport(req, res, isAdmin);
+    if (action === 'versions') return handleVersions(req, res, user.userId);
 
     // Handle CRUD by ID
     if (id) return handleById(req, res, user.userId, isAdmin, id);
@@ -114,6 +118,96 @@ async function handleSummary(res: VercelResponse) {
   const q = ApplicationQueries.getSummary();
   const result = await query<{ id: string; status: string; created_at: string }>(q.text, q.values);
   return sendSuccess(res, result.rows);
+}
+
+/**
+ * Handle interviews action - Get scheduled interviews for user's applications
+ * Requirements: 2.2, 10.1, 10.3 - Return user's interview data with application details
+ */
+async function handleInterviews(
+  req: VercelRequest,
+  res: VercelResponse,
+  userId: string
+) {
+  if (req.method !== 'GET') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  // Query interviews for user's applications with application details joined
+  const result = await query<{
+    id: string;
+    application_id: string;
+    scheduled_at: string;
+    mode: 'in_person' | 'virtual' | 'phone';
+    location: string | null;
+    status: 'scheduled' | 'rescheduled' | 'completed' | 'cancelled';
+    notes: string | null;
+    program: string | null;
+    application_number: string | null;
+  }>(`
+    SELECT 
+      ai.id,
+      ai.application_id,
+      ai.scheduled_at,
+      ai.mode,
+      ai.location,
+      ai.status,
+      ai.notes,
+      a.program,
+      a.application_number
+    FROM application_interviews ai
+    INNER JOIN applications a ON ai.application_id = a.id
+    WHERE a.user_id = $1
+    ORDER BY ai.scheduled_at ASC
+  `, [userId]);
+
+  return sendSuccess(res, { interviews: result.rows });
+}
+
+/**
+ * Handle stats action - Get application statistics for analytics
+ * Requirements: 4.1 - Return user's application statistics
+ */
+async function handleStats(
+  req: VercelRequest,
+  res: VercelResponse,
+  userId: string
+) {
+  if (req.method !== 'GET') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  // Get application counts by status
+  const countResult = await query<{
+    total: string;
+    drafts: string;
+    completed: string;
+  }>(`
+    SELECT 
+      COUNT(*) as total,
+      COUNT(*) FILTER (WHERE status = 'draft') as drafts,
+      COUNT(*) FILTER (WHERE status != 'draft') as completed
+    FROM applications
+    WHERE user_id = $1
+  `, [userId]);
+
+  // Get average time per step (based on updated_at - created_at for completed apps)
+  const avgTimeResult = await query<{ avg_time_hours: string | null }>(`
+    SELECT 
+      AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) / 3600) as avg_time_hours
+    FROM applications
+    WHERE user_id = $1 AND status != 'draft'
+  `, [userId]);
+
+  const stats = countResult.rows[0];
+  const avgTime = avgTimeResult.rows[0];
+
+  return sendSuccess(res, {
+    total_drafts: parseInt(stats?.drafts || '0', 10),
+    completed_applications: parseInt(stats?.completed || '0', 10),
+    total_applications: parseInt(stats?.total || '0', 10),
+    avg_time_hours: avgTime?.avg_time_hours ? parseFloat(avgTime.avg_time_hours) : 0,
+  });
 }
 
 async function handleReview(
@@ -350,6 +444,242 @@ async function fetchApplicationDetails(id: string, include?: string) {
   }
 
   return result;
+}
+
+/**
+ * Handle export action - Get applications for export (admin only)
+ * Returns paginated applications with all details for CSV/Excel/PDF export
+ * 
+ * GET /api/applications?action=export&page=0&limit=500&status=xxx&payment=xxx&program=xxx&search=xxx
+ */
+async function handleExport(
+  req: VercelRequest,
+  res: VercelResponse,
+  isAdmin: boolean
+) {
+  if (req.method !== 'GET') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  if (!isAdmin) {
+    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
+  }
+
+  const page = parseInt(req.query.page as string || '0', 10);
+  const limit = Math.min(parseInt(req.query.limit as string || '500', 10), 1000);
+  const offset = page * limit;
+
+  // Build dynamic query with filters
+  const conditions: string[] = [];
+  const values: (string | number)[] = [];
+  let paramIndex = 1;
+
+  // Search filter
+  const search = req.query.search as string;
+  if (search) {
+    const searchPattern = `%${search.replace(/[%_]/g, '\\$&')}%`;
+    conditions.push(`(full_name ILIKE $${paramIndex} OR email ILIKE $${paramIndex} OR application_number ILIKE $${paramIndex})`);
+    values.push(searchPattern);
+    paramIndex++;
+  }
+
+  // Status filter
+  const status = req.query.status as string;
+  if (status) {
+    conditions.push(`status = $${paramIndex}`);
+    values.push(status);
+    paramIndex++;
+  }
+
+  // Payment status filter
+  const payment = req.query.payment as string;
+  if (payment) {
+    conditions.push(`payment_status = $${paramIndex}`);
+    values.push(payment);
+    paramIndex++;
+  }
+
+  // Program filter
+  const program = req.query.program as string;
+  if (program) {
+    conditions.push(`program = $${paramIndex}`);
+    values.push(program);
+    paramIndex++;
+  }
+
+  // Institution filter
+  const institution = req.query.institution as string;
+  if (institution) {
+    conditions.push(`institution = $${paramIndex}`);
+    values.push(institution);
+    paramIndex++;
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  // Add pagination params
+  values.push(limit);
+  values.push(offset);
+
+  const result = await query<{
+    id: string;
+    application_number: string;
+    full_name: string;
+    email: string;
+    phone: string;
+    program: string;
+    intake: string;
+    institution: string;
+    status: string;
+    payment_status: string;
+    application_fee: number;
+    paid_amount: number;
+    submitted_at: string;
+    created_at: string;
+    grades_summary: string;
+    total_subjects: number;
+    points: number;
+    age: number;
+    days_since_submission: number;
+  }>(`
+    SELECT 
+      id,
+      application_number,
+      full_name,
+      email,
+      phone,
+      program,
+      intake,
+      institution,
+      status,
+      payment_status,
+      COALESCE(application_fee, 0) as application_fee,
+      COALESCE(paid_amount, 0) as paid_amount,
+      submitted_at,
+      created_at,
+      COALESCE(grades_summary, '') as grades_summary,
+      COALESCE(total_subjects, 0) as total_subjects,
+      COALESCE(points, 0) as points,
+      COALESCE(EXTRACT(YEAR FROM AGE(date_of_birth))::int, 0) as age,
+      COALESCE(EXTRACT(DAY FROM NOW() - submitted_at)::int, 0) as days_since_submission
+    FROM applications
+    ${whereClause}
+    ORDER BY created_at DESC
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+  `, values);
+
+  return sendSuccess(res, { 
+    applications: result.rows,
+    page,
+    limit,
+    hasMore: result.rows.length === limit
+  });
+}
+
+/**
+ * Handle versions action - Get/create application versions
+ * Used by ApplicationVersions component for version history
+ * 
+ * GET /api/applications?action=versions&application_id=xxx - List versions
+ * POST /api/applications?action=versions - Create new version
+ */
+async function handleVersions(
+  req: VercelRequest,
+  res: VercelResponse,
+  userId: string
+) {
+  const applicationId = req.query.application_id as string || (req.body as { application_id?: string })?.application_id;
+
+  if (req.method === 'GET') {
+    if (!applicationId) {
+      return sendError(res, 'application_id is required', HttpStatus.BAD_REQUEST);
+    }
+
+    // Verify user owns this application
+    const appCheck = await query<{ user_id: string }>(
+      'SELECT user_id FROM applications WHERE id = $1',
+      [applicationId]
+    );
+
+    if (appCheck.rows.length === 0) {
+      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (appCheck.rows[0].user_id !== userId) {
+      return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
+    }
+
+    // Get versions
+    const result = await query<{
+      id: string;
+      version_number: number;
+      form_data: unknown;
+      change_summary: string | null;
+      created_at: string;
+    }>(`
+      SELECT id, version_number, form_data, change_summary, created_at
+      FROM application_versions
+      WHERE application_id = $1
+      ORDER BY version_number DESC
+    `, [applicationId]);
+
+    return sendSuccess(res, { versions: result.rows });
+  }
+
+  if (req.method === 'POST') {
+    const body = req.body as {
+      application_id?: string;
+      form_data?: unknown;
+      change_summary?: string;
+    };
+
+    const appId = body.application_id || applicationId;
+    if (!appId) {
+      return sendError(res, 'application_id is required', HttpStatus.BAD_REQUEST);
+    }
+
+    if (!body.form_data) {
+      return sendError(res, 'form_data is required', HttpStatus.BAD_REQUEST);
+    }
+
+    // Verify user owns this application
+    const appCheck = await query<{ user_id: string }>(
+      'SELECT user_id FROM applications WHERE id = $1',
+      [appId]
+    );
+
+    if (appCheck.rows.length === 0) {
+      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (appCheck.rows[0].user_id !== userId) {
+      return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
+    }
+
+    // Get next version number
+    const maxVersion = await query<{ max_version: number }>(
+      'SELECT COALESCE(MAX(version_number), 0) as max_version FROM application_versions WHERE application_id = $1',
+      [appId]
+    );
+    const nextVersion = (maxVersion.rows[0]?.max_version || 0) + 1;
+
+    // Create version
+    const result = await query<{
+      id: string;
+      version_number: number;
+      form_data: unknown;
+      change_summary: string | null;
+      created_at: string;
+    }>(`
+      INSERT INTO application_versions (application_id, user_id, version_number, form_data, change_summary, created_by, created_at)
+      VALUES ($1, $2, $3, $4, $5, $2, NOW())
+      RETURNING id, version_number, form_data, change_summary, created_at
+    `, [appId, userId, nextVersion, JSON.stringify(body.form_data), body.change_summary || null]);
+
+    return sendSuccess(res, { version: result.rows[0] }, HttpStatus.CREATED);
+  }
+
+  return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
 }
 
 // Export with Arcjet protection

@@ -13,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import { getSupabaseClient } from '@/lib/supabase';
+import { authApi } from '@/lib/apiClient';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FormSelect } from '@/components/ui/form-select';
@@ -105,20 +105,16 @@ export default function SignUpPage() {
 
     setEmailChecking(true);
     try {
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email.toLowerCase())
-        .maybeSingle();
+      // MIGRATED: Using API client instead of direct Supabase calls
+      const response = await authApi.checkEmail(email);
 
-      if (error) {
-        console.warn('Email check error:', error);
+      if (!response.success) {
+        console.warn('Email check error:', response.error);
         setEmailAvailable(null);
       } else {
-        const emailExists = !!data;
-        setEmailAvailable(!emailExists);
-        if (emailExists) {
+        const isAvailable = response.data?.available ?? null;
+        setEmailAvailable(isAvailable);
+        if (isAvailable === false) {
           setError('This email is already registered. Please sign in instead.');
         } else {
           setError('');

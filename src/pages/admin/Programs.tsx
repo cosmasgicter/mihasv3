@@ -1,8 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase, Institution } from '@/lib/supabase'
-import { programService } from '@/services/catalog'
+import { programService, catalogService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,6 +16,14 @@ import {
 } from '@/components/ui/Dialog'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Pencil, Trash2, Plus, ArrowLeft, GraduationCap, FileEdit } from 'lucide-react'
+
+interface Institution {
+  id: string
+  name: string
+  code?: string
+  description?: string
+  is_active: boolean
+}
 
 interface Program {
   id: string
@@ -55,12 +62,11 @@ export default function AdminPrograms() {
     try {
       setLoading(true)
       setError('')
-      const { data, error } = await supabase
-        .from('programs')
-        .select('*, institutions(*)')
-        .order('name')
-      if (error) throw error
-      setPrograms(data || [])
+      const response = await programService.list()
+      if (!response.success) throw new Error(response.error || 'Failed to load programs')
+      // Sort by name
+      const sortedPrograms = (response.data || []).sort((a: Program, b: Program) => a.name.localeCompare(b.name))
+      setPrograms(sortedPrograms)
     } catch (err: any) {
       setError(err.message || 'Failed to load programs')
     } finally {
@@ -70,13 +76,9 @@ export default function AdminPrograms() {
 
   const loadInstitutions = async () => {
     try {
-      const { data, error } = await supabase
-        .from('institutions')
-        .select('*')
-        .eq('is_active', true)
-        .order('name')
-      if (error) throw error
-      setInstitutions(data || [])
+      const response = await catalogService.getInstitutions()
+      if (!response.success) throw new Error(response.error || 'Failed to load institutions')
+      setInstitutions(response.data || [])
     } catch (err: any) {
       console.error('Error loading institutions:', err.message)
     }

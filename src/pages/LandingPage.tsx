@@ -5,7 +5,7 @@
  * Visual redesign with ShadcnBlocks patterns and scroll-triggered animations
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ResponsiveHeader } from '@/components/navigation/ResponsiveHeader';
@@ -17,15 +17,9 @@ import { PageTransition } from '@/components/smoothui';
 import { ScrollReveal, StaggerReveal, StaggerItem, AnimatedCounter } from '@/components/smoothui';
 import { 
   GraduationCap, Users, Award, BookOpen, Star, ArrowRight, 
-  CheckCircle, AlertTriangle, Mail, Phone, MapPin, Facebook, 
+  CheckCircle, Mail, Phone, MapPin, Facebook, 
   Twitter, Linkedin 
 } from '@/components/icons';
-import {
-  isSupabaseConfigured,
-  SUPABASE_MISSING_CONFIG_MESSAGE,
-  SUPABASE_STATUS_EVENT,
-  type SupabaseStatusDetail
-} from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import '@/styles/accreditation.css';
 
@@ -496,10 +490,6 @@ function FooterSection() {
 export default function LandingPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [supabaseAvailable, setSupabaseAvailable] = React.useState(isSupabaseConfigured);
-  const [supabaseStatusMessage, setSupabaseStatusMessage] = React.useState<string | null>(
-    isSupabaseConfigured ? null : SUPABASE_MISSING_CONFIG_MESSAGE
-  );
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -508,40 +498,11 @@ export default function LandingPage() {
     }
   }, [user, loading, navigate]);
 
-  // Listen for Supabase status changes
-  const handleSupabaseStatus = useCallback((event: Event) => {
-    const detail = (event as CustomEvent<SupabaseStatusDetail>).detail;
-    if (!detail) return;
-    setSupabaseAvailable(detail.available);
-    setSupabaseStatusMessage(detail.available ? null : detail.message ?? SUPABASE_MISSING_CONFIG_MESSAGE);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    window.addEventListener(SUPABASE_STATUS_EVENT, handleSupabaseStatus as EventListener);
-    return () => window.removeEventListener(SUPABASE_STATUS_EVENT, handleSupabaseStatus as EventListener);
-  }, [handleSupabaseStatus]);
-
   return (
     <PageTransition mode="fade">
       <div className="min-h-screen bg-background overflow-x-hidden">
         {/* Fixed Header with hide-on-scroll-down behavior */}
         <ResponsiveHeader />
-
-        {/* Supabase Status Warning */}
-        {!supabaseAvailable && supabaseStatusMessage && (
-          <div className="mt-16 sm:mt-20 container-responsive">
-            <Card className="border-warning/30 bg-warning/10">
-              <CardContent className="flex items-start gap-3 p-4">
-                <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5 text-warning" aria-hidden="true" />
-                <div className="flex-1">
-                  <p className="font-semibold text-foreground">Supabase disabled</p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{supabaseStatusMessage}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         {/* Page Sections */}
         <HeroSection />

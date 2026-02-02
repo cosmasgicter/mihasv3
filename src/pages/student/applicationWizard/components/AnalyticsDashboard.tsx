@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { BarChart3, Clock, TrendingUp, AlertCircle } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { applicationsApi } from '@/lib/apiClient'
 
 interface AnalyticsStats {
   total_drafts: number
@@ -14,6 +14,11 @@ interface AnalyticsDashboardProps {
   userId: string | undefined
 }
 
+/**
+ * Analytics Dashboard Component
+ * MIGRATED: Uses API client instead of direct Supabase calls
+ * Requirements: 4.1, 4.2, 4.3, 4.4
+ */
 export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
   const [stats, setStats] = useState<AnalyticsStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -22,36 +27,24 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
     if (!userId) return
     
     try {
-      const { data: applications, error } = await supabase
-        .from('applications')
-        .select('status, created_at, updated_at')
-        .eq('user_id', userId)
+      // MIGRATED: Using API client instead of direct Supabase calls
+      const response = await applicationsApi.getStats()
 
-      if (error) {
-        console.error('Analytics query error:', error)
+      if (!response.success) {
+        console.error('Analytics query error:', response.error)
         return
       }
 
-      const drafts = applications?.filter(app => app.status === 'draft').length || 0
-      const completed = applications?.filter(app => app.status !== 'draft').length || 0
-      
-      // Calculate average time from creation to update (in minutes)
-      let avgTime = 0
-      if (applications && applications.length > 0) {
-        const times = applications
-          .filter(app => app.created_at && app.updated_at && app.status !== 'draft')
-          .map(app => {
-            const created = new Date(app.created_at).getTime()
-            const updated = new Date(app.updated_at).getTime()
-            return Math.round((updated - created) / 1000 / 60) // minutes
-          })
-        avgTime = times.length > 0 ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0
-      }
+      const data = response.data
+      if (!data) return
+
+      // Convert avg_time_hours to minutes for display
+      const avgTimeMinutes = Math.round((data.avg_time_hours || 0) * 60)
 
       setStats({
-        completed_applications: completed,
-        total_drafts: drafts,
-        avg_time_per_step: avgTime,
+        completed_applications: data.completed_applications || 0,
+        total_drafts: data.total_drafts || 0,
+        avg_time_per_step: avgTimeMinutes,
         most_common_drop_off_step: null
       })
     } catch (error) {

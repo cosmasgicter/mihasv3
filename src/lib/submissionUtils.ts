@@ -5,10 +5,59 @@
  * Keeping for reference only.
  */
 
-// import { SubmissionResult, SubmissionStatus, EmailReceipt, RetryConfig } from '@/types/submission'
-// import { ApplicationFormData } from '@/forms/applicationSchema'
 import { sanitizeForLog } from './security'
 import { renderApplicationReceiptEmail } from './emailTemplates'
+
+// Type definitions for deprecated module
+interface RetryConfig {
+  maxRetries: number;
+  retryDelay: number;
+  backoffMultiplier: number;
+}
+
+interface SubmissionResult {
+  success: boolean;
+  error?: string;
+  retryCount?: number;
+}
+
+interface SubmissionStatus {
+  status: 'processing' | 'completed' | 'failed';
+  message: string;
+  timestamp: string;
+  step?: string;
+}
+
+interface EmailReceipt {
+  to: string;
+  subject: string;
+  [key: string]: unknown;
+}
+
+interface ApplicationFormData {
+  program_id?: string;
+  intake_id?: string;
+  date_of_birth?: string;
+  sex?: string;
+  nationality?: string;
+  physical_address?: string;
+  nrc_number?: string;
+  passport_number?: string;
+  criminal_record?: boolean;
+  employment_status?: string;
+  previous_education?: string;
+  grades_or_gpa?: string;
+  motivation_letter?: string;
+  career_goals?: string;
+  english_proficiency?: string;
+  computer_skills?: string;
+  references?: string;
+  financial_sponsor?: string;
+  payment_method?: string;
+  declaration?: boolean;
+  information_accuracy?: boolean;
+  professional_conduct?: boolean;
+}
 
 const RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
@@ -100,22 +149,23 @@ export const sendEmailReceipt = async (receipt: EmailReceipt): Promise<boolean> 
   try {
     const html = renderApplicationReceiptEmail(receipt)
 
-    const { data, error } = await supabase.functions.invoke('send-email', {
-      body: {
+    // Use the notifications API instead of Supabase functions
+    const response = await fetch('/api/notifications?action=send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
         to: receipt.to,
         subject: receipt.subject,
         html
-      }
+      })
     })
 
-    if (error) {
-      console.error('Failed to invoke receipt email function:', sanitizeForLog(error.message || error))
-      return false
-    }
+    const data = await response.json()
 
-    if (!data?.success) {
-      const providerMessage = data?.error?.message || data?.error?.code || 'Email provider rejected the receipt message'
-      console.error('Receipt email provider error:', sanitizeForLog(providerMessage))
+    if (!response.ok || !data.success) {
+      const errorMessage = data?.error || 'Email provider rejected the receipt message'
+      console.error('Receipt email provider error:', sanitizeForLog(errorMessage))
       return false
     }
 
@@ -131,15 +181,8 @@ export const saveSubmissionStatus = async (
   status: SubmissionStatus
 ): Promise<void> => {
   try {
-    await supabase
-      .from('submission_logs')
-      .insert({
-        application_id: applicationId,
-        status: status.status,
-        message: status.message,
-        timestamp: status.timestamp,
-        step: status.step
-      })
+    // This is a deprecated function - submission logs should be handled by the API
+    console.log('Submission status:', applicationId, status.status, status.message)
   } catch (error) {
     console.error('Failed to save submission status:', sanitizeForLog(error))
   }

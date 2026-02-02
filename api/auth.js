@@ -765,8 +765,10 @@ async function handler(req, res) {
         return handleRefresh(req, res);
       case "bootstrap":
         return handleBootstrap(req, res);
+      case "check-email":
+        return handleCheckEmail(req, res);
       default:
-        return sendError(res, "Invalid action. Use: login, logout, register, session, refresh, bootstrap", HttpStatus.BAD_REQUEST);
+        return sendError(res, "Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email", HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
@@ -901,6 +903,17 @@ async function handleRefresh(req, res) {
   }
 }
 var auth_default = withArcjetProtection(handler, "auth");
+async function handleCheckEmail(req, res) {
+  if (req.method !== "GET") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const email = req.query.email;
+  if (!email) {
+    return sendError(res, "Email is required", HttpStatus.BAD_REQUEST);
+  }
+  const existing = await query("SELECT id FROM profiles WHERE email = $1 LIMIT 1", [email.toLowerCase()]);
+  return sendSuccess(res, { available: existing.rows.length === 0 });
+}
 async function handleBootstrap(req, res) {
   if (req.method !== "POST") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);

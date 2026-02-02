@@ -131,6 +131,61 @@ export async function deleteSetting(id: string): Promise<boolean> {
   return result.ok;
 }
 
+export async function importSettings(
+  settings: Omit<SystemSetting, 'id' | 'created_at' | 'updated_at' | 'updated_by'>[]
+): Promise<{ success: boolean; imported?: string[]; errors?: string[]; message?: string }> {
+  try {
+    const response = await fetch(
+      `${getApiBaseUrl()}/api/admin?action=import-settings`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings }),
+      }
+    );
+
+    if (!response.ok) {
+      return { success: false, message: 'Import failed' };
+    }
+
+    const result = await parseJsonResponse<{ data?: { imported?: string[]; errors?: string[]; message?: string } }>(response);
+    return {
+      success: true,
+      imported: result.data?.imported,
+      errors: result.data?.errors,
+      message: result.data?.message,
+    };
+  } catch {
+    return { success: false, message: 'Import failed' };
+  }
+}
+
+export async function resetSettings(): Promise<{ success: boolean; message?: string }> {
+  try {
+    const response = await fetch(
+      `${getApiBaseUrl()}/api/admin?action=reset-settings`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+
+    if (!response.ok) {
+      return { success: false, message: 'Reset failed' };
+    }
+
+    const result = await parseJsonResponse<{ data?: { message?: string } }>(response);
+    return {
+      success: true,
+      message: result.data?.message,
+    };
+  } catch {
+    return { success: false, message: 'Reset failed' };
+  }
+}
+
 export async function fetchNotifications(): Promise<StudentNotification[]> {
   const result = await adminFetch<StudentNotification[]>(
     `${getApiBaseUrl()}/api/notifications?action=list`
@@ -165,6 +220,93 @@ export async function deleteNotification(notificationId: string): Promise<boolea
     {
       method: 'DELETE',
       body: JSON.stringify({ notificationId }),
+    }
+  );
+  return result.ok;
+}
+
+
+export interface EligibilityRule {
+  id: string;
+  program_id: string;
+  rule_name: string;
+  rule_type: string;
+  condition_json: Record<string, unknown>;
+  weight: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+  programs?: { name: string };
+}
+
+export async function fetchEligibilityRules(): Promise<EligibilityRule[]> {
+  const result = await adminFetch<{ rules: EligibilityRule[] }>(
+    `${getApiBaseUrl()}/api/admin?action=eligibility-rules`
+  );
+  return result.data?.rules || [];
+}
+
+export async function createEligibilityRule(
+  rule: Omit<EligibilityRule, 'id' | 'created_at' | 'updated_at' | 'programs'>
+): Promise<boolean> {
+  const result = await adminFetch(
+    `${getApiBaseUrl()}/api/admin?action=eligibility-rules`,
+    {
+      method: 'POST',
+      body: JSON.stringify(rule),
+    }
+  );
+  return result.ok;
+}
+
+export async function updateEligibilityRule(
+  id: string,
+  updates: Partial<Omit<EligibilityRule, 'id' | 'created_at' | 'updated_at' | 'programs'>>
+): Promise<boolean> {
+  const result = await adminFetch(
+    `${getApiBaseUrl()}/api/admin?action=eligibility-rules`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ id, ...updates }),
+    }
+  );
+  return result.ok;
+}
+
+export async function deleteEligibilityRule(id: string): Promise<boolean> {
+  const result = await adminFetch(
+    `${getApiBaseUrl()}/api/admin?action=eligibility-rules`,
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ id }),
+    }
+  );
+  return result.ok;
+}
+
+
+export interface UserWithRole {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  role: string;
+  created_at: string;
+}
+
+export async function fetchUsersWithRoles(): Promise<UserWithRole[]> {
+  const result = await adminFetch<{ data: UserWithRole[]; meta: { total: number } }>(
+    `${getApiBaseUrl()}/api/admin?action=users&limit=100`
+  );
+  return result.data?.data || [];
+}
+
+export async function updateUserRole(userId: string, role: string): Promise<boolean> {
+  const result = await adminFetch(
+    `${getApiBaseUrl()}/api/admin?action=update-role`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ userId, role }),
     }
   );
   return result.ok;

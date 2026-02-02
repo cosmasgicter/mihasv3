@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { fetchEligibilityRules, createEligibilityRule, updateEligibilityRule, deleteEligibilityRule, type EligibilityRule } from '@/lib/api/adminApi'
+import { programService } from '@/services/catalog'
 import { EligibilityDashboard } from '@/components/application/EligibilityDashboard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -15,18 +16,8 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 interface Program {
   id: string
   name: string
-  code: string
-  description: string
-}
-
-interface EligibilityRule {
-  id: string
-  program_id: string
-  rule_name: string
-  rule_type: string
-  condition_json: any
-  weight: number
-  is_active: boolean
+  code?: string
+  description?: string
 }
 
 export default function EligibilityManagement() {
@@ -68,49 +59,33 @@ export default function EligibilityManagement() {
   }
 
   const loadPrograms = async () => {
-    const { data, error } = await supabase
-      .from('programs')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
-    
-    if (error) throw error
-    setPrograms(data || [])
+    const response = await programService.list()
+    if (!response.success) throw new Error(response.error || 'Failed to load programs')
+    setPrograms(response.data || [])
   }
 
   const loadRules = async () => {
-    const { data, error } = await supabase
-      .from('eligibility_rules')
-      .select(`
-        *,
-        programs (name)
-      `)
-      .order('created_at', { ascending: false })
-    
-    if (error) throw error
-    setRules(data || [])
+    const data = await fetchEligibilityRules()
+    setRules(data)
   }
 
   const handleSaveRule = async () => {
     try {
       const ruleData = {
-        ...ruleForm,
-        condition_json: JSON.parse(ruleForm.condition_json)
+        program_id: ruleForm.program_id,
+        rule_name: ruleForm.rule_name,
+        rule_type: ruleForm.rule_type,
+        condition_json: JSON.parse(ruleForm.condition_json),
+        weight: ruleForm.weight,
+        is_active: ruleForm.is_active
       }
 
       if (editingRule) {
-        const { error } = await supabase
-          .from('eligibility_rules')
-          .update(ruleData)
-          .eq('id', editingRule.id)
-        
-        if (error) throw error
+        const success = await updateEligibilityRule(editingRule.id, ruleData)
+        if (!success) throw new Error('Failed to update rule')
       } else {
-        const { error } = await supabase
-          .from('eligibility_rules')
-          .insert(ruleData)
-        
-        if (error) throw error
+        const success = await createEligibilityRule(ruleData)
+        if (!success) throw new Error('Failed to create rule')
       }
 
       await loadRules()
@@ -133,12 +108,8 @@ export default function EligibilityManagement() {
     if (!confirmed) return
 
     try {
-      const { error } = await supabase
-        .from('eligibility_rules')
-        .delete()
-        .eq('id', id)
-      
-      if (error) throw error
+      const success = await deleteEligibilityRule(id)
+      if (!success) throw new Error('Failed to delete rule')
       await loadRules()
     } catch (error) {
       console.error('Error deleting rule:', error)

@@ -1,3 +1,6 @@
+# SMS legacy system (separate PHP project)
+sms/
+
 # Dependencies - MUST be excluded (WSL symlink issues)
 node_modules/
 node_modules

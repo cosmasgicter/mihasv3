@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { intakeService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -114,12 +113,11 @@ export default function AdminIntakes() {
     try {
       setLoading(true)
       setError('')
-      const { data, error } = await supabase
-        .from('intakes')
-        .select('*')
-        .order('year', { ascending: false })
-      if (error) throw error
-      setIntakes(data || [])
+      const response = await intakeService.list()
+      if (!response.success) throw new Error(response.error || 'Failed to load intakes')
+      // Sort by year descending
+      const sortedIntakes = (response.data || []).sort((a: Intake, b: Intake) => b.year - a.year)
+      setIntakes(sortedIntakes)
     } catch (err: any) {
       setError(err.message || 'Failed to load intakes')
     } finally {
