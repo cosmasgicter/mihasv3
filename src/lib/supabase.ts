@@ -44,14 +44,17 @@ export interface Application {
 export interface ApplicationInterview {
   id: string;
   application_id: string;
-  scheduled_date?: string;
-  scheduled_time?: string;
-  location?: string;
+  scheduled_at: string;
+  mode: 'in_person' | 'virtual' | 'phone';
+  location?: string | null;
   interviewer_id?: string;
-  status: string;
-  notes?: string;
+  status: 'scheduled' | 'rescheduled' | 'completed' | 'cancelled';
+  notes?: string | null;
   created_at?: string;
   updated_at?: string;
+  // Legacy field aliases for backward compatibility
+  scheduled_date?: string;
+  scheduled_time?: string;
 }
 
 export interface Program {

@@ -3,7 +3,6 @@ import { handleCors } from '../lib/cors';
 import { query } from '../lib/db';
 import { getAuthUser } from '../lib/auth/middleware';
 import { withArcjetProtection } from '../lib/arcjet';
-import { getSupabaseAdmin } from '../lib/supabaseClient';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
 import { checkDocumentUploadAccess, isAdmin } from '../lib/auth/ownership';
 import { getR2Storage, isR2Available } from '../lib/storage';
@@ -16,7 +15,7 @@ const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'
  * 
  * MIGRATED: Uses custom auth middleware, ownership checks, and R2 storage
  * PROTECTED: Arcjet rate limiting (30 requests per 10 minutes)
- * STORAGE: Cloudflare R2 (primary) with Supabase Storage fallback
+ * STORAGE: Cloudflare R2 only (Supabase Storage removed)
  * 
  * POST /api/documents?action=upload - Upload document
  * POST /api/documents?action=extract - Extract PDF metadata
@@ -80,7 +79,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
 }
 
 /**
- * Upload document to R2 (primary) or Supabase Storage (fallback)
+ * Upload document to R2
  */
 async function handleUpload(req: VercelRequest, res: VercelResponse, authUserId: string, userRole: string) {
   const { file, fileName, fileType, contentType, userId, applicationId, documentType } = req.body;
@@ -114,47 +113,31 @@ async function handleUpload(req: VercelRequest, res: VercelResponse, authUserId:
   const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
   const storagePath = `${effectiveUserId}/${applicationId || 'general'}/${documentType || 'document'}/${timestamp}-${sanitizedFileName}`;
 
-  // Try R2 first, fallback to Supabase
-  if (isR2Available()) {
-    const r2 = getR2Storage();
-    const result = await r2.upload(storagePath, fileBuffer, mimeType);
-
-    if (result.success) {
-      console.log('[documents/upload] Document uploaded to R2:', result.path);
-      return sendSuccess(res, { 
-        path: result.path, 
-        url: result.url,
-        storage: 'r2',
-        size: result.size,
-      });
-    }
-
-    console.warn('[documents/upload] R2 upload failed, falling back to Supabase:', result.error);
+  // R2 storage only
+  if (!isR2Available()) {
+    console.error('[documents/upload] R2 storage is not configured');
+    return sendError(res, 'Storage service unavailable', HttpStatus.SERVICE_UNAVAILABLE);
   }
 
-  // Fallback to Supabase Storage
-  const supabaseAdmin = getSupabaseAdmin();
-  const { data, error } = await supabaseAdmin.storage
-    .from('app_docs')
-    .upload(storagePath, fileBuffer, { contentType: mimeType, upsert: true });
+  const r2 = getR2Storage();
+  const result = await r2.upload(storagePath, fileBuffer, mimeType);
 
-  if (error) {
-    console.error('[documents/upload] Supabase storage error:', error.message);
-    return sendError(res, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+  if (!result.success) {
+    console.error('[documents/upload] R2 upload failed:', result.error);
+    return sendError(res, 'Failed to upload document', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  const { data: urlData } = supabaseAdmin.storage.from('app_docs').getPublicUrl(data.path);
-
-  console.log('[documents/upload] Document uploaded to Supabase:', data.path);
+  console.log('[documents/upload] Document uploaded to R2:', result.path);
   return sendSuccess(res, { 
-    path: data.path, 
-    url: urlData.publicUrl,
-    storage: 'supabase',
+    path: result.path, 
+    url: result.url,
+    storage: 'r2',
+    size: result.size,
   });
 }
 
 /**
- * Download document from R2 or Supabase
+ * Download document from R2
  */
 async function handleDownload(req: VercelRequest, res: VercelResponse, authUserId: string, userRole: string) {
   const path = req.query.path as string;
@@ -172,29 +155,28 @@ async function handleDownload(req: VercelRequest, res: VercelResponse, authUserI
     }
   }
 
-  // Try R2 first
-  if (isR2Available()) {
-    const r2 = getR2Storage();
-    const data = await r2.download(path);
-
-    if (data) {
-      const metadata = await r2.getMetadata(path);
-      res.setHeader('Content-Type', metadata?.contentType || 'application/octet-stream');
-      res.setHeader('Content-Length', data.length);
-      res.setHeader('Content-Disposition', `attachment; filename="${path.split('/').pop()}"`);
-      return res.status(200).send(data);
-    }
+  // R2 storage only
+  if (!isR2Available()) {
+    console.error('[documents/download] R2 storage is not configured');
+    return sendError(res, 'Storage service unavailable', HttpStatus.SERVICE_UNAVAILABLE);
   }
 
-  // Fallback: redirect to Supabase URL
-  const supabaseAdmin = getSupabaseAdmin();
-  const { data: urlData } = supabaseAdmin.storage.from('app_docs').getPublicUrl(path);
+  const r2 = getR2Storage();
+  const data = await r2.download(path);
 
-  return res.redirect(302, urlData.publicUrl);
+  if (!data) {
+    return sendError(res, 'Document not found', HttpStatus.NOT_FOUND);
+  }
+
+  const metadata = await r2.getMetadata(path);
+  res.setHeader('Content-Type', metadata?.contentType || 'application/octet-stream');
+  res.setHeader('Content-Length', data.length);
+  res.setHeader('Content-Disposition', `attachment; filename="${path.split('/').pop()}"`);
+  return res.status(200).send(data);
 }
 
 /**
- * Delete document from R2 or Supabase
+ * Delete document from R2
  */
 async function handleDelete(req: VercelRequest, res: VercelResponse, authUserId: string, userRole: string) {
   const path = (req.query.path as string) || (req.body?.path as string);
@@ -220,30 +202,20 @@ async function handleDelete(req: VercelRequest, res: VercelResponse, authUserId:
     }
   }
 
-  let deleted = false;
-
-  // Try R2 first
-  if (isR2Available()) {
-    const r2 = getR2Storage();
-    deleted = await r2.delete(path);
-    if (deleted) {
-      console.log('[documents/delete] Document deleted from R2:', path);
-    }
+  // R2 storage only
+  if (!isR2Available()) {
+    console.error('[documents/delete] R2 storage is not configured');
+    return sendError(res, 'Storage service unavailable', HttpStatus.SERVICE_UNAVAILABLE);
   }
 
-  // Also try Supabase (might exist in both during migration)
-  const supabaseAdmin = getSupabaseAdmin();
-  const { error } = await supabaseAdmin.storage.from('app_docs').remove([path]);
-
-  if (!error) {
-    deleted = true;
-    console.log('[documents/delete] Document deleted from Supabase:', path);
-  }
+  const r2 = getR2Storage();
+  const deleted = await r2.delete(path);
 
   if (!deleted) {
     return sendError(res, 'Document not found or could not be deleted', HttpStatus.NOT_FOUND);
   }
 
+  console.log('[documents/delete] Document deleted from R2:', path);
   return sendSuccess(res, { deleted: true, path });
 }
 
@@ -267,35 +239,24 @@ async function handleSignedUrl(req: VercelRequest, res: VercelResponse, authUser
     }
   }
 
-  // Try R2 first
-  if (isR2Available()) {
-    const r2 = getR2Storage();
-    const exists = await r2.exists(path);
-
-    if (exists) {
-      const signedUrl = r2.getSignedUrl(path, expiresIn);
-      return sendSuccess(res, { 
-        url: signedUrl, 
-        expiresIn,
-        storage: 'r2',
-      });
-    }
+  // R2 storage only
+  if (!isR2Available()) {
+    console.error('[documents/signed-url] R2 storage is not configured');
+    return sendError(res, 'Storage service unavailable', HttpStatus.SERVICE_UNAVAILABLE);
   }
 
-  // Fallback to Supabase signed URL
-  const supabaseAdmin = getSupabaseAdmin();
-  const { data, error } = await supabaseAdmin.storage
-    .from('app_docs')
-    .createSignedUrl(path, expiresIn);
+  const r2 = getR2Storage();
+  const exists = await r2.exists(path);
 
-  if (error) {
-    return sendError(res, 'Failed to generate signed URL', HttpStatus.INTERNAL_SERVER_ERROR);
+  if (!exists) {
+    return sendError(res, 'Document not found', HttpStatus.NOT_FOUND);
   }
 
+  const signedUrl = r2.getSignedUrl(path, expiresIn);
   return sendSuccess(res, { 
-    url: data.signedUrl, 
+    url: signedUrl, 
     expiresIn,
-    storage: 'supabase',
+    storage: 'r2',
   });
 }
 

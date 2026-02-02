@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import type { Application, Intake, ApplicationInterview } from '@/lib/supabase'
-import { supabase } from '@/lib/supabase'
+import { applicationsApi } from '@/lib/apiClient'
 import { Button } from '@/components/ui/Button'
 import { ContinueApplication } from '@/components/application/ContinueApplication'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
@@ -215,27 +215,23 @@ export default function StudentDashboard() {
 
       // Fetch scheduled interviews for the user's applications
       // Requirements: 2.4, 4.3 - Check for scheduled or rescheduled interviews
+      // MIGRATED: Using API client instead of direct Supabase calls
       if (user?.id) {
         try {
-          const { data: interviewData } = await supabase
-            .from('application_interviews')
-            .select(`
-              id,
-              application_id,
-              scheduled_at,
-              mode,
-              location,
-              status,
-              notes,
-              applications!inner (user_id)
-            `)
-            .eq('applications.user_id', user.id)
-            .in('status', ['scheduled', 'rescheduled'])
+          const interviewResponse = await applicationsApi.getInterviews()
 
           // Check if request was aborted
           if (signal.aborted) return
 
-          setScheduledInterviews((interviewData || []) as ApplicationInterview[])
+          if (interviewResponse.success) {
+            // Filter for scheduled/rescheduled interviews
+            const scheduledOnly = (interviewResponse.data?.interviews || []).filter(
+              interview => interview.status === 'scheduled' || interview.status === 'rescheduled'
+            )
+            setScheduledInterviews(scheduledOnly as ApplicationInterview[])
+          } else {
+            setScheduledInterviews([])
+          }
         } catch (interviewError) {
           // Silently handle interview fetch errors - not critical for dashboard
           console.warn('Could not fetch interview data:', interviewError)

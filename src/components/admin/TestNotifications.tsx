@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { NotificationService } from '@/lib/notificationService'
 import { emailService } from '@/lib/emailService'
-import { supabase } from '@/lib/supabase'
+import { adminApi, applicationsApi } from '@/lib/apiClient'
 import { Bell, Mail, Send } from 'lucide-react'
 
 export function TestNotifications() {
@@ -15,23 +15,19 @@ export function TestNotifications() {
     setMessage('')
     
     try {
-      // Get a test user
-      const { data: users } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, email')
-        .eq('role', 'student')
-        .limit(1)
-
-      if (!users || users.length === 0) {
+      // Get users via admin API
+      const usersResponse = await adminApi.getUsers({ role: 'student', limit: 1 })
+      
+      if (!usersResponse.success || !usersResponse.data || usersResponse.data.length === 0) {
         setMessage('No student users found to test with')
         return
       }
 
-      const testUser = users[0]
+      const testUser = usersResponse.data[0]
       
       // Send test in-app notification
       const success = await NotificationService.sendNotification({
-        userId: testUser.user_id,
+        userId: testUser.user_id || testUser.id,
         title: '🧪 Test Notification',
         content: `Hello ${testUser.full_name}! This is a test notification to verify the system is working correctly.`,
         type: 'info'
@@ -55,39 +51,24 @@ export function TestNotifications() {
     setMessage('')
     
     try {
-      // Get a test application
-      const { data: applications } = await supabase
-        .from('applications')
-        .select('id, user_id, application_number, program')
-        .limit(1)
+      // Get applications via API
+      const appsResponse = await applicationsApi.list({ limit: 1 })
 
-      if (!applications || applications.length === 0) {
+      if (!appsResponse.success || !appsResponse.data || appsResponse.data.length === 0) {
         setMessage('No applications found to test with')
         return
       }
 
-      const testApp = applications[0]
-      
-      // Get user details
-      const { data: user } = await supabase
-        .from('profiles')
-        .select('full_name, email')
-        .eq('id', testApp.user_id)
-        .single()
+      const testApp = appsResponse.data[0]
 
-      if (!user) {
-        setMessage('User not found for test application')
-        return
-      }
-
-      // Queue test email
+      // Queue test email using the application data
       const success = await emailService.sendApplicationStatusEmail(
         testApp.id,
-        user.email,
+        testApp.email,
         'submitted',
         testApp.application_number,
         testApp.program,
-        user.full_name
+        testApp.full_name
       )
 
       if (success) {

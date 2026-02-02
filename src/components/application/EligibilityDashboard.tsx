@@ -19,7 +19,7 @@ import {
   EligibilityAssessmentWithProgram
 } from '@/types/eligibility'
 import { MissingRequirement } from '@/lib/eligibilityEngine'
-import { supabase } from '@/lib/supabase'
+import { adminApi, catalogApi, EligibilityAssessment } from '@/lib/apiClient'
 
 function parseMissingRequirements(
   value: EligibilityAssessmentWithProgram['missing_requirements']
@@ -82,12 +82,13 @@ export function EligibilityDashboard() {
 
   const loadPrograms = useCallback(async () => {
     try {
-      const { data } = await supabase
-        .from('programs')
-        .select('id, name')
-        .eq('is_active', true)
-
-      setPrograms((data as Array<{ id: string; name: string }> | null) ?? [])
+      const response = await catalogApi.getPrograms()
+      if (response.success && response.data) {
+        const activePrograms = (response.data as Array<{ id: string; name: string; is_active?: boolean }>)
+          .filter(p => p.is_active !== false)
+          .map(p => ({ id: p.id, name: p.name }))
+        setPrograms(activePrograms)
+      }
     } catch (error) {
       console.error('Failed to load programs:', error)
     }
@@ -96,24 +97,12 @@ export function EligibilityDashboard() {
   const loadDashboardData = useCallback(async () => {
     setLoading(true)
     try {
-      // Get eligibility assessments
-      let query = supabase
-        .from('eligibility_assessments')
-        .select(`
-          *,
-          programs (name, code)
-        `)
-        .order('created_at', { ascending: false })
+      // Get eligibility assessments via API
+      const response = await adminApi.getEligibilityAssessments(selectedProgram)
 
-      if (selectedProgram !== 'all') {
-        query = query.eq('program_id', selectedProgram)
-      }
-
-      const { data: assessments } = await query
-
-      if (assessments) {
+      if (response.success && response.data?.assessments) {
         const normalizedAssessments = normalizeAssessments(
-          assessments as EligibilityAssessmentWithProgram[]
+          response.data.assessments as EligibilityAssessmentWithProgram[]
         )
         const metrics = calculateMetrics(normalizedAssessments)
         setMetrics(metrics)

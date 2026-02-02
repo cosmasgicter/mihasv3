@@ -904,6 +904,14 @@ async function handler(req, res) {
       return handleSummary(res);
     if (action === "review")
       return handleReview(req, res, user.userId, isAdmin);
+    if (action === "interviews")
+      return handleInterviews(req, res, user.userId);
+    if (action === "stats")
+      return handleStats(req, res, user.userId);
+    if (action === "export")
+      return handleExport(req, res, isAdmin);
+    if (action === "versions")
+      return handleVersions(req, res, user.userId);
     if (id)
       return handleById(req, res, user.userId, isAdmin, id);
     if (req.method === "GET")
@@ -940,6 +948,55 @@ async function handleSummary(res) {
   const q = ApplicationQueries.getSummary();
   const result = await query(q.text, q.values);
   return sendSuccess(res, result.rows);
+}
+async function handleInterviews(req, res, userId) {
+  if (req.method !== "GET") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const result = await query(`
+    SELECT 
+      ai.id,
+      ai.application_id,
+      ai.scheduled_at,
+      ai.mode,
+      ai.location,
+      ai.status,
+      ai.notes,
+      a.program,
+      a.application_number
+    FROM application_interviews ai
+    INNER JOIN applications a ON ai.application_id = a.id
+    WHERE a.user_id = $1
+    ORDER BY ai.scheduled_at ASC
+  `, [userId]);
+  return sendSuccess(res, { interviews: result.rows });
+}
+async function handleStats(req, res, userId) {
+  if (req.method !== "GET") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const countResult = await query(`
+    SELECT 
+      COUNT(*) as total,
+      COUNT(*) FILTER (WHERE status = 'draft') as drafts,
+      COUNT(*) FILTER (WHERE status != 'draft') as completed
+    FROM applications
+    WHERE user_id = $1
+  `, [userId]);
+  const avgTimeResult = await query(`
+    SELECT 
+      AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) / 3600) as avg_time_hours
+    FROM applications
+    WHERE user_id = $1 AND status != 'draft'
+  `, [userId]);
+  const stats = countResult.rows[0];
+  const avgTime = avgTimeResult.rows[0];
+  return sendSuccess(res, {
+    total_drafts: parseInt(stats?.drafts || "0", 10),
+    completed_applications: parseInt(stats?.completed || "0", 10),
+    total_applications: parseInt(stats?.total || "0", 10),
+    avg_time_hours: avgTime?.avg_time_hours ? parseFloat(avgTime.avg_time_hours) : 0
+  });
 }
 async function handleReview(req, res, userId, isAdmin) {
   if (!isAdmin) {
@@ -1092,6 +1149,134 @@ async function fetchApplicationDetails(id, include) {
     result.statusHistory = historyResult.rows;
   }
   return result;
+}
+async function handleExport(req, res, isAdmin) {
+  if (req.method !== "GET") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  if (!isAdmin) {
+    return sendError(res, "Admin access required", HttpStatus.FORBIDDEN);
+  }
+  const page = parseInt(req.query.page || "0", 10);
+  const limit = Math.min(parseInt(req.query.limit || "500", 10), 1000);
+  const offset = page * limit;
+  const conditions = [];
+  const values = [];
+  let paramIndex = 1;
+  const search = req.query.search;
+  if (search) {
+    const searchPattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
+    conditions.push(`(full_name ILIKE $${paramIndex} OR email ILIKE $${paramIndex} OR application_number ILIKE $${paramIndex})`);
+    values.push(searchPattern);
+    paramIndex++;
+  }
+  const status = req.query.status;
+  if (status) {
+    conditions.push(`status = $${paramIndex}`);
+    values.push(status);
+    paramIndex++;
+  }
+  const payment = req.query.payment;
+  if (payment) {
+    conditions.push(`payment_status = $${paramIndex}`);
+    values.push(payment);
+    paramIndex++;
+  }
+  const program = req.query.program;
+  if (program) {
+    conditions.push(`program = $${paramIndex}`);
+    values.push(program);
+    paramIndex++;
+  }
+  const institution = req.query.institution;
+  if (institution) {
+    conditions.push(`institution = $${paramIndex}`);
+    values.push(institution);
+    paramIndex++;
+  }
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  values.push(limit);
+  values.push(offset);
+  const result = await query(`
+    SELECT 
+      id,
+      application_number,
+      full_name,
+      email,
+      phone,
+      program,
+      intake,
+      institution,
+      status,
+      payment_status,
+      COALESCE(application_fee, 0) as application_fee,
+      COALESCE(paid_amount, 0) as paid_amount,
+      submitted_at,
+      created_at,
+      COALESCE(grades_summary, '') as grades_summary,
+      COALESCE(total_subjects, 0) as total_subjects,
+      COALESCE(points, 0) as points,
+      COALESCE(EXTRACT(YEAR FROM AGE(date_of_birth))::int, 0) as age,
+      COALESCE(EXTRACT(DAY FROM NOW() - submitted_at)::int, 0) as days_since_submission
+    FROM applications
+    ${whereClause}
+    ORDER BY created_at DESC
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+  `, values);
+  return sendSuccess(res, {
+    applications: result.rows,
+    page,
+    limit,
+    hasMore: result.rows.length === limit
+  });
+}
+async function handleVersions(req, res, userId) {
+  const applicationId = req.query.application_id || req.body?.application_id;
+  if (req.method === "GET") {
+    if (!applicationId) {
+      return sendError(res, "application_id is required", HttpStatus.BAD_REQUEST);
+    }
+    const appCheck = await query("SELECT user_id FROM applications WHERE id = $1", [applicationId]);
+    if (appCheck.rows.length === 0) {
+      return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
+    }
+    if (appCheck.rows[0].user_id !== userId) {
+      return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
+    }
+    const result = await query(`
+      SELECT id, version_number, form_data, change_summary, created_at
+      FROM application_versions
+      WHERE application_id = $1
+      ORDER BY version_number DESC
+    `, [applicationId]);
+    return sendSuccess(res, { versions: result.rows });
+  }
+  if (req.method === "POST") {
+    const body = req.body;
+    const appId = body.application_id || applicationId;
+    if (!appId) {
+      return sendError(res, "application_id is required", HttpStatus.BAD_REQUEST);
+    }
+    if (!body.form_data) {
+      return sendError(res, "form_data is required", HttpStatus.BAD_REQUEST);
+    }
+    const appCheck = await query("SELECT user_id FROM applications WHERE id = $1", [appId]);
+    if (appCheck.rows.length === 0) {
+      return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
+    }
+    if (appCheck.rows[0].user_id !== userId) {
+      return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
+    }
+    const maxVersion = await query("SELECT COALESCE(MAX(version_number), 0) as max_version FROM application_versions WHERE application_id = $1", [appId]);
+    const nextVersion = (maxVersion.rows[0]?.max_version || 0) + 1;
+    const result = await query(`
+      INSERT INTO application_versions (application_id, user_id, version_number, form_data, change_summary, created_by, created_at)
+      VALUES ($1, $2, $3, $4, $5, $2, NOW())
+      RETURNING id, version_number, form_data, change_summary, created_at
+    `, [appId, userId, nextVersion, JSON.stringify(body.form_data), body.change_summary || null]);
+    return sendSuccess(res, { version: result.rows[0] }, HttpStatus.CREATED);
+  }
+  return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
 }
 var applications_default = withArcjetProtection(handler, "general");
 export {

@@ -16,7 +16,6 @@ import { APPLICATION_FILTER_KEYS, useApplicationsData, useApplicationFilters } f
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { useToastStore } from '@/components/ui/Toast'
-import { supabase } from '@/lib/supabase'
 import { applicationService } from '@/services/applications'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
 import { ApplicationCard } from '@/components/admin/applications/ApplicationCard'
@@ -198,46 +197,21 @@ export default function Applications() {
     return (async function* generate() {
       let page = 0
       while (true) {
-        const from = page * EXPORT_BATCH_SIZE
-        const to = from + EXPORT_BATCH_SIZE - 1
+        const response = await applicationService.exportApplications({
+          page,
+          limit: EXPORT_BATCH_SIZE,
+          search: filtersSnapshot.searchTerm || undefined,
+          status: filtersSnapshot.statusFilter || undefined,
+          payment: filtersSnapshot.paymentFilter || undefined,
+          program: filtersSnapshot.programFilter || undefined,
+          institution: filtersSnapshot.institutionFilter || undefined,
+        })
 
-        let query = supabase
-          .from('admin_application_detailed')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .range(from, to)
-
-        if (filtersSnapshot.searchTerm) {
-          const searchValue = sanitizeSearchTerm(filtersSnapshot.searchTerm)
-          const pattern = `%${searchValue}%`
-          query = query.or(
-            `full_name.ilike.${pattern},email.ilike.${pattern},application_number.ilike.${pattern}`
-          )
+        if (!response?.success || !response?.data?.applications) {
+          throw new Error('Failed to fetch applications for export')
         }
 
-        if (filtersSnapshot.statusFilter) {
-          query = query.eq('status', filtersSnapshot.statusFilter)
-        }
-
-        if (filtersSnapshot.paymentFilter) {
-          query = query.eq('payment_status', filtersSnapshot.paymentFilter)
-        }
-
-        if (filtersSnapshot.programFilter) {
-          query = query.eq('program', filtersSnapshot.programFilter)
-        }
-
-        if (filtersSnapshot.institutionFilter) {
-          query = query.eq('institution', filtersSnapshot.institutionFilter)
-        }
-
-        const { data, error } = await query
-
-        if (error) {
-          throw new Error(error.message || 'Failed to fetch applications for export')
-        }
-
-        const rows = (data ?? []).map(mapRecordToApplication)
+        const rows = response.data.applications.map(mapRecordToApplication)
 
         if (!rows.length) {
           break
@@ -245,7 +219,7 @@ export default function Applications() {
 
         yield rows
 
-        if (rows.length < EXPORT_BATCH_SIZE) {
+        if (!response.data.hasMore || rows.length < EXPORT_BATCH_SIZE) {
           break
         }
 

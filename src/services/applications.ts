@@ -187,5 +187,55 @@ export const applicationService = {
     )
 
     return response?.interview ?? null
+  },
+
+  /**
+   * Export applications for CSV/Excel/PDF export (admin only)
+   * Returns paginated applications with all details
+   */
+  exportApplications: async (params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    payment?: string;
+    program?: string;
+    institution?: string;
+  } = {}) => {
+    const queryParams = new URLSearchParams();
+    queryParams.set('action', 'export');
+    if (params.page !== undefined) queryParams.set('page', String(params.page));
+    if (params.limit !== undefined) queryParams.set('limit', String(params.limit));
+    if (params.search) queryParams.set('search', params.search);
+    if (params.status) queryParams.set('status', params.status);
+    if (params.payment) queryParams.set('payment', params.payment);
+    if (params.program) queryParams.set('program', params.program);
+    if (params.institution) queryParams.set('institution', params.institution);
+
+    return apiClient.request<{
+      applications: Array<{
+        application_number: string;
+        full_name: string;
+        email: string;
+        phone: string;
+        program: string;
+        intake: string;
+        institution: string;
+        status: string;
+        payment_status: string;
+        application_fee: number;
+        paid_amount: number;
+        submitted_at: string;
+        created_at: string;
+        grades_summary: string;
+        total_subjects: number;
+        points: number;
+        age: number;
+        days_since_submission: number;
+      }>;
+      page: number;
+      limit: number;
+      hasMore: boolean;
+    }>(`/applications?${queryParams.toString()}`);
   }
 }

@@ -522,7 +522,12 @@ async function handler(req, res) {
       res.setHeader("Cache-Control", "public, max-age=300");
       return sendSuccess(res, { subjects: result.rows });
     }
-    return sendError(res, "Invalid type. Use: programs, intakes, or subjects", HttpStatus.BAD_REQUEST);
+    if (type === "institutions") {
+      const result = await query("SELECT * FROM institutions WHERE is_active = true ORDER BY name ASC");
+      res.setHeader("Cache-Control", "public, max-age=300");
+      return sendSuccess(res, { institutions: result.rows });
+    }
+    return sendError(res, "Invalid type. Use: programs, intakes, subjects, or institutions", HttpStatus.BAD_REQUEST);
   } catch (error) {
     return handleError(res, error, "catalog");
   }

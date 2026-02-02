@@ -3,7 +3,8 @@ import { apiClient } from './client'
 export const catalogService = {
   getPrograms: () => apiClient.request('/catalog/programs'),
   getIntakes: () => apiClient.request('/catalog/intakes'),
-  getSubjects: () => apiClient.request('/catalog/subjects')
+  getSubjects: () => apiClient.request('/catalog/subjects'),
+  getInstitutions: () => apiClient.request('/catalog/institutions')
 }
 
 export const programService = {

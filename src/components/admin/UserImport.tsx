@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
-import { supabase } from '@/lib/supabase'
+import { authApi } from '@/lib/apiClient'
 import { Upload, FileText, AlertTriangle, CheckCircle, XCircle, Users, Download } from 'lucide-react'
 import { sanitizeForLog, sanitizeText, sanitizeEmail } from '@/lib/sanitize'
 import { toast } from '@/hooks/useToast'
@@ -180,14 +180,9 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
           }
 
           try {
-            // Check for existing user
-            const { data: existingUser } = await supabase
-              .from('profiles')
-              .select('email')
-              .eq('email', userData.email)
-              .single()
-
-            if (existingUser) {
+            // Check for existing user via API
+            const checkResponse = await authApi.checkEmail(userData.email)
+            if (checkResponse.success && !checkResponse.data?.available) {
               result.duplicates++
               result.failed++
               result.errors.push({ 

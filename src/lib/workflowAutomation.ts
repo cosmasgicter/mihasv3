@@ -1,15 +1,35 @@
 /**
  * Workflow Automation Engine
  * 
- * NOTE: This module is deprecated and not currently in use.
+ * @deprecated This module is deprecated and not currently in use.
  * The admin interface has been simplified per product requirements.
- * Keeping for reference only.
+ * 
+ * NOTE: This file contains direct Supabase calls that have NOT been migrated
+ * to API endpoints because the functionality is deprecated. If this module
+ * is ever reactivated, the Supabase calls should be replaced with API calls.
+ * 
+ * Keeping for reference only - DO NOT USE IN PRODUCTION.
  */
 
-// import { multiChannelNotifications } from './multiChannelNotifications'
-// import { sessionManager } from './session'
-// import { sanitizeForLog, secureErrorHandler } from './securityEnhancements'
-// import { SecureCodeExecution } from './securityPatches'
+// Stub supabase object to prevent runtime errors if this module is accidentally used
+const supabase = {
+  from: () => ({
+    select: () => ({ data: null, error: new Error('Workflow automation is deprecated') }),
+    insert: () => ({ data: null, error: new Error('Workflow automation is deprecated') }),
+    update: () => ({ data: null, error: new Error('Workflow automation is deprecated') }),
+    eq: () => ({ data: null, error: new Error('Workflow automation is deprecated') }),
+    single: () => ({ data: null, error: new Error('Workflow automation is deprecated') }),
+    order: () => ({ data: null, error: new Error('Workflow automation is deprecated') }),
+    limit: () => ({ data: null, error: new Error('Workflow automation is deprecated') }),
+    in: () => ({ data: null, error: new Error('Workflow automation is deprecated') }),
+    gte: () => ({ data: null, error: new Error('Workflow automation is deprecated') }),
+  }),
+}
+
+// Stub functions for deprecated dependencies
+const sanitizeForLog = (msg: string) => msg.replace(/[<>&"']/g, '')
+const sessionManager = { isSessionValid: async () => false }
+const multiChannelNotifications = { sendNotification: async () => false }
 
 export interface WorkflowRule {
   id: string

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { notificationsApi, type NotificationPreferences as NotificationPreferencesType } from '@/lib/apiClient'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Bell, Mail, MessageSquare, Check } from 'lucide-react'
@@ -31,20 +31,18 @@ export function NotificationPreferences() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('user_notification_preferences')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      if (error) throw error
-
-      if (data) {
+      const response = await notificationsApi.getPreferences()
+      
+      if (response.success && response.data) {
         setPreferences({
-          email_enabled: data.email_enabled,
-          sms_enabled: data.sms_enabled,
-          push_enabled: data.push_enabled,
-          notification_types: data.notification_types
+          email_enabled: response.data.email_enabled ?? true,
+          sms_enabled: response.data.sms_enabled ?? false,
+          push_enabled: response.data.push_enabled ?? true,
+          notification_types: response.data.notification_types ?? {
+            application_update: true,
+            interview_schedule: true,
+            document_ready: true
+          }
         })
       }
     } catch (error) {
@@ -60,15 +58,12 @@ export function NotificationPreferences() {
     try {
       setSaving(true)
 
-      const { error } = await supabase
-        .from('user_notification_preferences')
-        .upsert({
-          user_id: user.id,
-          ...preferences,
-          updated_at: new Date().toISOString()
-        })
-
-      if (error) throw error
+      await notificationsApi.updatePreferences({
+        email_enabled: preferences.email_enabled,
+        sms_enabled: preferences.sms_enabled,
+        push_enabled: preferences.push_enabled,
+        notification_types: preferences.notification_types
+      })
     } catch (error) {
       console.error('Save preferences error:', error)
     } finally {

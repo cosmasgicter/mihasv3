@@ -28,7 +28,7 @@ import { Container } from '@/components/ui/Container'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/badge'
-import { supabase } from '@/lib/supabase'
+import { applicationsApi } from '@/lib/apiClient'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface Interview {
@@ -187,28 +187,15 @@ export default function InterviewPage() {
         setState(prev => ({ ...prev, error: null }))
         
         // @requirements 3.2 - Query application_interviews for the student's applications
-        const { data, error: fetchError } = await supabase
-          .from('application_interviews')
-          .select(`
-            id,
-            scheduled_at,
-            mode,
-            location,
-            status,
-            notes,
-            application_id,
-            applications!inner (
-              user_id,
-              program
-            )
-          `)
-          .eq('applications.user_id', user.id)
-          .order('scheduled_at', { ascending: true })
+        // MIGRATED: Using API client instead of direct Supabase calls
+        const response = await applicationsApi.getInterviews()
 
-        if (fetchError) throw fetchError
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to load interviews')
+        }
 
         // Transform data to match Interview interface
-        const interviews: Interview[] = (data || []).map((item: any) => ({
+        const interviews: Interview[] = (response.data?.interviews || []).map((item) => ({
           id: item.id,
           scheduled_at: item.scheduled_at,
           mode: item.mode,
@@ -216,7 +203,7 @@ export default function InterviewPage() {
           status: item.status,
           notes: item.notes,
           application_id: item.application_id,
-          program_name: item.applications?.program || null
+          program_name: item.program || null
         }))
 
         setState(prev => ({ ...prev, interviews, loading: false }))

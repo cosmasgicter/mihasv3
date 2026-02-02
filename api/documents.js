@@ -29679,6 +29679,231 @@ var aj = ARCJET_KEY ? arcjet({
   ]
 }) : null;
 
+// lib/errorHandler.ts
+var HttpStatus = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  METHOD_NOT_ALLOWED: 405,
+  CONFLICT: 409,
+  UNPROCESSABLE_ENTITY: 422,
+  TOO_MANY_REQUESTS: 429,
+  INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503
+};
+var ErrorCode = {
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  INVALID_INPUT: "INVALID_INPUT",
+  MISSING_REQUIRED_FIELD: "MISSING_REQUIRED_FIELD",
+  AUTHENTICATION_ERROR: "AUTHENTICATION_ERROR",
+  AUTHENTICATION_REQUIRED: "AUTHENTICATION_REQUIRED",
+  INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+  TOKEN_EXPIRED: "TOKEN_EXPIRED",
+  INVALID_TOKEN: "INVALID_TOKEN",
+  AUTHORIZATION_ERROR: "AUTHORIZATION_ERROR",
+  INSUFFICIENT_PERMISSIONS: "INSUFFICIENT_PERMISSIONS",
+  SECURITY_VIOLATION: "SECURITY_VIOLATION",
+  NOT_FOUND: "NOT_FOUND",
+  RESOURCE_NOT_FOUND: "RESOURCE_NOT_FOUND",
+  RATE_LIMITED: "RATE_LIMITED",
+  TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+  DATABASE_ERROR: "DATABASE_ERROR",
+  SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE"
+};
+
+class AuthError extends Error {
+  code;
+  statusCode;
+  isOperational;
+  constructor(message, code = ErrorCode.INTERNAL_ERROR, statusCode = HttpStatus.BAD_REQUEST, isOperational = true) {
+    super(sanitizeError(message));
+    this.name = "AuthError";
+    this.code = code;
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, AuthError);
+    }
+  }
+  static validation(message) {
+    return new AuthError(message, ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST);
+  }
+  static authentication(message = "Authentication required") {
+    return new AuthError(message, ErrorCode.AUTHENTICATION_ERROR, HttpStatus.UNAUTHORIZED);
+  }
+  static invalidCredentials() {
+    return new AuthError("Invalid email or password", ErrorCode.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
+  }
+  static tokenExpired() {
+    return new AuthError("Token has expired", ErrorCode.TOKEN_EXPIRED, HttpStatus.UNAUTHORIZED);
+  }
+  static invalidToken() {
+    return new AuthError("Invalid token", ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
+  }
+  static forbidden(message = "Access denied") {
+    return new AuthError(message, ErrorCode.AUTHORIZATION_ERROR, HttpStatus.FORBIDDEN);
+  }
+  static insufficientPermissions() {
+    return new AuthError("Insufficient permissions", ErrorCode.INSUFFICIENT_PERMISSIONS, HttpStatus.FORBIDDEN);
+  }
+  static securityViolation() {
+    return new AuthError("Request blocked by security policy", ErrorCode.SECURITY_VIOLATION, HttpStatus.FORBIDDEN);
+  }
+  static rateLimited() {
+    return new AuthError("Too many requests. Please try again later.", ErrorCode.RATE_LIMITED, HttpStatus.TOO_MANY_REQUESTS);
+  }
+  static notFound(resource = "Resource") {
+    return new AuthError(`${resource} not found`, ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND);
+  }
+  static internal() {
+    return new AuthError("An unexpected error occurred", ErrorCode.INTERNAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, false);
+  }
+  static serviceUnavailable() {
+    return new AuthError("Service temporarily unavailable", ErrorCode.SERVICE_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE);
+  }
+  static database() {
+    return new AuthError("Database operation failed", ErrorCode.DATABASE_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, false);
+  }
+  toJSON() {
+    return {
+      success: false,
+      error: this.message,
+      code: this.code
+    };
+  }
+}
+function sanitizeError(message) {
+  if (!message || typeof message !== "string") {
+    return "An error occurred";
+  }
+  let sanitized = message;
+  sanitized = sanitized.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "[ID]");
+  sanitized = sanitized.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL]");
+  sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g, "[TOKEN]");
+  sanitized = sanitized.replace(/(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|mssql):\/\/[^\s"']+/gi, "[CONNECTION_STRING]");
+  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.supabase\.co[^\s"']*/gi, "[SUPABASE_URL]");
+  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.neon\.tech[^\s"']*/gi, "[NEON_URL]");
+  sanitized = sanitized.replace(/(?:api[_-]?key|secret|password|token|auth|bearer)[=:]\s*["']?[a-zA-Z0-9_\-./+=]{16,}["']?/gi, "[CREDENTIAL]");
+  sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]{100,}/g, "[SERVICE_KEY]");
+  sanitized = sanitized.replace(/\$2[aby]?\$\d{1,2}\$[./A-Za-z0-9]{53}/g, "[HASH]");
+  sanitized = sanitized.replace(/\b[a-f0-9]{64}\b/gi, "[HASH]");
+  sanitized = sanitized.replace(/(?:\/(?:home|var|usr|etc|tmp|app|opt|srv)[^\s"']*|[A-Z]:\\[^\s"']*)/gi, "[PATH]");
+  sanitized = sanitized.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[IP]");
+  sanitized = sanitized.replace(/:\d{4,5}(?=\s|$|\/)/g, ":[PORT]");
+  sanitized = sanitized.replace(/\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g, "[PHONE]");
+  sanitized = sanitized.replace(/(?:user|profile|account)\s+['"]?[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?['"]?/gi, "[USER]");
+  return sanitized;
+}
+function logError(context, error) {
+  const message = error instanceof Error ? error.message : String(error);
+  const sanitized = sanitizeError(message);
+  if (error instanceof AuthError) {
+    console.error(`[${context}] Error (${error.code}):`, sanitized);
+  } else {
+    console.error(`[${context}] Error:`, sanitized);
+  }
+}
+function handleError(res, error, context = "API") {
+  logError(context, error);
+  res.setHeader("Content-Type", "application/json");
+  if (error instanceof AuthError) {
+    return res.status(error.statusCode).json(error.toJSON());
+  }
+  let status = HttpStatus.INTERNAL_SERVER_ERROR;
+  let message = "An unexpected error occurred";
+  let code = ErrorCode.INTERNAL_ERROR;
+  if (error instanceof Error) {
+    const errorMessage = error.message.toLowerCase();
+    if (errorMessage.includes("unauthorized") || errorMessage.includes("no authorization") || errorMessage.includes("authentication")) {
+      status = HttpStatus.UNAUTHORIZED;
+      message = "Authentication required";
+      code = ErrorCode.AUTHENTICATION_ERROR;
+    } else if (errorMessage.includes("forbidden") || errorMessage.includes("access denied") || errorMessage.includes("permission") || errorMessage.includes("insufficient")) {
+      status = HttpStatus.FORBIDDEN;
+      message = "Access denied";
+      code = ErrorCode.AUTHORIZATION_ERROR;
+    } else if (errorMessage.includes("not found")) {
+      status = HttpStatus.NOT_FOUND;
+      message = "Resource not found";
+      code = ErrorCode.NOT_FOUND;
+    } else if (errorMessage.includes("validation") || errorMessage.includes("invalid")) {
+      status = HttpStatus.BAD_REQUEST;
+      message = sanitizeError(error.message);
+      code = ErrorCode.VALIDATION_ERROR;
+    } else if (errorMessage.includes("rate limit") || errorMessage.includes("too many")) {
+      status = HttpStatus.TOO_MANY_REQUESTS;
+      message = "Too many requests. Please try again later.";
+      code = ErrorCode.RATE_LIMITED;
+    } else if (errorMessage.includes("unavailable") || errorMessage.includes("timeout")) {
+      status = HttpStatus.SERVICE_UNAVAILABLE;
+      message = "Service temporarily unavailable";
+      code = ErrorCode.SERVICE_UNAVAILABLE;
+    } else if (errorMessage.includes("expired")) {
+      status = HttpStatus.UNAUTHORIZED;
+      message = "Token has expired";
+      code = ErrorCode.TOKEN_EXPIRED;
+    }
+  }
+  const response = {
+    success: false,
+    error: message,
+    code
+  };
+  return res.status(status).json(response);
+}
+function sendSuccess(res, data, status = HttpStatus.OK) {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: true,
+    data
+  };
+  return res.status(status).json(response);
+}
+function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCode.VALIDATION_ERROR) {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: false,
+    error: sanitizeError(message),
+    code
+  };
+  return res.status(status).json(response);
+}
+
+// lib/auth/ownership.ts
+var ADMIN_ROLES = ["admin", "super_admin"];
+var REVIEWER_ROLES = ["admin", "super_admin", "reviewer"];
+function isAdmin(role) {
+  return ADMIN_ROLES.includes(role);
+}
+function isReviewer(role) {
+  return REVIEWER_ROLES.includes(role);
+}
+async function checkApplicationOwnership(userId, applicationId, userRole) {
+  if (isReviewer(userRole)) {
+    return true;
+  }
+  try {
+    const result = await query("SELECT user_id FROM applications WHERE id = $1", [applicationId]);
+    if (result.rows.length === 0) {
+      return false;
+    }
+    return result.rows[0].user_id === userId;
+  } catch {
+    return false;
+  }
+}
+async function checkDocumentUploadAccess(userId, applicationId, userRole) {
+  if (isAdmin(userRole)) {
+    return true;
+  }
+  return checkApplicationOwnership(userId, applicationId, userRole);
+}
+
 // lib/storage.ts
 import { createHmac, createHash } from "crypto";
 var R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || "";
@@ -29976,561 +30201,6 @@ function isR2Available() {
   return getR2Storage().isConfigured();
 }
 
-// lib/supabaseClient.ts
-class MockQueryBuilder {
-  table;
-  operation = "select";
-  selectColumns = "*";
-  filters = [];
-  orderByColumn;
-  orderAsc = true;
-  limitCount;
-  offsetCount;
-  insertData;
-  updateData;
-  upsertConflict;
-  countOnly = false;
-  headOnly = false;
-  constructor(table) {
-    this.table = table;
-  }
-  select(columns = "*", options) {
-    this.operation = "select";
-    this.selectColumns = columns;
-    if (options?.count === "exact") {
-      this.countOnly = true;
-    }
-    if (options?.head) {
-      this.headOnly = true;
-    }
-    return this;
-  }
-  insert(data) {
-    this.operation = "insert";
-    this.insertData = data;
-    return this;
-  }
-  update(data) {
-    this.operation = "update";
-    this.updateData = data;
-    return this;
-  }
-  upsert(data, options) {
-    this.operation = "upsert";
-    this.insertData = data;
-    this.upsertConflict = options?.onConflict || "id";
-    return this;
-  }
-  delete() {
-    this.operation = "delete";
-    return this;
-  }
-  eq(column, value) {
-    this.filters.push({ column, op: "=", value });
-    return this;
-  }
-  neq(column, value) {
-    this.filters.push({ column, op: "!=", value });
-    return this;
-  }
-  gt(column, value) {
-    this.filters.push({ column, op: ">", value });
-    return this;
-  }
-  gte(column, value) {
-    this.filters.push({ column, op: ">=", value });
-    return this;
-  }
-  lt(column, value) {
-    this.filters.push({ column, op: "<", value });
-    return this;
-  }
-  lte(column, value) {
-    this.filters.push({ column, op: "<=", value });
-    return this;
-  }
-  like(column, value) {
-    this.filters.push({ column, op: "LIKE", value });
-    return this;
-  }
-  ilike(column, value) {
-    this.filters.push({ column, op: "ILIKE", value });
-    return this;
-  }
-  in(column, values) {
-    this.filters.push({ column, op: "IN", value: values });
-    return this;
-  }
-  is(column, value) {
-    this.filters.push({ column, op: "IS", value });
-    return this;
-  }
-  order(column, options) {
-    this.orderByColumn = column;
-    this.orderAsc = options?.ascending ?? true;
-    return this;
-  }
-  limit(count) {
-    this.limitCount = count;
-    return this;
-  }
-  range(from, to) {
-    this.offsetCount = from;
-    this.limitCount = to - from + 1;
-    return this;
-  }
-  async single() {
-    this.limitCount = 1;
-    const result = await this.execute();
-    if (result.error) {
-      return { data: null, error: result.error, code: result.error.code };
-    }
-    if (!result.data || result.data.length === 0) {
-      return { data: null, error: new Error("No rows returned"), code: "PGRST116" };
-    }
-    return { data: result.data[0], error: null };
-  }
-  async maybeSingle() {
-    this.limitCount = 1;
-    const result = await this.execute();
-    return {
-      data: result.data?.[0] || null,
-      error: result.error
-    };
-  }
-  buildWhereClause() {
-    if (this.filters.length === 0) {
-      return { sql: "", params: [], nextIndex: 1 };
-    }
-    const conditions = [];
-    const params = [];
-    let paramIndex = 1;
-    for (const filter of this.filters) {
-      if (filter.op === "IN" && Array.isArray(filter.value)) {
-        const placeholders = filter.value.map(() => `$${paramIndex++}`).join(", ");
-        conditions.push(`${filter.column} IN (${placeholders})`);
-        params.push(...filter.value);
-      } else if (filter.op === "IS") {
-        conditions.push(`${filter.column} IS ${filter.value === null ? "NULL" : "NOT NULL"}`);
-      } else {
-        conditions.push(`${filter.column} ${filter.op} $${paramIndex++}`);
-        params.push(filter.value);
-      }
-    }
-    return { sql: ` WHERE ${conditions.join(" AND ")}`, params, nextIndex: paramIndex };
-  }
-  async executeSelect() {
-    try {
-      const { sql: whereClause, params } = this.buildWhereClause();
-      if (this.countOnly && this.headOnly) {
-        const countQuery = `SELECT COUNT(*) as count FROM ${this.table}${whereClause}`;
-        const result2 = await query(countQuery, params);
-        const count2 = parseInt(result2.rows[0]?.count || "0", 10);
-        return { data: null, error: null, count: count2 };
-      }
-      let sqlQuery = `SELECT ${this.selectColumns} FROM ${this.table}${whereClause}`;
-      if (this.orderByColumn) {
-        sqlQuery += ` ORDER BY ${this.orderByColumn} ${this.orderAsc ? "ASC" : "DESC"}`;
-      }
-      if (this.limitCount !== undefined) {
-        sqlQuery += ` LIMIT ${this.limitCount}`;
-      }
-      if (this.offsetCount !== undefined) {
-        sqlQuery += ` OFFSET ${this.offsetCount}`;
-      }
-      const result = await query(sqlQuery, params);
-      let count;
-      if (this.countOnly) {
-        const countQuery = `SELECT COUNT(*) as count FROM ${this.table}${whereClause}`;
-        const countResult = await query(countQuery, params);
-        count = parseInt(countResult.rows[0]?.count || "0", 10);
-      }
-      return { data: result.rows, error: null, count };
-    } catch (error) {
-      return { data: null, error };
-    }
-  }
-  async executeInsert() {
-    try {
-      const rows = Array.isArray(this.insertData) ? this.insertData : [this.insertData];
-      const results = [];
-      for (const row of rows) {
-        if (!row)
-          continue;
-        const columns = Object.keys(row);
-        const values = Object.values(row);
-        const placeholders = columns.map((_, i) => `$${i + 1}`).join(", ");
-        const sqlQuery = `INSERT INTO ${this.table} (${columns.join(", ")}) VALUES (${placeholders}) RETURNING *`;
-        const result = await query(sqlQuery, values);
-        if (result.rows[0]) {
-          results.push(result.rows[0]);
-        }
-      }
-      return { data: results, error: null };
-    } catch (error) {
-      const err = error;
-      return { data: null, error: err };
-    }
-  }
-  async executeUpdate() {
-    try {
-      if (!this.updateData) {
-        return { data: [], error: null };
-      }
-      const { sql: whereClause, params: whereParams, nextIndex } = this.buildWhereClause();
-      const columns = Object.keys(this.updateData);
-      const values = Object.values(this.updateData);
-      const setClause = columns.map((col, i) => `${col} = $${nextIndex + i}`).join(", ");
-      const sqlQuery = `UPDATE ${this.table} SET ${setClause}${whereClause} RETURNING *`;
-      const result = await query(sqlQuery, [...whereParams, ...values]);
-      return { data: result.rows, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
-  }
-  async executeDelete() {
-    try {
-      const { sql: whereClause, params } = this.buildWhereClause();
-      const sqlQuery = `DELETE FROM ${this.table}${whereClause} RETURNING *`;
-      const result = await query(sqlQuery, params);
-      return { data: result.rows, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
-  }
-  async executeUpsert() {
-    try {
-      const rows = Array.isArray(this.insertData) ? this.insertData : [this.insertData];
-      const results = [];
-      for (const row of rows) {
-        if (!row)
-          continue;
-        const columns = Object.keys(row);
-        const values = Object.values(row);
-        const placeholders = columns.map((_, i) => `$${i + 1}`).join(", ");
-        const updateClause = columns.filter((col) => col !== this.upsertConflict).map((col, i) => `${col} = EXCLUDED.${col}`).join(", ");
-        const sqlQuery = `INSERT INTO ${this.table} (${columns.join(", ")}) VALUES (${placeholders}) 
-                          ON CONFLICT (${this.upsertConflict}) DO UPDATE SET ${updateClause} RETURNING *`;
-        const result = await query(sqlQuery, values);
-        if (result.rows[0]) {
-          results.push(result.rows[0]);
-        }
-      }
-      return { data: results, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
-  }
-  async execute() {
-    switch (this.operation) {
-      case "insert":
-        return this.executeInsert();
-      case "update":
-        return this.executeUpdate();
-      case "delete":
-        return this.executeDelete();
-      case "upsert":
-        return this.executeUpsert();
-      case "select":
-      default:
-        return this.executeSelect();
-    }
-  }
-  async then(onfulfilled, onrejected) {
-    try {
-      const result = await this.execute();
-      return onfulfilled ? onfulfilled(result) : result;
-    } catch (error) {
-      if (onrejected) {
-        return onrejected(error);
-      }
-      throw error;
-    }
-  }
-}
-var mockStorage = {
-  from: (bucket) => {
-    const r2 = getR2Storage();
-    return {
-      async upload(path, file, options) {
-        const buffer = file instanceof Blob ? Buffer.from(await file.arrayBuffer()) : file;
-        const result = await r2.upload(`${bucket}/${path}`, buffer, options?.contentType);
-        if (result.success) {
-          return { data: { path: result.path }, error: null };
-        }
-        return { data: null, error: new Error(result.error) };
-      },
-      async download(path) {
-        const data = await r2.download(`${bucket}/${path}`);
-        if (data) {
-          return { data, error: null };
-        }
-        return { data: null, error: new Error("File not found") };
-      },
-      getPublicUrl(path) {
-        return { data: { publicUrl: r2.getPublicUrl(`${bucket}/${path}`) } };
-      },
-      async createSignedUrl(path, expiresIn) {
-        const url = r2.getSignedUrl(`${bucket}/${path}`, expiresIn);
-        return { data: { signedUrl: url }, error: null };
-      },
-      async remove(paths) {
-        const errors = [];
-        for (const path of paths) {
-          const success = await r2.delete(`${bucket}/${path}`);
-          if (!success) {
-            errors.push(path);
-          }
-        }
-        if (errors.length > 0) {
-          return { data: null, error: new Error(`Failed to delete: ${errors.join(", ")}`) };
-        }
-        return { data: { message: "Deleted" }, error: null };
-      },
-      async list(prefix, options) {
-        const files = await r2.list(prefix ? `${bucket}/${prefix}` : bucket, options?.limit);
-        return { data: files.map((f) => ({ name: f })), error: null };
-      }
-    };
-  }
-};
-async function mockRpc(fn, _params) {
-  console.warn(`[DEPRECATED] supabaseAdmin.rpc('${fn}') is deprecated. Use direct SQL queries instead.`);
-  return { data: null, error: new Error(`RPC function '${fn}' not supported. Use direct SQL.`) };
-}
-function getSupabaseAdmin() {
-  return {
-    from: (table) => new MockQueryBuilder(table),
-    storage: mockStorage,
-    rpc: mockRpc
-  };
-}
-
-// lib/errorHandler.ts
-var HttpStatus = {
-  OK: 200,
-  CREATED: 201,
-  NO_CONTENT: 204,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  METHOD_NOT_ALLOWED: 405,
-  CONFLICT: 409,
-  UNPROCESSABLE_ENTITY: 422,
-  TOO_MANY_REQUESTS: 429,
-  INTERNAL_SERVER_ERROR: 500,
-  SERVICE_UNAVAILABLE: 503
-};
-var ErrorCode = {
-  VALIDATION_ERROR: "VALIDATION_ERROR",
-  INVALID_INPUT: "INVALID_INPUT",
-  MISSING_REQUIRED_FIELD: "MISSING_REQUIRED_FIELD",
-  AUTHENTICATION_ERROR: "AUTHENTICATION_ERROR",
-  AUTHENTICATION_REQUIRED: "AUTHENTICATION_REQUIRED",
-  INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
-  TOKEN_EXPIRED: "TOKEN_EXPIRED",
-  INVALID_TOKEN: "INVALID_TOKEN",
-  AUTHORIZATION_ERROR: "AUTHORIZATION_ERROR",
-  INSUFFICIENT_PERMISSIONS: "INSUFFICIENT_PERMISSIONS",
-  SECURITY_VIOLATION: "SECURITY_VIOLATION",
-  NOT_FOUND: "NOT_FOUND",
-  RESOURCE_NOT_FOUND: "RESOURCE_NOT_FOUND",
-  RATE_LIMITED: "RATE_LIMITED",
-  TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
-  INTERNAL_ERROR: "INTERNAL_ERROR",
-  DATABASE_ERROR: "DATABASE_ERROR",
-  SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE"
-};
-
-class AuthError extends Error {
-  code;
-  statusCode;
-  isOperational;
-  constructor(message, code = ErrorCode.INTERNAL_ERROR, statusCode = HttpStatus.BAD_REQUEST, isOperational = true) {
-    super(sanitizeError(message));
-    this.name = "AuthError";
-    this.code = code;
-    this.statusCode = statusCode;
-    this.isOperational = isOperational;
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, AuthError);
-    }
-  }
-  static validation(message) {
-    return new AuthError(message, ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST);
-  }
-  static authentication(message = "Authentication required") {
-    return new AuthError(message, ErrorCode.AUTHENTICATION_ERROR, HttpStatus.UNAUTHORIZED);
-  }
-  static invalidCredentials() {
-    return new AuthError("Invalid email or password", ErrorCode.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
-  }
-  static tokenExpired() {
-    return new AuthError("Token has expired", ErrorCode.TOKEN_EXPIRED, HttpStatus.UNAUTHORIZED);
-  }
-  static invalidToken() {
-    return new AuthError("Invalid token", ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
-  }
-  static forbidden(message = "Access denied") {
-    return new AuthError(message, ErrorCode.AUTHORIZATION_ERROR, HttpStatus.FORBIDDEN);
-  }
-  static insufficientPermissions() {
-    return new AuthError("Insufficient permissions", ErrorCode.INSUFFICIENT_PERMISSIONS, HttpStatus.FORBIDDEN);
-  }
-  static securityViolation() {
-    return new AuthError("Request blocked by security policy", ErrorCode.SECURITY_VIOLATION, HttpStatus.FORBIDDEN);
-  }
-  static rateLimited() {
-    return new AuthError("Too many requests. Please try again later.", ErrorCode.RATE_LIMITED, HttpStatus.TOO_MANY_REQUESTS);
-  }
-  static notFound(resource = "Resource") {
-    return new AuthError(`${resource} not found`, ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND);
-  }
-  static internal() {
-    return new AuthError("An unexpected error occurred", ErrorCode.INTERNAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, false);
-  }
-  static serviceUnavailable() {
-    return new AuthError("Service temporarily unavailable", ErrorCode.SERVICE_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE);
-  }
-  static database() {
-    return new AuthError("Database operation failed", ErrorCode.DATABASE_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, false);
-  }
-  toJSON() {
-    return {
-      success: false,
-      error: this.message,
-      code: this.code
-    };
-  }
-}
-function sanitizeError(message) {
-  if (!message || typeof message !== "string") {
-    return "An error occurred";
-  }
-  let sanitized = message;
-  sanitized = sanitized.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "[ID]");
-  sanitized = sanitized.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL]");
-  sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g, "[TOKEN]");
-  sanitized = sanitized.replace(/(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|mssql):\/\/[^\s"']+/gi, "[CONNECTION_STRING]");
-  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.supabase\.co[^\s"']*/gi, "[SUPABASE_URL]");
-  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.neon\.tech[^\s"']*/gi, "[NEON_URL]");
-  sanitized = sanitized.replace(/(?:api[_-]?key|secret|password|token|auth|bearer)[=:]\s*["']?[a-zA-Z0-9_\-./+=]{16,}["']?/gi, "[CREDENTIAL]");
-  sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]{100,}/g, "[SERVICE_KEY]");
-  sanitized = sanitized.replace(/\$2[aby]?\$\d{1,2}\$[./A-Za-z0-9]{53}/g, "[HASH]");
-  sanitized = sanitized.replace(/\b[a-f0-9]{64}\b/gi, "[HASH]");
-  sanitized = sanitized.replace(/(?:\/(?:home|var|usr|etc|tmp|app|opt|srv)[^\s"']*|[A-Z]:\\[^\s"']*)/gi, "[PATH]");
-  sanitized = sanitized.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[IP]");
-  sanitized = sanitized.replace(/:\d{4,5}(?=\s|$|\/)/g, ":[PORT]");
-  sanitized = sanitized.replace(/\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g, "[PHONE]");
-  sanitized = sanitized.replace(/(?:user|profile|account)\s+['"]?[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?['"]?/gi, "[USER]");
-  return sanitized;
-}
-function logError(context, error) {
-  const message = error instanceof Error ? error.message : String(error);
-  const sanitized = sanitizeError(message);
-  if (error instanceof AuthError) {
-    console.error(`[${context}] Error (${error.code}):`, sanitized);
-  } else {
-    console.error(`[${context}] Error:`, sanitized);
-  }
-}
-function handleError(res, error, context = "API") {
-  logError(context, error);
-  res.setHeader("Content-Type", "application/json");
-  if (error instanceof AuthError) {
-    return res.status(error.statusCode).json(error.toJSON());
-  }
-  let status = HttpStatus.INTERNAL_SERVER_ERROR;
-  let message = "An unexpected error occurred";
-  let code = ErrorCode.INTERNAL_ERROR;
-  if (error instanceof Error) {
-    const errorMessage = error.message.toLowerCase();
-    if (errorMessage.includes("unauthorized") || errorMessage.includes("no authorization") || errorMessage.includes("authentication")) {
-      status = HttpStatus.UNAUTHORIZED;
-      message = "Authentication required";
-      code = ErrorCode.AUTHENTICATION_ERROR;
-    } else if (errorMessage.includes("forbidden") || errorMessage.includes("access denied") || errorMessage.includes("permission") || errorMessage.includes("insufficient")) {
-      status = HttpStatus.FORBIDDEN;
-      message = "Access denied";
-      code = ErrorCode.AUTHORIZATION_ERROR;
-    } else if (errorMessage.includes("not found")) {
-      status = HttpStatus.NOT_FOUND;
-      message = "Resource not found";
-      code = ErrorCode.NOT_FOUND;
-    } else if (errorMessage.includes("validation") || errorMessage.includes("invalid")) {
-      status = HttpStatus.BAD_REQUEST;
-      message = sanitizeError(error.message);
-      code = ErrorCode.VALIDATION_ERROR;
-    } else if (errorMessage.includes("rate limit") || errorMessage.includes("too many")) {
-      status = HttpStatus.TOO_MANY_REQUESTS;
-      message = "Too many requests. Please try again later.";
-      code = ErrorCode.RATE_LIMITED;
-    } else if (errorMessage.includes("unavailable") || errorMessage.includes("timeout")) {
-      status = HttpStatus.SERVICE_UNAVAILABLE;
-      message = "Service temporarily unavailable";
-      code = ErrorCode.SERVICE_UNAVAILABLE;
-    } else if (errorMessage.includes("expired")) {
-      status = HttpStatus.UNAUTHORIZED;
-      message = "Token has expired";
-      code = ErrorCode.TOKEN_EXPIRED;
-    }
-  }
-  const response = {
-    success: false,
-    error: message,
-    code
-  };
-  return res.status(status).json(response);
-}
-function sendSuccess(res, data, status = HttpStatus.OK) {
-  res.setHeader("Content-Type", "application/json");
-  const response = {
-    success: true,
-    data
-  };
-  return res.status(status).json(response);
-}
-function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCode.VALIDATION_ERROR) {
-  res.setHeader("Content-Type", "application/json");
-  const response = {
-    success: false,
-    error: sanitizeError(message),
-    code
-  };
-  return res.status(status).json(response);
-}
-
-// lib/auth/ownership.ts
-var ADMIN_ROLES = ["admin", "super_admin"];
-var REVIEWER_ROLES = ["admin", "super_admin", "reviewer"];
-function isAdmin(role) {
-  return ADMIN_ROLES.includes(role);
-}
-function isReviewer(role) {
-  return REVIEWER_ROLES.includes(role);
-}
-async function checkApplicationOwnership(userId, applicationId, userRole) {
-  if (isReviewer(userRole)) {
-    return true;
-  }
-  try {
-    const result = await query("SELECT user_id FROM applications WHERE id = $1", [applicationId]);
-    if (result.rows.length === 0) {
-      return false;
-    }
-    return result.rows[0].user_id === userId;
-  } catch {
-    return false;
-  }
-}
-async function checkDocumentUploadAccess(userId, applicationId, userRole) {
-  if (isAdmin(userRole)) {
-    return true;
-  }
-  return checkApplicationOwnership(userId, applicationId, userRole);
-}
-
 // api-src/documents.ts
 var MAX_FILE_SIZE = 10 * 1024 * 1024;
 var ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
@@ -30602,32 +30272,22 @@ async function handleUpload(req, res, authUserId, userRole) {
   const timestamp = Date.now();
   const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
   const storagePath = `${effectiveUserId}/${applicationId || "general"}/${documentType || "document"}/${timestamp}-${sanitizedFileName}`;
-  if (isR2Available()) {
-    const r2 = getR2Storage();
-    const result = await r2.upload(storagePath, fileBuffer, mimeType);
-    if (result.success) {
-      console.log("[documents/upload] Document uploaded to R2:", result.path);
-      return sendSuccess(res, {
-        path: result.path,
-        url: result.url,
-        storage: "r2",
-        size: result.size
-      });
-    }
-    console.warn("[documents/upload] R2 upload failed, falling back to Supabase:", result.error);
+  if (!isR2Available()) {
+    console.error("[documents/upload] R2 storage is not configured");
+    return sendError(res, "Storage service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
   }
-  const supabaseAdmin = getSupabaseAdmin();
-  const { data, error } = await supabaseAdmin.storage.from("app_docs").upload(storagePath, fileBuffer, { contentType: mimeType, upsert: true });
-  if (error) {
-    console.error("[documents/upload] Supabase storage error:", error.message);
-    return sendError(res, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+  const r2 = getR2Storage();
+  const result = await r2.upload(storagePath, fileBuffer, mimeType);
+  if (!result.success) {
+    console.error("[documents/upload] R2 upload failed:", result.error);
+    return sendError(res, "Failed to upload document", HttpStatus.INTERNAL_SERVER_ERROR);
   }
-  const { data: urlData } = supabaseAdmin.storage.from("app_docs").getPublicUrl(data.path);
-  console.log("[documents/upload] Document uploaded to Supabase:", data.path);
+  console.log("[documents/upload] Document uploaded to R2:", result.path);
   return sendSuccess(res, {
-    path: data.path,
-    url: urlData.publicUrl,
-    storage: "supabase"
+    path: result.path,
+    url: result.url,
+    storage: "r2",
+    size: result.size
   });
 }
 async function handleDownload(req, res, authUserId, userRole) {
@@ -30642,20 +30302,20 @@ async function handleDownload(req, res, authUserId, userRole) {
       return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
     }
   }
-  if (isR2Available()) {
-    const r2 = getR2Storage();
-    const data = await r2.download(path);
-    if (data) {
-      const metadata = await r2.getMetadata(path);
-      res.setHeader("Content-Type", metadata?.contentType || "application/octet-stream");
-      res.setHeader("Content-Length", data.length);
-      res.setHeader("Content-Disposition", `attachment; filename="${path.split("/").pop()}"`);
-      return res.status(200).send(data);
-    }
+  if (!isR2Available()) {
+    console.error("[documents/download] R2 storage is not configured");
+    return sendError(res, "Storage service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
   }
-  const supabaseAdmin = getSupabaseAdmin();
-  const { data: urlData } = supabaseAdmin.storage.from("app_docs").getPublicUrl(path);
-  return res.redirect(302, urlData.publicUrl);
+  const r2 = getR2Storage();
+  const data = await r2.download(path);
+  if (!data) {
+    return sendError(res, "Document not found", HttpStatus.NOT_FOUND);
+  }
+  const metadata = await r2.getMetadata(path);
+  res.setHeader("Content-Type", metadata?.contentType || "application/octet-stream");
+  res.setHeader("Content-Length", data.length);
+  res.setHeader("Content-Disposition", `attachment; filename="${path.split("/").pop()}"`);
+  return res.status(200).send(data);
 }
 async function handleDelete(req, res, authUserId, userRole) {
   const path = req.query.path || req.body?.path;
@@ -30674,23 +30334,16 @@ async function handleDelete(req, res, authUserId, userRole) {
       return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
     }
   }
-  let deleted = false;
-  if (isR2Available()) {
-    const r2 = getR2Storage();
-    deleted = await r2.delete(path);
-    if (deleted) {
-      console.log("[documents/delete] Document deleted from R2:", path);
-    }
+  if (!isR2Available()) {
+    console.error("[documents/delete] R2 storage is not configured");
+    return sendError(res, "Storage service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
   }
-  const supabaseAdmin = getSupabaseAdmin();
-  const { error } = await supabaseAdmin.storage.from("app_docs").remove([path]);
-  if (!error) {
-    deleted = true;
-    console.log("[documents/delete] Document deleted from Supabase:", path);
-  }
+  const r2 = getR2Storage();
+  const deleted = await r2.delete(path);
   if (!deleted) {
     return sendError(res, "Document not found or could not be deleted", HttpStatus.NOT_FOUND);
   }
+  console.log("[documents/delete] Document deleted from R2:", path);
   return sendSuccess(res, { deleted: true, path });
 }
 async function handleSignedUrl(req, res, authUserId, userRole) {
@@ -30706,27 +30359,20 @@ async function handleSignedUrl(req, res, authUserId, userRole) {
       return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
     }
   }
-  if (isR2Available()) {
-    const r2 = getR2Storage();
-    const exists = await r2.exists(path);
-    if (exists) {
-      const signedUrl = r2.getSignedUrl(path, expiresIn);
-      return sendSuccess(res, {
-        url: signedUrl,
-        expiresIn,
-        storage: "r2"
-      });
-    }
+  if (!isR2Available()) {
+    console.error("[documents/signed-url] R2 storage is not configured");
+    return sendError(res, "Storage service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
   }
-  const supabaseAdmin = getSupabaseAdmin();
-  const { data, error } = await supabaseAdmin.storage.from("app_docs").createSignedUrl(path, expiresIn);
-  if (error) {
-    return sendError(res, "Failed to generate signed URL", HttpStatus.INTERNAL_SERVER_ERROR);
+  const r2 = getR2Storage();
+  const exists = await r2.exists(path);
+  if (!exists) {
+    return sendError(res, "Document not found", HttpStatus.NOT_FOUND);
   }
+  const signedUrl = r2.getSignedUrl(path, expiresIn);
   return sendSuccess(res, {
-    url: data.signedUrl,
+    url: signedUrl,
     expiresIn,
-    storage: "supabase"
+    storage: "r2"
   });
 }
 async function handleExtract(req, res, authUserId, userRole) {

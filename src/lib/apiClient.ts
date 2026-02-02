@@ -106,6 +106,7 @@ export const applicationsApi = {
     intake?: string;
     limit?: number;
     offset?: number;
+    mine?: boolean;
   }): Promise<ApiResponse<Application[]>> {
     const params = new URLSearchParams();
     params.set('action', 'list');
@@ -114,6 +115,7 @@ export const applicationsApi = {
     if (filters?.intake) params.set('intake', filters.intake);
     if (filters?.limit) params.set('limit', String(filters.limit));
     if (filters?.offset) params.set('offset', String(filters.offset));
+    if (filters?.mine) params.set('mine', 'true');
 
     return request<Application[]>(`/applications?${params}`);
   },
@@ -177,6 +179,39 @@ export const applicationsApi = {
    */
   async getDraft(userId: string): Promise<ApiResponse<ApplicationDraft | null>> {
     return request<ApplicationDraft | null>(`/applications?action=draft&userId=${userId}`);
+  },
+
+  /**
+   * Get interviews for the current user's applications
+   * Requirements: 2.1, 3.1 - Fetch interview data via API
+   */
+  async getInterviews(): Promise<ApiResponse<{ interviews: ApplicationInterview[] }>> {
+    return request<{ interviews: ApplicationInterview[] }>('/applications?action=interviews');
+  },
+
+  /**
+   * Get application statistics for analytics
+   * Requirements: 4.1 - Fetch application stats via API
+   */
+  async getStats(): Promise<ApiResponse<ApplicationStats>> {
+    return request<ApplicationStats>('/applications?action=stats');
+  },
+
+  /**
+   * Get application versions for version history
+   */
+  async getVersions(applicationId: string): Promise<ApiResponse<{ versions: ApplicationVersion[] }>> {
+    return request<{ versions: ApplicationVersion[] }>(`/applications?action=versions&application_id=${applicationId}`);
+  },
+
+  /**
+   * Create a new application version
+   */
+  async createVersion(applicationId: string, formData: unknown, changeSummary?: string): Promise<ApiResponse<{ version: ApplicationVersion }>> {
+    return request<{ version: ApplicationVersion }>('/applications?action=versions', {
+      method: 'POST',
+      body: { application_id: applicationId, form_data: formData, change_summary: changeSummary },
+    });
   },
 };
 
@@ -312,6 +347,80 @@ export const adminApi = {
     return request<Application>('/applications', {
       method: 'POST',
       body: { action: 'review', id: applicationId, decision, notes },
+    });
+  },
+
+  /**
+   * Get eligibility assessments for dashboard
+   */
+  async getEligibilityAssessments(programId?: string): Promise<ApiResponse<{ assessments: EligibilityAssessment[] }>> {
+    const params = new URLSearchParams();
+    params.set('action', 'eligibility-assessments');
+    if (programId && programId !== 'all') params.set('program_id', programId);
+    return request<{ assessments: EligibilityAssessment[] }>(`/admin?${params}`);
+  },
+};
+
+// ============================================================================
+// Auth API
+// ============================================================================
+
+export const authApi = {
+  /**
+   * Check if email is available for registration
+   * Requirements: 5.1 - Check email availability via API
+   */
+  async checkEmail(email: string): Promise<ApiResponse<{ available: boolean }>> {
+    return request<{ available: boolean }>(`/auth?action=check-email&email=${encodeURIComponent(email)}`);
+  },
+
+  /**
+   * Login with email and password
+   */
+  async login(email: string, password: string): Promise<ApiResponse<{ user: AuthUser }>> {
+    return request<{ user: AuthUser }>('/auth?action=login', {
+      method: 'POST',
+      body: { email, password },
+    });
+  },
+
+  /**
+   * Logout current user
+   */
+  async logout(): Promise<ApiResponse<{ message: string }>> {
+    return request<{ message: string }>('/auth?action=logout', {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Get current session
+   */
+  async getSession(): Promise<ApiResponse<{ user: AuthUser | null }>> {
+    return request<{ user: AuthUser | null }>('/auth?action=session');
+  },
+
+  /**
+   * Refresh access token
+   */
+  async refresh(): Promise<ApiResponse<{ user: AuthUser }>> {
+    return request<{ user: AuthUser }>('/auth?action=refresh', {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Register new user
+   */
+  async register(data: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }): Promise<ApiResponse<{ user: AuthUser }>> {
+    return request<{ user: AuthUser }>('/auth?action=register', {
+      method: 'POST',
+      body: data,
     });
   },
 };
@@ -480,3 +589,110 @@ export interface DashboardStats {
   totalUsers: number;
   recentApplications: Application[];
 }
+
+/**
+ * Eligibility Assessment type
+ */
+export interface EligibilityAssessment {
+  id: string;
+  application_id: string;
+  program_id: string;
+  overall_score: number;
+  eligibility_status: 'eligible' | 'conditional' | 'not_eligible';
+  missing_requirements: unknown[];
+  created_at: string;
+  programs?: {
+    name: string;
+    code?: string;
+  } | null;
+}
+
+/**
+ * Application Interview type
+ * Requirements: 2.1, 3.1 - Interview data structure
+ */
+export interface ApplicationInterview {
+  id: string;
+  application_id: string;
+  scheduled_at: string;
+  mode: 'in_person' | 'virtual' | 'phone';
+  location: string | null;
+  status: 'scheduled' | 'rescheduled' | 'completed' | 'cancelled';
+  notes: string | null;
+  program?: string;
+  application_number?: string;
+}
+
+/**
+ * Application Statistics type
+ * Requirements: 4.1 - Stats data structure
+ */
+export interface ApplicationStats {
+  total_drafts: number;
+  completed_applications: number;
+  total_applications: number;
+  avg_time_hours: number;
+}
+
+/**
+ * Application Version type
+ */
+export interface ApplicationVersion {
+  id: string;
+  version_number: number;
+  form_data: unknown;
+  change_summary: string | null;
+  created_at: string;
+}
+
+/**
+ * Auth User type
+ */
+export interface AuthUser {
+  id: string;
+  email: string;
+  role: string;
+  firstName: string;
+  lastName: string;
+  permissions?: string[];
+}
+
+// ============================================================================
+// Notifications API
+// ============================================================================
+
+export interface NotificationPreferences {
+  user_id: string;
+  email_enabled: boolean;
+  sms_enabled?: boolean;
+  push_enabled: boolean;
+  in_app_enabled?: boolean;
+  quiet_hours_start?: string;
+  quiet_hours_end?: string;
+  notification_types?: {
+    application_update: boolean;
+    interview_schedule: boolean;
+    document_ready: boolean;
+  };
+}
+
+export const notificationsApi = {
+  /**
+   * Get user notification preferences
+   */
+  async getPreferences(): Promise<ApiResponse<NotificationPreferences>> {
+    return request<NotificationPreferences>('/notifications?action=preferences');
+  },
+
+  /**
+   * Update user notification preferences
+   */
+  async updatePreferences(
+    preferences: Partial<NotificationPreferences>
+  ): Promise<ApiResponse<NotificationPreferences>> {
+    return request<NotificationPreferences>('/notifications?action=preferences', {
+      method: 'POST',
+      body: preferences,
+    });
+  },
+};

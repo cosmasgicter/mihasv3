@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getSupabaseClient } from '@/lib/supabase'
+import { fetchUsersWithRoles, updateUserRole, type UserWithRole } from '@/lib/api/adminApi'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { StandaloneSelect } from '@/components/ui/standalone-select'
 
@@ -11,46 +11,13 @@ export default function RoleManagement() {
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['users-with-roles'],
-    queryFn: async () => {
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          first_name,
-          last_name,
-          email,
-          role,
-          created_at
-        `)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      return data
-    }
+    queryFn: fetchUsersWithRoles
   })
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      const supabase = getSupabaseClient()
-      
-      // Update profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ role })
-        .eq('id', userId)
-
-      if (profileError) throw profileError
-
-      // Update user_roles table
-      const { error } = await supabase
-        .from('user_roles')
-        .upsert(
-          { user_id: userId, role, is_active: true },
-          { onConflict: 'user_id' }
-        )
-
-      if (error) throw error
+      const success = await updateUserRole(userId, role)
+      if (!success) throw new Error('Failed to update role')
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users-with-roles'] })

@@ -46,8 +46,10 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         return handleRefresh(req, res);
       case 'bootstrap':
         return handleBootstrap(req, res);
+      case 'check-email':
+        return handleCheckEmail(req, res);
       default:
-        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, bootstrap', HttpStatus.BAD_REQUEST);
+        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email', HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
@@ -294,6 +296,33 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
 
 // Export with Arcjet protection (auth rate limit: 5 requests per 5 minutes)
 export default withArcjetProtection(handler, 'auth');
+
+/**
+ * Handle email availability check
+ * GET /api/auth?action=check-email&email=xxx
+ * 
+ * Requirements: 5.2, 10.2, 10.4 - Check email availability without exposing user data
+ */
+async function handleCheckEmail(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const email = req.query.email as string;
+
+  if (!email) {
+    return sendError(res, 'Email is required', HttpStatus.BAD_REQUEST);
+  }
+
+  // Check if email exists in profiles table
+  const existing = await query<{ id: string }>(
+    'SELECT id FROM profiles WHERE email = $1 LIMIT 1',
+    [email.toLowerCase()]
+  );
+
+  // Return only availability status, no user data
+  return sendSuccess(res, { available: existing.rows.length === 0 });
+}
 
 /**
  * Handle bootstrap - set password for legacy users

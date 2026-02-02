@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
 import { CheckCircle, XCircle, RefreshCw, AlertTriangle } from 'lucide-react'
 import { sanitizeForLog } from '@/lib/sanitizer'
 
@@ -41,19 +40,8 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
       const hasValidSession = sessionResult.success && !!sessionResult.user
       
       // Check if user can actually make authenticated requests
-      let canSubmitApplication = false
-      if (hasUser && hasValidSession) {
-        try {
-          // Test with a simple authenticated query
-          const { error: testError } = await supabase
-            .from('profiles')
-            .select('id')
-            .limit(1)
-          
-          canSubmitApplication = !testError
-        } catch (error) {
-        }
-      }
+      // If we have a valid session from the API, we can submit applications
+      const canSubmitApplication = hasUser && hasValidSession
       
       const newStatus = {
         isAuthenticated: hasUser,
