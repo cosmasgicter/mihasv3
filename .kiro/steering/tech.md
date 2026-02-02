@@ -12,6 +12,7 @@ inclusion: always
 | UI Framework | React 18 + TypeScript | Functional components only |
 | Build Tool | Vite + Bun | Use `bunx --bun vite` for builds |
 | Hosting | Vercel Free Plan | Static + Serverless Functions |
+| Production URL | ***REMOVED*** | Live admissions portal |
 | Styling | Tailwind CSS | Custom design tokens in `tailwind.config.js` |
 | Components | Radix UI | Accessible primitives—prefer over custom implementations |
 | Forms | React Hook Form + Zod | All forms must have Zod schemas |
@@ -282,3 +283,27 @@ Token Expired → Auto-refresh via /api/auth?action=refresh → Rotate both toke
 | /api/sessions/* | 30 requests | 10 minutes |
 | /api/admin/* | 20 requests | 10 minutes |
 | /api/notifications/* | 50 requests | 10 minutes |
+
+## Production API Endpoints
+
+Base URL: `***REMOVED***`
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | System health check |
+| `/api/health?action=ping` | GET | Simple ping/pong |
+| `/api/health?action=db` | GET | Database connectivity check |
+| `/api/health?action=env` | GET | Environment variables status |
+| `/api/catalog?type=programs` | GET | List available programs |
+| `/api/catalog?type=intakes` | GET | List available intakes |
+| `/api/catalog?type=subjects` | GET | List grade 12 subjects |
+| `/api/auth?action=login` | POST | User login |
+| `/api/auth?action=logout` | POST | User logout |
+| `/api/auth?action=session` | GET | Get current session |
+| `/api/auth?action=register` | POST | User registration |
+| `/api/admin` | GET/POST | Admin operations (auth required) |
+| `/api/applications` | GET/POST | Application management (auth required) |
+| `/api/documents` | POST | Document upload/OCR (auth required) |
+| `/api/payments` | GET/POST | Payment operations (auth required) |
+| `/api/sessions` | GET/POST | Session management (auth required) |
+| `/api/notifications` | GET/POST | Notification preferences (auth required) |
