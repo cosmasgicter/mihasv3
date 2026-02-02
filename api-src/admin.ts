@@ -116,8 +116,16 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         await handleMigrate(req, res);
         return;
 
+      case 'set-password':
+        if (req.method !== 'POST') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleSetPassword(req, res, auth);
+        return;
+
       default:
-        sendError(res, 'Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors', HttpStatus.BAD_REQUEST);
+        sendError(res, 'Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors, set-password', HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -658,6 +666,95 @@ async function handleErrorStatistics(res: VercelResponse): Promise<void> {
   } catch (error) {
     console.error('[ADMIN] Error stats error:', error instanceof Error ? error.message : 'Unknown error');
     sendError(res, 'Failed to fetch error statistics', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
+/**
+ * Set password for existing user (admin only)
+ * Used to migrate legacy Supabase Auth users to custom auth
+ * 
+ * POST /api/admin?action=set-password
+ * Body: { email: string, password: string }
+ * 
+ * Requirement: Only super_admin can set passwords for other users
+ */
+async function handleSetPassword(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+  // Only super_admin can set passwords for other users
+  if (auth.role !== 'super_admin') {
+    sendError(res, 'Only super_admin can set passwords for other users', HttpStatus.FORBIDDEN);
+    return;
+  }
+
+  const { email, password } = req.body as { email?: string; password?: string };
+
+  if (!email || !password) {
+    sendError(res, 'Email and password are required', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  // Validate password strength
+  if (password.length < 8) {
+    sendError(res, 'Password must be at least 8 characters', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  try {
+    // Find user by email
+    const { data: user, error: findError } = await supabaseAdmin
+      .from('profiles')
+      .select('id, email, first_name, last_name, role')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (findError || !user) {
+      sendError(res, 'User not found', HttpStatus.NOT_FOUND);
+      return;
+    }
+
+    // Hash the new password
+    const passwordHash = await hashPassword(password);
+
+    // Update user's password
+    const { error: updateError } = await supabaseAdmin
+      .from('profiles')
+      .update({
+        password_hash: passwordHash,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('[ADMIN] Password update failed:', updateError.message);
+      sendError(res, 'Failed to update password', HttpStatus.INTERNAL_SERVER_ERROR);
+      return;
+    }
+
+    // Log the event (no PII in logs)
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: 'password_set_by_admin',
+      entity_type: 'user',
+      entity_id: user.id,
+      changes: {
+        password_updated: true,
+        updated_by_admin: true,
+      },
+    });
+
+    sendSuccess(res, {
+      message: 'Password set successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        role: user.role,
+      },
+    });
+
+  } catch (error) {
+    console.error('[ADMIN] Set password error:', error instanceof Error ? error.message : 'Unknown error');
+    sendError(res, 'Failed to set password', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
 

@@ -763,8 +763,10 @@ async function handler(req, res) {
         return handleSession(req, res);
       case "refresh":
         return handleRefresh(req, res);
+      case "bootstrap":
+        return handleBootstrap(req, res);
       default:
-        return sendError(res, "Invalid action. Use: login, logout, register, session, refresh", HttpStatus.BAD_REQUEST);
+        return sendError(res, "Invalid action. Use: login, logout, register, session, refresh, bootstrap", HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
@@ -899,6 +901,44 @@ async function handleRefresh(req, res) {
   }
 }
 var auth_default = withArcjetProtection(handler, "auth");
+async function handleBootstrap(req, res) {
+  if (req.method !== "POST") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const { email, password, secret } = req.body || {};
+  const BOOTSTRAP_SECRET = process.env.BOOTSTRAP_SECRET || process.env.MIGRATE_SECRET;
+  if (!BOOTSTRAP_SECRET) {
+    return sendError(res, "Bootstrap not configured", HttpStatus.SERVICE_UNAVAILABLE);
+  }
+  if (!secret || secret !== BOOTSTRAP_SECRET) {
+    return sendError(res, "Invalid bootstrap secret", HttpStatus.UNAUTHORIZED);
+  }
+  if (!email || !password) {
+    return sendError(res, "Email and password required", HttpStatus.BAD_REQUEST);
+  }
+  if (password.length < 8) {
+    return sendError(res, "Password must be at least 8 characters", HttpStatus.BAD_REQUEST);
+  }
+  const result = await query(`SELECT id, email, role, first_name, last_name, password_hash 
+     FROM profiles WHERE email = $1 LIMIT 1`, [email.toLowerCase()]);
+  if (result.rows.length === 0) {
+    return sendError(res, "User not found", HttpStatus.NOT_FOUND);
+  }
+  const user = result.rows[0];
+  const passwordHash = await hashPassword(password);
+  await query(`UPDATE profiles SET password_hash = $1, updated_at = NOW() WHERE id = $2`, [passwordHash, user.id]);
+  return sendSuccess(res, {
+    message: "Password set successfully",
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      hadPassword: !!user.password_hash
+    }
+  });
+}
 export {
   auth_default as default
 };
