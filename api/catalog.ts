@@ -34,19 +34,9 @@ async function handler(req: VercelRequest, res: VercelResponse) {
       const q = CatalogQueries.getPrograms();
       const result = await query<ProgramRecord>(q.text, q.values);
       
-      // Transform to match previous response format
-      const programs = result.rows.map(row => ({
-        ...row,
-        institutions: row.institution_name ? {
-          id: row.institution_id,
-          name: row.institution_name,
-          slug: row.institution_slug,
-          full_name: row.institution_full_name,
-        } : null,
-      }));
-
+      // Return programs directly - no institution join in current schema
       res.setHeader('Cache-Control', 'public, max-age=300');
-      return sendSuccess(res, { programs });
+      return sendSuccess(res, { programs: result.rows });
     }
 
     if (type === 'intakes') {

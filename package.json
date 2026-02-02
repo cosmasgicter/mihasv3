@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "packageManager": "bun@1.2.5",
   "scripts": {
     "dev": "bunx --bun vite",
     "dev:network": "bunx --bun vite --host 0.0.0.0",

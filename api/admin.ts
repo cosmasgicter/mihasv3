@@ -214,7 +214,7 @@ async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth
     .single();
 
   if (error) {
-    if (error.code === '23505') {
+    if ('code' in error && error.code === '23505') {
       sendError(res, `Setting with key '${body.setting_key}' already exists`, HttpStatus.CONFLICT);
       return;
     }
