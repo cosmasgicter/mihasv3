@@ -15,7 +15,6 @@ build/
 # Bundled API files (generated during Vercel build)
 api/*.js
 api/*.bundle.js
-api/*.ts.src
 
 # Environment variables
 .env

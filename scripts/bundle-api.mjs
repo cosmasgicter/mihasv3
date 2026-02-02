@@ -121,17 +121,16 @@ for (const file of apiFiles) {
   }
 }
 
-// After bundling, rename .ts files to .ts.src so Vercel only sees .js files
+// After bundling, delete .ts files so Vercel only sees .js files
 console.log('\n───────────────────────────────────────────────────────────');
-console.log('Hiding TypeScript source files from Vercel...\n');
+console.log('Removing TypeScript source files for Vercel deployment...\n');
 
 for (const file of apiFiles) {
   const tsPath = path.join(API_DIR, file);
-  const srcPath = path.join(API_DIR, file + '.src');
   
   if (fs.existsSync(tsPath)) {
-    fs.renameSync(tsPath, srcPath);
-    console.log(`📦 ${file} → ${file}.src`);
+    fs.unlinkSync(tsPath);
+    console.log(`🗑️  Deleted ${file}`);
   }
 }
 
