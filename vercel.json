@@ -3,6 +3,11 @@
   "installCommand": "bun install",
   "outputDirectory": "dist",
   "framework": null,
+  "functions": {
+    "api/*.js": {
+      "runtime": "@vercel/node@3"
+    }
+  },
   "rewrites": [
     { "source": "/api/health", "destination": "/api/health" },
     { "source": "/api/auth", "destination": "/api/auth" },

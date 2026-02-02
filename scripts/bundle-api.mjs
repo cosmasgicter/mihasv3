@@ -105,9 +105,6 @@ for (const file of apiFiles) {
     // Rename bundle to final .js file
     fs.renameSync(outputPath, finalPath);
     
-    // NOTE: Keep original .ts files - Vercel needs them for dependency resolution
-    // The .js files will be used at runtime, but .ts files must remain for build
-    
     console.log(`✅ ${file.padEnd(20)} → ${file.replace('.ts', '.js').padEnd(20)} (${sizeKB.padStart(6)}KB)`);
     results.push({ file, outputPath: finalPath, sizeKB: parseFloat(sizeKB), success: true });
     success++;
@@ -121,6 +118,20 @@ for (const file of apiFiles) {
     if (fs.existsSync(outputPath)) {
       fs.unlinkSync(outputPath);
     }
+  }
+}
+
+// After bundling, rename .ts files to .ts.src so Vercel only sees .js files
+console.log('\n───────────────────────────────────────────────────────────');
+console.log('Hiding TypeScript source files from Vercel...\n');
+
+for (const file of apiFiles) {
+  const tsPath = path.join(API_DIR, file);
+  const srcPath = path.join(API_DIR, file + '.src');
+  
+  if (fs.existsSync(tsPath)) {
+    fs.renameSync(tsPath, srcPath);
+    console.log(`📦 ${file} → ${file}.src`);
   }
 }
 
