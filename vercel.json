@@ -1,5 +1,5 @@
 {
-  "buildCommand": "bun run scripts/bundle-api.mjs && bunx --bun vite build",
+  "buildCommand": "bunx --bun vite build",
   "installCommand": "bun install",
   "outputDirectory": "dist",
   "framework": null,
@@ -14,8 +14,6 @@
     { "source": "/api/payments", "destination": "/api/payments" },
     { "source": "/api/sessions", "destination": "/api/sessions" },
     { "source": "/api/ping", "destination": "/api/ping" },
-    { "source": "/api/dbtest", "destination": "/api/dbtest" },
-    { "source": "/api/test-minimal", "destination": "/api/test-minimal" },
     { "source": "/api/:path*", "destination": "/api/[...path]" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
