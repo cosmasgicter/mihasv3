@@ -18,7 +18,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { decodeBase64Url, encodeBase64Url } from '../../api/_lib/base64';
+import { decodeBase64Url, encodeBase64Url } from '../../lib/base64';
 
 /**
  * Generate a realistic JWT payload with various field types

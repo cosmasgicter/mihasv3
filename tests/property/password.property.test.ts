@@ -17,7 +17,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { hashPassword, verifyPassword, getBcryptRounds } from '../../api/_lib/auth/password';
+import { hashPassword, verifyPassword, getBcryptRounds } from '../../lib/auth/password';
 
 // ============================================================================
 // Test Configuration

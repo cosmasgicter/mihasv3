@@ -14,7 +14,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Mock the auth middleware module
-vi.mock('../../../api/_lib/auth/middleware', () => ({
+vi.mock('../../../lib/auth/middleware', () => ({
   requireAuth: vi.fn(),
   getAuthUser: vi.fn(),
   AuthenticationError: class AuthenticationError extends Error {
@@ -36,17 +36,17 @@ vi.mock('../../../api/_lib/auth/middleware', () => ({
 }));
 
 // Mock the arcjet module
-vi.mock('../../../api/_lib/arcjet', () => ({
+vi.mock('../../../lib/arcjet', () => ({
   withArcjetProtection: (handler: any) => handler,
 }));
 
 // Mock the cors module
-vi.mock('../../../api/_lib/cors', () => ({
+vi.mock('../../../lib/cors', () => ({
   handleCors: vi.fn(() => false),
 }));
 
 // Mock the errorHandler module
-vi.mock('../../../api/_lib/errorHandler', () => ({
+vi.mock('../../../lib/errorHandler', () => ({
   sendSuccess: vi.fn((res, data, status = 200) => {
     res.status(status).json({ success: true, data });
   }),
@@ -66,7 +66,7 @@ vi.mock('../../../api/_lib/errorHandler', () => ({
 }));
 
 // Mock the sessions module
-vi.mock('../../../api/_lib/sessions', () => ({
+vi.mock('../../../lib/sessions', () => ({
   getActiveSessions: vi.fn(),
   deactivateSession: vi.fn(),
   deactivateOtherSessions: vi.fn(),
@@ -78,16 +78,16 @@ vi.mock('../../../api/_lib/sessions', () => ({
 }));
 
 // Mock the realtime module
-vi.mock('../../../api/_lib/realtime', () => ({
+vi.mock('../../../lib/realtime', () => ({
   handleSSEConnection: vi.fn(),
   getEventsForPolling: vi.fn(() => []),
 }));
 
 // Import after mocking
 import handler from '../../../api/sessions';
-import { requireAuth, getAuthUser, AuthenticationError } from '../../../api/_lib/auth/middleware';
-import { handleCors } from '../../../api/_lib/cors';
-import { createSession, updateActivity, getSessionById } from '../../../api/_lib/sessions';
+import { requireAuth, getAuthUser, AuthenticationError } from '../../../lib/auth/middleware';
+import { handleCors } from '../../../lib/cors';
+import { createSession, updateActivity, getSessionById } from '../../../lib/sessions';
 
 const mockRequireAuth = vi.mocked(requireAuth);
 const mockGetAuthUser = vi.mocked(getAuthUser);

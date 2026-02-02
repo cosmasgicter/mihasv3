@@ -31,7 +31,7 @@ import {
   ErrorCode,
   type ErrorResponse,
   type SuccessResponse,
-} from '../../api/_lib/errorHandler';
+} from '../../lib/errorHandler';
 
 /**
  * Mock VercelResponse that captures headers and response body

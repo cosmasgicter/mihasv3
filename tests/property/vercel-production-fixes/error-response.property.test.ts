@@ -20,7 +20,7 @@ import * as fc from 'fast-check';
 import type { VercelResponse } from '@vercel/node';
 
 // Import error handler utilities directly (no Supabase dependency)
-import { sendError, handleError, HttpStatus, ErrorCode } from '../../../api/_lib/errorHandler';
+import { sendError, handleError, HttpStatus, ErrorCode } from '../../../lib/errorHandler';
 
 /**
  * Patterns that indicate internal implementation details that should NOT appear in error responses

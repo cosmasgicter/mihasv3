@@ -10,7 +10,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { getCorsHeaders, isOriginAllowed, getAllowedOrigins } from '../../api/_lib/cors';
+import { getCorsHeaders, isOriginAllowed, getAllowedOrigins } from '../../lib/cors';
 
 describe('Feature: bun-vercel-migration, Property 2: API Behavior Preservation (CORS)', () => {
   const ALLOWED_ORIGINS = getAllowedOrigins();

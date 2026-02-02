@@ -34,7 +34,7 @@ import {
   roleHasPermission,
   type UserRole,
   type Permission,
-} from '../../api/_lib/auth/permissions';
+} from '../../lib/auth/permissions';
 
 // ============================================================================
 // Test Configuration

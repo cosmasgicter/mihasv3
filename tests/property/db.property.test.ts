@@ -15,8 +15,8 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { UserQueries, SessionQueries, AuditQueries } from '../../api/_lib/queries';
-import type { QueryConfig } from '../../api/_lib/db';
+import { UserQueries, SessionQueries, AuditQueries } from '../../lib/queries';
+import type { QueryConfig } from '../../lib/db';
 
 // ============================================================================
 // SQL Injection Pattern Examples
