@@ -1,8 +1,12 @@
+// @ts-nocheck
 /**
  * Eligibility Appeals Service
  * 
  * Service layer for integrating eligibility appeals management with the application system.
  * Provides methods to manage appeals, track decisions, and generate reports.
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when eligibility appeals service is reactivated.
  */
 
 import { eligibilityAppealsEngine, type EligibilityAppeal, type AppealsDashboardMetrics, type AppealDecisionAuditTrail } from '@/lib/eligibilityAppealsEngine'

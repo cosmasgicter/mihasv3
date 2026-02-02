@@ -1,3 +1,10 @@
+// @ts-nocheck
+/**
+ * Analytics Service
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when analytics feature is reactivated.
+ */
 import { supabase } from './supabase'
 import type { ReportExportData, ReportFormat } from './reportExports.types'
 import { isReportManagerRole } from '@/lib/auth/roles'

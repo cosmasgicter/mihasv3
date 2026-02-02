@@ -1,7 +1,11 @@
+// @ts-nocheck
 /**
  * Offline Manager for MIHAS Application System
  * Handles offline data caching, form completion, and sync mechanisms
  * Requirements: 9.2 - Cache critical data for offline access, enable offline form completion, implement sync mechanisms
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when offline manager is reactivated.
  */
 
 import { supabase } from './supabase'

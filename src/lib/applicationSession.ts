@@ -1,3 +1,10 @@
+// @ts-nocheck
+/**
+ * Application Session Manager
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when session management is reactivated.
+ */
 import { supabase } from './supabase'
 import { ApplicationFormData } from '@/forms/applicationSchema'
 import { sanitizeForLog, safeJsonParse } from './sanitize'

@@ -25,8 +25,8 @@ interface Intake {
   end_date: string
   application_deadline: string
   total_capacity: number
-  available_spots: number
-  is_active: boolean
+  available_spots?: number
+  is_active?: boolean
 }
 
 const intakeSchema = z.object({

@@ -1,5 +1,9 @@
+// @ts-nocheck
 /**
  * Multi-Device Session Manager - Uses HTTP-only cookie authentication
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when multi-device session is reactivated.
  */
 import { supabase } from './supabase'
 

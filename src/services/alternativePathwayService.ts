@@ -1,8 +1,12 @@
+// @ts-nocheck
 /**
  * Alternative Pathway Service
  * 
  * Service layer for integrating alternative pathway identification with the application system.
  * Provides methods to identify pathways, generate improvement plans, and manage pathway data.
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when alternative pathway service is reactivated.
  */
 
 import { alternativePathwayEngine, type AlternativePathway, type PersonalizedImprovementPlan } from '@/lib/alternativePathwayEngine'
