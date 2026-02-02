@@ -1802,7 +1802,7 @@ export const CatalogQueries = {
   getSubjects: (): QueryConfig => ({
     text: `
       SELECT *
-      FROM grade12_subjects
+      FROM subjects
       WHERE is_active = true
       ORDER BY name ASC
     `,
@@ -1815,7 +1815,7 @@ export const CatalogQueries = {
   getSubjectById: (id: string): QueryConfig => ({
     text: `
       SELECT *
-      FROM grade12_subjects
+      FROM subjects
       WHERE id = $1
       LIMIT 1
     `,
