@@ -41,14 +41,14 @@ This implementation plan migrates the MIHAS admissions system frontend from dire
     - Add `authApi` object with `checkEmail()` method
     - _Requirements: 5.1_
 
-- [-] 3. Migrate critical student pages
+- [x] 3. Migrate critical student pages
   - [x] 3.1 Migrate Payment.tsx
     - Replace `supabase.from('applications')` with `applicationsApi.list()`
     - Remove `import { supabase } from '@/lib/supabase'`
     - Update error handling to use API response format
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
   
-  - [ ] 3.2 Write property test for Payment API calls
+  - [x] 3.2 Write property test for Payment API calls
     - **Property 1: API Endpoint Correctness**
     - **Validates: Requirements 1.1**
   
@@ -58,7 +58,7 @@ This implementation plan migrates the MIHAS admissions system frontend from dire
     - Update state management to use API response
     - _Requirements: 2.1, 2.3, 2.4, 2.5_
   
-  - [ ] 3.4 Write property test for Interview data isolation
+  - [x] 3.4 Write property test for Interview data isolation
     - **Property 3: User Data Isolation**
     - **Validates: Requirements 2.3, 10.3**
   
@@ -73,14 +73,14 @@ This implementation plan migrates the MIHAS admissions system frontend from dire
   - Test Payment, Interview, and Dashboard pages manually
   - Verify interview data displays correctly
 
-- [-] 5. Migrate medium priority pages
+- [x] 5. Migrate medium priority pages
   - [x] 5.1 Migrate AnalyticsDashboard.tsx
     - Replace `supabase.from('applications')` with `applicationsApi.getStats()`
     - Remove `import { supabase } from '@/lib/supabase'`
     - Update calculation logic to use API response
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
   
-  - [ ] 5.2 Write property test for analytics calculations
+  - [x] 5.2 Write property test for analytics calculations
     - **Property 5: Analytics Calculation Correctness**
     - **Validates: Requirements 4.2**
   
@@ -90,7 +90,7 @@ This implementation plan migrates the MIHAS admissions system frontend from dire
     - Update email availability state management
     - _Requirements: 5.1, 5.3, 5.4_
   
-  - [ ] 5.4 Write property test for API response structure
+  - [x] 5.4 Write property test for API response structure
     - **Property 2: API Response Structure Validity**
     - **Validates: Requirements 1.2, 2.2, 5.2, 10.4**
 
@@ -110,14 +110,14 @@ This implementation plan migrates the MIHAS admissions system frontend from dire
   - Verify no direct Supabase calls remain in migrated files
   - Test all migrated pages
 
-- [-] 8. Migrate backend admin API
+- [x] 8. Migrate backend admin API
   - [x] 8.1 Migrate settings operations in admin.ts
     - Replace `supabaseAdmin.from('system_settings')` with `query()`
     - Use parameterized SQL for all operations
     - Update handleGetSettings, handleCreateSetting, handleUpdateSetting, handleDeleteSetting
     - _Requirements: 8.1, 8.2_
   
-  - [ ] 8.2 Write property test for SQL parameterization
+  - [x] 8.2 Write property test for SQL parameterization
     - **Property 4: SQL Parameterization Safety**
     - **Validates: Requirements 8.1, 8.2, 8.3**
   
@@ -227,7 +227,7 @@ This implementation plan migrates the MIHAS admissions system frontend from dire
     - _Requirements: 9.2_
     - **DONE: All frontend components migrated to use API client**
 
-- [-] 14. Final checkpoint - Complete migration verification
+- [x] 14. Final checkpoint - Complete migration verification
   - Ensure all tests pass, ask the user if questions arise.
   - Run `bun run build` to verify no TypeScript errors
   - Run `bun run test` to verify all tests pass

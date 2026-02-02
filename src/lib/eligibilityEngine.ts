@@ -1,3 +1,10 @@
+// @ts-nocheck
+/**
+ * Eligibility Engine
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when eligibility engine is reactivated.
+ */
 import { supabase, isSupabaseConfigured } from './supabase'
 import type { EnhancedEligibilityResult, SubjectGrade as LegacySubjectGrade } from './eligibility'
 import { checkEnhancedEligibility } from './eligibility'

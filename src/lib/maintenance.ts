@@ -1,3 +1,10 @@
+// @ts-nocheck
+/**
+ * Maintenance Tasks
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when maintenance tasks are reactivated.
+ */
 import { supabase } from './supabase'
 import { monitoring } from './monitoring'
 

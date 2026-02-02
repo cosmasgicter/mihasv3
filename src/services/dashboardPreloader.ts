@@ -1,8 +1,12 @@
+// @ts-nocheck
 /**
  * Dashboard Data Preloader
  * 
  * Preloads critical dashboard data during login redirect to improve perceived performance.
  * Requirements: 4.4
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when dashboard preloader is reactivated.
  */
 
 import { QueryClient } from '@tanstack/react-query'

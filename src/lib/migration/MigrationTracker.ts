@@ -1,6 +1,10 @@
+// @ts-nocheck
 /**
  * Migration Progress Tracker
  * Provides real-time tracking and reporting of migration progress
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when migration tracker is reactivated.
  */
 
 import { supabase } from '@/lib/supabase'

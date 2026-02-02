@@ -207,11 +207,11 @@ export default function Applications() {
           institution: filtersSnapshot.institutionFilter || undefined,
         })
 
-        if (!response?.success || !response?.data?.applications) {
+        if (!response?.applications) {
           throw new Error('Failed to fetch applications for export')
         }
 
-        const rows = response.data.applications.map(mapRecordToApplication)
+        const rows = response.applications.map(mapRecordToApplication)
 
         if (!rows.length) {
           break
@@ -219,7 +219,7 @@ export default function Applications() {
 
         yield rows
 
-        if (!response.data.hasMore || rows.length < EXPORT_BATCH_SIZE) {
+        if (!response.hasMore || rows.length < EXPORT_BATCH_SIZE) {
           break
         }
 

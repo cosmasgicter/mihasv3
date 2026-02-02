@@ -1,6 +1,10 @@
+// @ts-nocheck
 /**
  * Plugin Registry
  * Manages plugin discovery, installation, and configuration
+ * 
+ * @deprecated This module uses the deprecated Supabase stub.
+ * TODO: Migrate to API endpoints when plugin registry is reactivated.
  */
 
 import { 

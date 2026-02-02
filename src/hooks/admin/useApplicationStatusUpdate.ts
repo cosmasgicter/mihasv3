@@ -9,9 +9,22 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
 import { useToastStore } from '@/components/ui/Toast'
 import { useAuth } from '@/contexts/AuthContext'
+
+/**
+ * Helper for authenticated API calls using HTTP-only cookies
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
 
 export interface StatusUpdateParams {
   /** The application ID to update */
@@ -99,64 +112,34 @@ export function useApplicationStatusUpdate(options: UseApplicationStatusUpdateOp
   const mutation = useMutation({
     mutationFn: async (params: StatusUpdateParams): Promise<StatusUpdateResult> => {
       const { applicationId, newStatus, currentUpdatedAt, adminFeedback } = params
-      const newUpdatedAt = new Date().toISOString()
-      
-      // Determine if this is a decision status (approved/rejected)
-      const isDecisionStatus = newStatus === 'approved' || newStatus === 'rejected'
-      
-      // Build update payload
-      const updatePayload: Record<string, unknown> = {
-        status: newStatus,
-        updated_at: newUpdatedAt
-      }
-      
-      if (adminFeedback !== undefined) {
-        updatePayload.admin_feedback = adminFeedback
-      }
-      
-      if (isDecisionStatus) {
-        updatePayload.decision_date = newUpdatedAt
-      }
 
-      // Perform update with optimistic locking check
-      // The .eq('updated_at', currentUpdatedAt) ensures we only update if no one else has modified
-      const { data, error, count } = await supabase
-        .from('applications')
-        .update(updatePayload)
-        .eq('id', applicationId)
-        .eq('updated_at', currentUpdatedAt) // Optimistic lock check
-        .select('id, application_number, status, admin_feedback, decision_date, updated_at')
-        .single()
+      // Call the API endpoint to update status
+      const response = await authFetch(`/api/applications?id=${applicationId}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'update_status',
+          status: newStatus,
+          notes: adminFeedback,
+          expected_updated_at: currentUpdatedAt // For optimistic locking
+        })
+      })
 
-      if (error) {
-        // Check if it's a "no rows returned" error (PGRST116) - indicates conflict
-        if (error.code === 'PGRST116') {
+      const result = await response.json()
+
+      if (!response.ok) {
+        // Check for conflict error
+        if (result.code === 'CONFLICT' || result.error?.includes('modified')) {
           throw new ConcurrentModificationError()
         }
-        throw new Error(error.message || 'Failed to update application status')
+        throw new Error(result.error || 'Failed to update application status')
       }
 
-      // If no data returned, it means the updated_at didn't match (concurrent modification)
-      if (!data) {
-        throw new ConcurrentModificationError()
-      }
-
-      // Record status change in application_status_history
-      try {
-        await supabase.from('application_status_history').insert({
-          application_id: applicationId,
-          status: newStatus,
-          changed_by: user?.id || null,
-          notes: adminFeedback || null,
-          created_at: newUpdatedAt
-        })
-      } catch (historyError) {
-        // Log but don't fail the main operation
-        console.error('[useApplicationStatusUpdate] Failed to record status history:', historyError)
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update application status')
       }
 
       return {
-        application: data,
+        application: result.data,
         conflictDetected: false
       }
     },

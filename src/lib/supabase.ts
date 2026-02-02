@@ -38,6 +38,12 @@ export interface Application {
   created_at?: string;
   updated_at?: string;
   submitted_at?: string;
+  payment_status?: string;
+  payment_verified_at?: string;
+  review_started_at?: string;
+  decision_date?: string;
+  decision_reason?: string;
+  admin_feedback?: string;
   [key: string]: unknown;
 }
 
@@ -82,15 +88,29 @@ export interface Intake {
 
 export interface UserProfile {
   id: string;
+  user_id?: string;
   email: string;
   role: string;
+  full_name?: string;
   first_name?: string;
   last_name?: string;
   phone?: string;
+  date_of_birth?: string;
+  sex?: string;
+  residence_town?: string;
+  nationality?: string;
+  next_of_kin_name?: string;
+  next_of_kin_phone?: string;
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
-  [key: string]: unknown;
+  avatar_url?: string;
+  address?: string;
+  city?: string;
+  province?: string;
+  country?: string;
+  postal_code?: string;
+  [key: string]: unknown; // Allow additional fields for flexibility
 }
 
 export interface Subject {

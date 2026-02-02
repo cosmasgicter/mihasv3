@@ -41,7 +41,6 @@ import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
 import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
 import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDisplay'
-import { workflowAutomation } from '@/lib/workflowAutomation'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import OfflineAdminDashboard from '@/components/admin/OfflineAdminDashboard'
 
