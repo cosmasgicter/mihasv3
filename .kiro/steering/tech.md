@@ -18,7 +18,7 @@ inclusion: always
 | Forms | React Hook Form + Zod | All forms must have Zod schemas |
 | State | Zustand (client), React Query (server) | No Redux, SSE/polling for real-time |
 | Routing | React Router v6 | Lazy-load all page components |
-| Backend | Vercel Functions + DB Abstraction | Custom Bun-native auth, Supabase/Neon Postgres |
+| Backend | Vercel Functions + Neon Postgres | Custom Bun-native auth, Neon serverless Postgres |
 | Security | Arcjet | Shield rules, bot detection, rate limiting |
 | Auth | Custom JWT (jose) | HTTP-only cookies, bcrypt passwords |
 | Email | Resend | Queue with retry on failure |
@@ -75,14 +75,13 @@ lib/                   # PROJECT ROOT - shared utilities
 │   ├── permissions.ts # RBAC (deterministic, no DB lookup)
 │   └── legacy.ts      # Supabase token migration support
 ├── cors.ts            # CORS handler for Vercel
-├── db.ts              # Database abstraction (Supabase REST / Neon serverless)
+├── db.ts              # Database abstraction (Neon serverless only)
 ├── queries.ts         # Typed query builders
 ├── errorHandler.ts    # Sanitized error responses
 ├── auditLogger.ts     # Audit logging (no PII)
 ├── realtime.ts        # SSE + polling fallback
 ├── storage.ts         # R2 storage abstraction
-├── sessions.ts        # Device session manager
-└── supabaseClient.ts  # Legacy Supabase compatibility layer
+└── sessions.ts        # Device session manager
 
 api/                   # Vercel Serverless Functions (10 endpoints)
 ├── admin.ts           # ?action=dashboard|users|settings|stats|errors|migrate
@@ -165,21 +164,14 @@ export default withArcjetProtection(handler, 'general');
 ### Environment Variables
 Required in Vercel dashboard and `.env`:
 ```
-# Database (Supabase or Neon)
-SUPABASE_URL=https://[project].supabase.co
-SUPABASE_SERVICE_ROLE_KEY=[service-key]
-# OR for Neon migration:
-# DATABASE_URL=postgres://[user]:[pass]@[host]/[db]?sslmode=require
+# Database (Neon Postgres - REQUIRED)
+DATABASE_URL=postgres://[user]:[pass]@[host]/[db]?sslmode=require
 
-# Frontend (Vite)
-VITE_SUPABASE_URL=https://[project].supabase.co
-VITE_SUPABASE_ANON_KEY=[anon-key]
-
-# Custom Auth (NEW - required)
+# Custom Auth (REQUIRED)
 JWT_SECRET=[32+ char secret for access tokens]
 JWT_REFRESH_SECRET=[32+ char secret for refresh tokens]
 
-# Security (NEW - required)
+# Security (REQUIRED)
 ARCJET_KEY=[arcjet-api-key]
 
 # Email
@@ -188,6 +180,10 @@ EMAIL_FROM=noreply@mihas.edu.zm
 ```
 
 ### Removed Variables (No Longer Needed)
+- `SUPABASE_URL` - Migrated to Neon
+- `SUPABASE_SERVICE_ROLE_KEY` - Migrated to Neon
+- `VITE_SUPABASE_URL` - Migrated to Neon
+- `VITE_SUPABASE_ANON_KEY` - Migrated to Neon
 - `VITE_TURNSTILE_SITE_KEY` - Cloudflare-specific
 - `VITE_ANALYTICS_*` - Analytics removed
 - `VITE_SENTRY_DSN` - Sentry removed
@@ -195,7 +191,7 @@ EMAIL_FROM=noreply@mihas.edu.zm
 - Supabase Auth SDK dependencies - Replaced with custom JWT auth
 
 ### Build Optimizations (Already Configured)
-- Manual code splitting for vendor chunks (React, Supabase, forms)
+- Manual code splitting for vendor chunks (React, forms)
 - Terser minification with console.log removal
 - Assets <4KB inlined as base64
 - Critical CSS inlined in HTML
@@ -252,10 +248,28 @@ EMAIL_FROM=noreply@mihas.edu.zm
 | `.cfignore` | Cloudflare-specific |
 | `functions/` directory | Fully migrated to `api/` (174 files, 26K lines removed) |
 | `api/*/` subdirectories | Consolidated into single-file endpoints |
+| Supabase (all) | Fully migrated to Neon Postgres |
 | Supabase Realtime | Replaced with Bun-native SSE/polling |
 | Supabase Auth SDK | Replaced with custom JWT auth (jose + bcrypt) |
 | Sentry | Error monitoring removed |
 | Umami | Analytics removed |
+
+## Database Access
+
+**CRITICAL**: This project uses Neon Postgres exclusively. Never use Supabase.
+
+### For AI Assistants
+- Use the **Neon MCP** for all database operations
+- Never use Supabase MCP - it's not connected to this project
+- Connection string format: `DATABASE_URL=postgres://...@...neon.tech/...`
+
+### Database Operations
+```typescript
+import { query } from '../lib/db';
+
+// All queries go through Neon serverless
+const result = await query('SELECT * FROM profiles WHERE id = $1', [userId]);
+```
 
 ## Auth System Architecture
 

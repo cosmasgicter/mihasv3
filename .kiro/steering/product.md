@@ -81,7 +81,7 @@ The admin interface has been simplified:
 
 | Service | Failure Handling |
 |---------|------------------|
-| Postgres (Supabase/Neon) | Critical—no fallback |
+| Neon Postgres | Critical—no fallback |
 | Vercel (hosting, serverless) | Infrastructure layer |
 | Arcjet (security) | Fail secure—block on unavailable |
 | Resend (email) | Queue with retry |
@@ -91,6 +91,7 @@ The admin interface has been simplified:
 
 | Service | Status |
 |---------|--------|
+| Supabase (all) | REMOVED - Fully migrated to Neon Postgres |
 | Cloudflare Pages | REMOVED - Migrated to Vercel |
 | Cloudflare AI | REMOVED - AI features deleted |
 | Supabase Realtime | REMOVED - Replaced with Bun-native SSE/polling |
