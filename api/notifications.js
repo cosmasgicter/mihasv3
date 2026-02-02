@@ -599,7 +599,7 @@ async function handlePreferences(req, res) {
   }
   if (req.method === "GET") {
     const q = {
-      text: `SELECT * FROM notification_preferences WHERE user_id = $1 LIMIT 1`,
+      text: `SELECT * FROM user_notification_preferences WHERE user_id = $1 LIMIT 1`,
       values: [user.userId]
     };
     const result = await query(q.text, q.values);
@@ -607,27 +607,36 @@ async function handlePreferences(req, res) {
       user_id: user.userId,
       email_enabled: true,
       push_enabled: true,
-      in_app_enabled: true,
+      sms_enabled: false,
+      application_updates: true,
+      payment_reminders: true,
+      interview_reminders: true,
+      marketing_emails: false,
       quiet_hours_start: null,
       quiet_hours_end: null
     };
     return sendSuccess(res, { preferences });
   }
   if (req.method === "POST") {
-    const { email_enabled, push_enabled, in_app_enabled, quiet_hours_start, quiet_hours_end } = req.body;
+    const { email_enabled, push_enabled, sms_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = req.body;
     const upsertQ = {
       text: `
-        INSERT INTO notification_preferences (
-          user_id, email_enabled, push_enabled, in_app_enabled, 
+        INSERT INTO user_notification_preferences (
+          user_id, email_enabled, push_enabled, sms_enabled,
+          application_updates, payment_reminders, interview_reminders, marketing_emails,
           quiet_hours_start, quiet_hours_end, updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
         ON CONFLICT (user_id) DO UPDATE SET
-          email_enabled = COALESCE($2, notification_preferences.email_enabled),
-          push_enabled = COALESCE($3, notification_preferences.push_enabled),
-          in_app_enabled = COALESCE($4, notification_preferences.in_app_enabled),
-          quiet_hours_start = COALESCE($5, notification_preferences.quiet_hours_start),
-          quiet_hours_end = COALESCE($6, notification_preferences.quiet_hours_end),
+          email_enabled = COALESCE($2, user_notification_preferences.email_enabled),
+          push_enabled = COALESCE($3, user_notification_preferences.push_enabled),
+          sms_enabled = COALESCE($4, user_notification_preferences.sms_enabled),
+          application_updates = COALESCE($5, user_notification_preferences.application_updates),
+          payment_reminders = COALESCE($6, user_notification_preferences.payment_reminders),
+          interview_reminders = COALESCE($7, user_notification_preferences.interview_reminders),
+          marketing_emails = COALESCE($8, user_notification_preferences.marketing_emails),
+          quiet_hours_start = COALESCE($9, user_notification_preferences.quiet_hours_start),
+          quiet_hours_end = COALESCE($10, user_notification_preferences.quiet_hours_end),
           updated_at = NOW()
         RETURNING *
       `,
@@ -635,7 +644,11 @@ async function handlePreferences(req, res) {
         user.userId,
         email_enabled ?? true,
         push_enabled ?? true,
-        in_app_enabled ?? true,
+        sms_enabled ?? false,
+        application_updates ?? true,
+        payment_reminders ?? true,
+        interview_reminders ?? true,
+        marketing_emails ?? false,
         quiet_hours_start ?? null,
         quiet_hours_end ?? null
       ]
@@ -674,12 +687,13 @@ async function handleSend(req, res) {
   let emailSent = false;
   try {
     const profileQ = {
-      text: `SELECT email, full_name FROM profiles WHERE id = $1 LIMIT 1`,
+      text: `SELECT email, first_name, last_name FROM profiles WHERE id = $1 LIMIT 1`,
       values: [user_id]
     };
     const profileResult = await query(profileQ.text, profileQ.values);
     const profile = profileResult.rows[0];
     if (profile?.email && process.env.RESEND_API_KEY) {
+      const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Student";
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #2563eb;">${title}</h2>
