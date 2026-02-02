@@ -13,7 +13,7 @@ inclusion: always
 | `api/` | Bundled JS files for Vercel | DO NOT EDIT - auto-generated |
 | `lib/` | Shared utilities | Used by API endpoints |
 | `tests/` | Test files | Match test type to subdirectory |
-| `supabase/migrations/` | DB migrations | Append-only, never modify existing |
+| `migrations/` | DB migrations | Append-only, never modify existing |
 | `public/` | Static assets, PWA | Rarely modify |
 | `scripts/` | Build/deploy utilities | Reference only, do not modify |
 | `docs/` | Documentation | **Do not modify unless explicitly asked** |
@@ -41,7 +41,7 @@ pages/         → Route-level components (register in routes/)
 hooks/         → Custom hooks (useXxx.ts)
 services/      → API clients, external integrations
 stores/        → Zustand stores (xxxStore.ts)
-lib/           → Utilities, configs, supabase client
+lib/           → Utilities, configs
 types/         → TypeScript definitions
 contexts/      → React context providers
 routes/        → Route config and guards
@@ -53,7 +53,7 @@ routes/        → Route config and guards
 |------|---------|---------|
 | Components | PascalCase `.tsx` | `ApplicationWizard.tsx` |
 | Hooks | `use` + PascalCase `.ts` | `useApplicationForm.ts` |
-| Services | camelCase `.ts` | `supabaseClient.ts` |
+| Services | camelCase `.ts` | `apiClient.ts` |
 | Types | PascalCase | `ApplicationFormData` |
 | API Functions | kebab-case `.ts` | `send-email.ts` |
 | Stores | camelCase + `Store` | `applicationStore.ts` |
@@ -64,7 +64,6 @@ routes/        → Route config and guards
 // ✅ ALWAYS use @/ alias for cross-directory imports
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/lib/supabase'
 
 // ✅ Use ./ for same-directory imports only
 import { helper } from './utils'
@@ -144,10 +143,9 @@ lib/                   # Shared utilities
 │   ├── jwt.ts         # JWT manager (jose)
 │   ├── cookies.ts     # HTTP-only cookies
 │   ├── middleware.ts  # getAuthUser, requireAuth, requireRole
-│   ├── permissions.ts # RBAC (deterministic)
-│   └── legacy.ts      # Supabase migration support
+│   └── permissions.ts # RBAC (deterministic)
 ├── cors.ts            # CORS handler
-├── db.ts              # Database abstraction (Supabase/Neon)
+├── db.ts              # Database abstraction (Neon serverless only)
 ├── queries.ts         # Typed query builders
 ├── errorHandler.ts    # Sanitized errors
 ├── auditLogger.ts     # Audit logging
