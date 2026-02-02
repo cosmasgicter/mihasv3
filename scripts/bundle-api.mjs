@@ -17,7 +17,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.join(__dirname, '..');
-const API_DIR = path.join(ROOT_DIR, 'api');
+const API_SRC_DIR = path.join(ROOT_DIR, 'api-src');
+const API_OUT_DIR = path.join(ROOT_DIR, 'api');
 
 // Vercel Hobby plan limit
 const MAX_FUNCTIONS = 12;
@@ -39,18 +40,24 @@ console.log('══════════════════════�
 console.log('🔧 API Bundler for Vercel Deployment');
 console.log('═══════════════════════════════════════════════════════════\n');
 
-// Get all .ts files in api/ directory (excluding subdirectories and underscore files)
-const allFiles = fs.readdirSync(API_DIR);
+// Ensure output directory exists
+if (!fs.existsSync(API_OUT_DIR)) {
+  fs.mkdirSync(API_OUT_DIR, { recursive: true });
+}
+
+// Get all .ts files in api-src/ directory (excluding subdirectories and underscore files)
+const allFiles = fs.readdirSync(API_SRC_DIR);
 const apiFiles = allFiles
   .filter(f => f.endsWith('.ts') && !f.startsWith('_'))
   .filter(f => {
-    const fullPath = path.join(API_DIR, f);
+    const fullPath = path.join(API_SRC_DIR, f);
     return fs.statSync(fullPath).isFile();
   });
 
 const skippedFiles = allFiles.filter(f => f.startsWith('_') && f.endsWith('.ts'));
 
-console.log(`📁 API Directory: ${API_DIR}`);
+console.log(`📁 Source Directory: ${API_SRC_DIR}`);
+console.log(`📁 Output Directory: ${API_OUT_DIR}`);
 console.log(`📦 Found ${apiFiles.length} endpoints to bundle`);
 if (skippedFiles.length > 0) {
   console.log(`⏭️  Skipping ${skippedFiles.length} underscore files: ${skippedFiles.join(', ')}`);
@@ -73,9 +80,9 @@ let success = 0;
 let failed = 0;
 
 for (const file of apiFiles) {
-  const inputPath = path.join(API_DIR, file);
-  const outputPath = path.join(API_DIR, file.replace('.ts', '.bundle.js'));
-  const finalPath = path.join(API_DIR, file.replace('.ts', '.js'));
+  const inputPath = path.join(API_SRC_DIR, file);
+  const outputPath = path.join(API_OUT_DIR, file.replace('.ts', '.bundle.js'));
+  const finalPath = path.join(API_OUT_DIR, file.replace('.ts', '.js'));
   
   try {
     // Build external args for bun build command
@@ -104,9 +111,6 @@ for (const file of apiFiles) {
     
     // Rename bundle to final .js file (overwrites any existing .js)
     fs.renameSync(outputPath, finalPath);
-    
-    // Delete the original .ts file so Vercel only sees .js
-    fs.unlinkSync(inputPath);
     
     console.log(`✅ ${file.padEnd(20)} → ${file.replace('.ts', '.js').padEnd(20)} (${sizeKB.padStart(6)}KB)`);
     results.push({ file, outputPath: finalPath, sizeKB: parseFloat(sizeKB), success: true });
