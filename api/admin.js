@@ -1540,8 +1540,15 @@ async function handler(req, res) {
         }
         await handleMigrate(req, res);
         return;
+      case "set-password":
+        if (req.method !== "POST") {
+          sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleSetPassword(req, res, auth);
+        return;
       default:
-        sendError(res, "Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors", HttpStatus.BAD_REQUEST);
+        sendError(res, "Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors, set-password", HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -1922,6 +1929,61 @@ async function handleErrorStatistics(res) {
   } catch (error) {
     console.error("[ADMIN] Error stats error:", error instanceof Error ? error.message : "Unknown error");
     sendError(res, "Failed to fetch error statistics", HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+async function handleSetPassword(req, res, auth) {
+  if (auth.role !== "super_admin") {
+    sendError(res, "Only super_admin can set passwords for other users", HttpStatus.FORBIDDEN);
+    return;
+  }
+  const { email, password } = req.body;
+  if (!email || !password) {
+    sendError(res, "Email and password are required", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  if (password.length < 8) {
+    sendError(res, "Password must be at least 8 characters", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  try {
+    const { data: user, error: findError } = await supabaseAdmin.from("profiles").select("id, email, first_name, last_name, role").eq("email", email.toLowerCase()).single();
+    if (findError || !user) {
+      sendError(res, "User not found", HttpStatus.NOT_FOUND);
+      return;
+    }
+    const passwordHash = await hashPassword(password);
+    const { error: updateError } = await supabaseAdmin.from("profiles").update({
+      password_hash: passwordHash,
+      updated_at: new Date().toISOString()
+    }).eq("id", user.id);
+    if (updateError) {
+      console.error("[ADMIN] Password update failed:", updateError.message);
+      sendError(res, "Failed to update password", HttpStatus.INTERNAL_SERVER_ERROR);
+      return;
+    }
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: "password_set_by_admin",
+      entity_type: "user",
+      entity_id: user.id,
+      changes: {
+        password_updated: true,
+        updated_by_admin: true
+      }
+    });
+    sendSuccess(res, {
+      message: "Password set successfully",
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error("[ADMIN] Set password error:", error instanceof Error ? error.message : "Unknown error");
+    sendError(res, "Failed to set password", HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
 async function handleMigrate(req, res) {

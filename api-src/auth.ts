@@ -44,8 +44,10 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         return handleSession(req, res);
       case 'refresh':
         return handleRefresh(req, res);
+      case 'bootstrap':
+        return handleBootstrap(req, res);
       default:
-        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh', HttpStatus.BAD_REQUEST);
+        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, bootstrap', HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
@@ -292,3 +294,77 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
 
 // Export with Arcjet protection (auth rate limit: 5 requests per 5 minutes)
 export default withArcjetProtection(handler, 'auth');
+
+/**
+ * Handle bootstrap - set password for legacy users
+ * POST /api/auth?action=bootstrap
+ * Body: { email, password, secret }
+ * 
+ * This is a one-time operation to migrate legacy Supabase Auth users
+ * to the new custom auth system. Requires BOOTSTRAP_SECRET env var.
+ */
+async function handleBootstrap(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const { email, password, secret } = req.body || {};
+  const BOOTSTRAP_SECRET = process.env.BOOTSTRAP_SECRET || process.env.MIGRATE_SECRET;
+
+  if (!BOOTSTRAP_SECRET) {
+    return sendError(res, 'Bootstrap not configured', HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
+  if (!secret || secret !== BOOTSTRAP_SECRET) {
+    return sendError(res, 'Invalid bootstrap secret', HttpStatus.UNAUTHORIZED);
+  }
+
+  if (!email || !password) {
+    return sendError(res, 'Email and password required', HttpStatus.BAD_REQUEST);
+  }
+
+  if (password.length < 8) {
+    return sendError(res, 'Password must be at least 8 characters', HttpStatus.BAD_REQUEST);
+  }
+
+  // Find user by email
+  const result = await query<{
+    id: string;
+    email: string;
+    role: UserRole;
+    first_name: string;
+    last_name: string;
+    password_hash: string | null;
+  }>(
+    `SELECT id, email, role, first_name, last_name, password_hash 
+     FROM profiles WHERE email = $1 LIMIT 1`,
+    [email.toLowerCase()]
+  );
+
+  if (result.rows.length === 0) {
+    return sendError(res, 'User not found', HttpStatus.NOT_FOUND);
+  }
+
+  const user = result.rows[0];
+
+  // Hash the new password
+  const passwordHash = await hashPassword(password);
+
+  // Update user's password
+  await query(
+    `UPDATE profiles SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+    [passwordHash, user.id]
+  );
+
+  return sendSuccess(res, {
+    message: 'Password set successfully',
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      hadPassword: !!user.password_hash,
+    },
+  });
+}
