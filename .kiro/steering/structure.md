@@ -9,12 +9,23 @@ inclusion: always
 | Directory | Purpose | AI Action |
 |-----------|---------|-----------|
 | `src/` | React frontend | Primary modification target |
-| `api/` | Vercel Serverless Functions (8 consolidated endpoints) | Use `lib/` for shared code |
+| `api-src/` | API source TypeScript files | Edit these, then run bundle script |
+| `api/` | Bundled JS files for Vercel | DO NOT EDIT - auto-generated |
+| `lib/` | Shared utilities | Used by API endpoints |
 | `tests/` | Test files | Match test type to subdirectory |
 | `supabase/migrations/` | DB migrations | Append-only, never modify existing |
 | `public/` | Static assets, PWA | Rarely modify |
 | `scripts/` | Build/deploy utilities | Reference only, do not modify |
 | `docs/` | Documentation | **Do not modify unless explicitly asked** |
+
+## API Development Workflow
+
+1. Edit TypeScript source files in `api-src/`
+2. Run `bun run scripts/bundle-api.mjs` to bundle
+3. Commit both `api-src/*.ts` AND `api/*.js` files
+4. Push to trigger Vercel deployment
+
+**IMPORTANT**: Never edit files in `api/` directly - they are auto-generated!
 
 ## Frontend Structure (`src/`)
 
@@ -89,11 +100,43 @@ Choose based on data type:
 - Extract to hooks/utilities when component exceeds 200 lines
 - Organize by feature domain, not technical layer
 
-## API Functions (`api/`)
+## API Functions (`api-src/` → `api/`)
 
-**Consolidated Structure** (Vercel Hobby plan limit: 12 functions):
+**Source files in `api-src/`** (TypeScript, edit these):
 ```
-lib/                   # Shared utilities at PROJECT ROOT (not api/lib/)
+api-src/                # Source TypeScript files
+├── admin.ts           # ?action=dashboard|users|settings|stats|errors|migrate
+├── applications.ts    # ?action=details|documents|grades|summary|review or ?id=xxx
+├── auth.ts            # ?action=login|logout|refresh|session|register
+├── catalog.ts         # ?type=programs|intakes|subjects
+├── documents.ts       # ?action=upload|extract
+├── health.ts          # ?action=ping|db|env|arcjet (consolidated)
+├── notifications.ts   # ?action=preferences|send
+├── payments.ts        # ?action=receipt
+├── sessions.ts        # ?action=track|list|revoke|revoke-all
+├── [...path].ts       # Catch-all for unmatched routes
+└── tsconfig.json      # TypeScript config for API
+```
+
+**Bundled files in `api/`** (JavaScript, auto-generated):
+```
+api/                   # Bundled JS files (DO NOT EDIT)
+├── admin.js
+├── applications.js
+├── auth.js
+├── catalog.js
+├── documents.js
+├── health.js
+├── notifications.js
+├── payments.js
+├── sessions.js
+├── ping.js
+└── [...path].js
+```
+
+**Shared utilities at PROJECT ROOT** (not api/lib/):
+```
+lib/                   # Shared utilities
 ├── arcjet.ts          # Security perimeter (shield, bot, rate limits)
 ├── auth.ts            # Auth middleware exports
 ├── auth/              # Auth components
@@ -110,18 +153,6 @@ lib/                   # Shared utilities at PROJECT ROOT (not api/lib/)
 ├── auditLogger.ts     # Audit logging
 ├── realtime.ts        # SSE + polling
 └── sessions.ts        # Device session manager
-
-api/                   # Vercel Serverless Functions (10 endpoints)
-├── admin.ts           # ?action=dashboard|users|settings|stats|errors|migrate
-├── applications.ts    # ?action=details|documents|grades|summary|review or ?id=xxx
-├── auth.ts            # ?action=login|logout|refresh|session|register
-├── catalog.ts         # ?type=programs|intakes|subjects
-├── documents.ts       # ?action=upload|extract
-├── health.ts          # ?action=ping|db|env|arcjet (consolidated)
-├── notifications.ts   # ?action=preferences|send
-├── payments.ts        # ?action=receipt
-├── sessions.ts        # ?action=track|list|revoke|revoke-all
-└── [...path].ts       # Catch-all for unmatched routes
 ```
 
 **Pattern** (query parameter routing with Arcjet protection):
