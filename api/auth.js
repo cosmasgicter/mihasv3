@@ -906,7 +906,7 @@ async function handleBootstrap(req, res) {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
   const { email, password, secret } = req.body || {};
-  const BOOTSTRAP_SECRET = process.env.BOOTSTRAP_SECRET || process.env.MIGRATE_SECRET;
+  const BOOTSTRAP_SECRET = process.env.BOOTSTRAP_SECRET || process.env.MIGRATE_SECRET || process.env.JWT_SECRET;
   if (!BOOTSTRAP_SECRET) {
     return sendError(res, "Bootstrap not configured", HttpStatus.SERVICE_UNAVAILABLE);
   }
