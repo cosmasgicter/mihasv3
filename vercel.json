@@ -15,6 +15,7 @@
     { "source": "/api/sessions", "destination": "/api/sessions" },
     { "source": "/api/ping", "destination": "/api/ping" },
     { "source": "/api/dbtest", "destination": "/api/dbtest" },
+    { "source": "/api/test-minimal", "destination": "/api/test-minimal" },
     { "source": "/api/:path*", "destination": "/api/[...path]" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
