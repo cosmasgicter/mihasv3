@@ -72,13 +72,83 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     // Handle CRUD by ID
     if (id) return handleById(req, res, user.userId, isAdmin, id);
 
-    // Default: list applications
+    // Default: list applications (GET) or create application (POST)
     if (req.method === 'GET') return handleDetails(req, res, user.userId, isAdmin);
+    if (req.method === 'POST') return handleCreate(req, res, user.userId);
 
     return sendError(res, 'Invalid request', HttpStatus.BAD_REQUEST);
   } catch (error) {
     return handleError(res, error, 'applications');
   }
+}
+
+/**
+ * Handle creating a new application
+ * POST /api/applications
+ */
+async function handleCreate(
+  req: VercelRequest,
+  res: VercelResponse,
+  userId: string
+) {
+  const body = req.body;
+  
+  // Validate required fields
+  const requiredFields = [
+    'application_number', 'full_name', 'date_of_birth', 'sex',
+    'phone', 'email', 'residence_town', 'program', 'intake', 'institution'
+  ];
+  
+  for (const field of requiredFields) {
+    if (!body[field]) {
+      return sendError(res, `Missing required field: ${field}`, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  // Build insert query
+  const fields = [
+    'user_id', 'application_number', 'public_tracking_code', 'full_name',
+    'nrc_number', 'passport_number', 'date_of_birth', 'sex', 'phone', 'email',
+    'residence_town', 'nationality', 'next_of_kin_name', 'next_of_kin_phone',
+    'program', 'intake', 'institution', 'status'
+  ];
+  
+  const values = [
+    userId,
+    body.application_number,
+    body.public_tracking_code || null,
+    body.full_name,
+    body.nrc_number || null,
+    body.passport_number || null,
+    body.date_of_birth,
+    body.sex,
+    body.phone,
+    body.email,
+    body.residence_town,
+    body.nationality || 'Zambian',
+    body.next_of_kin_name || null,
+    body.next_of_kin_phone || null,
+    body.program,
+    body.intake,
+    body.institution,
+    body.status || 'draft'
+  ];
+
+  const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
+  
+  const result = await query<ApplicationRecord>(
+    `INSERT INTO applications (${fields.join(', ')})
+     VALUES (${placeholders})
+     RETURNING *`,
+    values
+  );
+
+  if (result.rowCount === 0) {
+    return sendError(res, 'Failed to create application', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  console.log('[applications] Created application:', result.rows[0].id);
+  return sendSuccess(res, result.rows[0], HttpStatus.CREATED);
 }
 
 async function handleDetails(
