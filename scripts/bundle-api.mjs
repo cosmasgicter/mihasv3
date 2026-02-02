@@ -105,8 +105,8 @@ for (const file of apiFiles) {
     // Rename bundle to final .js file
     fs.renameSync(outputPath, finalPath);
     
-    // Remove original .ts file
-    fs.unlinkSync(inputPath);
+    // NOTE: Keep original .ts files - Vercel needs them for dependency resolution
+    // The .js files will be used at runtime, but .ts files must remain for build
     
     console.log(`✅ ${file.padEnd(20)} → ${file.replace('.ts', '.js').padEnd(20)} (${sizeKB.padStart(6)}KB)`);
     results.push({ file, outputPath: finalPath, sizeKB: parseFloat(sizeKB), success: true });
