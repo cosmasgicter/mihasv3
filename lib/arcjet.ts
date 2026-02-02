@@ -204,6 +204,27 @@ export function withArcjetProtection(
   routeType: RouteType = "general"
 ): ProtectedHandler {
   return async (req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> => {
+    // CRITICAL: Handle OPTIONS preflight requests BEFORE Arcjet
+    // This prevents CORS preflight from being blocked as "bot"
+    if (req.method === 'OPTIONS') {
+      // Set CORS headers for preflight
+      const origin = req.headers.origin as string | undefined;
+      const allowedOrigins = [
+        'https://apply.mihas.edu.zm',
+        'https://mihas.vercel.app',
+        'http://localhost:5173',
+        'http://localhost:3000',
+      ];
+      const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+      
+      res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Max-Age', '86400');
+      return res.status(204).end();
+    }
+
     // Skip Arcjet if key not configured (development only)
     if (!ARCJET_KEY) {
       console.warn("[ARCJET] WARNING: Running without Arcjet protection");
