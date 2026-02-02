@@ -102,8 +102,11 @@ for (const file of apiFiles) {
       console.warn(`   ⚠️  Warning: ${file} still contains ../lib/ imports after bundling`);
     }
     
-    // Rename bundle to final .js file
+    // Rename bundle to final .js file (overwrites any existing .js)
     fs.renameSync(outputPath, finalPath);
+    
+    // Delete the original .ts file so Vercel only sees .js
+    fs.unlinkSync(inputPath);
     
     console.log(`✅ ${file.padEnd(20)} → ${file.replace('.ts', '.js').padEnd(20)} (${sizeKB.padStart(6)}KB)`);
     results.push({ file, outputPath: finalPath, sizeKB: parseFloat(sizeKB), success: true });
@@ -118,19 +121,6 @@ for (const file of apiFiles) {
     if (fs.existsSync(outputPath)) {
       fs.unlinkSync(outputPath);
     }
-  }
-}
-
-// After bundling, delete .ts files so Vercel only sees .js files
-console.log('\n───────────────────────────────────────────────────────────');
-console.log('Removing TypeScript source files for Vercel deployment...\n');
-
-for (const file of apiFiles) {
-  const tsPath = path.join(API_DIR, file);
-  
-  if (fs.existsSync(tsPath)) {
-    fs.unlinkSync(tsPath);
-    console.log(`🗑️  Deleted ${file}`);
   }
 }
 
