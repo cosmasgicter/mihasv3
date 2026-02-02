@@ -20,8 +20,8 @@ process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-at-least-32-characters-lon
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import * as fc from 'fast-check';
-import { hashToken, verifyTokenHash } from '../../api/_lib/auth/password';
-import { generateRefreshToken, verifyRefreshToken } from '../../api/_lib/auth/jwt';
+import { hashToken, verifyTokenHash } from '../../lib/auth/password';
+import { generateRefreshToken, verifyRefreshToken } from '../../lib/auth/jwt';
 
 // ============================================================================
 // Test Configuration

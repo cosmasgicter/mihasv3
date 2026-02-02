@@ -10,7 +10,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { sanitizeError, AuthError, ErrorCode, HttpStatus } from '../../api/_lib/errorHandler';
+import { sanitizeError, AuthError, ErrorCode, HttpStatus } from '../../lib/errorHandler';
 
 // ============================================================================
 // Local implementation of sanitizeContext for testing

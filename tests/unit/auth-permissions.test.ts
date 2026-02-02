@@ -25,7 +25,7 @@ import {
   getAllPermissionsGrouped,
   type UserRole,
   type Permission,
-} from "../../api/_lib/auth/permissions";
+} from "../../lib/auth/permissions";
 
 describe("Role-Based Permissions Module", () => {
   describe("USER_ROLES constant (Requirement 8.1)", () => {

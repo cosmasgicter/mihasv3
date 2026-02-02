@@ -21,7 +21,7 @@ import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 
 // Import the actual sanitizeError function from errorHandler
-import { sanitizeError } from '../../api/_lib/errorHandler';
+import { sanitizeError } from '../../lib/errorHandler';
 
 // Use constant values for fast, reliable testing
 const uuidExamples = [

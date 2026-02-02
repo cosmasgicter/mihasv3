@@ -26,7 +26,7 @@ import {
   extractAccessTokenFromCookie,
   extractRefreshTokenFromCookie,
   getCookieConfig,
-} from '../../api/_lib/auth/cookies';
+} from '../../lib/auth/cookies';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // ============================================================================

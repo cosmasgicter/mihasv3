@@ -26,7 +26,7 @@ import {
   verifyAccessToken,
   verifyRefreshToken,
   type UserRole,
-} from '../../api/_lib/auth/jwt';
+} from '../../lib/auth/jwt';
 
 // ============================================================================
 // Test Configuration

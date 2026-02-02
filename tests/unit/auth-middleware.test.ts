@@ -20,21 +20,21 @@ import {
   AuthenticationError,
   AuthorizationError,
   type AuthContext,
-} from "../../api/_lib/auth/middleware";
+} from "../../lib/auth/middleware";
 
 // Mock the JWT module
-vi.mock("../../api/_lib/auth/jwt", () => ({
+vi.mock("../../lib/auth/jwt", () => ({
   verifyAccessToken: vi.fn(),
 }));
 
 // Mock the cookies module
-vi.mock("../../api/_lib/auth/cookies", () => ({
+vi.mock("../../lib/auth/cookies", () => ({
   extractBearerToken: vi.fn(),
   extractAccessTokenFromCookie: vi.fn(),
 }));
 
-import { verifyAccessToken } from "../../api/_lib/auth/jwt";
-import { extractBearerToken, extractAccessTokenFromCookie } from "../../api/_lib/auth/cookies";
+import { verifyAccessToken } from "../../lib/auth/jwt";
+import { extractBearerToken, extractAccessTokenFromCookie } from "../../lib/auth/cookies";
 
 // Type the mocks - cast to Mock type for proper typing
 const mockVerifyAccessToken = verifyAccessToken as Mock;

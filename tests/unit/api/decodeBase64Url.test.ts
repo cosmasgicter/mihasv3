@@ -10,7 +10,7 @@
  * - 3.4: THE Auth_System SHALL handle URL-safe Base64 encoding correctly (replacing `-` with `+` and `_` with `/`)
  */
 import { describe, it, expect } from 'vitest';
-import { decodeBase64Url, encodeBase64Url } from '../../../api/_lib/base64';
+import { decodeBase64Url, encodeBase64Url } from '../../../lib/base64';
 
 describe('Feature: bun-vercel-runtime-forensics, decodeBase64Url', () => {
   describe('Basic Decoding (Requirement 3.1)', () => {
