@@ -24,7 +24,17 @@
     "session:setup": "bun run setup-session-management.js",
     "microservices:setup": "bun run setup-microservices.js",
     "verify:notifications": "bun run verify-notification-setup.js",
-    "verify:api-layout": "bun run verify-api-layout.js"
+    "verify:api-layout": "bun run verify-api-layout.js",
+    "audit": "bun run scripts/audit/runFullAudit.ts --full",
+    "audit:contract": "bun run scripts/audit/runFullAudit.ts --contract",
+    "audit:page": "bun run scripts/audit/runFullAudit.ts --page",
+    "audit:loader": "bun run scripts/audit/runFullAudit.ts --loader",
+    "audit:auth": "bun run scripts/audit/runFullAudit.ts --auth",
+    "audit:sse": "bun run scripts/audit/runFullAudit.ts --sse",
+    "audit:notification": "bun run scripts/audit/runFullAudit.ts --notification",
+    "audit:performance": "bun run scripts/audit/runFullAudit.ts --performance",
+    "audit:deadcode": "bun run scripts/audit/runFullAudit.ts --deadcode",
+    "audit:summary": "bun run scripts/audit/generateSummary.ts"
   },
   "dependencies": {
     "@arcjet/decorate": "1.0.0",

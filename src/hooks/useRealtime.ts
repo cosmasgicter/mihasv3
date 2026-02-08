@@ -2,9 +2,12 @@
  * useRealtime Hook - SSE/Polling for Real-time Updates
  * 
  * Replaces Supabase Realtime with Bun-native SSE implementation.
- * Provides automatic reconnection, polling fallback, and event handling.
+ * Uses the robust SSE client with automatic reconnection, exponential backoff,
+ * and polling fallback.
  * 
  * @requirements
+ * - 5.7: SSE wired to application status updates
+ * - 5.10: Polling fallback for graceful degradation
  * - 7.1: SSE for server-to-client streaming
  * - 7.2: Polling fallback for graceful degradation
  * - 7.10: Zero Supabase Realtime dependencies
@@ -28,6 +31,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { dispatchSSEStatus, triggerSSEReconnect, SSE_RECONNECT_EVENT } from '@/contexts/RealtimeStatusContext'
+import { createSSEClient, type SSEClient } from '@/lib/sseClient'
 
 /**
  * SSE Event Types (matches backend api/_lib/realtime.ts)
@@ -66,8 +70,14 @@ interface UseRealtimeOptions {
   pollingInterval?: number
   /** Max reconnection attempts before falling back to polling (default: 3) */
   maxReconnectAttempts?: number
-  /** Reconnection delay in ms (default: 2000) */
-  reconnectDelay?: number
+  /** Initial backoff delay in ms (default: 1000) */
+  initialBackoff?: number
+  /** Maximum backoff delay in ms (default: 30000) */
+  maxBackoff?: number
+  /** Enable polling fallback (default: true) */
+  pollingEnabled?: boolean
+  /** Enable battery-friendly mode (default: true) */
+  batteryFriendly?: boolean
 }
 
 /**
@@ -99,14 +109,29 @@ const DEFAULT_OPTIONS: Required<UseRealtimeOptions> = {
   enabled: true,
   pollingInterval: 30000,
   maxReconnectAttempts: 3,
-  reconnectDelay: 2000,
+  initialBackoff: 1000,
+  maxBackoff: 30000,
+  pollingEnabled: true,
+  batteryFriendly: true,
 }
+
+/**
+ * SSE endpoint for realtime connections
+ */
+const SSE_ENDPOINT = '/api/sessions?action=connect'
+
+/**
+ * Polling endpoint for fallback
+ */
+const POLLING_ENDPOINT = '/api/sessions?action=poll'
 
 /**
  * useRealtime Hook
  * 
  * Establishes SSE connection for real-time updates with automatic
- * reconnection and polling fallback.
+ * reconnection, exponential backoff, and polling fallback.
+ * 
+ * Uses the robust SSE client from src/lib/sseClient.ts
  */
 export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn {
   const opts = { ...DEFAULT_OPTIONS, ...options }
@@ -120,13 +145,13 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
   const [error, setError] = useState<string | null>(null)
   
   // Refs for cleanup and state management
-  const eventSourceRef = useRef<EventSource | null>(null)
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const reconnectAttemptRef = useRef(0)
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const sseClientRef = useRef<SSEClient | null>(null)
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const lastEventIdRef = useRef<string | null>(null)
   const handlersRef = useRef<Map<SSEEventType, Set<EventHandler>>>(new Map())
   const mountedRef = useRef(true)
+  const sseFailedRef = useRef(false)
+  const unsubscribersRef = useRef<Array<() => void>>([])
 
   /**
    * Dispatch event to registered handlers
@@ -151,20 +176,38 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
   }, [])
 
   /**
+   * Create SSE event from raw data
+   */
+  const createSSEEvent = useCallback((eventType: SSEEventType, data: unknown): SSEEvent => {
+    const eventData = typeof data === 'object' && data !== null 
+      ? data as Record<string, unknown>
+      : { value: data }
+    
+    return {
+      id: `${eventType}_${Date.now()}`,
+      type: eventType,
+      data: eventData,
+      timestamp: new Date().toISOString(),
+    }
+  }, [])
+
+  /**
    * Start polling fallback
    */
   const startPolling = useCallback(() => {
-    if (pollingIntervalRef.current) return
+    if (!opts.pollingEnabled || pollingIntervalRef.current) return
     
     console.log('[useRealtime] Starting polling fallback')
     setIsPolling(true)
     setStatus('polling')
     
     const poll = async () => {
+      if (!mountedRef.current) return
+      
       try {
         const url = lastEventIdRef.current
-          ? `/api/sessions?action=poll&lastEventId=${lastEventIdRef.current}`
-          : '/api/sessions?action=poll'
+          ? `${POLLING_ENDPOINT}&lastEventId=${lastEventIdRef.current}`
+          : POLLING_ENDPOINT
         
         const response = await fetch(url, {
           credentials: 'include',
@@ -192,7 +235,7 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
     
     // Set up interval
     pollingIntervalRef.current = setInterval(poll, opts.pollingInterval)
-  }, [opts.pollingInterval, dispatchEvent])
+  }, [opts.pollingEnabled, opts.pollingInterval, dispatchEvent])
 
   /**
    * Stop polling
@@ -206,18 +249,12 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
   }, [])
 
   /**
-   * Connect to SSE endpoint
+   * Initialize SSE connection using the robust SSE client
    */
-  const connect = useCallback(() => {
-    if (!opts.enabled || !mountedRef.current) return
-    
-    // Close existing connection
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close()
-      eventSourceRef.current = null
-    }
-    
-    console.log('[useRealtime] Connecting to SSE...')
+  const initializeSSE = useCallback(() => {
+    if (!opts.enabled || !mountedRef.current || sseClientRef.current) return
+
+    console.log('[useRealtime] Initializing SSE connection with robust client')
     setStatus('connecting')
     setError(null)
     
@@ -225,16 +262,16 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
       connected: false,
       status: 'connecting',
     })
-    
-    try {
-      const eventSource = new EventSource('/api/sessions?action=connect', {
-        withCredentials: true,
-      })
+
+    const client = createSSEClient({
+      endpoint: SSE_ENDPOINT,
+      maxRetries: opts.maxReconnectAttempts,
+      initialBackoff: opts.initialBackoff,
+      maxBackoff: opts.maxBackoff,
+      batteryFriendly: opts.batteryFriendly,
+      withCredentials: true,
       
-      eventSourceRef.current = eventSource
-      
-      // Handle connection open
-      eventSource.onopen = () => {
+      onConnect: () => {
         if (!mountedRef.current) return
         
         console.log('[useRealtime] SSE connected')
@@ -242,9 +279,9 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
         setIsReconnecting(false)
         setStatus('connected')
         setError(null)
-        reconnectAttemptRef.current = 0
+        sseFailedRef.current = false
         
-        // Stop polling if it was running
+        // Stop polling when SSE connects
         stopPolling()
         
         dispatchSSEStatus({
@@ -252,115 +289,117 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
           status: 'connected',
           lastConnectedAt: new Date(),
         })
-      }
+      },
       
-      // Handle messages
-      eventSource.onmessage = (event) => {
+      onDisconnect: () => {
         if (!mountedRef.current) return
         
-        try {
-          const data = JSON.parse(event.data)
-          const sseEvent: SSEEvent = {
-            id: event.lastEventId || `msg_${Date.now()}`,
-            type: 'notification', // Default type for generic messages
-            data,
-            timestamp: new Date().toISOString(),
-          }
-          dispatchEvent(sseEvent)
-        } catch (err) {
-          console.error('[useRealtime] Failed to parse message:', err)
-        }
-      }
-      
-      // Handle specific event types
-      const eventTypes: SSEEventType[] = [
-        'application_update',
-        'notification',
-        'payment_update',
-        'interview_scheduled',
-        'document_processed',
-        'ping',
-      ]
-      
-      eventTypes.forEach(eventType => {
-        eventSource.addEventListener(eventType, (event: MessageEvent) => {
-          if (!mountedRef.current) return
-          
-          try {
-            const data = JSON.parse(event.data)
-            const sseEvent: SSEEvent = {
-              id: event.lastEventId || `${eventType}_${Date.now()}`,
-              type: eventType,
-              data,
-              timestamp: new Date().toISOString(),
-            }
-            dispatchEvent(sseEvent)
-          } catch (err) {
-            console.error(`[useRealtime] Failed to parse ${eventType} event:`, err)
-          }
-        })
-      })
-      
-      // Handle errors
-      eventSource.onerror = () => {
-        if (!mountedRef.current) return
-        
-        console.log('[useRealtime] SSE error, attempting reconnect...')
+        console.log('[useRealtime] SSE disconnected')
         setIsConnected(false)
-        
-        eventSource.close()
-        eventSourceRef.current = null
+        setIsReconnecting(true)
         
         dispatchSSEStatus({
           connected: false,
           status: 'disconnected',
         })
+      },
+      
+      onError: (err) => {
+        if (!mountedRef.current) return
         
-        // Attempt reconnection
-        if (reconnectAttemptRef.current < opts.maxReconnectAttempts) {
-          reconnectAttemptRef.current++
-          setIsReconnecting(true)
-          setStatus('disconnected')
-          
-          const delay = opts.reconnectDelay * Math.pow(2, reconnectAttemptRef.current - 1)
-          console.log(`[useRealtime] Reconnecting in ${delay}ms (attempt ${reconnectAttemptRef.current})`)
-          
-          reconnectTimeoutRef.current = setTimeout(() => {
-            if (mountedRef.current) {
-              connect()
-            }
-          }, delay)
-        } else {
-          // Fall back to polling
-          console.log('[useRealtime] Max reconnect attempts reached, falling back to polling')
+        console.error('[useRealtime] SSE error:', err.message)
+        setError(err.message)
+        
+        // If SSE fails after max retries, fall back to polling
+        if (err.message.includes('Max reconnection attempts')) {
+          console.log('[useRealtime] SSE failed, falling back to polling')
           setStatus('error')
-          setError('SSE connection failed, using polling fallback')
           setIsReconnecting(false)
+          sseFailedRef.current = true
           startPolling()
         }
-      }
-    } catch (err) {
-      console.error('[useRealtime] Failed to create EventSource:', err)
-      setStatus('error')
-      setError('Failed to establish SSE connection')
-      startPolling()
+      },
+    })
+
+    sseClientRef.current = client
+
+    // Subscribe to all event types
+    const eventTypes: SSEEventType[] = [
+      'application_update',
+      'notification',
+      'payment_update',
+      'interview_scheduled',
+      'document_processed',
+      'ping',
+    ]
+
+    // Clear previous unsubscribers
+    unsubscribersRef.current.forEach(unsub => unsub())
+    unsubscribersRef.current = []
+
+    // Subscribe to each event type
+    eventTypes.forEach(eventType => {
+      const unsubscribe = client.subscribe(eventType, (data: unknown) => {
+        if (!mountedRef.current) return
+        
+        const sseEvent = createSSEEvent(eventType, data)
+        dispatchEvent(sseEvent)
+      })
+      unsubscribersRef.current.push(unsubscribe)
+    })
+
+    // Also subscribe to generic 'message' events
+    const messageUnsub = client.subscribe('message', (data: unknown) => {
+      if (!mountedRef.current) return
+      
+      // Try to determine event type from data
+      const eventData = typeof data === 'object' && data !== null 
+        ? data as Record<string, unknown>
+        : { value: data }
+      
+      const eventType = (eventData.type as SSEEventType) || 'notification'
+      const sseEvent = createSSEEvent(eventType, eventData)
+      dispatchEvent(sseEvent)
+    })
+    unsubscribersRef.current.push(messageUnsub)
+
+    // Connect
+    client.connect()
+
+    // Return cleanup function
+    return () => {
+      unsubscribersRef.current.forEach(unsub => unsub())
+      unsubscribersRef.current = []
+      client.disconnect()
+      sseClientRef.current = null
     }
-  }, [opts.enabled, opts.maxReconnectAttempts, opts.reconnectDelay, dispatchEvent, stopPolling, startPolling])
+  }, [
+    opts.enabled, 
+    opts.maxReconnectAttempts, 
+    opts.initialBackoff, 
+    opts.maxBackoff, 
+    opts.batteryFriendly,
+    createSSEEvent, 
+    dispatchEvent, 
+    stopPolling, 
+    startPolling
+  ])
 
   /**
    * Disconnect from SSE
    */
   const disconnect = useCallback(() => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close()
-      eventSourceRef.current = null
+    // Clean up SSE client
+    if (sseClientRef.current) {
+      sseClientRef.current.disconnect()
+      sseClientRef.current = null
     }
     
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current)
-      reconnectTimeoutRef.current = null
-    }
+    // Clean up unsubscribers
+    unsubscribersRef.current.forEach(unsub => unsub())
+    unsubscribersRef.current = []
     
+    // Stop polling
     stopPolling()
     
     setIsConnected(false)
@@ -378,10 +417,16 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
    */
   const reconnect = useCallback(() => {
     console.log('[useRealtime] Manual reconnect triggered')
-    reconnectAttemptRef.current = 0
+    sseFailedRef.current = false
     disconnect()
-    connect()
-  }, [disconnect, connect])
+    
+    // Small delay before reconnecting
+    setTimeout(() => {
+      if (mountedRef.current) {
+        initializeSSE()
+      }
+    }, 100)
+  }, [disconnect, initializeSSE])
 
   /**
    * Subscribe to event type
@@ -409,15 +454,26 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
   useEffect(() => {
     mountedRef.current = true
     
-    if (opts.enabled) {
-      connect()
+    if (opts.enabled && !sseFailedRef.current) {
+      const cleanup = initializeSSE()
+      return () => {
+        mountedRef.current = false
+        cleanup?.()
+        disconnect()
+      }
+    } else if (opts.pollingEnabled) {
+      // SSE disabled or failed, use polling
+      startPolling()
+      return () => {
+        mountedRef.current = false
+        stopPolling()
+      }
     }
     
     return () => {
       mountedRef.current = false
-      disconnect()
     }
-  }, [opts.enabled]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [opts.enabled, opts.pollingEnabled]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Listen for external reconnect events
   useEffect(() => {
@@ -431,6 +487,14 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
       window.removeEventListener(SSE_RECONNECT_EVENT, handleReconnectEvent)
     }
   }, [reconnect])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false
+      disconnect()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     isConnected,
@@ -471,18 +535,35 @@ export function useRealtimeEvent(
 
 /**
  * Hook for application status updates
+ * 
+ * Provides real-time application status updates via SSE with polling fallback.
+ * 
+ * @requirements
+ * - 5.7: SSE wired to application status updates
+ * 
+ * @example
+ * ```tsx
+ * function ApplicationTracker() {
+ *   const { isConnected } = useApplicationUpdates((data) => {
+ *     console.log('Application status changed:', data)
+ *     // data may contain: applicationId, status, updatedAt, etc.
+ *   })
+ *   
+ *   return <div>{isConnected ? 'Live updates' : 'Checking for updates...'}</div>
+ * }
+ * ```
  */
 export function useApplicationUpdates(
   onUpdate: (data: Record<string, unknown>) => void
-): { isConnected: boolean } {
-  const { isConnected, subscribe } = useRealtime()
+): { isConnected: boolean; isPolling: boolean; error: string | null } {
+  const { isConnected, isPolling, error, subscribe } = useRealtime()
   
   useEffect(() => {
     const unsubscribe = subscribe('application_update', onUpdate)
     return unsubscribe
   }, [subscribe, onUpdate])
   
-  return { isConnected }
+  return { isConnected, isPolling, error }
 }
 
 /**
