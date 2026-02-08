@@ -77,6 +77,17 @@ export { LoadingOverlay } from './LoadingOverlay'
 export { SkeletonLoader, SkeletonCard, SkeletonTable, SkeletonAvatar } from './SkeletonLoader'
 export { ProgressIndicator, CircularProgress, IndeterminateProgress } from './ProgressIndicator'
 
+// Unified Loader System (Requirement 3.3)
+export { 
+  UnifiedLoader, 
+  PageLoader, 
+  InlineLoader, 
+  SkeletonLoader as UnifiedSkeletonLoader, 
+  OverlayLoader,
+  UnifiedSpinner 
+} from './UnifiedLoader'
+export type { UnifiedLoaderProps } from './UnifiedLoader'
+
 // Form Components
 export { FileUpload } from './FileUpload'
 export { EnhancedFileUpload } from './EnhancedFileUpload'
