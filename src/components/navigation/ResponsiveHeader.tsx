@@ -10,7 +10,7 @@
  * @performance Optimized to eliminate forced reflows - uses CSS transitions instead of Framer Motion
  */
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, type RefCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronRight, GraduationCap, LayoutDashboard, LogOut, Home, Search, UserPlus, LogIn } from '@/components/icons';
 import { cn } from '@/lib/utils';
@@ -104,6 +104,18 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
   const { isAdmin } = useRoleQuery({ user });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { scrollDirection, isAtTop } = useScrollDirection();
+  const mobileMenuRef = useRef<HTMLElement>(null);
+
+  // Sync inert attribute with menu state (React 18 doesn't support inert prop)
+  useEffect(() => {
+    const el = mobileMenuRef.current;
+    if (!el) return;
+    if (isMenuOpen) {
+      el.removeAttribute('inert');
+    } else {
+      el.setAttribute('inert', '');
+    }
+  }, [isMenuOpen]);
 
   // Determine if header should be visible
   const isHeaderVisible = isAtTop || scrollDirection === 'up' || isMenuOpen;
@@ -318,6 +330,7 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
       {/* Mobile Menu Panel - CSS transitions */}
       <nav
         id="mobile-menu"
+        ref={mobileMenuRef}
         className={cn(
           'fixed top-0 right-0 h-full w-80 max-w-[85vw]',
           'bg-card shadow-2xl lg:hidden',
@@ -327,7 +340,6 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
         )}
         style={{ zIndex: 9999 }}
         aria-label="Mobile navigation"
-        aria-hidden={!isMenuOpen}
       >
         <div className="flex flex-col h-full">
           {/* Mobile Menu Header */}
