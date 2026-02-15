@@ -18,6 +18,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
   const [newVersion, setNewVersion] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
+  const SW_RELOAD_PENDING_KEY = 'mihas_sw_reload_pending'
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) {
@@ -75,6 +76,27 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     }
 
     // Check for updates on registration
+    let updateInterval: ReturnType<typeof setInterval> | null = null
+
+    const handleControllerChange = () => {
+      // Avoid unexpected reloads when SW controller is first attached on mobile.
+      // Only reload when an update was explicitly triggered by the user.
+      if (sessionStorage.getItem(SW_RELOAD_PENDING_KEY) !== '1') {
+        return
+      }
+
+      sessionStorage.removeItem(SW_RELOAD_PENDING_KEY)
+      console.log('[SW Update] Controller changed after explicit update, reloading page')
+      window.location.reload()
+    }
+
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data.type === 'cache-updated') {
+        console.log('[SW Update] Cache updated to version:', event.data.version)
+        setNewVersion(event.data.appVersion)
+      }
+    }
+
     navigator.serviceWorker.getRegistration().then((registration) => {
       if (!registration) return
 
@@ -91,28 +113,26 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       })
 
       // Check for updates periodically (every 60 seconds)
-      const updateInterval = setInterval(() => {
+      updateInterval = setInterval(() => {
         registration.update().catch((error) => {
           console.error('[SW Update] Failed to check for updates:', error)
         })
       }, 60000)
-
-      return () => clearInterval(updateInterval)
     })
 
     // Listen for controller change (new SW activated)
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      console.log('[SW Update] Controller changed, reloading page')
-      window.location.reload()
-    })
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange)
 
     // Listen for messages from service worker
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data.type === 'cache-updated') {
-        console.log('[SW Update] Cache updated to version:', event.data.version)
-        setNewVersion(event.data.appVersion)
+    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage)
+
+    return () => {
+      if (updateInterval) {
+        clearInterval(updateInterval)
       }
-    })
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange)
+      navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage)
+    }
   }, [])
 
   const updateServiceWorker = async () => {
@@ -124,6 +144,8 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     setIsUpdating(true)
 
     try {
+      sessionStorage.setItem(SW_RELOAD_PENDING_KEY, '1')
+
       // Tell the waiting service worker to skip waiting
       waitingWorker.postMessage({ type: 'SKIP_WAITING' })
       
@@ -131,6 +153,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       console.log('[SW Update] Activating new service worker...')
     } catch (error) {
       console.error('[SW Update] Failed to update service worker:', error)
+      sessionStorage.removeItem(SW_RELOAD_PENDING_KEY)
       setIsUpdating(false)
       
       // Fallback: force reload
