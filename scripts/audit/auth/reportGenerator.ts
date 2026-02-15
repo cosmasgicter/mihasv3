@@ -5,46 +5,94 @@
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { existsSync } from 'node:fs';
-import type { AuthAuditResult, SecuritySeverity, BrokenTransition } from '../types';
-import { mapWorkflows, toAuthFlowSteps, type WorkflowMappingResult, type WorkflowStepInfo } from './workflowMapper';
-import { analyzeAuthState, toAuthAuditStateManagement, type AuthStateAnalysisResult } from './stateAnalyzer';
-import { scanAdminPagesForRoleEnforcement, type RoleEnforcementSummary } from './roleChecker';
-import { analyzeRedirects, type RedirectAnalysisResult } from './redirectAnalyzer';
-import { detectSecurityIssues, type SecurityDetectionResult } from './securityDetector';
+import { mapWorkflows } from './workflowMapper';
+import { analyzeAuthState } from './stateAnalyzer';
+import { scanAdminPagesForRoleEnforcement } from './roleChecker';
+import { analyzeRedirects } from './redirectAnalyzer';
+import { detectSecurityIssues } from './securityDetector';
 
 const DEFAULT_OUTPUT_PATH = 'forensic_reports/auth-workflow-report.md';
 
 interface CombinedAuthAuditData {
-  workflowMapping: WorkflowMappingResult;
-  stateAnalysis: AuthStateAnalysisResult;
-  roleEnforcement: RoleEnforcementSummary;
-  redirectAnalysis: RedirectAnalysisResult;
-  securityDetection: SecurityDetectionResult;
-}
-
-const getTimestamp = (): string => new Date().toISOString();
-const getSeverityEmoji = (s: SecuritySeverity): string => 
-  ({ critical: '🔴', high: '🟠', medium: '🟡', low: '🟢' }[s] || '⚪');
-const getStatusEmoji = (s: boolean): string => s ? '✅' : '❌';
-
-function calculateOverallHealth(data: CombinedAuthAuditData): 'healthy' | 'warning' | 'critical' {
-  const { securityDetection, stateAnalysis, roleEnforcement, redirectAnalysis } = data;
-  if (securityDetection.summary.criticalCount > 0 || roleEnforcement.pagesMissingRoleChecks > 0) return 'critical';
-  if (securityDetection.summary.highCount > 0 || securityDetection.brokenTransitions.length > 0 || 
-      stateAnalysis.isFragmented || redirectAnalysis.summary.loopCount > 0) return 'warning';
-  return 'healthy';
+  workflowMapping: ReturnType<typeof mapWorkflows>;
+  stateAnalysis: ReturnType<typeof analyzeAuthState>;
+  roleEnforcement: ReturnType<typeof scanAdminPagesForRoleEnforcement>;
+  redirectAnalysis: ReturnType<typeof analyzeRedirects>;
+  securityDetection: ReturnType<typeof detectSecurityIssues>;
 }
 
 function collectAuthAuditData(projectRoot: string = process.cwd()): CombinedAuthAuditData {
-  console.log('   Mapping workflows...');
   const workflowMapping = mapWorkflows(projectRoot);
-  console.log('   Analyzing auth state...');
   const stateAnalysis = analyzeAuthState(projectRoot);
-  console.log('   Checking role enforcement...');
   const roleEnforcement = scanAdminPagesForRoleEnforcement(projectRoot);
-  console.log('   Analyzing redirects...');
   const redirectAnalysis = analyzeRedirects(projectRoot);
-  console.log('   Detecting security issues...');
   const securityDetection = detectSecurityIssues(projectRoot);
   return { workflowMapping, stateAnalysis, roleEnforcement, redirectAnalysis, securityDetection };
+}
+
+function calculateOverallHealth(data: CombinedAuthAuditData): 'healthy' | 'warning' | 'critical' {
+  if (data.securityDetection.summary.criticalCount > 0 || data.roleEnforcement.pagesMissingRoleChecks > 0) return 'critical';
+  if (data.securityDetection.summary.highCount > 0 || data.stateAnalysis.isFragmented || data.redirectAnalysis.summary.loopCount > 0) return 'warning';
+  return 'healthy';
+}
+
+export function generateAuthWorkflowReport(data: CombinedAuthAuditData): string {
+  return [
+    '# Auth Workflow Report',
+    '',
+    `**Generated**: ${new Date().toISOString()}`,
+    '',
+    '## Summary',
+    `- Student workflow steps: ${data.workflowMapping.studentWorkflow.length}`,
+    `- Admin workflow steps: ${data.workflowMapping.adminWorkflow.length}`,
+    `- Auth state fragmented: ${data.stateAnalysis.isFragmented ? 'Yes' : 'No'}`,
+    `- Admin pages missing role checks: ${data.roleEnforcement.pagesMissingRoleChecks}`,
+    `- Redirect loops: ${data.redirectAnalysis.summary.loopCount}`,
+    `- Security issues: ${data.securityDetection.summary.totalIssues}`,
+    `- Health status: ${calculateOverallHealth(data)}`,
+    '',
+  ].join('\n');
+}
+
+export async function generateAuthWorkflowReportFile(
+  projectRoot: string = process.cwd(),
+  outputPath: string = DEFAULT_OUTPUT_PATH,
+): Promise<string> {
+  const data = collectAuthAuditData(projectRoot);
+  const report = generateAuthWorkflowReport(data);
+  const fullOutputPath = join(projectRoot, outputPath);
+  const outputDir = dirname(fullOutputPath);
+  if (!existsSync(outputDir)) {
+    await mkdir(outputDir, { recursive: true });
+  }
+  await writeFile(fullOutputPath, report, 'utf-8');
+  return report;
+}
+
+export function getAuthAuditSummary(projectRoot: string = process.cwd()) {
+  const data = collectAuthAuditData(projectRoot);
+  return {
+    studentWorkflowSteps: data.workflowMapping.studentWorkflow.length,
+    adminWorkflowSteps: data.workflowMapping.adminWorkflow.length,
+    authStateSources: data.stateAnalysis.stores.length + data.stateAnalysis.contexts.length,
+    isFragmented: data.stateAnalysis.isFragmented,
+    adminPagesAudited: data.roleEnforcement.totalAdminPages,
+    pagesMissingRoleChecks: data.roleEnforcement.pagesMissingRoleChecks,
+    totalRedirects: data.redirectAnalysis.summary.totalRedirects,
+    inappropriateRedirects: data.redirectAnalysis.summary.inappropriateCount,
+    redirectLoops: data.redirectAnalysis.summary.loopCount,
+    securityIssues: data.securityDetection.summary.totalIssues,
+    criticalIssues: data.securityDetection.summary.criticalCount,
+    brokenTransitions: data.securityDetection.brokenTransitions.length,
+    healthStatus: calculateOverallHealth(data),
+  };
+}
+
+if (import.meta.main) {
+  generateAuthWorkflowReportFile().then(() => {
+    console.log('✅ Auth workflow report generated');
+  }).catch(err => {
+    console.error('❌ Error generating auth workflow report:', err);
+    process.exit(1);
+  });
 }
