@@ -93,6 +93,12 @@ WHERE application_number = 'MIHAS202500001';
 - Try registering instead
 - Check you're using correct email
 
+✅ **Legacy password migration required**
+- If login returns `PASSWORD_MIGRATION_REQUIRED`, your account is from a legacy auth system and needs password bootstrap/recovery.
+- Use the password recovery flow first (Forgot Password / reset link).
+- If recovery is not available, ask an admin to run bootstrap migration (`POST /api/auth?action=bootstrap`) or admin set-password.
+- After migration, login again and the system stores a bcrypt hash automatically.
+
 ✅ **Browser issues**
 - Clear cookies and cache
 - Try incognito/private mode
