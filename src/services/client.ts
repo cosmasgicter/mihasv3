@@ -58,8 +58,12 @@ class ApiClient {
     }
 
     if (resource === 'applications') {
-      if (rest.length > 0 && !params.has('id')) {
-        params.set('id', rest[0]);
+      if (rest.length > 0) {
+        if (rest[0] === 'bulk' && !params.has('action')) {
+          params.set('action', 'bulk');
+        } else if (!params.has('id')) {
+          params.set('id', rest[0]);
+        }
       }
 
       if (rest.length > 1 && !params.has('action')) {
