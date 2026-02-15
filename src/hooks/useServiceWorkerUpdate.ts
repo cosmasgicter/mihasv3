@@ -19,6 +19,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
   const [isUpdating, setIsUpdating] = useState(false)
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
   const SW_RELOAD_PENDING_KEY = 'mihas_sw_reload_pending'
+  const SW_RELOAD_HANDLED_KEY = 'mihas_sw_reload_handled'
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) {
@@ -47,36 +48,54 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     getCurrentVersion()
 
     // Listen for service worker updates
-    const handleUpdateFound = (registration: ServiceWorkerRegistration) => {
-      const newWorker = registration.installing
-      
-      if (!newWorker) return
+    let registration: ServiceWorkerRegistration | null = null
+    let trackedInstallingWorker: ServiceWorker | null = null
+    let updateInterval: ReturnType<typeof setInterval> | null = null
+    let isEffectActive = true
 
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // New service worker is installed and waiting
-          console.log('[SW Update] New service worker available')
-          setWaitingWorker(newWorker)
-          setUpdateAvailable(true)
-          
-          // Try to get new version
-          const messageChannel = new MessageChannel()
-          messageChannel.port1.onmessage = (event) => {
-            if (event.data.appVersion) {
-              setNewVersion(event.data.appVersion)
-            }
+    const handleInstallingStateChange = () => {
+      if (!trackedInstallingWorker) {
+        return
+      }
+
+      if (trackedInstallingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+        // New service worker is installed and waiting
+        console.log('[SW Update] New service worker available')
+        setWaitingWorker(trackedInstallingWorker)
+        setUpdateAvailable(true)
+
+        // Try to get new version
+        const messageChannel = new MessageChannel()
+        messageChannel.port1.onmessage = (event) => {
+          if (event.data.appVersion) {
+            setNewVersion(event.data.appVersion)
           }
-          
-          newWorker.postMessage(
-            { type: 'GET_VERSION' },
-            [messageChannel.port2]
-          )
         }
-      })
+
+        trackedInstallingWorker.postMessage(
+          { type: 'GET_VERSION' },
+          [messageChannel.port2]
+        )
+      }
     }
 
-    // Check for updates on registration
-    let updateInterval: ReturnType<typeof setInterval> | null = null
+    const handleUpdateFound = () => {
+      if (!registration) {
+        return
+      }
+
+      if (trackedInstallingWorker) {
+        trackedInstallingWorker.removeEventListener('statechange', handleInstallingStateChange)
+      }
+
+      trackedInstallingWorker = registration.installing
+
+      if (!trackedInstallingWorker) {
+        return
+      }
+
+      trackedInstallingWorker.addEventListener('statechange', handleInstallingStateChange)
+    }
 
     const handleControllerChange = () => {
       // Avoid unexpected reloads when SW controller is first attached on mobile.
@@ -85,6 +104,11 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
         return
       }
 
+      if (sessionStorage.getItem(SW_RELOAD_HANDLED_KEY) === '1') {
+        return
+      }
+
+      sessionStorage.setItem(SW_RELOAD_HANDLED_KEY, '1')
       sessionStorage.removeItem(SW_RELOAD_PENDING_KEY)
       console.log('[SW Update] Controller changed after explicit update, reloading page')
       window.location.reload()
@@ -97,8 +121,11 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       }
     }
 
-    navigator.serviceWorker.getRegistration().then((registration) => {
-      if (!registration) return
+    const setupRegistration = async () => {
+      registration = await navigator.serviceWorker.getRegistration()
+      if (!registration || !isEffectActive) {
+        return
+      }
 
       // Check if there's already a waiting worker
       if (registration.waiting) {
@@ -108,16 +135,22 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       }
 
       // Listen for new updates
-      registration.addEventListener('updatefound', () => {
-        handleUpdateFound(registration)
-      })
+      registration.addEventListener('updatefound', handleUpdateFound)
 
       // Check for updates periodically (every 60 seconds)
       updateInterval = setInterval(() => {
+        if (!registration) {
+          return
+        }
+
         registration.update().catch((error) => {
           console.error('[SW Update] Failed to check for updates:', error)
         })
       }, 60000)
+    }
+
+    setupRegistration().catch((error) => {
+      console.error('[SW Update] Failed to initialize service worker registration:', error)
     })
 
     // Listen for controller change (new SW activated)
@@ -127,9 +160,20 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage)
 
     return () => {
+      isEffectActive = false
+
       if (updateInterval) {
         clearInterval(updateInterval)
       }
+
+      if (trackedInstallingWorker) {
+        trackedInstallingWorker.removeEventListener('statechange', handleInstallingStateChange)
+      }
+
+      if (registration) {
+        registration.removeEventListener('updatefound', handleUpdateFound)
+      }
+
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange)
       navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage)
     }
@@ -145,6 +189,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
 
     try {
       sessionStorage.setItem(SW_RELOAD_PENDING_KEY, '1')
+      sessionStorage.removeItem(SW_RELOAD_HANDLED_KEY)
 
       // Tell the waiting service worker to skip waiting
       waitingWorker.postMessage({ type: 'SKIP_WAITING' })
