@@ -32,16 +32,16 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
 
   try {
     if (action === 'preferences') {
-      return handlePreferences(req, res);
+      return await handlePreferences(req, res);
     }
     if (action === 'send') {
-      return handleSend(req, res);
+      return await handleSend(req, res);
     }
     if (action === 'push-subscribe') {
-      return handlePushSubscribe(req, res);
+      return await handlePushSubscribe(req, res);
     }
     if (action === 'push-send') {
-      return handlePushSend(req, res);
+      return await handlePushSend(req, res);
     }
     return sendError(res, 'Invalid action', HttpStatus.BAD_REQUEST);
   } catch (error) {

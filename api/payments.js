@@ -597,7 +597,7 @@ async function handler(req, res) {
   const action = req.query.action || "receipt";
   try {
     if (action === "receipt") {
-      return handleReceipt(req, res, user.userId, isAdmin);
+      return await handleReceipt(req, res, user.userId, isAdmin);
     }
     return sendError(res, "Invalid action", HttpStatus.BAD_REQUEST);
   } catch (error) {
@@ -638,12 +638,13 @@ async function handleReceipt(req, res, userId, isAdmin) {
   let verifierName = "System";
   if (application.payment_verified_by) {
     const verifierQ = {
-      text: `SELECT full_name FROM profiles WHERE id = $1 LIMIT 1`,
+      text: `SELECT first_name, last_name FROM profiles WHERE id = $1 LIMIT 1`,
       values: [application.payment_verified_by]
     };
     const verifierResult = await query(verifierQ.text, verifierQ.values);
-    if (verifierResult.rows[0]?.full_name) {
-      verifierName = verifierResult.rows[0].full_name;
+    const v = verifierResult.rows[0];
+    if (v) {
+      verifierName = [v.first_name, v.last_name].filter(Boolean).join(" ") || "System";
     }
   }
   const receiptData = {
