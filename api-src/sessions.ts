@@ -11,7 +11,7 @@ import { handleCors } from "../lib/cors";
 import { withArcjetProtection } from "../lib/arcjet";
 import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
 import { verifyAccessToken } from "../lib/auth/jwt";
-import { extractAccessTokenFromCookie } from "../lib/auth/cookies";
+import { extractAccessTokenFromCookie, extractBearerToken } from "../lib/auth/cookies";
 import { 
   getActiveSessions, 
   deactivateSession, 
@@ -26,7 +26,8 @@ import {
  * Get user ID from request (cookie or bearer token)
  */
 async function getUserFromRequest(req: VercelRequest): Promise<{ userId: string; sessionId?: string } | null> {
-  const token = extractAccessTokenFromCookie(req);
+  // Try cookie first, then Bearer token
+  const token = extractAccessTokenFromCookie(req) || extractBearerToken(req);
   if (!token) return null;
 
   try {

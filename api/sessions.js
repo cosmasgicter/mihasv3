@@ -426,6 +426,21 @@ function parseCookies(req) {
   }
   return cookies;
 }
+function extractBearerToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return null;
+  }
+  const bearerPrefix = "Bearer ";
+  if (!authHeader.startsWith(bearerPrefix)) {
+    return null;
+  }
+  const token = authHeader.substring(bearerPrefix.length).trim();
+  if (token.length === 0) {
+    return null;
+  }
+  return token;
+}
 function extractAccessTokenFromCookie(req) {
   const cookies = parseCookies(req);
   const token = cookies[ACCESS_TOKEN_COOKIE];
@@ -929,7 +944,7 @@ async function deactivateOtherSessions(userId, currentSessionId, ipAddress = nul
 
 // api-src/sessions.ts
 async function getUserFromRequest(req) {
-  const token = extractAccessTokenFromCookie(req);
+  const token = extractAccessTokenFromCookie(req) || extractBearerToken(req);
   if (!token)
     return null;
   try {
