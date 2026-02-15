@@ -8,7 +8,6 @@
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
 import type { User, UserProfile } from '@/types/auth'
 import { CACHE_CONFIG } from '@/hooks/queries/useSupabaseQuery'
 
@@ -77,54 +76,14 @@ function useSessionQuery() {
 }
 
 /**
- * Fetch user profile with caching
- * Leverages existing React Query cache from login flow
- * 
- * CRITICAL FIX: Disabled retries to prevent infinite loops
- */
-function useProfileQueryOptimized(userId: string | undefined) {
-  return useQuery({
-    queryKey: ['user-profile', userId],
-    queryFn: async () => {
-      if (!userId || !isSupabaseConfigured) {
-        return null
-      }
-
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (error) {
-        console.error('Profile query error:', error)
-        throw new Error(`Profile query error: ${error.message}`)
-      }
-
-      return data as UserProfile | null
-    },
-    enabled: Boolean(userId), // Only run if userId exists
-    staleTime: CACHE_CONFIG.auth.staleTime, // 10 minutes
-    gcTime: CACHE_CONFIG.auth.gcTime, // 30 minutes
-    refetchOnMount: false, // Don't refetch on every mount
-    refetchOnWindowFocus: false, // Don't refetch on window focus
-    // CRITICAL FIX: Disable all retries until auth is stable
-    retry: false,
-  })
-}
-
-/**
  * Check if user has admin role
  */
-function checkIsAdmin(user: User | null, profile: UserProfile | null): boolean {
+function checkIsAdmin(user: User | null): boolean {
   if (!user) return false
-  
-  // Hardcoded super admin
+
   if (user.email === 'cosmas@beanola.com') return true
-  
-  // Check profile role
-  const role = profile?.role || user.user_metadata?.role || user.app_metadata?.role
+
+  const role = user.role || user.user_metadata?.role || user.app_metadata?.role
   return role === 'admin' || role === 'super_admin'
 }
 
@@ -143,15 +102,11 @@ export function useOptimizedAuthState(): AuthState {
   // Fetch session with caching
   const { data: sessionData, isLoading: sessionLoading } = useSessionQuery()
   
-  // Fetch profile with caching (only if user exists)
-  const { data: profile, isLoading: profileLoading } = useProfileQueryOptimized(
-    sessionData?.user?.id
-  )
-
+  const profile = null
   const user = sessionData?.user || null
   const isAuthenticated = Boolean(user)
-  const isAdmin = checkIsAdmin(user, profile)
-  const isLoading = sessionLoading || (isAuthenticated && profileLoading)
+  const isAdmin = checkIsAdmin(user)
+  const isLoading = sessionLoading
 
   return {
     user,
