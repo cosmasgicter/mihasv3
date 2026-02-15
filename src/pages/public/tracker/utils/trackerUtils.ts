@@ -18,6 +18,11 @@ export const validateSearchTerm = (term: string): boolean => {
   return /^[a-zA-Z0-9\-_]+$/.test(trimmed)
 }
 
+export const normalizeSearchTerm = (term: string): string => {
+  const trimmed = term.trim()
+  return trimmed.replace(/^(katc|mihas)(\d{6})$/i, (_, prefix, serial) => `${String(prefix).toUpperCase()}${serial}`)
+}
+
 export const displayValue = (value?: string | null, fallback = 'Not available') => {
   if (!value) return fallback
   const trimmed = value.trim()
