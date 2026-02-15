@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/utils/logger'
-import { validateSearchTerm } from '../utils/trackerUtils'
+import { normalizeSearchTerm, validateSearchTerm } from '../utils/trackerUtils'
 
 export interface PublicApplicationStatus {
   public_tracking_code: string
@@ -30,14 +30,14 @@ export const useApplicationTracker = () => {
   const [searched, setSearched] = useState(false)
 
   const searchApplication = useCallback(async (term: string) => {
-    const trimmedTerm = term.trim()
+    const normalizedTerm = normalizeSearchTerm(term)
 
-    if (!trimmedTerm) {
+    if (!normalizedTerm) {
       setError('Please enter an application number or tracking code')
       return
     }
 
-    if (!validateSearchTerm(trimmedTerm)) {
+    if (!validateSearchTerm(normalizedTerm)) {
       setError('Invalid search term. Use only letters, numbers, hyphens, and underscores (max 50 characters)')
       return
     }
@@ -50,7 +50,7 @@ export const useApplicationTracker = () => {
       const { data, error: searchError } = await supabase
         .from('public_application_status')
         .select('public_tracking_code, application_number, status, payment_status, submitted_at, updated_at, program_name, intake_name, institution, full_name, email, phone, admin_feedback, admin_feedback_date')
-        .or(`application_number.eq."${trimmedTerm}",public_tracking_code.eq."${trimmedTerm}"`)
+        .or(`application_number.eq."${normalizedTerm}",public_tracking_code.eq."${normalizedTerm}"`)
         .maybeSingle()
 
       if (searchError) throw searchError
@@ -78,14 +78,14 @@ export const useApplicationTracker = () => {
     const code = searchParams.get('code')
     if (!code) return
 
-    const trimmed = code.trim()
-    if (!validateSearchTerm(trimmed)) {
+    const normalizedCode = normalizeSearchTerm(code)
+    if (!validateSearchTerm(normalizedCode)) {
       setError('Invalid tracking code provided in the link. Please verify and try again.')
       return
     }
 
-    setSearchTerm(trimmed)
-    searchApplication(trimmed)
+    setSearchTerm(normalizedCode)
+    searchApplication(normalizedCode)
   }, [searchParams, searchApplication])
 
   return {
