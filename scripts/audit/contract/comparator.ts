@@ -203,7 +203,16 @@ function getAuthMetadataForCall(call: APICallInfo, endpoint: EndpointInfo): {
   const actionAuth = action ? endpoint.actionAuth?.[action] : undefined;
 
   if (actionAuth) {
-    return actionAuth;
+    const requiresAuth = endpoint.requiresAuth || actionAuth.requiresAuth;
+    const roles = actionAuth.roles && actionAuth.roles.length > 0
+      ? actionAuth.roles
+      : endpoint.roles;
+
+    return {
+      requiresAuth,
+      roles,
+      authOptional: requiresAuth ? false : actionAuth.authOptional,
+    };
   }
 
   return {
