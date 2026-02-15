@@ -1,7 +1,7 @@
 /**
  * Auth API Endpoint
  * 
- * GET/POST /api/auth?action=login|logout|register|session|refresh|roles
+ * GET/POST/PATCH /api/auth?action=login|logout|register|session|refresh|roles|profile
  * 
  * Custom Bun-Native Authentication System
  * REPLACES: Supabase Auth entirely
@@ -50,8 +50,10 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         return handleCheckEmail(req, res);
       case 'roles':
         return handleRoles(req, res);
+      case 'profile':
+        return handleProfile(req, res);
       default:
-        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email, roles', HttpStatus.BAD_REQUEST);
+        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email, roles, profile', HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
@@ -340,6 +342,113 @@ async function handleRoles(req: VercelRequest, res: VercelResponse) {
       department: null,
       is_active: user.is_active,
     });
+  } catch {
+    clearAuthCookies(res);
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  }
+}
+
+
+/**
+ * Handle current user profile
+ * GET /api/auth?action=profile
+ * PATCH /api/auth?action=profile
+ */
+async function handleProfile(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET' && req.method !== 'PATCH') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const token = extractAccessTokenFromCookie(req);
+  if (!token) {
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  }
+
+  try {
+    const payload = await verifyAccessToken(token);
+
+    if (req.method === 'GET') {
+      const result = await query<{
+        id: string;
+        full_name: string | null;
+        email: string | null;
+        phone: string | null;
+        role: UserRole;
+        date_of_birth: string | null;
+        sex: string | null;
+        residence_town: string | null;
+        nationality: string | null;
+        next_of_kin_name: string | null;
+        next_of_kin_phone: string | null;
+      }>(
+        `SELECT id, full_name, email, phone, role, date_of_birth, sex, residence_town, nationality, next_of_kin_name, next_of_kin_phone
+         FROM profiles WHERE id = $1 LIMIT 1`,
+        [payload.sub]
+      );
+
+      if (result.rows.length === 0) {
+        clearAuthCookies(res);
+        return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+      }
+
+      return sendSuccess(res, result.rows[0]);
+    }
+
+    const allowedFields = [
+      'full_name',
+      'phone',
+      'date_of_birth',
+      'sex',
+      'residence_town',
+      'nationality',
+      'next_of_kin_name',
+      'next_of_kin_phone',
+    ] as const;
+
+    type AllowedField = typeof allowedFields[number];
+    const isAllowedField = (key: string): key is AllowedField =>
+      (allowedFields as readonly string[]).includes(key);
+
+    const updates = req.body || {};
+    const providedFields = Object.keys(updates).filter(isAllowedField);
+
+    if (providedFields.length === 0) {
+      return sendError(res, 'No valid fields to update', HttpStatus.BAD_REQUEST);
+    }
+
+    const values: unknown[] = [];
+    const setClauses = providedFields.map((field, index) => {
+      values.push(updates[field] ?? null);
+      return `${field} = $${index + 1}`;
+    });
+
+    values.push(payload.sub);
+
+    const result = await query<{
+      id: string;
+      full_name: string | null;
+      email: string | null;
+      phone: string | null;
+      role: UserRole;
+      date_of_birth: string | null;
+      sex: string | null;
+      residence_town: string | null;
+      nationality: string | null;
+      next_of_kin_name: string | null;
+      next_of_kin_phone: string | null;
+    }>(
+      `UPDATE profiles
+       SET ${setClauses.join(', ')}, updated_at = NOW()
+       WHERE id = $${providedFields.length + 1}
+       RETURNING id, full_name, email, phone, role, date_of_birth, sex, residence_town, nationality, next_of_kin_name, next_of_kin_phone`,
+      values
+    );
+
+    if (result.rows.length === 0) {
+      return sendError(res, 'Profile not found', HttpStatus.NOT_FOUND);
+    }
+
+    return sendSuccess(res, result.rows[0]);
   } catch {
     clearAuthCookies(res);
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);

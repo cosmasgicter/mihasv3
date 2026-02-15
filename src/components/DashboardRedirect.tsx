@@ -1,27 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import { useRoleQuery, isAdminRole } from '@/hooks/auth/useRoleQuery'
+import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { Loader2 } from 'lucide-react'
 
 export function DashboardRedirect() {
   const { user, loading } = useAuth()
-  const { profile } = useProfileQuery()
   const { isAdmin: hasAdminRole } = useRoleQuery()
-  const [profileTimeout, setProfileTimeout] = useState(false)
   const [redirectPath, setRedirectPath] = useState<string | null>(null)
-
-  // Set timeout for profile loading
-  useEffect(() => {
-    if (!loading && user && !profile && !profileTimeout) {
-      const timer = setTimeout(() => {
-        setProfileTimeout(true)
-      }, 2000) // 2 second timeout for profile loading
-      
-      return () => clearTimeout(timer)
-    }
-  }, [loading, user, profile, profileTimeout])
 
   // Determine redirect path only once when conditions are met
   useEffect(() => {
@@ -32,9 +18,6 @@ export function DashboardRedirect() {
       return
     }
 
-    // Wait for profile to load or timeout
-    if (!profile && !profileTimeout) return
-
     // Super admin override
     if (user?.email === 'cosmas@beanola.com') {
       setRedirectPath('/admin')
@@ -42,19 +25,14 @@ export function DashboardRedirect() {
     }
 
     // Strict admin check - only redirect to admin if explicitly admin
-    const profileRole = profile?.role?.toLowerCase()
-    const isExplicitAdmin = profileRole === 'admin' || 
-                           profileRole === 'super_admin' || 
-                           profileRole === 'admissions_officer'
-    
-    if (hasAdminRole && isExplicitAdmin) {
+    if (hasAdminRole) {
       setRedirectPath('/admin')
       return
     }
 
     // Default to student dashboard for all other users
     setRedirectPath('/student/dashboard')
-  }, [loading, user, profile, profileTimeout, hasAdminRole, redirectPath])
+  }, [loading, user, hasAdminRole, redirectPath])
 
   if (loading || !redirectPath) {
     return (
@@ -69,7 +47,7 @@ export function DashboardRedirect() {
             </div>
             <div className="text-center space-y-2">
               <h3 className="text-lg font-semibold text-gray-900">
-                {loading ? 'Loading...' : 'Loading your profile...'}
+                {loading ? 'Loading...' : 'Preparing your dashboard...'}
               </h3>
               <p className="text-sm text-caption">Please wait a moment...</p>
             </div>
