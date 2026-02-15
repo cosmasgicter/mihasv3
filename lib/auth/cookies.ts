@@ -37,9 +37,14 @@ const REFRESH_TOKEN_PATH = "/api/auth";
 /**
  * Check if the current environment is production
  * Uses NODE_ENV to determine if Secure flag should be set
+ * 
+ * NOTE: We read from process['env'] to prevent Bun's bundler from
+ * statically evaluating process.env.NODE_ENV at build time and
+ * hardcoding the result to `false`.
  */
 function isProduction(): boolean {
-  return process.env.NODE_ENV === "production";
+  const env = process['env'];
+  return env.NODE_ENV === "production";
 }
 
 /**
