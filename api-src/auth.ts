@@ -1,7 +1,7 @@
 /**
  * Auth API Endpoint
  * 
- * GET/POST /api/auth?action=login|logout|register|session|refresh
+ * GET/POST /api/auth?action=login|logout|register|session|refresh|roles
  * 
  * Custom Bun-Native Authentication System
  * REPLACES: Supabase Auth entirely
@@ -48,8 +48,10 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         return handleBootstrap(req, res);
       case 'check-email':
         return handleCheckEmail(req, res);
+      case 'roles':
+        return handleRoles(req, res);
       default:
-        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email', HttpStatus.BAD_REQUEST);
+        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email, roles', HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
@@ -291,6 +293,56 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
   } catch {
     clearAuthCookies(res);
     return sendError(res, 'Invalid refresh token', HttpStatus.UNAUTHORIZED);
+  }
+}
+
+
+/**
+ * Handle role check for current authenticated user
+ * GET /api/auth?action=roles
+ */
+async function handleRoles(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const token = extractAccessTokenFromCookie(req);
+
+  if (!token) {
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  }
+
+  try {
+    const payload = await verifyAccessToken(token);
+
+    const result = await query<{
+      id: string;
+      role: UserRole;
+      is_active: boolean;
+    }>(
+      'SELECT id, role, is_active FROM profiles WHERE id = $1 LIMIT 1',
+      [payload.sub]
+    );
+
+    if (result.rows.length === 0 || !result.rows[0].is_active) {
+      clearAuthCookies(res);
+      return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+    }
+
+    const user = result.rows[0];
+    const permissions = getPermissionsForRole(user.role);
+
+    return sendSuccess(res, {
+      id: user.id,
+      user_id: user.id,
+      role: user.role,
+      permissions,
+      department: null,
+      is_active: user.is_active,
+    });
+  } catch {
+    clearAuthCookies(res);
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 }
 

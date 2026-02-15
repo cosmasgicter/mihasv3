@@ -59,9 +59,13 @@ export default function SignInPage() {
       // Show loading overlay
       setIsAuthenticating(true);
 
-      // Redirect to intended destination or dashboard
+      // Redirect to intended destination when present; otherwise use role-based dashboard
       const from = (location.state as any)?.from?.pathname;
-      const redirectTo = from && from !== '/auth/signin' ? from : '/dashboard';
+      const role = result?.user?.role;
+      const defaultRedirect = role === 'admin' || role === 'super_admin'
+        ? '/admin/dashboard'
+        : '/student/dashboard';
+      const redirectTo = from && from !== '/auth/signin' ? from : defaultRedirect;
 
       navigate(redirectTo, { replace: true });
     } catch (error: unknown) {
