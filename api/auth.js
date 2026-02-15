@@ -154,8 +154,246 @@ async function verifyPassword(password, hash) {
   }
 }
 
+// lib/auth/legacy.ts
+init_db();
+import { jwtVerify, decodeJwt } from "jose";
+
+// lib/queries.ts
+var UserQueries = {
+  findByEmail: (email) => ({
+    text: `
+      SELECT 
+        id, email, password_hash, refresh_token_hash, role,
+        first_name, last_name, full_name, phone, is_active,
+        failed_login_attempts, locked_until, password_changed_at,
+        created_at, updated_at
+      FROM profiles
+      WHERE email = $1
+      LIMIT 1
+    `,
+    values: [email]
+  }),
+  findById: (id) => ({
+    text: `
+      SELECT 
+        id, email, password_hash, refresh_token_hash, role,
+        first_name, last_name, full_name, phone, is_active,
+        failed_login_attempts, locked_until, password_changed_at,
+        created_at, updated_at
+      FROM profiles
+      WHERE id = $1
+      LIMIT 1
+    `,
+    values: [id]
+  }),
+  findByIdPublic: (id) => ({
+    text: `
+      SELECT 
+        id, email, role, first_name, last_name, full_name,
+        is_active, created_at, updated_at
+      FROM profiles
+      WHERE id = $1
+      LIMIT 1
+    `,
+    values: [id]
+  }),
+  findByRefreshToken: (tokenHash) => ({
+    text: `
+      SELECT id, email, role, is_active, refresh_token_hash
+      FROM profiles
+      WHERE refresh_token_hash = $1 AND is_active = true
+      LIMIT 1
+    `,
+    values: [tokenHash]
+  }),
+  create: (id, email, passwordHash, role, firstName, lastName) => ({
+    text: `
+      INSERT INTO profiles (
+        id, email, password_hash, role, first_name, last_name,
+        is_active, failed_login_attempts, created_at, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, true, 0, NOW(), NOW())
+      RETURNING id, email, role, is_active, created_at
+    `,
+    values: [id, email, passwordHash, role, firstName, lastName]
+  }),
+  createWithoutPassword: (id, email, role, firstName, lastName) => ({
+    text: `
+      INSERT INTO profiles (
+        id, email, role, first_name, last_name,
+        is_active, failed_login_attempts, created_at, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, true, 0, NOW(), NOW())
+      ON CONFLICT (id) DO NOTHING
+      RETURNING id, email, role, is_active
+    `,
+    values: [id, email, role, firstName, lastName]
+  }),
+  updatePassword: (id, passwordHash) => ({
+    text: `
+      UPDATE profiles
+      SET 
+        password_hash = $2,
+        password_changed_at = NOW(),
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+    values: [id, passwordHash]
+  }),
+  updateRefreshToken: (id, tokenHash) => ({
+    text: `
+      UPDATE profiles
+      SET 
+        refresh_token_hash = $2,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+    values: [id, tokenHash]
+  }),
+  incrementFailedAttempts: (id) => ({
+    text: `
+      UPDATE profiles
+      SET 
+        failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING failed_login_attempts
+    `,
+    values: [id]
+  }),
+  resetFailedAttempts: (id) => ({
+    text: `
+      UPDATE profiles
+      SET 
+        failed_login_attempts = 0,
+        locked_until = NULL,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+    values: [id]
+  }),
+  lockAccount: (id, lockUntil) => ({
+    text: `
+      UPDATE profiles
+      SET 
+        locked_until = $2,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, locked_until
+    `,
+    values: [id, lockUntil]
+  }),
+  unlockAccount: (id) => ({
+    text: `
+      UPDATE profiles
+      SET 
+        locked_until = NULL,
+        failed_login_attempts = 0,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+    values: [id]
+  }),
+  updateRole: (id, role) => ({
+    text: `
+      UPDATE profiles
+      SET 
+        role = $2,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, role
+    `,
+    values: [id, role]
+  }),
+  deactivate: (id) => ({
+    text: `
+      UPDATE profiles
+      SET 
+        is_active = false,
+        refresh_token_hash = NULL,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+    values: [id]
+  }),
+  reactivate: (id) => ({
+    text: `
+      UPDATE profiles
+      SET 
+        is_active = true,
+        failed_login_attempts = 0,
+        locked_until = NULL,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+    values: [id]
+  }),
+  list: (limit, offset) => ({
+    text: `
+      SELECT 
+        id, email, role, first_name, last_name, full_name,
+        is_active, created_at, updated_at
+      FROM profiles
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `,
+    values: [limit, offset]
+  }),
+  listByRole: (role, limit, offset) => ({
+    text: `
+      SELECT 
+        id, email, role, first_name, last_name, full_name,
+        is_active, created_at, updated_at
+      FROM profiles
+      WHERE role = $1
+      ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3
+    `,
+    values: [role, limit, offset]
+  }),
+  count: () => ({
+    text: `SELECT COUNT(*) as count FROM profiles`,
+    values: []
+  }),
+  countByRole: (role) => ({
+    text: `SELECT COUNT(*) as count FROM profiles WHERE role = $1`,
+    values: [role]
+  }),
+  emailExists: (email) => ({
+    text: `SELECT EXISTS(SELECT 1 FROM profiles WHERE email = $1) as exists`,
+    values: [email]
+  })
+};
+
+// lib/auth/legacy.ts
+async function upgradePasswordHash(userId, newPassword) {
+  try {
+    const passwordHash = await hashPassword(newPassword);
+    const updateQuery = UserQueries.updatePassword(userId, passwordHash);
+    await query(updateQuery.text, updateQuery.values);
+    console.log(`[Legacy Auth] Upgraded password hash for user: ${userId}`);
+    return true;
+  } catch (error) {
+    console.error("[Legacy Auth] Error upgrading password hash:", error.message);
+    return false;
+  }
+}
+function needsPasswordUpgrade(user) {
+  if (!user.password_hash) {
+    return true;
+  }
+  const isBcrypt = /^\$2[aby]\$\d{1,2}\$/.test(user.password_hash);
+  return !isBcrypt;
+}
+
 // lib/auth/jwt.ts
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT, jwtVerify as jwtVerify2 } from "jose";
 var ACCESS_TOKEN_EXPIRATION = "15m";
 var REFRESH_TOKEN_EXPIRATION = "7d";
 var TOKEN_ISSUER = "mihas-auth";
@@ -220,7 +458,7 @@ async function verifyAccessToken(token) {
   }
   try {
     const secret = getAccessTokenSecret();
-    const { payload } = await jwtVerify(token, secret, {
+    const { payload } = await jwtVerify2(token, secret, {
       issuer: TOKEN_ISSUER,
       audience: TOKEN_AUDIENCE,
       algorithms: [ALGORITHM]
@@ -278,7 +516,7 @@ async function verifyRefreshToken(token) {
   }
   try {
     const secret = getRefreshTokenSecret();
-    const { payload } = await jwtVerify(token, secret, {
+    const { payload } = await jwtVerify2(token, secret, {
       issuer: TOKEN_ISSUER,
       audience: TOKEN_AUDIENCE,
       algorithms: [ALGORITHM]
@@ -323,17 +561,17 @@ async function verifyRefreshToken(token) {
 }
 
 // lib/auth/permissions.ts
-var USER_ROLES = {
+var USER_ROLES2 = {
   SUPER_ADMIN: "super_admin",
   ADMIN: "admin",
   REVIEWER: "reviewer",
   STUDENT: "student"
 };
 var ALL_USER_ROLES = [
-  USER_ROLES.SUPER_ADMIN,
-  USER_ROLES.ADMIN,
-  USER_ROLES.REVIEWER,
-  USER_ROLES.STUDENT
+  USER_ROLES2.SUPER_ADMIN,
+  USER_ROLES2.ADMIN,
+  USER_ROLES2.REVIEWER,
+  USER_ROLES2.STUDENT
 ];
 var ROLE_PERMISSIONS = {
   super_admin: [
@@ -398,7 +636,8 @@ var ACCESS_TOKEN_MAX_AGE = 900;
 var REFRESH_TOKEN_MAX_AGE = 604800;
 var REFRESH_TOKEN_PATH = "/api/auth";
 function isProduction() {
-  return false;
+  const env = process["env"];
+  return env.NODE_ENV === "production";
 }
 function buildCookieString(name, value, maxAge, path = "/") {
   const parts = [
@@ -763,6 +1002,7 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
 }
 
 // api-src/auth.ts
+import { createHash, timingSafeEqual } from "crypto";
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
@@ -783,8 +1023,12 @@ async function handler(req, res) {
         return handleBootstrap(req, res);
       case "check-email":
         return handleCheckEmail(req, res);
+      case "roles":
+        return handleRoles(req, res);
+      case "profile":
+        return handleProfile(req, res);
       default:
-        return sendError(res, "Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email", HttpStatus.BAD_REQUEST);
+        return sendError(res, "Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email, roles, profile", HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
@@ -807,9 +1051,23 @@ async function handleLogin(req, res) {
   if (!user.is_active) {
     return sendError(res, "Account is disabled", HttpStatus.FORBIDDEN);
   }
-  const isValid = await verifyPassword(password, user.password_hash);
-  if (!isValid) {
-    return sendError(res, "Invalid credentials", HttpStatus.UNAUTHORIZED);
+  if (needsPasswordUpgrade(toLegacyCompatibleUserRecord(user))) {
+    const legacyAuthResult = verifyLegacyPassword(password, user.password_hash);
+    if (!legacyAuthResult.isValid) {
+      if (legacyAuthResult.requiresMigration) {
+        return sendError(res, "Password migration required. Use account recovery or bootstrap migration to reset your password.", HttpStatus.UNAUTHORIZED, "PASSWORD_MIGRATION_REQUIRED");
+      }
+      return sendError(res, "Invalid credentials", HttpStatus.UNAUTHORIZED);
+    }
+    const upgraded = await upgradePasswordHash(user.id, password);
+    if (!upgraded) {
+      return sendError(res, "Password migration required. Use account recovery or bootstrap migration to reset your password.", HttpStatus.UNAUTHORIZED, "PASSWORD_MIGRATION_REQUIRED");
+    }
+  } else {
+    const isValid = await verifyPassword(password, user.password_hash);
+    if (!isValid) {
+      return sendError(res, "Invalid credentials", HttpStatus.UNAUTHORIZED);
+    }
   }
   const permissions = getPermissionsForRole(user.role);
   const accessToken = await generateAccessToken(user.id, user.email, user.role, permissions);
@@ -824,6 +1082,53 @@ async function handleLogin(req, res) {
       lastName: user.last_name
     }
   });
+}
+function toLegacyCompatibleUserRecord(user) {
+  const now = new Date;
+  return {
+    id: user.id,
+    email: user.email,
+    password_hash: user.password_hash,
+    refresh_token_hash: null,
+    role: user.role,
+    first_name: null,
+    last_name: null,
+    full_name: null,
+    phone: null,
+    is_active: user.is_active,
+    failed_login_attempts: 0,
+    locked_until: null,
+    password_changed_at: null,
+    created_at: now,
+    updated_at: now
+  };
+}
+function verifyLegacyPassword(password, storedHash) {
+  if (!storedHash) {
+    return { isValid: false, requiresMigration: true };
+  }
+  if (storedHash.startsWith("plain:")) {
+    const legacyPassword = storedHash.slice("plain:".length);
+    const passwordBuffer = Buffer.from(password);
+    const legacyBuffer = Buffer.from(legacyPassword);
+    if (passwordBuffer.length !== legacyBuffer.length) {
+      return { isValid: false, requiresMigration: false };
+    }
+    return {
+      isValid: timingSafeEqual(passwordBuffer, legacyBuffer),
+      requiresMigration: false
+    };
+  }
+  if (/^[a-f0-9]{64}$/i.test(storedHash)) {
+    const passwordHash = createHash("sha256").update(password).digest("hex");
+    const passwordBuffer = Buffer.from(passwordHash, "hex");
+    const legacyBuffer = Buffer.from(storedHash, "hex");
+    return {
+      isValid: timingSafeEqual(passwordBuffer, legacyBuffer),
+      requiresMigration: false
+    };
+  }
+  return { isValid: false, requiresMigration: true };
 }
 async function handleLogout(_req, res) {
   clearAuthCookies(res);
@@ -916,6 +1221,90 @@ async function handleRefresh(req, res) {
   } catch {
     clearAuthCookies(res);
     return sendError(res, "Invalid refresh token", HttpStatus.UNAUTHORIZED);
+  }
+}
+async function handleRoles(req, res) {
+  if (req.method !== "GET") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const token = extractAccessTokenFromCookie(req);
+  if (!token) {
+    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  }
+  try {
+    const payload = await verifyAccessToken(token);
+    const result = await query("SELECT id, role, is_active FROM profiles WHERE id = $1 LIMIT 1", [payload.sub]);
+    if (result.rows.length === 0 || !result.rows[0].is_active) {
+      clearAuthCookies(res);
+      return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+    }
+    const user = result.rows[0];
+    const permissions = getPermissionsForRole(user.role);
+    return sendSuccess(res, {
+      id: user.id,
+      user_id: user.id,
+      role: user.role,
+      permissions,
+      department: null,
+      is_active: user.is_active
+    });
+  } catch {
+    clearAuthCookies(res);
+    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  }
+}
+async function handleProfile(req, res) {
+  if (req.method !== "GET" && req.method !== "PATCH") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const token = extractAccessTokenFromCookie(req);
+  if (!token) {
+    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  }
+  try {
+    const payload = await verifyAccessToken(token);
+    if (req.method === "GET") {
+      const result2 = await query(`SELECT id, full_name, email, phone, role, date_of_birth, sex, residence_town, nationality, next_of_kin_name, next_of_kin_phone
+         FROM profiles WHERE id = $1 LIMIT 1`, [payload.sub]);
+      if (result2.rows.length === 0) {
+        clearAuthCookies(res);
+        return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+      }
+      return sendSuccess(res, result2.rows[0]);
+    }
+    const allowedFields = [
+      "full_name",
+      "phone",
+      "date_of_birth",
+      "sex",
+      "residence_town",
+      "nationality",
+      "next_of_kin_name",
+      "next_of_kin_phone"
+    ];
+    const isAllowedField = (key) => allowedFields.includes(key);
+    const updates = req.body || {};
+    const providedFields = Object.keys(updates).filter(isAllowedField);
+    if (providedFields.length === 0) {
+      return sendError(res, "No valid fields to update", HttpStatus.BAD_REQUEST);
+    }
+    const values = [];
+    const setClauses = providedFields.map((field, index) => {
+      values.push(updates[field] ?? null);
+      return `${field} = $${index + 1}`;
+    });
+    values.push(payload.sub);
+    const result = await query(`UPDATE profiles
+       SET ${setClauses.join(", ")}, updated_at = NOW()
+       WHERE id = $${providedFields.length + 1}
+       RETURNING id, full_name, email, phone, role, date_of_birth, sex, residence_town, nationality, next_of_kin_name, next_of_kin_phone`, values);
+    if (result.rows.length === 0) {
+      return sendError(res, "Profile not found", HttpStatus.NOT_FOUND);
+    }
+    return sendSuccess(res, result.rows[0]);
+  } catch {
+    clearAuthCookies(res);
+    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
 }
 var auth_default = withArcjetProtection(handler, "auth");
