@@ -157,13 +157,27 @@ export function useSessionListener() {
   ): Promise<SignUpResult> => {
     try {
       // Remove fields that shouldn't be sent to backend
-      const { confirmPassword, turnstileToken, ...cleanUserData } = userData;
+      const { confirmPassword, turnstileToken, full_name, ...cleanUserData } = userData;
+
+      const normalizedFullName = typeof full_name === 'string' ? full_name.trim() : '';
+      const [firstName, ...lastNameParts] = normalizedFullName.split(/\s+/).filter(Boolean);
+      const lastName = lastNameParts.join(' ');
+
+      if (!firstName || !lastName) {
+        return { error: 'Please provide your full name (first and last name).' };
+      }
 
       const response = await fetch(`${apiBaseUrl}/api/auth?action=register`, {
         method: 'POST',
         credentials: 'include', // Receive HTTP-only cookies
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, ...cleanUserData }),
+        body: JSON.stringify({
+          email,
+          password,
+          firstName,
+          lastName,
+          ...cleanUserData,
+        }),
       });
 
       const result = await response.json();
