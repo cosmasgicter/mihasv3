@@ -106,12 +106,32 @@ function methodMatches(call: APICallInfo, endpoint: EndpointInfo): boolean {
   return supportedMethods.includes(call.method.toUpperCase());
 }
 
+
+function getAuthMetadataForCall(call: APICallInfo, endpoint: EndpointInfo): {
+  requiresAuth: boolean;
+  roles?: string[];
+  authOptional?: boolean;
+} {
+  const action = extractAction(call);
+  const actionAuth = action ? endpoint.actionAuth?.[action] : undefined;
+
+  if (actionAuth) {
+    return actionAuth;
+  }
+
+  return {
+    requiresAuth: endpoint.requiresAuth,
+    roles: endpoint.roles,
+  };
+}
+
 /**
  * Checks if auth requirements match between frontend and backend.
  */
 function authMatches(call: APICallInfo, endpoint: EndpointInfo): boolean {
   const frontendExpectsAuth = call.authMechanism !== 'none';
-  const backendRequiresAuth = endpoint.requiresAuth;
+  const backendAuth = getAuthMetadataForCall(call, endpoint);
+  const backendRequiresAuth = backendAuth.requiresAuth;
   
   // Mismatch: Frontend doesn't send auth but backend requires it
   if (!frontendExpectsAuth && backendRequiresAuth) {
@@ -151,9 +171,10 @@ function generateMismatchEvidence(
     case 'AUTH_MISMATCH':
       if (!call || !endpoint) return 'Auth requirement mismatch between frontend and backend';
       const frontendAuth = call.authMechanism === 'none' ? 'no auth' : call.authMechanism;
-      const backendAuth = endpoint.requiresAuth 
-        ? (endpoint.roles ? `roles: ${endpoint.roles.join(', ')}` : 'authenticated') 
-        : 'public';
+      const backendAuthInfo = getAuthMetadataForCall(call, endpoint);
+      const backendAuth = backendAuthInfo.requiresAuth
+        ? (backendAuthInfo.roles ? `roles: ${backendAuthInfo.roles.join(', ')}` : 'authenticated')
+        : (backendAuthInfo.authOptional ? 'optional auth' : 'public');
       return `Frontend sends ${frontendAuth} for ${call.endpoint} at ${call.filePath}:${call.lineNumber}, but backend requires ${backendAuth}`;
     
     default:
