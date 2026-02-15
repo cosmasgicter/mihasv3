@@ -18,6 +18,77 @@ import type { FetchWithCacheOptions } from '@/utils/api-cache';
 const API_BASE = getApiBaseUrl();
 
 class ApiClient {
+  private normalizeEndpoint(endpoint: string, method: string): string {
+    if (!endpoint || endpoint.startsWith('/api/') || endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+      return endpoint;
+    }
+
+    const [rawPath, rawQuery = ''] = endpoint.split('?');
+    const path = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+    const segments = path.split('/').filter(Boolean);
+
+    if (segments.length === 0) {
+      return endpoint;
+    }
+
+    const [resource, ...rest] = segments;
+    const supportedResources = new Set(['admin', 'applications', 'auth', 'catalog', 'documents', 'notifications']);
+
+    if (!supportedResources.has(resource)) {
+      return endpoint;
+    }
+
+    const params = new URLSearchParams(rawQuery);
+    const canonicalPath = `/api/${resource}`;
+
+    if (resource === 'catalog' && rest.length > 0 && !params.has('type')) {
+      params.set('type', rest[0]);
+    }
+
+    if (resource === 'auth' && rest.length > 0 && !params.has('action')) {
+      params.set('action', rest.join('-'));
+    }
+
+    if (resource === 'documents' && rest.length > 0 && !params.has('action')) {
+      params.set('action', rest.join('-'));
+    }
+
+    if (resource === 'notifications' && rest.length > 0 && !params.has('action')) {
+      params.set('action', rest.join('-'));
+    }
+
+    if (resource === 'applications') {
+      if (rest.length > 0 && !params.has('id')) {
+        params.set('id', rest[0]);
+      }
+
+      if (rest.length > 1 && !params.has('action')) {
+        params.set('action', rest.slice(1).join('-'));
+      }
+    }
+
+    if (resource === 'admin' && rest.length > 0) {
+      if (rest[0] === 'users') {
+        if (!params.has('action')) {
+          if (rest[2] === 'role' && (method === 'PUT' || method === 'POST')) {
+            params.set('action', 'update-role');
+          } else {
+            params.set('action', 'users');
+          }
+        }
+
+        if (rest[1] && !params.has('id')) {
+          params.set('id', rest[1]);
+        }
+      } else if (!params.has('action')) {
+        params.set('action', rest.join('-'));
+      }
+    }
+
+    const queryString = params.toString();
+    return queryString ? `${canonicalPath}?${queryString}` : canonicalPath;
+  }
+
   private async parseJsonSafely<TResponse>(
     response: Response,
     service: string,
@@ -143,8 +214,9 @@ class ApiClient {
     options: ApiRequestOptions = {}
   ): Promise<TResponse | null> {
     const start = Date.now();
-    const service = endpoint.split('/')[2] || 'unknown';
     const method = (options.method ?? 'GET').toString().toUpperCase();
+    const normalizedEndpoint = this.normalizeEndpoint(endpoint, method);
+    const service = normalizedEndpoint.split('/')[2] || 'unknown';
 
     try {
       const {
@@ -172,7 +244,7 @@ class ApiClient {
 
       if (method === 'GET') {
         const shouldUseCache = (useCache ?? true) && !(skipCache ?? false);
-        const url = `${API_BASE}${endpoint}`;
+        const url = `${API_BASE}${normalizedEndpoint}`;
 
         let responseMeta: { ok: boolean; statusCode: number; duration: number } | null = null;
 
@@ -186,7 +258,7 @@ class ApiClient {
           ...(cacheTTL !== undefined ? { cacheTTL } : {}),
           ...(cacheKey ? { cacheKey } : {}),
           transformResponse: (response: Response) =>
-            this.parseJsonSafely<TResponse>(response, service, endpoint),
+            this.parseJsonSafely<TResponse>(response, service, normalizedEndpoint),
           onResponse: (response: Response, duration: number) => {
             responseMeta = {
               ok: response.ok,
@@ -199,14 +271,14 @@ class ApiClient {
         const data = await fetchWithCache<TResponse | null>(url, fetchOptions);
 
         if (responseMeta) {
-          monitoring.trackApiCall(service, endpoint, responseMeta.duration, responseMeta.ok, {
+          monitoring.trackApiCall(service, normalizedEndpoint, responseMeta.duration, responseMeta.ok, {
             method,
             statusCode: responseMeta.statusCode,
           });
           monitoring.queueFlush(!responseMeta.ok);
         } else {
           const duration = Date.now() - start;
-          monitoring.trackApiCall(service, endpoint, duration, true, {
+          monitoring.trackApiCall(service, normalizedEndpoint, duration, true, {
             method,
             statusCode: 200,
           });
@@ -216,10 +288,10 @@ class ApiClient {
         return data;
       }
 
-      const response = await fetch(`${API_BASE}${endpoint}`, requestInit);
+      const response = await fetch(`${API_BASE}${normalizedEndpoint}`, requestInit);
 
       const duration = Date.now() - start;
-      monitoring.trackApiCall(service, endpoint, duration, response.ok, {
+      monitoring.trackApiCall(service, normalizedEndpoint, duration, response.ok, {
         method,
         statusCode: response.status,
       });
@@ -244,14 +316,14 @@ class ApiClient {
         }
 
         monitoring.logError(service, `${response.status}: ${errorMessage}`, {
-          endpoint,
+          endpoint: normalizedEndpoint,
           method,
           statusCode: response.status,
         });
 
         // Enhance error message for better UX
         const enhancedError = ApiErrorHandler.enhanceError({
-          endpoint,
+          endpoint: normalizedEndpoint,
           method,
           statusCode: response.status,
           originalError: new Error(errorMessage),
@@ -259,9 +331,9 @@ class ApiClient {
         throw enhancedError;
       }
 
-      const payload = await this.parseJsonSafely<TResponse>(response, service, endpoint);
+      const payload = await this.parseJsonSafely<TResponse>(response, service, normalizedEndpoint);
 
-      this.invalidateRelatedCaches(endpoint, invalidateTargets);
+      this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
 
       return payload;
     } catch (error) {
@@ -275,12 +347,12 @@ class ApiClient {
       // Don't log or track abort errors (normal cancellation)
       if (!isAbortError) {
         const duration = Date.now() - start;
-        monitoring.trackApiCall(service, endpoint, duration, false, { method });
+        monitoring.trackApiCall(service, normalizedEndpoint, duration, false, { method });
         const errorPayload = error instanceof Error ? error : { message: 'Unknown error' };
         const statusCode =
           typeof (error as any)?.status === 'number' ? (error as any).status : undefined;
         monitoring.logError(service, errorPayload, {
-          endpoint,
+          endpoint: normalizedEndpoint,
           method,
           ...(statusCode ? { statusCode } : {}),
         });
@@ -303,7 +375,7 @@ class ApiClient {
         const errorStatusCode =
           typeof (error as any)?.status === 'number' ? (error as any).status : undefined;
         const enhancedError = ApiErrorHandler.enhanceError({
-          endpoint,
+          endpoint: normalizedEndpoint,
           method,
           statusCode: errorStatusCode,
           originalError: error,
