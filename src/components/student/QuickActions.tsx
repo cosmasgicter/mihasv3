@@ -7,7 +7,6 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
 import { 
   Plus, 
   FileText, 
@@ -20,6 +19,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
+import { animateClasses, staggerChild } from '@/lib/animations';
 
 interface QuickActionsProps {
   hasDrafts: boolean;
@@ -51,8 +51,6 @@ function ActionCard({
   disabled = false,
   loading = false,
 }: ActionCardProps) {
-  const prefersReducedMotion = useReducedMotion();
-
   const variantStyles = {
     primary: 'border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50',
     warning: 'border-warning/30 bg-warning/5 hover:bg-warning/10 hover:border-warning/50',
@@ -95,14 +93,10 @@ function ActionCard({
     </div>
   );
 
-  const wrappedContent = prefersReducedMotion ? content : (
-    <motion.div
-      whileHover={disabled ? undefined : { scale: 1.02 }}
-      whileTap={disabled ? undefined : { scale: 0.98 }}
-      transition={{ duration: 0.15 }}
-    >
+  const wrappedContent = (
+    <div className="hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150">
       {content}
-    </motion.div>
+    </div>
   );
 
   if (href && !disabled) {
@@ -132,26 +126,7 @@ export function QuickActions({
   isClearingDrafts = false,
   className,
 }: QuickActionsProps) {
-  const prefersReducedMotion = useReducedMotion();
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: prefersReducedMotion ? 0 : 0.05,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, x: prefersReducedMotion ? 0 : -10 },
-    visible: { 
-      opacity: 1, 
-      x: 0,
-      transition: { duration: prefersReducedMotion ? 0 : 0.2 }
-    },
-  };
+  let itemIndex = 0;
 
   return (
     <Card className={cn('border-border/50', className)}>
@@ -165,14 +140,9 @@ export function QuickActions({
         </p>
       </CardHeader>
       <CardContent>
-        <motion.div
-          className="space-y-2"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
+        <div className="space-y-2">
           {/* Primary action - Continue draft or Start new */}
-          <motion.div variants={itemVariants}>
+          <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
             {hasDrafts ? (
               <ActionCard
                 icon={<FileText className="h-5 w-5" />}
@@ -190,11 +160,11 @@ export function QuickActions({
                 variant="primary"
               />
             )}
-          </motion.div>
+          </div>
 
           {/* Pending payment action */}
           {hasPendingPayment && (
-            <motion.div variants={itemVariants}>
+            <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
               <ActionCard
                 icon={<CreditCard className="h-5 w-5" />}
                 title="Complete Payment"
@@ -202,12 +172,12 @@ export function QuickActions({
                 href="/student/payment"
                 variant="warning"
               />
-            </motion.div>
+            </div>
           )}
 
           {/* Interview action */}
           {hasScheduledInterview && (
-            <motion.div variants={itemVariants}>
+            <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
               <ActionCard
                 icon={<Calendar className="h-5 w-5" />}
                 title="View Interview Details"
@@ -215,11 +185,11 @@ export function QuickActions({
                 href="/student/interview"
                 variant="success"
               />
-            </motion.div>
+            </div>
           )}
 
           {/* Profile settings */}
-          <motion.div variants={itemVariants}>
+          <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
             <ActionCard
               icon={<User className="h-5 w-5" />}
               title="Profile Settings"
@@ -227,11 +197,11 @@ export function QuickActions({
               href="/settings"
               variant="neutral"
             />
-          </motion.div>
+          </div>
 
           {/* Clear drafts action */}
           {hasDrafts && onClearAllDrafts && (
-            <motion.div variants={itemVariants}>
+            <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
               <ActionCard
                 icon={<X className="h-5 w-5" />}
                 title="Clear All Drafts"
@@ -241,9 +211,9 @@ export function QuickActions({
                 loading={isClearingDrafts}
                 disabled={isClearingDrafts}
               />
-            </motion.div>
+            </div>
           )}
-        </motion.div>
+        </div>
       </CardContent>
     </Card>
   );

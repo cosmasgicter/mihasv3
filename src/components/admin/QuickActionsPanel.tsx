@@ -1,5 +1,5 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { staggerChild, animateClasses } from '@/lib/animations'
 import { Link } from 'react-router-dom'
 import { 
   FileText, 
@@ -90,10 +90,9 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
   return (
     <div className="space-y-6">
       {/* Primary Actions */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-2xl shadow-lg border border-border"
+      <div 
+        className={`${animateClasses.slideUp} opacity-0 bg-card rounded-2xl shadow-lg border border-border`}
+        style={staggerChild(0)}
       >
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-bold text-gray-900"><Zap className="w-5 h-5" /> Quick Actions</h3>
@@ -106,13 +105,9 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
               const Icon = action.icon
               return (
                 <Link key={action.title} to={action.href}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="group relative"
+                  <div
+                    className={`${animateClasses.slideUp} opacity-0 group relative hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150`}
+                    style={staggerChild(index)}
                   >
                     <Button 
                       className={`w-full h-24 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r ${action.color} hover:shadow-xl transition-all duration-300 relative overflow-hidden`}
@@ -130,20 +125,18 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                         </span>
                       )}
                     </Button>
-                  </motion.div>
+                  </div>
                 </Link>
               )
             })}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* System Tools */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-card rounded-2xl shadow-lg border border-border"
+      <div 
+        className={`${animateClasses.slideUp} opacity-0 bg-card rounded-2xl shadow-lg border border-border`}
+        style={staggerChild(2)}
       >
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-bold text-gray-900">🛠️ System Tools</h3>
@@ -154,12 +147,9 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
             const Icon = action.icon
             return (
               <Link key={action.title} to={action.href}>
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <div
+                  className={`${animateClasses.fadeIn} opacity-0 hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150`}
+                  style={staggerChild(index)}
                 >
                   <Button 
                     variant="outline" 
@@ -171,18 +161,15 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                       <div className="text-xs text-gray-900">{action.description}</div>
                     </div>
                   </Button>
-                </motion.div>
+                </div>
               </Link>
             )
           })}
           
           {/* Quick Export */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <div
+            className={`${animateClasses.fadeIn} opacity-0 hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150`}
+            style={staggerChild(4)}
           >
             <Button 
               variant="outline" 
@@ -197,16 +184,14 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                 <div className="text-xs text-gray-900">Download reports</div>
               </div>
             </Button>
-          </motion.div>
+          </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Quick Stats */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-primary/30"
+      <div 
+        className={`${animateClasses.slideUp} opacity-0 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-primary/30`}
+        style={staggerChild(4)}
       >
         <h3 className="text-lg font-bold text-gray-900 mb-4"><BarChart3 className="w-5 h-5" /> Quick Stats</h3>
         <div className="grid grid-cols-2 gap-4">
@@ -219,7 +204,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
             <div className="text-sm text-gray-900">Programs</div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }

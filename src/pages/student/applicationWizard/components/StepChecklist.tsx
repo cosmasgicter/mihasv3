@@ -1,5 +1,5 @@
 import { CheckCircle, Circle } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { animateClasses, staggerChild } from '@/lib/animations'
 
 interface ChecklistItem {
   label: string
@@ -16,10 +16,8 @@ export const StepChecklist = ({ items, title = 'Step Checklist' }: StepChecklist
   const allCompleted = completedCount === items.length
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-lg p-4"
+    <div
+      className={`bg-card border border-border rounded-lg p-4 ${animateClasses.slideUp}`}
     >
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
@@ -29,12 +27,10 @@ export const StepChecklist = ({ items, title = 'Step Checklist' }: StepChecklist
       </div>
       <div className="space-y-2">
         {items.map((item, index) => (
-          <motion.div
+          <div
             key={index}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 ${animateClasses.fadeIn}`}
+            style={staggerChild(index)}
           >
             {item.completed ? (
               <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
@@ -44,10 +40,10 @@ export const StepChecklist = ({ items, title = 'Step Checklist' }: StepChecklist
             <span className={`text-sm ${item.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
               {item.label}
             </span>
-          </motion.div>
+          </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   )
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { staggerChild, animateClasses } from '@/lib/animations'
 import { Search, FileText, Users, GraduationCap, Calendar, ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -132,27 +132,21 @@ export function AdminSearchBar() {
         />
       </div>
 
-      <AnimatePresence>
-        {isOpen && results.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-card rounded-lg shadow-xl border border-border z-50 max-h-80 overflow-y-auto"
+      {isOpen && results.length > 0 && (
+          <div
+            className="absolute top-full left-0 right-0 mt-2 bg-card rounded-lg shadow-xl border border-border z-50 max-h-80 overflow-y-auto animate-fade-in"
           >
             <div className="p-2">
               {results.map((result, index) => (
-                <motion.div
+                <div
                   key={result.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  onClick={() => handleResultClick(result)}
-                  className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                  className={`${animateClasses.fadeIn} opacity-0 flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
                     selectedIndex === index
                       ? 'bg-primary text-white'
                       : 'hover:bg-muted'
                   }`}
+                  style={staggerChild(index)}
+                  onClick={() => handleResultClick(result)}
                 >
                   {getIcon(result.type)}
                   <div className="flex-1 min-w-0">
@@ -170,7 +164,7 @@ export function AdminSearchBar() {
                   <ArrowRight className={`h-4 w-4 ${
                     selectedIndex === index ? 'text-white' : 'text-foreground'
                   }`} />
-                </motion.div>
+                </div>
               ))}
             </div>
             
@@ -180,9 +174,8 @@ export function AdminSearchBar() {
                 <p className="text-sm">No results found for "{query}"</p>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   )
 }

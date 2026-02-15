@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
-import { motion } from 'framer-motion'
 import { BarChart3, Clock, TrendingUp, AlertCircle } from 'lucide-react'
 import { applicationsApi } from '@/lib/apiClient'
+import { animateClasses } from '@/lib/animations'
 
 interface AnalyticsStats {
   total_drafts: number
@@ -66,10 +66,8 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
     : 0
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-lg p-4 space-y-3"
+    <div
+      className={`bg-card border border-border rounded-lg p-4 space-y-3 ${animateClasses.slideUp}`}
     >
       <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
         <BarChart3 className="h-4 w-4" />
@@ -111,6 +109,6 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
           </p>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }

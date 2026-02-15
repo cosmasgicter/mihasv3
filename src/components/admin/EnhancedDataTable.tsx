@@ -14,7 +14,6 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   ChevronUp,
   ChevronDown,
@@ -94,7 +93,7 @@ function TablePagination({
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
 }) {
-  const prefersReducedMotion = useReducedMotion();
+  
   const startItem = (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
@@ -150,9 +149,7 @@ function TablePagination({
 
       {/* Page navigation */}
       <div className="flex items-center gap-1">
-        <motion.button
-          whileHover={!prefersReducedMotion ? { scale: 1.05 } : undefined}
-          whileTap={!prefersReducedMotion ? { scale: 0.95 } : undefined}
+        <button
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
           className={cn(
@@ -164,11 +161,9 @@ function TablePagination({
           aria-label="First page"
         >
           <ChevronsLeft className="h-4 w-4" />
-        </motion.button>
+        </button>
 
-        <motion.button
-          whileHover={!prefersReducedMotion ? { scale: 1.05 } : undefined}
-          whileTap={!prefersReducedMotion ? { scale: 0.95 } : undefined}
+        <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={cn(
@@ -180,7 +175,7 @@ function TablePagination({
           aria-label="Previous page"
         >
           <ChevronLeft className="h-4 w-4" />
-        </motion.button>
+        </button>
 
         <div className="flex items-center gap-1 mx-2">
           {getPageNumbers().map((page, index) =>
@@ -189,10 +184,8 @@ function TablePagination({
                 ...
               </span>
             ) : (
-              <motion.button
+              <button
                 key={page}
-                whileHover={!prefersReducedMotion ? { scale: 1.05 } : undefined}
-                whileTap={!prefersReducedMotion ? { scale: 0.95 } : undefined}
                 onClick={() => onPageChange(page)}
                 className={cn(
                   'min-w-[32px] h-8 px-2 rounded-md text-sm font-medium transition-colors',
@@ -202,14 +195,12 @@ function TablePagination({
                 )}
               >
                 {page}
-              </motion.button>
+              </button>
             )
           )}
         </div>
 
-        <motion.button
-          whileHover={!prefersReducedMotion ? { scale: 1.05 } : undefined}
-          whileTap={!prefersReducedMotion ? { scale: 0.95 } : undefined}
+        <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           className={cn(
@@ -221,11 +212,9 @@ function TablePagination({
           aria-label="Next page"
         >
           <ChevronRight className="h-4 w-4" />
-        </motion.button>
+        </button>
 
-        <motion.button
-          whileHover={!prefersReducedMotion ? { scale: 1.05 } : undefined}
-          whileTap={!prefersReducedMotion ? { scale: 0.95 } : undefined}
+        <button
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
           className={cn(
@@ -237,7 +226,7 @@ function TablePagination({
           aria-label="Last page"
         >
           <ChevronsRight className="h-4 w-4" />
-        </motion.button>
+        </button>
       </div>
     </div>
   );
@@ -308,7 +297,7 @@ export function EnhancedDataTable<T extends Record<string, any>>({
   compact = false,
   striped = false,
 }: EnhancedDataTableProps<T>) {
-  const prefersReducedMotion = useReducedMotion();
+  
   
   // State
   const [currentPage, setCurrentPage] = useState(1);
@@ -517,16 +506,10 @@ export function EnhancedDataTable<T extends Record<string, any>>({
             </tr>
           </thead>
           <tbody>
-            <AnimatePresence mode="popLayout">
+            
               {paginatedData.length > 0 ? (
                 paginatedData.map((row, index) => (
-                  <motion.tr
-                    key={String(row[keyField])}
-                    initial={!prefersReducedMotion ? { opacity: 0, y: 10 } : false}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={!prefersReducedMotion ? { opacity: 0, y: -10 } : undefined}
-                    transition={{ duration: 0.2, delay: index * 0.02 }}
-                    className={cn(
+                  <tr className={cn(
                       'border-b border-border transition-colors',
                       striped && index % 2 === 1 && 'bg-muted/30',
                       onRowClick && 'cursor-pointer',
@@ -562,7 +545,7 @@ export function EnhancedDataTable<T extends Record<string, any>>({
                         {rowActions(row)}
                       </td>
                     )}
-                  </motion.tr>
+                  </tr>
                 ))
               ) : (
                 <tr>
@@ -577,7 +560,7 @@ export function EnhancedDataTable<T extends Record<string, any>>({
                   </td>
                 </tr>
               )}
-            </AnimatePresence>
+            
           </tbody>
         </table>
       </div>

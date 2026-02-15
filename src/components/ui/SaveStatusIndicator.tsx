@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { 
   CheckCircle, 
   AlertCircle, 
@@ -110,48 +109,41 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={status}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ duration: 0.2 }}
-          className="flex items-center gap-2"
-        >
-          {getStatusIcon()}
+      <div
+        className="flex items-center gap-2 transition-all duration-200"
+      >
+        {getStatusIcon()}
+        
+        <div className="flex flex-col">
+          <span className={`text-sm font-medium ${getStatusColor()}`}>
+            {getStatusText()}
+          </span>
           
-          <div className="flex flex-col">
-            <span className={`text-sm font-medium ${getStatusColor()}`}>
-              {getStatusText()}
-            </span>
+          {/* Additional status information */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {lastSaved && status === 'saved' && (
+              <span>{formatLastSaved()}</span>
+            )}
             
-            {/* Additional status information */}
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {lastSaved && status === 'saved' && (
-                <span>{formatLastSaved()}</span>
-              )}
-              
-              {timeUntilNextSave && status !== 'saving' && (
-                <span>Next save in {timeUntilNextSave}</span>
-              )}
-              
-              {saveQueue > 0 && (
-                <span className="text-warning">
-                  {saveQueue} queued
-                </span>
-              )}
-              
-              {!isOnline && (
-                <div className="flex items-center gap-1">
-                  <WifiOff className="h-3 w-3" />
-                  <span>Offline</span>
-                </div>
-              )}
-            </div>
+            {timeUntilNextSave && status !== 'saving' && (
+              <span>Next save in {timeUntilNextSave}</span>
+            )}
+            
+            {saveQueue > 0 && (
+              <span className="text-warning">
+                {saveQueue} queued
+              </span>
+            )}
+            
+            {!isOnline && (
+              <div className="flex items-center gap-1">
+                <WifiOff className="h-3 w-3" />
+                <span>Offline</span>
+              </div>
+            )}
           </div>
-        </motion.div>
-      </AnimatePresence>
+        </div>
+      </div>
 
       {/* Action buttons */}
       <div className="flex items-center gap-1">
@@ -191,13 +183,11 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
 
       {/* Error details tooltip */}
       {saveError && status === 'error' && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute top-full left-0 mt-1 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive max-w-xs z-10"
+        <div
+          className="absolute top-full left-0 mt-1 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive max-w-xs z-10 animate-fade-in"
         >
           {saveError}
-        </motion.div>
+        </div>
       )}
     </div>
   )
@@ -232,28 +222,21 @@ export const CompactSaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
 
   return (
     <div className={`flex items-center gap-1 ${className}`}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={status}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ duration: 0.2 }}
-          className="flex items-center gap-1"
-        >
-          {getStatusIcon()}
-          
-          {saveQueue > 0 && (
-            <span className="text-xs text-warning font-medium">
-              {saveQueue}
-            </span>
-          )}
-          
-          {!isOnline && (
-            <WifiOff className="h-3 w-3 text-muted-foreground" />
-          )}
-        </motion.div>
-      </AnimatePresence>
+      <div
+        className="flex items-center gap-1 transition-all duration-200"
+      >
+        {getStatusIcon()}
+        
+        {saveQueue > 0 && (
+          <span className="text-xs text-warning font-medium">
+            {saveQueue}
+          </span>
+        )}
+        
+        {!isOnline && (
+          <WifiOff className="h-3 w-3 text-muted-foreground" />
+        )}
+      </div>
 
       {status === 'error' && onForceSave && (
         <Button

@@ -1,8 +1,8 @@
-import { motion } from 'framer-motion'
 import { CheckCircle, Download, Mail, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { animateClasses } from '@/lib/animations'
 
 import type { SubmittedApplicationSummary } from '../hooks/useApplicationSlip'
 
@@ -70,24 +70,18 @@ const SubmissionSuccess = ({
 }: SubmissionSuccessProps) => (
   <div className="min-h-screen bg-muted flex items-center justify-center py-6 sm:py-12 px-4">
     <div className="max-w-lg w-full">
-      <motion.div
-        className="bg-card rounded-lg shadow-lg p-4 sm:p-8 text-center"
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
+      <div
+        className={`bg-card rounded-lg shadow-lg p-4 sm:p-8 text-center ${animateClasses.scaleIn}`}
       >
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}>
+        <div className={animateClasses.scaleIn}>
           <CheckCircle className="h-16 w-16 text-accent mx-auto mb-6" />
-        </motion.div>
+        </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Application Submitted Successfully!</h2>
 
 
 
-        <motion.div
-          className="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+        <div
+          className={`bg-accent/10 border border-accent/30 rounded-lg p-4 mb-6 ${animateClasses.slideUp}`}
         >
           <h3 className="font-semibold text-accent-foreground mb-3">Application Details</h3>
           <div className="space-y-2 text-sm">
@@ -120,7 +114,7 @@ const SubmissionSuccess = ({
             </div>
             <p className="text-left text-xs text-warning-strong">{getPaymentStatusDescription(submittedApplication.paymentStatus)}</p>
           </div>
-        </motion.div>
+        </div>
 
         <p className="text-gray-900 mb-6">
           Your application is now under review. You'll receive notifications about status updates.
@@ -145,7 +139,7 @@ const SubmissionSuccess = ({
             <Button variant="outline" className="w-full">Track Application Status</Button>
           </Link>
         </div>
-      </motion.div>
+      </div>
     </div>
   </div>
 )

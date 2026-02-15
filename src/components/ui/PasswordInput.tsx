@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
 
 export interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string
@@ -58,24 +57,19 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             )}
           </button>
           {isFocused && (
-            <motion.div
-              className="absolute inset-0 rounded-lg border-2 border-ring pointer-events-none"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
+              className="absolute inset-0 rounded-lg border-2 border-ring pointer-events-none transition-opacity duration-200 opacity-100"
             />
           )}
         </div>
         {error && (
-          <motion.p
+          <p
             id={`${props.id}-error`}
-            className="mt-1.5 text-sm text-destructive"
+            className="mt-1.5 text-sm text-destructive animate-fade-in"
             role="alert"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
           >
             {error}
-          </motion.p>
+          </p>
         )}
         {helperText && !error && (
           <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-caption">

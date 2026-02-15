@@ -1,9 +1,10 @@
 // @ts-nocheck
 /**
- * SignUpPage - Enhanced sign-up page with SmoothUI animations
- * Uses animated input components with inline validation
+ * SignUpPage - Enhanced sign-up page with CSS animations
+ * Uses Tailwind animation classes and shared animation utilities
  * 
- * @requirements 3.4, 3.5 - SmoothUI animated inputs with inline validation
+ * @requirements 1.2 - CSS transitions/Tailwind instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior using CSS equivalents
  */
 
 import { useState, useCallback } from 'react';
@@ -11,7 +12,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { authApi } from '@/lib/apiClient';
 import { Button } from '@/components/ui/Button';
@@ -22,7 +22,7 @@ import { Turnstile } from '@/components/ui/Turnstile';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { NotificationService } from '@/lib/notificationService';
-import { durations } from '@/lib/animation-config';
+import { staggerChild, animateClasses } from '@/lib/animations';
 import { 
   Loader2,
   AlertCircle, 
@@ -70,7 +70,6 @@ export default function SignUpPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [emailChecking, setEmailChecking] = useState(false);
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
-  const prefersReducedMotion = useReducedMotion();
 
   const {
     register,
@@ -185,33 +184,6 @@ export default function SignUpPage() {
     }
   };
 
-  // Animation variants
-  const sectionVariants = {
-    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: prefersReducedMotion ? 0 : i * 0.1,
-        duration: prefersReducedMotion ? 0 : durations.normal,
-      },
-    }),
-  };
-
-  const errorVariants = {
-    hidden: { opacity: 0, height: 0 },
-    visible: { 
-      opacity: 1, 
-      height: 'auto',
-      transition: { duration: prefersReducedMotion ? 0 : durations.normal },
-    },
-    exit: { 
-      opacity: 0, 
-      height: 0,
-      transition: { duration: prefersReducedMotion ? 0 : durations.fast },
-    },
-  };
-
   // Success state
   if (success) {
     return (
@@ -221,25 +193,10 @@ export default function SignUpPage() {
           title="Account created successfully!"
           description={success}
         >
-          <motion.div 
-            className="space-y-6 text-center"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: prefersReducedMotion ? 0 : durations.normal }}
-          >
-            <motion.div 
-              className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ 
-                type: 'spring', 
-                stiffness: 200, 
-                damping: 15,
-                delay: prefersReducedMotion ? 0 : 0.2,
-              }}
-            >
+          <div className={`space-y-6 text-center ${animateClasses.scaleIn}`}>
+            <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 ${animateClasses.scaleIn}`}>
               <CheckCircle className="h-8 w-8" />
-            </motion.div>
+            </div>
             <p className="text-sm text-muted-foreground">Redirecting to your dashboard...</p>
             <div className="space-y-3">
               <Link to="/student/dashboard" className="block">
@@ -248,7 +205,7 @@ export default function SignUpPage() {
                 </Button>
               </Link>
             </div>
-          </motion.div>
+          </div>
         </AuthLayout>
       </>
     );
@@ -273,12 +230,9 @@ export default function SignUpPage() {
       >
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {/* Personal Information Section */}
-          <motion.div
-            custom={0}
-            variants={sectionVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-4"
+          <div
+            className={`space-y-4 ${animateClasses.slideUp}`}
+            style={staggerChild(0, 100)}
           >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
@@ -303,62 +257,39 @@ export default function SignUpPage() {
                 />
 
                 {/* Email Status Indicator */}
-                <AnimatePresence mode="wait">
-                  {emailChecking && (
-                    <motion.div
-                      key="checking"
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="mt-2 flex items-center gap-2 text-sm text-blue-600"
-                    >
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="font-medium">Checking availability...</span>
-                    </motion.div>
-                  )}
+                {emailChecking && (
+                  <div className={`mt-2 flex items-center gap-2 text-sm text-blue-600 ${animateClasses.fadeIn}`}>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="font-medium">Checking availability...</span>
+                  </div>
+                )}
 
-                  {!emailChecking && emailAvailable === true && (
-                    <motion.div
-                      key="available"
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="mt-2 flex items-center gap-2 text-sm text-green-600"
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="font-medium">Email available</span>
-                    </motion.div>
-                  )}
+                {!emailChecking && emailAvailable === true && (
+                  <div className={`mt-2 flex items-center gap-2 text-sm text-green-600 ${animateClasses.fadeIn}`}>
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="font-medium">Email available</span>
+                  </div>
+                )}
 
-                  {!emailChecking && emailAvailable === false && (
-                    <motion.div
-                      key="unavailable"
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="mt-2 flex items-center gap-2 text-sm text-red-600"
-                    >
-                      <XCircle className="h-4 w-4" />
-                      <span className="font-medium">
-                        Already registered.{' '}
-                        <Link to="/auth/signin" className="underline hover:text-red-700">
-                          Sign in
-                        </Link>
-                      </span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {!emailChecking && emailAvailable === false && (
+                  <div className={`mt-2 flex items-center gap-2 text-sm text-red-600 ${animateClasses.fadeIn}`}>
+                    <XCircle className="h-4 w-4" />
+                    <span className="font-medium">
+                      Already registered.{' '}
+                      <Link to="/auth/signin" className="underline hover:text-red-700">
+                        Sign in
+                      </Link>
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Password Section */}
-          <motion.div
-            custom={1}
-            variants={sectionVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+          <div
+            className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${animateClasses.slideUp}`}
+            style={staggerChild(1, 100)}
           >
             <PasswordInput
               {...register('password')}
@@ -378,15 +309,12 @@ export default function SignUpPage() {
               disabled={loading}
               required
             />
-          </motion.div>
+          </div>
 
           {/* Contact Information */}
-          <motion.div
-            custom={2}
-            variants={sectionVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+          <div
+            className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${animateClasses.slideUp}`}
+            style={staggerChild(2, 100)}
           >
             <Input
               {...register('phone')}
@@ -403,15 +331,12 @@ export default function SignUpPage() {
               error={errors.date_of_birth?.message}
               required
             />
-          </motion.div>
+          </div>
 
           {/* Demographics */}
-          <motion.div
-            custom={3}
-            variants={sectionVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+          <div
+            className={`grid grid-cols-1 gap-4 sm:grid-cols-3 ${animateClasses.slideUp}`}
+            style={staggerChild(3, 100)}
           >
             <FormSelect
               name="sex"
@@ -446,15 +371,12 @@ export default function SignUpPage() {
               disabled={loading}
               required
             />
-          </motion.div>
+          </div>
 
           {/* Next of Kin Section */}
-          <motion.div
-            custom={4}
-            variants={sectionVariants}
-            initial="hidden"
-            animate="visible"
-            className="rounded-xl border border-border bg-muted/30 p-5"
+          <div
+            className={`rounded-xl border border-border bg-muted/30 p-5 ${animateClasses.slideUp}`}
+            style={staggerChild(4, 100)}
           >
             <div className="flex items-center gap-2 mb-4">
               <Users className="h-5 w-5 text-muted-foreground" />
@@ -480,16 +402,13 @@ export default function SignUpPage() {
                 required
               />
             </div>
-          </motion.div>
+          </div>
 
           {/* Turnstile Verification */}
           {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
-            <motion.div
-              custom={5}
-              variants={sectionVariants}
-              initial="hidden"
-              animate="visible"
-              className="rounded-xl border border-border bg-muted/30 p-5"
+            <div
+              className={`rounded-xl border border-border bg-muted/30 p-5 ${animateClasses.slideUp}`}
+              style={staggerChild(5, 100)}
             >
               <h3 className="text-base font-semibold text-foreground mb-2">Security Verification</h3>
               <p className="text-sm text-muted-foreground mb-4">
@@ -504,34 +423,23 @@ export default function SignUpPage() {
                   onExpire={handleTurnstileExpire}
                 />
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* Error Message */}
-          <AnimatePresence mode="wait">
-            {error && (
-              <motion.div
-                key="error"
-                variants={errorVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="overflow-hidden"
-              >
-                <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 shadow-sm">
-                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                  <div className="text-sm font-medium text-destructive">{error}</div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {error && (
+            <div className={`overflow-hidden ${animateClasses.fadeIn}`}>
+              <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 shadow-sm">
+                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                <div className="text-sm font-medium text-destructive">{error}</div>
+              </div>
+            </div>
+          )}
 
           {/* Submit Button */}
-          <motion.div
-            custom={6}
-            variants={sectionVariants}
-            initial="hidden"
-            animate="visible"
+          <div
+            className={animateClasses.slideUp}
+            style={staggerChild(6, 100)}
           >
             <Button
               type="submit"
@@ -543,15 +451,12 @@ export default function SignUpPage() {
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
-          </motion.div>
+          </div>
 
           {/* Terms */}
-          <motion.p
-            custom={7}
-            variants={sectionVariants}
-            initial="hidden"
-            animate="visible"
-            className="text-center text-xs text-muted-foreground"
+          <p
+            className={`text-center text-xs text-muted-foreground ${animateClasses.fadeIn}`}
+            style={staggerChild(7, 100)}
           >
             By creating an account, you agree to our{' '}
             <Link to="/terms" className="text-primary hover:underline">
@@ -561,7 +466,7 @@ export default function SignUpPage() {
             <Link to="/privacy" className="text-primary hover:underline">
               Privacy Policy
             </Link>
-          </motion.p>
+          </p>
         </form>
       </AuthLayout>
     </>

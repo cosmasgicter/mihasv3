@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion'
 import { FileText, User, GraduationCap, CreditCard } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
+import { animateClasses } from '@/lib/animations'
 import type { ApplicationFormData } from '../types'
 
 interface ApplicationPreviewProps {
@@ -13,10 +13,8 @@ export const ApplicationPreview = ({ form, programName, intakeName }: Applicatio
   const values = form.watch()
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-lg p-4 space-y-4"
+    <div
+      className={`bg-card border border-border rounded-lg p-4 space-y-4 ${animateClasses.slideUp}`}
     >
       <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
         <FileText className="h-4 w-4" />
@@ -55,7 +53,7 @@ export const ApplicationPreview = ({ form, programName, intakeName }: Applicatio
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 

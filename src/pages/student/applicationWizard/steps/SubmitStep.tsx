@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion'
 import type { UseFormReturn } from 'react-hook-form'
 
+import { animateClasses } from '@/lib/animations'
 import type { EligibilityResult } from '@/lib/eligibility'
 
 import type { Grade12Subject, SubjectGrade, WizardFormData } from '../types'
@@ -51,13 +51,9 @@ const SubmitStep = ({
   const institutionLabel = selectedInstitutionLabel?.trim() || ''
 
   return (
-    <motion.div
+    <div
       key="step4"
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-border"
+      className={`bg-card rounded-lg shadow-lg p-6 border border-border ${animateClasses.fadeIn}`}
       data-testid="submit-step"
     >
       <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
@@ -171,7 +167,7 @@ const SubmitStep = ({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }
 

@@ -1,5 +1,4 @@
-import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { 
   Search, 
@@ -76,10 +75,8 @@ export function ApplicationsFilters({
         <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
           <h2 className="text-lg sm:text-xl font-bold text-gray-900"><Search className="w-5 h-5" /> Search & Filter</h2>
           {selectedCount > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center space-x-2"
+            <div 
+              className="flex items-center space-x-2 animate-scale-in"
             >
               <span className="text-sm text-secondary font-medium">
                 {selectedCount} selected
@@ -93,7 +90,7 @@ export function ApplicationsFilters({
                 <Settings className="h-4 w-4 sm:mr-1" />
                 <span className="hidden sm:inline">Bulk Actions</span>
               </Button>
-            </motion.div>
+            </div>
           )}
         </div>
         
@@ -187,13 +184,9 @@ export function ApplicationsFilters({
       </div>
       
       {/* Advanced Filters */}
-      <AnimatePresence>
         {showAdvancedFilters && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-primary/30 rounded-xl p-6"
+          <div
+            className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-primary/30 rounded-xl p-6 animate-slide-up"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900"><Target className="w-5 h-5" /> Advanced Filters</h3>
@@ -273,9 +266,8 @@ export function ApplicationsFilters({
                 </select>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   )
 }

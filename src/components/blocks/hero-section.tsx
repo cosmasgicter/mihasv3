@@ -5,7 +5,6 @@
  * @requirements 8.4, 8.5 - ShadcnBlocks page sections with design tokens
  */
 
-import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { ScrollReveal } from '@/components/smoothui';
@@ -67,30 +66,9 @@ export function HeroSection({
   className,
   children,
 }: HeroSectionProps) {
-  const prefersReducedMotion = useReducedMotion();
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: prefersReducedMotion ? 0 : 0.15,
-        delayChildren: prefersReducedMotion ? 0 : 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: prefersReducedMotion ? 0 : 0.6,
-        ease: [0.4, 0, 0.2, 1],
-      },
-    },
-  };
+  const prefersReducedMotion = typeof window !== 'undefined' 
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
+    : false;
 
   return (
     <section
@@ -108,51 +86,47 @@ export function HeroSection({
       )}
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className={cn('flex flex-col max-w-4xl mx-auto', alignmentConfig[alignment])}
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+        <div
+          className={cn('flex flex-col max-w-4xl mx-auto animate-fade-in', alignmentConfig[alignment])}
         >
           {/* Subtitle/Badge */}
           {subtitle && (
-            <motion.div variants={itemVariants}>
+            <div>
               <span className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium bg-primary/10 text-primary mb-6">
                 {subtitle}
               </span>
-            </motion.div>
+            </div>
           )}
 
           {/* Title */}
-          <motion.h1
-            variants={itemVariants}
+          <h1
             className={cn(
               'text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground',
-              'leading-tight'
+              'leading-tight animate-slide-up'
             )}
           >
             {title}
-          </motion.h1>
+          </h1>
 
           {/* Description */}
           {description && (
-            <motion.p
-              variants={itemVariants}
-              className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl"
+            <p
+              className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl animate-slide-up"
+              style={{ animationDelay: '150ms', animationFillMode: 'forwards', opacity: 0 }}
             >
               {description}
-            </motion.p>
+            </p>
           )}
 
           {/* CTAs */}
           {(primaryCTA || secondaryCTA) && (
-            <motion.div
-              variants={itemVariants}
+            <div
               className={cn(
-                'mt-8 flex flex-col sm:flex-row gap-4',
+                'mt-8 flex flex-col sm:flex-row gap-4 animate-slide-up',
                 alignment === 'center' && 'justify-center',
                 alignment === 'right' && 'justify-end'
               )}
+              style={{ animationDelay: '300ms', animationFillMode: 'forwards', opacity: 0 }}
             >
               {primaryCTA && (
                 <Button
@@ -174,17 +148,17 @@ export function HeroSection({
                   {secondaryCTA.label}
                 </Button>
               )}
-            </motion.div>
+            </div>
           )}
 
           {/* Stats */}
           {stats && stats.length > 0 && (
-            <motion.div
-              variants={itemVariants}
+            <div
               className={cn(
-                'mt-12 grid grid-cols-2 sm:grid-cols-4 gap-8',
+                'mt-12 grid grid-cols-2 sm:grid-cols-4 gap-8 animate-fade-in',
                 alignment === 'center' && 'justify-items-center'
               )}
+              style={{ animationDelay: '450ms', animationFillMode: 'forwards', opacity: 0 }}
             >
               {stats.map((stat, index) => (
                 <div key={index} className="flex flex-col">
@@ -196,27 +170,28 @@ export function HeroSection({
                   </span>
                 </div>
               ))}
-            </motion.div>
+            </div>
           )}
 
           {/* Custom children */}
           {children && (
-            <motion.div variants={itemVariants} className="mt-8">
+            <div className="mt-8 animate-fade-in" style={{ animationDelay: '450ms', animationFillMode: 'forwards', opacity: 0 }}>
               {children}
-            </motion.div>
+            </div>
           )}
-        </motion.div>
+        </div>
       </div>
 
       {/* Scroll indicator */}
       {showScrollIndicator && (
-        <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          animate={prefersReducedMotion ? {} : { y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        <div
+          className={cn(
+            "absolute bottom-8 left-1/2 -translate-x-1/2",
+            !prefersReducedMotion && "animate-bounce"
+          )}
         >
           <ChevronDown className="h-8 w-8 text-muted-foreground" />
-        </motion.div>
+        </div>
       )}
     </section>
   );

@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   Activity,
   TrendingUp,
@@ -159,11 +158,7 @@ export function FixedAdminDashboard() {
     await loadDashboard({ silent: true, showRefreshing: true })
   }, [loadDashboard])
 
-  // Respect prefers-reduced-motion: when users request reduced motion we render
-  // static divs instead of animated motion.div wrappers to avoid continuous
-  // or entry animations. `MaybeMotion` is a small JSX wrapper used below.
-  const prefersReducedMotion = useReducedMotion()
-  const MaybeMotion: any = prefersReducedMotion ? (props: any) => <div {...props} /> : motion.div
+  // Use plain divs for performance - no framer-motion dependency needed
 
   if (loading) {
     return (
@@ -176,13 +171,9 @@ export function FixedAdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-destructive/5 border border-destructive/30 rounded-xl p-4 flex items-center space-x-3"
+      {error && (
+          <div
+            className="bg-destructive/5 border border-destructive/30 rounded-xl p-4 flex items-center space-x-3 animate-fade-in"
           >
             <AlertTriangle className="h-5 w-5 text-error" />
             <div>
@@ -197,15 +188,12 @@ export function FixedAdminDashboard() {
             >
               ×
             </Button>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MaybeMotion
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
+        <div
+          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden animate-fade-in"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -229,13 +217,10 @@ export function FixedAdminDashboard() {
               <span className="text-warning-strong">{formatCount(weekTotal)} this week</span>
             </div>
           </div>
-  </MaybeMotion>
+  </div>
 
-        <MaybeMotion
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
+        <div
+          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden animate-fade-in"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-orange-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -258,13 +243,10 @@ export function FixedAdminDashboard() {
               In review: {formatCount(inReviewCount)}
             </div>
           </div>
-  </MaybeMotion>
+  </div>
 
-        <MaybeMotion
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
+        <div
+          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden animate-fade-in"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-green-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -288,13 +270,10 @@ export function FixedAdminDashboard() {
               <span className="text-warning-strong">Approved: {formatCount(stats.approvedApplications)}</span>
             </div>
           </div>
-  </MaybeMotion>
+  </div>
 
-        <MaybeMotion
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
+        <div
+          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden animate-fade-in"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -318,14 +297,12 @@ export function FixedAdminDashboard() {
               <span className="text-warning-strong">Median: {formatHours(medianProcessingHours)}h</span>
             </div>
           </div>
-  </MaybeMotion>
+  </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        <MaybeMotion
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-card rounded-xl shadow-lg border border-border xl:col-span-2"
+        <div
+          className="bg-card rounded-xl shadow-lg border border-border xl:col-span-2 animate-fade-in"
         >
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-lg font-bold text-gray-900"><BarChart3 className="w-5 h-5" /> Status Distribution</h3>
@@ -362,12 +339,10 @@ export function FixedAdminDashboard() {
               </div>
             )}
           </div>
-  </MaybeMotion>
+  </div>
 
-        <MaybeMotion
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-card rounded-xl shadow-lg border border-border xl:col-span-2"
+        <div
+          className="bg-card rounded-xl shadow-lg border border-border xl:col-span-2 animate-fade-in"
         >
           <div className="px-6 py-4 border-b border-border">
             <h3 className="text-lg font-bold text-gray-900"><Zap className="w-5 h-5" /> Processing Performance</h3>
@@ -430,14 +405,12 @@ export function FixedAdminDashboard() {
               </div>
             </div>
           </div>
-  </MaybeMotion>
+  </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MaybeMotion
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-card rounded-xl shadow-lg border border-border"
+        <div
+          className="bg-card rounded-xl shadow-lg border border-border animate-fade-in"
         >
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-lg font-bold text-gray-900"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
@@ -466,19 +439,16 @@ export function FixedAdminDashboard() {
                           : 'bg-primary'
 
                 return (
-                  <MaybeMotion
+                  <div
                     key={activity.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="flex items-start space-x-3 p-3 bg-muted rounded-lg hover:bg-accent transition-colors"
+                    className="flex items-start space-x-3 p-3 bg-muted rounded-lg hover:bg-accent transition-colors animate-fade-in"
                   >
                     <div className={`w-2 h-2 rounded-full mt-2 ${accentColor}`}></div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{activity.message}</p>
                       <p className="text-xs text-gray-900">{formatTimestamp(activity.timestamp)}</p>
                     </div>
-                  </MaybeMotion>
+                  </div>
                 )
               })
             ) : (
@@ -488,12 +458,10 @@ export function FixedAdminDashboard() {
               </div>
             )}
           </div>
-  </MaybeMotion>
+  </div>
 
-        <MaybeMotion
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-card rounded-xl shadow-lg border border-border"
+        <div
+          className="bg-card rounded-xl shadow-lg border border-border animate-fade-in"
         >
           <div className="px-6 py-4 border-b border-border">
             <h3 className="text-lg font-bold text-gray-900">🛡️ System Health</h3>
@@ -573,7 +541,7 @@ export function FixedAdminDashboard() {
               </div>
             </div>
           </div>
-        </MaybeMotion>
+        </div>
       </div>
     </div>
   )

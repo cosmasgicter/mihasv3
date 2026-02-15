@@ -3,10 +3,14 @@
  * 
  * Displays comprehensive eligibility scoring with explanatory feedback
  * and improvement recommendations for students.
+ * Uses CSS transitions instead of framer-motion for performance.
+ * 
+ * @requirements 1.2 - CSS transitions instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior
  */
 
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { cn } from '@/lib/utils'
 import { 
   ChevronDown, 
   ChevronUp, 
@@ -117,7 +121,7 @@ export function DetailedScoreBreakdown({
         {/* Progress bar */}
         <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
           <div 
-            className={`h-2 rounded-full transition-all duration-500 ${
+            className={`h-2 rounded-full transition-all duration-500 motion-reduce:transition-none ${
               percentage >= 80 ? 'bg-green-500' :
               percentage >= 60 ? 'bg-yellow-500' :
               'bg-red-500'
@@ -232,74 +236,71 @@ export function DetailedScoreBreakdown({
           }
         </button>
         
-        <AnimatePresence>
-          {expandedSections.has('breakdown') && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="border-t"
-            >
-              <div className="p-4 space-y-4">
-                <ScoreComponent
-                  title="Subject Count Score"
-                  score={assessment.scoreBreakdown.subjectCountScore.score}
-                  maxScore={assessment.scoreBreakdown.subjectCountScore.maxScore}
-                  weight={assessment.scoreBreakdown.subjectCountScore.weight}
-                  explanation={assessment.scoreBreakdown.subjectCountScore.explanation}
-                  feedback={assessment.scoreBreakdown.subjectCountScore.feedback}
-                />
-                
-                <ScoreComponent
-                  title="Grade Average Score"
-                  score={assessment.scoreBreakdown.gradeAverageScore.score}
-                  maxScore={assessment.scoreBreakdown.gradeAverageScore.maxScore}
-                  weight={assessment.scoreBreakdown.gradeAverageScore.weight}
-                  explanation={assessment.scoreBreakdown.gradeAverageScore.explanation}
-                  feedback={assessment.scoreBreakdown.gradeAverageScore.feedback}
-                />
-                
-                <ScoreComponent
-                  title="Core Subjects Score"
-                  score={assessment.scoreBreakdown.coreSubjectsScore.score}
-                  maxScore={assessment.scoreBreakdown.coreSubjectsScore.maxScore}
-                  weight={assessment.scoreBreakdown.coreSubjectsScore.weight}
-                  explanation={assessment.scoreBreakdown.coreSubjectsScore.explanation}
-                  feedback={assessment.scoreBreakdown.coreSubjectsScore.feedback}
-                />
-                
-                <ScoreComponent
-                  title="Regulatory Compliance Score"
-                  score={assessment.scoreBreakdown.regulatoryComplianceScore.score}
-                  maxScore={assessment.scoreBreakdown.regulatoryComplianceScore.maxScore}
-                  weight={assessment.scoreBreakdown.regulatoryComplianceScore.weight}
-                  explanation={assessment.scoreBreakdown.regulatoryComplianceScore.explanation}
-                  feedback={assessment.scoreBreakdown.regulatoryComplianceScore.feedback}
-                />
-                
-                {/* Summary */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-900 mb-2">Score Summary</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-blue-700">Total Weighted Score:</span>
-                      <span className="font-medium ml-2">
-                        {assessment.scoreBreakdown.totalWeightedScore.toFixed(1)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-blue-700">Max Possible Score:</span>
-                      <span className="font-medium ml-2">
-                        {assessment.scoreBreakdown.maxPossibleScore.toFixed(1)}
-                      </span>
-                    </div>
-                  </div>
+        <div
+          className={cn(
+            'overflow-hidden transition-all duration-300 ease-out motion-reduce:transition-none',
+            expandedSections.has('breakdown') ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+          )}
+        >
+          <div className="border-t p-4 space-y-4">
+            <ScoreComponent
+              title="Subject Count Score"
+              score={assessment.scoreBreakdown.subjectCountScore.score}
+              maxScore={assessment.scoreBreakdown.subjectCountScore.maxScore}
+              weight={assessment.scoreBreakdown.subjectCountScore.weight}
+              explanation={assessment.scoreBreakdown.subjectCountScore.explanation}
+              feedback={assessment.scoreBreakdown.subjectCountScore.feedback}
+            />
+            
+            <ScoreComponent
+              title="Grade Average Score"
+              score={assessment.scoreBreakdown.gradeAverageScore.score}
+              maxScore={assessment.scoreBreakdown.gradeAverageScore.maxScore}
+              weight={assessment.scoreBreakdown.gradeAverageScore.weight}
+              explanation={assessment.scoreBreakdown.gradeAverageScore.explanation}
+              feedback={assessment.scoreBreakdown.gradeAverageScore.feedback}
+            />
+            
+            <ScoreComponent
+              title="Core Subjects Score"
+              score={assessment.scoreBreakdown.coreSubjectsScore.score}
+              maxScore={assessment.scoreBreakdown.coreSubjectsScore.maxScore}
+              weight={assessment.scoreBreakdown.coreSubjectsScore.weight}
+              explanation={assessment.scoreBreakdown.coreSubjectsScore.explanation}
+              feedback={assessment.scoreBreakdown.coreSubjectsScore.feedback}
+            />
+            
+            <ScoreComponent
+              title="Regulatory Compliance Score"
+              score={assessment.scoreBreakdown.regulatoryComplianceScore.score}
+              maxScore={assessment.scoreBreakdown.regulatoryComplianceScore.maxScore}
+              weight={assessment.scoreBreakdown.regulatoryComplianceScore.weight}
+              explanation={assessment.scoreBreakdown.regulatoryComplianceScore.explanation}
+              feedback={assessment.scoreBreakdown.regulatoryComplianceScore.feedback}
+            />
+            
+            {/* Summary */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-900 mb-2">Score Summary</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-blue-700">Total Weighted Score:</span>
+                  <span className="font-medium ml-2">
+                    {assessment.scoreBreakdown.totalWeightedScore.toFixed(1)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-blue-700">Max Possible Score:</span>
+                  <span className="font-medium ml-2">
+                    {assessment.scoreBreakdown.maxPossibleScore.toFixed(1)}
+                  </span>
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </div>
+        </div>
       </div>
+
 
       {/* Improvement Recommendations */}
       {showRecommendations && assessment.improvementRecommendations.length > 0 && (
@@ -315,60 +316,56 @@ export function DetailedScoreBreakdown({
             }
           </button>
           
-          <AnimatePresence>
-            {expandedSections.has('recommendations') && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="border-t"
-              >
-                <div className="p-4 space-y-4">
-                  {assessment.improvementRecommendations.map((rec, idx) => (
-                    <div key={idx} className="border rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          {getPriorityIcon(rec.priority)}
-                          <h4 className="font-semibold">{rec.title}</h4>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            rec.priority === 'high' ? 'bg-red-100 text-red-800' :
-                            rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-green-100 text-green-800'
-                          }`}>
-                            {rec.priority.toUpperCase()}
-                          </span>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedRecommendation(rec)}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                      
-                      <p className="text-sm text-gray-600 mb-3">{rec.description}</p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                        <div className="flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3 text-green-500" />
-                          <span>+{rec.expectedImpact.scoreIncrease} points</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3 text-blue-500" />
-                          <span>{rec.timeframe}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Target className="h-3 w-3 text-purple-500" />
-                          <span>{rec.category.replace('_', ' ')}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
+          <div
+            className={cn(
+              'overflow-hidden transition-all duration-300 ease-out motion-reduce:transition-none',
+              expandedSections.has('recommendations') ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0'
             )}
-          </AnimatePresence>
+          >
+            <div className="border-t p-4 space-y-4">
+              {assessment.improvementRecommendations.map((rec, idx) => (
+                <div key={idx} className="border rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {getPriorityIcon(rec.priority)}
+                      <h4 className="font-semibold">{rec.title}</h4>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        rec.priority === 'high' ? 'bg-red-100 text-red-800' :
+                        rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {rec.priority.toUpperCase()}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedRecommendation(rec)}
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-3">{rec.description}</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div className="flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3 text-green-500" />
+                      <span>+{rec.expectedImpact.scoreIncrease} points</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3 text-blue-500" />
+                      <span>{rec.timeframe}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Target className="h-3 w-3 text-purple-500" />
+                      <span>{rec.category.replace('_', ' ')}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -386,36 +383,32 @@ export function DetailedScoreBreakdown({
             }
           </button>
           
-          <AnimatePresence>
-            {expandedSections.has('pathways') && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="border-t"
-              >
-                <div className="p-4 space-y-4">
-                  {assessment.alternativePathways.map((pathway, idx) => (
-                    <div key={idx} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold">{pathway.name}</h4>
-                        <span className="text-xs text-gray-500">{pathway.timeToCompletion}</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">{pathway.description}</p>
-                      <div>
-                        <h5 className="text-xs font-medium text-gray-700 mb-1">Requirements:</h5>
-                        <ul className="text-xs text-gray-600 space-y-1">
-                          {pathway.requirements.map((req, reqIdx) => (
-                            <li key={reqIdx}>• {req}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
+          <div
+            className={cn(
+              'overflow-hidden transition-all duration-300 ease-out motion-reduce:transition-none',
+              expandedSections.has('pathways') ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
             )}
-          </AnimatePresence>
+          >
+            <div className="border-t p-4 space-y-4">
+              {assessment.alternativePathways.map((pathway, idx) => (
+                <div key={idx} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold">{pathway.name}</h4>
+                    <span className="text-xs text-gray-500">{pathway.timeToCompletion}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{pathway.description}</p>
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-700 mb-1">Requirements:</h5>
+                    <ul className="text-xs text-gray-600 space-y-1">
+                      {pathway.requirements.map((req, reqIdx) => (
+                        <li key={reqIdx}>• {req}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

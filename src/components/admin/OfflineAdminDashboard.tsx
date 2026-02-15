@@ -13,7 +13,6 @@ import {
   AlertTriangle,
   RefreshCw
 } from 'lucide-react'
-import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 
 export default function OfflineAdminDashboard() {
@@ -41,9 +40,7 @@ export default function OfflineAdminDashboard() {
 
       <main className="container mx-auto px-4 py-6 lg:py-8">
         {/* Network Status Banner */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="rounded-xl bg-accent/5 border border-yellow-200 p-4 mb-6 shadow-lg"
         >
           <div className="flex items-center space-x-3">
@@ -61,12 +58,10 @@ export default function OfflineAdminDashboard() {
               Retry
             </Button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Welcome Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="mb-8"
         >
           <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
@@ -98,18 +93,14 @@ export default function OfflineAdminDashboard() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Stats Grid */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+        <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
           {/* Today's Applications */}
-          <motion.div 
-            whileHover={{ y: -5, scale: 1.02 }}
+          <div
             className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
           >
             <div className="flex items-center justify-between mb-4">
@@ -122,11 +113,10 @@ export default function OfflineAdminDashboard() {
               </div>
             </div>
             <div className="text-sm font-medium text-gray-900">New Applications</div>
-          </motion.div>
+          </div>
 
           {/* Pending Reviews */}
-          <motion.div 
-            whileHover={{ y: -5, scale: 1.02 }}
+          <div
             className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
           >
             <div className="flex items-center justify-between mb-4">
@@ -142,11 +132,10 @@ export default function OfflineAdminDashboard() {
             <Link to="/admin/applications?status=submitted" className="text-xs text-primary hover:underline mt-2 block">
               Review now →
             </Link>
-          </motion.div>
+          </div>
 
           {/* Approved Applications */}
-          <motion.div 
-            whileHover={{ y: -5, scale: 1.02 }}
+          <div
             className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
           >
             <div className="flex items-center justify-between mb-4">
@@ -159,11 +148,10 @@ export default function OfflineAdminDashboard() {
               </div>
             </div>
             <div className="text-sm font-medium text-gray-900">Successful Applications</div>
-          </motion.div>
+          </div>
 
           {/* Processing Time */}
-          <motion.div 
-            whileHover={{ y: -5, scale: 1.02 }}
+          <div
             className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
           >
             <div className="flex items-center justify-between mb-4">
@@ -176,14 +164,11 @@ export default function OfflineAdminDashboard() {
               </div>
             </div>
             <div className="text-sm font-medium text-gray-900">Avg Processing</div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Quick Actions */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+        <div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
         >
           <Link to="/admin/applications" className="block">
@@ -227,13 +212,10 @@ export default function OfflineAdminDashboard() {
               </div>
             </div>
           </Link>
-        </motion.div>
+        </div>
 
         {/* System Status */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+        <div
           className="bg-card rounded-2xl shadow-lg border border-border p-6"
         >
           <h3 className="text-lg font-bold text-gray-900 mb-4">System Status</h3>
@@ -253,7 +235,7 @@ export default function OfflineAdminDashboard() {
               <div className="text-sm text-gray-900">Success Rate</div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </main>
     </div>
   )

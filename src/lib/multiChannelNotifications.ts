@@ -3,7 +3,10 @@ import { supabase } from '@/lib/supabase'
 import { sanitizeForLog } from '@/lib/security'
 import { getApiBaseUrl } from '@/lib/apiConfig'
 import { notificationService } from '@/services/notifications'
-import { pushSubscriptionsService } from '@/services/pushSubscriptions'
+// pushSubscriptionsService removed — push endpoint doesn't exist
+const pushSubscriptionsService = {
+  dispatch: async (_payload: Record<string, unknown>) => ({ success: false, delivered: 0 })
+}
 
 // Get the application base URL for notification links
 const getAppBaseUrl = () => {

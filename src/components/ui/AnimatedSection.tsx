@@ -1,6 +1,6 @@
 import React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
+import { cn } from '@/lib/utils'
 
 interface AnimatedSectionProps {
   children: React.ReactNode
@@ -9,22 +9,19 @@ interface AnimatedSectionProps {
 }
 
 export function AnimatedSection({ children, className = '', delay = 0 }: AnimatedSectionProps) {
-  const shouldReduceMotion = useReducedMotion()
   const [ref, inView] = useInView({ threshold: 0.2, triggerOnce: true })
 
-  if (shouldReduceMotion) {
-    return <div ref={ref} className={className}>{children}</div>
-  }
-
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration: 0.5, delay, ease: 'easeOut' }}
-      className={className}
+      className={cn(
+        'transition-all duration-500 ease-out',
+        inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8',
+        className
+      )}
+      style={delay > 0 ? { transitionDelay: `${delay * 1000}ms` } : undefined}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }

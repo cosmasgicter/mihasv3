@@ -1,7 +1,6 @@
 // @ts-nocheck
 import React, { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Search } from 'lucide-react'
 import { useToastStore } from '@/components/ui/Toast'
 import { SectionCard } from '@/components/ui/SectionCard'
@@ -9,6 +8,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Container } from '@/components/ui/Container'
 import { createApplicationSlip } from '@/lib/slipService'
 import { logger } from '@/utils/logger'
+import { animateClasses } from '@/lib/animations'
 import { useApplicationTracker } from './hooks/useApplicationTracker'
 import {
   TrackerSearchSection,
@@ -22,8 +22,6 @@ import {
 } from './components'
 
 export default function PublicApplicationTracker() {
-  const shouldReduceMotion = useReducedMotion()
-  const maybeMotion = <T,>(value: T) => (shouldReduceMotion ? undefined : value)
   const toast = useToastStore()
   
   const {
@@ -273,52 +271,39 @@ export default function PublicApplicationTracker() {
             onPaste={handlePaste}
           />
 
-          {/* Application Results */}
-          <AnimatePresence initial={!shouldReduceMotion}>
-            {application && (
-              <motion.div
-                initial={maybeMotion({ opacity: 0, y: 20 })}
-                animate={maybeMotion({ opacity: 1, y: 0 })}
-                exit={maybeMotion({ opacity: 0, y: -20 })}
-                transition={maybeMotion({ duration: 0.3 })}
-              >
-                <SectionCard className="overflow-hidden" padding="sm">
-                  <ApplicationStatusHeader
-                    application={application}
-                    copied={copied}
-                    slipLoading={slipLoading}
-                    emailLoading={emailLoading}
-                    onShare={() => setShowShareModal(true)}
-                    onCopy={() => copyToClipboard(application.application_number)}
-                    onDownloadSlip={handleDownloadSlip}
-                    onEmailSlip={handleEmailSlip}
-                  />
+          {/* Application Results - conditional rendering replaces AnimatePresence */}
+          {application && (
+            <div className={animateClasses.slideUp}>
+              <SectionCard className="overflow-hidden" padding="sm">
+                <ApplicationStatusHeader
+                  application={application}
+                  copied={copied}
+                  slipLoading={slipLoading}
+                  emailLoading={emailLoading}
+                  onShare={() => setShowShareModal(true)}
+                  onCopy={() => copyToClipboard(application.application_number)}
+                  onDownloadSlip={handleDownloadSlip}
+                  onEmailSlip={handleEmailSlip}
+                />
 
-                  <div className="space-y-6 sm:space-y-8 p-4 sm:p-6">
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
-                      <ApplicationStatusDetails application={application} />
-                      <ApplicationInfoGrid application={application} />
-                    </div>
+                <div className="space-y-6 sm:space-y-8 p-4 sm:p-6">
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
+                    <ApplicationStatusDetails application={application} />
+                    <ApplicationInfoGrid application={application} />
                   </div>
+                </div>
 
-                  <ApplicationActions />
-                </SectionCard>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <ApplicationActions />
+              </SectionCard>
+            </div>
+          )}
 
-          {/* No Results */}
-          <AnimatePresence initial={!shouldReduceMotion}>
-            {searched && !application && !loading && (
-              <motion.div
-                initial={maybeMotion({ opacity: 0, y: 20 })}
-                animate={maybeMotion({ opacity: 1, y: 0 })}
-                exit={maybeMotion({ opacity: 0, y: -20 })}
-              >
-                <NoResultsView onTryAgain={handleTryAgain} />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* No Results - conditional rendering replaces AnimatePresence */}
+          {searched && !application && !loading && (
+            <div className={animateClasses.slideUp}>
+              <NoResultsView onTryAgain={handleTryAgain} />
+            </div>
+          )}
 
           {/* Help Section */}
           <HelpSection />

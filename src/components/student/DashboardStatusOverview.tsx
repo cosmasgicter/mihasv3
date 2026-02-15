@@ -6,7 +6,6 @@
  */
 
 import React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
   FileText, 
@@ -21,6 +20,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { StatusIndicator, StatusBadge } from '@/components/8starlabs';
 import { cn } from '@/lib/utils';
+import { animateClasses, staggerChild } from '@/lib/animations';
 import type { Application } from '@/lib/supabase';
 
 interface DashboardStatusOverviewProps {
@@ -73,8 +73,6 @@ function MetricCard({
   href,
   className 
 }: MetricCardProps) {
-  const prefersReducedMotion = useReducedMotion();
-  
   const accentStyles = {
     primary: 'border-l-primary bg-primary/5',
     success: 'border-l-success bg-success/5',
@@ -126,14 +124,9 @@ function MetricCard({
   if (href) {
     return (
       <Link to={href}>
-        {prefersReducedMotion ? content : (
-          <motion.div
-            whileHover={{ y: -2 }}
-            transition={{ duration: 0.2 }}
-          >
-            {content}
-          </motion.div>
-        )}
+        <div className="hover:-translate-y-0.5 transition-transform duration-200">
+          {content}
+        </div>
       </Link>
     );
   }
@@ -146,7 +139,6 @@ export function DashboardStatusOverview({
   totalDraftCount,
   className 
 }: DashboardStatusOverviewProps) {
-  const prefersReducedMotion = useReducedMotion();
 
   // Calculate metrics
   const submittedCount = applications.filter(app => app.status !== 'draft').length;
@@ -211,48 +203,24 @@ export function DashboardStatusOverview({
     },
   ];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: prefersReducedMotion ? 0 : 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: prefersReducedMotion ? 0 : 0.3 }
-    },
-  };
-
   return (
     <div className={cn('space-y-6', className)}>
       {/* Metrics Grid */}
-      <motion.div
-        className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {metrics.map((metric, index) => (
-          <motion.div key={metric.title} variants={itemVariants}>
+          <div
+            key={metric.title}
+            className={`${animateClasses.slideUp} opacity-0`}
+            style={staggerChild(index)}
+          >
             <MetricCard {...metric} />
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* Current Application Status */}
       {latestApplication && (
-        <motion.div
-          initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
-          animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.3 }}
-        >
+        <div className={`${animateClasses.slideUp} opacity-0`} style={staggerChild(4)}>
           <Card className="border-border/50">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -286,16 +254,14 @@ export function DashboardStatusOverview({
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       )}
 
       {/* Pending Payment Alert */}
       {pendingPaymentCount > 0 && (
-        <motion.div
-          initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.95 }}
-          animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5, duration: 0.3 }}
-          className="rounded-xl border border-warning/30 bg-warning/10 p-4"
+        <div
+          className={`${animateClasses.scaleIn} opacity-0 rounded-xl border border-warning/30 bg-warning/10 p-4`}
+          style={staggerChild(5)}
         >
           <div className="flex items-start gap-3">
             <CreditCard className="h-5 w-5 text-warning shrink-0 mt-0.5" />
@@ -316,7 +282,7 @@ export function DashboardStatusOverview({
             </div>
             <StatusBadge status="warning" label="Action Needed" />
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );

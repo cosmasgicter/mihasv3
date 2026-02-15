@@ -5,8 +5,7 @@ import { Eye, FileText, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, 
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 import { DraftBadge } from './DraftBadge'
 import { useToastStore } from '@/components/ui/Toast'
-import { CommunicationModal } from '@/components/admin/CommunicationModal'
-import { sendToApplicant, type CommunicationRequest } from '@/services/communicationService'
+import { CommunicationModal, type CommunicationData } from '@/components/admin/CommunicationModal'
 
 // Institution code to name mapping
 export const INSTITUTION_NAMES: Record<string, string> = {
@@ -129,13 +128,22 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
     [app.grades_summary]
   )
 
-  const handleSendMessage = async (data: CommunicationRequest) => {
-    const result = await sendToApplicant(data)
-    
-    if (result.success) {
+  const handleSendMessage = async (data: CommunicationData) => {
+    try {
+      const response = await fetch('/api/notifications?action=send', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: app.email,
+          subject: `Message from MIHAS Admissions`,
+          message: data.message,
+        }),
+      })
+      if (!response.ok) throw new Error('Failed to send message')
       showSuccess('Message Sent', 'Your message has been sent successfully')
-    } else {
-      throw new Error(result.error || 'Failed to send message')
+    } catch {
+      throw new Error('Failed to send message')
     }
   }
 

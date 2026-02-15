@@ -1,25 +1,18 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
 import { Search, Rocket, FileQuestion } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { animateClasses } from '@/lib/animations'
 
 interface NoResultsViewProps {
   onTryAgain: () => void
 }
 
 export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
-  const shouldReduceMotion = useReducedMotion()
-  const maybeMotion = <T,>(value: T) => (shouldReduceMotion ? undefined : value)
-
   return (
     <SectionCard className="text-center">
-      <motion.div
-        initial={maybeMotion({ opacity: 0, y: 20 })}
-        animate={maybeMotion({ opacity: 1, y: 0 })}
-        className="py-8 space-y-6"
-      >
+      <div className={`py-8 space-y-6 ${animateClasses.slideUp}`}>
         {/* Icon */}
         <div className="flex justify-center">
           <div className="p-4 rounded-full bg-muted">
@@ -59,7 +52,7 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
             </Button>
           </Link>
         </div>
-      </motion.div>
+      </div>
     </SectionCard>
   )
 }

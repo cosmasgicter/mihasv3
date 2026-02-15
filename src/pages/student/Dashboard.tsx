@@ -1,7 +1,6 @@
 // @ts-nocheck
 import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import type { Application, Intake, ApplicationInterview } from '@/lib/supabase'
@@ -32,6 +31,7 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { Container } from '@/components/ui/Container'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling } from '@/hooks/useStudentDashboardPolling'
+import { staggerChild, animateClasses } from '@/lib/animations'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -423,10 +423,8 @@ export default function StudentDashboard() {
             />
 
             {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border border-red-300 bg-red-50 px-6 py-5 text-red-800 shadow-lg"
+              <div
+                className={`rounded-2xl border border-red-300 bg-red-50 px-6 py-5 text-red-800 shadow-lg ${animateClasses.slideUp}`}
               >
                 <div className="flex items-start gap-3">
                   <XCircle className="h-6 w-6 flex-shrink-0" />
@@ -442,7 +440,7 @@ export default function StudentDashboard() {
                     <X className="h-5 w-5" />
                   </button>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Status Overview with 8starlabs StatusIndicator */}
@@ -481,12 +479,10 @@ export default function StudentDashboard() {
                 ) : (
                   <div className="divide-y divide-border">
                     {draftApplications.map((application, index) => (
-                      <motion.div
+                      <div
                         key={`draft-${application.id}`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="px-6 py-6 transition-colors hover:bg-yellow-50 border-l-4 border-l-yellow-400"
+                        className={`px-6 py-6 transition-colors hover:bg-yellow-50 border-l-4 border-l-yellow-400 ${animateClasses.slideUp}`}
+                        style={staggerChild(index)}
                       >
                         <div className="space-y-4">
                           {/* Header */}
@@ -569,7 +565,7 @@ export default function StudentDashboard() {
                             </Button>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
 
                     {hasLocalDraftOnly && (
@@ -647,12 +643,10 @@ export default function StudentDashboard() {
                     )}
 
                     {submittedApplications.map((application, index) => (
-                      <motion.div
+                      <div
                         key={application.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 + index * 0.05 }}
-                        className="px-6 py-6 transition-colors hover:bg-blue-50 border-l-4 border-l-transparent hover:border-l-blue-500"
+                        className={`px-6 py-6 transition-colors hover:bg-blue-50 border-l-4 border-l-transparent hover:border-l-blue-500 ${animateClasses.slideUp}`}
+                        style={staggerChild(index, 50)}
                       >
                         <div className="space-y-4">
                           {/* Header */}
@@ -707,7 +701,7 @@ export default function StudentDashboard() {
                             </Link>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -761,16 +755,14 @@ export default function StudentDashboard() {
                 >
                   <div className="space-y-3">
                     {intakes.slice(0, 3).map((intake, index) => (
-                      <motion.div
+                      <div
                         key={intake.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 * index }}
-                        className="rounded-xl border border-orange-300 bg-orange-50 px-4 py-3"
+                        className={`rounded-xl border border-orange-300 bg-orange-50 px-4 py-3 ${animateClasses.slideUp}`}
+                        style={staggerChild(index, 100)}
                       >
                         <p className="text-sm font-semibold text-gray-900">{intake.name}</p>
                         <p className="text-xs font-semibold text-orange-700">Deadline: {formatDate(intake.application_deadline)}</p>
-                      </motion.div>
+                      </div>
                     ))}
                     {intakes.length === 0 && (
                       <p className="rounded-xl bg-muted px-4 py-4 text-center text-sm text-gray-900">

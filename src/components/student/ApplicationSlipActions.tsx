@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Download, Mail, Loader2 } from 'lucide-react'
-import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { getApiBaseUrl } from '@/lib/apiConfig'
 import { toast } from '@/hooks/useToast'
@@ -123,14 +122,11 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       </Button>
 
       {emailSent && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="text-sm text-accent font-medium"
+        <div
+          className="text-sm text-accent font-medium animate-fade-in"
         >
           ✓ Application slip will be sent to your email shortly
-        </motion.div>
+        </div>
       )}
     </div>
   )

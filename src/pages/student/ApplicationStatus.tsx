@@ -7,8 +7,8 @@ import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { formatDate } from '@/lib/utils'
-import { motion } from 'framer-motion'
 import { applicationService } from '@/services/applications'
+import { staggerChild, animateClasses } from '@/lib/animations'
 import {
   ArrowLeft,
   FileText,
@@ -271,12 +271,10 @@ export default function ApplicationStatus() {
               >
                 <div className="space-y-6">
                   {timeline.map((step, index) => (
-                    <motion.div
+                    <div
                       key={`${step.status}-${index}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 + index * 0.05 }}
-                      className="flex items-start gap-4"
+                      className={`flex items-start gap-4 ${animateClasses.slideUp}`}
+                      style={staggerChild(index, 50)}
                     >
                       <div
                         className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full shadow-lg ${
@@ -295,7 +293,7 @@ export default function ApplicationStatus() {
                           <p className="text-sm text-gray-900">{formatDate(step.date)}</p>
                         )}
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               </SectionCard>
@@ -383,10 +381,8 @@ export default function ApplicationStatus() {
               >
                 <div className="space-y-4">
                   {application.result_slip_url && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 px-4 py-3"
+                    <div
+                      className={`flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 ${animateClasses.fadeIn}`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="rounded-lg bg-primary/10 p-2">
@@ -406,15 +402,13 @@ export default function ApplicationStatus() {
                         <Eye className="mr-1 h-4 w-4" />
                         View
                       </Button>
-                    </motion.div>
+                    </div>
                   )}
 
                   {application.extra_kyc_url && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
-                      className="flex items-center justify-between rounded-xl border border-accent/30 bg-accent/10 px-4 py-3"
+                    <div
+                      className={`flex items-center justify-between rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 ${animateClasses.fadeIn}`}
+                      style={staggerChild(1, 100)}
                     >
                       <div className="flex items-center gap-3">
                         <div className="rounded-lg bg-accent/10 p-2">
@@ -434,15 +428,13 @@ export default function ApplicationStatus() {
                         <Eye className="mr-1 h-4 w-4" />
                         View
                       </Button>
-                    </motion.div>
+                    </div>
                   )}
 
                   {application.pop_url && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="flex items-center justify-between rounded-xl border border-input/30 bg-secondary/5 px-4 py-3"
+                    <div
+                      className={`flex items-center justify-between rounded-xl border border-input/30 bg-secondary/5 px-4 py-3 ${animateClasses.fadeIn}`}
+                      style={staggerChild(2, 100)}
                     >
                       <div className="flex items-center gap-3">
                         <div className="rounded-lg bg-muted p-2">
@@ -462,7 +454,7 @@ export default function ApplicationStatus() {
                         <Eye className="mr-1 h-4 w-4" />
                         View
                       </Button>
-                    </motion.div>
+                    </div>
                   )}
 
                   {!application.result_slip_url && !application.extra_kyc_url && !application.pop_url && (

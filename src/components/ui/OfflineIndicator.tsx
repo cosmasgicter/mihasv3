@@ -18,7 +18,6 @@
  */
 
 import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Wifi, WifiOff, RefreshCw, CheckCircle, AlertCircle, Cloud } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useOffline } from '@/hooks/useOffline'
@@ -67,48 +66,33 @@ export function OfflineIndicator({ className, showDetails = false }: OfflineIndi
 
   return (
     <div className={cn('flex items-center space-x-2', className)}>
-      <motion.div
+      <div
         className={cn(
-          'flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium transition-colors',
+          'flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium transition-colors animate-fade-in',
           'bg-white/10 backdrop-blur-sm border border-white/20',
           getStatusColor()
         )}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2 }}
       >
-        <motion.div
-          animate={isSyncing ? { rotate: 360 } : { rotate: 0 }}
-          transition={isSyncing ? { duration: 1, repeat: Infinity, ease: 'linear' } : { duration: 0.2 }}
-        >
+        <div className={isSyncing ? 'animate-spin' : ''}>
           {getStatusIcon()}
-        </motion.div>
+        </div>
         <span>{getStatusText()}</span>
-      </motion.div>
+      </div>
 
-      {showDetails && (
-        <AnimatePresence>
-          {(syncStatus.pending > 0 || syncStatus.errors > 0) && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              className="flex items-center space-x-2"
+      {showDetails && (syncStatus.pending > 0 || syncStatus.errors > 0) && (
+        <div className="flex items-center space-x-2 animate-fade-in">
+          {isOnline && !isSyncing && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSyncClick}
+              className="h-8 px-3 text-xs"
             >
-              {isOnline && !isSyncing && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleSyncClick}
-                  className="h-8 px-3 text-xs"
-                >
-                  <RefreshCw className="w-3 h-3 mr-1" />
-                  Sync Now
-                </Button>
-              )}
-            </motion.div>
+              <RefreshCw className="w-3 h-3 mr-1" />
+              Sync Now
+            </Button>
           )}
-        </AnimatePresence>
+        </div>
       )}
     </div>
   )

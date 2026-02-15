@@ -1,9 +1,9 @@
 import React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
 import { GraduationCap, Calendar, Clock, Share2, Copy, Download, Mail, Trophy, XCircle, Target, Rocket, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PublicApplicationStatus } from '../hooks/useApplicationTracker'
 import { getStatusEmoji, formatDisplayDate } from '../utils/trackerUtils'
+import { animateClasses } from '@/lib/animations'
 
 interface ApplicationStatusHeaderProps {
   application: PublicApplicationStatus
@@ -46,30 +46,21 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
   onDownloadSlip,
   onEmailSlip
 }) => {
-  const shouldReduceMotion = useReducedMotion()
-  const maybeMotion = <T,>(value: T) => (shouldReduceMotion ? undefined : value)
-
   return (
     <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-6 sm:p-8">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
         {/* Left Side - Application Info */}
         <div className="space-y-4 flex-1">
-          <motion.div
-            initial={maybeMotion({ opacity: 0, x: -20 })}
-            animate={maybeMotion({ opacity: 1, x: 0 })}
-            transition={maybeMotion({ duration: 0.3 })}
-          >
+          <div className={animateClasses.fadeIn}>
             <h3 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
               <span className="text-2xl">{getStatusEmoji(application.status)}</span>
               <span className="break-all">Application #{application.application_number}</span>
             </h3>
-          </motion.div>
+          </div>
           
-          <motion.div
-            initial={maybeMotion({ opacity: 0, x: -20 })}
-            animate={maybeMotion({ opacity: 1, x: 0 })}
-            transition={maybeMotion({ duration: 0.3, delay: 0.1 })}
-            className="space-y-2"
+          <div
+            className={`space-y-2 ${animateClasses.fadeIn}`}
+            style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
           >
             <p className="text-white/90 text-base sm:text-lg font-medium flex items-center gap-2">
               <GraduationCap className="h-5 w-5 flex-shrink-0" />
@@ -79,15 +70,13 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
               <Calendar className="h-4 w-4 flex-shrink-0" />
               <span className="break-words">{application.intake_name}</span>
             </p>
-          </motion.div>
+          </div>
         </div>
         
         {/* Right Side - Status & Actions */}
-        <motion.div
-          initial={maybeMotion({ opacity: 0, x: 20 })}
-          animate={maybeMotion({ opacity: 1, x: 0 })}
-          transition={maybeMotion({ duration: 0.3, delay: 0.2 })}
-          className="flex flex-col items-center lg:items-end gap-4"
+        <div
+          className={`flex flex-col items-center lg:items-end gap-4 ${animateClasses.fadeIn}`}
+          style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}
         >
           {/* Status Badge */}
           <div className="flex items-center gap-3">
@@ -148,7 +137,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
               Email Slip
             </Button>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   )

@@ -1,19 +1,14 @@
 /**
  * RealtimeMetricsDisplay Component
  * Displays real-time admin metrics with animated counters and visual indicators
+ * Uses CSS transitions instead of framer-motion for performance.
  * 
+ * @requirements 1.2 - CSS transitions instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior
  * @requirements 6.2, 6.4 - Real-time metrics display with animated counters
- * 
- * Features:
- * - Animated counters for key statistics using SmoothUI
- * - Supabase realtime integration for live updates
- * - Visual indicators for data changes (flash animations)
- * - Connection status with live pulse indicator
- * - Reduced motion support for accessibility
  */
 
 import { useCallback, useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { 
   Activity, 
   TrendingUp, 
@@ -35,6 +30,7 @@ import {
 import { AnimatedCounter } from '@/components/smoothui/animated-counter';
 import { StatusIndicator, StatusBadge } from '@/components/8starlabs/status-indicator';
 import { cn } from '@/lib/utils';
+import { staggerChild } from '@/lib/animations';
 
 interface MetricData {
   value: number;
@@ -61,11 +57,8 @@ interface RealtimeMetricsDisplayProps {
   onRefresh?: () => void;
   isRefreshing?: boolean;
   className?: string;
-  /** Show compact version for smaller spaces */
   compact?: boolean;
-  /** Show system health indicators */
   showSystemHealth?: boolean;
-  /** System health data */
   systemHealth?: {
     database: 'healthy' | 'degraded' | 'down';
     api: 'healthy' | 'degraded' | 'down';
@@ -107,6 +100,7 @@ const colorConfig = {
   },
 };
 
+
 // Change indicator component for showing value changes
 function ChangeIndicator({ 
   change, 
@@ -115,28 +109,23 @@ function ChangeIndicator({
   change: number; 
   showAnimation?: boolean;
 }) {
-  const prefersReducedMotion = useReducedMotion();
-  
   if (change === 0) return null;
   
   const isPositive = change > 0;
   const Icon = isPositive ? ArrowUp : ArrowDown;
   
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={showAnimation && !prefersReducedMotion ? { opacity: 0, y: isPositive ? 10 : -10 } : false}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0 }}
-        className={cn(
-          'inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded-full',
-          isPositive ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
-        )}
-      >
-        <Icon className="h-3 w-3" />
-        <span>{Math.abs(change)}</span>
-      </motion.div>
-    </AnimatePresence>
+    <div
+      className={cn(
+        'inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded-full',
+        'transition-all duration-300 ease-out motion-reduce:transition-none',
+        showAnimation && 'animate-fade-in',
+        isPositive ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+      )}
+    >
+      <Icon className="h-3 w-3" />
+      <span>{Math.abs(change)}</span>
+    </div>
   );
 }
 
@@ -148,48 +137,26 @@ function DataUpdateFlash({
   show: boolean; 
   children: React.ReactNode;
 }) {
-  const prefersReducedMotion = useReducedMotion();
-  
-  if (prefersReducedMotion) {
-    return <>{children}</>;
-  }
-  
   return (
-    <motion.div
-      animate={show ? {
-        boxShadow: [
-          '0 0 0 0 rgba(59, 130, 246, 0)',
-          '0 0 0 4px rgba(59, 130, 246, 0.3)',
-          '0 0 0 0 rgba(59, 130, 246, 0)'
-        ]
-      } : {}}
-      transition={{ duration: 0.6 }}
-      className="rounded-2xl"
+    <div
+      className={cn(
+        'rounded-2xl transition-shadow duration-600 motion-reduce:transition-none',
+        show && 'shadow-[0_0_0_4px_rgba(59,130,246,0.3)]'
+      )}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
 // Pulse animation for live data indicator
 function LivePulse({ isConnected }: { isConnected: boolean }) {
-  const prefersReducedMotion = useReducedMotion();
-  
   return (
     <div className="flex items-center gap-2">
       <div className="relative">
-        {isConnected && !prefersReducedMotion && (
-          <motion.span
-            className="absolute inset-0 rounded-full bg-success"
-            animate={{
-              scale: [1, 1.5, 1],
-              opacity: [0.7, 0, 0.7],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
+        {isConnected && (
+          <span
+            className="absolute inset-0 rounded-full bg-success animate-ping opacity-75 motion-reduce:animate-none"
           />
         )}
         <span
@@ -218,7 +185,6 @@ function MetricCard({
   delay?: number;
   compact?: boolean;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   const colors = colorConfig[metric.color];
   const Icon = metric.icon;
   const change = previousValue !== undefined ? metric.value - previousValue : 0;
@@ -237,15 +203,15 @@ function MetricCard({
   
   return (
     <DataUpdateFlash show={showFlash}>
-      <motion.div
-        initial={!prefersReducedMotion ? { opacity: 0, y: 20 } : false}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: prefersReducedMotion ? 0 : delay }}
-        whileHover={!prefersReducedMotion ? { y: -5, scale: 1.02 } : undefined}
+      <div
         className={cn(
-          "bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-border relative overflow-hidden",
+          "bg-card rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02]",
+          "transition-all duration-300 border border-border relative overflow-hidden",
+          "motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100",
+          "animate-fade-in opacity-0",
           compact ? "p-4" : "p-6"
         )}
+        style={staggerChild(delay * 10)}
       >
         {/* Background gradient */}
         <div className={cn('absolute top-0 right-0 w-20 h-20 bg-gradient-to-br rounded-bl-full', colors.gradient)} />
@@ -308,10 +274,11 @@ function MetricCard({
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
     </DataUpdateFlash>
   );
 }
+
 
 export function RealtimeMetricsDisplay({
   todayApplications,
@@ -330,8 +297,6 @@ export function RealtimeMetricsDisplay({
   showSystemHealth = false,
   systemHealth,
 }: RealtimeMetricsDisplayProps) {
-  const prefersReducedMotion = useReducedMotion();
-  
   // Track previous values for change indicators
   const [previousValues, setPreviousValues] = useState<Record<string, number>>({});
   const [showChangeIndicators, setShowChangeIndicators] = useState(false);
@@ -363,12 +328,10 @@ export function RealtimeMetricsDisplay({
       
       if (changedMetrics.length > 0) {
         setRecentUpdates(changedMetrics);
-        // Clear recent updates after 3 seconds
         const timer = setTimeout(() => setRecentUpdates([]), 3000);
         return () => clearTimeout(timer);
       }
       
-      // Hide change indicators after 5 seconds
       const timer = setTimeout(() => setShowChangeIndicators(false), 5000);
       return () => clearTimeout(timer);
     }
@@ -444,19 +407,14 @@ export function RealtimeMetricsDisplay({
           <LivePulse isConnected={isConnected} />
           
           {/* Recent update indicator */}
-          <AnimatePresence>
-            {recentUpdates.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full"
-              >
-                <Sparkles className="h-3 w-3" />
-                <span>Data updated</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {recentUpdates.length > 0 && (
+            <div
+              className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full animate-fade-in"
+            >
+              <Sparkles className="h-3 w-3" />
+              <span>Data updated</span>
+            </div>
+          )}
         </div>
         
         <div className="flex items-center gap-4">
@@ -482,21 +440,16 @@ export function RealtimeMetricsDisplay({
       </div>
       
       {/* Connection status banner */}
-      <AnimatePresence>
-        {!isConnected && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center gap-3"
-          >
-            <WifiOff className="h-4 w-4 text-warning" />
-            <span className="text-sm text-warning-foreground">
-              Real-time connection lost. Data may be outdated. Polling for updates...
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {!isConnected && (
+        <div
+          className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center gap-3 animate-fade-in"
+        >
+          <WifiOff className="h-4 w-4 text-warning" />
+          <span className="text-sm text-warning-foreground">
+            Real-time connection lost. Data may be outdated. Polling for updates...
+          </span>
+        </div>
+      )}
       
       {/* Metrics grid */}
       <div className={cn(
@@ -515,11 +468,9 @@ export function RealtimeMetricsDisplay({
       </div>
       
       {/* Summary stats row */}
-      <motion.div
-        initial={!prefersReducedMotion ? { opacity: 0, y: 20 } : false}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="bg-card rounded-xl border border-border p-4"
+      <div
+        className="bg-card rounded-xl border border-border p-4 animate-slide-up opacity-0"
+        style={staggerChild(5)}
       >
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
           <div>
@@ -547,15 +498,13 @@ export function RealtimeMetricsDisplay({
             <div className="text-xs text-muted-foreground">Active Users</div>
           </div>
         </div>
-      </motion.div>
+      </div>
       
       {/* System Health Section */}
       {showSystemHealth && systemHealth && (
-        <motion.div
-          initial={!prefersReducedMotion ? { opacity: 0, y: 20 } : false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-card rounded-xl border border-border p-4"
+        <div
+          className="bg-card rounded-xl border border-border p-4 animate-slide-up opacity-0"
+          style={staggerChild(6)}
         >
           <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
             <Activity className="h-4 w-4" />
@@ -591,7 +540,7 @@ export function RealtimeMetricsDisplay({
               <span className="text-sm text-foreground">Auth</span>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );

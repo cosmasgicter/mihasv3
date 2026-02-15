@@ -1,13 +1,13 @@
 // @ts-nocheck
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { notificationService } from '@/services/notifications'
 import { ArrowLeft, MessageCircle, MessageSquare } from 'lucide-react'
 import PushNotificationSettings from '@/components/notifications/PushNotificationSettings'
+import { staggerChild, animateClasses } from '@/lib/animations'
 
 type ChannelKey = 'sms' | 'whatsapp'
 
@@ -190,12 +190,10 @@ export default function NotificationSettings() {
     const buttonLabel = optedIn ? 'Opt Out' : 'Opt In'
 
     return (
-      <motion.div
+      <div
         key={channel}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: channel === 'sms' ? 0.1 : 0.2 }}
-        className="bg-card rounded-2xl shadow-lg border border-border p-6 space-y-4"
+        className={`bg-card rounded-2xl shadow-lg border border-border p-6 space-y-4 ${animateClasses.slideUp}`}
+        style={staggerChild(channel === 'sms' ? 0 : 1, 100)}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -266,7 +264,7 @@ export default function NotificationSettings() {
             {savingChannel === channel ? 'Saving…' : buttonLabel}
           </Button>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
@@ -283,42 +281,36 @@ export default function NotificationSettings() {
             Back to Profile Settings
           </Link>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl"
+          <div
+            className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl ${animateClasses.slideUp}`}
           >
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Notification Preferences</h1>
             <p className="text-lg sm:text-xl text-white/90">
               All notifications are enabled by default. You can opt out of any you don't want.
             </p>
-          </motion.div>
+          </div>
         </div>
 
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
+          <div
+            className={`rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.slideUp}`}
           >
             <div className="flex items-center space-x-3">
               <div className="text-3xl">⚠️</div>
               <div className="text-error font-medium">{error}</div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 sm:p-6 mb-6 shadow-lg"
+          <div
+            className={`rounded-xl bg-emerald-50 border border-emerald-200 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.slideUp}`}
           >
             <div className="flex items-center space-x-3">
               <div className="text-3xl">✅</div>
               <div className="text-emerald-700 font-medium">{success}</div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {loading ? (

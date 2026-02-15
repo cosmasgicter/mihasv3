@@ -1,8 +1,9 @@
 /**
- * ForgotPasswordPage - Enhanced forgot password page with animations
+ * ForgotPasswordPage - Enhanced forgot password page with CSS animations
  * Consistent styling with other auth pages
  * 
- * @requirements 3.7 - Forgot password with success/error state animations
+ * @requirements 1.2 - CSS transitions/Tailwind instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior using CSS equivalents
  */
 
 import { useCallback, useState } from 'react';
@@ -10,17 +11,15 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Turnstile } from '@/components/ui/Turnstile';
 import { useAuth } from '@/contexts/AuthContext';
-import { durations } from '@/lib/animation-config';
+import { animateClasses } from '@/lib/animations';
 import { 
   Loader2, 
   AlertCircle, 
-  CheckCircle, 
   Mail,
   ArrowRight
 } from 'lucide-react';
@@ -38,7 +37,6 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
   const [turnstileKey, setTurnstileKey] = useState(0);
-  const prefersReducedMotion = useReducedMotion();
 
   const requireTurnstileVerification = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY) && import.meta.env.PROD;
 
@@ -96,40 +94,6 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  // Animation variants
-  const contentVariants = {
-    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: prefersReducedMotion ? 0 : durations.normal,
-        ease: 'easeOut',
-      },
-    },
-  };
-
-  const messageVariants = {
-    hidden: { opacity: 0, height: 0, marginTop: 0 },
-    visible: {
-      opacity: 1,
-      height: 'auto',
-      marginTop: 16,
-      transition: {
-        duration: prefersReducedMotion ? 0 : durations.normal,
-        ease: 'easeOut',
-      },
-    },
-    exit: {
-      opacity: 0,
-      height: 0,
-      marginTop: 0,
-      transition: {
-        duration: prefersReducedMotion ? 0 : durations.fast,
-      },
-    },
-  };
-
   // Success state
   if (success) {
     return (
@@ -139,26 +103,11 @@ export default function ForgotPasswordPage() {
         backLinkHref="/auth/signin"
         backLinkLabel="Back to sign in"
       >
-        <motion.div
-          className="space-y-6"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: prefersReducedMotion ? 0 : durations.normal }}
-        >
+        <div className={`space-y-6 ${animateClasses.scaleIn}`}>
           {/* Success icon */}
-          <motion.div
-            className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{
-              type: 'spring',
-              stiffness: 200,
-              damping: 15,
-              delay: prefersReducedMotion ? 0 : 0.2,
-            }}
-          >
+          <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 ${animateClasses.scaleIn}`}>
             <Mail className="h-8 w-8 text-green-600" />
-          </motion.div>
+          </div>
 
           {/* Success message */}
           <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
@@ -190,7 +139,7 @@ export default function ForgotPasswordPage() {
               </Button>
             </Link>
           </div>
-        </motion.div>
+        </div>
       </AuthLayout>
     );
   }
@@ -202,12 +151,9 @@ export default function ForgotPasswordPage() {
       backLinkHref="/auth/signin"
       backLinkLabel="Back to sign in"
     >
-      <motion.form
-        className="space-y-6"
+      <form
+        className={`space-y-6 ${animateClasses.slideUp}`}
         onSubmit={handleSubmit(onSubmit)}
-        variants={contentVariants}
-        initial="hidden"
-        animate="visible"
       >
         <Input
           {...register('email')}
@@ -220,23 +166,14 @@ export default function ForgotPasswordPage() {
         />
 
         {/* Error message */}
-        <AnimatePresence mode="wait">
-          {error && (
-            <motion.div
-              key="error"
-              variants={messageVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="overflow-hidden"
-            >
-              <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                <div className="text-sm font-medium text-destructive">{error}</div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {error && (
+          <div className={`overflow-hidden ${animateClasses.fadeIn}`}>
+            <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div className="text-sm font-medium text-destructive">{error}</div>
+            </div>
+          </div>
+        )}
 
         {/* Turnstile verification */}
         {Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY) && (
@@ -280,7 +217,7 @@ export default function ForgotPasswordPage() {
             Sign in instead
           </Link>
         </p>
-      </motion.form>
+      </form>
     </AuthLayout>
   );
 }

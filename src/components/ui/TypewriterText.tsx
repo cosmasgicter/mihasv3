@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 
 interface TypewriterTextProps {
   text: string
@@ -54,13 +53,11 @@ function TypewriterText({
     <div className={className}>
       <span>{displayedText}</span>
       {showCursor && (
-        <motion.span
-          animate={{ opacity: [1, 0, 1] }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="inline-block w-0.5 h-1em bg-current ml-1"
+        <span
+          className="inline-block w-0.5 h-1em bg-current ml-1 animate-[blink_1s_linear_infinite]"
         >
           |
-        </motion.span>
+        </span>
       )}
     </div>
   )

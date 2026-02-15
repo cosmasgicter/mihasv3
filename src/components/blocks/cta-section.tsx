@@ -5,7 +5,6 @@
  * @requirements 8.4, 8.5 - ShadcnBlocks page sections with design tokens
  */
 
-import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { ScrollReveal } from '@/components/smoothui';
@@ -40,7 +39,9 @@ export function CTASection({
   showIcon = false,
   className,
 }: CTASectionProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
 
   const variantClasses = {
     default: 'bg-card',
@@ -77,13 +78,12 @@ export function CTASection({
             <div className={cn('max-w-3xl', alignment === 'center' && 'mx-auto')}>
               {/* Icon */}
               {showIcon && (
-                <motion.div
-                  className="mb-6"
-                  animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                <div
+                  className={cn("mb-6", !prefersReducedMotion && "animate-[wiggle_2s_ease-in-out_infinite]")}
+                  style={{ animationDelay: '3s' }}
                 >
                   <Sparkles className={cn('h-10 w-10', variant === 'gradient' || variant === 'dark' ? 'text-white' : 'text-primary')} />
-                </motion.div>
+                </div>
               )}
 
               {/* Title */}
@@ -115,9 +115,8 @@ export function CTASection({
                   alignment === 'center' && 'justify-center'
                 )}
               >
-                <motion.div
-                  whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-                  whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
+                <div
+                  className="hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
                 >
                   <Button
                     size="lg"
@@ -128,7 +127,7 @@ export function CTASection({
                     {primaryCTA.label}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                </motion.div>
+                </div>
 
                 {secondaryCTA && (
                   <Button

@@ -11,7 +11,29 @@ import { Badge } from '@/components/ui/badge'
 import { Alert } from '@/components/ui/Alert'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Mail, MessageSquare, Phone, Clock, CheckCircle, XCircle, AlertCircle, User } from 'lucide-react'
-import { getCommunicationHistory, getLastContactedAt, type CommunicationHistory as CommunicationHistoryType } from '@/services/communicationService'
+// Types inlined after communicationService removal (legacy Supabase code)
+interface CommunicationHistoryType {
+  id: string
+  applicant_id: string
+  channel: 'email' | 'sms' | 'in-app'
+  subject?: string
+  message: string
+  template?: string
+  status: 'sent' | 'failed' | 'pending'
+  sent_by: string
+  sent_by_name?: string
+  sent_at: string
+  error_message?: string
+}
+
+// Stub functions — communication history requires backend migration to Neon
+async function getCommunicationHistory(_applicantId: string): Promise<CommunicationHistoryType[]> {
+  return []
+}
+
+async function getLastContactedAt(_applicantId: string): Promise<string | null> {
+  return null
+}
 import { cn } from '@/lib/utils'
 
 interface CommunicationHistoryProps {

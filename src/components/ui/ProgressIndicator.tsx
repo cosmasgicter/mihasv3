@@ -5,7 +5,6 @@
  */
 
 import React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
@@ -26,8 +25,6 @@ export function ProgressIndicator({
   size = 'md',
   className,
 }: ProgressIndicatorProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   const sizeClasses = {
     sm: 'h-1',
     md: 'h-2',
@@ -46,31 +43,16 @@ export function ProgressIndicator({
     <div className={cn('w-full space-y-2', className)}>
       {/* Progress bar */}
       <div className={cn('w-full bg-slate-200 rounded-full overflow-hidden', sizeClasses[size])}>
-        {prefersReducedMotion ? (
-          <div
-            className={cn(
-              'h-full rounded-full transition-all duration-300',
-              status === 'success' && 'bg-green-600',
-              status === 'error' && 'bg-red-600',
-              status === 'loading' && 'bg-blue-600',
-              status === 'idle' && 'bg-slate-400'
-            )}
-            style={{ width: `${clampedProgress}%` }}
-          />
-        ) : (
-          <motion.div
-            className={cn(
-              'h-full rounded-full',
-              status === 'success' && 'bg-green-600',
-              status === 'error' && 'bg-red-600',
-              status === 'loading' && 'bg-blue-600',
-              status === 'idle' && 'bg-slate-400'
-            )}
-            initial={{ width: 0 }}
-            animate={{ width: `${clampedProgress}%` }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-          />
-        )}
+        <div
+          className={cn(
+            'h-full rounded-full transition-all duration-300 ease-out',
+            status === 'success' && 'bg-green-600',
+            status === 'error' && 'bg-red-600',
+            status === 'loading' && 'bg-blue-600',
+            status === 'idle' && 'bg-slate-400'
+          )}
+          style={{ width: `${clampedProgress}%` }}
+        />
       </div>
 
       {/* Status message and percentage */}
@@ -117,7 +99,6 @@ export function CircularProgress({
   className,
   showPercentage = true,
 }: CircularProgressProps) {
-  const prefersReducedMotion = useReducedMotion()
   const clampedProgress = Math.max(0, Math.min(100, progress))
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
@@ -137,35 +118,18 @@ export function CircularProgress({
           className="text-slate-200"
         />
         {/* Progress circle */}
-        {prefersReducedMotion ? (
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="currentColor"
-            strokeWidth={strokeWidth}
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            className="text-blue-600 transition-all duration-300"
-          />
-        ) : (
-          <motion.circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="currentColor"
-            strokeWidth={strokeWidth}
-            fill="none"
-            strokeDasharray={circumference}
-            strokeLinecap="round"
-            className="text-blue-600"
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-          />
-        )}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="text-blue-600 transition-all duration-500 ease-out"
+        />
       </svg>
       {showPercentage && (
         <div className="absolute inset-0 flex items-center justify-center">
@@ -192,8 +156,6 @@ export function IndeterminateProgress({
   size = 'md',
   className,
 }: IndeterminateProgressProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   const sizeClasses = {
     sm: 'h-1',
     md: 'h-2',
@@ -203,21 +165,9 @@ export function IndeterminateProgress({
   return (
     <div className={cn('w-full space-y-2', className)}>
       <div className={cn('w-full bg-slate-200 rounded-full overflow-hidden', sizeClasses[size])}>
-        {prefersReducedMotion ? (
-          <div className="h-full w-1/3 bg-blue-600 rounded-full" />
-        ) : (
-          <motion.div
-            className="h-full w-1/3 bg-blue-600 rounded-full"
-            animate={{
-              x: ['-100%', '400%'],
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        )}
+        <div
+          className="h-full w-1/3 bg-blue-600 rounded-full animate-[indeterminate_1.5s_ease-in-out_infinite]"
+        />
       </div>
       {message && (
         <p className="text-sm text-slate-700 font-medium">{message}</p>

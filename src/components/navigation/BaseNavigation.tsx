@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -19,35 +18,6 @@ interface BaseNavigationProps {
   isActiveRoute: (href: string) => boolean
   onNavigate: (href: string) => void
   className?: string
-}
-
-const MENU_VARIANTS = {
-  closed: {
-    x: '100%',
-    transition: {
-      duration: 0.25,
-      ease: [0.4, 0, 0.2, 1]
-    }
-  },
-  open: {
-    x: 0,
-    transition: {
-      duration: 0.25,
-      ease: [0.4, 0, 0.2, 1]
-    }
-  }
-}
-
-const ITEM_VARIANTS = {
-  closed: { opacity: 0, x: 10 },
-  open: (i: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: {
-      delay: i * 0.05,
-      duration: 0.2
-    }
-  })
 }
 
 export function BaseNavigation({
@@ -110,130 +80,108 @@ export function BaseNavigation({
           </div>
 
           {/* Mobile Menu Button */}
-          <motion.button
-            className="lg:hidden p-3 rounded-xl bg-card hover:bg-muted transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[48px] min-w-[48px] touch-target border-2 border-border shadow-lg"
+          <button
+            className="lg:hidden p-3 rounded-xl bg-card hover:bg-muted transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[48px] min-w-[48px] touch-target border-2 border-border shadow-lg active:scale-95 motion-reduce:transform-none"
             onClick={toggleMenu}
-            whileTap={{ scale: 0.95 }}
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
           >
-            <AnimatePresence mode="wait">
+            <div className="transition-transform duration-200 motion-reduce:transition-none">
               {isOpen ? (
-                <motion.div
-                  key="close"
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
-                </motion.div>
+                <X className="h-5 w-5 sm:h-6 sm:w-6" />
               ) : (
-                <motion.div
-                  key="menu"
-                  initial={{ rotate: 90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: -90, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
-                </motion.div>
+                <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
               )}
-            </AnimatePresence>
-          </motion.button>
+            </div>
+          </button>
         </div>
       </div>
 
       {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              className="fixed inset-0 bg-black/70 backdrop-blur-md lg:hidden"
-              style={{ zIndex: 9998 }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeMenu}
-            />
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-md lg:hidden transition-opacity duration-250 motion-reduce:transition-none"
+            style={{ zIndex: 9998 }}
+            onClick={closeMenu}
+          />
 
-            {/* Mobile Menu */}
-            <motion.div
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-2xl lg:hidden border-l-4 border-primary overflow-y-auto"
-              style={{ zIndex: 9999 }}
-              variants={MENU_VARIANTS}
-              initial="closed"
-              animate="open"
-              exit="closed"
-            >
-              <div className="flex flex-col h-full">
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-primary/5 to-secondary/5">
-                  {mobileHeader}
-                  <motion.button
-                    className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[44px] min-w-[44px] touch-target"
-                    onClick={closeMenu}
-                    whileTap={{ scale: 0.95 }}
-                    aria-label="Close menu"
-                  >
-                    <X className="h-6 w-6" />
-                  </motion.button>
-                </div>
-
-                {/* Navigation Items */}
-                <div className="flex flex-col flex-1 overflow-hidden">
-                  <div className="flex flex-col space-y-2 p-6 flex-1 overflow-y-auto">
-                    {mobileItems.map((item, index) => {
-                      const isActive = isActiveRoute(item.href)
-                      const Icon = item.icon
-
-                      return (
-                        <motion.div
-                          key={item.href}
-                          variants={ITEM_VARIANTS}
-                          custom={index}
-                          initial="closed"
-                          animate="open"
-                        >
-                          <button
-                            onClick={() => handleItemClick(item.href)}
-                            className={cn(
-                              "w-full flex items-center justify-between px-4 py-4 rounded-xl transition-all duration-200 min-h-[48px] touch-target",
-                              isActive
-                                ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg"
-                                : "bg-card text-foreground hover:bg-accent border-2 border-border hover:border-primary"
-                            )}
-                          >
-                            <div className="flex items-center space-x-3">
-                              {item.emoji && <span className="text-xl">{item.emoji}</span>}
-                              {Icon && <Icon className="h-5 w-5" />}
-                              <div className="text-left">
-                                <span className="font-semibold">{item.label}</span>
-                                {isActive && (
-                                  <div className="text-xs opacity-80 mt-0.5">Current Page</div>
-                                )}
-                              </div>
-                            </div>
-                            <ChevronRight className="h-5 w-5 opacity-60" />
-                          </button>
-                        </motion.div>
-                      )
-                    })}
-                  </div>
-
-                  {/* Footer */}
-                  {mobileFooter && (
-                    <div className="p-6 border-t border-border/70 bg-muted/50">
-                      {mobileFooter}
-                    </div>
-                  )}
-                </div>
+          {/* Mobile Menu */}
+          <div
+            className={cn(
+              "fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-2xl lg:hidden border-l-4 border-primary overflow-y-auto",
+              "transition-transform duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none",
+              isOpen ? "translate-x-0" : "translate-x-full"
+            )}
+            style={{ zIndex: 9999 }}
+          >
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-primary/5 to-secondary/5">
+                {mobileHeader}
+                <button
+                  className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[44px] min-w-[44px] touch-target active:scale-95 motion-reduce:transform-none"
+                  onClick={closeMenu}
+                  aria-label="Close menu"
+                >
+                  <X className="h-6 w-6" />
+                </button>
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+
+              {/* Navigation Items */}
+              <div className="flex flex-col flex-1 overflow-hidden">
+                <div className="flex flex-col space-y-2 p-6 flex-1 overflow-y-auto">
+                  {mobileItems.map((item, index) => {
+                    const isActive = isActiveRoute(item.href)
+                    const Icon = item.icon
+
+                    return (
+                      <div
+                        key={item.href}
+                        className="animate-fade-in opacity-0"
+                        style={{
+                          animationDelay: `${index * 50}ms`,
+                          animationFillMode: 'forwards',
+                        }}
+                      >
+                        <button
+                          onClick={() => handleItemClick(item.href)}
+                          className={cn(
+                            "w-full flex items-center justify-between px-4 py-4 rounded-xl transition-all duration-200 min-h-[48px] touch-target",
+                            isActive
+                              ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg"
+                              : "bg-card text-foreground hover:bg-accent border-2 border-border hover:border-primary"
+                          )}
+                        >
+                          <div className="flex items-center space-x-3">
+                            {item.emoji && <span className="text-xl">{item.emoji}</span>}
+                            {Icon && <Icon className="h-5 w-5" />}
+                            <div className="text-left">
+                              <span className="font-semibold">{item.label}</span>
+                              {isActive && (
+                                <div className="text-xs opacity-80 mt-0.5">Current Page</div>
+                              )}
+                            </div>
+                          </div>
+                          <ChevronRight className="h-5 w-5 opacity-60" />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Footer */}
+                {mobileFooter && (
+                  <div className="p-6 border-t border-border/70 bg-muted/50">
+                    {mobileFooter}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </nav>
   )
 }

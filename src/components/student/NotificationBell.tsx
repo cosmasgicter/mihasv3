@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, X, CheckCircle, AlertTriangle, Info, Clock, Trash2, Lightbulb } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { staggerChild, animateClasses } from '@/lib/animations'
 import { useStudentNotifications } from '@/hooks/useStudentNotifications'
 import { formatDate } from '@/lib/utils'
 import { sanitizeText } from '@/lib/sanitize'
@@ -77,19 +77,16 @@ export function NotificationBell() {
       >
         <Bell className="h-5 w-5 text-gray-700" />
         {unreadCount > 0 && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-error text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold"
+          <span
+            className="absolute -top-1 -right-1 bg-error text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-scale-in"
             data-testid="unread-count"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
-          </motion.span>
+          </span>
         )}
       </Button>
 
       {/* Notifications Panel */}
-      <AnimatePresence>
         {showPanel && (
           <>
             {/* Backdrop */}
@@ -98,11 +95,8 @@ export function NotificationBell() {
               onClick={() => setShowPanel(false)}
             />
             
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-card rounded-xl shadow-2xl border border-border z-[9999] max-h-[80vh] flex flex-col"
+            <div
+              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-card rounded-xl shadow-2xl border border-border z-[9999] max-h-[80vh] flex flex-col animate-scale-in"
               data-testid="notifications-panel"
             >
               {/* Header */}
@@ -154,14 +148,12 @@ export function NotificationBell() {
                 ) : (
                   <div className="p-2 space-y-2">
                     {notifications.map((notification, index) => (
-                      <motion.div
+                      <div
                         key={notification.id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className={`group p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${getBgColor(notification.type, notification.read)} ${
+                        className={`${animateClasses.fadeIn} opacity-0 group p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${getBgColor(notification.type, notification.read)} ${
                           !notification.read ? 'border-l-4 shadow-sm' : ''
                         }`}
+                        style={staggerChild(index)}
                         onClick={() => handleNotificationClick(notification)}
                         data-testid="notification-item"
                       >
@@ -205,7 +197,7 @@ export function NotificationBell() {
                             </div>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -219,10 +211,9 @@ export function NotificationBell() {
                   </p>
                 </div>
               )}
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
     </div>
   )
 }

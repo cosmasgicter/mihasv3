@@ -5,7 +5,6 @@
  * @requirements 8.2 - 8starlabs UI specialized components
  */
 
-import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Check, Clock, AlertCircle, Circle, Loader2 } from 'lucide-react';
@@ -67,7 +66,9 @@ export function Timeline({
   showConnector = true,
   animate = true,
 }: TimelineProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
   const shouldAnimate = animate && !prefersReducedMotion;
 
   if (orientation === 'horizontal') {
@@ -90,12 +91,10 @@ export function Timeline({
         const isLast = index === events.length - 1;
 
         return (
-          <motion.div
+          <div
             key={event.id}
-            className="relative flex gap-4 pb-8 last:pb-0"
-            initial={shouldAnimate ? { opacity: 0, x: -20 } : undefined}
-            animate={shouldAnimate ? { opacity: 1, x: 0 } : undefined}
-            transition={{ delay: index * 0.1, duration: 0.3 }}
+            className="relative flex gap-4 pb-8 last:pb-0 animate-fade-in"
+            style={shouldAnimate ? { animationDelay: `${index * 100}ms`, animationFillMode: 'forwards', opacity: 0 } : undefined}
           >
             {/* Connector line */}
             {showConnector && !isLast && (
@@ -138,7 +137,7 @@ export function Timeline({
                 </p>
               )}
             </div>
-          </motion.div>
+          </div>
         );
       })}
     </div>
@@ -161,12 +160,10 @@ function HorizontalTimeline({
         const isLast = index === events.length - 1;
 
         return (
-          <motion.div
+          <div
             key={event.id}
-            className="relative flex flex-col items-center min-w-[140px] px-4"
-            initial={animate ? { opacity: 0, y: 20 } : undefined}
-            animate={animate ? { opacity: 1, y: 0 } : undefined}
-            transition={{ delay: index * 0.1, duration: 0.3 }}
+            className="relative flex flex-col items-center min-w-[140px] px-4 animate-fade-in"
+            style={animate ? { animationDelay: `${index * 100}ms`, animationFillMode: 'forwards', opacity: 0 } : undefined}
           >
             {/* Connector line */}
             {showConnector && !isLast && (
@@ -207,7 +204,7 @@ function HorizontalTimeline({
                 </p>
               )}
             </div>
-          </motion.div>
+          </div>
         );
       })}
     </div>

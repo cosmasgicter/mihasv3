@@ -6,11 +6,11 @@
  */
 
 import React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
 import { Timeline, TimelineItem } from '@/components/8starlabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { History, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { animateClasses } from '@/lib/animations';
 import type { Application } from '@/lib/supabase';
 
 interface ApplicationTimelineProps {
@@ -76,7 +76,6 @@ function getStatusTitle(status: string): string {
 }
 
 export function ApplicationTimeline({ applications, className }: ApplicationTimelineProps) {
-  const prefersReducedMotion = useReducedMotion();
 
   // Sort applications by date (most recent first) and take the latest one
   const sortedApplications = [...applications].sort((a, b) => {
@@ -112,11 +111,7 @@ export function ApplicationTimeline({ applications, className }: ApplicationTime
   const timelineEvents = buildTimelineEvents(latestApplication);
 
   return (
-    <motion.div
-      initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
-      animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className={animateClasses.slideUp}>
       <Card className={cn('border-border/50', className)}>
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -132,11 +127,11 @@ export function ApplicationTimeline({ applications, className }: ApplicationTime
             events={timelineEvents}
             orientation="vertical"
             showConnector={true}
-            animate={!prefersReducedMotion}
+            animate={true}
           />
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }
 

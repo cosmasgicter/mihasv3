@@ -2,7 +2,6 @@ import React from 'react'
 import { UseFormRegister, FieldErrors, Control } from 'react-hook-form'
 import { Input } from '@/components/ui/Input'
 import { FormSelect } from '@/components/ui/form-select'
-import { motion } from 'framer-motion'
 
 interface WizardFormData {
   full_name: string
@@ -28,12 +27,8 @@ interface StepOneProps {
 
 export const StepOne: React.FC<StepOneProps> = ({ register, control, errors, selectedProgram }) => {
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-border"
+    <div 
+      className="bg-card rounded-lg shadow-lg p-6 border border-border animate-fade-in"
     >
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
         Step 1: Basic KYC Information
@@ -175,16 +170,14 @@ export const StepOne: React.FC<StepOneProps> = ({ register, control, errors, sel
       </div>
       
       {selectedProgram && (
-        <motion.div 
-          className="mt-4 p-4 bg-primary/5 rounded-lg"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+        <div 
+          className="mt-4 p-4 bg-primary/5 rounded-lg animate-scale-in"
         >
           <p className="text-sm text-primary-foreground">
             <strong>Institution:</strong> {['Clinical Medicine', 'Environmental Health'].includes(selectedProgram) ? 'KATC' : 'MIHAS'}
           </p>
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   )
 }

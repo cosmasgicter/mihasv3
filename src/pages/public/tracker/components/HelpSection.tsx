@@ -1,18 +1,11 @@
 import React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
 import { Phone, Mail, MapPin, HelpCircle, FileSearch, CheckCircle, Clock, Target, XCircle, Rocket } from 'lucide-react'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { animateClasses } from '@/lib/animations'
 
 export const HelpSection: React.FC = () => {
-  const shouldReduceMotion = useReducedMotion()
-  const maybeMotion = <T,>(value: T) => (shouldReduceMotion ? undefined : value)
-
   return (
-    <motion.div
-      initial={maybeMotion({ opacity: 0, y: 20 })}
-      animate={maybeMotion({ opacity: 1, y: 0 })}
-      transition={maybeMotion({ duration: 0.3, delay: 0.3 })}
-    >
+    <div className={animateClasses.slideUp} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
       <SectionCard
         title="Need Help?"
         description="Everything you need to know about tracking your application"
@@ -116,6 +109,6 @@ export const HelpSection: React.FC = () => {
           </div>
         </div>
       </SectionCard>
-    </motion.div>
+    </div>
   )
 }

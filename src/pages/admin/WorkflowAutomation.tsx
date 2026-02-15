@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { animateClasses, staggerChild } from '@/lib/animations'
 import { Zap, Play, Pause, Settings, AlertTriangle, CheckCircle, Clock, TrendingUp } from 'lucide-react'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useRoleQuery, isAdminRole } from '@/hooks/auth/useRoleQuery'
@@ -160,10 +160,9 @@ export default function WorkflowAutomation() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+          <div
+            className={`${animateClasses.fadeIn} opacity-0`}
+            style={staggerChild(0)}
           >
             <Card className="p-6">
               <div className="flex items-center">
@@ -176,12 +175,11 @@ export default function WorkflowAutomation() {
                 </div>
               </div>
             </Card>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+          <div
+            className={`${animateClasses.fadeIn} opacity-0`}
+            style={staggerChild(1)}
           >
             <Card className="p-6">
               <div className="flex items-center">
@@ -194,12 +192,11 @@ export default function WorkflowAutomation() {
                 </div>
               </div>
             </Card>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+          <div
+            className={`${animateClasses.fadeIn} opacity-0`}
+            style={staggerChild(2)}
           >
             <Card className="p-6">
               <div className="flex items-center">
@@ -212,12 +209,11 @@ export default function WorkflowAutomation() {
                 </div>
               </div>
             </Card>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+          <div
+            className={`${animateClasses.fadeIn} opacity-0`}
+            style={staggerChild(3)}
           >
             <Card className="p-6">
               <div className="flex items-center">
@@ -230,7 +226,7 @@ export default function WorkflowAutomation() {
                 </div>
               </div>
             </Card>
-          </motion.div>
+          </div>
         </div>
 
         {/* Workflow Rules */}
@@ -244,16 +240,14 @@ export default function WorkflowAutomation() {
 
           <div className="space-y-4">
             {rules.map((rule, index) => (
-              <motion.div
+              <div
                 key={rule.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={`p-6 rounded-lg border-2 transition-all duration-200 ${
+                className={`p-6 rounded-lg border-2 transition-all duration-200 ${animateClasses.fadeIn} opacity-0 ${
                   rule.enabled 
                     ? 'border-green-200 bg-green-50' 
                     : 'border-border bg-muted'
                 }`}
+                style={staggerChild(index)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -335,7 +329,7 @@ export default function WorkflowAutomation() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 

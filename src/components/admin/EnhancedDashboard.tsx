@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion } from 'framer-motion'
 import { 
   Activity, 
   TrendingUp, 
@@ -61,10 +60,7 @@ export function EnhancedDashboard({
     <div className="space-y-6">
       {/* Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
+        <div className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -79,13 +75,9 @@ export function EnhancedDashboard({
             </div>
             <div className="text-sm font-medium text-gray-900">New Applications</div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
+        <div className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-orange-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -103,13 +95,9 @@ export function EnhancedDashboard({
               <div className="text-xs text-accent mt-2">Requires attention</div>
             )}
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
+        <div className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-green-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -128,13 +116,9 @@ export function EnhancedDashboard({
               <span className="text-warning-strong">Stable performance</span>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
+        <div className="bg-card rounded-xl p-6 shadow-lg border border-border relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/20 rounded-bl-full"></div>
           <div className="relative z-10">
@@ -153,16 +137,13 @@ export function EnhancedDashboard({
               <span className="text-warning-strong">Improved by 15%</span>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Recent Activity & System Health */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-card rounded-xl shadow-lg border border-border"
+        <div className="bg-card rounded-xl shadow-lg border border-border"
         >
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-lg font-bold text-gray-900"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
@@ -179,12 +160,7 @@ export function EnhancedDashboard({
           
           <div className="p-6 space-y-3 max-h-80 overflow-y-auto">
             {recentActivity.length > 0 ? recentActivity.map((activity, index) => (
-              <motion.div 
-                key={activity.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-start space-x-3 p-3 bg-muted rounded-lg hover:bg-accent transition-colors"
+              <div className="flex items-start space-x-3 p-3 bg-muted rounded-lg hover:bg-accent transition-colors"
               >
                 <div className={`w-2 h-2 rounded-full mt-2 ${
                   activity.type === 'approval' ? 'bg-success' :
@@ -195,7 +171,7 @@ export function EnhancedDashboard({
                   <p className="text-sm font-medium text-gray-900 truncate">{activity.message}</p>
                   <p className="text-xs text-gray-900">{new Date(activity.timestamp).toLocaleString()}</p>
                 </div>
-              </motion.div>
+              </div>
             )) : (
               <div className="text-center py-8 text-gray-900">
                 <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -203,13 +179,10 @@ export function EnhancedDashboard({
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
         {/* System Health */}
-        <motion.div 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-card rounded-xl shadow-lg border border-border"
+        <div className="bg-card rounded-xl shadow-lg border border-border"
         >
           <div className="px-6 py-4 border-b border-border">
             <h3 className="text-lg font-bold text-gray-900">🛡️ System Health</h3>
@@ -258,7 +231,7 @@ export function EnhancedDashboard({
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   )

@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface SkeletonLoaderProps {
@@ -31,18 +30,6 @@ export function SkeletonLoader({
     width: typeof width === 'number' ? `${width}px` : width
   }
 
-  const waveVariants = {
-    initial: { x: '-100%' },
-    animate: {
-      x: '100%',
-      transition: {
-        duration: 1.5,
-        repeat: Infinity,
-        ease: 'easeInOut'
-      }
-    }
-  }
-
   return (
     <>
       {Array.from({ length: count }).map((_, index) => (
@@ -52,11 +39,8 @@ export function SkeletonLoader({
           style={style}
         >
           {animation === 'wave' && (
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-              variants={waveVariants}
-              initial="initial"
-              animate="animate"
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_1.5s_ease-in-out_infinite]"
             />
           )}
         </div>

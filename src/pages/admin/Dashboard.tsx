@@ -34,7 +34,7 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { animateClasses } from '@/lib/animations'
 import { Link } from 'react-router-dom'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
@@ -287,10 +287,8 @@ export default function AdminDashboard() {
       <main className="w-full max-w-full overflow-x-hidden">
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 safe-area-bottom">
         {/* Enhanced Welcome Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 sm:mb-8"
+        <div 
+          className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}
         >
           <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
             <div className="absolute inset-0 bg-black/10"></div>
@@ -340,16 +338,12 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Error Display */}
-        <AnimatePresence>
           {error && (
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
+            <div 
+              className={`rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.fadeIn}`}
             >
               <div className="flex items-center space-x-3">
                 <AlertTriangle className="h-6 w-6 text-error flex-shrink-0" />
@@ -357,9 +351,8 @@ export default function AdminDashboard() {
                   <strong>Error:</strong> {error}
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {(isRefreshing || isManualRefreshing) && (
           <div className="mb-6">
@@ -381,11 +374,8 @@ export default function AdminDashboard() {
 
         {/* Real-time Metrics Display with Animated Counters */}
         {/* Requirements: 6.2, 6.4 - Real-time metrics display with animated counters and visual indicators */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-6 sm:mb-8"
+        <div 
+          className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}
         >
           <RealtimeMetricsDisplay
             todayApplications={stats.todayApplications}
@@ -407,7 +397,7 @@ export default function AdminDashboard() {
               auth: 'healthy',
             }}
           />
-        </motion.div>
+        </div>
 
         {/* Enhanced Dashboard Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -430,11 +420,8 @@ export default function AdminDashboard() {
           </div>
         </div>
         {/* Weekly Overview */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mt-8 bg-card rounded-2xl shadow-lg border border-border"
+        <div 
+          className={`mt-8 bg-card rounded-2xl shadow-lg border border-border ${animateClasses.slideUp}`}
         >
           <div className="px-6 py-4 border-b border-border">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
@@ -465,7 +452,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         </div>
       </main>
