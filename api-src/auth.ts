@@ -21,7 +21,7 @@ import {
   type UserRole 
 } from "../lib/auth/jwt";
 import { getPermissionsForRole } from "../lib/auth/permissions";
-import { setAuthCookies, clearAuthCookies, extractAccessTokenFromCookie, extractRefreshTokenFromCookie } from "../lib/auth/cookies";
+import { setAuthCookies, clearAuthCookies, extractAccessTokenFromCookie, extractRefreshTokenFromCookie, extractBearerToken } from "../lib/auth/cookies";
 import { withArcjetProtection } from "../lib/arcjet";
 import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
 import { createHash, timingSafeEqual } from "crypto";
@@ -296,7 +296,7 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
  * GET /api/auth?action=session
  */
 async function handleSession(req: VercelRequest, res: VercelResponse) {
-  const token = extractAccessTokenFromCookie(req);
+  const token = extractAccessTokenFromCookie(req) || extractBearerToken(req);
 
   if (!token) {
     return sendSuccess(res, { user: null });
@@ -406,7 +406,8 @@ async function handleRoles(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const token = extractAccessTokenFromCookie(req);
+  // Try cookie first, then Bearer token
+  const token = extractAccessTokenFromCookie(req) || extractBearerToken(req);
 
   if (!token) {
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
