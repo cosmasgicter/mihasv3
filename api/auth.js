@@ -1010,23 +1010,23 @@ async function handler(req, res) {
   try {
     switch (action) {
       case "login":
-        return handleLogin(req, res);
+        return await handleLogin(req, res);
       case "logout":
-        return handleLogout(req, res);
+        return await handleLogout(req, res);
       case "register":
-        return handleRegister(req, res);
+        return await handleRegister(req, res);
       case "session":
-        return handleSession(req, res);
+        return await handleSession(req, res);
       case "refresh":
-        return handleRefresh(req, res);
+        return await handleRefresh(req, res);
       case "bootstrap":
-        return handleBootstrap(req, res);
+        return await handleBootstrap(req, res);
       case "check-email":
-        return handleCheckEmail(req, res);
+        return await handleCheckEmail(req, res);
       case "roles":
-        return handleRoles(req, res);
+        return await handleRoles(req, res);
       case "profile":
-        return handleProfile(req, res);
+        return await handleProfile(req, res);
       default:
         return sendError(res, "Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email, roles, profile", HttpStatus.BAD_REQUEST);
     }

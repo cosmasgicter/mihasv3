@@ -30237,27 +30237,27 @@ async function handler(req, res) {
         if (req.method !== "POST") {
           return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
         }
-        return handleUpload(req, res, user.userId, user.role);
+        return await handleUpload(req, res, user.userId, user.role);
       case "extract":
         if (req.method !== "POST") {
           return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
         }
-        return handleExtract(req, res, user.userId, user.role);
+        return await handleExtract(req, res, user.userId, user.role);
       case "download":
         if (req.method !== "GET") {
           return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
         }
-        return handleDownload(req, res, user.userId, user.role);
+        return await handleDownload(req, res, user.userId, user.role);
       case "delete":
         if (req.method !== "DELETE" && req.method !== "POST") {
           return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
         }
-        return handleDelete(req, res, user.userId, user.role);
+        return await handleDelete(req, res, user.userId, user.role);
       case "signed-url":
         if (req.method !== "GET" && req.method !== "POST") {
           return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
         }
-        return handleSignedUrl(req, res, user.userId, user.role);
+        return await handleSignedUrl(req, res, user.userId, user.role);
       default:
         return sendError(res, "Invalid action. Valid: upload, extract, download, delete, signed-url", HttpStatus.BAD_REQUEST);
     }

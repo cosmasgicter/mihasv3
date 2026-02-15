@@ -59,23 +59,23 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
 
   try {
     // Handle specific actions
-    if (action === 'details') return handleDetails(req, res, user.userId, isAdmin);
-    if (action === 'documents') return handleDocuments(res);
-    if (action === 'grades') return handleGrades(res);
-    if (action === 'summary') return handleSummary(res);
-    if (action === 'review') return handleReview(req, res, user.userId, isAdmin);
-    if (action === 'interviews') return handleInterviews(req, res, user.userId);
-    if (action === 'schedule-interview') return handleScheduleInterview(req, res, user.userId, isAdmin);
-    if (action === 'stats') return handleStats(req, res, user.userId);
-    if (action === 'export') return handleExport(req, res, isAdmin);
-    if (action === 'versions') return handleVersions(req, res, user.userId);
+    if (action === 'details') return await handleDetails(req, res, user.userId, isAdmin);
+    if (action === 'documents') return await handleDocuments(res);
+    if (action === 'grades') return await handleGrades(res);
+    if (action === 'summary') return await handleSummary(res);
+    if (action === 'review') return await handleReview(req, res, user.userId, isAdmin);
+    if (action === 'interviews') return await handleInterviews(req, res, user.userId);
+    if (action === 'schedule-interview') return await handleScheduleInterview(req, res, user.userId, isAdmin);
+    if (action === 'stats') return await handleStats(req, res, user.userId);
+    if (action === 'export') return await handleExport(req, res, isAdmin);
+    if (action === 'versions') return await handleVersions(req, res, user.userId);
 
     // Handle CRUD by ID
-    if (id) return handleById(req, res, user.userId, isAdmin, id);
+    if (id) return await handleById(req, res, user.userId, isAdmin, id);
 
     // Default: list applications (GET) or create application (POST)
-    if (req.method === 'GET') return handleDetails(req, res, user.userId, isAdmin);
-    if (req.method === 'POST') return handleCreate(req, res, user.userId);
+    if (req.method === 'GET') return await handleDetails(req, res, user.userId, isAdmin);
+    if (req.method === 'POST') return await handleCreate(req, res, user.userId);
 
     return sendError(res, 'Invalid request', HttpStatus.BAD_REQUEST);
   } catch (error) {

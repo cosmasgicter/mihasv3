@@ -952,13 +952,13 @@ async function handler(req, res) {
     const userAgent = req.headers["user-agent"] || null;
     switch (action) {
       case "list":
-        return handleList(req, res, auth.userId, auth.sessionId);
+        return await handleList(req, res, auth.userId, auth.sessionId);
       case "track":
-        return handleTrack(req, res, auth.userId, ipAddress, userAgent);
+        return await handleTrack(req, res, auth.userId, ipAddress, userAgent);
       case "revoke":
-        return handleRevoke(req, res, auth.userId, ipAddress, userAgent);
+        return await handleRevoke(req, res, auth.userId, ipAddress, userAgent);
       case "revoke-all":
-        return handleRevokeAll(req, res, auth.userId, auth.sessionId, ipAddress, userAgent);
+        return await handleRevokeAll(req, res, auth.userId, auth.sessionId, ipAddress, userAgent);
       default:
         return sendError(res, "Invalid action. Use: list, track, revoke, revoke-all", HttpStatus.BAD_REQUEST);
     }
