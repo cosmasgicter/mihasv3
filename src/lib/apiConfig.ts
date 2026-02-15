@@ -8,14 +8,38 @@
  */
 export function getApiBaseUrl(): string {
   const normalizeBaseUrl = (value: string) => value.replace(/\/$/, '')
+  const getOrigin = (value: string) => {
+    try {
+      return new URL(value).origin
+    } catch {
+      return null
+    }
+  }
+  const browserOrigin = typeof window !== 'undefined' && window.location?.origin
+    ? normalizeBaseUrl(window.location.origin)
+    : null
   
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL
   if (configuredBaseUrl) {
-    return normalizeBaseUrl(configuredBaseUrl)
+    const normalizedConfiguredBaseUrl = normalizeBaseUrl(configuredBaseUrl)
+
+    // Cookie-based auth requires same-origin API calls in production.
+    // If a stale env value points to another origin, login succeeds but
+    // cookies are stored on the wrong domain and session checks fail.
+    if (browserOrigin) {
+      const configuredOrigin = getOrigin(normalizedConfiguredBaseUrl)
+      const currentOrigin = getOrigin(browserOrigin)
+
+      if (configuredOrigin && currentOrigin && configuredOrigin !== currentOrigin) {
+        return browserOrigin
+      }
+    }
+
+    return normalizedConfiguredBaseUrl
   }
 
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return normalizeBaseUrl(window.location.origin)
+  if (browserOrigin) {
+    return browserOrigin
   }
 
   return normalizeBaseUrl('https://apply.mihas.edu.zm')
