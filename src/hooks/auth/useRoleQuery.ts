@@ -2,9 +2,8 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { User } from '@/types/auth'
 import { useAuth } from '@/contexts/AuthContext'
-import { isSupabaseConfigured } from '@/lib/supabase'
 import { isAdminRole } from '@/lib/auth/roles'
-import { fetchUserRole, type AuthUserRole as ApiAuthUserRole } from '@/lib/api/authApi'
+import { fetchUserRole } from '@/lib/api/authApi'
 
 export { ADMIN_ROLES, isAdminRole, isReportManagerRole, REPORT_MANAGER_ROLES } from '@/lib/auth/roles'
 
@@ -44,10 +43,6 @@ export function useRoleQuery(options: UseRoleQueryOptions = {}): RoleQueryResult
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!user) return null
-
-      if (!isSupabaseConfigured) {
-        return null
-      }
 
       try {
         const roleData = await fetchUserRole()

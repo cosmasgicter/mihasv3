@@ -121,6 +121,36 @@ describe('route guards with normalized session-backed auth state', () => {
     expect(element.props.to).toBe('/admin/dashboard')
   })
 
+
+  it('AdminRoute redirects logged-in students to student dashboard', () => {
+    mockUseOptimizedAuthState.mockReturnValue({
+      user: { id: 'student-1', email: 'student@example.com', role: 'student' },
+      isAdmin: false,
+      isLoading: false,
+      profile: null,
+      isAuthenticated: true,
+    })
+
+    const element = AdminRoute({ children: React.createElement('div', null, 'Admin') }) as React.ReactElement
+
+    expect(element.type).toBe('mock-navigate')
+    expect(element.props.to).toBe('/student/dashboard')
+  })
+
+  it('AdminRoute allows logged-in admins from session role source', () => {
+    mockUseOptimizedAuthState.mockReturnValue({
+      user: { id: 'admin-2', email: 'admin@example.com', role: 'admin' },
+      isAdmin: true,
+      isLoading: false,
+      profile: null,
+      isAuthenticated: true,
+    })
+
+    const element = AdminRoute({ children: React.createElement('div', { id: 'admin-ok' }, 'Admin') }) as React.ReactElement
+
+    expect(typeof element.type).toBe('function')
+    expect((element.props.children as React.ReactElement).props.id).toBe('admin-ok')
+  })
   it('AdminRoute redirects unauthenticated users to signin', () => {
     mockUseOptimizedAuthState.mockReturnValue({
       user: null,
