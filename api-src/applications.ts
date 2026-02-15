@@ -65,6 +65,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     if (action === 'summary') return handleSummary(res);
     if (action === 'review') return handleReview(req, res, user.userId, isAdmin);
     if (action === 'interviews') return handleInterviews(req, res, user.userId);
+    if (action === 'schedule-interview') return handleScheduleInterview(req, res, user.userId, isAdmin);
     if (action === 'stats') return handleStats(req, res, user.userId);
     if (action === 'export') return handleExport(req, res, isAdmin);
     if (action === 'versions') return handleVersions(req, res, user.userId);
@@ -232,6 +233,64 @@ async function handleInterviews(
   `, [userId]);
 
   return sendSuccess(res, { interviews: result.rows });
+}
+
+/**
+ * Handle interview scheduling action
+ * POST /api/applications?action=schedule-interview
+ * Body: { applicationId, scheduled_at, mode, location, notes }
+ */
+async function handleScheduleInterview(
+  req: VercelRequest,
+  res: VercelResponse,
+  userId: string,
+  isAdmin: boolean
+) {
+  if (req.method !== 'POST') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  if (!isAdmin) {
+    return sendError(res, 'Forbidden: admin access required', HttpStatus.FORBIDDEN);
+  }
+
+  const { applicationId, scheduled_at, mode, location, notes } = req.body || {};
+
+  if (!applicationId || !scheduled_at || !mode || !location) {
+    return sendError(res, 'Missing required fields: applicationId, scheduled_at, mode, location', HttpStatus.BAD_REQUEST);
+  }
+
+  const normalizedMode = mode === 'in-person' ? 'in_person' : mode;
+  if (!['in_person', 'virtual', 'phone'].includes(normalizedMode)) {
+    return sendError(res, 'Invalid mode. Use: in-person, in_person, virtual, or phone', HttpStatus.BAD_REQUEST);
+  }
+
+  const applicationResult = await query<{ id: string }>(
+    'SELECT id FROM applications WHERE id = $1 LIMIT 1',
+    [applicationId]
+  );
+
+  if (applicationResult.rowCount === 0) {
+    return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+  }
+
+  const interviewResult = await query<{
+    id: string;
+    application_id: string;
+    scheduled_at: string;
+    mode: string;
+    location: string;
+    notes: string | null;
+    status: string;
+  }>(
+    `INSERT INTO application_interviews (
+      application_id, scheduled_at, mode, location, notes, status, created_by, created_at, updated_at
+    ) VALUES ($1, $2, $3, $4, $5, 'scheduled', $6, NOW(), NOW())
+    RETURNING id, application_id, scheduled_at, mode, location, notes, status`,
+    [applicationId, scheduled_at, normalizedMode, location, notes || null, userId]
+  );
+
+  return sendSuccess(res, { interview: interviewResult.rows[0] }, HttpStatus.CREATED);
 }
 
 /**

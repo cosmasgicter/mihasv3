@@ -24,10 +24,11 @@ export function InterviewScheduler({ applicationId, onSuccess, onCancel }: Inter
     setLoading(true)
 
     try {
-      const response = await fetch(`/api/applications/${applicationId}/interview`, {
+      const response = await fetch('/api/applications?action=schedule-interview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        credentials: 'include',
+        body: JSON.stringify({ applicationId, ...formData })
       })
 
       if (!response.ok) throw new Error('Failed to schedule interview')
