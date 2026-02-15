@@ -1,14 +1,13 @@
 import type { ChangeEvent } from 'react'
 import { useEffect, useState } from 'react'
 
-import { motion, useReducedMotion } from 'framer-motion'
 import { CreditCard } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 
 import { AnimatedInput } from '@/components/smoothui/animated-input'
 import { FormSelect } from '@/components/ui/form-select'
 import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
-import { durations, easings } from '@/lib/animation-config'
+import { animateClasses, staggerChild } from '@/lib/animations'
 
 import type { WizardFormData } from '../types'
 
@@ -33,7 +32,6 @@ const PaymentStep = ({
 }: PaymentStepProps) => {
   const { register, control, formState: { errors } } = form
   const [paymentTarget, setPaymentTarget] = useState('Loading...')
-  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
     getPaymentTarget()
@@ -53,48 +51,17 @@ const PaymentStep = ({
     { value: 'Bank To Cell', label: 'Bank To Cell' },
   ]
 
-  // Animation variants for staggered content
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: prefersReducedMotion ? 0 : 0.1,
-        delayChildren: prefersReducedMotion ? 0 : 0.1,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: prefersReducedMotion ? 0 : durations.normal,
-        ease: easings.easeOut,
-      }
-    },
-  }
-
   return (
-    <motion.div
+    <div
       key="step3"
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-border"
+      className={`bg-card rounded-lg shadow-lg p-6 border border-border ${animateClasses.fadeIn}`}
       data-testid="payment-step"
     >
       <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
 
       <div className="space-y-6">
-        <motion.div
-          className="bg-gradient-to-r from-blue-50 to-green-50 border border-primary/30 rounded-lg p-4"
-          initial={{ scale: 0.95 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.2 }}
+        <div
+          className={`bg-gradient-to-r from-blue-50 to-green-50 border border-primary/30 rounded-lg p-4 ${animateClasses.scaleIn}`}
         >
           <div className="flex items-center mb-3">
             <CreditCard className="h-5 w-5 text-primary mr-2" />
@@ -138,15 +105,10 @@ const PaymentStep = ({
             <p className="text-foreground font-medium">✓ Instant payment verification</p>
             <p className="text-foreground font-medium">✓ Automated receipt generation</p>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div variants={itemVariants}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div style={staggerChild(0)}>
             <FormSelect
               name="payment_method"
               control={control}
@@ -155,27 +117,27 @@ const PaymentStep = ({
               placeholder="Select payment method"
               error={errors.payment_method?.message}
             />
-          </motion.div>
+          </div>
 
-          <motion.div variants={itemVariants}>
+          <div style={staggerChild(1)}>
             <AnimatedInput
               {...register('payer_name')}
               label="Payer Name"
               placeholder="Name of person who made payment"
               error={errors.payer_name?.message}
             />
-          </motion.div>
+          </div>
 
-          <motion.div variants={itemVariants}>
+          <div style={staggerChild(2)}>
             <AnimatedInput
               {...register('payer_phone')}
               label="Payer Phone"
               placeholder="Phone number used for payment"
               error={errors.payer_phone?.message}
             />
-          </motion.div>
+          </div>
 
-          <motion.div variants={itemVariants}>
+          <div style={staggerChild(3)}>
             <AnimatedInput
               type="number"
               {...register('amount', { valueAsNumber: true })}
@@ -184,18 +146,18 @@ const PaymentStep = ({
               min={153}
               error={errors.amount?.message}
             />
-          </motion.div>
+          </div>
 
-          <motion.div variants={itemVariants}>
+          <div style={staggerChild(4)}>
             <AnimatedInput
               type="datetime-local"
               {...register('paid_at')}
               label="Payment Date & Time"
               error={errors.paid_at?.message}
             />
-          </motion.div>
+          </div>
 
-          <motion.div variants={itemVariants}>
+          <div style={staggerChild(5)}>
             <AnimatedInput
               {...register('momo_ref')}
               label="Mobile Money Reference (Optional)"
@@ -203,15 +165,10 @@ const PaymentStep = ({
               helperText="Enter your transaction reference for faster verification"
               error={errors.momo_ref?.message}
             />
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
-        <motion.div 
-          variants={itemVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
-        >
+        <div>
           <AnimatedFileUpload
             label="Proof of Payment"
             required
@@ -222,9 +179,9 @@ const PaymentStep = ({
             isUploaded={uploadedFiles.proof_of_payment}
             helperText="Upload a screenshot or PDF of your payment confirmation"
           />
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { staggerChild, animateClasses } from '@/lib/animations'
 import { Button } from '@/components/ui/Button'
 import { AnimatedCard } from '@/components/ui/AnimatedCard'
 import { formatDate, getStatusColor } from '@/lib/utils'
@@ -64,14 +64,11 @@ export function ApplicationsCards({
 }: ApplicationsCardsProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-      <AnimatePresence>
         {applications.map((application, index) => (
-          <motion.div
+          <div
             key={application.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ delay: index * 0.05 }}
+            className={`${animateClasses.slideUp} opacity-0`}
+            style={staggerChild(index)}
           >
             <div 
               className="cursor-pointer"
@@ -243,9 +240,8 @@ export function ApplicationsCards({
                 </div>
               </AnimatedCard>
             </div>
-          </motion.div>
+          </div>
         ))}
-      </AnimatePresence>
     </div>
   )
 }

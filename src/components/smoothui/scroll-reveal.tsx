@@ -1,19 +1,17 @@
 /**
  * ScrollReveal Component - SmoothUI-style scroll-triggered animations
  * Reveals content with smooth animations when scrolled into view
+ * Uses CSS transitions instead of framer-motion for performance.
  * 
+ * @requirements 1.2 - CSS transitions instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior
  * @requirements 8.1, 8.6 - SmoothUI animations with reduced-motion support
  */
 
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { 
-  scrollRevealVariants, 
-  reducedMotionScrollRevealVariants,
-  durations,
-  type ScrollDirection 
-} from '@/lib/animation-config';
-import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation';
+import { cn } from '@/lib/utils';
+import type { ScrollDirection } from '@/lib/animation-config';
 
 interface ScrollRevealProps {
   children: React.ReactNode;
@@ -25,6 +23,25 @@ interface ScrollRevealProps {
   once?: boolean;
 }
 
+const directionStyles: Record<ScrollDirection, { hidden: string; visible: string }> = {
+  up: {
+    hidden: 'opacity-0 translate-y-10',
+    visible: 'opacity-100 translate-y-0',
+  },
+  down: {
+    hidden: 'opacity-0 -translate-y-10',
+    visible: 'opacity-100 translate-y-0',
+  },
+  left: {
+    hidden: 'opacity-0 -translate-x-10',
+    visible: 'opacity-100 translate-x-0',
+  },
+  right: {
+    hidden: 'opacity-0 translate-x-10',
+    visible: 'opacity-100 translate-x-0',
+  },
+};
+
 export function ScrollReveal({
   children,
   direction = 'up',
@@ -34,37 +51,29 @@ export function ScrollReveal({
   className = '',
   once = true,
 }: ScrollRevealProps) {
-  const { shouldAnimate } = useOptimizedAnimation();
   const { ref, inView } = useInView({
     threshold,
     triggerOnce: once,
   });
 
-  // Use reduced motion/mobile variants (which are essentially "no animation" or "instant appear")
-  // if animation is disabled.
-  const variants = shouldAnimate 
-    ? scrollRevealVariants[direction]
-    : reducedMotionScrollRevealVariants;
-
-  // Override duration if provided, or set to 0 if animation disabled
-  const customTransition = duration !== undefined 
-    ? { duration: shouldAnimate ? duration : 0 }
-    : undefined;
+  const styles = directionStyles[direction];
+  const durationMs = duration !== undefined ? duration * 1000 : 500;
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial="hidden"
-      animate={inView ? 'visible' : 'hidden'}
-      variants={variants}
-      transition={{
-        delay: shouldAnimate ? delay : 0,
-        ...customTransition,
+      className={cn(
+        'transition-all ease-out motion-reduce:transition-none',
+        inView ? styles.visible : styles.hidden,
+        className
+      )}
+      style={{
+        transitionDuration: `${durationMs}ms`,
+        transitionDelay: `${delay * 1000}ms`,
       }}
-      className={className}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -84,33 +93,30 @@ export function StaggerReveal({
   className = '',
   once = true,
 }: StaggerRevealProps) {
-  const { shouldAnimate } = useOptimizedAnimation();
   const { ref, inView } = useInView({
     threshold,
     triggerOnce: once,
   });
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: shouldAnimate ? staggerDelay : 0,
-        delayChildren: shouldAnimate ? 0.1 : 0,
-      },
-    },
-  };
-
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial="hidden"
-      animate={inView ? 'visible' : 'hidden'}
-      variants={containerVariants}
-      className={className}
+      className={cn(
+        'transition-opacity duration-300 ease-out motion-reduce:transition-none',
+        inView ? 'opacity-100' : 'opacity-0',
+        className
+      )}
     >
-      {children}
-    </motion.div>
+      {React.Children.map(children, (child, index) => {
+        if (!React.isValidElement(child)) return child;
+        return React.cloneElement(child as React.ReactElement<{ style?: React.CSSProperties }>, {
+          style: {
+            ...(child.props as { style?: React.CSSProperties }).style,
+            transitionDelay: inView ? `${index * staggerDelay * 1000}ms` : '0ms',
+          },
+        });
+      })}
+    </div>
   );
 }
 
@@ -121,23 +127,17 @@ interface StaggerItemProps {
 }
 
 export function StaggerItem({ children, className = '' }: StaggerItemProps) {
-  const { shouldAnimate } = useOptimizedAnimation();
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: shouldAnimate ? 20 : 0 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: shouldAnimate ? durations.normal : 0,
-      },
-    },
-  };
-
   return (
-    <motion.div variants={itemVariants} className={className}>
+    <div
+      className={cn(
+        'transition-all duration-300 ease-out motion-reduce:transition-none',
+        'opacity-0 translate-y-5',
+        className
+      )}
+      style={{ animationFillMode: 'forwards' }}
+    >
       {children}
-    </motion.div>
+    </div>
   );
 }
 

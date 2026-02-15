@@ -1,13 +1,12 @@
 import type { ChangeEvent } from 'react'
 
-import { motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { StandaloneSelect } from '@/components/ui/standalone-select'
 import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
 import { EligibilityNotification } from '@/components/application/EligibilityNotification'
-import { durations, easings } from '@/lib/animation-config'
+import { animateClasses, staggerChild } from '@/lib/animations'
 
 import type { EligibilityResult } from '@/lib/eligibility'
 
@@ -50,31 +49,6 @@ const EducationStep = ({
   handleResultSlipUpload,
   handleExtraKycUpload
 }: EducationStepProps) => {
-  const prefersReducedMotion = useReducedMotion()
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: prefersReducedMotion ? 0 : 0.05,
-        delayChildren: prefersReducedMotion ? 0 : 0.1,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: prefersReducedMotion ? 0 : durations.normal,
-        ease: easings.easeOut,
-      }
-    },
-  }
 
   // Subject options for StandaloneSelect
   const getSubjectOptions = (currentSubjectId: string) => {
@@ -103,24 +77,15 @@ const EducationStep = ({
   ]
 
   return (
-    <motion.div
+    <div
       key="step2"
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
-      className="bg-card rounded-lg shadow-lg p-4 sm:p-6 border border-border"
+      className={`bg-card rounded-lg shadow-lg p-4 sm:p-6 border border-border ${animateClasses.fadeIn}`}
       data-testid="education-step"
     >
       <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
 
-      <motion.div 
-        className="space-y-6"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div variants={itemVariants}>
+      <div className="space-y-6">
+        <div>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <h3 className="text-md font-medium text-gray-900">Grade 12 Subjects (Minimum 5 required)</h3>
             <Button
@@ -146,10 +111,8 @@ const EducationStep = ({
           )}
 
           {selectedProgram && recommendedSubjects.length > 0 && (
-            <motion.div
-              className="mb-4 p-3 bg-primary/5 border border-primary/30 rounded-lg"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
+            <div
+              className={`mb-4 p-3 bg-primary/5 border border-primary/30 rounded-lg ${animateClasses.slideUp}`}
             >
               <h4 className="text-sm font-medium text-primary-foreground mb-2">
                 Recommended subjects for {selectedProgram}:
@@ -161,7 +124,7 @@ const EducationStep = ({
                   </span>
                 ))}
               </div>
-            </motion.div>
+            </div>
           )}
 
           {selectedGrades.length > 0 && (
@@ -174,12 +137,10 @@ const EducationStep = ({
 
           <div className="space-y-3">
             {selectedGrades.map((grade, index) => (
-              <motion.div
+              <div
                 key={index}
-                className="flex flex-col sm:grid sm:grid-cols-12 items-stretch sm:items-center gap-3 p-3 sm:p-4 bg-muted rounded-lg"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: prefersReducedMotion ? 0 : index * 0.05 }}
+                className={`flex flex-col sm:grid sm:grid-cols-12 items-stretch sm:items-center gap-3 p-3 sm:p-4 bg-muted rounded-lg ${animateClasses.slideUp}`}
+                style={staggerChild(index)}
               >
                 {/* Subject Select */}
                 <div className="sm:col-span-6">
@@ -239,26 +200,21 @@ const EducationStep = ({
                     </Button>
                   )}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Document Uploads */}
-        <motion.div 
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-          variants={itemVariants}
-        >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <motion.div 
-              className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
+            <div
+              className={`mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg ${animateClasses.slideUp}`}
             >
               <p className="text-sm text-blue-900">
                 ✨ <strong>Auto-fill enabled:</strong> Upload your result slip and grades will be automatically extracted.
               </p>
-            </motion.div>
+            </div>
             <AnimatedFileUpload
               label="Result Slip"
               required
@@ -282,9 +238,9 @@ const EducationStep = ({
               helperText="Upload any additional supporting documents"
             />
           </div>
-        </motion.div>
-      </motion.div>
-    </motion.div>
+        </div>
+      </div>
+    </div>
   )
 }
 

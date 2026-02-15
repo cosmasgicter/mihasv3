@@ -1,14 +1,14 @@
 /**
  * AnimatedInput Component - SmoothUI-style animated form inputs
- * Provides smooth focus and validation animations
+ * Provides smooth focus and validation animations using CSS transitions.
  * 
+ * @requirements 1.2 - CSS transitions instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior
  * @requirements 8.1, 8.6 - SmoothUI animations with reduced-motion support
  */
 
 import { forwardRef, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { durations } from '@/lib/animation-config';
 
 interface AnimatedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -20,7 +20,6 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
   ({ label, error, helperText, className, id, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [hasValue, setHasValue] = useState(!!props.value || !!props.defaultValue);
-    const prefersReducedMotion = useReducedMotion();
 
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -40,49 +39,30 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
       props.onChange?.(e);
     };
 
-    const labelVariants = {
-      default: { 
-        y: 0, 
-        scale: 1,
-        color: 'var(--muted-foreground)',
-      },
-      active: { 
-        y: -24, 
-        scale: 0.85,
-        color: error ? 'var(--destructive)' : 'var(--primary)',
-      },
-    };
-
     const isLabelActive = isFocused || hasValue;
 
     return (
       <div className="relative">
         {label && (
-          <motion.label
+          <label
             htmlFor={inputId}
             className={cn(
               'absolute left-3 top-3 origin-left pointer-events-none',
-              'text-muted-foreground transition-colors',
-              error && 'text-destructive'
+              'text-muted-foreground transition-all duration-150 ease-out motion-reduce:transition-none',
+              isLabelActive && '-translate-y-6 scale-[0.85]',
+              isLabelActive && (error ? 'text-destructive' : 'text-primary'),
+              error && !isLabelActive && 'text-destructive'
             )}
-            initial="default"
-            animate={isLabelActive ? 'active' : 'default'}
-            variants={labelVariants}
-            transition={{ 
-              duration: prefersReducedMotion ? 0 : durations.fast,
-              ease: 'easeOut',
-            }}
           >
             {label}
-          </motion.label>
+          </label>
         )}
         
-        <motion.div
-          className="relative"
-          animate={{
-            scale: isFocused && !prefersReducedMotion ? 1.01 : 1,
-          }}
-          transition={{ duration: durations.fast }}
+        <div
+          className={cn(
+            'relative transition-transform duration-150 ease-out motion-reduce:transition-none',
+            isFocused && 'scale-[1.01]'
+          )}
         >
           <input
             ref={ref}
@@ -109,45 +89,35 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
           />
           
           {/* Focus indicator line */}
-          <motion.div
+          <div
             className={cn(
-              'absolute bottom-0 left-0 h-0.5 bg-primary rounded-full',
-              error && 'bg-destructive'
+              'absolute bottom-0 left-1/2 h-0.5 rounded-full',
+              'transition-all duration-300 ease-out motion-reduce:transition-none',
+              error ? 'bg-destructive' : 'bg-primary',
+              isFocused
+                ? 'w-full left-0 translate-x-0'
+                : 'w-0 -translate-x-1/2'
             )}
-            initial={{ width: 0, left: '50%', x: '-50%' }}
-            animate={{
-              width: isFocused ? '100%' : 0,
-              left: isFocused ? 0 : '50%',
-              x: isFocused ? 0 : '-50%',
-            }}
-            transition={{ 
-              duration: prefersReducedMotion ? 0 : durations.normal,
-              ease: 'easeOut',
-            }}
           />
-        </motion.div>
+        </div>
 
         {/* Error message with animation */}
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ 
-            opacity: error ? 1 : 0, 
-            height: error ? 'auto' : 0,
-          }}
-          transition={{ 
-            duration: prefersReducedMotion ? 0 : durations.fast,
-          }}
+        <div
+          className={cn(
+            'transition-all duration-150 ease-out overflow-hidden motion-reduce:transition-none',
+            error ? 'opacity-100 max-h-10 mt-1.5' : 'opacity-0 max-h-0'
+          )}
         >
           {error && (
             <p 
               id={`${inputId}-error`}
-              className="mt-1.5 text-sm text-destructive"
+              className="text-sm text-destructive"
               role="alert"
             >
               {error}
             </p>
           )}
-        </motion.div>
+        </div>
 
         {/* Helper text */}
         {helperText && !error && (

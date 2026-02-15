@@ -1,14 +1,14 @@
 /**
  * StepTransition Component
- * Provides smooth animated transitions between wizard steps
+ * Provides smooth CSS-based transitions between wizard steps
  * 
  * @requirements 7.2 - Animated transitions between steps
+ * @requirements 1.2, 1.5 - CSS transitions replace framer-motion
  */
 
 import { ReactNode } from 'react';
-import { motion, AnimatePresence, useReducedMotion, Variants } from 'framer-motion';
-import { durations, easings } from '@/lib/animation-config';
 import { cn } from '@/lib/utils';
+import { animateClasses, staggerChild } from '@/lib/animations';
 
 type TransitionDirection = 'forward' | 'backward';
 
@@ -26,92 +26,19 @@ interface StepContainerProps {
   description?: string;
 }
 
-// Animation variants for step transitions
-const getStepVariants = (direction: TransitionDirection, reducedMotion: boolean | null): Variants => {
-  if (reducedMotion) {
-    return {
-      initial: { opacity: 0 },
-      animate: { opacity: 1, transition: { duration: 0 } },
-      exit: { opacity: 0, transition: { duration: 0 } },
-    };
-  }
-
-  const xOffset = direction === 'forward' ? 50 : -50;
-  const exitXOffset = direction === 'forward' ? -50 : 50;
-
-  return {
-    initial: { 
-      opacity: 0, 
-      x: xOffset,
-      scale: 0.98,
-    },
-    animate: { 
-      opacity: 1, 
-      x: 0,
-      scale: 1,
-      transition: {
-        duration: durations.normal,
-        ease: easings.easeOut,
-      }
-    },
-    exit: { 
-      opacity: 0, 
-      x: exitXOffset,
-      scale: 0.98,
-      transition: {
-        duration: durations.fast,
-        ease: easings.easeIn,
-      }
-    },
-  };
-};
-
-// Content reveal variants for staggered animations within steps
-const contentVariants: Variants = {
-  initial: { opacity: 0 },
-  animate: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants: Variants = {
-  initial: { opacity: 0, y: 10 },
-  animate: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      duration: durations.fast,
-      ease: easings.easeOut,
-    }
-  },
-};
-
 export const StepTransition = ({
   children,
   stepKey,
   direction = 'forward',
   className,
 }: StepTransitionProps) => {
-  const prefersReducedMotion = useReducedMotion();
-  const variants = getStepVariants(direction, prefersReducedMotion);
-
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={stepKey}
-        variants={variants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        className={className}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <div
+      key={stepKey}
+      className={cn(animateClasses.fadeIn, className)}
+    >
+      {children}
+    </div>
   );
 };
 
@@ -121,33 +48,26 @@ export const StepContainer = ({
   title,
   description,
 }: StepContainerProps) => {
-  const prefersReducedMotion = useReducedMotion();
-
   return (
-    <motion.div
+    <div
       className={cn(
         'bg-card rounded-lg shadow-lg p-6 border border-border',
+        animateClasses.fadeIn,
         className
       )}
-      variants={prefersReducedMotion ? undefined : contentVariants}
-      initial="initial"
-      animate="animate"
     >
       {(title || description) && (
-        <motion.div 
-          className="mb-6"
-          variants={prefersReducedMotion ? undefined : itemVariants}
-        >
+        <div className="mb-6">
           {title && (
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           )}
           {description && (
             <p className="text-sm text-muted-foreground mt-1">{description}</p>
           )}
-        </motion.div>
+        </div>
       )}
       {children}
-    </motion.div>
+    </div>
   );
 };
 
@@ -155,23 +75,19 @@ export const StepContainer = ({
 export const AnimatedField = ({
   children,
   className,
+  index,
 }: {
   children: ReactNode;
   className?: string;
+  index?: number;
 }) => {
-  const prefersReducedMotion = useReducedMotion();
-
-  if (prefersReducedMotion) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
-    <motion.div
-      className={className}
-      variants={itemVariants}
+    <div
+      className={cn(animateClasses.fadeIn, className)}
+      style={index !== undefined ? staggerChild(index) : undefined}
     >
       {children}
-    </motion.div>
+    </div>
   );
 };
 
@@ -185,25 +101,15 @@ export const AnimatedSection = ({
   title?: string;
   className?: string;
 }) => {
-  const prefersReducedMotion = useReducedMotion();
-
   return (
-    <motion.div
-      className={cn('space-y-4', className)}
-      variants={prefersReducedMotion ? undefined : contentVariants}
-      initial="initial"
-      animate="animate"
-    >
+    <div className={cn('space-y-4', animateClasses.fadeIn, className)}>
       {title && (
-        <motion.h3 
-          className="text-sm font-medium text-muted-foreground uppercase tracking-wide"
-          variants={prefersReducedMotion ? undefined : itemVariants}
-        >
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
           {title}
-        </motion.h3>
+        </h3>
       )}
       {children}
-    </motion.div>
+    </div>
   );
 };
 

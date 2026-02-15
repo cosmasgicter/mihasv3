@@ -1,5 +1,4 @@
 import { AlertTriangle, CheckCircle, Info } from 'lucide-react'
-import { motion } from 'framer-motion'
 import type { EligibilityResult } from '@/lib/eligibility'
 
 interface EligibilityNotificationProps {
@@ -13,10 +12,8 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
   const { eligible, message, score, regulatoryBody, recommendations, canProceed } = eligibility
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`rounded-lg border p-4 ${
+    <div
+      className={`rounded-lg border p-4 animate-fade-in ${
         eligible
           ? 'bg-green-50 border-green-200'
           : 'bg-yellow-50 border-yellow-200'
@@ -111,6 +108,6 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }

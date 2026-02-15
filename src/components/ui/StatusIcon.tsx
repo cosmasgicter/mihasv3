@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion } from 'framer-motion'
 import {
   CheckCircle,
   XCircle,
@@ -41,12 +40,9 @@ export function StatusIcon({ status, size = 'md', animated = false, className }:
 
   if (animated) {
     return (
-      <motion.div
-        animate={{ rotate: [0, 10, -10, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-      >
+      <div className="animate-[wiggle_2s_ease-in-out_infinite]">
         <Icon className={cn(sizeClasses[size], color, className)} />
-      </motion.div>
+      </div>
     )
   }
 

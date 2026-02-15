@@ -1,6 +1,5 @@
 import React from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import { Button } from './Button'
 import { BaseNavigation, NavigationItem } from '@/components/navigation/BaseNavigation'
@@ -74,10 +73,8 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
 
   // Brand component
   const brand = (
-    <motion.div 
-      className="flex items-center space-x-2 sm:space-x-3"
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 300 }}
+    <div 
+      className="flex items-center space-x-2 sm:space-x-3 hover:scale-[1.02] transition-transform duration-200"
     >
       <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
         <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
@@ -93,7 +90,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
           {profile?.full_name || 'Admin'}
         </p>
       </div>
-    </motion.div>
+    </div>
   )
 
   // Desktop navigation

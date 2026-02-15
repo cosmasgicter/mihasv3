@@ -1,11 +1,13 @@
 /**
  * PartitionBar Component - 8starlabs UI style partition/progress bar
  * Displays segmented progress or distribution visualization
+ * Uses CSS transitions instead of framer-motion for performance.
  * 
+ * @requirements 1.2 - CSS transitions instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior
  * @requirements 8.2 - 8starlabs UI specialized components
  */
 
-import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface Partition {
@@ -48,9 +50,6 @@ export function PartitionBar({
   animate = true,
   className,
 }: PartitionBarProps) {
-  const prefersReducedMotion = useReducedMotion();
-  const shouldAnimate = animate && !prefersReducedMotion;
-
   // Calculate total if not provided
   const calculatedTotal = total || partitions.reduce((sum, p) => sum + p.value, 0);
 
@@ -71,15 +70,15 @@ export function PartitionBar({
         )}
       >
         {partitionsWithPercent.map((partition, index) => (
-          <motion.div
+          <div
             key={index}
-            className={cn('h-full', partition.color)}
-            initial={shouldAnimate ? { width: 0 } : undefined}
-            animate={{ width: `${partition.percent}%` }}
-            transition={{ 
-              duration: shouldAnimate ? 0.5 : 0, 
-              delay: shouldAnimate ? index * 0.1 : 0,
-              ease: 'easeOut',
+            className={cn(
+              'h-full transition-all duration-500 ease-out motion-reduce:transition-none',
+              partition.color
+            )}
+            style={{
+              width: `${partition.percent}%`,
+              transitionDelay: animate ? `${index * 100}ms` : '0ms',
             }}
           />
         ))}
@@ -132,8 +131,6 @@ export function ProgressBar({
   animate = true,
   className,
 }: ProgressBarProps) {
-  const prefersReducedMotion = useReducedMotion();
-  const shouldAnimate = animate && !prefersReducedMotion;
   const percent = Math.min(100, Math.max(0, (value / max) * 100));
 
   return (
@@ -144,14 +141,13 @@ export function ProgressBar({
           heightConfig[height]
         )}
       >
-        <motion.div
-          className={cn('h-full rounded-full', color)}
-          initial={shouldAnimate ? { width: 0 } : undefined}
-          animate={{ width: `${percent}%` }}
-          transition={{ 
-            duration: shouldAnimate ? 0.5 : 0,
-            ease: 'easeOut',
-          }}
+        <div
+          className={cn(
+            'h-full rounded-full',
+            animate && 'transition-all duration-500 ease-out motion-reduce:transition-none',
+            color
+          )}
+          style={{ width: `${percent}%` }}
         />
       </div>
       {showValue && (

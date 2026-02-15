@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 type StatAccent = 'primary' | 'secondary' | 'success' | 'warning' | 'neutral'
@@ -83,67 +82,60 @@ export function PageHeader({
  )
  }
 
-	 const prefersReducedMotion = useReducedMotion()
-
-	 const headerContent = (
-		 <header
-			 className={cn(
-				 'relative overflow-hidden rounded-3xl section-padding',
-				 variantStyles[variant],
-				 className
-			 )}
-		 >
-     
-			 <div className="absolute inset-0 pointer-events-none">
-				 {variant === 'gradient' && (
-					 <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-white/0 opacity-40" />
+	 return (
+		 <div className="animate-fade-in">
+			 <header
+				 className={cn(
+					 'relative overflow-hidden rounded-3xl section-padding',
+					 variantStyles[variant],
+					 className
 				 )}
-			 </div>
-			 <div className={cn('relative flex flex-col gap-6 sm:flex-row sm:justify-between', alignmentStyles[align])}>
-				 <div className="space-y-4 sm:max-w-2xl">
-					 {eyebrow && (
-						 <p className={cn('font-semibold uppercase tracking-wide', isGradient ? 'text-foreground/70' : 'text-primary')} style={{ fontSize: 'var(--type-xs)' }}>
-							 {eyebrow}
-						 </p>
+			 >
+     
+				 <div className="absolute inset-0 pointer-events-none">
+					 {variant === 'gradient' && (
+						 <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-white/0 opacity-40" />
 					 )}
-					 <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-						 {icon && (
-							 <div
-								 className={cn(
-									 'flex items-center justify-center rounded-2xl border shadow-inner',
-									 isGradient ? 'border-card/40 bg-card/95 text-gray-900 backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
-								 )}
-								 style={{ width: '3.5rem', height: '3.5rem', fontSize: 'var(--type-2xl)' }}
-							 >
-								 {icon}
-							 </div>
+				 </div>
+				 <div className={cn('relative flex flex-col gap-6 sm:flex-row sm:justify-between', alignmentStyles[align])}>
+					 <div className="space-y-4 sm:max-w-2xl">
+						 {eyebrow && (
+							 <p className={cn('font-semibold uppercase tracking-wide', isGradient ? 'text-foreground/70' : 'text-primary')} style={{ fontSize: 'var(--type-xs)' }}>
+								 {eyebrow}
+							 </p>
 						 )}
-						 <div className="space-y-3">
-							 <h1 style={{ fontSize: 'clamp(1.25rem, 1.8vw + 0.9rem, 2.5rem)', fontWeight: 700 }} className="tracking-tight break-words">{title}</h1>
-							 {description && (
-								 <p className={cn('', isGradient ? 'text-foreground/80' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
+						 <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+							 {icon && (
+								 <div
+									 className={cn(
+										 'flex items-center justify-center rounded-2xl border shadow-inner',
+										 isGradient ? 'border-card/40 bg-card/95 text-gray-900 backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
+									 )}
+									 style={{ width: '3.5rem', height: '3.5rem', fontSize: 'var(--type-2xl)' }}
+								 >
+									 {icon}
+								 </div>
 							 )}
-							 {children}
+							 <div className="space-y-3">
+								 <h1 style={{ fontSize: 'clamp(1.25rem, 1.8vw + 0.9rem, 2.5rem)', fontWeight: 700 }} className="tracking-tight break-words">{title}</h1>
+								 {description && (
+									 <p className={cn('', isGradient ? 'text-foreground/80' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
+								 )}
+								 {children}
+							 </div>
 						 </div>
 					 </div>
+
+					 {(actions || (stats && stats.length > 0)) && (
+						 <div className="flex flex-col gap-4 sm:items-end">
+							 {actions && <div className="flex flex-wrap justify-end gap-3">{actions}</div>}
+							 {stats && stats.length > 0 && (
+								 <div className="flex flex-wrap justify-end gap-3">{stats.map(renderStat)}</div>
+							 )}
+						 </div>
+					 )}
 				 </div>
-
-				 {(actions || (stats && stats.length > 0)) && (
-					 <div className="flex flex-col gap-4 sm:items-end">
-						 {actions && <div className="flex flex-wrap justify-end gap-3">{actions}</div>}
-						 {stats && stats.length > 0 && (
-							 <div className="flex flex-wrap justify-end gap-3">{stats.map(renderStat)}</div>
-						 )}
-					 </div>
-				 )}
-			 </div>
-		 </header>
-	 )
-
-	 return prefersReducedMotion ? headerContent : (
-		 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-			 {headerContent}
-		 </motion.div>
+			 </header>
+		 </div>
 	 )
 }
-

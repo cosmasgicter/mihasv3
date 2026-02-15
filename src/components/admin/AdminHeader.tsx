@@ -6,7 +6,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
+
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery';
@@ -32,8 +32,6 @@ export function AdminHeader({ className }: AdminHeaderProps) {
   const { profile } = useProfileQuery();
   const { collapsed, setCollapsed } = useSidebar();
   const { isMobile, isTablet } = useResponsive();
-  const prefersReducedMotion = useReducedMotion();
-
   const sidebarWidth = collapsed 
     ? designTokens.layout.sidebarCollapsed 
     : designTokens.layout.sidebarExpanded;
@@ -119,12 +117,10 @@ export function AdminHeader({ className }: AdminHeaderProps) {
         {/* Right side - Notifications and user menu */}
         <div className="flex items-center gap-2 md:gap-4">
           {/* Notifications */}
-          <motion.button
-            whileHover={prefersReducedMotion ? {} : { scale: 1.05 }}
-            whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
+          <button
             className={cn(
               'relative p-2 rounded-lg',
-              'hover:bg-accent transition-colors',
+              'hover:bg-accent active:scale-95 transition-all duration-150',
               'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
             )}
             aria-label="Notifications"
@@ -132,7 +128,7 @@ export function AdminHeader({ className }: AdminHeaderProps) {
             <Bell className="h-5 w-5 text-muted-foreground" />
             {/* Notification badge */}
             <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
-          </motion.button>
+          </button>
 
           {/* Settings - hidden on mobile */}
           {!isMobile && (

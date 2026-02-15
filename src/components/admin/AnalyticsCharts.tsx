@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { staggerChild, animateClasses } from '@/lib/animations'
 import {
  TrendingUp,
  TrendingDown,
@@ -69,10 +69,9 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <div className="space-y-6">
  {/* Key Metrics */}
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
- <motion.div 
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-border"
+ <div
+ className={`${animateClasses.slideUp} opacity-0 bg-card rounded-xl p-6 shadow-lg border border-border`}
+ style={staggerChild(0)}
  >
  <div className="flex items-center justify-between">
  <div>
@@ -91,13 +90,11 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  </div>
  <CheckCircle className="h-8 w-8 text-success" />
  </div>
- </motion.div>
+ </div>
 
- <motion.div 
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ delay: 0.1 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-border"
+ <div
+ className={`${animateClasses.slideUp} opacity-0 bg-card rounded-xl p-6 shadow-lg border border-border`}
+ style={staggerChild(1)}
  >
  <div className="flex items-center justify-between">
  <div>
@@ -116,13 +113,11 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  </div>
  <BarChart3 className="h-8 w-8 text-primary" />
  </div>
- </motion.div>
+ </div>
 
- <motion.div 
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ delay: 0.2 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-border"
+ <div
+ className={`${animateClasses.slideUp} opacity-0 bg-card rounded-xl p-6 shadow-lg border border-border`}
+ style={staggerChild(2)}
  >
  <div className="flex items-center justify-between">
  <div>
@@ -135,13 +130,11 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  </div>
  <Clock className="h-8 w-8 text-purple-500" />
  </div>
- </motion.div>
+ </div>
 
- <motion.div
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ delay: 0.3 }}
- className="bg-card rounded-xl p-6 shadow-lg border border-border"
+ <div
+ className={`${animateClasses.slideUp} opacity-0 bg-card rounded-xl p-6 shadow-lg border border-border`}
+ style={staggerChild(3)}
  >
  <div className="flex items-center justify-between">
  <div>
@@ -154,15 +147,13 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  </div>
  <Users className="h-8 w-8 text-indigo-500" />
  </div>
- </motion.div>
+ </div>
  </div>
 
  {/* Application Status Distribution */}
- <motion.div 
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ delay: 0.4 }}
- className="bg-card rounded-xl shadow-lg border border-border"
+ <div
+ className={`${animateClasses.slideUp} opacity-0 bg-card rounded-xl shadow-lg border border-border`}
+ style={staggerChild(4)}
  >
  <div className="px-6 py-4 border-b border-border">
  <h3 className="text-lg font-bold text-gray-900 flex items-center">
@@ -176,12 +167,10 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  {/* Chart Visualization */}
  <div className="space-y-4">
  {chartData.map((item, index) => (
- <motion.div 
+ <div 
  key={item.label}
- initial={{ opacity: 0, x: -20 }}
- animate={{ opacity: 1, x: 0 }}
- transition={{ delay: index * 0.1 }}
- className="flex items-center space-x-4"
+ className={`${animateClasses.fadeIn} opacity-0 flex items-center space-x-4`}
+ style={staggerChild(index)}
  >
  <div className="flex items-center space-x-3 flex-1">
  <div className={`w-4 h-4 rounded-full ${item.color}`}></div>
@@ -189,16 +178,14 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  </div>
  <div className="flex items-center space-x-3">
  <div className="w-32 bg-skeleton rounded-full h-2">
- <motion.div 
- className={`h-2 rounded-full ${item.color}`}
- initial={{ width: 0 }}
- animate={{ width: `${item.percentage}%` }}
- transition={{ delay: index * 0.2, duration: 0.8 }}
- ></motion.div>
+ <div 
+ className={`h-2 rounded-full ${item.color} transition-all duration-700 ease-out`}
+ style={{ width: `${item.percentage}%` }}
+ ></div>
  </div>
  <span className="text-sm font-bold text-gray-900 w-12 text-right">{item.value}</span>
  </div>
- </motion.div>
+ </div>
  ))}
  </div>
 
@@ -244,14 +231,12 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  </div>
  </div>
  </div>
- </motion.div>
+ </div>
 
  {/* Weekly Trend */}
- <motion.div 
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ delay: 0.6 }}
- className="bg-card rounded-xl shadow-lg border border-border"
+ <div
+ className={`${animateClasses.slideUp} opacity-0 bg-card rounded-xl shadow-lg border border-border`}
+ style={staggerChild(6)}
  >
  <div className="px-6 py-4 border-b border-border">
  <h3 className="text-lg font-bold text-gray-900 flex items-center">
@@ -285,13 +270,10 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  return (
  <div key={day.date} className="text-center">
  <div className="text-xs text-gray-900 mb-2">{day.label}</div>
- <motion.div
- className="bg-gradient-to-t from-blue-600 to-purple-600 rounded-lg mx-auto"
- style={{ width: '100%' }}
- initial={{ height: 0 }}
- animate={{ height: `${height}px` }}
- transition={{ delay: index * 0.1, duration: 0.5 }}
- ></motion.div>
+ <div
+ className="bg-gradient-to-t from-blue-600 to-purple-600 rounded-lg mx-auto transition-all duration-500 ease-out"
+ style={{ width: '100%', height: `${height}px` }}
+ ></div>
  <div className="text-xs font-semibold text-gray-900 mt-2">
  {day.count.toLocaleString()}
  </div>
@@ -306,7 +288,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  </>
  )}
  </div>
- </motion.div>
+ </div>
  </div>
  )
 }

@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -14,43 +13,12 @@ export function Card({ className, variant = 'default', hover = false, ...props }
     variant === 'elevated' && 'shadow-lg',
     variant === 'interactive' && 'cursor-pointer hover:shadow-md',
     variant === 'default' && 'border border-border',
-    hover && 'hover:shadow-lg hover:shadow-blue-500/10',
+    hover && 'hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 active:scale-[0.995]',
+    'animate-fade-in',
     className
   )
 
-  const prefersReducedMotion = useReducedMotion()
-
-  if (hover) {
-    if (prefersReducedMotion) {
-      return (
-        <div className={baseClasses} {...props} />
-      )
-    }
-
-    return (
-      <motion.div
-        className={baseClasses}
-        whileHover={{ y: -4, transition: { duration: 0.2 } }}
-        whileTap={{ scale: 0.995, transition: { duration: 0.08 } }}
-        {...(props as any)}
-      />
-    )
-  }
-
-  // For non-hover cards, provide a gentle mount entrance when motion is allowed.
-  if (prefersReducedMotion) {
-    return <div className={baseClasses} {...props} />
-  }
-
-  return (
-    <motion.div
-      className={baseClasses}
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28 }}
-      {...(props as any)}
-    />
-  )
+  return <div className={baseClasses} {...props} />
 }
 
 type CardHeaderProps = React.HTMLAttributes<HTMLDivElement>

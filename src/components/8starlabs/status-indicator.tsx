@@ -1,11 +1,13 @@
 /**
  * StatusIndicator Component - 8starlabs UI style status indicator
  * Displays operational status with animated pulse effects
+ * Uses CSS animations instead of framer-motion for performance.
  * 
+ * @requirements 1.2 - CSS transitions instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior
  * @requirements 8.2 - 8starlabs UI specialized components
  */
 
-import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 type StatusType = 'operational' | 'degraded' | 'down' | 'idle' | 'pending' | 'success' | 'error' | 'warning';
@@ -89,7 +91,6 @@ export function StatusIndicator({
   size = 'md',
   className,
 }: StatusIndicatorProps) {
-  const prefersReducedMotion = useReducedMotion();
   const config = statusConfig[status];
   const sizes = sizeConfig[size];
   const displayLabel = label || config.label;
@@ -99,24 +100,14 @@ export function StatusIndicator({
   return (
     <div className={cn('inline-flex items-center', sizes.gap, className)}>
       <div className="relative flex items-center justify-center">
-        {/* Pulse animation */}
-        {shouldPulse && !prefersReducedMotion && (
-          <motion.span
+        {/* Pulse animation using CSS */}
+        {shouldPulse && (
+          <span
             className={cn(
-              'absolute rounded-full',
+              'absolute rounded-full animate-ping opacity-75 motion-reduce:animate-none',
               sizes.pulse,
               config.color,
-              'opacity-75'
             )}
-            animate={{
-              scale: [1, 1.8, 1],
-              opacity: [0.7, 0, 0.7],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
           />
         )}
         

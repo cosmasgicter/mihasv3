@@ -1,6 +1,5 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { 
   Bell, 
   BellOff, 
@@ -11,6 +10,7 @@ import {
   AlertCircle,
   Info
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Switch } from '@/components/ui/Switch'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -25,6 +25,7 @@ interface PushNotificationSettingsProps {
 /**
  * Push Notification Settings Component
  * Requirements: 9.4 - Implement notification preferences and controls
+ * Requirements: 1.2 - CSS transitions instead of framer-motion
  */
 export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> = ({
   className = ''
@@ -291,11 +292,8 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
 
         {/* Notification type preferences */}
         {isEnabled && permission === 'granted' && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="space-y-4 border-t pt-4"
+          <div
+            className="space-y-4 border-t pt-4 transition-all duration-300 ease-out motion-reduce:transition-none animate-fade-in"
           >
             <h4 className="font-medium flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -365,10 +363,8 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
               </div>
               
               {preferences.quietHours && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="flex items-center gap-4 pl-6"
+                <div
+                  className="flex items-center gap-4 pl-6 transition-all duration-200 ease-out motion-reduce:transition-none animate-fade-in"
                 >
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-muted-foreground">From:</label>
@@ -388,7 +384,7 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
                       className="text-xs border rounded px-2 py-1"
                     />
                   </div>
-                </motion.div>
+                </div>
               )}
             </div>
 
@@ -403,7 +399,7 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
                 Send Test Notification
               </Button>
             </div>
-          </motion.div>
+          </div>
         )}
       </CardContent>
     </Card>

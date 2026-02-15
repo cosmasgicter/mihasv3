@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { Bell, Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/components/ui/Toast'
+import { animateClasses } from '@/lib/animations'
 
 interface ReminderSettingsProps {
   email: string
@@ -53,10 +53,8 @@ export const ReminderSettings = ({ email, fullName, draftName }: ReminderSetting
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-lg p-4"
+    <div
+      className={`bg-card border border-border rounded-lg p-4 ${animateClasses.slideUp}`}
     >
       <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
         <Bell className="h-4 w-4" />
@@ -85,7 +83,7 @@ export const ReminderSettings = ({ email, fullName, draftName }: ReminderSetting
           </>
         )}
       </Button>
-    </motion.div>
+    </div>
   )
 }
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { animateClasses, staggerChild } from '@/lib/animations'
 import { AnimatedCard } from '@/components/ui/AnimatedCard'
 import { Users, FileText, Send, Clock, CheckCircle, XCircle } from 'lucide-react'
 
@@ -21,10 +21,8 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
   if (!show || !stats) return null
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6 mb-6 sm:mb-8"
+    <div 
+      className={`${animateClasses.slideUp} opacity-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6 mb-6 sm:mb-8`}
     >
       <AnimatedCard className="bg-gradient-to-br from-blue-500 to-blue-600 text-white col-span-2 sm:col-span-1" hover3d>
         <div className="flex items-center justify-between">
@@ -85,6 +83,6 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
           <XCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-200" />
         </div>
       </AnimatedCard>
-    </motion.div>
+    </div>
   )
 }

@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, X } from 'lucide-react'
 import { Button } from './Button'
 
@@ -29,27 +28,19 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
  onClose()
  }
 
+ if (!isOpen) return null
+
  return (
- <AnimatePresence>
- {isOpen && (
  <>
  {/* Backdrop */}
- <motion.div
- initial={{ opacity: 0 }}
- animate={{ opacity: 1 }}
- exit={{ opacity: 0 }}
+ <div
  onClick={onClose}
- className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200]"
+ className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] transition-opacity duration-200"
  />
 
  {/* Dialog */}
  <div className="fixed inset-0 flex items-center justify-center z-[201] p-4">
- <motion.div
- initial={{ opacity: 0, scale: 0.95, y: 20 }}
- animate={{ opacity: 1, scale: 1, y: 0 }}
- exit={{ opacity: 0, scale: 0.95, y: 20 }}
- className="bg-card rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
- >
+ <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in">
  {/* Header */}
  <div className={`p-6 ${
  variant === 'danger' ? 'bg-destructive/5' :
@@ -104,10 +95,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
  {confirmText}
  </Button>
  </div>
- </motion.div>
+ </div>
  </div>
  </>
- )}
- </AnimatePresence>
  )
 }

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useRoleQuery, isAdminRole } from '@/hooks/auth/useRoleQuery'

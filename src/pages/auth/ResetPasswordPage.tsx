@@ -1,21 +1,21 @@
 /**
- * ResetPasswordPage - Enhanced reset password page with animations
+ * ResetPasswordPage - Enhanced reset password page with CSS animations
  * Consistent styling with other auth pages
  * 
- * @requirements 3.7 - Reset password with success/error state animations
+ * @requirements 1.2 - CSS transitions/Tailwind instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior using CSS equivalents
  */
 
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { durations } from '@/lib/animation-config';
+import { animateClasses } from '@/lib/animations';
 import {
   Loader2,
   AlertCircle,
@@ -51,7 +51,6 @@ export default function ResetPasswordPage() {
   const [resetToken, setResetToken] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const prefersReducedMotion = useReducedMotion();
 
   const {
     register,
@@ -149,51 +148,6 @@ export default function ResetPasswordPage() {
     }
   };
 
-  // Animation variants
-  const contentVariants = {
-    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: prefersReducedMotion ? 0 : durations.normal,
-        ease: 'easeOut',
-      },
-    },
-  };
-
-  const iconVariants = {
-    hidden: { scale: 0, opacity: 0 },
-    visible: {
-      scale: 1,
-      opacity: 1,
-      transition: {
-        type: 'spring',
-        stiffness: 200,
-        damping: 15,
-        delay: prefersReducedMotion ? 0 : 0.2,
-      },
-    },
-  };
-
-  const messageVariants = {
-    hidden: { opacity: 0, height: 0 },
-    visible: {
-      opacity: 1,
-      height: 'auto',
-      transition: {
-        duration: prefersReducedMotion ? 0 : durations.normal,
-      },
-    },
-    exit: {
-      opacity: 0,
-      height: 0,
-      transition: {
-        duration: prefersReducedMotion ? 0 : durations.fast,
-      },
-    },
-  };
-
   // Verifying state
   if (status === 'verifying') {
     return (
@@ -203,20 +157,10 @@ export default function ResetPasswordPage() {
         backLinkHref="/auth/signin"
         backLinkLabel="Back to sign in"
       >
-        <motion.div
-          className="flex flex-col items-center justify-center py-8 space-y-4"
-          variants={contentVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div
-            animate={prefersReducedMotion ? {} : { rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          >
-            <Loader2 className="h-12 w-12 text-primary" />
-          </motion.div>
+        <div className={`flex flex-col items-center justify-center py-8 space-y-4 ${animateClasses.fadeIn}`}>
+          <Loader2 className="h-12 w-12 text-primary animate-spin" />
           <p className="text-sm text-muted-foreground">Verifying your password reset link...</p>
-        </motion.div>
+        </div>
       </AuthLayout>
     );
   }
@@ -230,21 +174,11 @@ export default function ResetPasswordPage() {
         backLinkHref="/auth/signin"
         backLinkLabel="Back to sign in"
       >
-        <motion.div
-          className="space-y-6"
-          variants={contentVariants}
-          initial="hidden"
-          animate="visible"
-        >
+        <div className={`space-y-6 ${animateClasses.slideUp}`}>
           {/* Success icon */}
-          <motion.div
-            className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100"
-            variants={iconVariants}
-            initial="hidden"
-            animate="visible"
-          >
+          <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 ${animateClasses.scaleIn}`}>
             <CheckCircle className="h-8 w-8 text-green-600" />
-          </motion.div>
+          </div>
 
           {/* Success message */}
           <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
@@ -265,7 +199,7 @@ export default function ResetPasswordPage() {
             Sign in with new password
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-        </motion.div>
+        </div>
       </AuthLayout>
     );
   }
@@ -279,21 +213,11 @@ export default function ResetPasswordPage() {
         backLinkHref="/auth/signin"
         backLinkLabel="Back to sign in"
       >
-        <motion.div
-          className="space-y-6"
-          variants={contentVariants}
-          initial="hidden"
-          animate="visible"
-        >
+        <div className={`space-y-6 ${animateClasses.slideUp}`}>
           {/* Error icon */}
-          <motion.div
-            className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100"
-            variants={iconVariants}
-            initial="hidden"
-            animate="visible"
-          >
+          <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 ${animateClasses.scaleIn}`}>
             <AlertCircle className="h-8 w-8 text-red-600" />
-          </motion.div>
+          </div>
 
           {/* Error message */}
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
@@ -322,7 +246,7 @@ export default function ResetPasswordPage() {
               Return to sign in
             </Button>
           </div>
-        </motion.div>
+        </div>
       </AuthLayout>
     );
   }
@@ -335,12 +259,9 @@ export default function ResetPasswordPage() {
       backLinkHref="/auth/signin"
       backLinkLabel="Back to sign in"
     >
-      <motion.form
-        className="space-y-6"
+      <form
+        className={`space-y-6 ${animateClasses.slideUp}`}
         onSubmit={handleSubmit(onSubmit)}
-        variants={contentVariants}
-        initial="hidden"
-        animate="visible"
       >
         {/* Password icon */}
         <div className="flex justify-center mb-2">
@@ -369,23 +290,14 @@ export default function ResetPasswordPage() {
         />
 
         {/* Error message */}
-        <AnimatePresence mode="wait">
-          {error && (
-            <motion.div
-              key="error"
-              variants={messageVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="overflow-hidden"
-            >
-              <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                <div className="text-sm font-medium text-destructive">{error}</div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {error && (
+          <div className={`overflow-hidden ${animateClasses.fadeIn}`}>
+            <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div className="text-sm font-medium text-destructive">{error}</div>
+            </div>
+          </div>
+        )}
 
         <Button
           type="submit"
@@ -422,7 +334,7 @@ export default function ResetPasswordPage() {
             </li>
           </ul>
         </div>
-      </motion.form>
+      </form>
     </AuthLayout>
   );
 }

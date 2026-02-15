@@ -1,14 +1,16 @@
 /**
  * AdminMobileNav Component - Mobile bottom navigation for admin
  * Provides quick access to main admin sections on mobile devices
+ * Uses CSS transitions instead of framer-motion for performance.
  * 
+ * @requirements 1.2 - CSS transitions instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior
  * @requirements 6.7 - Tablet-responsive behavior
  * @requirements 9.7 - Bottom navigation for mobile
  */
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -38,7 +40,6 @@ interface AdminMobileNavProps {
 
 export function AdminMobileNav({ className }: AdminMobileNavProps) {
   const location = useLocation();
-  const prefersReducedMotion = useReducedMotion();
 
   return (
     <nav
@@ -64,6 +65,7 @@ export function AdminMobileNav({ className }: AdminMobileNavProps) {
                 'w-16 h-14 rounded-xl',
                 'transition-colors duration-200',
                 'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+                'active:scale-90 transition-transform motion-reduce:transform-none',
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
@@ -72,26 +74,18 @@ export function AdminMobileNav({ className }: AdminMobileNavProps) {
             >
               {/* Active indicator */}
               {isActive && (
-                <motion.div
-                  layoutId="mobileActiveIndicator"
-                  className="absolute -top-1 w-8 h-1 bg-primary rounded-full"
-                  initial={prefersReducedMotion ? {} : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
+                <div
+                  className="absolute -top-1 w-8 h-1 bg-primary rounded-full transition-opacity duration-200 motion-reduce:transition-none"
                 />
               )}
 
               {/* Icon */}
-              <motion.div
-                whileTap={prefersReducedMotion ? {} : { scale: 0.9 }}
-              >
-                <Icon
-                  className={cn(
-                    'h-5 w-5 mb-1',
-                    isActive ? 'text-primary' : 'text-muted-foreground'
-                  )}
-                />
-              </motion.div>
+              <Icon
+                className={cn(
+                  'h-5 w-5 mb-1',
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                )}
+              />
 
               {/* Label */}
               <span

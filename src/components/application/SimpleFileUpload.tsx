@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/Button'
 import { LoadingButton } from '@/components/ui/LoadingButton'
 import { ProgressIndicator } from '@/components/ui/ProgressIndicator'
 import { Upload, X, FileText, CheckCircle, AlertCircle, ImageIcon, Zap } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { uploadApplicationFile, validateApplicationFile, type UploadResult } from '@/lib/storage'
 import { useAuth } from '@/contexts/AuthContext'
 import { useImageCompression } from '@/hooks/useImageCompression'
@@ -343,11 +342,8 @@ export function SimpleFileUpload({
         </label>
         
         {displayError && (
-          <motion.div 
-            className="mt-4 p-4 bg-destructive/5 border border-destructive/30 rounded-lg"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+          <div 
+            className="mt-4 p-4 bg-destructive/5 border border-destructive/30 rounded-lg animate-fade-in"
           >
             <div className="flex items-start space-x-3">
               <AlertCircle className="h-5 w-5 text-error flex-shrink-0 mt-0.5" />
@@ -356,16 +352,13 @@ export function SimpleFileUpload({
                 <p className="text-sm text-error mt-1">{displayError}</p>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
         
         {/* Compression Stats */}
         {showCompressionStats && compressionResults.length > 0 && (
-          <motion.div 
-            className="mt-4 p-4 bg-accent/10 border border-accent/30 rounded-lg"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
+          <div 
+            className="mt-4 p-4 bg-accent/10 border border-accent/30 rounded-lg animate-scale-in"
           >
             <div className="flex items-start space-x-3">
               <Zap className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
@@ -390,7 +383,7 @@ export function SimpleFileUpload({
                 <X className="h-4 w-4" />
               </Button>
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
 
@@ -446,15 +439,10 @@ export function SimpleFileUpload({
           <h3 className="text-sm font-medium text-gray-900 mb-3">
             Uploaded Files ({uploadedFiles.length})
           </h3>
-          <AnimatePresence>
-            {uploadedFiles.map((file) => (
-              <motion.div 
+          {uploadedFiles.map((file) => (
+              <div 
                 key={file.id} 
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                className="bg-gradient-to-r from-green-50 to-emerald-50 border border-accent/30 rounded-lg transition-all duration-200 hover:shadow-md group"
+                className="bg-gradient-to-r from-green-50 to-emerald-50 border border-accent/30 rounded-lg transition-all duration-200 hover:shadow-md group animate-fade-in"
               >
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center space-x-4 flex-1">
@@ -491,9 +479,8 @@ export function SimpleFileUpload({
                     <X className="h-4 w-4" />
                   </LoadingButton>
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </AnimatePresence>
         </div>
       )}
     </div>

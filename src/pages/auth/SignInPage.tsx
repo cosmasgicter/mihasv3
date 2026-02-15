@@ -1,9 +1,10 @@
 // @ts-nocheck
 /**
- * SignInPage - Enhanced sign-in page with Supabase Auth
- * Uses SmoothUI animations and custom theming
+ * SignInPage - Enhanced sign-in page with CSS animations
+ * Uses Tailwind animation classes and shared animation utilities
  * 
- * @requirements 3.1, 3.3, 3.6 - Supabase Auth UI with loading states and error animations
+ * @requirements 1.2 - CSS transitions/Tailwind instead of framer-motion
+ * @requirements 1.5 - Preserve same visual transition behavior using CSS equivalents
  */
 
 import { useState } from 'react';
@@ -11,14 +12,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
-import { durations } from '@/lib/animation-config';
+import { staggerChild, animateClasses } from '@/lib/animations';
 import { AlertCircle } from 'lucide-react';
 
 const signInSchema = z.object({
@@ -35,7 +35,6 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const prefersReducedMotion = useReducedMotion();
 
   const {
     register,
@@ -85,45 +84,6 @@ export default function SignInPage() {
     }
   };
 
-  // Animation variants for error message
-  const errorVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: prefersReducedMotion ? 0 : -10,
-      height: 0,
-    },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      height: 'auto',
-      transition: {
-        duration: prefersReducedMotion ? 0 : durations.normal,
-        ease: 'easeOut',
-      },
-    },
-    exit: {
-      opacity: 0,
-      y: prefersReducedMotion ? 0 : -10,
-      height: 0,
-      transition: {
-        duration: prefersReducedMotion ? 0 : durations.fast,
-      },
-    },
-  };
-
-  // Animation variants for form fields
-  const fieldVariants = {
-    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 10 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: prefersReducedMotion ? 0 : i * 0.1,
-        duration: prefersReducedMotion ? 0 : durations.normal,
-      },
-    }),
-  };
-
   return (
     <>
       {isAuthenticating && <AuthLoadingOverlay message="Signing you in..." />}
@@ -163,11 +123,9 @@ export default function SignInPage() {
         }
       >
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <motion.div
-            custom={0}
-            variants={fieldVariants}
-            initial="hidden"
-            animate="visible"
+          <div
+            className={animateClasses.slideUp}
+            style={staggerChild(0, 100)}
           >
             <Input
               {...register('email')}
@@ -178,13 +136,11 @@ export default function SignInPage() {
               disabled={loading}
               required
             />
-          </motion.div>
+          </div>
 
-          <motion.div
-            custom={1}
-            variants={fieldVariants}
-            initial="hidden"
-            animate="visible"
+          <div
+            className={animateClasses.slideUp}
+            style={staggerChild(1, 100)}
           >
             <PasswordInput
               {...register('password')}
@@ -194,32 +150,21 @@ export default function SignInPage() {
               disabled={loading}
               required
             />
-          </motion.div>
+          </div>
 
-          {/* Error message with animation */}
-          <AnimatePresence mode="wait">
-            {error && (
-              <motion.div
-                key="error"
-                variants={errorVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="overflow-hidden"
-              >
-                <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 shadow-sm">
-                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                  <div className="text-sm font-medium text-destructive">{error}</div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Error message with CSS transition */}
+          {error && (
+            <div className={`overflow-hidden ${animateClasses.fadeIn}`}>
+              <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 shadow-sm">
+                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                <div className="text-sm font-medium text-destructive">{error}</div>
+              </div>
+            </div>
+          )}
 
-          <motion.div
-            custom={2}
-            variants={fieldVariants}
-            initial="hidden"
-            animate="visible"
+          <div
+            className={animateClasses.slideUp}
+            style={staggerChild(2, 100)}
           >
             <Button
               type="submit"
@@ -230,7 +175,7 @@ export default function SignInPage() {
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </Button>
-          </motion.div>
+          </div>
         </form>
       </AuthLayout>
     </>

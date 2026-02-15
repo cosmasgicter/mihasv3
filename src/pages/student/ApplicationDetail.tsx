@@ -1,8 +1,8 @@
 // @ts-nocheck
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { ApplicationSlipActions } from '@/components/student/ApplicationSlipActions'
+import { staggerChild, animateClasses } from '@/lib/animations'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { InterviewDetails } from '@/components/student/InterviewDetails'
 import { Button } from '@/components/ui/Button'
@@ -133,10 +133,8 @@ export default function ApplicationDetail() {
       <main className="w-full">
         <div className="content-wrapper py-4 sm:py-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+        <div
+          className={`mb-8 ${animateClasses.slideUp}`}
         >
           <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -156,26 +154,22 @@ export default function ApplicationDetail() {
               </span>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Interview */}
         {interview && interview.status !== 'cancelled' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-8"
+          <div
+            className={`mb-8 ${animateClasses.slideUp}`}
+            style={staggerChild(1, 100)}
           >
             <InterviewDetails interview={interview} />
-          </motion.div>
+          </div>
         )}
 
         {/* Documents */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="bg-card rounded-2xl shadow-lg border border-border p-6 mb-8"
+        <div
+          className={`bg-card rounded-2xl shadow-lg border border-border p-6 mb-8 ${animateClasses.slideUp}`}
+          style={staggerChild(2, 100)}
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
@@ -188,15 +182,13 @@ export default function ApplicationDetail() {
               paymentStatus={application.payment_status}
             />
           </div>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:p-8">
           {/* Personal Information */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-card rounded-2xl shadow-lg border border-border p-6"
+          <div
+            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            style={staggerChild(3, 100)}
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <User className="h-5 w-5 mr-2 text-primary" />
@@ -229,14 +221,12 @@ export default function ApplicationDetail() {
                 </p>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Program Information */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-card rounded-2xl shadow-lg border border-border p-6"
+          <div
+            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            style={staggerChild(4, 100)}
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <GraduationCap className="h-5 w-5 mr-2 text-primary" />
@@ -264,14 +254,12 @@ export default function ApplicationDetail() {
                 <p className="text-gray-900 font-medium">ZMW {application.application_fee}</p>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Application Timeline */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-card rounded-2xl shadow-lg border border-border p-6"
+          <div
+            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            style={staggerChild(5, 100)}
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-primary" />
@@ -315,14 +303,12 @@ export default function ApplicationDetail() {
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
 
           {/* Payment Information */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-card rounded-2xl shadow-lg border border-border p-6"
+          <div
+            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            style={staggerChild(6, 100)}
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <CreditCard className="h-5 w-5 mr-2 text-primary" />
@@ -349,7 +335,7 @@ export default function ApplicationDetail() {
                 <p className="text-gray-900 font-medium font-mono break-all">{application.public_tracking_code}</p>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
         </div>
       </main>

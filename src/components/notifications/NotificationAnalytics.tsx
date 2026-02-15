@@ -1,6 +1,5 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { 
   BarChart, 
   Bar, 
@@ -37,6 +36,7 @@ interface NotificationAnalyticsProps {
 /**
  * Notification Analytics Dashboard
  * Requirements: 9.4 - Add notification scheduling and delivery tracking
+ * Requirements: 1.2 - CSS transitions instead of framer-motion
  */
 export const NotificationAnalytics: React.FC<NotificationAnalyticsProps> = ({
   className = '',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
+import { staggerChild } from '@/lib/animations'
 import { 
   Activity, 
   Database, 
@@ -126,10 +127,9 @@ export function SystemMonitoring() {
     <div className="space-y-6">
       {/* System Status Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border"
+        <div 
+          className="bg-card rounded-xl p-6 shadow-lg border border-border animate-fade-in opacity-0"
+          style={staggerChild(0)}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-accent/10 rounded-xl">
@@ -145,13 +145,11 @@ export function SystemMonitoring() {
             <div>Response: {metrics.database.responseTime}ms</div>
             <div>Uptime: {metrics.database.uptime}</div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border"
+        <div 
+          className="bg-card rounded-xl p-6 shadow-lg border border-border animate-fade-in opacity-0"
+          style={staggerChild(1)}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-primary/10 rounded-xl">
@@ -167,13 +165,11 @@ export function SystemMonitoring() {
             <div>Memory: {metrics.performance.memory}%</div>
             <div>Storage: {metrics.performance.storage}%</div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border"
+        <div 
+          className="bg-card rounded-xl p-6 shadow-lg border border-border animate-fade-in opacity-0"
+          style={staggerChild(2)}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-secondary/10 rounded-xl">
@@ -189,13 +185,11 @@ export function SystemMonitoring() {
             <div>Threats: {metrics.security.threats}</div>
             <div>Updates: {metrics.security.updates}</div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card rounded-xl p-6 shadow-lg border border-border"
+        <div 
+          className="bg-card rounded-xl p-6 shadow-lg border border-border animate-fade-in opacity-0"
+          style={staggerChild(3)}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-primary/10 rounded-xl">
@@ -211,15 +205,13 @@ export function SystemMonitoring() {
             <div>Sessions: {metrics.users.sessions}</div>
             <div>Avg Time: {metrics.users.avgSessionTime}min</div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Performance Metrics */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-card rounded-xl shadow-lg border border-border"
+      <div 
+        className="bg-card rounded-xl shadow-lg border border-border animate-fade-in opacity-0"
+        style={staggerChild(4)}
       >
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900 flex items-center">
@@ -246,11 +238,9 @@ export function SystemMonitoring() {
                 <span className="text-sm font-bold text-gray-900">{metrics.performance.cpu}%</span>
               </div>
               <div className="w-full bg-skeleton rounded-full h-2">
-                <motion.div 
-                  className={`h-2 rounded-full ${getPerformanceColor(metrics.performance.cpu)}`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${metrics.performance.cpu}%` }}
-                  transition={{ duration: 0.8 }}
+                <div 
+                  className={`h-2 rounded-full transition-all duration-700 ease-out motion-reduce:transition-none ${getPerformanceColor(metrics.performance.cpu)}`}
+                  style={{ width: `${metrics.performance.cpu}%` }}
                 />
               </div>
             </div>
@@ -264,11 +254,9 @@ export function SystemMonitoring() {
                 <span className="text-sm font-bold text-gray-900">{metrics.performance.memory}%</span>
               </div>
               <div className="w-full bg-skeleton rounded-full h-2">
-                <motion.div 
-                  className={`h-2 rounded-full ${getPerformanceColor(metrics.performance.memory)}`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${metrics.performance.memory}%` }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
+                <div 
+                  className={`h-2 rounded-full transition-all duration-700 ease-out motion-reduce:transition-none ${getPerformanceColor(metrics.performance.memory)}`}
+                  style={{ width: `${metrics.performance.memory}%`, transitionDelay: '200ms' }}
                 />
               </div>
             </div>
@@ -282,11 +270,9 @@ export function SystemMonitoring() {
                 <span className="text-sm font-bold text-gray-900">{metrics.performance.storage}%</span>
               </div>
               <div className="w-full bg-skeleton rounded-full h-2">
-                <motion.div 
-                  className={`h-2 rounded-full ${getPerformanceColor(metrics.performance.storage)}`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${metrics.performance.storage}%` }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
+                <div 
+                  className={`h-2 rounded-full transition-all duration-700 ease-out motion-reduce:transition-none ${getPerformanceColor(metrics.performance.storage)}`}
+                  style={{ width: `${metrics.performance.storage}%`, transitionDelay: '400ms' }}
                 />
               </div>
             </div>
@@ -300,24 +286,20 @@ export function SystemMonitoring() {
                 <span className="text-sm font-bold text-gray-900">{metrics.performance.network}%</span>
               </div>
               <div className="w-full bg-skeleton rounded-full h-2">
-                <motion.div 
-                  className={`h-2 rounded-full ${getPerformanceColor(metrics.performance.network)}`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${metrics.performance.network}%` }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
+                <div 
+                  className={`h-2 rounded-full transition-all duration-700 ease-out motion-reduce:transition-none ${getPerformanceColor(metrics.performance.network)}`}
+                  style={{ width: `${metrics.performance.network}%`, transitionDelay: '600ms' }}
                 />
               </div>
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* System Health Alerts */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="bg-card rounded-xl shadow-lg border border-border"
+      <div 
+        className="bg-card rounded-xl shadow-lg border border-border animate-fade-in opacity-0"
+        style={staggerChild(5)}
       >
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-bold text-gray-900 flex items-center">
@@ -356,14 +338,12 @@ export function SystemMonitoring() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Real-time Activity */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="bg-card rounded-xl shadow-lg border border-border"
+      <div 
+        className="bg-card rounded-xl shadow-lg border border-border animate-fade-in opacity-0"
+        style={staggerChild(6)}
       >
         <div className="px-6 py-4 border-b border-border">
           <h3 className="text-lg font-bold text-gray-900 flex items-center">
@@ -402,7 +382,7 @@ export function SystemMonitoring() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }

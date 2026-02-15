@@ -1,13 +1,12 @@
 import { useMemo } from 'react'
 
-import { motion } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 
 import { AnimatedInput } from '@/components/smoothui/animated-input'
 import { FormSelect } from '@/components/ui/form-select'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
-import { durations, easings } from '@/lib/animation-config'
+import { animateClasses, staggerChild } from '@/lib/animations'
 import { FieldHelp } from '../components/FieldHelp'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 
@@ -37,7 +36,7 @@ const BasicKycStep = ({
     control,
     formState: { errors }
   } = form
-  const { shouldAnimate, prefersReducedMotion } = useOptimizedAnimation()
+  const { shouldAnimate } = useOptimizedAnimation()
 
   const selectedProgramDetails = useMemo(
     () => programs.find(program => program.id === selectedProgram),
@@ -62,38 +61,10 @@ const BasicKycStep = ({
     }
   }
 
-  // Animation variants for staggered content
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: shouldAnimate ? 0.05 : 0,
-        delayChildren: shouldAnimate ? 0.1 : 0,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: shouldAnimate ? 15 : 0 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: shouldAnimate ? durations.normal : 0,
-        ease: easings.easeOut,
-      }
-    },
-  }
-
   return (
-    <motion.div
+    <div
       key="step1"
-      initial={shouldAnimate ? { opacity: 0, x: 50 } : { opacity: 1, x: 0 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={shouldAnimate ? { opacity: 0, x: -50 } : undefined}
-      transition={{ duration: shouldAnimate ? 0.3 : 0 }}
-      className="bg-card rounded-lg shadow-lg p-6 border border-border"
+      className={`bg-card rounded-lg shadow-lg p-6 border border-border ${shouldAnimate ? animateClasses.fadeIn : ''}`}
       data-testid="basic-kyc-step"
     >
       <div className="flex items-center justify-between mb-4">
@@ -104,10 +75,8 @@ const BasicKycStep = ({
       </div>
 
       {hasAutoPopulatedData && (
-        <motion.div
-          initial={shouldAnimate ? { opacity: 0, y: -10 } : false}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-3 bg-accent/10 border border-accent rounded-lg"
+        <div
+          className={`mb-4 p-3 bg-accent/10 border border-accent rounded-lg ${shouldAnimate ? animateClasses.slideUp : ''}`}
         >
           <div className="flex items-center space-x-2 text-sm text-accent-foreground">
             <CheckCircle className="h-4 w-4" />
@@ -116,24 +85,19 @@ const BasicKycStep = ({
           <p className="text-xs text-gray-900 mt-1">
             Some fields have been pre-filled from your profile. Please review and update as needed.
           </p>
-        </motion.div>
+        </div>
       )}
 
-      <motion.div 
-        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-        variants={containerVariants}
-        initial={shouldAnimate ? "hidden" : "visible"}
-        animate="visible"
-      >
-        <motion.div className="lg:col-span-2" variants={itemVariants}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="lg:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
           <AnimatedInput
             {...register('full_name')}
             label="Full Name *"
             error={errors.full_name?.message}
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(1) : undefined}>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm font-medium text-gray-900">NRC Number</span>
             <FieldHelp
@@ -148,27 +112,27 @@ const BasicKycStep = ({
             error={errors.nrc_number?.message}
             helperText="Provide either NRC or Passport (one is sufficient)"
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(2) : undefined}>
           <AnimatedInput
             {...register('passport_number')}
             label="Passport Number"
             error={errors.passport_number?.message}
             helperText="Provide either NRC or Passport (one is sufficient)"
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(3) : undefined}>
           <AnimatedInput
             type="date"
             {...register('date_of_birth')}
             label="Date of Birth *"
             error={errors.date_of_birth?.message}
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(4) : undefined}>
           <FormSelect
             name="sex"
             control={control}
@@ -181,9 +145,9 @@ const BasicKycStep = ({
             error={errors.sex?.message}
             required
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(5) : undefined}>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm font-medium text-gray-900">Phone Number *</span>
             <FieldHelp
@@ -197,51 +161,51 @@ const BasicKycStep = ({
             placeholder="e.g., +260 97 123 4567"
             error={errors.phone?.message}
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(6) : undefined}>
           <AnimatedInput
             type="email"
             {...register('email')}
             label="Email Address *"
             error={errors.email?.message}
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(7) : undefined}>
           <AnimatedInput
             {...register('residence_town')}
             label="Residence Town *"
             error={errors.residence_town?.message}
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(8) : undefined}>
           <AnimatedInput
             {...register('nationality')}
             label="Nationality"
             error={errors.nationality?.message}
             placeholder="e.g., Zambian"
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(9) : undefined}>
           <AnimatedInput
             {...register('next_of_kin_name')}
             label="Next of Kin Name (Optional)"
             error={errors.next_of_kin_name?.message}
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(10) : undefined}>
           <AnimatedInput
             {...register('next_of_kin_phone')}
             label="Next of Kin Phone (Optional)"
             error={errors.next_of_kin_phone?.message}
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(11) : undefined}>
           <FormSelect
             name="program"
             control={control}
@@ -255,9 +219,9 @@ const BasicKycStep = ({
             error={errors.program?.message}
             required
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div style={shouldAnimate ? staggerChild(12) : undefined}>
           <FormSelect
             name="intake"
             control={control}
@@ -274,22 +238,20 @@ const BasicKycStep = ({
             helperText={intakes.length === 0 ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
             required
           />
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {selectedProgramDetails && (
-        <motion.div
-          className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20"
-          initial={shouldAnimate ? { opacity: 0, scale: 0.95 } : false}
-          animate={{ opacity: 1, scale: 1 }}
+        <div
+          className={`mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20 ${shouldAnimate ? animateClasses.scaleIn : ''}`}
         >
           <p className="text-sm text-gray-900 font-medium">
             <strong>Institution:</strong>{' '}
             {selectedInstitutionLabel || 'MIHAS'}
           </p>
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   )
 }
 

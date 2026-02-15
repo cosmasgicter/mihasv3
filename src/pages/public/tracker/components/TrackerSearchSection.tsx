@@ -1,9 +1,9 @@
-import React from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import React, { useState, useEffect } from 'react'
 import { Search, Mail, Hash, Zap, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { animateClasses } from '@/lib/animations'
 
 interface TrackerSearchSectionProps {
   searchTerm: string
@@ -24,8 +24,18 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
   onKeyPress,
   onPaste
 }) => {
-  const shouldReduceMotion = useReducedMotion()
-  const maybeMotion = <T,>(value: T) => (shouldReduceMotion ? undefined : value)
+  // Track error visibility for CSS transition
+  const [errorVisible, setErrorVisible] = useState(false)
+
+  useEffect(() => {
+    if (error) {
+      // Small delay to trigger CSS transition from hidden → visible
+      const id = requestAnimationFrame(() => setErrorVisible(true))
+      return () => cancelAnimationFrame(id)
+    } else {
+      setErrorVisible(false)
+    }
+  }, [error])
 
   return (
     <SectionCard
@@ -60,22 +70,19 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
             </Button>
           </div>
           
-          {/* Error Message */}
-          <AnimatePresence initial={!shouldReduceMotion}>
-            {error && (
-              <motion.div
-                initial={maybeMotion({ opacity: 0, y: 10 })}
-                animate={maybeMotion({ opacity: 1, y: 0 })}
-                exit={maybeMotion({ opacity: 0, y: -10 })}
-                className="mt-4 rounded-xl bg-error/10 border border-error/30 p-4"
-              >
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="h-5 w-5 text-error flex-shrink-0" />
-                  <p className="text-sm font-medium text-error">{error}</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Error Message - CSS transition replaces AnimatePresence */}
+          {error && (
+            <div
+              className={`mt-4 rounded-xl bg-error/10 border border-error/30 p-4 transition-all duration-300 ease-out ${
+                errorVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <AlertCircle className="h-5 w-5 text-error flex-shrink-0" />
+                <p className="text-sm font-medium text-error">{error}</p>
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Help Cards */}

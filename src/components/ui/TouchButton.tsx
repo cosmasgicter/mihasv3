@@ -1,6 +1,5 @@
 // @ts-nocheck
 import React from 'react'
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useTouchFeedback } from '@/hooks/useTouchFeedback'
 
@@ -32,7 +31,7 @@ export function TouchButton({
   }
 
   return (
-    <motion.button
+    <button
       className={cn(
         'relative min-h-[44px] min-w-[44px] px-4 rounded-lg font-medium',
         'transition-all duration-200 active:scale-95',
@@ -40,11 +39,10 @@ export function TouchButton({
         isPressed && 'scale-95',
         className
       )}
-      whileTap={{ scale: 0.95 }}
       {...touchHandlers}
       {...props}
     >
       {children}
-    </motion.button>
+    </button>
   )
 }

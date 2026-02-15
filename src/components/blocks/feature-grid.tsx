@@ -5,7 +5,6 @@
  * @requirements 8.4, 8.5 - ShadcnBlocks page sections with design tokens
  */
 
-import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ScrollReveal, StaggerReveal, StaggerItem } from '@/components/smoothui';
 import { LucideIcon } from 'lucide-react';
@@ -43,7 +42,9 @@ export function FeatureGrid({
   variant = 'cards',
   className,
 }: FeatureGridProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
 
   return (
     <section className={cn('py-16 sm:py-20 lg:py-24', className)}>
@@ -91,7 +92,6 @@ interface FeatureCardProps {
 }
 
 function FeatureCard({ feature, variant }: FeatureCardProps) {
-  const prefersReducedMotion = useReducedMotion();
   const Icon = feature.icon;
 
   const cardClasses = {
@@ -103,10 +103,8 @@ function FeatureCard({ feature, variant }: FeatureCardProps) {
   const iconGradient = feature.gradient || 'from-primary to-primary/80';
 
   const content = (
-    <motion.div
-      className={cn(cardClasses[variant], 'h-full')}
-      whileHover={prefersReducedMotion ? {} : { y: -4 }}
-      transition={{ duration: 0.2 }}
+    <div
+      className={cn(cardClasses[variant], 'h-full hover:-translate-y-1 transition-transform duration-200')}
     >
       {/* Icon */}
       <div
@@ -127,7 +125,7 @@ function FeatureCard({ feature, variant }: FeatureCardProps) {
       <p className="text-muted-foreground text-sm leading-relaxed">
         {feature.description}
       </p>
-    </motion.div>
+    </div>
   );
 
   if (feature.href) {

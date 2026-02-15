@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion } from 'framer-motion'
 import { CheckCircle, User } from 'lucide-react'
 
 interface ProfileAutoPopulationIndicatorProps {
@@ -11,14 +10,12 @@ export function ProfileAutoPopulationIndicator({ isPopulated, fieldName }: Profi
   if (!isPopulated) return null
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="inline-flex items-center space-x-1 text-xs text-green-800 bg-green-100 px-2 py-1 rounded-full border border-green-300"
+    <div
+      className="inline-flex items-center space-x-1 text-xs text-green-800 bg-green-100 px-2 py-1 rounded-full border border-green-300 animate-scale-in"
     >
       <CheckCircle className="h-3 w-3" />
       <span>Auto-filled from profile</span>
-    </motion.div>
+    </div>
   )
 }
 
@@ -34,13 +31,11 @@ export function ProfileCompletionBadge({ completionPercentage }: ProfileCompleti
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full border text-sm font-medium ${getColor()}`}
+    <div
+      className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full border text-sm font-medium animate-fade-in ${getColor()}`}
     >
       <User className="h-4 w-4" />
       <span>Profile {completionPercentage}% Complete</span>
-    </motion.div>
+    </div>
   )
 }

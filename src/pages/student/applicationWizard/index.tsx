@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, CheckCircle, Send, Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect } from 'react'
@@ -226,13 +225,11 @@ const ApplicationWizardContent = () => {
 
   const handleGetUsedSubjects = () => getUsedSubjects()
 
-  // Use CSS transitions on mobile/reduced motion, Framer Motion on desktop
-  const MaybeMotionDiv: any = shouldAnimate ? motion.div : (props: any) => <div {...props} />
 
   return (
-    <MaybeMotionDiv 
-      className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50" 
-      {...(shouldAnimate ? { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.36 } } : {})}
+    <div 
+      className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 ${shouldAnimate ? "animate-fade-in" : ""}`} 
+      
     >
       <div className="w-full">
         <Container size="md" className="py-4 sm:py-8">
@@ -241,22 +238,15 @@ const ApplicationWizardContent = () => {
               <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
               Back to Dashboard
             </Link>
-            {!shouldAnimate ? (
-              <div>
+            <div className={shouldAnimate ? 'animate-slide-up' : ''}>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Student Application</h1>
                 <p className="text-gray-900">Complete the {totalSteps}-step application process</p>
-              </div>
-            ) : (
-              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Student Application</h1>
-                <p className="text-gray-900">Complete the {totalSteps}-step application process</p>
-              </motion.div>
-            )}
+            </div>
             
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-caption">
               <span className="break-all">Logged in as: {user.email}</span>
               <span className="hidden sm:inline text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                Tip: Use Ctrl+→/← to navigate steps
+                Tip: Use Ctrl+ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢/ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â to navigate steps
               </span>
             </div>
           </div>
@@ -274,11 +264,9 @@ const ApplicationWizardContent = () => {
               <div className="mt-2 space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-border rounded-full h-2 overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-primary to-success"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
-                      transition={{ duration: 0.5 }}
+                    <div
+                      className="h-full bg-gradient-to-r from-primary to-success transition-all duration-500 ease-out"
+                      style={{ width: `%` }}
                     />
                   </div>
                   <div className="flex flex-col items-end">
@@ -305,7 +293,7 @@ const ApplicationWizardContent = () => {
                   </div>
                   {!stepValidation.isValid && stepValidation.missingFields.length > 0 && (
                     <span className="text-caption">
-                      • Missing: {stepValidation.missingFields.slice(0, 2).join(', ')}
+                      ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Missing: {stepValidation.missingFields.slice(0, 2).join(', ')}
                       {stepValidation.missingFields.length > 2 && ` +${stepValidation.missingFields.length - 2} more`}
                     </span>
                   )}
@@ -378,7 +366,7 @@ const ApplicationWizardContent = () => {
         <Container size="md">
 
         {error && (
-          <motion.div className="rounded-md bg-destructive/10 border border-destructive/30 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="rounded-md bg-destructive/10 border border-destructive/30 p-4 mb-6 animate-slide-up">
             <div className="flex items-start">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-destructive" viewBox="0 0 20 20" fill="currentColor">
@@ -397,11 +385,11 @@ const ApplicationWizardContent = () => {
                 </button>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {!stepValidation.isValid && !isLastStep && stepValidation.completedFields > 0 && (
-          <motion.div className="rounded-md bg-warning/10 border border-warning/30 p-4 mb-6" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="rounded-md bg-warning/10 border border-warning/30 p-4 mb-6 animate-slide-up">
             <div className="flex items-start">
               <Info className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
               <div className="ml-3 flex-1">
@@ -418,13 +406,12 @@ const ApplicationWizardContent = () => {
                 )}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2">
             <form onSubmit={form.handleSubmit(handleSubmitApplication)} className="space-y-6 lg:space-y-8">
-              <AnimatePresence mode="wait">
             {currentStepConfig.key === 'basicKyc' && (
               <BasicKycStep
                 form={form}
@@ -490,36 +477,35 @@ const ApplicationWizardContent = () => {
                 }
               />
             )}
-              </AnimatePresence>
 
-              <motion.div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-border" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-border animate-fade-in">
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
                   <Button type="button" variant="outline" onClick={handlePrevStep} className="w-full sm:w-auto" disabled={loading || uploading}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     {previousButtonLabel}
                   </Button>
-                </motion.div>
+                </div>
               )}
             </div>
 
             <div className="order-1 sm:order-2">
               {!isLastStep ? (
-                <motion.div whileHover={{ scale: loading || uploading ? 1 : 1.05 }} whileTap={{ scale: loading || uploading ? 1 : 0.95 }}>
+                <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
                   <Button type="button" onClick={handleNextStep} loading={loading || uploading} disabled={loading || uploading} className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
                     {loading || uploading ? 'Processing...' : (<><span>Next Step</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                   </Button>
-                </motion.div>
+                </div>
               ) : (
-                <motion.div whileHover={{ scale: loading ? 1 : 1.05 }} whileTap={{ scale: loading ? 1 : 0.95 }}>
+                <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
                   <Button type="submit" loading={loading} disabled={loading || !confirmSubmission} className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                     {loading ? 'Submitting...' : (<><Send className="h-4 w-4 mr-2" />Submit Application</>)}
                   </Button>
-                </motion.div>
+                </div>
               )}
               </div>
-              </motion.div>
+              </div>
             </form>
           </div>
 
@@ -541,44 +527,41 @@ const ApplicationWizardContent = () => {
               
               <AnalyticsDashboard userId={user?.id} />
               
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-primary/5 border border-primary/20 rounded-lg p-4"
+              <div
+                className={`bg-primary/5 border border-primary/20 rounded-lg p-4 ${shouldAnimate ? "animate-fade-in" : ""}`}
               >
-                <h3 className="text-sm font-semibold text-primary mb-2">💡 Quick Tips</h3>
+                <h3 className="text-sm font-semibold text-primary mb-2">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ Quick Tips</h3>
                 <ul className="text-xs text-gray-900 space-y-2">
                   {currentStepIndex === 0 && (
                     <>
-                      <li>• Ensure your contact details are accurate</li>
-                      <li>• Double-check your NRC/Passport number</li>
-                      <li>• Select the correct intake period</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Ensure your contact details are accurate</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Double-check your NRC/Passport number</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Select the correct intake period</li>
                     </>
                   )}
                   {currentStepIndex === 1 && (
                     <>
-                      <li>• Enter at least 5 subject grades</li>
-                      <li>• Upload a clear scan of your result slip</li>
-                      <li>• Ensure grades match your certificate</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Enter at least 5 subject grades</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Upload a clear scan of your result slip</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Ensure grades match your certificate</li>
                     </>
                   )}
                   {currentStepIndex === 2 && (
                     <>
-                      <li>• Keep your payment reference handy</li>
-                      <li>• Upload proof of payment (receipt/screenshot)</li>
-                      <li>• Ensure payment details are correct</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Keep your payment reference handy</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Upload proof of payment (receipt/screenshot)</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Ensure payment details are correct</li>
                     </>
                   )}
                   {currentStepIndex === 3 && (
                     <>
-                      <li>• Review all information carefully</li>
-                      <li>• Ensure all documents are uploaded</li>
-                      <li>• Accept terms to submit application</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Review all information carefully</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Ensure all documents are uploaded</li>
+                      <li>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Accept terms to submit application</li>
                     </>
                   )}
                 </ul>
-              </motion.div>
+              </div>
             </div>
           </div>
         </div>
@@ -602,7 +585,7 @@ const ApplicationWizardContent = () => {
           setError('')
         }}
       />
-    </MaybeMotionDiv>
+    </div>
   )
 }
 

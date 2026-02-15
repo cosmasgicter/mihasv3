@@ -8,7 +8,6 @@
 
 import React, { useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { designTokens } from '@/design-system/tokens';
@@ -104,7 +103,6 @@ interface AdminSidebarProps {
 export function AdminSidebar({ className }: AdminSidebarProps) {
   const location = useLocation();
   const { collapsed, setCollapsed } = useSidebar();
-  const prefersReducedMotion = useReducedMotion();
   
   // Track which sections are expanded (all expanded by default)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
@@ -155,19 +153,13 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
           </div>
           
           {/* Text - only when expanded */}
-          <AnimatePresence mode="wait">
-            {!collapsed && (
-              <motion.span
-                initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-                className="text-lg font-bold text-foreground truncate"
-              >
-                MIHAS Admin
-              </motion.span>
-            )}
-          </AnimatePresence>
+          {!collapsed && (
+            <span
+              className="text-lg font-bold text-foreground truncate transition-opacity duration-200"
+            >
+              MIHAS Admin
+            </span>
+          )}
         </div>
         
         {/* Toggle button - centered below logo when collapsed */}
@@ -197,35 +189,22 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
             expanded={expandedSections.has(section.id)}
             onToggle={() => toggleSection(section.id)}
             currentPath={location.pathname}
-            prefersReducedMotion={prefersReducedMotion}
           />
         ))}
       </nav>
 
       {/* Footer with system status */}
       <div className="p-4 border-t border-border">
-        <AnimatePresence mode="wait">
-          {!collapsed ? (
-            <motion.div
-              initial={prefersReducedMotion ? {} : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={prefersReducedMotion ? {} : { opacity: 0 }}
-              className="flex items-center gap-2 text-xs text-muted-foreground"
-            >
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-              <span>System Online</span>
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={prefersReducedMotion ? {} : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={prefersReducedMotion ? {} : { opacity: 0 }}
-              className="flex justify-center"
-            >
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {!collapsed ? (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground transition-opacity duration-200">
+            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            <span>System Online</span>
+          </div>
+        ) : (
+          <div className="flex justify-center transition-opacity duration-200">
+            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+          </div>
+        )}
       </div>
     </aside>
   );
@@ -237,7 +216,6 @@ interface SidebarSectionProps {
   expanded: boolean;
   onToggle: () => void;
   currentPath: string;
-  prefersReducedMotion: boolean | null;
 }
 
 function SidebarSection({
@@ -246,7 +224,6 @@ function SidebarSection({
   expanded,
   onToggle,
   currentPath,
-  prefersReducedMotion,
 }: SidebarSectionProps) {
   // Check if any item in this section is active
   const hasActiveItem = section.items.some(item => currentPath === item.to);
@@ -265,39 +242,35 @@ function SidebarSection({
           )}
         >
           <span>{section.title}</span>
-          <motion.div
-            animate={{ rotate: expanded ? 0 : -90 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
+          <div
+            className="transition-transform duration-200"
+            style={{ transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)' }}
           >
             <ChevronDown className="h-4 w-4" />
-          </motion.div>
+          </div>
         </button>
       )}
 
       {/* Section items */}
-      <AnimatePresence initial={false}>
-        {(collapsed || expanded) && (
-          <motion.div
-            initial={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={prefersReducedMotion ? {} : { height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className={cn('space-y-1', !collapsed && 'pl-2')}>
-              {section.items.map((item) => (
-                <SidebarNavItem
-                  key={item.to}
-                  item={item}
-                  collapsed={collapsed}
-                  isActive={currentPath === item.to}
-                  prefersReducedMotion={prefersReducedMotion}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {(collapsed || expanded) && (
+        <div
+          className={cn(
+            'overflow-hidden transition-all duration-200',
+            !collapsed && !expanded && 'max-h-0 opacity-0',
+          )}
+        >
+          <div className={cn('space-y-1', !collapsed && 'pl-2')}>
+            {section.items.map((item) => (
+              <SidebarNavItem
+                key={item.to}
+                item={item}
+                collapsed={collapsed}
+                isActive={currentPath === item.to}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -306,14 +279,12 @@ interface SidebarNavItemProps {
   item: NavItem;
   collapsed: boolean;
   isActive: boolean;
-  prefersReducedMotion: boolean | null;
 }
 
 function SidebarNavItem({
   item,
   collapsed,
   isActive,
-  prefersReducedMotion,
 }: SidebarNavItemProps) {
   const Icon = item.icon;
 
@@ -334,12 +305,8 @@ function SidebarNavItem({
     >
       {/* Active indicator */}
       {isActive && (
-        <motion.div
-          layoutId="activeIndicator"
+        <div
           className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"
-          initial={prefersReducedMotion ? {} : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
         />
       )}
 
@@ -352,22 +319,16 @@ function SidebarNavItem({
       />
 
       {/* Label - hidden when collapsed */}
-      <AnimatePresence mode="wait">
-        {!collapsed && (
-          <motion.span
-            initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
-            transition={{ duration: 0.15 }}
-            className={cn(
-              'text-sm font-medium truncate',
-              isActive ? 'text-primary' : 'text-foreground'
-            )}
-          >
-            {item.label}
-          </motion.span>
-        )}
-      </AnimatePresence>
+      {!collapsed && (
+        <span
+          className={cn(
+            'text-sm font-medium truncate transition-opacity duration-150',
+            isActive ? 'text-primary' : 'text-foreground'
+          )}
+        >
+          {item.label}
+        </span>
+      )}
 
       {/* Hover effect */}
       {!isActive && (

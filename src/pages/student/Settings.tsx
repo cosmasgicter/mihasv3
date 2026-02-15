@@ -10,9 +10,9 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ActiveSessions } from '@/components/ui/ActiveSessions'
-import { motion } from 'framer-motion'
 import { ArrowLeft, User, Mail, Phone, MapPin, Save, Shield } from 'lucide-react'
 import { useProfileAutoPopulation, getBestValue } from '@/hooks/useProfileAutoPopulation'
+import { staggerChild, animateClasses } from '@/lib/animations'
 
 const optionalString = () => z.string().optional().or(z.literal(''))
 
@@ -98,10 +98,8 @@ export default function StudentSettings() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl"
+          <div 
+            className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl ${animateClasses.slideUp}`}
           >
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
               ⚙️ Profile Settings
@@ -109,42 +107,36 @@ export default function StudentSettings() {
             <p className="text-lg sm:text-xl text-white/90">
               Update your personal information and contact details
             </p>
-          </motion.div>
+          </div>
         </div>
 
         {error && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg"
+          <div 
+            className={`rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.slideUp}`}
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">😱</div>
               <div className="text-error font-medium">{error}</div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {success && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl bg-green-50 dark:bg-green-900/20 border-2 border-green-500 p-4 sm:p-6 mb-6 shadow-lg"
+          <div 
+            className={`rounded-xl bg-green-50 dark:bg-green-900/20 border-2 border-green-500 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.slideUp}`}
           >
             <div className="flex items-center space-x-3">
               <div className="text-4xl">✅</div>
               <div className="text-green-700 dark:text-green-300 font-semibold text-lg">{success}</div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
           {/* Basic Information */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-card rounded-2xl shadow-lg border border-border p-6"
+          <div 
+            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            style={staggerChild(0, 200)}
           >
             <div className="flex items-center space-x-3 mb-6">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -219,14 +211,12 @@ export default function StudentSettings() {
                 )}
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Address Information */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-card rounded-2xl shadow-lg border border-border p-6"
+          <div 
+            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            style={staggerChild(1, 200)}
           >
             <div className="flex items-center space-x-3 mb-6">
               <div className="p-2 bg-accent/10 rounded-lg">
@@ -256,14 +246,12 @@ export default function StudentSettings() {
                 className="form-input-mobile"
               />
             </div>
-          </motion.div>
+          </div>
 
           {/* Next of Kin */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-card rounded-2xl shadow-lg border border-border p-6"
+          <div 
+            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            style={staggerChild(2, 200)}
           >
             <div className="flex items-center space-x-3 mb-6">
               <div className="p-2 bg-destructive/10 rounded-lg">
@@ -293,14 +281,12 @@ export default function StudentSettings() {
                 className="form-input-mobile"
               />
             </div>
-          </motion.div>
+          </div>
 
           {/* Security & Sessions */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-card rounded-2xl shadow-lg border border-border p-6"
+          <div 
+            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            style={staggerChild(3, 200)}
           >
             <div className="flex items-center space-x-3 mb-6">
               <div className="p-2 bg-muted rounded-lg">
@@ -312,14 +298,12 @@ export default function StudentSettings() {
             </div>
             
             <ActiveSessions />
-          </motion.div>
+          </div>
 
           {/* Action Buttons */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6"
+          <div 
+            className={`flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 ${animateClasses.slideUp}`}
+            style={staggerChild(4, 200)}
           >
             <Link to="/student/dashboard" className="w-full sm:w-auto">
               <Button 
@@ -338,7 +322,7 @@ export default function StudentSettings() {
               <Save className="h-4 w-4 mr-2" />
               {loading ? 'Saving...' : 'Save Changes'}
             </Button>
-          </motion.div>
+          </div>
         </form>
       </div>
     

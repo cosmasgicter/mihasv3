@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, X, CheckCircle, AlertTriangle, Info, Clock } from 'lucide-react'
+import { useState } from 'react'
+import { Bell, X, CheckCircle, AlertTriangle, Info } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 interface Notification {
@@ -89,13 +88,9 @@ export function RealTimeNotifications() {
       </Button>
 
       {/* Notifications Panel */}
-      <AnimatePresence>
         {showPanel && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 top-full mt-2 w-80 bg-card rounded-xl shadow-xl border border-border z-50"
+          <div
+            className="absolute right-0 top-full mt-2 w-80 bg-card rounded-xl shadow-xl border border-border z-50 animate-fade-in"
           >
             <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between">
@@ -119,12 +114,10 @@ export function RealTimeNotifications() {
               ) : (
                 <div className="p-2">
                   {notifications.map((notification, index) => (
-                    <motion.div
+                    <div
                       key={notification.id}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className={`p-3 rounded-lg border mb-2 ${getBgColor(notification.type)} ${
+                      style={{ animationDelay: `${index * 100}ms` }}
+                      className={`p-3 rounded-lg border mb-2 animate-fade-in ${getBgColor(notification.type)} ${
                         !notification.read ? 'border-l-4' : ''
                       }`}
                       onClick={() => markAsRead(notification.id)}
@@ -156,7 +149,7 @@ export function RealTimeNotifications() {
                           </div>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -174,9 +167,8 @@ export function RealTimeNotifications() {
                 </Button>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   )
 }

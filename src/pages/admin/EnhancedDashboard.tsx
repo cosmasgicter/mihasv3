@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { animateClasses } from '@/lib/animations'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
 import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
 import { SystemMonitoring } from '@/components/admin/SystemMonitoring'
@@ -70,14 +70,12 @@ export default function EnhancedAdminDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
+        <div
+          className={`text-center ${animateClasses.scaleIn}`}
         >
           <LoadingSpinner size="lg" />
           <p className="mt-4 text-lg text-gray-900 font-medium">Loading dashboard...</p>
-        </motion.div>
+        </div>
       </div>
     )
   }
@@ -105,10 +103,8 @@ export default function EnhancedAdminDashboard() {
       
       <main className={`${isFullscreen ? 'p-4' : 'container-mobile py-4 sm:py-6 lg:py-8'} safe-area-bottom`}>
         {/* Enhanced Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 sm:mb-8"
+        <div 
+          className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}
         >
           <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
             <div className="absolute inset-0 bg-black/10"></div>
@@ -164,13 +160,11 @@ export default function EnhancedAdminDashboard() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Navigation Tabs */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
+        <div 
+          className={`mb-6 ${animateClasses.slideUp}`}
         >
           <div className="bg-card rounded-xl shadow-lg border border-border p-2">
             <div className="flex space-x-2">
@@ -193,16 +187,12 @@ export default function EnhancedAdminDashboard() {
               })}
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Notifications Bar */}
-        <AnimatePresence>
           {showNotifications && stats.pendingApplications > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-4"
+            <div
+              className={`mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-4 ${animateClasses.fadeIn}`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -234,19 +224,13 @@ export default function EnhancedAdminDashboard() {
                   </Button>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Tab Content */}
-        <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
-            <motion.div
-              key="overview"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="grid grid-cols-1 lg:grid-cols-4 gap-6"
+            <div
+              className={`grid grid-cols-1 lg:grid-cols-4 gap-6 ${animateClasses.fadeIn}`}
             >
               <div className="lg:col-span-3">
                 <EnhancedDashboard
@@ -263,27 +247,20 @@ export default function EnhancedAdminDashboard() {
                   totalStudents: stats.totalStudents
                 }} />
               </div>
-            </motion.div>
+            </div>
           )}
 
           {activeTab === 'monitoring' && (
-            <motion.div
-              key="monitoring"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+            <div
+              className={animateClasses.fadeIn}
             >
               <SystemMonitoring />
-            </motion.div>
+            </div>
           )}
 
           {activeTab === 'analytics' && (
-            <motion.div
-              key="analytics"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="text-center py-6 sm:py-12"
+            <div
+              className={`text-center py-6 sm:py-12 ${animateClasses.fadeIn}`}
             >
               <div className="text-6xl mb-4"><BarChart3 className="w-5 h-5" /></div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Advanced Analytics</h3>
@@ -291,16 +268,12 @@ export default function EnhancedAdminDashboard() {
               <Button onClick={() => window.location.href = '/admin/analytics'}>
                 View Current Analytics
               </Button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Quick Stats Footer */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mt-8 bg-card rounded-xl shadow-lg border border-border p-6"
+        <div 
+          className={`mt-8 bg-card rounded-xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
         >
           <h3 className="text-lg font-bold text-gray-900 mb-4"><TrendingUp className="w-5 h-5" /> Quick Insights</h3>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
@@ -325,7 +298,7 @@ export default function EnhancedAdminDashboard() {
               <div className="text-sm text-gray-900">System Uptime</div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </main>
     </div>
   )
