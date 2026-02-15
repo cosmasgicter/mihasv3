@@ -11,6 +11,8 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { handleCors } from "../lib/cors";
 import { query } from "../lib/db";
 import { hashPassword, verifyPassword } from "../lib/auth/password";
+import { needsPasswordUpgrade, upgradePasswordHash } from "../lib/auth/legacy";
+import type { UserRecord } from "../lib/queries";
 import { 
   generateAccessToken, 
   generateRefreshToken,
@@ -22,6 +24,7 @@ import { getPermissionsForRole } from "../lib/auth/permissions";
 import { setAuthCookies, clearAuthCookies, extractAccessTokenFromCookie, extractRefreshTokenFromCookie } from "../lib/auth/cookies";
 import { withArcjetProtection } from "../lib/arcjet";
 import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
+import { createHash, timingSafeEqual } from "crypto";
 
 /**
  * Auth API Handler
@@ -78,7 +81,7 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
   const result = await query<{
     id: string;
     email: string;
-    password_hash: string;
+    password_hash: string | null;
     role: UserRole;
     first_name: string;
     last_name: string;
@@ -99,10 +102,40 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Account is disabled', HttpStatus.FORBIDDEN);
   }
 
-  // Verify password
-  const isValid = await verifyPassword(password, user.password_hash);
-  if (!isValid) {
-    return sendError(res, 'Invalid credentials', HttpStatus.UNAUTHORIZED);
+  // Branch for migrated/legacy accounts that don't have bcrypt hashes yet
+  if (needsPasswordUpgrade(toLegacyCompatibleUserRecord(user))) {
+    const legacyAuthResult = verifyLegacyPassword(password, user.password_hash);
+
+    if (!legacyAuthResult.isValid) {
+      if (legacyAuthResult.requiresMigration) {
+        return sendError(
+          res,
+          'Password migration required. Use account recovery or bootstrap migration to reset your password.',
+          HttpStatus.UNAUTHORIZED,
+          'PASSWORD_MIGRATION_REQUIRED'
+        );
+      }
+
+      return sendError(res, 'Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    const upgraded = await upgradePasswordHash(user.id, password);
+    if (!upgraded) {
+      return sendError(
+        res,
+        'Password migration required. Use account recovery or bootstrap migration to reset your password.',
+        HttpStatus.UNAUTHORIZED,
+        'PASSWORD_MIGRATION_REQUIRED'
+      );
+    }
+
+  } else {
+    // Standard bcrypt verification path
+    const isValid = await verifyPassword(password, user.password_hash as string);
+
+    if (!isValid) {
+      return sendError(res, 'Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
   }
 
   // Generate tokens
@@ -122,6 +155,71 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
       lastName: user.last_name,
     },
   });
+}
+
+
+function toLegacyCompatibleUserRecord(user: {
+  id: string;
+  email: string;
+  password_hash: string | null;
+  role: UserRole;
+  is_active: boolean;
+}): UserRecord {
+  const now = new Date();
+
+  return {
+    id: user.id,
+    email: user.email,
+    password_hash: user.password_hash,
+    refresh_token_hash: null,
+    role: user.role,
+    first_name: null,
+    last_name: null,
+    full_name: null,
+    phone: null,
+    is_active: user.is_active,
+    failed_login_attempts: 0,
+    locked_until: null,
+    password_changed_at: null,
+    created_at: now,
+    updated_at: now,
+  };
+}
+
+function verifyLegacyPassword(password: string, storedHash: string | null): { isValid: boolean; requiresMigration: boolean } {
+  if (!storedHash) {
+    return { isValid: false, requiresMigration: true };
+  }
+
+  // Legacy plaintext format stored as plain:<password>
+  if (storedHash.startsWith('plain:')) {
+    const legacyPassword = storedHash.slice('plain:'.length);
+    const passwordBuffer = Buffer.from(password);
+    const legacyBuffer = Buffer.from(legacyPassword);
+
+    if (passwordBuffer.length !== legacyBuffer.length) {
+      return { isValid: false, requiresMigration: false };
+    }
+
+    return {
+      isValid: timingSafeEqual(passwordBuffer, legacyBuffer),
+      requiresMigration: false,
+    };
+  }
+
+  // Legacy SHA-256 format
+  if (/^[a-f0-9]{64}$/i.test(storedHash)) {
+    const passwordHash = createHash('sha256').update(password).digest('hex');
+    const passwordBuffer = Buffer.from(passwordHash, 'hex');
+    const legacyBuffer = Buffer.from(storedHash, 'hex');
+
+    return {
+      isValid: timingSafeEqual(passwordBuffer, legacyBuffer),
+      requiresMigration: false,
+    };
+  }
+
+  return { isValid: false, requiresMigration: true };
 }
 
 /**
