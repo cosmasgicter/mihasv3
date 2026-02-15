@@ -2,7 +2,7 @@
 
 > Forensic audit of all page components for data loading, auth, error handling, state management, race conditions, and mobile responsiveness.
 
-**Generated**: 2026-02-08T17:33:38.478Z
+**Generated**: 2026-02-15T14:46:42.288Z
 **Audit Version**: 1.0.0
 
 ## Table of Contents
@@ -15,7 +15,7 @@
 
 ## Executive Summary
 
-**Report Generated**: 2026-02-08T17:33:38.478Z
+**Report Generated**: 2026-02-15T14:46:42.288Z
 
 ### Page Health Status
 
@@ -1268,7 +1268,6 @@ This section documents the data loading patterns for each page.
 | useApplicationFilters | `unknown` | default |
 | useApplicationsData | `unknown` | default |
 | useToastStore | `unknown` | default |
-| useReducedMotion | `unknown` | default |
 
 ### Src\pages\admin\ApplicationsAdmin
 
@@ -1413,7 +1412,6 @@ This section documents the data loading patterns for each page.
 | Hook | Endpoint | Cache Strategy |
 |------|----------|----------------|
 | useAuth | `/api/auth?action=session` | default |
-| useReducedMotion | `unknown` | default |
 
 ### Src\pages\auth\ResetPasswordPage
 
@@ -1423,7 +1421,6 @@ This section documents the data loading patterns for each page.
 |------|----------|----------------|
 | useAuth | `/api/auth?action=session` | default |
 | useNavigate | `unknown` | default |
-| useReducedMotion | `unknown` | default |
 
 ### Src\pages\auth\SignInPage
 
@@ -1434,7 +1431,6 @@ This section documents the data loading patterns for each page.
 | useNavigate | `unknown` | default |
 | useLocation | `unknown` | default |
 | useAuth | `/api/auth?action=session` | default |
-| useReducedMotion | `unknown` | default |
 
 ### Src\pages\auth\SignUpPage
 
@@ -1444,7 +1440,6 @@ This section documents the data loading patterns for each page.
 |------|----------|----------------|
 | useNavigate | `unknown` | default |
 | useAuth | `/api/auth?action=session` | default |
-| useReducedMotion | `unknown` | default |
 
 ### Src\pages\LandingPage
 
@@ -1464,62 +1459,12 @@ This section documents the data loading patterns for each page.
 | useLocation | `unknown` | default |
 | useAuth | `/api/auth?action=session` | default |
 
-### Src\pages\public\tracker\components\ApplicationInfoGrid
-
-**File**: `src\pages\public\tracker\components\ApplicationInfoGrid.tsx`
-
-| Hook | Endpoint | Cache Strategy |
-|------|----------|----------------|
-| useReducedMotion | `unknown` | default |
-| useReducedMotion | `unknown` | default |
-
-### Src\pages\public\tracker\components\ApplicationStatusDetails
-
-**File**: `src\pages\public\tracker\components\ApplicationStatusDetails.tsx`
-
-| Hook | Endpoint | Cache Strategy |
-|------|----------|----------------|
-| useReducedMotion | `unknown` | default |
-
-### Src\pages\public\tracker\components\ApplicationStatusHeader
-
-**File**: `src\pages\public\tracker\components\ApplicationStatusHeader.tsx`
-
-| Hook | Endpoint | Cache Strategy |
-|------|----------|----------------|
-| useReducedMotion | `unknown` | default |
-
-### Src\pages\public\tracker\components\HelpSection
-
-**File**: `src\pages\public\tracker\components\HelpSection.tsx`
-
-| Hook | Endpoint | Cache Strategy |
-|------|----------|----------------|
-| useReducedMotion | `unknown` | default |
-
-### Src\pages\public\tracker\components\NoResultsView
-
-**File**: `src\pages\public\tracker\components\NoResultsView.tsx`
-
-| Hook | Endpoint | Cache Strategy |
-|------|----------|----------------|
-| useReducedMotion | `unknown` | default |
-
-### Src\pages\public\tracker\components\TrackerSearchSection
-
-**File**: `src\pages\public\tracker\components\TrackerSearchSection.tsx`
-
-| Hook | Endpoint | Cache Strategy |
-|------|----------|----------------|
-| useReducedMotion | `unknown` | default |
-
 ### Src\pages\public\tracker\index
 
 **File**: `src\pages\public\tracker\index.tsx`
 
 | Hook | Endpoint | Cache Strategy |
 |------|----------|----------------|
-| useReducedMotion | `unknown` | default |
 | useToastStore | `unknown` | default |
 | useApplicationTracker | `unknown` | default |
 
@@ -1556,17 +1501,6 @@ This section documents the data loading patterns for each page.
 |------|----------|----------------|
 | useToastStore | `unknown` | default |
 
-### Src\pages\student\applicationWizard\components\StepTransition
-
-**File**: `src\pages\student\applicationWizard\components\StepTransition.tsx`
-
-| Hook | Endpoint | Cache Strategy |
-|------|----------|----------------|
-| useReducedMotion | `unknown` | default |
-| useReducedMotion | `unknown` | default |
-| useReducedMotion | `unknown` | default |
-| useReducedMotion | `unknown` | default |
-
 ### Src\pages\student\applicationWizard\index
 
 **File**: `src\pages\student\applicationWizard\index.tsx`
@@ -1587,22 +1521,6 @@ This section documents the data loading patterns for each page.
 | Hook | Endpoint | Cache Strategy |
 |------|----------|----------------|
 | useOptimizedAnimation | `unknown` | default |
-
-### Src\pages\student\applicationWizard\steps\EducationStep
-
-**File**: `src\pages\student\applicationWizard\steps\EducationStep.tsx`
-
-| Hook | Endpoint | Cache Strategy |
-|------|----------|----------------|
-| useReducedMotion | `unknown` | default |
-
-### Src\pages\student\applicationWizard\steps\PaymentStep
-
-**File**: `src\pages\student\applicationWizard\steps\PaymentStep.tsx`
-
-| Hook | Endpoint | Cache Strategy |
-|------|----------|----------------|
-| useReducedMotion | `unknown` | default |
 
 ### Src\pages\student\Dashboard
 

@@ -2,13 +2,13 @@
 
 > Forensic audit of notification triggers, email dispatch, and idempotency controls
 
-**Generated**: 2026-02-08T17:33:53.962Z
+**Generated**: 2026-02-15T14:47:11.786Z
 **Project Root**: C:\Users\Administrator\Documents\mihasv3
 **Audit Version**: 1.0.0
 
 ## Executive Summary
 
-**Report Generated**: 2026-02-08T17:33:53.962Z
+**Report Generated**: 2026-02-15T14:47:11.786Z
 
 ### Notification System Health Status
 
@@ -18,18 +18,18 @@
 
 | Metric | Count |
 |--------|-------|
-| Total Notification Triggers | 100 |
+| Total Notification Triggers | 99 |
 | Email Dispatch Points | 5 |
-| Unique Event Types | 25 |
+| Unique Event Types | 24 |
 | Unique Email Templates | 5 |
-| Files with Triggers | 28 |
+| Files with Triggers | 27 |
 | Files with Email Dispatches | 4 |
 
 ### Delivery Mechanism Breakdown
 
 | Mechanism | Count | Percentage |
 |-----------|-------|------------|
-| Realtime Only | 95 | 95% |
+| Realtime Only | 94 | 95% |
 | Email Only | 2 | 2% |
 | Both (Multi-channel) | 3 | 3% |
 
@@ -38,7 +38,7 @@
 | Metric | Status | Count |
 |--------|--------|-------|
 | Triggers with Idempotency | ❌ | 0 (0%) |
-| Triggers without Idempotency | ⚠️ | 100 |
+| Triggers without Idempotency | ⚠️ | 99 |
 | Email Dispatches with Deduplication | ❌ | 1 (20%) |
 | Email Dispatches with Retry | ❌ | 0 (0%) |
 
@@ -48,7 +48,7 @@
 |------------|-------|--------|
 | Critical Issues | 6 | 🔴 |
 | High Risk Issues | 3 | 🟠 |
-| Total Issues | 104 | ⚠️ |
+| Total Issues | 103 | ⚠️ |
 | Duplicate Send Risks | 5 | ⚠️ |
 
 ### Quick Stats
@@ -73,7 +73,6 @@
 
 The following notification event types were detected:
 
-- `admin_message` (1 trigger)
 - `applicationCreated` (3 triggers)
 - `applicationDeleted` (2 triggers)
 - `applicationStatusChanged` (2 triggers)
@@ -128,8 +127,8 @@ The following notification event types were detected:
 | `src\components\admin\applications\ApplicationDetailModal.tsx` | 1277 | `applicationUpdated` | ❌ No |
 | `src\components\admin\applications\ApplicationDetailModal.tsx` | 1292 | `applicationUpdated` | ❌ No |
 | `src\components\admin\applications\ApplicationDetailModal.tsx` | 1304 | `applicationUpdated` | ❌ No |
-| `src\components\admin\InterviewScheduler.tsx` | 35 | `ui_toast` | ❌ No |
-| `src\components\admin\InterviewScheduler.tsx` | 38 | `ui_toast` | ❌ No |
+| `src\components\admin\InterviewScheduler.tsx` | 36 | `ui_toast` | ❌ No |
+| `src\components\admin\InterviewScheduler.tsx` | 39 | `ui_toast` | ❌ No |
 | `src\components\admin\NotificationPreferences.tsx` | 47 | `ui_toast` | ❌ No |
 | `src\components\admin\NotificationPreferences.tsx` | 49 | `ui_toast` | ❌ No |
 | `src\components\admin\TestEmailButton.tsx` | 14 | `ui_toast` | ❌ No |
@@ -163,9 +162,9 @@ The following notification event types were detected:
 | `src\lib\adminNotifications.ts` | 89 | `info` | ❌ No |
 | `src\lib\adminNotifications.ts` | 127 | `in_app_notification` | ❌ No |
 | `src\lib\draftCleanup.ts` | 63 | `draftCleared` | ❌ No |
-| `src\lib\multiChannelNotifications.ts` | 105 | `multi_channel_notification` | ❌ No |
-| `src\lib\multiChannelNotifications.ts` | 329 | `channel_dispatch` | ❌ No |
-| `src\lib\multiChannelNotifications.ts` | 410 | `push_notification` | ❌ No |
+| `src\lib\multiChannelNotifications.ts` | 108 | `multi_channel_notification` | ❌ No |
+| `src\lib\multiChannelNotifications.ts` | 332 | `channel_dispatch` | ❌ No |
+| `src\lib\multiChannelNotifications.ts` | 413 | `push_notification` | ❌ No |
 | `src\lib\notificationService.ts` | 94 | `in_app_notification` | ❌ No |
 | `src\lib\notificationService.ts` | 137 | `multi_channel_notification` | ❌ No |
 | `src\lib\notificationService.ts` | 153 | `success` | ❌ No |
@@ -179,9 +178,9 @@ The following notification event types were detected:
 | `src\pages\admin\Dashboard.tsx` | 169 | `ui_toast` | ❌ No |
 | `src\pages\admin\WorkflowAutomation.tsx` | 83 | `ui_toast` | ❌ No |
 | `src\pages\admin\WorkflowAutomation.tsx` | 87 | `ui_toast` | ❌ No |
-| `src\pages\admin\WorkflowAutomation.tsx` | 357 | `ui_toast` | ❌ No |
-| `src\pages\admin\WorkflowAutomation.tsx` | 369 | `ui_toast` | ❌ No |
-| `src\pages\admin\WorkflowAutomation.tsx` | 381 | `ui_toast` | ❌ No |
+| `src\pages\admin\WorkflowAutomation.tsx` | 351 | `ui_toast` | ❌ No |
+| `src\pages\admin\WorkflowAutomation.tsx` | 363 | `ui_toast` | ❌ No |
+| `src\pages\admin\WorkflowAutomation.tsx` | 375 | `ui_toast` | ❌ No |
 | `src\pages\student\applicationWizard\components\ReminderSettings.tsx` | 17 | `ui_toast` | ❌ No |
 | `src\pages\student\applicationWizard\components\ReminderSettings.tsx` | 18 | `ui_toast` | ❌ No |
 | `src\pages\student\applicationWizard\hooks\useWizardController.ts` | 142 | `ui_toast` | ❌ No |
@@ -194,19 +193,18 @@ The following notification event types were detected:
 | `src\pages\student\Dashboard.tsx` | 61 | `ui_toast` | ❌ No |
 | `src\pages\student\Dashboard.tsx` | 364 | `ui_toast` | ❌ No |
 | `src\pages\student\Dashboard.tsx` | 369 | `ui_toast` | ❌ No |
-| `src\pages\student\Dashboard.tsx` | 551 | `ui_toast` | ❌ No |
-| `src\pages\student\Dashboard.tsx` | 557 | `ui_toast` | ❌ No |
-| `src\pages\student\Dashboard.tsx` | 562 | `ui_toast` | ❌ No |
-| `src\pages\student\Dashboard.tsx` | 632 | `ui_toast` | ❌ No |
-| `src\pages\student\Dashboard.tsx` | 637 | `ui_toast` | ❌ No |
-| `src\services\communicationService.ts` | 251 | `admin_message` | ❌ No |
+| `src\pages\student\Dashboard.tsx` | 547 | `ui_toast` | ❌ No |
+| `src\pages\student\Dashboard.tsx` | 553 | `ui_toast` | ❌ No |
+| `src\pages\student\Dashboard.tsx` | 558 | `ui_toast` | ❌ No |
+| `src\pages\student\Dashboard.tsx` | 628 | `ui_toast` | ❌ No |
+| `src\pages\student\Dashboard.tsx` | 633 | `ui_toast` | ❌ No |
 
 #### 📧 Email Triggers
 
 | File | Line | Event | Idempotency |
 |------|------|-------|-------------|
 | `api-src\notifications.ts` | 182 | `email_notification` | ❌ No |
-| `src\lib\multiChannelNotifications.ts` | 387 | `notification_send` | ❌ No |
+| `src\lib\multiChannelNotifications.ts` | 390 | `notification_send` | ❌ No |
 
 #### 📬 Multi-Channel Triggers (Email + Realtime)
 
@@ -214,7 +212,7 @@ The following notification event types were detected:
 |------|------|-------|-------------|
 | `api-src\notifications.ts` | 152 | `db_notification` | ❌ No |
 | `src\analysis\integration\SystemIntegrator.ts` | 245 | `multi_channel_notification` | ❌ No |
-| `src\lib\multiChannelNotifications.ts` | 435 | `info` | ❌ No |
+| `src\lib\multiChannelNotifications.ts` | 438 | `info` | ❌ No |
 
 ## Email Dispatch Points
 
@@ -241,8 +239,8 @@ The following notification event types were detected:
 |------|------|----------|-------|---------------|
 | `api-src\notifications.ts` | 182 | `[dynamic: title]` | ❌ | ❌ |
 | `scripts\set-passwords-and-notify.ts` | 68 | `Your MIHAS Application Portal Password Has Been Set` | ❌ | ❌ |
-| `src\lib\multiChannelNotifications.ts` | 302 | `[dynamic: this]` | ❌ | ❌ |
-| `src\lib\multiChannelNotifications.ts` | 365 | `[dynamic: string]` | ❌ | ✅ |
+| `src\lib\multiChannelNotifications.ts` | 305 | `[dynamic: this]` | ❌ | ❌ |
+| `src\lib\multiChannelNotifications.ts` | 368 | `[dynamic: string]` | ❌ | ✅ |
 | `supabase\functions\send-email\index.ts` | 39 | `unknown` | ❌ | ❌ |
 
 ### ⚠️ High-Risk Dispatches
@@ -253,7 +251,7 @@ These dispatch points are missing **both** retry and deduplication logic:
 |------|------|----------|
 | `api-src\notifications.ts` | 182 | `[dynamic: title]` |
 | `scripts\set-passwords-and-notify.ts` | 68 | `Your MIHAS Application Portal Password Has Been Set` |
-| `src\lib\multiChannelNotifications.ts` | 302 | `[dynamic: this]` |
+| `src\lib\multiChannelNotifications.ts` | 305 | `[dynamic: this]` |
 | `supabase\functions\send-email\index.ts` | 39 | `unknown` |
 
 **Impact**: These can cause duplicate emails on retry or lost emails on failure.
@@ -264,7 +262,7 @@ These dispatch points are missing **both** retry and deduplication logic:
 
 - **Trigger Idempotency Coverage**: 0%
 - **Email Deduplication Coverage**: 20%
-- **Total Issues**: 104
+- **Total Issues**: 103
 - **Top Issue**: MISSING_IDEMPOTENCY_KEY in api-src\notifications.ts:182
 
 ### Issues by Risk Level
@@ -279,7 +277,7 @@ These issues require immediate attention:
 
 **Recommendation**: Add an idempotency key using a unique identifier (e.g., `${userId}_${eventType}_${timestamp}` or a UUID). Store sent notification IDs in a cache or database to prevent duplicate sends.
 
-**MISSING_IDEMPOTENCY_KEY** in `src\lib\multiChannelNotifications.ts:387`
+**MISSING_IDEMPOTENCY_KEY** in `src\lib\multiChannelNotifications.ts:390`
 
 > Notification trigger for 'notification_send' (email) lacks idempotency key
 
@@ -297,7 +295,7 @@ These issues require immediate attention:
 
 **Recommendation**: Add deduplication logic using an idempotency key. Check if an email with the same key has been sent before dispatching. Add retry logic with exponential backoff for transient failures.
 
-**MISSING_DEDUPLICATION** in `src\lib\multiChannelNotifications.ts:302`
+**MISSING_DEDUPLICATION** in `src\lib\multiChannelNotifications.ts:305`
 
 > Email dispatch for template '[dynamic: this]' lacks deduplication logic
 
@@ -315,7 +313,7 @@ These issues require immediate attention:
 |------|------|------|-------------|
 | `api-src\notifications.ts` | 152 | MISSING_IDEMPOTENCY_KEY | Notification trigger for 'db_notification' (both) lacks idem... |
 | `src\analysis\integration\SystemIntegrator.ts` | 245 | MISSING_IDEMPOTENCY_KEY | Notification trigger for 'multi_channel_notification' (both)... |
-| `src\lib\multiChannelNotifications.ts` | 435 | MISSING_IDEMPOTENCY_KEY | Notification trigger for 'info' (both) lacks idempotency key... |
+| `src\lib\multiChannelNotifications.ts` | 438 | MISSING_IDEMPOTENCY_KEY | Notification trigger for 'info' (both) lacks idempotency key... |
 
 #### 🟡 Medium Risk Issues
 
@@ -344,8 +342,8 @@ These issues require immediate attention:
 | `src\components\admin\applications\ApplicationDetailModal.tsx` | 1277 | MISSING_IDEMPOTENCY_KEY |
 | `src\components\admin\applications\ApplicationDetailModal.tsx` | 1292 | MISSING_IDEMPOTENCY_KEY |
 | `src\components\admin\applications\ApplicationDetailModal.tsx` | 1304 | MISSING_IDEMPOTENCY_KEY |
-| `src\components\admin\InterviewScheduler.tsx` | 35 | MISSING_IDEMPOTENCY_KEY |
-| `src\components\admin\InterviewScheduler.tsx` | 38 | MISSING_IDEMPOTENCY_KEY |
+| `src\components\admin\InterviewScheduler.tsx` | 36 | MISSING_IDEMPOTENCY_KEY |
+| `src\components\admin\InterviewScheduler.tsx` | 39 | MISSING_IDEMPOTENCY_KEY |
 | `src\components\admin\NotificationPreferences.tsx` | 47 | MISSING_IDEMPOTENCY_KEY |
 | `src\components\admin\NotificationPreferences.tsx` | 49 | MISSING_IDEMPOTENCY_KEY |
 | `src\components\admin\TestEmailButton.tsx` | 14 | MISSING_IDEMPOTENCY_KEY |
@@ -379,9 +377,9 @@ These issues require immediate attention:
 | `src\lib\adminNotifications.ts` | 89 | MISSING_IDEMPOTENCY_KEY |
 | `src\lib\adminNotifications.ts` | 127 | MISSING_IDEMPOTENCY_KEY |
 | `src\lib\draftCleanup.ts` | 63 | MISSING_IDEMPOTENCY_KEY |
-| `src\lib\multiChannelNotifications.ts` | 105 | MISSING_IDEMPOTENCY_KEY |
-| `src\lib\multiChannelNotifications.ts` | 329 | MISSING_IDEMPOTENCY_KEY |
-| `src\lib\multiChannelNotifications.ts` | 410 | MISSING_IDEMPOTENCY_KEY |
+| `src\lib\multiChannelNotifications.ts` | 108 | MISSING_IDEMPOTENCY_KEY |
+| `src\lib\multiChannelNotifications.ts` | 332 | MISSING_IDEMPOTENCY_KEY |
+| `src\lib\multiChannelNotifications.ts` | 413 | MISSING_IDEMPOTENCY_KEY |
 | `src\lib\notificationService.ts` | 94 | MISSING_IDEMPOTENCY_KEY |
 | `src\lib\notificationService.ts` | 137 | MISSING_IDEMPOTENCY_KEY |
 | `src\lib\notificationService.ts` | 153 | MISSING_IDEMPOTENCY_KEY |
@@ -395,9 +393,9 @@ These issues require immediate attention:
 | `src\pages\admin\Dashboard.tsx` | 169 | MISSING_IDEMPOTENCY_KEY |
 | `src\pages\admin\WorkflowAutomation.tsx` | 83 | MISSING_IDEMPOTENCY_KEY |
 | `src\pages\admin\WorkflowAutomation.tsx` | 87 | MISSING_IDEMPOTENCY_KEY |
-| `src\pages\admin\WorkflowAutomation.tsx` | 357 | MISSING_IDEMPOTENCY_KEY |
-| `src\pages\admin\WorkflowAutomation.tsx` | 369 | MISSING_IDEMPOTENCY_KEY |
-| `src\pages\admin\WorkflowAutomation.tsx` | 381 | MISSING_IDEMPOTENCY_KEY |
+| `src\pages\admin\WorkflowAutomation.tsx` | 351 | MISSING_IDEMPOTENCY_KEY |
+| `src\pages\admin\WorkflowAutomation.tsx` | 363 | MISSING_IDEMPOTENCY_KEY |
+| `src\pages\admin\WorkflowAutomation.tsx` | 375 | MISSING_IDEMPOTENCY_KEY |
 | `src\pages\student\applicationWizard\components\ReminderSettings.tsx` | 17 | MISSING_IDEMPOTENCY_KEY |
 | `src\pages\student\applicationWizard\components\ReminderSettings.tsx` | 18 | MISSING_IDEMPOTENCY_KEY |
 | `src\pages\student\applicationWizard\hooks\useWizardController.ts` | 142 | MISSING_IDEMPOTENCY_KEY |
@@ -410,12 +408,11 @@ These issues require immediate attention:
 | `src\pages\student\Dashboard.tsx` | 61 | MISSING_IDEMPOTENCY_KEY |
 | `src\pages\student\Dashboard.tsx` | 364 | MISSING_IDEMPOTENCY_KEY |
 | `src\pages\student\Dashboard.tsx` | 369 | MISSING_IDEMPOTENCY_KEY |
-| `src\pages\student\Dashboard.tsx` | 551 | MISSING_IDEMPOTENCY_KEY |
-| `src\pages\student\Dashboard.tsx` | 557 | MISSING_IDEMPOTENCY_KEY |
-| `src\pages\student\Dashboard.tsx` | 562 | MISSING_IDEMPOTENCY_KEY |
-| `src\pages\student\Dashboard.tsx` | 632 | MISSING_IDEMPOTENCY_KEY |
-| `src\pages\student\Dashboard.tsx` | 637 | MISSING_IDEMPOTENCY_KEY |
-| `src\services\communicationService.ts` | 251 | MISSING_IDEMPOTENCY_KEY |
+| `src\pages\student\Dashboard.tsx` | 547 | MISSING_IDEMPOTENCY_KEY |
+| `src\pages\student\Dashboard.tsx` | 553 | MISSING_IDEMPOTENCY_KEY |
+| `src\pages\student\Dashboard.tsx` | 558 | MISSING_IDEMPOTENCY_KEY |
+| `src\pages\student\Dashboard.tsx` | 628 | MISSING_IDEMPOTENCY_KEY |
+| `src\pages\student\Dashboard.tsx` | 633 | MISSING_IDEMPOTENCY_KEY |
 
 ### Issues by File
 
@@ -450,7 +447,6 @@ These issues require immediate attention:
 | `src\hooks\useErrorHandler.ts` | 1 | 🟡 medium |
 | `src\lib\draftCleanup.ts` | 1 | 🟡 medium |
 | `src\pages\admin\Dashboard.tsx` | 1 | 🟡 medium |
-| `src\services\communicationService.ts` | 1 | 🟡 medium |
 
 ## Recommendations
 
@@ -495,7 +491,7 @@ Multiple idempotency issues detected across the codebase. Consider creating a ce
 
 **Effort**: 🟢 Low
 
-95 realtime notification trigger(s) lack idempotency. While less critical than email, duplicate toasts/notifications can degrade UX. Consider adding client-side deduplication for realtime notifications.
+94 realtime notification trigger(s) lack idempotency. While less critical than email, duplicate toasts/notifications can degrade UX. Consider adding client-side deduplication for realtime notifications.
 
 **Affected Files**:
 
@@ -504,7 +500,7 @@ Multiple idempotency issues detected across the codebase. Consider creating a ce
 - `src\components\admin\applications\ApplicationDetailModal.tsx`
 - `src\components\admin\InterviewScheduler.tsx`
 - `src\components\admin\NotificationPreferences.tsx`
-- ... and 22 more files
+- ... and 21 more files
 
 #### 5. Add Monitoring for Duplicate Sends
 
@@ -522,9 +518,9 @@ This section maps the audit findings to the specification requirements.
 
 | Requirement | Description | Status | Evidence |
 |-------------|-------------|--------|----------|
-| 6.1 | Audit all notification triggers | ✅ | 100 triggers found |
-| 6.2 | Audit all delivery mechanisms | ✅ | Realtime: 95, Email: 2, Both: 3 |
-| 6.3 | Verify realtime sync works correctly | ✅ | 95 realtime triggers |
+| 6.1 | Audit all notification triggers | ✅ | 99 triggers found |
+| 6.2 | Audit all delivery mechanisms | ✅ | Realtime: 94, Email: 2, Both: 3 |
+| 6.3 | Verify realtime sync works correctly | ✅ | 94 realtime triggers |
 | 6.4 | Verify email dispatch mechanisms | ✅ | 5 dispatch points |
 | 6.5 | Notifications display instantly | ✅ | Realtime triggers present |
 | 6.6 | Emails trigger exactly once per event | ⚠️ | 5 duplicate risks |
