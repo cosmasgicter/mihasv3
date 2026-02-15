@@ -34,6 +34,17 @@ interface AuthState {
   isLoading: boolean
 }
 
+
+
+interface SessionApiResult<T> {
+  success: boolean
+  data: T
+}
+
+export function normalizeSessionResult<T>(result: SessionApiResult<T> | null | undefined): T | null {
+  return result?.success ? result.data : null
+}
+
 /**
  * Fetch current session with caching via cookie-based auth
  * Uses React Query to cache session data and avoid redundant API calls
@@ -53,8 +64,8 @@ function useSessionQuery() {
         throw new Error(`Session error: ${response.statusText}`)
       }
 
-      const data = await response.json()
-      return data.success ? data : null
+      const result = await response.json()
+      return normalizeSessionResult(result)
     },
     staleTime: CACHE_CONFIG.auth.staleTime, // 10 minutes
     gcTime: CACHE_CONFIG.auth.gcTime, // 30 minutes
