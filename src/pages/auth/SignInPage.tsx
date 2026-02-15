@@ -56,18 +56,6 @@ export default function SignInPage() {
         throw new Error(result.error);
       }
 
-      // Log login event
-      if (result?.session) {
-        fetch('/api/auth/session', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${result.session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ action: 'login' }),
-        }).catch(() => {}); // Silent fail
-      }
-
       // Show loading overlay
       setIsAuthenticating(true);
 
