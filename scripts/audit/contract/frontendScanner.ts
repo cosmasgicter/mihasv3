@@ -198,6 +198,75 @@ function normalizeEndpoint(endpoint: string): string {
 }
 
 /**
+ * Canonicalize frontend shorthand endpoints into backend api-src format.
+ *
+ * Examples:
+ * - /api/admin/dashboard -> /api/admin?action=dashboard
+ * - /api/catalog/programs -> /api/catalog?type=programs
+ * - /api/auth/login -> /api/auth?action=login
+ */
+function canonicalizeEndpoint(endpoint: string): string {
+  const [pathPart, queryPart] = endpoint.split('?');
+  const query = new URLSearchParams(queryPart || '');
+
+  // Already canonical
+  if (query.has('action') || query.has('type')) {
+    return endpoint;
+  }
+
+  const cleanPath = pathPart.replace(/\/$/, '');
+  const segments = cleanPath.split('/').filter(Boolean);
+
+  const withQuery = (key: 'action' | 'type', value: string): string => {
+    const canonicalQuery = new URLSearchParams(query);
+    canonicalQuery.set(key, value);
+    const queryString = canonicalQuery.toString();
+    return queryString ? `${cleanPath}?${queryString}` : cleanPath;
+  };
+
+  // /api/admin/... -> /api/admin?action=...
+  if (segments[0] === 'api' && segments[1] === 'admin' && segments[2]) {
+    const adminSegments = segments.slice(2);
+
+    if (adminSegments[0] === 'dashboard') {
+      return withQuery('action', 'dashboard');
+    }
+
+    if (adminSegments[0] === 'users') {
+      if (!adminSegments[1]) {
+        return withQuery('action', 'users');
+      }
+
+      const nestedAction = adminSegments.slice(1).find(segment => {
+        const lowered = segment.toLowerCase();
+        return lowered !== 'dynamic' && !/^\d+$/.test(lowered);
+      });
+
+      return withQuery('action', nestedAction || 'users');
+    }
+
+    return withQuery('action', adminSegments[0]);
+  }
+
+  // /api/catalog/:type -> /api/catalog?type=...
+  if (segments[0] === 'api' && segments[1] === 'catalog' && segments[2]) {
+    const catalogType = segments[2];
+    const supportedCatalogTypes = new Set(['programs', 'intakes', 'subjects', 'institutions']);
+    if (supportedCatalogTypes.has(catalogType)) {
+      return withQuery('type', catalogType);
+    }
+  }
+
+  // /api/<module>/:action -> /api/<module>?action=...
+  const actionModules = new Set(['notifications', 'documents', 'auth']);
+  if (segments[0] === 'api' && actionModules.has(segments[1]) && segments[2]) {
+    return withQuery('action', segments[2]);
+  }
+
+  return endpoint;
+}
+
+/**
  * Get line number for a match in content
  */
 function getLineNumber(content: string, matchIndex: number): number {
@@ -229,27 +298,32 @@ async function parseFile(filePath: string, projectRoot: string): Promise<APICall
     
     // Normalize the endpoint
     const normalizedEndpoint = normalizeEndpoint(endpoint);
+    const canonicalEndpoint = canonicalizeEndpoint(normalizedEndpoint);
     
     // Skip invalid endpoints
-    if (!normalizedEndpoint || normalizedEndpoint.length < 2) return;
+    if (!canonicalEndpoint || canonicalEndpoint.length < 2) return;
     
-    const key = `${relativePath}:${lineNumber}:${normalizedEndpoint}`;
+    const key = `${relativePath}:${lineNumber}:${canonicalEndpoint}`;
     
     if (processedMatches.has(key)) return;
     processedMatches.add(key);
     
     // Only include API calls (skip external URLs)
-    if (!normalizedEndpoint.startsWith('/api') && !normalizedEndpoint.startsWith('/')) return;
-    if (normalizedEndpoint.startsWith('http://') || normalizedEndpoint.startsWith('https://')) return;
+    if (!canonicalEndpoint.startsWith('/api') && !canonicalEndpoint.startsWith('/')) return;
+    if (canonicalEndpoint.startsWith('http://') || canonicalEndpoint.startsWith('https://')) return;
+
+    const canonicalQueryParams = extractQueryParams(canonicalEndpoint);
     
     calls.push({
       filePath: relativePath,
       lineNumber,
-      endpoint: normalizedEndpoint,
+      endpoint: canonicalEndpoint,
       method,
       headers,
       authMechanism,
-      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+      queryParams: Object.keys(canonicalQueryParams).length > 0
+        ? canonicalQueryParams
+        : (Object.keys(queryParams).length > 0 ? queryParams : undefined),
     });
   };
   
