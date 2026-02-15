@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -49,25 +48,19 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {isFocused && (
-            <motion.div
-              className="absolute inset-0 rounded-lg border-2 border-ring pointer-events-none"
-              layoutId="input-focus"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
+              className="absolute inset-0 rounded-lg border-2 border-ring pointer-events-none transition-opacity duration-200 opacity-100"
             />
           )}
         </div>
         {error && (
-          <motion.p
+          <p
             id={`${props.id}-error`}
-            className="mt-1.5 text-sm text-destructive"
+            className="mt-1.5 text-sm text-destructive animate-fade-in"
             role="alert"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
           >
             {error}
-          </motion.p>
+          </p>
         )}
         {helperText && !error && (
           <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-gray-900">
