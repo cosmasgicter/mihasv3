@@ -6,7 +6,7 @@
  * VERIFICATION: Blocked requests never reach DB, never trigger retries
  * 
  * Protected Routes:
- * - /api/auth/* (5 req / 5 min)
+ * - /api/auth/* (20 req / 5 min)
  * - /api/sessions/* (30 req / 10 min)
  * - /api/admin/* (20 req / 10 min)
  * - /api/notifications/* (50 req / 10 min)
@@ -50,11 +50,11 @@ if (!ARCJET_KEY) {
 export const rateLimitConfigs = {
   /**
    * Auth routes: Strict limits to prevent brute force
-   * - 5 requests per 5 minutes per IP
+   * - 20 requests per 5 minutes per IP
    * - Blocks credential stuffing attacks
-   * Requirement: 2.7 (auth routes: 5 requests per 5 minutes)
+   * Requirement: 2.7 (auth routes: 20 requests per 5 minutes)
    */
-  auth: { window: "5m", max: 5 },
+  auth: { window: "5m", max: 20 },
 
   /**
    * Session routes: Moderate limits
