@@ -156,11 +156,7 @@ export default function SignUpPage() {
         throw new Error(result.error);
       }
 
-      if (!result?.session) {
-        throw new Error('Account created but login failed. Please sign in manually.');
-      }
-
-      // Success - user is now logged in with session
+      // Success - account was created and backend returned authenticated user data
       setSuccess('Account created successfully! You are now signed in.');
       setLoading(false);
       setIsRegistering(false);
