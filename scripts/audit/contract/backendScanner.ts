@@ -78,27 +78,147 @@ const PATTERNS = {
   defaultAction: /default\s*:/,
 };
 
+type ActionAuthInfo = NonNullable<EndpointInfo['actionAuth']>[string];
+
 /**
- * Extract actions from switch statements in file content
+ * Find the closing brace for a block that starts at openBraceIndex.
  */
-function extractActions(content: string): string[] {
+function findMatchingBrace(content: string, openBraceIndex: number): number {
+  let depth = 0;
+
+  for (let i = openBraceIndex; i < content.length; i++) {
+    if (content[i] === '{') {
+      depth++;
+    } else if (content[i] === '}') {
+      depth--;
+      if (depth === 0) {
+        return i;
+      }
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * Extract function body content for a named handler.
+ */
+function extractFunctionBody(content: string, functionName: string): string | undefined {
+  const declarationPattern = new RegExp(`(?:async\\s+)?function\\s+${functionName}\\s*\\([^)]*\\)\\s*\\{`);
+  const declarationMatch = declarationPattern.exec(content);
+  if (declarationMatch?.index !== undefined) {
+    const openBraceIndex = declarationMatch.index + declarationMatch[0].length - 1;
+    const closeBraceIndex = findMatchingBrace(content, openBraceIndex);
+    if (closeBraceIndex > openBraceIndex) {
+      return content.slice(openBraceIndex + 1, closeBraceIndex);
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Extract roles from requireRole middleware usage.
+ */
+function extractRoles(content: string): string[] | undefined {
+  const match = content.match(PATTERNS.requireRole);
+  if (!match) return undefined;
+
+  const rolesStr = match[1];
+  const roles: string[] = [];
+  const roleMatches = rolesStr.matchAll(/['"`]([^'"`]+)['"`]/g);
+
+  for (const roleMatch of roleMatches) {
+    roles.push(roleMatch[1]);
+  }
+
+  return roles.length > 0 ? roles : undefined;
+}
+
+/**
+ * Determine auth metadata for a specific content scope.
+ */
+function detectAuthMetadata(content: string): ActionAuthInfo {
+  const roles = extractRoles(content);
+  const hasRequireAuth = PATTERNS.requireAuth.test(content);
+  const hasRequireRole = PATTERNS.requireRole.test(content);
+  const hasGetUserFromRequest = PATTERNS.getUserFromRequest.test(content);
+  const hasGetAuthUser = PATTERNS.getAuthUser.test(content);
+  const hasUnauthorizedCheck = PATTERNS.authCheckPattern.test(content);
+
+  const requiresAuth = hasRequireAuth || hasRequireRole || hasGetUserFromRequest || (hasGetAuthUser && hasUnauthorizedCheck);
+  const authOptional = hasGetAuthUser && !hasUnauthorizedCheck && !requiresAuth;
+
+  return {
+    requiresAuth,
+    roles,
+    authOptional: authOptional || undefined,
+  };
+}
+
+/**
+ * Determine if authentication is required for the endpoint.
+ */
+function detectAuthRequired(content: string): boolean {
+  return detectAuthMetadata(content).requiresAuth;
+}
+
+/**
+ * Parse action -> handler mappings from top-level action/type dispatch.
+ */
+function extractActionHandlers(content: string): Record<string, string> {
+  const mapping: Record<string, string> = {};
+
+  const conditionPattern = /if\s*\(\s*(?:action|type)\s*===?\s*['"`]([^'"`]+)['"`]\s*\)\s*\{[\s\S]{0,220}?return\s+([A-Za-z_$][\w$]*)\s*\(/g;
+  let match: RegExpExecArray | null;
+  while ((match = conditionPattern.exec(content)) !== null) {
+    const action = match[1];
+    const handlerName = match[2];
+    if (!PATTERNS.httpMethods.test(action)) {
+      mapping[action] = handlerName;
+    }
+  }
+
+  const switchPattern = /switch\s*\(\s*(?:action|type)\s*\)\s*\{([\s\S]*?)\}/g;
+  const casePattern = /case\s+['"`]([^'"`]+)['"`]\s*:\s*[\s\S]{0,220}?return\s+([A-Za-z_$][\w$]*)\s*\(/g;
+  while ((match = switchPattern.exec(content)) !== null) {
+    const switchBody = match[1];
+    let caseMatch: RegExpExecArray | null;
+    while ((caseMatch = casePattern.exec(switchBody)) !== null) {
+      const action = caseMatch[1];
+      const handlerName = caseMatch[2];
+      if (!PATTERNS.httpMethods.test(action)) {
+        mapping[action] = handlerName;
+      }
+    }
+    casePattern.lastIndex = 0;
+  }
+
+  return mapping;
+}
+
+/**
+ * Extract actions from dispatch mappings and fallback scans.
+ */
+function extractActions(content: string, actionHandlers: Record<string, string>): string[] {
   const actions: string[] = [];
   const seen = new Set<string>();
-  
-  // Reset regex lastIndex
+
+  for (const action of Object.keys(actionHandlers)) {
+    seen.add(action);
+    actions.push(action);
+  }
+
   PATTERNS.switchCase.lastIndex = 0;
-  
   let match: RegExpExecArray | null;
   while ((match = PATTERNS.switchCase.exec(content)) !== null) {
     const action = match[1];
-    // Filter out HTTP methods (they appear in nested switch statements)
     if (!seen.has(action) && !PATTERNS.httpMethods.test(action)) {
       seen.add(action);
       actions.push(action);
     }
   }
-  
-  // Also check for type-based routing (like catalog.ts)
+
   if (PATTERNS.typeQuery.test(content)) {
     PATTERNS.typeCondition.lastIndex = 0;
     while ((match = PATTERNS.typeCondition.exec(content)) !== null) {
@@ -109,8 +229,7 @@ function extractActions(content: string): string[] {
       }
     }
   }
-  
-  // Also check for action-based if conditions (like applications.ts)
+
   if (PATTERNS.actionQuery.test(content)) {
     PATTERNS.actionCondition.lastIndex = 0;
     while ((match = PATTERNS.actionCondition.exec(content)) !== null) {
@@ -121,55 +240,26 @@ function extractActions(content: string): string[] {
       }
     }
   }
-  
+
   return actions;
 }
 
 /**
- * Extract roles from requireRole middleware usage
+ * Build auth metadata map for each action from its specific handler body.
  */
-function extractRoles(content: string): string[] | undefined {
-  const match = content.match(PATTERNS.requireRole);
-  if (!match) return undefined;
-  
-  // Parse the roles array: ['admin', 'super_admin']
-  const rolesStr = match[1];
-  const roles: string[] = [];
-  
-  // Extract individual role strings
-  const roleMatches = rolesStr.matchAll(/['"`]([^'"`]+)['"`]/g);
-  for (const roleMatch of roleMatches) {
-    roles.push(roleMatch[1]);
-  }
-  
-  return roles.length > 0 ? roles : undefined;
-}
+function extractActionAuth(content: string, actionHandlers: Record<string, string>): EndpointInfo['actionAuth'] {
+  const actionAuth: NonNullable<EndpointInfo['actionAuth']> = {};
 
-/**
- * Determine if authentication is required for the endpoint
- */
-function detectAuthRequired(content: string): boolean {
-  // Check for requireAuth middleware
-  if (PATTERNS.requireAuth.test(content)) {
-    return true;
+  for (const [action, handlerName] of Object.entries(actionHandlers)) {
+    const handlerBody = extractFunctionBody(content, handlerName);
+    if (!handlerBody) {
+      continue;
+    }
+
+    actionAuth[action] = detectAuthMetadata(handlerBody);
   }
-  
-  // Check for requireRole middleware (implies auth)
-  if (PATTERNS.requireRole.test(content)) {
-    return true;
-  }
-  
-  // Check for getUserFromRequest pattern
-  if (PATTERNS.getUserFromRequest.test(content)) {
-    return true;
-  }
-  
-  // Check for getAuthUser pattern with UNAUTHORIZED check
-  if (PATTERNS.getAuthUser.test(content) && PATTERNS.authCheckPattern.test(content)) {
-    return true;
-  }
-  
-  return false;
+
+  return Object.keys(actionAuth).length > 0 ? actionAuth : undefined;
 }
 
 /**
@@ -237,10 +327,12 @@ async function parseFile(filePath: string, projectRoot: string): Promise<Endpoin
   // Derive endpoint from filename
   const endpoint = deriveEndpoint(filename);
   
-  // Extract actions from switch statements
-  const actions = extractActions(content);
-  
-  // Detect auth requirements
+  // Parse top-level action/type dispatch and extract actions
+  const actionHandlers = extractActionHandlers(content);
+  const actions = extractActions(content, actionHandlers);
+  const actionAuth = extractActionAuth(content, actionHandlers);
+
+  // Detect file-level auth requirements (fallback when action auth is unavailable)
   const requiresAuth = detectAuthRequired(content);
   
   // Extract roles if requireRole is used
@@ -256,6 +348,7 @@ async function parseFile(filePath: string, projectRoot: string): Promise<Endpoin
     actions,
     requiresAuth,
     roles,
+    actionAuth,
   };
 }
 

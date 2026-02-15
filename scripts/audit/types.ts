@@ -109,6 +109,12 @@ export interface EndpointInfo {
   requiresAuth: boolean;
   /** Roles required to access (if any) */
   roles?: string[];
+  /** Action-level auth metadata when endpoint dispatches by action/type */
+  actionAuth?: Record<string, {
+    requiresAuth: boolean;
+    roles?: string[];
+    authOptional?: boolean;
+  }>;
 }
 
 /** Types of contract mismatches that can be detected */
