@@ -96,30 +96,11 @@ function App() {
       }, 500);
     }
 
-    // App boot succeeded, clear chunk reload guard
+    // App boot succeeded — clear the chunk reload guard so future
+    // deployments can trigger a fresh reload if needed
+    sessionStorage.removeItem('mihas_chunk_reload')
+    sessionStorage.removeItem('mihas_chunk_reload_ts')
     sessionStorage.removeItem('mihas_chunk_reload_count')
-
-    // Handle chunk loading errors without triggering reload loops
-    const handleError = (event: ErrorEvent) => {
-      if (!event.message?.includes('Failed to fetch dynamically imported module')) {
-        return
-      }
-
-      event.preventDefault()
-
-      const reloadKey = 'mihas_chunk_reload_count'
-      const reloadCount = Number(sessionStorage.getItem(reloadKey) || '0')
-
-      if (reloadCount >= 1) {
-        console.error('Chunk load failed after reload; avoiding infinite reload loop')
-        return
-      }
-
-      sessionStorage.setItem(reloadKey, String(reloadCount + 1))
-      window.location.reload()
-    }
-    window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
   }, []);
 
   return (
