@@ -1,4 +1,20 @@
 import { createRequire } from "node:module";
+var __create = Object.create;
+var __getProtoOf = Object.getPrototypeOf;
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __toESM = (mod, isNodeMode, target) => {
+  target = mod != null ? __create(__getProtoOf(mod)) : {};
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  for (let key of __getOwnPropNames(mod))
+    if (!__hasOwnProp.call(to, key))
+      __defProp(to, key, {
+        get: () => mod[key],
+        enumerable: true
+      });
+  return to;
+};
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
 // lib/cors.ts
@@ -922,6 +938,8 @@ async function handler(req, res) {
       return handleReview(req, res, user.userId, isAdmin);
     if (action === "interviews")
       return handleInterviews(req, res, user.userId);
+    if (action === "schedule-interview")
+      return handleScheduleInterview(req, res, user.userId, isAdmin);
     if (action === "stats")
       return handleStats(req, res, user.userId);
     if (action === "export")
@@ -1057,6 +1075,31 @@ async function handleInterviews(req, res, userId) {
     ORDER BY ai.scheduled_at ASC
   `, [userId]);
   return sendSuccess(res, { interviews: result.rows });
+}
+async function handleScheduleInterview(req, res, userId, isAdmin) {
+  if (req.method !== "POST") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  if (!isAdmin) {
+    return sendError(res, "Forbidden: admin access required", HttpStatus.FORBIDDEN);
+  }
+  const { applicationId, scheduled_at, mode, location, notes } = req.body || {};
+  if (!applicationId || !scheduled_at || !mode || !location) {
+    return sendError(res, "Missing required fields: applicationId, scheduled_at, mode, location", HttpStatus.BAD_REQUEST);
+  }
+  const normalizedMode = mode === "in-person" ? "in_person" : mode;
+  if (!["in_person", "virtual", "phone"].includes(normalizedMode)) {
+    return sendError(res, "Invalid mode. Use: in-person, in_person, virtual, or phone", HttpStatus.BAD_REQUEST);
+  }
+  const applicationResult = await query("SELECT id FROM applications WHERE id = $1 LIMIT 1", [applicationId]);
+  if (applicationResult.rowCount === 0) {
+    return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
+  }
+  const interviewResult = await query(`INSERT INTO application_interviews (
+      application_id, scheduled_at, mode, location, notes, status, created_by, created_at, updated_at
+    ) VALUES ($1, $2, $3, $4, $5, 'scheduled', $6, NOW(), NOW())
+    RETURNING id, application_id, scheduled_at, mode, location, notes, status`, [applicationId, scheduled_at, normalizedMode, location, notes || null, userId]);
+  return sendSuccess(res, { interview: interviewResult.rows[0] }, HttpStatus.CREATED);
 }
 async function handleStats(req, res, userId) {
   if (req.method !== "GET") {
