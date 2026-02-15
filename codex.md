@@ -79,62 +79,136 @@ tests/                 # unit/, property/, integration/
 
 **API workflow:** Edit `api-src/*.ts` → Run `bun run scripts/bundle-api.mjs` → Commit both `api-src/` and `api/`
 
-## 4. Database Schema (Neon Postgres)
+## 4. Database Schema (Neon Postgres) — Live Production Data
 
-**Neon Project:** `wild-bar-37055823` (database: `mihasApplication`)
+### Neon Project Metadata
 
-### Core Tables (Migration 002)
+| Property | Value |
+|----------|-------|
+| Project ID | `wild-bar-37055823` |
+| Database Name | `mihasApplication` |
+| PostgreSQL Version | 17 |
+| Region | `aws-us-east-1` |
+| Proxy Host | `c-3.us-east-1.aws.neon.tech` |
+| Owner | `org-nameless-field-86879910` (Cosmas) |
+| Created | 2026-01-30 |
+| Autoscaling | 0.25 – 0.25 CU |
+| Suspend Timeout | 0 (scale-to-zero enabled) |
+| Storage Limit | 512 MB (536,870,912 bytes) |
+| Logical Size | ~34 MB |
+| Extensions | `uuid-ossp`, `pgcrypto` |
+| Console | https://console.neon.tech/app/projects/wild-bar-37055823 |
 
-| Table | Purpose | Key Columns |
-|-------|---------|-------------|
-| `profiles` | Central user table (students, admins) | id (UUID), email, role, password_hash, refresh_token_hash, failed_login_attempts, locked_until |
-| `programs` | Academic programs offered | id, name, code, duration_months, application_fee (default 153 ZMW), regulatory_body |
-| `intakes` | Enrollment periods | id, name, year, semester, application_deadline, max_capacity |
-| `subjects` | Grade 12 subjects (ECZ) | id, name, code, category, is_core |
-| `institutions` | Educational institutions | id, name, code, type, accreditation_status |
-| `applications` | Main business entity | id, application_number (MIHAS + year + seq), user_id → profiles, status, program, intake, eligibility_score, public_tracking_code |
-| `application_documents` | Uploaded documents per application | id, application_id → applications, document_type, verification_status |
-| `application_grades` | ECZ grades per application | id, application_id → applications, subject_id → subjects, grade (1-9, CHECK constraint) |
-| `device_sessions` | Auth sessions per device | id, user_id → profiles, session_token, ip_address, expires_at |
-| `audit_logs` | Immutable audit trail (protected by trigger) | id, actor_id, action, entity_type, entity_id, changes (JSONB) |
-| `notifications` | User notifications | id, user_id → profiles, title, message, type, is_read |
+### Branches
 
-### Supporting Tables (Migration 003)
+| Branch | ID | Role | State |
+|--------|----|------|-------|
+| `production` (default) | `br-floral-scene-aha2ybfd` | Primary, read-write | ready |
+| `vercel-dev` | `br-square-bush-ah4zawi1` | Child of production | archived |
 
-| Table | Purpose |
-|-------|---------|
-| `application_drafts` | Auto-save drafts (8-second interval) |
-| `application_status_history` | Status change audit trail |
-| `application_interviews` | Interview scheduling (in_person, online, phone) |
-| `payments` | Payment records (ZMW currency) |
-| `documents` | General document storage |
-| `course_requirements` | Program admission requirements (subject + minimum grade) |
-| `program_intakes` | Many-to-many: programs ↔ intakes |
-| `email_queue` | Email queue with retry (max 3 retries) |
-| `user_notification_preferences` | Per-user notification settings |
-| `settings` | System-wide key-value settings |
+### 21 Tables (All UUIDs, All Timestamped)
 
-### Database Functions (Migration 004)
+#### Core Tables (Migration 002 — 11 tables)
 
-| Function | Purpose |
-|----------|---------|
-| `update_updated_at_column()` | Auto-update `updated_at` on row changes |
-| `generate_application_number()` | Generates `MIHAS` + 2-digit year + 4-digit sequence |
-| `generate_tracking_code()` | 8-character alphanumeric public tracking code |
-| `validate_zambian_phone(phone)` | Validates +260 or 0 prefix + 9 digits |
-| `validate_nrc(nrc)` | Validates NRC format: XXXXXX/XX/X |
-| `validate_email(email)` | Basic email format validation |
-| `calculate_best_5_subjects_points(app_id)` | ECZ grading: grade 1-6 = pass (points = 7 - grade), best 5 subjects |
-| `set_application_defaults()` | Auto-generates application_number and tracking_code |
-| `prevent_audit_modification()` | Blocks UPDATE/DELETE on audit_logs |
-| `cleanup_expired_sessions()` | Removes expired device sessions |
-| `cleanup_old_drafts()` | Removes inactive drafts older than 30 days |
+| Table | Purpose | Key Columns | Foreign Keys |
+|-------|---------|-------------|--------------|
+| `profiles` | Central user table | id, email (UNIQUE), role, password_hash, refresh_token_hash, failed_login_attempts, locked_until, email_verified, nrc_number, nationality, notification_preferences (JSONB) | — |
+| `programs` | Academic programs (4 rows) | id, name, code (UNIQUE), duration_months, application_fee (default 153 ZMW), regulatory_body, accreditation_status, requirements (JSONB) | — |
+| `intakes` | Enrollment periods (3 rows) | id, name, year, semester, application_deadline, max_capacity, current_enrollment | — |
+| `subjects` | ECZ Grade 12 subjects (17 rows) | id, name, code, category, is_core | — |
+| `institutions` | Educational institutions (2 rows) | id, name, code (UNIQUE), type, accreditation_status | — |
+| `applications` | Main business entity | id, application_number (UNIQUE, auto-generated), user_id, full_name, nrc_number, date_of_birth, sex, phone, email, program, intake, institution, status, eligibility_score, public_tracking_code, payment_status, submitted_at | user_id → profiles, payment_verified_by → profiles, admin_feedback_by → profiles, reviewed_by → profiles |
+| `application_documents` | Uploaded documents per application | id, application_id, document_type, document_name, file_url, verification_status, system_generated | application_id → applications, verified_by → profiles |
+| `application_grades` | ECZ grades per application | id, application_id, subject_id, grade (CHECK 1-9), UNIQUE(application_id, subject_id) | application_id → applications, subject_id → subjects |
+| `device_sessions` | Auth sessions per device | id, user_id, device_id, session_token, ip_address, is_active, expires_at (default 30 days) | user_id → profiles |
+| `audit_logs` | Immutable audit trail (protected by trigger) | id, actor_id, action, entity_type, entity_id, changes (JSONB), ip_address (INET) | actor_id → profiles |
+| `notifications` | User notifications | id, user_id, title, message, type, priority, action_url, metadata (JSONB), is_read | user_id → profiles |
 
-### Triggers (Migration 005)
+#### Supporting Tables (Migration 003 — 10 tables)
 
-- `updated_at` auto-update triggers on all major tables
-- `set_application_defaults_trigger` on applications (BEFORE INSERT OR UPDATE)
-- `prevent_audit_logs_modification` on audit_logs (BEFORE UPDATE OR DELETE)
+| Table | Purpose | Key Columns | Foreign Keys |
+|-------|---------|-------------|--------------|
+| `application_drafts` | Auto-save drafts (8-second interval) | id, user_id, draft_data (JSONB), step_completed, is_active | user_id → profiles |
+| `application_status_history` | Status change audit trail | id, application_id, status, changed_by, notes, changes (JSONB) | application_id → applications, changed_by → profiles |
+| `application_interviews` | Interview scheduling | id, application_id, scheduled_at, mode (CHECK: in_person/online/phone), status (CHECK: scheduled/completed/cancelled/no_show/rescheduled) | application_id → applications, created_by → profiles, updated_by → profiles |
+| `payments` | Payment records (ZMW currency) | id, application_id, user_id, amount, currency (default ZMW), payment_method, transaction_reference, status, receipt_number, metadata (JSONB) | application_id → applications, user_id → profiles, verified_by → profiles |
+| `documents` | General document storage | id, application_id, uploader_id, document_type, file_name, file_path, verdict | application_id → applications, uploader_id → profiles, verified_by → profiles |
+| `course_requirements` | Program admission requirements | id, program_id, subject_id, is_mandatory, minimum_grade (CHECK 1-9), weight, requirement_type | program_id → programs, subject_id → subjects |
+| `program_intakes` | Many-to-many: programs ↔ intakes | id, program_id, intake_id, max_capacity, current_enrollment, UNIQUE(program_id, intake_id) | program_id → programs, intake_id → intakes |
+| `email_queue` | Email queue with retry | id, recipient_email, subject, body, html_body, template_name, template_data (JSONB), status, priority, retry_count, max_retries (default 3) | — |
+| `user_notification_preferences` | Per-user notification settings | id, user_id (UNIQUE), email_enabled, push_enabled, sms_enabled, application_updates, payment_reminders, interview_reminders, timezone (default Africa/Lusaka) | user_id → profiles |
+| `settings` | System-wide key-value settings | id, key (UNIQUE), value (JSONB), description, category, is_public | updated_by → profiles |
+
+### Reference Data (Seeded via Migration 006)
+
+| Table | Rows | Details |
+|-------|------|---------|
+| `institutions` | 2 | MIHAS (Mukuba Institute), KATC (Kalulushi Training Centre) |
+| `subjects` | 17 | ECZ Grade 12: English, Mathematics, Biology, Chemistry, Physics, Science + 11 electives |
+| `intakes` | 3 | January 2026 (3 enrolled), July 2026, January 2027 |
+| `programs` | 4 | DCM (Clinical Medicine, 36mo), DRN (Registered Nursing, 36mo), DEH (Environmental Health, 36mo), CPC (Psychosocial Counselling, 12mo) — all 153 ZMW fee |
+
+### Indexes (55+ indexes)
+
+Key indexes beyond primary keys:
+
+| Index | Table | Purpose |
+|-------|-------|---------|
+| `idx_profiles_email` | profiles | Login lookups |
+| `idx_profiles_role` | profiles | Role-based queries |
+| `idx_profiles_refresh_token` | profiles | Token refresh (partial: WHERE NOT NULL) |
+| `idx_applications_user` | applications | User's applications |
+| `idx_applications_status` | applications | Status filtering |
+| `idx_applications_number` | applications | Application number lookup |
+| `idx_applications_tracking` | applications | Public tracking (partial: WHERE NOT NULL) |
+| `idx_applications_program` | applications | Program filtering |
+| `idx_applications_intake` | applications | Intake filtering |
+| `idx_applications_created` | applications | Chronological listing (DESC) |
+| `idx_sessions_token` | device_sessions | Token validation |
+| `idx_sessions_active` | device_sessions | Active sessions (partial: WHERE active) |
+| `idx_sessions_expires` | device_sessions | Expiry cleanup |
+| `idx_audit_entity` | audit_logs | Entity lookup (composite: type + id) |
+| `idx_audit_created` | audit_logs | Chronological audit (DESC) |
+| `idx_notifications_unread` | notifications | Unread count (composite + partial) |
+| `idx_email_queue_status` | email_queue | Queue processing |
+| `idx_email_queue_priority` | email_queue | Priority ordering (composite) |
+| `idx_drafts_active` | application_drafts | Active drafts (composite + partial) |
+
+### Database Functions (11 functions)
+
+| Function | Type | Purpose |
+|----------|------|---------|
+| `update_updated_at_column()` | TRIGGER | Auto-update `updated_at` on row changes |
+| `generate_application_number()` | TEXT | Generates `MIHAS` + 2-digit year + 4-digit sequence (e.g., MIHAS260001) |
+| `generate_tracking_code()` | TEXT | 8-character alphanumeric public tracking code (excludes ambiguous chars: I, O, 0, 1) |
+| `validate_zambian_phone(phone)` | BOOLEAN | Validates +260 or 0 prefix + 9 digits (IMMUTABLE) |
+| `validate_nrc(nrc)` | BOOLEAN | Validates NRC format: XXXXXX/XX/X (IMMUTABLE) |
+| `validate_email(email)` | BOOLEAN | Basic email format validation (IMMUTABLE) |
+| `calculate_best_5_subjects_points(app_id)` | INTEGER | ECZ grading: grade 1-6 = pass (points = 7 - grade), selects best 5 subjects |
+| `set_application_defaults()` | TRIGGER | Auto-generates application_number and tracking_code on INSERT/UPDATE |
+| `prevent_audit_modification()` | TRIGGER | Raises exception on UPDATE/DELETE of audit_logs |
+| `cleanup_expired_sessions()` | INTEGER | Deletes expired sessions and inactive sessions older than 7 days |
+| `cleanup_old_drafts()` | INTEGER | Deletes inactive drafts older than 30 days |
+
+### Triggers (16 triggers)
+
+| Trigger | Table | Event | Function |
+|---------|-------|-------|----------|
+| `update_profiles_updated_at` | profiles | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_applications_updated_at` | applications | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_application_documents_updated_at` | application_documents | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_device_sessions_updated_at` | device_sessions | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_programs_updated_at` | programs | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_intakes_updated_at` | intakes | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_notifications_updated_at` | notifications | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_application_drafts_updated_at` | application_drafts | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_payments_updated_at` | payments | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_documents_updated_at` | documents | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_settings_updated_at` | settings | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_user_notification_preferences_updated_at` | user_notification_preferences | BEFORE UPDATE | `update_updated_at_column()` |
+| `update_application_interviews_updated_at` | application_interviews | BEFORE UPDATE | `update_updated_at_column()` |
+| `set_application_defaults_trigger` | applications | BEFORE INSERT OR UPDATE | `set_application_defaults()` |
+| `prevent_audit_logs_modification` | audit_logs | BEFORE UPDATE OR DELETE | `prevent_audit_modification()` |
 
 ## 5. Auth System
 
