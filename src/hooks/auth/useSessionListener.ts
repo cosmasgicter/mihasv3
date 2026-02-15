@@ -118,6 +118,10 @@ export function useSessionListener() {
 
         setUser(authUser);
 
+        // Seed the React Query session cache so useOptimizedAuthState
+        // picks up the new user immediately without a refetch
+        queryClient.setQueryData(['auth', 'session'], { user: authUser });
+
         // Cache profile data for immediate availability
         if (result.data?.profile) {
           queryClient.setQueryData(['user-profile', authUser.id], result.data.profile);
@@ -205,6 +209,10 @@ export function useSessionListener() {
         };
 
         setUser(authUser);
+
+        // Seed the React Query session cache so useOptimizedAuthState
+        // picks up the new user immediately without a refetch
+        queryClient.setQueryData(['auth', 'session'], { user: authUser });
 
         // Notify components of successful login
         window.dispatchEvent(new CustomEvent('userLoggedIn', {
