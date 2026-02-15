@@ -29,13 +29,15 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: true,
-      refetchInterval: 5000, // Poll every 5 seconds for better realtime feel
-      staleTime: 0, // Always consider data stale
+      // IMPORTANT: avoid global polling/refetch loops that cause UI jitter
+      // and repeated auth/session checks. Individual realtime hooks can opt-in.
+      refetchInterval: false,
+      staleTime: 30 * 1000,
       gcTime: 5 * 60 * 1000,
-      networkMode: 'online', // Prefer online fetching
+      networkMode: 'online',
     },
   },
 })
@@ -94,13 +96,28 @@ function App() {
       }, 500);
     }
 
-    // Handle chunk loading errors
+    // App boot succeeded, clear chunk reload guard
+    sessionStorage.removeItem('mihas_chunk_reload_count')
+
+    // Handle chunk loading errors without triggering reload loops
     const handleError = (event: ErrorEvent) => {
-      if (event.message?.includes('Failed to fetch dynamically imported module')) {
-        event.preventDefault();
-        window.location.reload();
+      if (!event.message?.includes('Failed to fetch dynamically imported module')) {
+        return
       }
-    };
+
+      event.preventDefault()
+
+      const reloadKey = 'mihas_chunk_reload_count'
+      const reloadCount = Number(sessionStorage.getItem(reloadKey) || '0')
+
+      if (reloadCount >= 1) {
+        console.error('Chunk load failed after reload; avoiding infinite reload loop')
+        return
+      }
+
+      sessionStorage.setItem(reloadKey, String(reloadCount + 1))
+      window.location.reload()
+    }
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
   }, []);
