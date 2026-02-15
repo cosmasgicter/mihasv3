@@ -31,6 +31,91 @@ function normalizeEndpointPath(endpoint: string): string {
 }
 
 /**
+ * Detects whether a segment represents a dynamic identifier.
+ */
+function isDynamicSegment(segment: string): boolean {
+  const lowerSegment = segment.toLowerCase();
+  return (
+    lowerSegment === 'dynamic' ||
+    lowerSegment === ':dynamic' ||
+    lowerSegment === ':id' ||
+    /^\d+$/.test(lowerSegment) ||
+    /^[0-9a-f]{24}$/i.test(segment) ||
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(segment)
+  );
+}
+
+/**
+ * Infers action/type metadata from endpoint path segments.
+ */
+function inferActionOrTypeFromPath(endpointPath: string): { key: 'action' | 'type'; value: string } | undefined {
+  const pathSegments = endpointPath.replace(/\/$/, '').split('/').filter(Boolean);
+
+  if (pathSegments[0] !== 'api' || !pathSegments[1]) {
+    return undefined;
+  }
+
+  const resource = pathSegments[1];
+  const suffix = pathSegments.slice(2);
+
+  if (suffix.length === 0) {
+    return undefined;
+  }
+
+  const meaningfulSuffix = suffix.filter(segment => !isDynamicSegment(segment));
+
+  if (resource === 'catalog' && meaningfulSuffix[0]) {
+    return { key: 'type', value: meaningfulSuffix[0].toLowerCase() };
+  }
+
+  if (resource === 'admin') {
+    if (!meaningfulSuffix[0]) {
+      return undefined;
+    }
+
+    if (meaningfulSuffix[0] === 'users') {
+      return { key: 'action', value: meaningfulSuffix[1] || 'users' };
+    }
+
+    return { key: 'action', value: meaningfulSuffix[0] };
+  }
+
+  const actionModules = new Set(['notifications', 'documents', 'auth']);
+  if (actionModules.has(resource) && meaningfulSuffix[0]) {
+    return { key: 'action', value: meaningfulSuffix[0] };
+  }
+
+  return undefined;
+}
+
+/**
+ * Canonicalizes frontend calls to /api/<resource>?action=... or ?type=... shape.
+ */
+function canonicalizeCallEndpoint(endpoint: string): string {
+  const [pathPart, queryPart] = endpoint.split('?');
+  const normalizedPath = pathPart.replace(/\/$/, '');
+  const query = new URLSearchParams(queryPart || '');
+
+  if (query.has('action') || query.has('type')) {
+    return endpoint;
+  }
+
+  const inferred = inferActionOrTypeFromPath(normalizedPath);
+  if (!inferred) {
+    return endpoint;
+  }
+
+  const pathSegments = normalizedPath.split('/').filter(Boolean);
+  const canonicalPath = pathSegments.length >= 2
+    ? `/${pathSegments[0]}/${pathSegments[1]}`
+    : normalizedPath;
+
+  query.set(inferred.key, inferred.value);
+  const canonicalQuery = query.toString();
+  return canonicalQuery ? `${canonicalPath}?${canonicalQuery}` : canonicalPath;
+}
+
+/**
  * Extracts the action parameter from an endpoint or query params.
  */
 function extractAction(call: APICallInfo): string | undefined {
@@ -44,13 +129,15 @@ function extractAction(call: APICallInfo): string | undefined {
     return call.queryParams.type;
   }
   
+  const canonicalEndpoint = canonicalizeCallEndpoint(call.endpoint);
+
   // Try to extract from endpoint URL
-  const actionMatch = call.endpoint.match(/[?&]action=([^&]+)/);
+  const actionMatch = canonicalEndpoint.match(/[?&]action=([^&]+)/);
   if (actionMatch) {
     return actionMatch[1];
   }
   
-  const typeMatch = call.endpoint.match(/[?&]type=([^&]+)/);
+  const typeMatch = canonicalEndpoint.match(/[?&]type=([^&]+)/);
   if (typeMatch) {
     return typeMatch[1];
   }
@@ -166,18 +253,27 @@ function generateMismatchEvidence(
  * Returns undefined if no match is found.
  */
 function findMatchingEndpoint(call: APICallInfo, endpoints: EndpointInfo[]): EndpointInfo | undefined {
-  // First, try exact path match
-  for (const endpoint of endpoints) {
-    if (endpointMatches(call, endpoint)) {
-      return endpoint;
-    }
+  const canonicalEndpoint = canonicalizeCallEndpoint(call.endpoint);
+  const canonicalCall: APICallInfo = {
+    ...call,
+    endpoint: canonicalEndpoint,
+  };
+
+  const callBasePath = normalizeEndpointPath(canonicalCall.endpoint);
+  const exactPathCandidates = endpoints.filter(endpoint => normalizeEndpointPath(endpoint.endpoint) === callBasePath);
+
+  const exactActionMatch = exactPathCandidates.find(endpoint => endpointMatches(canonicalCall, endpoint));
+  if (exactActionMatch) {
+    return exactActionMatch;
   }
-  
-  // Try matching just the base path (ignoring action)
-  const callBasePath = normalizeEndpointPath(call.endpoint);
+
+  if (exactPathCandidates.length > 0) {
+    return exactPathCandidates[0];
+  }
+
+  // Fallback for endpoints with dynamic path placeholders in scanner output.
   for (const endpoint of endpoints) {
-    const endpointBasePath = normalizeEndpointPath(endpoint.endpoint);
-    if (callBasePath === endpointBasePath) {
+    if (endpointMatches(canonicalCall, endpoint)) {
       return endpoint;
     }
   }
