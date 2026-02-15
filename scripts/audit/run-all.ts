@@ -80,14 +80,14 @@ async function main() {
   // Run loader auditor
   console.log('\n--- Loader Auditor ---');
   try {
-    const { scanForLoaders } = await import('./loader/loaderScanner');
-    const { findRedundantLoaders } = await import('./loader/redundancyDetector');
+    const { scanLoaders } = await import('./loader/loaderScanner');
+    const { detectRedundancy } = await import('./loader/redundancyDetector');
     
-    const loaders = scanForLoaders(root);
-    const redundant = findRedundantLoaders(loaders);
+    const loaders = scanLoaders(root);
+    const redundant = detectRedundancy(loaders.loaders);
     
-    console.log(`  Total loaders: ${loaders.length}`);
-    console.log(`  Redundant loaders: ${redundant.length}`);
+    console.log(`  Total loaders: ${loaders.totalLoaders}`);
+    console.log(`  Redundant loaders: ${redundant.redundant.length}`);
     console.log('✅ Loader complete');
   } catch (err) {
     console.error('❌ Loader failed:', err);
