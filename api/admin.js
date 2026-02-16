@@ -1011,7 +1011,7 @@ async function handleSettings(req, res, auth) {
 }
 async function handleGetSettings(res) {
   try {
-    const result = await query("SELECT * FROM system_settings ORDER BY setting_key ASC");
+    const result = await query("SELECT * FROM settings ORDER BY key ASC");
     sendSuccess(res, { settings: result.rows || [] });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
@@ -1020,22 +1020,22 @@ async function handleGetSettings(res) {
 }
 async function handleCreateSetting(req, res, auth) {
   const body = req.body;
-  if (!body.setting_key || typeof body.setting_key !== "string") {
-    sendError(res, "setting_key is required and must be a string", HttpStatus.BAD_REQUEST);
+  if (!body.key || typeof body.key !== "string") {
+    sendError(res, "key is required and must be a string", HttpStatus.BAD_REQUEST);
     return;
   }
-  if (body.setting_value === undefined || body.setting_value === null) {
-    sendError(res, "setting_value is required", HttpStatus.BAD_REQUEST);
+  if (body.value === undefined || body.value === null) {
+    sendError(res, "value is required", HttpStatus.BAD_REQUEST);
     return;
   }
   try {
-    const result = await query(`INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public, updated_by, created_at, updated_at)
+    const result = await query(`INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
        RETURNING *`, [
-      body.setting_key.trim(),
-      String(body.setting_value),
-      body.setting_type || "string",
+      body.key.trim(),
+      JSON.stringify(body.value),
       body.description || null,
+      body.category || null,
       body.is_public ?? false,
       auth.userId
     ]);
@@ -1047,7 +1047,7 @@ async function handleCreateSetting(req, res, auth) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     if (message.includes("duplicate key") || message.includes("23505")) {
-      sendError(res, `Setting with key '${body.setting_key}' already exists`, HttpStatus.CONFLICT);
+      sendError(res, `Setting with key '${body.key}' already exists`, HttpStatus.CONFLICT);
       return;
     }
     sendError(res, message, HttpStatus.BAD_REQUEST);
@@ -1055,22 +1055,22 @@ async function handleCreateSetting(req, res, auth) {
 }
 async function handleUpdateSetting(req, res, auth) {
   const body = req.body;
-  if (!body.id && !body.setting_key) {
-    sendError(res, "Either id or setting_key is required to update a setting", HttpStatus.BAD_REQUEST);
+  if (!body.id && !body.key) {
+    sendError(res, "Either id or key is required to update a setting", HttpStatus.BAD_REQUEST);
     return;
   }
   try {
     const updates = ["updated_by = $1", "updated_at = NOW()"];
     const values = [auth.userId];
     let paramIndex = 2;
-    if (body.setting_value !== undefined) {
-      updates.push(`setting_value = $${paramIndex}`);
-      values.push(String(body.setting_value));
+    if (body.value !== undefined) {
+      updates.push(`value = $${paramIndex}`);
+      values.push(JSON.stringify(body.value));
       paramIndex++;
     }
-    if (body.setting_type !== undefined) {
-      updates.push(`setting_type = $${paramIndex}`);
-      values.push(body.setting_type);
+    if (body.category !== undefined) {
+      updates.push(`category = $${paramIndex}`);
+      values.push(body.category);
       paramIndex++;
     }
     if (body.description !== undefined) {
@@ -1088,10 +1088,10 @@ async function handleUpdateSetting(req, res, auth) {
       whereClause = `id = $${paramIndex}`;
       values.push(body.id);
     } else {
-      whereClause = `setting_key = $${paramIndex}`;
-      values.push(body.setting_key);
+      whereClause = `key = $${paramIndex}`;
+      values.push(body.key);
     }
-    const result = await query(`UPDATE system_settings SET ${updates.join(", ")} WHERE ${whereClause} RETURNING *`, values);
+    const result = await query(`UPDATE settings SET ${updates.join(", ")} WHERE ${whereClause} RETURNING *`, values);
     if (result.rows.length === 0) {
       sendError(res, "Setting not found", HttpStatus.NOT_FOUND);
       return;
@@ -1105,19 +1105,19 @@ async function handleUpdateSetting(req, res, auth) {
 async function handleDeleteSetting(req, res) {
   const body = req.body;
   const queryId = req.query.id;
-  const queryKey = req.query.setting_key;
+  const queryKey = req.query.key;
   const id = body.id || queryId;
-  const settingKey = body.setting_key || queryKey;
+  const settingKey = body.key || queryKey;
   if (!id && !settingKey) {
-    sendError(res, "Either id or setting_key is required to delete a setting", HttpStatus.BAD_REQUEST);
+    sendError(res, "Either id or key is required to delete a setting", HttpStatus.BAD_REQUEST);
     return;
   }
   try {
     let result;
     if (id) {
-      result = await query("DELETE FROM system_settings WHERE id = $1", [id]);
+      result = await query("DELETE FROM settings WHERE id = $1", [id]);
     } else {
-      result = await query("DELETE FROM system_settings WHERE setting_key = $1", [settingKey]);
+      result = await query("DELETE FROM settings WHERE key = $1", [settingKey]);
     }
     if (result.rowCount === 0) {
       sendError(res, "Setting not found", HttpStatus.NOT_FOUND);
@@ -1489,37 +1489,37 @@ async function handleImportSettings(req, res, auth) {
   const imported = [];
   const errors = [];
   for (const setting of settings) {
-    if (!setting.setting_key || setting.setting_value === undefined) {
+    if (!setting.key || setting.value === undefined) {
       errors.push(`Invalid setting: missing key or value`);
       continue;
     }
     try {
-      await query(`INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public, updated_by, created_at, updated_at)
+      await query(`INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-         ON CONFLICT (setting_key) 
+         ON CONFLICT (key) 
          DO UPDATE SET 
-           setting_value = EXCLUDED.setting_value,
-           setting_type = EXCLUDED.setting_type,
+           value = EXCLUDED.value,
            description = EXCLUDED.description,
+           category = EXCLUDED.category,
            is_public = EXCLUDED.is_public,
            updated_by = EXCLUDED.updated_by,
            updated_at = NOW()`, [
-        setting.setting_key,
-        String(setting.setting_value),
-        setting.setting_type || "string",
+        setting.key,
+        JSON.stringify(setting.value),
         setting.description || null,
+        setting.category || null,
         setting.is_public ?? false,
         auth.userId
       ]);
-      imported.push(setting.setting_key);
+      imported.push(setting.key);
     } catch (e) {
-      errors.push(`${setting.setting_key}: ${e instanceof Error ? e.message : String(e)}`);
+      errors.push(`${setting.key}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
   await logAuditEvent({
     actor_id: auth.userId,
     action: "settings_imported",
-    entity_type: "system_settings",
+    entity_type: "setting",
     entity_id: "bulk",
     changes: {
       imported_count: imported.length,
@@ -1534,58 +1534,58 @@ async function handleImportSettings(req, res, auth) {
 }
 async function handleResetSettings(res, auth) {
   try {
-    await query("DELETE FROM system_settings WHERE 1=1");
+    await query("DELETE FROM settings WHERE 1=1");
     const defaultSettings = [
       {
-        setting_key: "site_name",
-        setting_value: "MIHAS-KATC Application System",
-        setting_type: "string",
+        key: "site_name",
+        value: "MIHAS-KATC Application System",
         description: "Name of the application system",
+        category: "general",
         is_public: true
       },
       {
-        setting_key: "contact_email",
-        setting_value: "admissions@mihas-katc.ac.zm",
-        setting_type: "string",
+        key: "contact_email",
+        value: "admissions@mihas-katc.ac.zm",
         description: "Main contact email for admissions",
+        category: "contact",
         is_public: true
       },
       {
-        setting_key: "contact_phone",
-        setting_value: "+260-123-456-789",
-        setting_type: "string",
+        key: "contact_phone",
+        value: "+260-123-456-789",
         description: "Main contact phone number",
+        category: "contact",
         is_public: true
       },
       {
-        setting_key: "application_fee",
-        setting_value: "50.00",
-        setting_type: "decimal",
+        key: "application_fee",
+        value: "50.00",
         description: "Application processing fee in USD",
+        category: "finance",
         is_public: true
       },
       {
-        setting_key: "max_applications_per_user",
-        setting_value: "3",
-        setting_type: "integer",
+        key: "max_applications_per_user",
+        value: "3",
         description: "Maximum number of applications a user can submit",
+        category: "limits",
         is_public: false
       },
       {
-        setting_key: "enable_online_applications",
-        setting_value: "true",
-        setting_type: "boolean",
+        key: "enable_online_applications",
+        value: "true",
         description: "Enable or disable online application submissions",
+        category: "general",
         is_public: true
       }
     ];
     for (const setting of defaultSettings) {
-      await query(`INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public, updated_by, created_at, updated_at)
+      await query(`INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`, [
-        setting.setting_key,
-        setting.setting_value,
-        setting.setting_type,
+        setting.key,
+        JSON.stringify(setting.value),
         setting.description,
+        setting.category,
         setting.is_public,
         auth.userId
       ]);
@@ -1593,7 +1593,7 @@ async function handleResetSettings(res, auth) {
     await logAuditEvent({
       actor_id: auth.userId,
       action: "settings_reset_to_defaults",
-      entity_type: "system_settings",
+      entity_type: "setting",
       entity_id: "all",
       changes: {
         reset_count: defaultSettings.length
@@ -1608,154 +1608,12 @@ async function handleResetSettings(res, auth) {
     sendError(res, "Failed to reset settings", HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
-async function handleEligibilityRules(req, res, auth) {
-  const method = req.method;
-  switch (method) {
-    case "GET":
-      await handleGetEligibilityRules(res);
-      return;
-    case "POST":
-      await handleCreateEligibilityRule(req, res, auth);
-      return;
-    case "PUT":
-      await handleUpdateEligibilityRule(req, res, auth);
-      return;
-    case "DELETE":
-      await handleDeleteEligibilityRule(req, res);
-      return;
-    default:
-      sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
-      return;
-  }
-}
-async function handleGetEligibilityRules(res) {
-  try {
-    const result = await query(`SELECT er.*, p.name as program_name 
-       FROM eligibility_rules er 
-       LEFT JOIN programs p ON er.program_id = p.id 
-       ORDER BY er.created_at DESC`);
-    const rules = result.rows.map((row) => ({
-      ...row,
-      programs: row.program_name ? { name: row.program_name } : null
-    }));
-    sendSuccess(res, { rules });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    sendError(res, message, HttpStatus.BAD_REQUEST);
-  }
-}
-async function handleCreateEligibilityRule(req, res, auth) {
-  const body = req.body;
-  if (!body.program_id || !body.rule_name || !body.rule_type) {
-    sendError(res, "program_id, rule_name, and rule_type are required", HttpStatus.BAD_REQUEST);
+async function handleEligibilityRules(req, res, _auth) {
+  if (req.method === "GET") {
+    sendSuccess(res, { rules: [], message: "Eligibility rules feature not yet configured" });
     return;
   }
-  try {
-    const result = await query(`INSERT INTO eligibility_rules (program_id, rule_name, rule_type, condition_json, weight, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-       RETURNING *`, [
-      body.program_id,
-      body.rule_name,
-      body.rule_type,
-      JSON.stringify(body.condition_json || {}),
-      body.weight ?? 1,
-      body.is_active ?? true
-    ]);
-    if (result.rows.length === 0) {
-      sendError(res, "Failed to create rule", HttpStatus.INTERNAL_SERVER_ERROR);
-      return;
-    }
-    await logAuditEvent({
-      actor_id: auth.userId,
-      action: "eligibility_rule_created",
-      entity_type: "eligibility_rule",
-      entity_id: result.rows[0].id || "unknown",
-      changes: { rule_name: body.rule_name }
-    });
-    sendSuccess(res, { rule: result.rows[0] }, HttpStatus.CREATED);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    sendError(res, message, HttpStatus.BAD_REQUEST);
-  }
-}
-async function handleUpdateEligibilityRule(req, res, auth) {
-  const body = req.body;
-  if (!body.id) {
-    sendError(res, "id is required to update a rule", HttpStatus.BAD_REQUEST);
-    return;
-  }
-  try {
-    const updates = ["updated_at = NOW()"];
-    const values = [];
-    let paramIndex = 1;
-    if (body.program_id !== undefined) {
-      updates.push(`program_id = $${paramIndex}`);
-      values.push(body.program_id);
-      paramIndex++;
-    }
-    if (body.rule_name !== undefined) {
-      updates.push(`rule_name = $${paramIndex}`);
-      values.push(body.rule_name);
-      paramIndex++;
-    }
-    if (body.rule_type !== undefined) {
-      updates.push(`rule_type = $${paramIndex}`);
-      values.push(body.rule_type);
-      paramIndex++;
-    }
-    if (body.condition_json !== undefined) {
-      updates.push(`condition_json = $${paramIndex}`);
-      values.push(JSON.stringify(body.condition_json));
-      paramIndex++;
-    }
-    if (body.weight !== undefined) {
-      updates.push(`weight = $${paramIndex}`);
-      values.push(body.weight);
-      paramIndex++;
-    }
-    if (body.is_active !== undefined) {
-      updates.push(`is_active = $${paramIndex}`);
-      values.push(body.is_active);
-      paramIndex++;
-    }
-    values.push(body.id);
-    const result = await query(`UPDATE eligibility_rules SET ${updates.join(", ")} WHERE id = $${paramIndex} RETURNING *`, values);
-    if (result.rows.length === 0) {
-      sendError(res, "Rule not found", HttpStatus.NOT_FOUND);
-      return;
-    }
-    await logAuditEvent({
-      actor_id: auth.userId,
-      action: "eligibility_rule_updated",
-      entity_type: "eligibility_rule",
-      entity_id: body.id,
-      changes: { updated_fields: Object.keys(body).filter((k) => k !== "id") }
-    });
-    sendSuccess(res, { rule: result.rows[0] });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    sendError(res, message, HttpStatus.BAD_REQUEST);
-  }
-}
-async function handleDeleteEligibilityRule(req, res) {
-  const body = req.body;
-  const queryId = req.query.id;
-  const id = body.id || queryId;
-  if (!id) {
-    sendError(res, "id is required to delete a rule", HttpStatus.BAD_REQUEST);
-    return;
-  }
-  try {
-    const result = await query("DELETE FROM eligibility_rules WHERE id = $1", [id]);
-    if (result.rowCount === 0) {
-      sendError(res, "Rule not found", HttpStatus.NOT_FOUND);
-      return;
-    }
-    sendSuccess(res, { deleted: true });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    sendError(res, message, HttpStatus.BAD_REQUEST);
-  }
+  sendError(res, "Eligibility rules feature not yet configured", HttpStatus.SERVICE_UNAVAILABLE);
 }
 async function handleUpdateRole(req, res, auth) {
   const { userId, role } = req.body;
@@ -1802,36 +1660,8 @@ async function handleUpdateRole(req, res, auth) {
   }
 }
 async function handleEligibilityAssessments(req, res) {
-  const programId = req.query.program_id;
-  try {
-    let sql = `
-      SELECT ea.*, p.name as program_name, p.code as program_code
-      FROM eligibility_assessments ea
-      LEFT JOIN programs p ON ea.program_id = p.id
-    `;
-    const params = [];
-    if (programId && programId !== "all") {
-      sql += " WHERE ea.program_id = $1";
-      params.push(programId);
-    }
-    sql += " ORDER BY ea.created_at DESC";
-    const result = await query(sql, params);
-    const assessments = result.rows.map((row) => ({
-      id: row.id,
-      application_id: row.application_id,
-      program_id: row.program_id,
-      overall_score: row.overall_score,
-      eligibility_status: row.eligibility_status,
-      missing_requirements: row.missing_requirements,
-      created_at: row.created_at,
-      programs: row.program_name ? { name: row.program_name, code: row.program_code } : null
-    }));
-    res.setHeader("Cache-Control", "public, max-age=60");
-    sendSuccess(res, { assessments });
-  } catch (error) {
-    console.error("[ADMIN] Eligibility assessments error:", error instanceof Error ? error.message : "Unknown error");
-    sendError(res, "Failed to fetch eligibility assessments", HttpStatus.INTERNAL_SERVER_ERROR);
-  }
+  res.setHeader("Cache-Control", "public, max-age=60");
+  sendSuccess(res, { assessments: [], message: "Eligibility assessments feature not yet configured" });
 }
 export {
   admin_default as default

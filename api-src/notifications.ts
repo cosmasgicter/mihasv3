@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import webpush from 'web-push';
 import { handleCors } from '../lib/cors';
 import { query } from '../lib/db';
 import { getAuthUser } from '../lib/auth/middleware';
@@ -338,174 +337,19 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
 }
 
 async function handlePushSubscribe(req: VercelRequest, res: VercelResponse) {
-  // Allow both authenticated and unauthenticated subscriptions
-  const user = await getAuthUser(req);
-  const userId = user?.userId || null;
-
+  // push_subscriptions table does not exist — return graceful responses
   if (req.method === 'POST') {
-    const { subscription, userAgent } = req.body;
-
-    if (!subscription || !subscription.endpoint || !subscription.keys) {
-      return sendError(res, 'Invalid subscription data', HttpStatus.BAD_REQUEST);
-    }
-
-    const { endpoint, keys } = subscription;
-    const { p256dh, auth: authKey } = keys;
-
-    if (!p256dh || !authKey) {
-      return sendError(res, 'Missing subscription keys', HttpStatus.BAD_REQUEST);
-    }
-
-    // Upsert subscription
-    const upsertQ = {
-      text: `
-        INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, user_agent, is_active, updated_at)
-        VALUES ($1, $2, $3, $4, $5, true, NOW())
-        ON CONFLICT (endpoint) DO UPDATE SET
-          user_id = COALESCE($1, push_subscriptions.user_id),
-          p256dh = $3,
-          auth = $4,
-          user_agent = $5,
-          is_active = true,
-          updated_at = NOW()
-        RETURNING id
-      `,
-      values: [userId, endpoint, p256dh, authKey, userAgent || null],
-    };
-    const result = await query<{ id: string }>(upsertQ.text, upsertQ.values);
-
-    console.log('[notifications/push-subscribe] Subscription saved for user:', userId?.substring(0, 8) || 'anonymous');
-    return sendSuccess(res, { subscribed: true, id: result.rows[0]?.id });
+    return sendSuccess(res, { subscribed: false, message: 'Push notifications not yet configured' });
   }
-
   if (req.method === 'DELETE') {
-    const { endpoint } = req.body;
-
-    if (!endpoint) {
-      return sendError(res, 'Endpoint required', HttpStatus.BAD_REQUEST);
-    }
-
-    const updateQ = {
-      text: `UPDATE push_subscriptions SET is_active = false, updated_at = NOW() WHERE endpoint = $1`,
-      values: [endpoint],
-    };
-    await query(updateQ.text, updateQ.values);
-
-    console.log('[notifications/push-subscribe] Unsubscribed endpoint');
     return sendSuccess(res, { unsubscribed: true });
   }
-
   return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
 }
 
 async function handlePushSend(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-  }
-
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
-  }
-
-  // Check admin role
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
-  if (!isAdmin) {
-    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
-  }
-
-  const { user_id, title, body, icon, badge, url, tag } = req.body;
-
-  if (!title || !body) {
-    return sendError(res, 'title and body are required', HttpStatus.BAD_REQUEST);
-  }
-
-  // Get active subscriptions
-  let selectQ;
-  if (user_id) {
-    selectQ = {
-      text: `SELECT * FROM push_subscriptions WHERE is_active = true AND user_id = $1`,
-      values: [user_id],
-    };
-  } else {
-    selectQ = {
-      text: `SELECT * FROM push_subscriptions WHERE is_active = true`,
-      values: [],
-    };
-  }
-  const subsResult = await query<{
-    id: string;
-    endpoint: string;
-    p256dh: string;
-    auth: string;
-  }>(selectQ.text, selectQ.values);
-
-  const subscriptions = subsResult.rows;
-
-  if (!subscriptions || subscriptions.length === 0) {
-    return sendSuccess(res, { sent: 0, message: 'No active subscriptions found' });
-  }
-
-  // Web Push requires VAPID keys
-  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
-  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admissions@mihas.edu.zm';
-
-  if (!vapidPublicKey || !vapidPrivateKey) {
-    console.log('[notifications/push-send] VAPID keys not configured');
-    return sendError(res, 'Push notifications not configured (missing VAPID keys)', HttpStatus.SERVICE_UNAVAILABLE);
-  }
-
-  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
-
-  const payload = JSON.stringify({
-    title,
-    body,
-    icon: icon || '/images/logo-192.png',
-    badge: badge || '/images/badge-72.png',
-    data: { url: url || '/' },
-    tag: tag || 'mihas-notification',
-  });
-
-  let sentCount = 0;
-  let failedCount = 0;
-  const expiredEndpoints: string[] = [];
-
-  for (const sub of subscriptions) {
-    try {
-      const pushSubscription = {
-        endpoint: sub.endpoint,
-        keys: {
-          p256dh: sub.p256dh,
-          auth: sub.auth,
-        },
-      };
-
-      await webpush.sendNotification(pushSubscription, payload, { TTL: 86400 });
-      sentCount++;
-    } catch (err: unknown) {
-      const pushError = err as { statusCode?: number };
-      if (pushError.statusCode === 410 || pushError.statusCode === 404) {
-        // Mark expired subscription as inactive
-        const deactivateQ = {
-          text: `UPDATE push_subscriptions SET is_active = false WHERE id = $1`,
-          values: [sub.id],
-        };
-        await query(deactivateQ.text, deactivateQ.values);
-        expiredEndpoints.push(sub.endpoint);
-      }
-      console.error('[notifications/push-send] Error sending to endpoint:', pushError.statusCode || err);
-      failedCount++;
-    }
-  }
-
-  console.log(`[notifications/push-send] Sent: ${sentCount}, Failed: ${failedCount}`);
-  return sendSuccess(res, {
-    sent: sentCount,
-    failed: failedCount,
-    total: subscriptions.length,
-    expired_removed: expiredEndpoints.length,
-  });
+  // push_subscriptions table does not exist — return graceful response
+  return sendSuccess(res, { sent: 0, message: 'Push notifications not yet configured' });
 }
 
 // Export with Arcjet protection

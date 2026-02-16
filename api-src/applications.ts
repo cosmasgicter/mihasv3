@@ -662,12 +662,9 @@ async function handleExport(
     status: string;
     payment_status: string;
     application_fee: number;
-    paid_amount: number;
+    amount: number;
     submitted_at: string;
     created_at: string;
-    grades_summary: string;
-    total_subjects: number;
-    points: number;
     age: number;
     days_since_submission: number;
   }>(`
@@ -683,12 +680,9 @@ async function handleExport(
       status,
       payment_status,
       COALESCE(application_fee, 0) as application_fee,
-      COALESCE(paid_amount, 0) as paid_amount,
+      COALESCE(amount, 0) as amount,
       submitted_at,
       created_at,
-      COALESCE(grades_summary, '') as grades_summary,
-      COALESCE(total_subjects, 0) as total_subjects,
-      COALESCE(points, 0) as points,
       COALESCE(EXTRACT(YEAR FROM AGE(date_of_birth))::int, 0) as age,
       COALESCE(EXTRACT(DAY FROM NOW() - submitted_at)::int, 0) as days_since_submission
     FROM applications
@@ -707,107 +701,19 @@ async function handleExport(
 
 /**
  * Handle versions action - Get/create application versions
- * Used by ApplicationVersions component for version history
- * 
- * GET /api/applications?action=versions&application_id=xxx - List versions
- * POST /api/applications?action=versions - Create new version
+ * NOTE: application_versions table does not exist — returns graceful empty responses
  */
 async function handleVersions(
   req: VercelRequest,
   res: VercelResponse,
   userId: string
 ) {
-  const applicationId = req.query.application_id as string || (req.body as { application_id?: string })?.application_id;
-
   if (req.method === 'GET') {
-    if (!applicationId) {
-      return sendError(res, 'application_id is required', HttpStatus.BAD_REQUEST);
-    }
-
-    // Verify user owns this application
-    const appCheck = await query<{ user_id: string }>(
-      'SELECT user_id FROM applications WHERE id = $1',
-      [applicationId]
-    );
-
-    if (appCheck.rows.length === 0) {
-      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
-    }
-
-    if (appCheck.rows[0].user_id !== userId) {
-      return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
-    }
-
-    // Get versions
-    const result = await query<{
-      id: string;
-      version_number: number;
-      form_data: unknown;
-      change_summary: string | null;
-      created_at: string;
-    }>(`
-      SELECT id, version_number, form_data, change_summary, created_at
-      FROM application_versions
-      WHERE application_id = $1
-      ORDER BY version_number DESC
-    `, [applicationId]);
-
-    return sendSuccess(res, { versions: result.rows });
+    return sendSuccess(res, { versions: [], message: 'Version history feature not yet configured' });
   }
-
   if (req.method === 'POST') {
-    const body = req.body as {
-      application_id?: string;
-      form_data?: unknown;
-      change_summary?: string;
-    };
-
-    const appId = body.application_id || applicationId;
-    if (!appId) {
-      return sendError(res, 'application_id is required', HttpStatus.BAD_REQUEST);
-    }
-
-    if (!body.form_data) {
-      return sendError(res, 'form_data is required', HttpStatus.BAD_REQUEST);
-    }
-
-    // Verify user owns this application
-    const appCheck = await query<{ user_id: string }>(
-      'SELECT user_id FROM applications WHERE id = $1',
-      [appId]
-    );
-
-    if (appCheck.rows.length === 0) {
-      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
-    }
-
-    if (appCheck.rows[0].user_id !== userId) {
-      return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
-    }
-
-    // Get next version number
-    const maxVersion = await query<{ max_version: number }>(
-      'SELECT COALESCE(MAX(version_number), 0) as max_version FROM application_versions WHERE application_id = $1',
-      [appId]
-    );
-    const nextVersion = (maxVersion.rows[0]?.max_version || 0) + 1;
-
-    // Create version
-    const result = await query<{
-      id: string;
-      version_number: number;
-      form_data: unknown;
-      change_summary: string | null;
-      created_at: string;
-    }>(`
-      INSERT INTO application_versions (application_id, user_id, version_number, form_data, change_summary, created_by, created_at)
-      VALUES ($1, $2, $3, $4, $5, $2, NOW())
-      RETURNING id, version_number, form_data, change_summary, created_at
-    `, [appId, userId, nextVersion, JSON.stringify(body.form_data), body.change_summary || null]);
-
-    return sendSuccess(res, { version: result.rows[0] }, HttpStatus.CREATED);
+    return sendError(res, 'Version history feature not yet configured', HttpStatus.SERVICE_UNAVAILABLE);
   }
-
   return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
 }
 

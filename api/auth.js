@@ -164,7 +164,7 @@ var UserQueries = {
     text: `
       SELECT 
         id, email, password_hash, refresh_token_hash, role,
-        first_name, last_name, full_name, phone, is_active,
+        first_name, last_name, phone, is_active,
         failed_login_attempts, locked_until, password_changed_at,
         created_at, updated_at
       FROM profiles
@@ -177,7 +177,7 @@ var UserQueries = {
     text: `
       SELECT 
         id, email, password_hash, refresh_token_hash, role,
-        first_name, last_name, full_name, phone, is_active,
+        first_name, last_name, phone, is_active,
         failed_login_attempts, locked_until, password_changed_at,
         created_at, updated_at
       FROM profiles
@@ -189,7 +189,7 @@ var UserQueries = {
   findByIdPublic: (id) => ({
     text: `
       SELECT 
-        id, email, role, first_name, last_name, full_name,
+        id, email, role, first_name, last_name,
         is_active, created_at, updated_at
       FROM profiles
       WHERE id = $1
@@ -337,7 +337,7 @@ var UserQueries = {
   list: (limit, offset) => ({
     text: `
       SELECT 
-        id, email, role, first_name, last_name, full_name,
+        id, email, role, first_name, last_name,
         is_active, created_at, updated_at
       FROM profiles
       ORDER BY created_at DESC
@@ -348,7 +348,7 @@ var UserQueries = {
   listByRole: (role, limit, offset) => ({
     text: `
       SELECT 
-        id, email, role, first_name, last_name, full_name,
+        id, email, role, first_name, last_name,
         is_active, created_at, updated_at
       FROM profiles
       WHERE role = $1

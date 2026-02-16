@@ -44,7 +44,6 @@ export interface UserRecord {
   role: UserRole;
   first_name: string | null;
   last_name: string | null;
-  full_name: string | null;
   phone: string | null;
   is_active: boolean;
   failed_login_attempts: number;
@@ -78,7 +77,6 @@ export interface UserPublicRecord {
   role: UserRole;
   first_name: string | null;
   last_name: string | null;
-  full_name: string | null;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
@@ -210,7 +208,7 @@ export const UserQueries = {
     text: `
       SELECT 
         id, email, password_hash, refresh_token_hash, role,
-        first_name, last_name, full_name, phone, is_active,
+        first_name, last_name, phone, is_active,
         failed_login_attempts, locked_until, password_changed_at,
         created_at, updated_at
       FROM profiles
@@ -228,7 +226,7 @@ export const UserQueries = {
     text: `
       SELECT 
         id, email, password_hash, refresh_token_hash, role,
-        first_name, last_name, full_name, phone, is_active,
+        first_name, last_name, phone, is_active,
         failed_login_attempts, locked_until, password_changed_at,
         created_at, updated_at
       FROM profiles
@@ -245,7 +243,7 @@ export const UserQueries = {
   findByIdPublic: (id: string): QueryConfig => ({
     text: `
       SELECT 
-        id, email, role, first_name, last_name, full_name,
+        id, email, role, first_name, last_name,
         is_active, created_at, updated_at
       FROM profiles
       WHERE id = $1
@@ -477,7 +475,7 @@ export const UserQueries = {
   list: (limit: number, offset: number): QueryConfig => ({
     text: `
       SELECT 
-        id, email, role, first_name, last_name, full_name,
+        id, email, role, first_name, last_name,
         is_active, created_at, updated_at
       FROM profiles
       ORDER BY created_at DESC
@@ -492,7 +490,7 @@ export const UserQueries = {
   listByRole: (role: UserRole, limit: number, offset: number): QueryConfig => ({
     text: `
       SELECT 
-        id, email, role, first_name, last_name, full_name,
+        id, email, role, first_name, last_name,
         is_active, created_at, updated_at
       FROM profiles
       WHERE role = $1
@@ -1099,11 +1097,7 @@ export interface ApplicationRecord {
   submitted_at: string | null;
   public_tracking_code: string | null;
   reviewed_by: string | null;
-  reviewed_at: string | null;
   review_started_at: string | null;
-  review_notes: string | null;
-  decision_reason: string | null;
-  decision_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -1213,13 +1207,12 @@ export const ApplicationQueries = {
       SET 
         status = $2,
         reviewed_by = $3,
-        reviewed_at = NOW(),
-        review_notes = $4,
+        review_started_at = COALESCE(review_started_at, NOW()),
         updated_at = NOW()
       WHERE id = $1
       RETURNING *
     `,
-    values: [id, status, reviewedBy, notes || null],
+    values: [id, status, reviewedBy],
   }),
 
   /**
@@ -1236,8 +1229,7 @@ export const ApplicationQueries = {
       'phone', 'email', 'residence_town', 'next_of_kin_name', 'next_of_kin_phone',
       'program', 'intake', 'institution', 'result_slip_url', 'extra_kyc_url',
       'payment_method', 'payer_name', 'payer_phone', 'amount', 'paid_at',
-      'momo_ref', 'pop_url', 'payment_status', 'status', 'submitted_at',
-      'review_notes', 'decision_reason'
+      'momo_ref', 'pop_url', 'payment_status', 'status', 'submitted_at'
     ];
 
     for (const field of allowedFields) {
@@ -1973,7 +1965,7 @@ export const PaymentQueries = {
         text: `
           SELECT 
             a.*,
-            p.full_name as applicant_name,
+            CONCAT(p.first_name, ' ', p.last_name) as applicant_name,
             p.email as applicant_email,
             p.phone as applicant_phone
           FROM applications a
@@ -1988,7 +1980,7 @@ export const PaymentQueries = {
       text: `
         SELECT 
           a.*,
-          p.full_name as applicant_name,
+          CONCAT(p.first_name, ' ', p.last_name) as applicant_name,
           p.email as applicant_email,
           p.phone as applicant_phone
         FROM applications a
