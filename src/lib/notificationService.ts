@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
 import { sanitizeText, sanitizeForLog } from './sanitize'
 import type { NotificationData } from '@/types/notifications'
 

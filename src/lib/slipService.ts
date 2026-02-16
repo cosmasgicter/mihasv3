@@ -1,7 +1,7 @@
 import { generateApplicationSlip, persistSlip, type ApplicationSlipData } from './applicationSlip'
 import { logger } from '@/lib/logger'
 import { sanitizeForLog } from './security'
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
 import { renderApplicationSlipEmail } from './emailTemplates'
 
 export interface SlipServiceOptions {

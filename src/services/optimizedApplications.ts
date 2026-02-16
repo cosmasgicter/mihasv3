@@ -1,44 +1,55 @@
-import { supabase } from '@/lib/supabase'
-
-const COLUMNS = 'id, application_number, status, created_at, submitted_at, user_id, full_name, email, phone, program, intake, institution, payment_status, application_fee, paid_amount'
+import { apiClient, buildQueryString } from '@/services/client'
+import { applicationService } from '@/services/applications'
 
 export const optimizedApplicationService = {
   async list(filters: any, limit = 50) {
-    let query = supabase
-      .from('admin_application_detailed')
-      .select(COLUMNS, { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .limit(limit)
+    const params: Record<string, string> = {
+      pageSize: String(limit),
+      sortBy: 'date',
+      sortOrder: 'desc',
+    }
 
     if (filters.searchTerm) {
-      const pattern = `%${filters.searchTerm}%`
-      query = query.or(`full_name.ilike.${pattern},email.ilike.${pattern},application_number.ilike.${pattern}`)
+      params.search = filters.searchTerm
     }
 
     if (filters.statusFilter) {
-      query = query.eq('status', filters.statusFilter)
+      params.status = filters.statusFilter
     }
 
     if (filters.paymentFilter) {
-      query = query.eq('payment_status', filters.paymentFilter)
+      params.payment = filters.paymentFilter
     }
 
     if (filters.programFilter) {
-      query = query.eq('program', filters.programFilter)
+      params.program = filters.programFilter
     }
 
     if (filters.institutionFilter) {
-      query = query.eq('institution', filters.institutionFilter)
+      params.institution = filters.institutionFilter
     }
 
-    return query
+    const result = await applicationService.list(params)
+
+    return {
+      data: result?.applications ?? [],
+      count: result?.totalCount ?? 0,
+      error: null,
+    }
   },
 
   async getById(id: string) {
-    return supabase
-      .from('applications')
-      .select('*, profiles!inner(full_name, email)')
-      .eq('id', id)
-      .single()
+    try {
+      const result = await applicationService.getById(id)
+      return {
+        data: result?.application ?? null,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: null,
+        error,
+      }
+    }
   }
 }

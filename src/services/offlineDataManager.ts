@@ -4,7 +4,9 @@
  * Requirements: 9.2 - Cache critical data for offline access, enable offline form completion, implement sync mechanisms
  */
 
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
+import { applicationService } from '@/services/applications'
+import { catalogService } from '@/services/catalog'
 import { ApplicationFormData } from '@/forms/applicationSchema'
 
 export interface OfflineDataCache {
@@ -51,33 +53,32 @@ class OfflineDataManager {
         return true
       }
 
-      // Fetch critical data for offline use
+      // Fetch critical data for offline use via API services
       const [programsResult, institutionsResult, subjectsResult, profileResult] = await Promise.allSettled([
-        supabase.from('programs').select('*').eq('is_active', true),
-        supabase.from('institutions').select('*').eq('is_active', true),
-        supabase.from('subjects').select('*').eq('is_active', true),
-        supabase.from('user_profiles').select('*').eq('user_id', userId).single()
+        catalogService.getPrograms(),
+        catalogService.getInstitutions(),
+        catalogService.getSubjects(),
+        apiClient.request<{ user: any }>('/auth?action=session')
       ])
 
       const cache: OfflineDataCache = {
         programs: programsResult.status === 'fulfilled' ? programsResult.value.data || [] : [],
         institutions: institutionsResult.status === 'fulfilled' ? institutionsResult.value.data || [] : [],
         subjects: subjectsResult.status === 'fulfilled' ? subjectsResult.value.data || [] : [],
-        userProfile: profileResult.status === 'fulfilled' ? profileResult.value.data : null,
+        userProfile: profileResult.status === 'fulfilled' ? (profileResult.value as any)?.user ?? profileResult.value : null,
         lastUpdated: new Date().toISOString(),
         version: this.CACHE_VERSION
       }
 
       // Also cache any existing application draft
-      const draftResult = await supabase
-        .from('applications')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('status', 'draft')
-        .single()
-
-      if (draftResult.data) {
-        cache.applicationDraft = draftResult.data
+      try {
+        const draftResult = await applicationService.list({ mine: 'true', status: 'draft', pageSize: '1' })
+        const drafts = draftResult?.applications ?? []
+        if (drafts.length > 0) {
+          cache.applicationDraft = drafts[0] as Partial<ApplicationFormData>
+        }
+      } catch {
+        // Draft fetch is non-critical, continue without it
       }
 
       this.saveCachedData(cache)
@@ -304,38 +305,36 @@ class OfflineDataManager {
   }
 
   /**
-   * Sync individual form
+   * Sync individual form via applicationService
    */
   private async syncForm(userId: string, formId: string, formData: OfflineFormData): Promise<void> {
+    const payload = {
+      user_id: userId,
+      ...formData.data,
+    }
+
     if (formData.isComplete) {
       // Submit complete application
-      const { error } = await supabase
-        .from('applications')
-        .upsert({
-          user_id: userId,
-          ...formData.data,
-          status: 'submitted',
-          submitted_at: new Date().toISOString()
-        })
-
-      if (error) throw error
+      payload.status = 'submitted'
+      payload.submitted_at = new Date().toISOString()
     } else {
       // Save as draft
-      const { error } = await supabase
-        .from('applications')
-        .upsert({
-          user_id: userId,
-          ...formData.data,
-          status: 'draft',
-          updated_at: new Date().toISOString()
-        })
+      payload.status = 'draft'
+      payload.updated_at = new Date().toISOString()
+    }
 
-      if (error) throw error
+    // If formData has an existing application id, update; otherwise create
+    if (formData.data?.id) {
+      const result = await applicationService.update(formData.data.id, payload)
+      if (!result) throw new Error('Failed to update application')
+    } else {
+      const result = await applicationService.create(payload)
+      if (!result) throw new Error('Failed to create application')
     }
   }
 
   /**
-   * Sync individual queue item
+   * Sync individual queue item via fetch (uses existing endpoint/method from queue)
    */
   private async syncQueueItem(item: any): Promise<void> {
     const response = await fetch(item.endpoint, {
@@ -343,6 +342,7 @@ class OfflineDataManager {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(item.data)
     })
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
 import { exportUsersToPDF, type UserPDFFieldDefinition } from '@/lib/exportUtils'
-import { UserProfile } from '@/lib/supabase'
+import { UserProfile } from '@/types/database'
 import { Download, FileText, FileSpreadsheet, Filter, Users, CheckSquare, Square } from 'lucide-react'
 import { toast } from '@/hooks/useToast'
 

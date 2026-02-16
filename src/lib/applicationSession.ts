@@ -2,10 +2,10 @@
 /**
  * Application Session Manager
  * 
- * @deprecated This module uses the deprecated Supabase stub.
- * TODO: Migrate to API endpoints when session management is reactivated.
+ * Manages application drafts via API client and localStorage.
  */
-import { supabase } from './supabase'
+import { applicationService } from '@/services/applications'
+import { apiClient } from '@/services/client'
 import { ApplicationFormData } from '@/forms/applicationSchema'
 import { sanitizeForLog, safeJsonParse } from './sanitize'
 import { generateSecureToken } from './security'
@@ -122,18 +122,14 @@ class ApplicationSessionManager {
         return { success: false, error: 'Storage quota exceeded' }
       }
 
-      // Try to save to database if table exists
+      // Try to save to database via API
       try {
-        const { error } = await supabase
-          .from('application_drafts')
-          .upsert({
-            user_id: userId,
-            draft_data: { ...formData, uploaded_files: uploadedFiles, selected_subjects: selectedSubjects },
-            step_completed: currentStep
-          }, {
-            onConflict: 'user_id'
-          })
-
+        await applicationService.update(userId, {
+          ...formData,
+          uploaded_files: uploadedFiles,
+          selected_subjects: selectedSubjects,
+          step_completed: currentStep
+        } as any)
       } catch (dbError) {
       }
 
@@ -158,14 +154,10 @@ class ApplicationSessionManager {
         draft.last_saved_at = new Date().toISOString()
         localStorage.setItem('applicationDraft', JSON.stringify(draft))
         
-        // Also update database
-        await supabase
-          .from('application_drafts')
-          .update({ 
-            updated_at: new Date().toISOString(),
-            last_saved_at: draft.last_saved_at
-          })
-          .eq('id', draft.user_id)
+        // Also update database via API
+        await applicationService.update(draft.user_id, { 
+          updated_at: new Date().toISOString()
+        } as any)
       }
     } catch (error) {
       console.error('Auto-save failed:', sanitizeForLog(error))
@@ -175,25 +167,23 @@ class ApplicationSessionManager {
   // Load draft from database or localStorage
   async loadDraft(userId: string): Promise<ApplicationDraft | null> {
     try {
-      // First try database
+      // First try database via API
       try {
-        const { data, error } = await supabase
-          .from('application_drafts')
-          .select('*')
-          .eq('id', userId)
-          .single()
+        const result = await applicationService.list({ mine: true, status: 'draft', pageSize: 1 })
+        const apps = result?.applications ?? []
 
-        if (!error && data) {
+        if (apps.length > 0) {
+          const data = apps[0]
           return {
             id: data.id,
-            user_id: data.user_id,
-            form_data: data.draft_data || {},
-            current_step: data.step_completed || 1,
-            uploaded_files: data.draft_data?.uploaded_files || [],
-            selected_subjects: data.draft_data?.selected_subjects || [],
+            user_id: (data as any).user_id || userId,
+            form_data: data || {},
+            current_step: (data as any).step_completed || 1,
+            uploaded_files: [],
+            selected_subjects: [],
             version: 1,
             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            last_saved_at: data.updated_at,
+            last_saved_at: data.updated_at || '',
             session_id: this.sessionId
           }
         }
@@ -231,10 +221,9 @@ class ApplicationSessionManager {
       // Step 2: Clear intervals to stop auto-save
       this.cleanup()
 
-      // Step 3: Database cleanup (don't fail if this doesn't work)
+      // Step 3: Database cleanup via API (don't fail if this doesn't work)
       await Promise.allSettled([
-        supabase.from('application_drafts').delete().eq('id', userId),
-        supabase.from('applications').delete().eq('id', userId).eq('status', 'draft')
+        applicationService.delete(userId).catch(() => {})
       ])
 
       // Step 4: Set deletion flag for other components
@@ -301,13 +290,9 @@ class ApplicationSessionManager {
   // Get next version number
   private async getNextVersion(userId: string): Promise<number> {
     try {
-      const { data } = await supabase
-        .from('application_drafts')
-        .select('version')
-        .eq('id', userId)
-        .single()
-
-      return data ? (data.version || 0) + 1 : 1
+      const result = await applicationService.list({ mine: true, status: 'draft', pageSize: 1 })
+      const apps = result?.applications ?? []
+      return apps.length > 0 ? ((apps[0] as any).version || 0) + 1 : 1
     } catch {
       return 1
     }
@@ -376,16 +361,11 @@ class ApplicationSessionManager {
         }
       }
 
-      // Check database for draft applications
-      const { data: draftApps } = await supabase
-        .from('applications')
-        .select('*')
-        .eq('id', userId)
-        .eq('status', 'draft')
-        .order('created_at', { ascending: false })
-        .limit(1)
+      // Check database for draft applications via API
+      const result = await applicationService.list({ mine: true, status: 'draft', pageSize: 1 })
+      const draftApps = result?.applications ?? []
 
-      if (draftApps && draftApps.length > 0) {
+      if (draftApps.length > 0) {
         const app = draftApps[0]
         const steps = ['Basic KYC', 'Education', 'Payment', 'Submit']
         let currentStep = 1

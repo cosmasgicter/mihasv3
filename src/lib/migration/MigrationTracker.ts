@@ -7,7 +7,7 @@
  * TODO: Migrate to API endpoints when migration tracker is reactivated.
  */
 
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import type { MigrationExecution, MigrationStepResult } from './types'
 
 export interface MigrationProgress {
@@ -232,53 +232,56 @@ export class MigrationTracker {
    * Get migration history
    */
   async getMigrationHistory(limit = 50): Promise<MigrationExecution[]> {
-    const { data, error } = await supabase
-      .from('migration_executions')
-      .select('*')
-      .order('started_at', { ascending: false })
-      .limit(limit)
+    try {
+      const result = await apiClient.request<{
+        data?: any[]
+        [key: string]: unknown
+      }>(`/admin?action=migrate&type=history&limit=${limit}`)
 
-    if (error) {
-      throw new Error(`Failed to fetch migration history: ${error.message}`)
+      const data = result?.data ?? []
+      return data.map((row: any) => ({
+        id: row.id,
+        planId: row.plan_id,
+        status: row.status,
+        startedAt: row.started_at ? new Date(row.started_at) : undefined,
+        completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
+        currentStep: row.current_step,
+        progress: row.progress,
+        results: row.results || [],
+        rollbackPoint: row.rollback_point,
+        metadata: row.metadata || {}
+      }))
+    } catch (error) {
+      console.error('Failed to fetch migration history:', error instanceof Error ? error.message : error)
+      return []
     }
-
-    return data.map(row => ({
-      id: row.id,
-      planId: row.plan_id,
-      status: row.status,
-      startedAt: row.started_at ? new Date(row.started_at) : undefined,
-      completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
-      currentStep: row.current_step,
-      progress: row.progress,
-      results: row.results || [],
-      rollbackPoint: row.rollback_point,
-      metadata: row.metadata || {}
-    }))
   }
 
   /**
    * Save progress to database
    */
   private async saveProgress(progress: MigrationProgress): Promise<void> {
-    const { error } = await supabase
-      .from('migration_progress')
-      .upsert({
-        execution_id: progress.executionId,
-        plan_id: progress.planId,
-        status: progress.status,
-        progress: progress.progress,
-        current_step: progress.currentStep,
-        started_at: progress.startedAt?.toISOString(),
-        estimated_completion: progress.estimatedCompletion?.toISOString(),
-        steps_completed: progress.stepsCompleted,
-        steps_total: progress.stepsTotal,
-        errors: progress.errors,
-        warnings: progress.warnings,
-        updated_at: new Date().toISOString()
+    try {
+      await apiClient.request('/admin?action=migrate', {
+        method: 'POST',
+        body: JSON.stringify({
+          type: 'save_progress',
+          execution_id: progress.executionId,
+          plan_id: progress.planId,
+          status: progress.status,
+          progress: progress.progress,
+          current_step: progress.currentStep,
+          started_at: progress.startedAt?.toISOString(),
+          estimated_completion: progress.estimatedCompletion?.toISOString(),
+          steps_completed: progress.stepsCompleted,
+          steps_total: progress.stepsTotal,
+          errors: progress.errors,
+          warnings: progress.warnings,
+          updated_at: new Date().toISOString()
+        })
       })
-
-    if (error) {
-      console.error('Failed to save migration progress:', error)
+    } catch (error) {
+      console.error('Failed to save migration progress:', error instanceof Error ? error.message : error)
     }
   }
 

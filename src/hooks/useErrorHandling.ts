@@ -1,7 +1,7 @@
 // React Hook for Error Handling and Recovery
 import { useState, useCallback } from 'react'
 import { ErrorLogger, TransactionManager, handleDatabaseError, safeDbOperation } from '@/lib/errorHandling'
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import { sanitizeForLog } from '@/lib/security'
 
 interface ErrorState {
@@ -64,7 +64,6 @@ export function useErrorHandling(): UseErrorHandlingReturn {
   ): Promise<T | null> => {
     const { maxRetries = 3, showUserError = true, rollbackOperation } = options
     
-    // Store operation for potential retry
     setLastOperation({ operation, operationName, options })
     
     try {
@@ -94,7 +93,6 @@ export function useErrorHandling(): UseErrorHandlingReturn {
       
       setErrorState(newErrorState)
       
-      // Show user-friendly error message if enabled
       if (showUserError) {
         console.error('Operation error:', { 
           operation: sanitizeForLog(operationName), 
@@ -121,9 +119,9 @@ export function useErrorHandling(): UseErrorHandlingReturn {
   const checkDataIntegrity = useCallback(async () => {
     return executeWithErrorHandling(
       async () => {
-        const { data, error } = await supabase.rpc('check_data_integrity')
-        if (error) throw error
-        return data
+        // Data integrity check via health endpoint
+        const result = await apiClient.request('/health?action=db')
+        return result
       },
       'check_data_integrity',
       { showUserError: false }
@@ -133,14 +131,14 @@ export function useErrorHandling(): UseErrorHandlingReturn {
   const getErrorLogs = useCallback(async () => {
     return executeWithErrorHandling(
       async () => {
-        const { data, error } = await supabase
-          .from('error_logs')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(50)
-        
-        if (error) throw error
-        return data || []
+        try {
+          const result = await apiClient.request<{ data: any[] }>('/admin?action=errors')
+          return result?.data ?? []
+        } catch {
+          // Error logging to DB is non-critical — fallback to empty
+          console.error('Failed to fetch error logs (non-critical)')
+          return []
+        }
       },
       'get_error_logs',
       { showUserError: false }

@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { History, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { animateClasses } from '@/lib/animations';
-import type { Application } from '@/lib/supabase';
+import type { Application } from '@/types/database';
 
 interface ApplicationTimelineProps {
   applications: Application[];

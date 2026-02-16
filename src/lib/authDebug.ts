@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import { sanitizeForLog } from '@/lib/security'
 
 /**
@@ -33,20 +33,17 @@ export async function debugAuthState() {
       return null
     }
     
-    // Check user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle()
+    // Check user profile via API
+    let profile = null
+    let profileError = null
+    try {
+      profile = await apiClient.request('/auth?action=session')
+    } catch (e) {
+      profileError = e instanceof Error ? e.message : 'Unknown error'
+    }
     
-    // Check user role
-    const { data: role, error: roleError } = await supabase
-      .from('user_roles')
-      .select('*')
-      .eq('id', user.id)
-      .eq('is_active', true)
-      .maybeSingle()
+    // Role is embedded in JWT — no separate lookup needed
+    const role = user.role || sessionData.role || null
     
     return {
       user,
@@ -54,7 +51,7 @@ export async function debugAuthState() {
       role,
       errors: {
         profileError,
-        roleError
+        roleError: null
       }
     }
   } catch (error) {

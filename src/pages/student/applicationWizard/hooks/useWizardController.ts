@@ -21,7 +21,7 @@ import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { sanitizeForLog } from '@/lib/security'
 import { findBestSubjectId } from '@/lib/subjectMatcher'
 import { getSessionToken } from '@/lib/sessionUtils'
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import { logger } from '@/utils/logger'
 import { safeJsonParse } from '@/lib/utils'
 import { isDraftDeleted, clearDraftDeletedFlag } from '@/lib/draftCleanup'
@@ -1120,13 +1120,15 @@ const useWizardController = (): UseWizardControllerResult => {
       // Fetch institution name
       let institutionName = updatedApp.institution
       try {
-        const { data: instData } = await supabase
-          .from('institutions')
-          .select('name')
-          .or(`slug.eq.${updatedApp.institution},name.eq.${updatedApp.institution}`)
-          .maybeSingle()
-        if (instData?.name) {
-          institutionName = instData.name
+        const result = await apiClient.request<{ institutions?: Array<{ name: string }> }>(
+          `/catalog?type=institutions`
+        )
+        const institutions = result?.institutions ?? []
+        const match = institutions.find(
+          (inst: any) => inst.slug === updatedApp.institution || inst.name === updatedApp.institution
+        )
+        if (match?.name) {
+          institutionName = match.name
         }
       } catch (e) {
         console.error('Failed to fetch institution name:', e)

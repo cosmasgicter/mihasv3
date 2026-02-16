@@ -5,12 +5,11 @@
  * Service layer for integrating alternative pathway identification with the application system.
  * Provides methods to identify pathways, generate improvement plans, and manage pathway data.
  * 
- * @deprecated This module uses the deprecated Supabase stub.
- * TODO: Migrate to API endpoints when alternative pathway service is reactivated.
+ * Migrated from Supabase to API client.
  */
 
 import { alternativePathwayEngine, type AlternativePathway, type PersonalizedImprovementPlan } from '@/lib/alternativePathwayEngine'
-import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import type { SubjectGrade } from '@/lib/eligibility'
 
 export interface PathwayServiceOptions {
@@ -46,9 +45,9 @@ export class AlternativePathwayService {
         workExperience
       )
       
-      // Store pathway recommendations if Supabase is configured
-      if (isSupabaseConfigured && pathways.length > 0) {
-        await this.storePathwayRecommendations(applicationId, pathways.slice(0, maxPathways))
+      // Store pathway recommendations (fire-and-forget)
+      if (pathways.length > 0) {
+        this.storePathwayRecommendations(applicationId, pathways.slice(0, maxPathways)).catch(() => {})
       }
       
       return pathways.slice(0, maxPathways)
@@ -88,10 +87,8 @@ export class AlternativePathwayService {
         financialConstraints
       )
       
-      // Store the plan if Supabase is configured
-      if (isSupabaseConfigured) {
-        await this.storeImprovementPlan(applicationId, plan)
-      }
+      // Store the plan (fire-and-forget)
+      this.storeImprovementPlan(applicationId, plan).catch(() => {})
       
       return plan
       
@@ -105,24 +102,12 @@ export class AlternativePathwayService {
    * Get improvement plan history for a student
    */
   async getImprovementPlanHistory(applicationId: string): Promise<PersonalizedImprovementPlan[]> {
-    if (!isSupabaseConfigured) {
-      return []
-    }
-    
     try {
-      const { data, error } = await supabase
-        .from('improvement_plans')
-        .select('*')
-        .eq('application_id', applicationId)
-        .order('created_at', { ascending: false })
+      const result = await apiClient.request<{ data: any[] }>(
+        `/applications/${applicationId}?action=improvement-plans`
+      )
       
-      if (error) {
-        console.error('Error fetching improvement plan history:', error)
-        return []
-      }
-      
-      return data?.map(this.parseImprovementPlan) || []
-      
+      return result?.data?.map(this.parseImprovementPlan) || []
     } catch (error) {
       console.error('Error fetching improvement plan history:', error)
       return []
@@ -133,25 +118,12 @@ export class AlternativePathwayService {
    * Get pathway recommendations history
    */
   async getPathwayRecommendationsHistory(applicationId: string): Promise<AlternativePathway[]> {
-    if (!isSupabaseConfigured) {
-      return []
-    }
-    
     try {
-      const { data, error } = await supabase
-        .from('pathway_recommendations')
-        .select('*')
-        .eq('application_id', applicationId)
-        .order('created_at', { ascending: false })
-        .limit(10)
+      const result = await apiClient.request<{ data: any[] }>(
+        `/applications/${applicationId}?action=pathway-recommendations`
+      )
       
-      if (error) {
-        console.error('Error fetching pathway recommendations:', error)
-        return []
-      }
-      
-      return data?.map(this.parsePathwayRecommendation) || []
-      
+      return result?.data?.map(this.parsePathwayRecommendation) || []
     } catch (error) {
       console.error('Error fetching pathway recommendations:', error)
       return []
@@ -167,28 +139,18 @@ export class AlternativePathwayService {
     completedActions: string[],
     notes?: string
   ): Promise<boolean> {
-    if (!isSupabaseConfigured) {
-      return false
-    }
-    
     try {
-      const { error } = await supabase
-        .from('improvement_plans')
-        .update({
-          completed_actions: completedActions,
-          progress_notes: notes,
-          updated_at: new Date().toISOString()
+      await apiClient.request(`/applications/${applicationId}?action=update-plan-progress`, {
+        method: 'POST',
+        body: JSON.stringify({
+          planId,
+          completedActions,
+          notes,
+          updatedAt: new Date().toISOString()
         })
-        .eq('id', planId)
-        .eq('application_id', applicationId)
-      
-      if (error) {
-        console.error('Error updating plan progress:', error)
-        return false
-      }
+      })
       
       return true
-      
     } catch (error) {
       console.error('Error updating plan progress:', error)
       return false
@@ -204,36 +166,15 @@ export class AlternativePathwayService {
     progressionRate: number
     averageTimeToCompletion: number
   } | null> {
-    if (!isSupabaseConfigured) {
-      return null
-    }
-    
     try {
-      const { data, error } = await supabase
-        .from('pathway_outcomes')
-        .select('*')
-        .eq('pathway_id', pathwayId)
+      const result = await apiClient.request<{
+        totalStudents: number
+        completionRate: number
+        progressionRate: number
+        averageTimeToCompletion: number
+      }>(`/admin?action=pathway-statistics&pathwayId=${encodeURIComponent(pathwayId)}`)
       
-      if (error || !data) {
-        return null
-      }
-      
-      const totalStudents = data.length
-      const completed = data.filter(d => d.status === 'completed').length
-      const progressed = data.filter(d => d.progressed_to_target).length
-      const completionTimes = data
-        .filter(d => d.completion_time_months)
-        .map(d => d.completion_time_months)
-      
-      return {
-        totalStudents,
-        completionRate: totalStudents > 0 ? (completed / totalStudents) * 100 : 0,
-        progressionRate: completed > 0 ? (progressed / completed) * 100 : 0,
-        averageTimeToCompletion: completionTimes.length > 0 
-          ? completionTimes.reduce((sum, time) => sum + time, 0) / completionTimes.length
-          : 0
-      }
-      
+      return result || null
     } catch (error) {
       console.error('Error fetching pathway statistics:', error)
       return null
@@ -310,14 +251,10 @@ export class AlternativePathwayService {
         created_at: new Date().toISOString()
       }))
       
-      const { error } = await supabase
-        .from('pathway_recommendations')
-        .insert(records)
-      
-      if (error) {
-        console.error('Error storing pathway recommendations:', error)
-      }
-      
+      await apiClient.request(`/applications/${applicationId}?action=store-pathway-recommendations`, {
+        method: 'POST',
+        body: JSON.stringify({ records })
+      })
     } catch (error) {
       console.error('Error storing pathway recommendations:', error)
     }
@@ -328,35 +265,27 @@ export class AlternativePathwayService {
     plan: PersonalizedImprovementPlan
   ): Promise<void> {
     try {
-      const record = {
-        application_id: applicationId,
-        student_id: plan.studentId,
-        target_program: plan.targetProgram,
-        current_status: plan.currentStatus,
-        recommended_pathways: plan.recommendedPathways,
-        short_term_actions: plan.shortTermActions,
-        long_term_strategy: plan.longTermStrategy,
-        support_resources: plan.supportResources,
-        review_schedule: plan.reviewSchedule,
-        plan_data: plan,
-        created_at: new Date().toISOString()
-      }
-      
-      const { error } = await supabase
-        .from('improvement_plans')
-        .insert([record])
-      
-      if (error) {
-        console.error('Error storing improvement plan:', error)
-      }
-      
+      await apiClient.request(`/applications/${applicationId}?action=store-improvement-plan`, {
+        method: 'POST',
+        body: JSON.stringify({
+          student_id: plan.studentId,
+          target_program: plan.targetProgram,
+          current_status: plan.currentStatus,
+          recommended_pathways: plan.recommendedPathways,
+          short_term_actions: plan.shortTermActions,
+          long_term_strategy: plan.longTermStrategy,
+          support_resources: plan.supportResources,
+          review_schedule: plan.reviewSchedule,
+          plan_data: plan,
+          created_at: new Date().toISOString()
+        })
+      })
     } catch (error) {
       console.error('Error storing improvement plan:', error)
     }
   }
   
   private parseImprovementPlan(data: any): PersonalizedImprovementPlan {
-    // Parse stored JSON data back to typed objects
     return {
       studentId: data.student_id,
       targetProgram: data.target_program,

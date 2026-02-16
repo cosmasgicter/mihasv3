@@ -5,7 +5,7 @@
  * @deprecated This module uses the deprecated Supabase stub.
  * TODO: Migrate to API endpoints when eligibility engine is reactivated.
  */
-import { supabase, isSupabaseConfigured } from './supabase'
+import { apiClient } from '@/services/client'
 import type { EnhancedEligibilityResult, SubjectGrade as LegacySubjectGrade } from './eligibility'
 import { checkEnhancedEligibility } from './eligibility'
 import { regulatoryEngine } from './regulatoryGuidelines'

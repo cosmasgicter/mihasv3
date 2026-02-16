@@ -1,8 +1,8 @@
 // @ts-nocheck
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { useQueryClient, QueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
+import { apiClient } from '@/services/client'
 import { ApplicationFilters, DEFAULT_APPLICATION_FILTERS } from './useApplicationFilters'
 import { calculatePointsFromSummary } from '@/utils/grades'
 
@@ -39,7 +39,6 @@ interface ApplicationSummary {
   points: number
   age: number
   days_since_submission: number
-  // Draft-specific fields
   isDraft: boolean
   completionPercentage: number
   lastUpdated: string
@@ -57,30 +56,14 @@ const DEFAULT_PAGE_SIZE = 25
 
 type LoadMode = 'initial' | 'loadMore' | 'refresh'
 
-const sanitizeSearchTerm = (value: string) => {
-  return value
-    .trim()
-    .replace(/[%_]/g, match => `\\${match}`)
-    .replace(/,/g, '\\,')
-}
-
 // Calculate completion percentage for draft applications
 const calculateCompletionPercentage = (application: any): number => {
   if (application.status !== 'draft') return 100
   
   const requiredFields = [
-    'full_name',
-    'date_of_birth',
-    'sex',
-    'phone',
-    'email',
-    'residence_town',
-    'program',
-    'intake',
-    'institution',
-    'result_slip_url',
-    'payment_method',
-    'amount'
+    'full_name', 'date_of_birth', 'sex', 'phone', 'email',
+    'residence_town', 'program', 'intake', 'institution',
+    'result_slip_url', 'payment_method', 'amount'
   ]
   
   const completedFields = requiredFields.filter(field => {
@@ -91,7 +74,7 @@ const calculateCompletionPercentage = (application: any): number => {
   return Math.round((completedFields.length / requiredFields.length) * 100)
 }
 
-const mapSupabaseApplication = (row: any): ApplicationSummary => ({
+const mapApplicationRow = (row: any): ApplicationSummary => ({
   id: row.id,
   application_number: row.application_number ?? '',
   full_name: row.full_name ?? '',
@@ -124,14 +107,12 @@ const mapSupabaseApplication = (row: any): ApplicationSummary => ({
   points: Number(row.points ?? calculatePointsFromSummary(row.grades_summary)),
   age: Number(row.age ?? 0),
   days_since_submission: Number(row.days_since_submission ?? 0),
-  // Draft-specific fields
   isDraft: row.status === 'draft',
   completionPercentage: calculateCompletionPercentage(row),
   lastUpdated: row.updated_at ?? row.created_at ?? ''
 })
 
 export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLICATION_FILTERS) {
-  // Call useQueryClient at the top level of the hook (not inside callbacks)
   const queryClient = useQueryClient()
   
   const [applications, setApplications] = useState<ApplicationSummary[]>([])
@@ -144,7 +125,6 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
   const [totalCount, setTotalCount] = useState(0)
 
   const filtersRef = useRef<ApplicationFilters>(filters || DEFAULT_APPLICATION_FILTERS)
-  const hydrationPromisesRef = useRef<Map<string, Promise<any>>>(new Map())
 
   useEffect(() => {
     filtersRef.current = filters || DEFAULT_APPLICATION_FILTERS
@@ -152,27 +132,13 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
 
   const hydrateApplicationById = useCallback(async (id: string) => {
     if (!id) return null
-
-    if (hydrationPromisesRef.current.has(id)) {
-      return hydrationPromisesRef.current.get(id)
+    try {
+      const result = await applicationService.getById(id)
+      return result?.application ? mapApplicationRow(result.application) : null
+    } catch (err) {
+      console.error('Failed to hydrate application:', err)
+      return null
     }
-
-    const hydrationPromise = supabase
-      .from('admin_application_detailed')
-      .select('*')
-      .eq('id', id)
-      .single()
-      .then(({ data, error }) => {
-        hydrationPromisesRef.current.delete(id)
-        if (error) throw error
-        return data ? mapSupabaseApplication(data) : null
-      }, error => {
-        hydrationPromisesRef.current.delete(id)
-        throw error
-      })
-
-    hydrationPromisesRef.current.set(id, hydrationPromise)
-    return hydrationPromise
   }, [])
 
   const loadPage = useCallback(async (page: number, mode: LoadMode) => {
@@ -182,9 +148,6 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
     const isInitial = mode === 'initial'
     const isLoadMore = mode === 'loadMore'
     const isRefresh = mode === 'refresh'
-
-    const from = isRefresh ? 0 : (safePage - 1) * pageSize
-    const to = isRefresh ? (safePage * pageSize) - 1 : from + pageSize - 1
 
     try {
       setError('')
@@ -198,50 +161,41 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
         setIsRefreshing(true)
       }
 
-      let query = supabase
-        .from('admin_application_detailed')
-        .select('*', { count: 'exact' })
+      // Build query params for applicationService
+      const params: Record<string, any> = {
+        page: isRefresh ? 1 : safePage,
+        pageSize: isRefresh ? (safePage * pageSize) : pageSize,
+        sortBy: 'date',
+        sortOrder: 'desc',
+      }
 
       if (activeFilters.searchTerm) {
-        const searchValue = sanitizeSearchTerm(activeFilters.searchTerm)
-        const pattern = `%${searchValue}%`
-        query = query.or(
-          `full_name.ilike.${pattern},email.ilike.${pattern},application_number.ilike.${pattern}`
-        )
+        params.search = activeFilters.searchTerm.trim()
       }
-
       if (activeFilters.statusFilter) {
-        query = query.eq('status', activeFilters.statusFilter)
+        params.status = activeFilters.statusFilter
       }
-
       if (activeFilters.paymentFilter) {
-        query = query.eq('payment_status', activeFilters.paymentFilter)
+        params.payment = activeFilters.paymentFilter
       }
-
       if (activeFilters.programFilter) {
-        query = query.eq('program', activeFilters.programFilter)
+        params.program = activeFilters.programFilter
       }
-
       if (activeFilters.institutionFilter) {
-        query = query.eq('institution', activeFilters.institutionFilter)
+        params.institution = activeFilters.institutionFilter
       }
-
-      // Apply draft filter
       if (activeFilters.draftFilter === 'drafts') {
-        query = query.eq('status', 'draft')
+        params.status = 'draft'
       } else if (activeFilters.draftFilter === 'completed') {
-        query = query.neq('status', 'draft')
+        params.excludeStatus = 'draft'
       }
-      // 'all' shows both drafts and completed (no additional filter needed)
 
-      const { data, error: queryError, count } = await query
-        .order('created_at', { ascending: false })
-        .range(Math.max(from, 0), Math.max(to, Math.max(from, 0)))
+      const result = await applicationService.list(params)
+      const data = result?.applications ?? []
+      const count = result?.totalCount ?? 0
 
-      if (queryError) throw queryError
-
-      const mapped = (data || []).map(mapSupabaseApplication)
-      setTotalCount(count ?? 0)
+      const mapped = data.map(mapApplicationRow)
+      setTotalCount(count)
 
       if (isLoadMore) {
         setApplications(prev => {
@@ -250,28 +204,19 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
           return [...prev, ...newRecords]
         })
         setCurrentPage(safePage)
-      } else if (isRefresh) {
-        setApplications(mapped)
       } else {
         setApplications(mapped)
-        setCurrentPage(safePage)
+        if (!isRefresh) setCurrentPage(safePage)
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load applications.')
-
       if (mode === 'loadMore') {
         setCurrentPage(prev => Math.max(prev - 1, 1))
       }
     } finally {
-      if (isInitial) {
-        setIsInitialLoading(false)
-      }
-      if (isLoadMore) {
-        setIsLoadingMore(false)
-      }
-      if (isRefresh) {
-        setIsRefreshing(false)
-      }
+      if (isInitial) setIsInitialLoading(false)
+      if (isLoadMore) setIsLoadingMore(false)
+      if (isRefresh) setIsRefreshing(false)
     }
   }, [filters, pageSize])
 
@@ -284,12 +229,8 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
 
   const loadNextPage = useCallback(async () => {
     if (isLoadingMore || isInitialLoading) return
-
-    const totalLoaded = applications.length
-    if (totalCount !== 0 && totalLoaded >= totalCount) return
-
-    const nextPage = currentPage + 1
-    await loadPage(nextPage, 'loadMore')
+    if (totalCount !== 0 && applications.length >= totalCount) return
+    await loadPage(currentPage + 1, 'loadMore')
   }, [applications.length, currentPage, isInitialLoading, isLoadingMore, loadPage, totalCount])
 
   const refreshCurrentPage = useCallback(async () => {
@@ -309,31 +250,20 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
   }), [applications.length, currentPage, pageSize, totalCount])
 
   const updateStatus = useCallback(async (applicationId: string, newStatus: string) => {
-    // Store previous state for rollback
     const previousApplications = applications
-    
     try {
-      // Optimistic update - update local state immediately
       setApplications(prev => prev.map(app => 
         app.id === applicationId ? { ...app, status: newStatus } : app
       ))
-      
-      // Make the API call
       await applicationService.updateStatus(applicationId, newStatus)
-      
-      // Invalidate queries to refresh data from server
-      // Using Promise.allSettled to ensure all invalidations are attempted
       await Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: ['applications'] }),
         queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
         queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] })
       ])
-      
-      // Refresh current page to get latest data
       await loadPage(currentPage, 'refresh')
     } catch (error) {
       console.error('Failed to update status:', error)
-      // Revert optimistic update on error
       setApplications(previousApplications)
       throw error
     }
@@ -344,30 +274,20 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
     newPaymentStatus: string,
     verificationNotes?: string
   ) => {
-    // Store previous state for rollback
     const previousApplications = applications
-    
     try {
-      // Optimistic update - update local state immediately
       setApplications(prev => prev.map(app => 
         app.id === applicationId ? { ...app, payment_status: newPaymentStatus } : app
       ))
-      
-      // Make the API call
       await applicationService.updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes)
-      
-      // Invalidate queries to refresh data from server
       await Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: ['applications'] }),
         queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
         queryClient.invalidateQueries({ queryKey: ['payment-status'] })
       ])
-      
-      // Refresh current page to get latest data
       await loadPage(currentPage, 'refresh')
     } catch (error) {
       console.error('Failed to update payment status:', error)
-      // Revert optimistic update on error
       setApplications(previousApplications)
       throw error
     }

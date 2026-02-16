@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { documentService } from '@/services/documents'
+import { apiClient } from '@/services/client'
 import { CACHE_CONFIG } from './useSupabaseQuery'
 
 export const useStorageUpload = (bucket: string) => {
@@ -7,9 +8,12 @@ export const useStorageUpload = (bucket: string) => {
   
   return useMutation({
     mutationFn: async ({ path, file }: { path: string; file: File }) => {
-      const { data, error } = await supabase.storage.from(bucket).upload(path, file)
-      if (error) throw error
-      return data
+      const result = await documentService.upload({
+        file,
+        fileType: path.split('.').pop() || 'unknown',
+        applicationId: bucket, // bucket maps to applicationId context
+      })
+      return result
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['storage', bucket] })
@@ -21,9 +25,8 @@ export const useStorageDownload = (bucket: string, path: string, enabled = true)
   return useQuery({
     queryKey: ['storage', bucket, path],
     queryFn: async () => {
-      const { data, error } = await supabase.storage.from(bucket).download(path)
-      if (error) throw error
-      return data
+      const result = await apiClient.request<Blob>(`/documents?action=download&bucket=${encodeURIComponent(bucket)}&path=${encodeURIComponent(path)}`)
+      return result
     },
     enabled,
     ...CACHE_CONFIG.static
@@ -34,9 +37,10 @@ export const useStorageList = (bucket: string, path?: string) => {
   return useQuery({
     queryKey: ['storage', bucket, 'list', path],
     queryFn: async () => {
-      const { data, error } = await supabase.storage.from(bucket).list(path)
-      if (error) throw error
-      return data
+      const params = new URLSearchParams({ action: 'list', bucket })
+      if (path) params.set('path', path)
+      const result = await apiClient.request<unknown[]>(`/documents?${params.toString()}`)
+      return result ?? []
     },
     ...CACHE_CONFIG.static
   })
@@ -47,9 +51,11 @@ export const useStorageDelete = (bucket: string) => {
   
   return useMutation({
     mutationFn: async (paths: string[]) => {
-      const { data, error } = await supabase.storage.from(bucket).remove(paths)
-      if (error) throw error
-      return data
+      const result = await apiClient.request('/documents?action=delete', {
+        method: 'POST',
+        body: JSON.stringify({ bucket, paths })
+      })
+      return result
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['storage', bucket] })

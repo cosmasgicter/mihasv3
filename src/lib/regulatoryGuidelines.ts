@@ -204,31 +204,19 @@ export class RegulatoryComplianceEngine {
     compliance_level?: string
   }): Promise<RegulatoryGuideline[]> {
     try {
-      const { supabase } = await import('./supabase')
-      let queryBuilder = supabase.from('regulatory_guidelines').select('*')
+      const { apiClient } = await import('@/services/client')
+      const params = new URLSearchParams()
+      params.set('type', 'regulatory_guidelines')
+      if (query.trim()) params.set('search', query.trim())
+      if (filters?.regulatory_body) params.set('regulatory_body', filters.regulatory_body)
+      if (filters?.program_code) params.set('program_code', filters.program_code)
+      if (filters?.compliance_level) params.set('compliance_level', filters.compliance_level)
       
-      // Apply filters
-      if (filters?.regulatory_body) {
-        queryBuilder = queryBuilder.eq('regulatory_body', filters.regulatory_body)
-      }
+      const result = await apiClient.request<{ data?: RegulatoryGuideline[] }>(
+        `/catalog?${params.toString()}`
+      )
       
-      if (filters?.program_code) {
-        queryBuilder = queryBuilder.eq('program_code', filters.program_code)
-      }
-      
-      if (filters?.compliance_level) {
-        queryBuilder = queryBuilder.eq('compliance_level', filters.compliance_level)
-      }
-      
-      // Apply text search
-      if (query.trim()) {
-        queryBuilder = queryBuilder.or(`program_name.ilike.%${query}%,requirement_text.ilike.%${query}%,regulatory_body.ilike.%${query}%`)
-      }
-      
-      const { data, error } = await queryBuilder.order('regulatory_body').order('program_name')
-      
-      if (error) throw error
-      return data || []
+      return result?.data ?? []
     } catch (error) {
       console.error('Error searching guidelines:', error)
       return this.searchGuidelinesLocal(query, filters)

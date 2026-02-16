@@ -2,7 +2,7 @@
  * CRITICAL: Enhanced Authentication Security
  * Uses HTTP-only cookie authentication
  */
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
 import { sanitizeForLog } from './security'
 
 export interface AuthValidationResult {

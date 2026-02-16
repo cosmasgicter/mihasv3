@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import { logger } from '@/utils/logger'
 import { normalizeSearchTerm, validateSearchTerm } from '../utils/trackerUtils'
 
@@ -47,13 +47,15 @@ export const useApplicationTracker = () => {
       setError('')
       setApplication(null)
 
-      const { data, error: searchError } = await supabase
-        .from('public_application_status')
-        .select('public_tracking_code, application_number, status, payment_status, submitted_at, updated_at, program_name, intake_name, institution, full_name, email, phone, admin_feedback, admin_feedback_date')
-        .or(`application_number.eq."${normalizedTerm}",public_tracking_code.eq."${normalizedTerm}"`)
-        .maybeSingle()
+      const result = await apiClient.request<{
+        success?: boolean
+        application?: PublicApplicationStatus
+        applications?: PublicApplicationStatus[]
+        data?: PublicApplicationStatus
+      }>(`/applications?tracking_code=${encodeURIComponent(normalizedTerm)}`)
 
-      if (searchError) throw searchError
+      // Handle various response shapes from the API
+      const data = result?.application ?? result?.data ?? (result?.applications?.[0]) ?? null
 
       if (!data) {
         setError('Application not found. Please check your application number or tracking code.')

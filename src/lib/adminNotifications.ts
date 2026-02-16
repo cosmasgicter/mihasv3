@@ -1,5 +1,7 @@
 // @ts-nocheck
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
+import { applicationService } from '@/services/applications'
+import { notificationService } from '@/services/notifications'
 import { NotificationService } from './notificationService'
 import { EmailService } from './emailService'
 import type { NotificationResult, BroadcastResult } from '@/types/notifications'
@@ -11,39 +13,11 @@ export class AdminNotificationService {
     adminUserId: string
   ): Promise<NotificationResult> {
     try {
-      // Fetch application first
-      const { data: application, error: applicationError } = await supabase
-        .from('applications')
-        .select('*')
-        .eq('id', applicationId)
-        .single()
+      // Update application status via API
+      const result = await applicationService.updateStatus(applicationId, newStatus)
 
-      if (applicationError || !application) {
-        return { success: false, error: 'Application not found' }
-      }
-
-      // Then fetch user by application.user_id
-      const { data: user, error: userError } = await supabase
-        .from('profiles')
-        .select('full_name, email')
-        .eq('id', application.user_id)
-        .single()
-
-      if (userError || !user) {
-        return { success: false, error: 'User not found' }
-      }
-
-      // Update application status (this will trigger the database trigger)
-      const { error: updateError } = await supabase
-        .from('applications')
-        .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', applicationId)
-
-      if (updateError) {
-        return { success: false, error: updateError.message }
+      if (!result) {
+        return { success: false, error: 'Failed to update application status' }
       }
 
       // The database trigger will automatically:
@@ -93,43 +67,33 @@ export class AdminNotificationService {
     targetRole: 'student' | 'all' = 'student'
   ): Promise<BroadcastResult> {
     try {
-      let query = supabase.from('profiles').select('user_id')
-      
-      if (targetRole === 'student') {
-        query = query.eq('role', 'student')
-      }
+      // Use admin API to get users and send broadcast
+      const result = await apiClient.request<{ users?: Array<{ id: string }> }>(
+        `/admin?action=users&role=${targetRole === 'all' ? '' : targetRole}`
+      )
 
-      const { data: users, error: usersError } = await query
+      const users = result?.users ?? []
 
-      if (usersError) {
-        return { success: false, sent: 0, error: usersError.message }
-      }
-
-      if (!users || users.length === 0) {
+      if (users.length === 0) {
         return { success: false, sent: 0, error: 'No users found' }
       }
 
-      // Process in batches to prevent memory issues
-      const BATCH_SIZE = 100
+      // Send notifications via notification service
       let totalSent = 0
+      const BATCH_SIZE = 100
 
       for (let i = 0; i < users.length; i += BATCH_SIZE) {
         const batch = users.slice(i, i + BATCH_SIZE)
-        const notifications = batch.map(user => ({
-          user_id: user.user_id,
-          title,
-          content,
-          type,
-          read: false
-        }))
-
-        const { error: insertError } = await supabase
-          .from('in_app_notifications')
-          .insert(notifications)
-
-        if (insertError) {
-          return { success: false, sent: totalSent, error: insertError.message }
-        }
+        
+        await Promise.all(
+          batch.map(user =>
+            notificationService.send({
+              to: user.id,
+              subject: title,
+              message: content
+            }).catch(() => false)
+          )
+        )
 
         totalSent += batch.length
       }

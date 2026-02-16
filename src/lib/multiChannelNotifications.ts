@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import { sanitizeForLog } from '@/lib/security'
 import { getApiBaseUrl } from '@/lib/apiConfig'
 import { notificationService } from '@/services/notifications'
@@ -94,30 +94,35 @@ export class MultiChannelNotificationService {
   }
 
   async sendProactiveReminder(userId: string, applicationId: string): Promise<void> {
-    const { data: application } = await supabase
-      .from('applications')
-      .select('*')
-      .eq('id', applicationId)
-      .single()
+    try {
+      const result = await apiClient.request<{ application?: any }>(
+        `/applications?id=${applicationId}`
+      )
+      const application = result?.application
 
-    if (!application) return
+      if (!application) return
 
-    const reminders = this.generateProactiveReminders(application)
-    
-    for (const reminder of reminders) {
-      await this.sendNotification(userId, reminder.type, {
-        ...reminder.data,
-        application_id: applicationId
-      })
+      const reminders = this.generateProactiveReminders(application)
+      
+      for (const reminder of reminders) {
+        await this.sendNotification(userId, reminder.type, {
+          ...reminder.data,
+          application_id: applicationId
+        })
+      }
+    } catch {
+      // Non-critical — silently fail
     }
   }
 
   private async getUserPreferences(userId: string): Promise<NotificationPreferences> {
-    const { data } = await supabase
-      .from('user_notification_preferences')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle()
+    let data: any = null
+    try {
+      const result = await notificationService.getPreferences()
+      data = result
+    } catch {
+      // Fall through to defaults
+    }
 
     const defaults: NotificationPreferences = {
       channels: this.ensureChannelDefaults(),
@@ -367,35 +372,16 @@ export class MultiChannelNotificationService {
 
   private async sendEmail(userId: string, subject: string, content: string): Promise<boolean> {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('id', userId)
-        .single()
-
-      if (error) {
-        console.error('Email lookup failed:', {
-          userId: sanitizeForLog(userId),
-          error: sanitizeForLog(error.message || 'Unknown error')
-        })
-        return false
-      }
-
-      const recipientEmail = data?.email?.trim()
-
-      if (!recipientEmail) {
-        return false
-      }
-
+      // Send email via notification service — it handles user lookup internally
       const success = await notificationService.send({
-        to: recipientEmail,
+        to: userId,
         subject,
         message: content
       })
 
       if (!success) {
         console.error('Email queue request failed:', {
-          to: sanitizeForLog(recipientEmail),
+          userId: sanitizeForLog(userId),
           subject: sanitizeForLog(subject)
         })
       }
@@ -434,17 +420,12 @@ export class MultiChannelNotificationService {
 
   private async sendInAppNotification(userId: string, title: string, content: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('in_app_notifications')
-        .insert({
-          user_id: userId,
-          title,
-          content,
-          type: 'info',
-          read: false
-        })
-
-      return !error
+      const success = await notificationService.send({
+        to: userId,
+        subject: title,
+        message: content
+      })
+      return success
     } catch (error) {
       const sanitizedError = error instanceof Error ? error.message : 'Unknown error'
       console.error('In-app notification failed:', sanitizedError)
@@ -511,21 +492,25 @@ export class MultiChannelNotificationService {
       }
     })
 
-    const { error } = await supabase
-      .from('notification_logs')
-      .insert({
-        user_id: userId,
-        type,
-        channels,
-        success_count: successCount,
-        total_count: results.length,
-        sent_at: new Date().toISOString(),
-        channel_statuses: channelStatuses,
-        provider_message_ids: providerMessageIds
-      })
+    const logPayload = {
+      user_id: userId,
+      type,
+      channels,
+      success_count: successCount,
+      total_count: results.length,
+      sent_at: new Date().toISOString(),
+      channel_statuses: channelStatuses,
+      provider_message_ids: providerMessageIds
+    }
 
-    if (error) {
-      const sanitizedError = error.message || 'Unknown error'
+    try {
+      // Fire-and-forget — notification logging is non-critical
+      await apiClient.request('/admin?action=notification-log', {
+        method: 'POST',
+        body: JSON.stringify(logPayload)
+      })
+    } catch (error) {
+      const sanitizedError = error instanceof Error ? error.message : 'Unknown error'
       console.error('Failed to log notification:', sanitizedError)
     }
   }
