@@ -458,9 +458,9 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const token = extractAccessTokenFromCookie(req);
+  const token = extractAccessTokenFromCookie(req) || extractBearerToken(req);
   if (!token) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED, 'AUTHENTICATION_REQUIRED');
   }
 
   try {
@@ -548,9 +548,16 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
     }
 
     return sendSuccess(res, result.rows[0]);
-  } catch {
-    clearAuthCookies(res);
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  } catch (error) {
+    // Only clear cookies and return 401 for actual auth errors
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('expired') || msg.includes('signature') || msg.includes('invalid')) {
+      clearAuthCookies(res);
+      return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED, 'AUTHENTICATION_REQUIRED');
+    }
+    // For other errors (e.g., database), return 500
+    console.error('[AUTH] Profile error:', msg);
+    return sendError(res, 'Internal error', HttpStatus.INTERNAL_SERVER_ERROR, 'INTERNAL_ERROR');
   }
 }
 
