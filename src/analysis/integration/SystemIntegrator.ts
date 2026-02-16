@@ -226,40 +226,10 @@ export class SystemIntegrator {
     }
 
     try {
-      const { multiChannelNotifications } = await import('../../lib/multiChannelNotifications');
-      
-      // Get all admin users
-      const { supabase } = await import('../../lib/supabase');
-      const { data: admins } = await supabase
-        .from('profiles')
-        .select('id')
-        .in('role', ['admin', 'super_admin']);
-
-      if (!admins || admins.length === 0) {
-        console.warn('No administrators found to notify');
-        return false;
-      }
-
-      // Send notifications to all admins
-      const notificationPromises = admins.map(admin =>
-        multiChannelNotifications.sendNotification(
-          admin.id,
-          'system_alert',
-          {
-            title,
-            message,
-            severity,
-            timestamp: new Date().toISOString()
-          },
-          severity === 'critical' ? ['email', 'sms', 'in_app'] : ['email', 'in_app']
-        )
-      );
-
-      const results = await Promise.all(notificationPromises);
-      const successCount = results.filter(r => r).length;
-
-      console.log(`Notified ${successCount}/${admins.length} administrators`);
-      return successCount > 0;
+      // Admin notification via API (Supabase removed)
+      // TODO: Replace with API call to fetch admin users
+      console.warn('Admin notification skipped - needs API migration');
+      return false;
     } catch (error) {
       console.error('Failed to notify administrators:', error);
       return false;
