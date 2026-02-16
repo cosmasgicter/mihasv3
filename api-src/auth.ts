@@ -469,18 +469,18 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
     if (req.method === 'GET') {
       const result = await query<{
         id: string;
-        full_name: string | null;
+        first_name: string | null;
+        last_name: string | null;
         email: string | null;
         phone: string | null;
         role: UserRole;
         date_of_birth: string | null;
-        sex: string | null;
-        residence_town: string | null;
         nationality: string | null;
-        next_of_kin_name: string | null;
-        next_of_kin_phone: string | null;
+        nrc_number: string | null;
+        address: string | null;
+        avatar_url: string | null;
       }>(
-        `SELECT id, full_name, email, phone, role, date_of_birth, sex, residence_town, nationality, next_of_kin_name, next_of_kin_phone
+        `SELECT id, first_name, last_name, email, phone, role, date_of_birth, nationality, nrc_number, address, avatar_url
          FROM profiles WHERE id = $1 LIMIT 1`,
         [payload.sub]
       );
@@ -494,14 +494,14 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
     }
 
     const allowedFields = [
-      'full_name',
+      'first_name',
+      'last_name',
       'phone',
       'date_of_birth',
-      'sex',
-      'residence_town',
       'nationality',
-      'next_of_kin_name',
-      'next_of_kin_phone',
+      'nrc_number',
+      'address',
+      'avatar_url',
     ] as const;
 
     type AllowedField = typeof allowedFields[number];
@@ -525,21 +525,21 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
 
     const result = await query<{
       id: string;
-      full_name: string | null;
+      first_name: string | null;
+      last_name: string | null;
       email: string | null;
       phone: string | null;
       role: UserRole;
       date_of_birth: string | null;
-      sex: string | null;
-      residence_town: string | null;
       nationality: string | null;
-      next_of_kin_name: string | null;
-      next_of_kin_phone: string | null;
+      nrc_number: string | null;
+      address: string | null;
+      avatar_url: string | null;
     }>(
       `UPDATE profiles
        SET ${setClauses.join(', ')}, updated_at = NOW()
        WHERE id = $${providedFields.length + 1}
-       RETURNING id, full_name, email, phone, role, date_of_birth, sex, residence_town, nationality, next_of_kin_name, next_of_kin_phone`,
+       RETURNING id, first_name, last_name, email, phone, role, date_of_birth, nationality, nrc_number, address, avatar_url`,
       values
     );
 

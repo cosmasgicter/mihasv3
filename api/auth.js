@@ -1279,7 +1279,7 @@ async function handleProfile(req, res) {
   try {
     const payload = await verifyAccessToken(token);
     if (req.method === "GET") {
-      const result2 = await query(`SELECT id, full_name, email, phone, role, date_of_birth, sex, residence_town, nationality, next_of_kin_name, next_of_kin_phone
+      const result2 = await query(`SELECT id, first_name, last_name, email, phone, role, date_of_birth, nationality, nrc_number, address, avatar_url
          FROM profiles WHERE id = $1 LIMIT 1`, [payload.sub]);
       if (result2.rows.length === 0) {
         clearAuthCookies(res);
@@ -1288,14 +1288,14 @@ async function handleProfile(req, res) {
       return sendSuccess(res, result2.rows[0]);
     }
     const allowedFields = [
-      "full_name",
+      "first_name",
+      "last_name",
       "phone",
       "date_of_birth",
-      "sex",
-      "residence_town",
       "nationality",
-      "next_of_kin_name",
-      "next_of_kin_phone"
+      "nrc_number",
+      "address",
+      "avatar_url"
     ];
     const isAllowedField = (key) => allowedFields.includes(key);
     const updates = req.body || {};
@@ -1312,7 +1312,7 @@ async function handleProfile(req, res) {
     const result = await query(`UPDATE profiles
        SET ${setClauses.join(", ")}, updated_at = NOW()
        WHERE id = $${providedFields.length + 1}
-       RETURNING id, full_name, email, phone, role, date_of_birth, sex, residence_town, nationality, next_of_kin_name, next_of_kin_phone`, values);
+       RETURNING id, first_name, last_name, email, phone, role, date_of_birth, nationality, nrc_number, address, avatar_url`, values);
     if (result.rows.length === 0) {
       return sendError(res, "Profile not found", HttpStatus.NOT_FOUND);
     }
