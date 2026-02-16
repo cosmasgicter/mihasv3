@@ -158,18 +158,8 @@ function calculatePercentile(values: number[], percentile: number): number {
 }
 
 async function defaultGetAccessToken(): Promise<string | null> {
-  try {
-    const module = await import('./supabase')
-    const getClient = (module as any).getSupabaseClient ?? (module as any).createSupabaseClient
-    if (!getClient) {
-      return null
-    }
-    const client = getClient()
-    const { data } = await client.auth.getSession()
-    return data?.session?.access_token ?? null
-  } catch (error) {
-    return null
-  }
+  // Auth uses HTTP-only cookies now — no client-side token access needed
+  return null
 }
 
 class HttpTelemetrySink implements TelemetrySink {
