@@ -58,35 +58,47 @@ export function useStudentDashboardPolling(
   const queryClient = useQueryClient()
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const previousAppsRef = useRef<StudentApplication[]>([])
+  const onDataChangeRef = useRef<typeof onDataChange>(onDataChange)
+  const onApplicationChangeRef = useRef<typeof onApplicationChange>(onApplicationChange)
+
+  useEffect(() => {
+    onDataChangeRef.current = onDataChange
+  }, [onDataChange])
+
+  useEffect(() => {
+    onApplicationChangeRef.current = onApplicationChange
+  }, [onApplicationChange])
 
   const fetchData = useCallback(async (): Promise<StudentDashboardData> => {
     if (!user?.id) {
       return { applications: [] }
     }
 
-    try {
-      const result = await applicationService.list({
-        page: 0,
-        pageSize: 50,
-        sortBy: 'date',
-        sortOrder: 'desc',
-        mine: true,
-      })
+    const result = await applicationService.list({
+      page: 0,
+      pageSize: 50,
+      sortBy: 'date',
+      sortOrder: 'desc',
+      mine: true,
+    })
 
-      const applications = (result?.applications || []).map((app: any) => ({
-        id: app.id,
-        application_number: app.application_number,
-        status: app.status,
-        program: app.program,
-        created_at: app.created_at,
-        updated_at: app.updated_at,
-        payment_status: app.payment_status,
-      }))
+    const applications = (result?.applications || []).map((app) => ({
+      id: app.id ?? '',
+      application_number: app.application_number ?? '',
+      status: app.status ?? '',
+      program: app.program ?? '',
+      created_at: app.created_at ?? '',
+      updated_at: app.updated_at ?? '',
+      payment_status: app.payment_status ?? '',
+    }))
 
-      return { applications }
-    } catch {
-      return { applications: [] }
-    }
+    return { applications }
+  }, [user?.id])
+
+
+  useEffect(() => {
+    previousAppsRef.current = []
+    setLastUpdated(null)
   }, [user?.id])
 
   const query = useQuery({
@@ -102,19 +114,19 @@ export function useStudentDashboardPolling(
     if (!query.data) return
 
     setLastUpdated(new Date())
-    onDataChange?.(query.data)
+    onDataChangeRef.current?.(query.data)
 
-    if (onApplicationChange && previousAppsRef.current.length > 0) {
+    if (onApplicationChangeRef.current && previousAppsRef.current.length > 0) {
       for (const app of query.data.applications) {
         const prev = previousAppsRef.current.find((p) => p.id === app.id)
         if (prev && prev.status !== app.status) {
-          onApplicationChange(app)
+          onApplicationChangeRef.current(app)
         }
       }
     }
 
     previousAppsRef.current = query.data.applications
-  }, [query.data]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [query.data])
 
   const refresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling', user?.id] })
