@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import { Application, Program, Intake } from '@/lib/supabase'
+import type { Application, Program, Intake } from '@/types/database'
 
 interface ApplicationState {
   applications: Application[]

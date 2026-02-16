@@ -1,5 +1,5 @@
 import { ApplicationFormData, UploadedFile } from '@/forms/applicationSchema'
-import { Application } from '@/lib/supabase'
+import type { Application } from '@/types/database'
 
 export type OfflineRecordType = 'application_draft' | 'document_upload' | 'form_submission'
 

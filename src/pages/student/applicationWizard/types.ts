@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { z } from 'zod'
 
-import type { Institution, Program, Intake } from '@/lib/supabase'
+import type { Institution, Program, Intake } from '@/types/database'
 
 type InstitutionSummary = Pick<Institution, 'id' | 'name' | 'full_name'>
 
