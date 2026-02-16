@@ -10,7 +10,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { sanitizeForDisplay } from '@/lib/sanitize';
 import { preloadDashboardData } from './dashboardPreloader';
-import type { UserProfile } from '@/lib/supabase';
+import type { UserProfile } from '@/types/database';
 
 export interface AuthUser {
   id: string;

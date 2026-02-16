@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import type { ApplicationWithDetails } from '@/lib/supabase'
+import type { ApplicationWithDetails } from '@/types/database'
 import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { UserProfile } from '@/lib/supabase'
+import type { UserProfile } from '@/types/database'
 import { Button } from '@/components/ui/Button'
 import { LoadingState, TableSkeleton, CardSkeleton } from '@/components/ui/LoadingState'
 import { Input } from '@/components/ui/Input'

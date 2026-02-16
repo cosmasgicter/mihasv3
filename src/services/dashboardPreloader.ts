@@ -5,16 +5,16 @@
  * Preloads critical dashboard data during login redirect to improve perceived performance.
  * Requirements: 4.4
  * 
- * @deprecated This module uses the deprecated Supabase stub.
- * TODO: Migrate to API endpoints when dashboard preloader is reactivated.
+ * NOTE: Supabase calls have been removed. The preload functions now return empty data
+ * as no-ops. Full API-based preloading will be implemented in a later migration task.
  */
 
 import { QueryClient } from '@tanstack/react-query'
-import { getSupabaseClient, isSupabaseConfigured, UserProfile } from '@/lib/supabase'
+import type { UserProfile } from '@/types/database'
 import { CACHE_CONFIG } from '@/hooks/queries/useSupabaseQuery'
 
 /**
- * Identify critical dashboard data based on user role
+ * Identify critical dashboard queries based on user role
  */
 export function getCriticalDashboardQueries(role: string): string[] {
   if (role === 'admin' || role === 'super_admin') {
@@ -35,96 +35,29 @@ export function getCriticalDashboardQueries(role: string): string[] {
 
 /**
  * Preload student dashboard data
+ * 
+ * TODO: Replace with API-based preloading (applicationService, notificationService, catalogService)
  */
-async function preloadStudentDashboard(userId: string) {
-  if (!isSupabaseConfigured) {
-    return {}
-  }
-
-  const supabase = getSupabaseClient()
-
-  try {
-    // Fetch critical data in parallel
-    const [applicationsResult, notificationsResult, intakesResult] = await Promise.allSettled([
-      // Student applications
-      supabase
-        .from('applications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(10),
-      
-      // Recent notifications
-      supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_read', false)
-        .order('created_at', { ascending: false })
-        .limit(5),
-      
-      // Active intakes
-      supabase
-        .from('intakes')
-        .select('*')
-        .eq('is_active', true)
-        .order('start_date', { ascending: false })
-        .limit(5)
-    ])
-
-    return {
-      applications: applicationsResult.status === 'fulfilled' ? applicationsResult.value.data : [],
-      notifications: notificationsResult.status === 'fulfilled' ? notificationsResult.value.data : [],
-      intakes: intakesResult.status === 'fulfilled' ? intakesResult.value.data : []
-    }
-  } catch (error) {
-    console.error('Error preloading student dashboard:', error)
-    return {}
+async function preloadStudentDashboard(_userId: string) {
+  // No-op: Supabase calls removed. Full API migration in a later task.
+  return {
+    applications: [],
+    notifications: [],
+    intakes: []
   }
 }
 
 /**
  * Preload admin dashboard data
+ * 
+ * TODO: Replace with API-based preloading (applicationService, apiClient)
  */
 async function preloadAdminDashboard() {
-  if (!isSupabaseConfigured) {
-    return {}
-  }
-
-  const supabase = getSupabaseClient()
-
-  try {
-    // Fetch critical data in parallel
-    const [applicationsResult, statsResult, notificationsResult] = await Promise.allSettled([
-      // Recent applications
-      supabase
-        .from('applications')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20),
-      
-      // Dashboard stats
-      supabase
-        .rpc('get_admin_dashboard_stats')
-        .single(),
-      
-      // System notifications
-      supabase
-        .from('notifications')
-        .select('*')
-        .eq('is_read', false)
-        .order('created_at', { ascending: false })
-        .limit(10)
-    ])
-
-    return {
-      applications: applicationsResult.status === 'fulfilled' ? applicationsResult.value.data : [],
-      stats: statsResult.status === 'fulfilled' ? statsResult.value.data : null,
-      notifications: notificationsResult.status === 'fulfilled' ? notificationsResult.value.data : []
-    }
-  } catch (error) {
-    console.error('Error preloading admin dashboard:', error)
-    return {}
+  // No-op: Supabase calls removed. Full API migration in a later task.
+  return {
+    applications: [],
+    stats: null,
+    notifications: []
   }
 }
 
@@ -231,77 +164,14 @@ export async function preloadDashboardData(
 
 /**
  * Prefetch dashboard queries using React Query
- * Alternative approach using React Query's prefetch API
+ * 
+ * TODO: Replace with API-based prefetching (applicationService, catalogService)
  */
 export async function prefetchDashboardQueries(
-  queryClient: QueryClient,
-  userId: string,
-  role: string
+  _queryClient: QueryClient,
+  _userId: string,
+  _role: string
 ): Promise<void> {
-  if (!isSupabaseConfigured) {
-    return
-  }
-
-  const supabase = getSupabaseClient()
-
-  try {
-    if (role === 'admin' || role === 'super_admin') {
-      // Prefetch admin queries
-      await Promise.allSettled([
-        queryClient.prefetchQuery({
-          queryKey: ['applications'],
-          queryFn: async () => {
-            const { data } = await supabase
-              .from('applications')
-              .select('*')
-              .order('created_at', { ascending: false })
-              .limit(20)
-            return data
-          },
-          staleTime: CACHE_CONFIG.applications.staleTime
-        }),
-        queryClient.prefetchQuery({
-          queryKey: ['dashboard-stats'],
-          queryFn: async () => {
-            const { data } = await supabase.rpc('get_admin_dashboard_stats').single()
-            return data
-          },
-          staleTime: CACHE_CONFIG.analytics.staleTime
-        })
-      ])
-    } else {
-      // Prefetch student queries
-      await Promise.allSettled([
-        queryClient.prefetchQuery({
-          queryKey: ['applications', userId],
-          queryFn: async () => {
-            const { data } = await supabase
-              .from('applications')
-              .select('*')
-              .eq('user_id', userId)
-              .order('created_at', { ascending: false })
-              .limit(10)
-            return data
-          },
-          staleTime: CACHE_CONFIG.applications.staleTime
-        }),
-        queryClient.prefetchQuery({
-          queryKey: ['intakes'],
-          queryFn: async () => {
-            const { data } = await supabase
-              .from('intakes')
-              .select('*')
-              .eq('is_active', true)
-              .order('start_date', { ascending: false })
-              .limit(5)
-            return data
-          },
-          staleTime: CACHE_CONFIG.static.staleTime
-        })
-      ])
-    }
-  } catch (error) {
-    console.error('Error prefetching dashboard queries:', error)
-    // Don't throw - prefetching is optional
-  }
+  // No-op: Supabase calls removed. Full API migration in a later task.
+  return
 }

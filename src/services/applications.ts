@@ -1,4 +1,4 @@
-import type { Application, ApplicationInterview } from '@/lib/supabase'
+import type { Application, ApplicationInterview } from '@/types/database'
 
 import { apiClient, buildQueryString, QueryParams } from './client'
 

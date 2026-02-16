@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
-import { Application } from '@/lib/supabase'
+import type { Application } from '@/types/database'
 import { applicationService } from '@/services/applications'
 import { documentService } from '@/services/documents'
 import { analyticsService } from '@/services/analytics'

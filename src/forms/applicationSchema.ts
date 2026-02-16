@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { z } from 'zod'
-import { Program, Intake } from '@/lib/supabase'
+import type { Program, Intake } from '@/types/database'
 
 export const DEFAULT_PROGRAMS: Program[] = [
   {
