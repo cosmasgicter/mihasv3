@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 
 interface AnalyticsEvent {
   event_type: 'step_enter' | 'step_exit' | 'field_complete' | 'validation_error' | 'save_draft'
@@ -22,16 +22,20 @@ export const useAnalytics = (
 
     const trackEvent = async (event: AnalyticsEvent) => {
       try {
-        await supabase.from('application_analytics').insert({
-          user_id: userId,
-          application_id: applicationId,
-          event_type: event.event_type,
-          step_number: event.step_number ?? currentStep,
-          step_name: event.step_name ?? stepName,
-          event_data: event.event_data || {},
-          time_spent_seconds: Math.floor((Date.now() - stepStartTime.current) / 1000)
+        // Analytics tracking is non-critical — fire-and-forget
+        await apiClient.request('/applications?action=analytics', {
+          method: 'POST',
+          body: JSON.stringify({
+            user_id: userId,
+            application_id: applicationId,
+            event_type: event.event_type,
+            step_number: event.step_number ?? currentStep,
+            step_name: event.step_name ?? stepName,
+            event_data: event.event_data || {},
+            time_spent_seconds: Math.floor((Date.now() - stepStartTime.current) / 1000)
+          })
         })
-      } catch (error) {
+      } catch {
         // Silently fail - analytics should not block user flow
       }
     }
@@ -71,16 +75,19 @@ export const useAnalytics = (
   const trackFieldComplete = async (fieldName: string) => {
     if (!userId) return
     try {
-      await supabase.from('application_analytics').insert({
-        user_id: userId,
-        application_id: applicationId,
-        event_type: 'field_complete',
-        step_number: currentStep,
-        step_name: stepName,
-        event_data: { field: fieldName },
-        time_spent_seconds: Math.floor((Date.now() - stepStartTime.current) / 1000)
+      await apiClient.request('/applications?action=analytics', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: userId,
+          application_id: applicationId,
+          event_type: 'field_complete',
+          step_number: currentStep,
+          step_name: stepName,
+          event_data: { field: fieldName },
+          time_spent_seconds: Math.floor((Date.now() - stepStartTime.current) / 1000)
+        })
       })
-    } catch (error) {
+    } catch {
       // Silently fail - analytics should not block user flow
     }
   }
@@ -88,16 +95,19 @@ export const useAnalytics = (
   const trackValidationError = async (fieldName: string, error: string) => {
     if (!userId) return
     try {
-      await supabase.from('application_analytics').insert({
-        user_id: userId,
-        application_id: applicationId,
-        event_type: 'validation_error',
-        step_number: currentStep,
-        step_name: stepName,
-        event_data: { field: fieldName, error },
-        time_spent_seconds: Math.floor((Date.now() - stepStartTime.current) / 1000)
+      await apiClient.request('/applications?action=analytics', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: userId,
+          application_id: applicationId,
+          event_type: 'validation_error',
+          step_number: currentStep,
+          step_name: stepName,
+          event_data: { field: fieldName, error },
+          time_spent_seconds: Math.floor((Date.now() - stepStartTime.current) / 1000)
+        })
       })
-    } catch (error) {
+    } catch {
       // Silently fail - analytics should not block user flow
     }
   }

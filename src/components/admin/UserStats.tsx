@@ -3,7 +3,7 @@ import { Calendar, Shield, TrendingUp, User, Users } from 'lucide-react'
 
 import { useUserManagement } from '@/hooks/useUserManagement'
 import { sanitizeForDisplay } from '@/lib/sanitize'
-import { UserProfile } from '@/lib/supabase'
+import { UserProfile } from '@/types/database'
 import { UserStatsSummary } from '@/types/users'
 
 interface UserStatsProps {

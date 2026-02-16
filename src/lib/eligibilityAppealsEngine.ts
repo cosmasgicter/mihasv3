@@ -10,7 +10,7 @@
  * administrators.
  */
 
-import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import type { SubjectGrade } from '@/lib/eligibility'
 
 export interface EligibilityAppeal {
@@ -219,9 +219,7 @@ export class EligibilityAppealsEngine {
     }
     
     // Store the appeal
-    if (isSupabaseConfigured) {
-      await this.storeAppeal(appeal)
-    }
+    await this.storeAppeal(appeal)
     
     // Initialize workflow
     await this.initializeReviewWorkflow(appeal.id)
@@ -247,23 +245,11 @@ export class EligibilityAppealsEngine {
    * Get appeal details by ID
    */
   async getAppeal(appealId: string): Promise<EligibilityAppeal | null> {
-    if (!isSupabaseConfigured) {
-      return null
-    }
-    
     try {
-      const { data, error } = await supabase
-        .from('eligibility_appeals')
-        .select('*')
-        .eq('id', appealId)
-        .single()
-      
-      if (error || !data) {
-        return null
-      }
-      
+      const result = await apiClient.request<{ data?: any }>(`/admin?action=appeals&id=${encodeURIComponent(appealId)}`)
+      const data = result?.data
+      if (!data) return null
       return this.parseAppealData(data)
-      
     } catch (error) {
       console.error('Error fetching appeal:', error)
       return null
@@ -274,23 +260,11 @@ export class EligibilityAppealsEngine {
    * Get appeals for a student
    */
   async getStudentAppeals(studentId: string): Promise<EligibilityAppeal[]> {
-    if (!isSupabaseConfigured) {
-      return []
-    }
-    
     try {
-      const { data, error } = await supabase
-        .from('eligibility_appeals')
-        .select('*')
-        .eq('student_id', studentId)
-        .order('created_at', { ascending: false })
-      
-      if (error || !data) {
-        return []
-      }
-      
+      const result = await apiClient.request<{ data?: any[] }>(`/admin?action=appeals&student_id=${encodeURIComponent(studentId)}`)
+      const data = result?.data
+      if (!data) return []
       return data.map(this.parseAppealData)
-      
     } catch (error) {
       console.error('Error fetching student appeals:', error)
       return []
@@ -301,25 +275,11 @@ export class EligibilityAppealsEngine {
    * Get appeals assigned to a reviewer
    */
   async getReviewerAppeals(reviewerId: string): Promise<EligibilityAppeal[]> {
-    if (!isSupabaseConfigured) {
-      return []
-    }
-    
     try {
-      const { data, error } = await supabase
-        .from('eligibility_appeals')
-        .select('*')
-        .eq('assigned_reviewer', reviewerId)
-        .in('status', ['under_review', 'additional_info_required'])
-        .order('priority', { ascending: false })
-        .order('submitted_at', { ascending: true })
-      
-      if (error || !data) {
-        return []
-      }
-      
+      const result = await apiClient.request<{ data?: any[] }>(`/admin?action=appeals&reviewer_id=${encodeURIComponent(reviewerId)}&status=under_review,additional_info_required`)
+      const data = result?.data
+      if (!data) return []
       return data.map(this.parseAppealData)
-      
     } catch (error) {
       console.error('Error fetching reviewer appeals:', error)
       return []
@@ -337,21 +297,21 @@ export class EligibilityAppealsEngine {
       }
       
       // Update appeal assignment
-      if (isSupabaseConfigured) {
-        const { error } = await supabase
-          .from('eligibility_appeals')
-          .update({
+      try {
+        await apiClient.request('/admin?action=appeals', {
+          method: 'POST',
+          body: JSON.stringify({
+            type: 'assign',
+            appeal_id: appealId,
             assigned_reviewer: reviewerId,
             status: 'under_review',
             review_started_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
-          .eq('id', appealId)
-        
-        if (error) {
-          console.error('Error assigning appeal:', error)
-          return false
-        }
+        })
+      } catch (err) {
+        console.error('Error assigning appeal:', err)
+        return false
       }
       
       // Add communication log entry
@@ -401,21 +361,21 @@ export class EligibilityAppealsEngine {
       const previousStatus = appeal.status
       
       // Update appeal status
-      if (isSupabaseConfigured) {
-        const { error } = await supabase
-          .from('eligibility_appeals')
-          .update({
+      try {
+        await apiClient.request('/admin?action=appeals', {
+          method: 'POST',
+          body: JSON.stringify({
+            type: 'update_status',
+            appeal_id: appealId,
             status: newStatus,
             reviewer_notes: notes,
             last_updated_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
-          .eq('id', appealId)
-        
-        if (error) {
-          console.error('Error updating appeal status:', error)
-          return false
-        }
+        })
+      } catch (err) {
+        console.error('Error updating appeal status:', err)
+        return false
       }
       
       // Add communication log entry
@@ -475,22 +435,22 @@ export class EligibilityAppealsEngine {
       const newStatus = decision.outcome === 'approved' ? 'approved' : 'rejected'
       
       // Update appeal with decision
-      if (isSupabaseConfigured) {
-        const { error } = await supabase
-          .from('eligibility_appeals')
-          .update({
+      try {
+        await apiClient.request('/admin?action=appeals', {
+          method: 'POST',
+          body: JSON.stringify({
+            type: 'decision',
+            appeal_id: appealId,
             status: newStatus,
             decision: finalDecision,
             actual_resolution_date: new Date().toISOString(),
             last_updated_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
-          .eq('id', appealId)
-        
-        if (error) {
-          console.error('Error making appeal decision:', error)
-          return false
-        }
+        })
+      } catch (err) {
+        console.error('Error making appeal decision:', err)
+        return false
       }
       
       // Add communication log entry
@@ -554,20 +514,20 @@ export class EligibilityAppealsEngine {
       }]
       
       // Update appeal with new evidence
-      if (isSupabaseConfigured) {
-        const { error } = await supabase
-          .from('eligibility_appeals')
-          .update({
+      try {
+        await apiClient.request('/admin?action=appeals', {
+          method: 'POST',
+          body: JSON.stringify({
+            type: 'add_evidence',
+            appeal_id: appealId,
             supporting_evidence: updatedEvidence,
             last_updated_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
-          .eq('id', appealId)
-        
-        if (error) {
-          console.error('Error adding supporting evidence:', error)
-          return false
-        }
+        })
+      } catch (err) {
+        console.error('Error adding supporting evidence:', err)
+        return false
       }
       
       // Add communication log entry
@@ -601,17 +561,11 @@ export class EligibilityAppealsEngine {
    * Get appeals dashboard metrics
    */
   async getDashboardMetrics(): Promise<AppealsDashboardMetrics> {
-    if (!isSupabaseConfigured) {
-      return this.getDefaultMetrics()
-    }
-    
     try {
-      // Get all appeals data
-      const { data: appeals, error } = await supabase
-        .from('eligibility_appeals')
-        .select('*')
+      const result = await apiClient.request<{ data?: any[] }>('/admin?action=appeals&type=all')
+      const appeals = result?.data
       
-      if (error || !appeals) {
+      if (!appeals) {
         return this.getDefaultMetrics()
       }
       
@@ -662,18 +616,11 @@ export class EligibilityAppealsEngine {
    * Get appeal audit trail
    */
   async getAppealAuditTrail(appealId: string): Promise<AppealDecisionAuditTrail | null> {
-    if (!isSupabaseConfigured) {
-      return null
-    }
-    
     try {
-      const { data, error } = await supabase
-        .from('appeal_audit_trail')
-        .select('*')
-        .eq('appeal_id', appealId)
-        .order('timestamp', { ascending: true })
+      const result = await apiClient.request<{ data?: any[] }>(`/admin?action=appeals&type=audit&appeal_id=${encodeURIComponent(appealId)}`)
+      const data = result?.data
       
-      if (error || !data) {
+      if (!data) {
         return null
       }
       
@@ -759,9 +706,10 @@ export class EligibilityAppealsEngine {
   
   private async storeAppeal(appeal: EligibilityAppeal): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('eligibility_appeals')
-        .insert([{
+      await apiClient.request('/admin?action=appeals', {
+        method: 'POST',
+        body: JSON.stringify({
+          type: 'create',
           id: appeal.id,
           application_id: appeal.applicationId,
           student_id: appeal.studentId,
@@ -779,12 +727,8 @@ export class EligibilityAppealsEngine {
           communication_log: appeal.communicationLog,
           created_at: appeal.createdAt.toISOString(),
           updated_at: appeal.updatedAt.toISOString()
-        }])
-      
-      if (error) {
-        console.error('Error storing appeal:', error)
-      }
-      
+        })
+      })
     } catch (error) {
       console.error('Error storing appeal:', error)
     }
@@ -836,29 +780,22 @@ export class EligibilityAppealsEngine {
   }
   
   private async addAuditEntry(appealId: string, entry: Partial<AppealDecisionAuditTrail['auditEntries'][0]>): Promise<void> {
-    if (!isSupabaseConfigured) return
-    
     try {
-      const auditEntry = {
-        id: this.generateId(),
-        appeal_id: appealId,
-        timestamp: new Date().toISOString(),
-        action: entry.action,
-        performed_by: entry.performedBy,
-        performed_by_role: entry.performedByRole,
-        details: JSON.stringify(entry.details || {}),
-        ip_address: entry.ipAddress,
-        user_agent: entry.userAgent
-      }
-      
-      const { error } = await supabase
-        .from('appeal_audit_trail')
-        .insert([auditEntry])
-      
-      if (error) {
-        console.error('Error adding audit entry:', error)
-      }
-      
+      await apiClient.request('/admin?action=appeals', {
+        method: 'POST',
+        body: JSON.stringify({
+          type: 'audit_entry',
+          id: this.generateId(),
+          appeal_id: appealId,
+          timestamp: new Date().toISOString(),
+          action: entry.action,
+          performed_by: entry.performedBy,
+          performed_by_role: entry.performedByRole,
+          details: JSON.stringify(entry.details || {}),
+          ip_address: entry.ipAddress,
+          user_agent: entry.userAgent
+        })
+      })
     } catch (error) {
       console.error('Error adding audit entry:', error)
     }

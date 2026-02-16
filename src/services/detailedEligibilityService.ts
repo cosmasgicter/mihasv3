@@ -4,6 +4,8 @@
  * 
  * Service layer for integrating detailed eligibility scoring with the application system.
  * Provides methods to calculate, store, and retrieve detailed eligibility assessments.
+ * 
+ * Migrated from Supabase to API client.
  */
 
 import { eligibilityEngine } from '@/lib/eligibilityEngine'
@@ -12,7 +14,7 @@ import {
   type DetailedEligibilityAssessment,
   type ImprovementRecommendation
 } from '@/lib/detailedEligibilityScoring'
-import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import type { SubjectGrade } from '@/lib/eligibility'
 
 export interface EligibilityServiceOptions {
@@ -56,10 +58,8 @@ export class DetailedEligibilityService {
         assessment.alternativePathways = []
       }
       
-      // Save to database if configured
-      if (isSupabaseConfigured) {
-        await this.saveDetailedAssessment(assessment)
-      }
+      // Save to database (fire-and-forget)
+      this.saveDetailedAssessment(assessment).catch(() => {})
       
       return assessment
       
@@ -75,21 +75,12 @@ export class DetailedEligibilityService {
    * Get detailed assessment history for an application
    */
   async getAssessmentHistory(applicationId: string): Promise<DetailedEligibilityAssessment[]> {
-    if (!isSupabaseConfigured) {
-      return []
-    }
-    
     try {
-      const { data, error } = await supabase
-        .from('detailed_eligibility_assessments')
-        .select('*')
-        .eq('application_id', applicationId)
-        .order('assessment_date', { ascending: false })
+      const result = await apiClient.request<{ data: any[] }>(
+        `/applications/${applicationId}?action=eligibility-assessments`
+      )
       
-      if (error) throw error
-      
-      return (data || []).map(this.parseStoredAssessment)
-      
+      return (result?.data || []).map(this.parseStoredAssessment)
     } catch (error) {
       console.error('Error fetching assessment history:', error)
       return []
@@ -112,20 +103,16 @@ export class DetailedEligibilityService {
     recommendation: ImprovementRecommendation,
     action: 'viewed' | 'started' | 'completed' | 'dismissed'
   ): Promise<void> {
-    if (!isSupabaseConfigured) {
-      return
-    }
-    
     try {
-      await supabase
-        .from('recommendation_actions')
-        .insert({
-          application_id: applicationId,
+      await apiClient.request(`/applications/${applicationId}?action=track-recommendation`, {
+        method: 'POST',
+        body: JSON.stringify({
           recommendation_category: recommendation.category,
           recommendation_title: recommendation.title,
           action_type: action,
           action_date: new Date().toISOString()
         })
+      })
     } catch (error) {
       console.error('Error tracking recommendation action:', error)
     }
@@ -135,26 +122,18 @@ export class DetailedEligibilityService {
    * Get recommendation action history
    */
   async getRecommendationActions(applicationId: string): Promise<any[]> {
-    if (!isSupabaseConfigured) {
-      return []
-    }
-    
     try {
-      const { data, error } = await supabase
-        .from('recommendation_actions')
-        .select('*')
-        .eq('application_id', applicationId)
-        .order('action_date', { ascending: false })
+      const result = await apiClient.request<{ data: any[] }>(
+        `/applications/${applicationId}?action=recommendation-actions`
+      )
       
-      if (error) throw error
-      return data || []
-      
+      return result?.data || []
     } catch (error) {
       console.error('Error fetching recommendation actions:', error)
       return []
     }
   }
-  
+
   /**
    * Compare assessments to show improvement over time
    */
@@ -300,30 +279,26 @@ export class DetailedEligibilityService {
   
   private async saveDetailedAssessment(assessment: DetailedEligibilityAssessment): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('detailed_eligibility_assessments')
-        .upsert({
-          application_id: assessment.applicationId,
+      await apiClient.request(`/applications/${assessment.applicationId}?action=save-eligibility-assessment`, {
+        method: 'POST',
+        body: JSON.stringify({
           program_id: assessment.programId,
           program_name: assessment.programName,
           overall_score: assessment.scoreBreakdown.percentageScore,
           eligibility_status: assessment.eligibilityStatus,
           competitiveness_level: assessment.competitivenessLevel,
-          score_breakdown: JSON.stringify(assessment.scoreBreakdown),
-          improvement_recommendations: JSON.stringify(assessment.improvementRecommendations),
-          alternative_pathways: JSON.stringify(assessment.alternativePathways),
+          score_breakdown: assessment.scoreBreakdown,
+          improvement_recommendations: assessment.improvementRecommendations,
+          alternative_pathways: assessment.alternativePathways,
           overall_feedback: assessment.overallFeedback,
           comparison_percentile: assessment.comparisonToTypicalAdmitted.percentile,
           assessment_date: assessment.assessmentDate.toISOString(),
           next_review_date: assessment.nextReviewDate?.toISOString(),
           can_proceed: assessment.canProceed
         })
-      
-      if (error) throw error
-      
+      })
     } catch (error) {
       console.error('Error saving detailed assessment:', error)
-      throw error
     }
   }
   
@@ -332,16 +307,16 @@ export class DetailedEligibilityService {
       applicationId: data.application_id,
       programId: data.program_id,
       programName: data.program_name,
-      scoreBreakdown: JSON.parse(data.score_breakdown || '{}'),
+      scoreBreakdown: typeof data.score_breakdown === 'string' ? JSON.parse(data.score_breakdown) : (data.score_breakdown || {}),
       eligibilityStatus: data.eligibility_status,
       competitivenessLevel: data.competitiveness_level,
       overallFeedback: data.overall_feedback,
-      improvementRecommendations: JSON.parse(data.improvement_recommendations || '[]'),
+      improvementRecommendations: typeof data.improvement_recommendations === 'string' ? JSON.parse(data.improvement_recommendations) : (data.improvement_recommendations || []),
       comparisonToTypicalAdmitted: {
         percentile: data.comparison_percentile || 50,
         explanation: data.comparison_explanation || 'No comparison data available'
       },
-      alternativePathways: JSON.parse(data.alternative_pathways || '[]'),
+      alternativePathways: typeof data.alternative_pathways === 'string' ? JSON.parse(data.alternative_pathways) : (data.alternative_pathways || []),
       assessmentDate: new Date(data.assessment_date),
       canProceed: data.can_proceed !== false,
       nextReviewDate: data.next_review_date ? new Date(data.next_review_date) : undefined

@@ -1,20 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { applicationService } from '@/services/applications'
 
 export function useApplicationsWithCounts() {
   return useQuery({
     queryKey: ['applications-with-counts'],
     queryFn: async () => {
-      // Single optimized query with document counts
-      const { data, error } = await supabase
-        .from('applications')
-        .select(`
-          *
-        `)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      return data
+      const result = await applicationService.list({
+        sortBy: 'date',
+        sortOrder: 'desc',
+      })
+      return result?.applications ?? []
     }
   })
 }

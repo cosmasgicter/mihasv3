@@ -5,7 +5,7 @@
  * @deprecated This module uses the deprecated Supabase stub.
  * TODO: Migrate to API endpoints when analytics feature is reactivated.
  */
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
 import type { ReportExportData, ReportFormat } from './reportExports.types'
 import { isReportManagerRole } from '@/lib/auth/roles'
 import { sanitizeForLog } from './security'

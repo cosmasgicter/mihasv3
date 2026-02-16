@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { analyticsService } from '@/services/analytics'
 import { adminDashboardService } from '@/services/admin/dashboard'
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 
 // Query Keys
 const QUERY_KEYS = {
@@ -38,14 +38,23 @@ export const analyticsData = {
     return useQuery({
       queryKey: ['analytics', 'system-health'],
       queryFn: async () => {
-        // Check database connectivity
-        const { error: dbError } = await supabase.from('applications').select('id').limit(1)
-        
-        return {
-          database: dbError ? 'error' : 'healthy',
-          security: 'secure',
-          performance: 'optimal',
-          uptime: '99.9%'
+        try {
+          // Check database connectivity via health endpoint
+          await apiClient.request('/health?action=db')
+          
+          return {
+            database: 'healthy',
+            security: 'secure',
+            performance: 'optimal',
+            uptime: '99.9%'
+          }
+        } catch {
+          return {
+            database: 'error',
+            security: 'secure',
+            performance: 'optimal',
+            uptime: '99.9%'
+          }
         }
       },
       staleTime: 30000,

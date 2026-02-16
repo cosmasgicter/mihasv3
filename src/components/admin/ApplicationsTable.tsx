@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Button } from '@/components/ui/Button'
 import { useApplications } from '@/hooks/useApiServices'
-import { Application } from '@/lib/supabase'
+import { Application } from '@/types/database'
 
 export function ApplicationsTable() {
   const { data: applications = [], isLoading, error } = useApplications()

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState, useCallback } from 'react'
-import { UserProfile, supabase } from '@/lib/supabase'
+import type { UserProfile } from '@/types/database'
+import { apiClient } from '@/services/client'
 import { UserStatsSummary } from '@/types/users'
 import { usersData } from '@/data/users'
 import { sanitizeForLog } from '@/lib/sanitize'
@@ -146,14 +147,14 @@ export function useUserManagement() {
 
   const getUserStats = useCallback(async (): Promise<UserStatsSummary | null> => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
+      const result = await apiClient.request<{
+        users?: Array<{ role: string }>
+        data?: Array<{ role: string }>
+        [key: string]: unknown
+      }>('/admin?action=users')
 
-      if (error) throw error
-
-      const roleData = (data ?? []) as Array<Pick<UserProfile, 'role'>>
-      const stats = roleData.reduce<Record<UserProfile['role'], number>>((acc, user) => {
+      const roleData = (result?.users ?? result?.data ?? []) as Array<Pick<UserProfile, 'role'>>
+      const stats = roleData.reduce<Record<string, number>>((acc, user) => {
         acc[user.role] = (acc[user.role] || 0) + 1
         return acc
       }, {})
@@ -171,23 +172,18 @@ export function useUserManagement() {
 
   const searchUsers = useCallback(async (query: string, role?: string) => {
     try {
-      let queryBuilder = supabase
-        .from('profiles')
-        .select('*')
+      const params: Record<string, string> = { action: 'users' }
+      if (role) params.role = role
+      if (query) params.search = query
 
-      if (role) {
-        queryBuilder = queryBuilder.eq('role', role)
-      }
+      const queryString = new URLSearchParams(params).toString()
+      const result = await apiClient.request<{
+        users?: UserProfile[]
+        data?: UserProfile[]
+        [key: string]: unknown
+      }>(`/admin?${queryString}`)
 
-      if (query) {
-        queryBuilder = queryBuilder.or(`full_name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`)
-      }
-
-      const { data, error } = await queryBuilder
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      return data || []
+      return result?.users ?? result?.data ?? []
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to search users'
       console.error('Failed to search users:', sanitizeForLog(errorMessage))

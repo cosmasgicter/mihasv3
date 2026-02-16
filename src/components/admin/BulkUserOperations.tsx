@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
 import { useUserManagement } from '@/hooks/useUserManagement'
-import { UserProfile } from '@/lib/supabase'
+import { UserProfile } from '@/types/database'
 import { Users, Shield, Trash2, CheckSquare, Square, AlertTriangle } from 'lucide-react'
 
 interface BulkUserOperationsProps {

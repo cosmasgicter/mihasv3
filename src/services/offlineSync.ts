@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { offlineStorage } from '@/lib/offlineStorage'
 import { sanitizeForLog } from '@/lib/security'
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import {
   OfflineApplicationDraftData,
   OfflineDataPayloadMap,
@@ -173,9 +173,10 @@ class OfflineSyncService {
   private async syncToServer(item: OfflineQueueItem) {
     switch (item.type) {
       case 'application_draft': {
-        const { error: draftError } = await supabase
-          .from('application_drafts')
-          .upsert({
+        await apiClient.request('/applications', {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'save_draft',
             user_id: item.userId,
             form_data: item.data.form_data,
             uploaded_files: item.data.uploaded_files,
@@ -183,20 +184,20 @@ class OfflineSyncService {
             is_offline_sync: true,
             updated_at: new Date().toISOString()
           })
-        if (draftError) throw draftError
+        })
         break
       }
 
       case 'form_submission': {
-        const { error: submissionError } = await supabase
-          .from('applications')
-          .insert({
+        await apiClient.request('/applications', {
+          method: 'POST',
+          body: JSON.stringify({
             ...item.data,
             user_id: item.userId,
             is_offline_sync: true,
             created_at: new Date(item.timestamp).toISOString()
           })
-        if (submissionError) throw submissionError
+        })
         break
       }
 

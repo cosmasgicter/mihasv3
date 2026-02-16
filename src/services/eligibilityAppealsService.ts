@@ -5,12 +5,11 @@
  * Service layer for integrating eligibility appeals management with the application system.
  * Provides methods to manage appeals, track decisions, and generate reports.
  * 
- * @deprecated This module uses the deprecated Supabase stub.
- * TODO: Migrate to API endpoints when eligibility appeals service is reactivated.
+ * Migrated from Supabase to API client.
  */
 
 import { eligibilityAppealsEngine, type EligibilityAppeal, type AppealsDashboardMetrics, type AppealDecisionAuditTrail } from '@/lib/eligibilityAppealsEngine'
-import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { apiClient, buildQueryString } from '@/services/client'
 
 export interface AppealsServiceOptions {
   includeAuditTrail?: boolean
@@ -164,67 +163,40 @@ export class EligibilityAppealsService {
     hasMore: boolean
   }> {
     
-    if (!isSupabaseConfigured) {
-      return { appeals: [], totalCount: 0, hasMore: false }
-    }
-    
     try {
-      let query = supabase
-        .from('eligibility_appeals')
-        .select('*', { count: 'exact' })
-      
-      // Apply filters
+      const params: Record<string, string> = {
+        action: 'appeals',
+      }
+
       if (filters) {
-        if (filters.status) {
-          query = query.in('status', filters.status)
-        }
-        
-        if (filters.priority) {
-          query = query.in('priority', filters.priority)
-        }
-        
-        if (filters.assignedReviewer) {
-          query = query.eq('assigned_reviewer', filters.assignedReviewer)
-        }
-        
-        if (filters.overdue) {
-          const now = new Date().toISOString()
-          query = query
-            .lt('expected_resolution_date', now)
-            .not('status', 'in', '(approved,rejected,withdrawn)')
-        }
+        if (filters.status) params.status = filters.status.join(',')
+        if (filters.priority) params.priority = filters.priority.join(',')
+        if (filters.assignedReviewer) params.assignedReviewer = filters.assignedReviewer
+        if (filters.overdue) params.overdue = 'true'
       }
-      
-      // Apply pagination and sorting
+
       if (pagination) {
-        const offset = (pagination.page - 1) * pagination.limit
-        query = query.range(offset, offset + pagination.limit - 1)
-        
-        if (pagination.sortBy) {
-          query = query.order(pagination.sortBy, { 
-            ascending: pagination.sortOrder === 'asc' 
-          })
-        } else {
-          // Default sort by priority and submission date
-          query = query
-            .order('priority', { ascending: false })
-            .order('submitted_at', { ascending: true })
-        }
+        params.page = String(pagination.page)
+        params.limit = String(pagination.limit)
+        if (pagination.sortBy) params.sortBy = pagination.sortBy
+        if (pagination.sortOrder) params.sortOrder = pagination.sortOrder
       }
-      
-      const { data, error, count } = await query
-      
-      if (error) {
-        console.error('Error fetching appeals for dashboard:', error)
+
+      const result = await apiClient.request<{
+        data: any[]
+        totalCount: number
+      }>(`/admin${buildQueryString(params)}`)
+
+      if (!result) {
         return { appeals: [], totalCount: 0, hasMore: false }
       }
-      
-      const appeals = data?.map(d => this.parseAppealData(d)) || []
-      const totalCount = count || 0
+
+      const appeals = result.data?.map(d => this.parseAppealData(d)) || []
+      const totalCount = result.totalCount || 0
       const hasMore = pagination ? (pagination.page * pagination.limit) < totalCount : false
-      
+
       return { appeals, totalCount, hasMore }
-      
+
     } catch (error) {
       console.error('Error getting appeals for dashboard:', error)
       return { appeals: [], totalCount: 0, hasMore: false }

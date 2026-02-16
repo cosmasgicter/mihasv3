@@ -5,7 +5,7 @@
  * @deprecated This module uses the deprecated Supabase stub.
  * TODO: Migrate to API endpoints when multi-device session is reactivated.
  */
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
 
 interface DeviceSession {
   id: string

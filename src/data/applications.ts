@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
 import { sanitizeForLog, sanitizeFilePath } from '@/lib/security'
 
@@ -132,29 +132,30 @@ export const applicationsData = {
     return useQuery({
       queryKey: QUERY_KEYS.applicationStats,
       queryFn: async () => {
-        const today = new Date().toISOString().split('T')[0]
-        
-        const [total, pending, approved, rejected, todayApps] = await Promise.all([
-          supabase.from('applications').select('*', { count: 'exact', head: true }),
-          supabase.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'submitted'),
-          supabase.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-          supabase.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
-          supabase.from('applications').select('*', { count: 'exact', head: true }).gte('created_at', today)
-        ])
+        try {
+          const stats = await apiClient.request<{
+            totalApplications?: number
+            todayApplications?: number
+            pendingReviews?: number
+            approvalRate?: number
+            avgProcessingTime?: number
+            systemHealth?: string
+            activeUsers?: number
+            [key: string]: unknown
+          }>('/admin?action=stats')
 
-        const totalCount = total.count || 0
-        const approvedCount = approved.count || 0
-        const rejectedCount = rejected.count || 0
-        const approvalRate = (approvedCount + rejectedCount) > 0 ? (approvedCount / (approvedCount + rejectedCount)) * 100 : 0
-
-        return {
-          totalApplications: totalCount,
-          todayApplications: todayApps.count || 0,
-          pendingReviews: pending.count || 0,
-          approvalRate: Math.round(approvalRate),
-          avgProcessingTime: Math.floor(Math.random() * 5) + 2,
-          systemHealth: (pending.count || 0) > 50 ? 'warning' : 'good',
-          activeUsers: Math.floor(Math.random() * 20) + 5
+          return {
+            totalApplications: stats?.totalApplications ?? 0,
+            todayApplications: stats?.todayApplications ?? 0,
+            pendingReviews: stats?.pendingReviews ?? 0,
+            approvalRate: stats?.approvalRate ?? 0,
+            avgProcessingTime: stats?.avgProcessingTime ?? 0,
+            systemHealth: stats?.systemHealth ?? 'good',
+            activeUsers: stats?.activeUsers ?? 0
+          }
+        } catch (error: any) {
+          console.error('Stats fetch error:', sanitizeForLog(error?.message || error))
+          throw error
         }
       },
       staleTime: 0, // Always consider data stale for fresh fetches
@@ -170,19 +171,24 @@ export const applicationsData = {
     return useQuery({
       queryKey: ['applications', 'recent-activity'],
       queryFn: async () => {
-        const { data } = await supabase
-          .from('applications')
-          .select('id, full_name, status, created_at, updated_at')
-          .order('updated_at', { ascending: false })
-          .limit(5)
-        
-        return (data || []).map(app => ({
-          id: app.id,
-          type: app.status === 'approved' ? 'approval' : app.status === 'rejected' ? 'rejection' : 'application',
-          message: `${app.full_name} - Application ${app.status}`,
-          timestamp: app.updated_at || app.created_at,
-          user: app.full_name
-        }))
+        try {
+          const result = await applicationService.list({
+            sortBy: 'date',
+            sortOrder: 'desc',
+            pageSize: 5
+          })
+
+          return (result?.applications || []).map(app => ({
+            id: app.id,
+            type: app.status === 'approved' ? 'approval' : app.status === 'rejected' ? 'rejection' : 'application',
+            message: `${app.full_name} - Application ${app.status}`,
+            timestamp: app.updated_at || app.created_at,
+            user: app.full_name
+          }))
+        } catch (error: any) {
+          console.error('Recent activity fetch error:', sanitizeForLog(error?.message || error))
+          throw error
+        }
       },
       staleTime: 0, // Always consider data stale for fresh fetches
       gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes

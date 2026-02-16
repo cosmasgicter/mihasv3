@@ -3,7 +3,7 @@
  * Core engine for executing automated migrations with rollback capabilities
  */
 
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/services/client'
 import type {
   MigrationPlan,
   MigrationExecution,
@@ -335,23 +335,25 @@ export class MigrationEngine {
    * Save migration execution to database
    */
   private async saveExecution(execution: MigrationExecution): Promise<void> {
-    const { error } = await supabase
-      .from('migration_executions')
-      .upsert({
-        id: execution.id,
-        plan_id: execution.planId,
-        status: execution.status,
-        started_at: execution.startedAt?.toISOString(),
-        completed_at: execution.completedAt?.toISOString(),
-        current_step: execution.currentStep,
-        progress: execution.progress,
-        results: execution.results,
-        rollback_point: execution.rollbackPoint,
-        metadata: execution.metadata
+    try {
+      await apiClient.request('/admin?action=migrate', {
+        method: 'POST',
+        body: JSON.stringify({
+          type: 'save_execution',
+          id: execution.id,
+          plan_id: execution.planId,
+          status: execution.status,
+          started_at: execution.startedAt?.toISOString(),
+          completed_at: execution.completedAt?.toISOString(),
+          current_step: execution.currentStep,
+          progress: execution.progress,
+          results: execution.results,
+          rollback_point: execution.rollbackPoint,
+          metadata: execution.metadata
+        })
       })
-
-    if (error) {
-      console.error('Failed to save migration execution:', error)
+    } catch (error) {
+      console.error('Failed to save migration execution:', error instanceof Error ? error.message : error)
     }
   }
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
-import { UserProfile } from '@/lib/supabase'
+import { UserProfile } from '@/types/database'
 import { Shield, Lock, Unlock, Settings, Eye, Edit, Trash2, Users, FileText, DollarSign, BarChart3 } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 

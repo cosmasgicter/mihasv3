@@ -1,7 +1,9 @@
 // @ts-nocheck
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { applicationService } from '@/services/applications'
+import { notificationService } from '@/services/notifications'
+import { apiClient } from '@/services/client'
 
 /**
  * Helper for authenticated API calls using HTTP-only cookies
@@ -48,12 +50,8 @@ interface NotificationData {
 }
 
 /**
- * Triggers submission notifications by inserting into email_queue, 
- * in_app_notifications, and email_notifications tables.
+ * Triggers submission notifications via the notification service.
  * Errors are handled gracefully and don't fail the submission.
- * 
- * @param data - The notification data containing application details
- * @returns Object with success status and any errors encountered
  */
 export async function triggerSubmissionNotifications(data: NotificationData): Promise<{
   success: boolean
@@ -68,85 +66,34 @@ export async function triggerSubmissionNotifications(data: NotificationData): Pr
   let inAppSuccess = false
   let emailNotificationSuccess = false
 
-  const submittedAt = new Date().toISOString()
-  const applicationUrl = `https://apply.mihas.edu.zm/student/application/${applicationId}`
-
-  // 1. Insert into email_queue table with template data
+  // 1. Send notification via notificationService (handles email queue + in-app)
   try {
-    const { error: emailQueueError } = await supabase
-      .from('email_queue')
-      .insert({
-        to_email: email,
-        subject: '✅ Application Submitted Successfully - MIHAS',
-        template: 'application_submitted',
-        template_data: {
-          studentName: fullName,
-          applicationNumber: applicationNumber,
-          program: program,
-          applicationUrl: applicationUrl,
-          submittedAt: submittedAt
-        },
-        priority: 'high',
-        status: 'pending',
-        scheduled_for: submittedAt,
-        created_at: submittedAt
-      })
-
-    if (emailQueueError) {
-      console.error('Failed to queue email:', emailQueueError)
-      errors.push(`Email queue: ${emailQueueError.message}`)
-    } else {
-      emailQueueSuccess = true
-    }
+    const sent = await notificationService.send({
+      to: userId,
+      subject: '✅ Application Submitted Successfully - MIHAS',
+      message: `Your application #${applicationNumber} for ${program} has been submitted and is now under review.`,
+    })
+    emailQueueSuccess = sent
+    inAppSuccess = sent
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-    console.error('Failed to queue email:', err)
-    errors.push(`Email queue: ${errorMessage}`)
+    console.error('Failed to send notification:', err)
+    errors.push(`Notification: ${errorMessage}`)
   }
 
-  // 2. Insert into in_app_notifications table
+  // 2. Fire-and-forget email notification tracking
   try {
-    const { error: inAppError } = await supabase
-      .from('in_app_notifications')
-      .insert({
-        user_id: userId,
-        title: '✅ Application Submitted Successfully',
-        content: `Your application #${applicationNumber} for ${program} has been submitted and is now under review.`,
-        type: 'success',
-        action_url: `/student/application/${applicationId}`,
-        read: false
-      })
-
-    if (inAppError) {
-      console.error('Failed to create in-app notification:', inAppError)
-      errors.push(`In-app notification: ${inAppError.message}`)
-    } else {
-      inAppSuccess = true
-    }
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-    console.error('Failed to create in-app notification:', err)
-    errors.push(`In-app notification: ${errorMessage}`)
-  }
-
-  // 3. Insert into email_notifications table for tracking
-  try {
-    const { error: emailNotifError } = await supabase
-      .from('email_notifications')
-      .insert({
+    await apiClient.request('/notifications?action=send', {
+      method: 'POST',
+      body: JSON.stringify({
         application_id: applicationId,
         recipient_email: email,
         subject: '✅ Application Submitted Successfully - MIHAS',
-        body: `Application #${applicationNumber} for ${program} submitted successfully. Your application is now under review.`,
+        body: `Application #${applicationNumber} for ${program} submitted successfully.`,
         status: 'pending'
       })
-
-    if (emailNotifError) {
-      console.error('Failed to create email notification tracking:', emailNotifError)
-      errors.push(`Email notification tracking: ${emailNotifError.message}`)
-    } else {
-      emailNotificationSuccess = true
-    }
+    })
+    emailNotificationSuccess = true
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error'
     console.error('Failed to create email notification tracking:', err)
@@ -218,22 +165,11 @@ export function useApplicationSubmitFixed() {
         submitted_at: new Date().toISOString()
       }
 
-      // Update the application with retry logic
-      const { data: updatedApp, error: updateError } = await retryWithBackoff(
-        () => supabase
-          .from('applications')
-          .update(updateData)
-          .eq('id', applicationId)
-          .eq('user_id', user.id)
-          .select()
-          .single()
+      // Update the application via applicationService with retry logic
+      const updatedApp = await retryWithBackoff(
+        () => applicationService.update(applicationId, updateData)
       )
       
-      if (updateError) {
-        console.error('Database update error:', updateError)
-        throw new Error(updateError.message || 'Failed to update application')
-      }
-
       if (!updatedApp) {
         throw new Error('Application not found or access denied')
       }
@@ -246,8 +182,7 @@ export function useApplicationSubmitFixed() {
         queryClient.refetchQueries({ queryKey: ['applications'] })
       ])
 
-      // Trigger submission notifications (non-blocking - errors don't fail submission)
-      // This inserts into email_queue, in_app_notifications, and email_notifications tables
+      // Trigger submission notifications (non-blocking)
       try {
         const notificationResult = await triggerSubmissionNotifications({
           applicationId,
@@ -262,7 +197,6 @@ export function useApplicationSubmitFixed() {
           console.warn('Some notifications failed to send:', notificationResult.errors)
         }
       } catch (notificationError) {
-        // Log but don't fail the submission - notifications are non-critical
         console.error('Failed to trigger submission notifications:', notificationError)
       }
 
@@ -283,8 +217,6 @@ export function useApplicationSubmitFixed() {
           errorMessage = 'Network error. Please check your connection and try again.'
         } else if (error.message?.includes('403') || error.message?.includes('permission')) {
           errorMessage = 'Permission denied. Please ensure you are signed in and try again.'
-        } else if (error.message?.includes('RLS') || error.message?.includes('policy')) {
-          errorMessage = 'Access denied. Please sign in with the correct account and try again.'
         } else {
           errorMessage = error.message
         }

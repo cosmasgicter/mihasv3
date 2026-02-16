@@ -8,7 +8,7 @@
  * TODO: Migrate to API endpoints when offline manager is reactivated.
  */
 
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
 
 export interface OfflineData {
   id: string

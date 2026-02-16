@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { applicationService } from '@/services/applications'
 
 interface Draft {
   id: string
@@ -22,15 +22,18 @@ export const useMultiDraft = (userId: string | undefined) => {
     setError(null)
     
     try {
-      const { data, error: fetchError } = await supabase
-        .from('application_drafts')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .order('updated_at', { ascending: false })
-
-      if (fetchError) throw fetchError
-      setDrafts(data || [])
+      const result = await applicationService.list({ mine: true, status: 'draft' })
+      const apps = result?.applications ?? []
+      // Map applications to draft shape
+      const mappedDrafts: Draft[] = apps.map((app: any) => ({
+        id: app.id,
+        draft_name: app.draft_name || `Draft - ${app.program || 'Untitled'}`,
+        draft_data: app,
+        updated_at: app.updated_at || app.created_at,
+        last_accessed_at: app.updated_at || app.created_at,
+        is_active: true
+      }))
+      setDrafts(mappedDrafts)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -42,20 +45,13 @@ export const useMultiDraft = (userId: string | undefined) => {
     if (!userId) return null
 
     try {
-      const { data, error: createError } = await supabase
-        .from('application_drafts')
-        .insert({
-          user_id: userId,
-          draft_name: draftName,
-          draft_data: draftData,
-          is_active: true
-        })
-        .select()
-        .single()
-
-      if (createError) throw createError
+      const result = await applicationService.create({
+        ...draftData,
+        status: 'draft',
+        draft_name: draftName
+      })
       await fetchDrafts()
-      return data
+      return result
     } catch (err: any) {
       setError(err.message)
       return null
@@ -64,15 +60,7 @@ export const useMultiDraft = (userId: string | undefined) => {
 
   const updateDraft = async (draftId: string, draftData: any) => {
     try {
-      const { error: updateError } = await supabase
-        .from('application_drafts')
-        .update({ 
-          draft_data: draftData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', draftId)
-
-      if (updateError) throw updateError
+      await applicationService.update(draftId, draftData)
       await fetchDrafts()
     } catch (err: any) {
       setError(err.message)
@@ -81,12 +69,7 @@ export const useMultiDraft = (userId: string | undefined) => {
 
   const renameDraft = async (draftId: string, newName: string) => {
     try {
-      const { error: renameError } = await supabase
-        .from('application_drafts')
-        .update({ draft_name: newName })
-        .eq('id', draftId)
-
-      if (renameError) throw renameError
+      await applicationService.update(draftId, { draft_name: newName } as any)
       await fetchDrafts()
     } catch (err: any) {
       setError(err.message)
@@ -95,12 +78,7 @@ export const useMultiDraft = (userId: string | undefined) => {
 
   const deleteDraft = async (draftId: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('application_drafts')
-        .update({ is_active: false })
-        .eq('id', draftId)
-
-      if (deleteError) throw deleteError
+      await applicationService.delete(draftId)
       await fetchDrafts()
     } catch (err: any) {
       setError(err.message)
@@ -109,14 +87,8 @@ export const useMultiDraft = (userId: string | undefined) => {
 
   const loadDraft = async (draftId: string) => {
     try {
-      const { data, error: loadError } = await supabase
-        .from('application_drafts')
-        .select('draft_data')
-        .eq('id', draftId)
-        .single()
-
-      if (loadError) throw loadError
-      return data?.draft_data
+      const result = await applicationService.getById(draftId)
+      return result?.application ?? null
     } catch (err: any) {
       setError(err.message)
       return null

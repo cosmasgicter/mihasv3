@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
 
 export interface DuplicateCheckResult {
   hasDuplicate: boolean

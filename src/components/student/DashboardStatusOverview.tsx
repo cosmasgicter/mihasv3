@@ -21,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { StatusIndicator, StatusBadge } from '@/components/8starlabs';
 import { cn } from '@/lib/utils';
 import { animateClasses, staggerChild } from '@/lib/animations';
-import type { Application } from '@/lib/supabase';
+import type { Application } from '@/types/database';
 
 interface DashboardStatusOverviewProps {
   applications: Application[];

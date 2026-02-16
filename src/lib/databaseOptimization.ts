@@ -1,5 +1,5 @@
 // Database Optimization and Performance Utilities
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
 import { ErrorLogger } from './errorHandling'
 
 export interface PerformanceMetrics {

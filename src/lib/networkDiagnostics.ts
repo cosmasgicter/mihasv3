@@ -3,7 +3,7 @@
  * Helps diagnose and handle network connectivity issues
  */
 
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
 
 export class NetworkDiagnostics {
   private static instance: NetworkDiagnostics
@@ -50,18 +50,18 @@ export class NetworkDiagnostics {
     return this.connectionStatus
   }
   
-  async testSupabaseConnection(): Promise<{ status: 'online' | 'offline' | 'error', error?: string }> {
+  async testApiConnection(): Promise<{ status: 'online' | 'offline' | 'error', error?: string }> {
     try {
-      const { data, error } = await supabase.from('institutions').select('count').limit(1)
-      
-      if (error) {
-        return { status: 'error', error: error.message }
-      }
-      
+      await apiClient.request('/health?action=ping')
       return { status: 'online' }
     } catch (error) {
       return { status: 'offline', error: error instanceof Error ? error.message : 'Unknown error' }
     }
+  }
+
+  /** @deprecated Use testApiConnection instead */
+  async testSupabaseConnection(): Promise<{ status: 'online' | 'offline' | 'error', error?: string }> {
+    return this.testApiConnection()
   }
   
   async waitForConnection(maxWait = 10000): Promise<boolean> {

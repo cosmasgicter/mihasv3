@@ -15,7 +15,7 @@ import {
   PluginError 
 } from '../../types/plugins'
 import { logger } from '../logger'
-import { supabase } from '../supabase'
+import { apiClient } from '@/services/client'
 
 export class PluginRegistry {
   private readonly REGISTRY_URL = 'https://apply.mihas.edu.zm/plugins'

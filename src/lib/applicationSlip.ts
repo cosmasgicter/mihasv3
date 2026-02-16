@@ -4,7 +4,7 @@ import QRCode from 'qrcode';
 import { getApiBaseUrl } from './apiConfig';
 import { formatDate } from './utils';
 import { sanitizeForLog } from './security';
-import { supabase } from './supabase';
+import { apiClient } from '@/services/client';
 
 export interface PublicApplicationStatus {
   public_tracking_code: string;

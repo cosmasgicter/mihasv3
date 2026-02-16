@@ -5,7 +5,7 @@
  */
 
 import { PluginAPI, PluginPermissions, PluginError } from '../../types/plugins'
-import { supabase } from '../supabase'
+import { apiClient } from '@/services/client'
 import { logger } from '../logger'
 import { multiChannelNotifications } from '../multiChannelNotifications'
 import { analytics } from '../analytics'

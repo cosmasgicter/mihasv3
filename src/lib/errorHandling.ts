@@ -1,5 +1,5 @@
 // Comprehensive Error Handling and Recovery System
-import { supabase } from './supabase'
+import { apiClient } from '@/services/client'
 
 export interface DatabaseError {
   code: string
@@ -13,14 +13,19 @@ export interface DatabaseError {
 export class ErrorLogger {
   static async logError(error: DatabaseError): Promise<void> {
     try {
-      await supabase.from('error_logs').insert({
-        error_code: error.code,
-        error_message: error.message,
-        error_details: error.details,
-        user_id: error.userId,
-        operation: error.operation
+      // Error logging to DB is non-critical — fire-and-forget via API
+      await apiClient.request('/admin?action=errors', {
+        method: 'POST',
+        body: JSON.stringify({
+          error_code: error.code,
+          error_message: error.message,
+          error_details: error.details,
+          user_id: error.userId,
+          operation: error.operation
+        })
       })
     } catch (e) {
+      // Fallback to console — never block on error logging failure
       console.error('Error logging failed:', e)
     }
   }
