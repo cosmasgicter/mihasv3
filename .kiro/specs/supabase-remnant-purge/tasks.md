@@ -155,7 +155,7 @@ Systematically remove all Supabase client remnants from the MIHAS frontend. Each
     - Replace dynamic `import('./supabase')` and `supabase.from('regulatory_guidelines')` with `apiClient`
     - _Requirements: 4.8_
 
-- [-] 9. Migrate data layer and page hooks
+- [x] 9. Migrate data layer and page hooks
   - [x] 9.1 Migrate `src/data/applications.ts`
     - Replace `supabase.from('applications')` in `useStats` with `apiClient.request('/admin?action=stats')` or `applicationService.list()`
     - Replace `supabase.from('applications')` in `useRecentActivity` with `applicationService.list({ sortBy: 'date', sortOrder: 'desc', pageSize: 5 })`
@@ -173,7 +173,7 @@ Systematically remove all Supabase client remnants from the MIHAS frontend. Each
 - [x] 10. Checkpoint - Verify all migrations
   - Ensure all tests pass, run `bun run build`. Ask the user if questions arise.
 
-- [-] 11. Delete Supabase stub and final cleanup
+- [x] 11. Delete Supabase stub and final cleanup
   - [x] 11.1 Delete `src/lib/supabase.ts`
     - _Requirements: 7.1_
   - [x] 11.2 Run `bun run build` and verify zero import errors referencing `@/lib/supabase`
@@ -185,7 +185,7 @@ Systematically remove all Supabase client remnants from the MIHAS frontend. Each
     - **Property 4: Type compatibility with API responses**
     - **Validates: Requirements 6.4**
 
-- [-] 12. Final checkpoint - Full verification
+- [x] 12. Final checkpoint - Full verification
   - Run `bun run build`, `bun run lint`, and `bun run test`. Ensure all tests pass. Ask the user if questions arise.
 
 ## Notes
