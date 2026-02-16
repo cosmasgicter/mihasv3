@@ -438,13 +438,12 @@ var ApplicationQueries = {
       SET 
         status = $2,
         reviewed_by = $3,
-        reviewed_at = NOW(),
-        review_notes = $4,
+        review_started_at = COALESCE(review_started_at, NOW()),
         updated_at = NOW()
       WHERE id = $1
       RETURNING *
     `,
-    values: [id, status, reviewedBy, notes || null]
+    values: [id, status, reviewedBy]
   }),
   update: (id, data) => {
     const fields = [];
@@ -475,9 +474,7 @@ var ApplicationQueries = {
       "pop_url",
       "payment_status",
       "status",
-      "submitted_at",
-      "review_notes",
-      "decision_reason"
+      "submitted_at"
     ];
     for (const field of allowedFields) {
       if (field in data) {
@@ -1324,12 +1321,9 @@ async function handleExport(req, res, isAdmin) {
       status,
       payment_status,
       COALESCE(application_fee, 0) as application_fee,
-      COALESCE(paid_amount, 0) as paid_amount,
+      COALESCE(amount, 0) as amount,
       submitted_at,
       created_at,
-      COALESCE(grades_summary, '') as grades_summary,
-      COALESCE(total_subjects, 0) as total_subjects,
-      COALESCE(points, 0) as points,
       COALESCE(EXTRACT(YEAR FROM AGE(date_of_birth))::int, 0) as age,
       COALESCE(EXTRACT(DAY FROM NOW() - submitted_at)::int, 0) as days_since_submission
     FROM applications
@@ -1345,50 +1339,11 @@ async function handleExport(req, res, isAdmin) {
   });
 }
 async function handleVersions(req, res, userId) {
-  const applicationId = req.query.application_id || req.body?.application_id;
   if (req.method === "GET") {
-    if (!applicationId) {
-      return sendError(res, "application_id is required", HttpStatus.BAD_REQUEST);
-    }
-    const appCheck = await query("SELECT user_id FROM applications WHERE id = $1", [applicationId]);
-    if (appCheck.rows.length === 0) {
-      return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
-    }
-    if (appCheck.rows[0].user_id !== userId) {
-      return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
-    }
-    const result = await query(`
-      SELECT id, version_number, form_data, change_summary, created_at
-      FROM application_versions
-      WHERE application_id = $1
-      ORDER BY version_number DESC
-    `, [applicationId]);
-    return sendSuccess(res, { versions: result.rows });
+    return sendSuccess(res, { versions: [], message: "Version history feature not yet configured" });
   }
   if (req.method === "POST") {
-    const body = req.body;
-    const appId = body.application_id || applicationId;
-    if (!appId) {
-      return sendError(res, "application_id is required", HttpStatus.BAD_REQUEST);
-    }
-    if (!body.form_data) {
-      return sendError(res, "form_data is required", HttpStatus.BAD_REQUEST);
-    }
-    const appCheck = await query("SELECT user_id FROM applications WHERE id = $1", [appId]);
-    if (appCheck.rows.length === 0) {
-      return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
-    }
-    if (appCheck.rows[0].user_id !== userId) {
-      return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
-    }
-    const maxVersion = await query("SELECT COALESCE(MAX(version_number), 0) as max_version FROM application_versions WHERE application_id = $1", [appId]);
-    const nextVersion = (maxVersion.rows[0]?.max_version || 0) + 1;
-    const result = await query(`
-      INSERT INTO application_versions (application_id, user_id, version_number, form_data, change_summary, created_by, created_at)
-      VALUES ($1, $2, $3, $4, $5, $2, NOW())
-      RETURNING id, version_number, form_data, change_summary, created_at
-    `, [appId, userId, nextVersion, JSON.stringify(body.form_data), body.change_summary || null]);
-    return sendSuccess(res, { version: result.rows[0] }, HttpStatus.CREATED);
+    return sendError(res, "Version history feature not yet configured", HttpStatus.SERVICE_UNAVAILABLE);
   }
   return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
 }

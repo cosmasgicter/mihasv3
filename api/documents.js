@@ -29350,92 +29350,6 @@ function handleCors(req, res) {
   return false;
 }
 
-// lib/db.ts
-var DatabaseErrorCode = {
-  CONNECTION_ERROR: "CONNECTION_ERROR",
-  QUERY_ERROR: "QUERY_ERROR",
-  TRANSACTION_ERROR: "TRANSACTION_ERROR",
-  SCHEMA_ERROR: "SCHEMA_ERROR",
-  CONFIG_ERROR: "CONFIG_ERROR",
-  TIMEOUT_ERROR: "TIMEOUT_ERROR",
-  CONSTRAINT_VIOLATION: "CONSTRAINT_VIOLATION",
-  NOT_FOUND: "NOT_FOUND"
-};
-
-class DatabaseError extends Error {
-  code;
-  query;
-  originalError;
-  constructor(message, code = DatabaseErrorCode.QUERY_ERROR, options) {
-    super(message);
-    this.name = "DatabaseError";
-    this.code = code;
-    this.query = options?.query ? sanitizeQueryForLogging(options.query) : undefined;
-    this.originalError = options?.originalError;
-  }
-}
-function getDatabaseConfig() {
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new DatabaseError("DATABASE_URL not configured. Set the Neon connection string.", DatabaseErrorCode.CONFIG_ERROR);
-  }
-  return { url };
-}
-function sanitizeQueryForLogging(query) {
-  return query.replace(/'[^']*'/g, "'[REDACTED]'").replace(/"[^"]*"/g, '"[REDACTED]"');
-}
-function extractCommand(query) {
-  const trimmed = query.trim().toUpperCase();
-  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "BEGIN", "COMMIT", "ROLLBACK", "CREATE", "ALTER", "DROP"];
-  for (const cmd of commands) {
-    if (trimmed.startsWith(cmd)) {
-      return cmd;
-    }
-  }
-  return "UNKNOWN";
-}
-async function executeNeonQuery(queryText, params) {
-  const command = extractCommand(queryText);
-  try {
-    const { neon } = await import("@neondatabase/serverless");
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new DatabaseError("DATABASE_URL not configured for Neon", DatabaseErrorCode.CONFIG_ERROR);
-    }
-    const sql = neon(connectionString);
-    let rows;
-    if (params && params.length > 0) {
-      rows = await sql.query(queryText, params);
-    } else {
-      rows = await sql.query(queryText);
-    }
-    const resultRows = Array.isArray(rows) ? rows : [];
-    return {
-      rows: resultRows,
-      rowCount: resultRows.length,
-      command
-    };
-  } catch (error) {
-    if (error instanceof DatabaseError)
-      throw error;
-    const errorMessage = error.message || "Unknown error";
-    if (errorMessage.includes("duplicate key")) {
-      throw new DatabaseError("Duplicate key violation", DatabaseErrorCode.CONSTRAINT_VIOLATION, { query: queryText, originalError: error });
-    }
-    if (errorMessage.includes("foreign key")) {
-      throw new DatabaseError("Foreign key violation", DatabaseErrorCode.CONSTRAINT_VIOLATION, { query: queryText, originalError: error });
-    }
-    if (errorMessage.includes("timeout") || errorMessage.includes("ETIMEDOUT")) {
-      throw new DatabaseError("Database query timeout", DatabaseErrorCode.TIMEOUT_ERROR, { query: queryText, originalError: error });
-    }
-    throw new DatabaseError(`Neon query execution failed: ${errorMessage}`, DatabaseErrorCode.QUERY_ERROR, { query: queryText, originalError: error });
-  }
-}
-async function query(queryText, params) {
-  getDatabaseConfig();
-  return executeNeonQuery(queryText, params);
-}
-
 // lib/auth/jwt.ts
 import { SignJWT, jwtVerify } from "jose";
 var TOKEN_ISSUER = "mihas-auth";
@@ -29888,6 +29802,92 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
     code
   };
   return res.status(status).json(response);
+}
+
+// lib/db.ts
+var DatabaseErrorCode = {
+  CONNECTION_ERROR: "CONNECTION_ERROR",
+  QUERY_ERROR: "QUERY_ERROR",
+  TRANSACTION_ERROR: "TRANSACTION_ERROR",
+  SCHEMA_ERROR: "SCHEMA_ERROR",
+  CONFIG_ERROR: "CONFIG_ERROR",
+  TIMEOUT_ERROR: "TIMEOUT_ERROR",
+  CONSTRAINT_VIOLATION: "CONSTRAINT_VIOLATION",
+  NOT_FOUND: "NOT_FOUND"
+};
+
+class DatabaseError extends Error {
+  code;
+  query;
+  originalError;
+  constructor(message, code = DatabaseErrorCode.QUERY_ERROR, options) {
+    super(message);
+    this.name = "DatabaseError";
+    this.code = code;
+    this.query = options?.query ? sanitizeQueryForLogging(options.query) : undefined;
+    this.originalError = options?.originalError;
+  }
+}
+function getDatabaseConfig() {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new DatabaseError("DATABASE_URL not configured. Set the Neon connection string.", DatabaseErrorCode.CONFIG_ERROR);
+  }
+  return { url };
+}
+function sanitizeQueryForLogging(query) {
+  return query.replace(/'[^']*'/g, "'[REDACTED]'").replace(/"[^"]*"/g, '"[REDACTED]"');
+}
+function extractCommand(query) {
+  const trimmed = query.trim().toUpperCase();
+  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "BEGIN", "COMMIT", "ROLLBACK", "CREATE", "ALTER", "DROP"];
+  for (const cmd of commands) {
+    if (trimmed.startsWith(cmd)) {
+      return cmd;
+    }
+  }
+  return "UNKNOWN";
+}
+async function executeNeonQuery(queryText, params) {
+  const command = extractCommand(queryText);
+  try {
+    const { neon } = await import("@neondatabase/serverless");
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new DatabaseError("DATABASE_URL not configured for Neon", DatabaseErrorCode.CONFIG_ERROR);
+    }
+    const sql = neon(connectionString);
+    let rows;
+    if (params && params.length > 0) {
+      rows = await sql.query(queryText, params);
+    } else {
+      rows = await sql.query(queryText);
+    }
+    const resultRows = Array.isArray(rows) ? rows : [];
+    return {
+      rows: resultRows,
+      rowCount: resultRows.length,
+      command
+    };
+  } catch (error) {
+    if (error instanceof DatabaseError)
+      throw error;
+    const errorMessage = error.message || "Unknown error";
+    if (errorMessage.includes("duplicate key")) {
+      throw new DatabaseError("Duplicate key violation", DatabaseErrorCode.CONSTRAINT_VIOLATION, { query: queryText, originalError: error });
+    }
+    if (errorMessage.includes("foreign key")) {
+      throw new DatabaseError("Foreign key violation", DatabaseErrorCode.CONSTRAINT_VIOLATION, { query: queryText, originalError: error });
+    }
+    if (errorMessage.includes("timeout") || errorMessage.includes("ETIMEDOUT")) {
+      throw new DatabaseError("Database query timeout", DatabaseErrorCode.TIMEOUT_ERROR, { query: queryText, originalError: error });
+    }
+    throw new DatabaseError(`Neon query execution failed: ${errorMessage}`, DatabaseErrorCode.QUERY_ERROR, { query: queryText, originalError: error });
+  }
+}
+async function query(queryText, params) {
+  getDatabaseConfig();
+  return executeNeonQuery(queryText, params);
 }
 
 // lib/auth/ownership.ts
@@ -30429,33 +30429,7 @@ async function handleExtract(req, res, authUserId, userRole) {
   const result = { metadata, isScanned, text: "" };
   if (applicationId) {
     try {
-      const quality = isScanned ? "needs_ocr" : "good";
-      const upsertQuery = {
-        text: `
-          INSERT INTO document_analysis (
-            application_id, document_type, quality, completeness, 
-            ocr_confidence, extracted_data, suggestions, analyzed_at
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-          ON CONFLICT (application_id, document_type) DO UPDATE SET
-            quality = $3,
-            completeness = $4,
-            ocr_confidence = $5,
-            extracted_data = $6,
-            suggestions = $7,
-            analyzed_at = NOW()
-        `,
-        values: [
-          applicationId,
-          "pdf",
-          quality,
-          isScanned ? 0 : 100,
-          isScanned ? 0 : 0.95,
-          JSON.stringify({ text: "", metadata, isScanned, documentUrl }),
-          JSON.stringify(isScanned ? ["Document appears to be scanned. OCR processing may be required."] : [])
-        ]
-      };
-      await query(upsertQuery.text, upsertQuery.values);
+      console.log("[documents/extract] Skipping document_analysis storage (table not configured)");
     } catch {
       console.log("[documents/extract] Failed to store results");
     }
