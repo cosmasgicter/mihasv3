@@ -106,12 +106,12 @@ interface UseRealtimeReturn {
  * Default options
  */
 const DEFAULT_OPTIONS: Required<UseRealtimeOptions> = {
-  enabled: true,
+  enabled: false, // SSE disabled - Vercel Hobby has 10s function timeout, SSE requires persistent connections
   pollingInterval: 30000,
   maxReconnectAttempts: 3,
   initialBackoff: 1000,
   maxBackoff: 30000,
-  pollingEnabled: true,
+  pollingEnabled: false, // No backend polling endpoint exists yet
   batteryFriendly: true,
 }
 
