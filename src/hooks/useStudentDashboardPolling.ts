@@ -2,15 +2,15 @@
  * useStudentDashboardPolling Hook
  * 
  * Provides polling-based data fetching for student dashboard.
- * Replaces Supabase Realtime with React Query polling (30-second intervals).
+ * Uses React Query polling (30-second intervals) against the API.
  * 
- * @module hooks/useStudentDashboardPolling
+ * MIGRATED: Replaced Supabase direct calls with API client.
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { applicationService } from '@/services/applications'
 
 export interface StudentApplication {
   id: string
@@ -22,71 +22,28 @@ export interface StudentApplication {
   payment_status: string
 }
 
-export interface StudentNotification {
-  id: string
-  title: string
-  message: string
-  type: string
-  is_read: boolean
-  created_at: string
-}
-
 export interface StudentDashboardData {
   applications: StudentApplication[]
-  notifications: StudentNotification[]
-  unreadCount: number
 }
 
 export interface UseStudentDashboardPollingOptions {
-  /** Whether to enable polling (default: true) */
   enabled?: boolean
-  /** Polling interval in milliseconds (default: 30000 = 30 seconds) */
   pollingInterval?: number
-  /** Callback when data changes */
   onDataChange?: (data: StudentDashboardData) => void
-  /** Callback when application status changes */
   onApplicationChange?: (application: StudentApplication) => void
 }
 
 export interface UseStudentDashboardPollingReturn {
-  /** Current dashboard data */
   data: StudentDashboardData | null
-  /** Whether data is currently loading */
   isLoading: boolean
-  /** Whether polling is active */
   isPolling: boolean
-  /** Any error that occurred */
   error: Error | null
-  /** Manually refresh data */
   refresh: () => void
-  /** Last update timestamp */
   lastUpdated: Date | null
 }
 
-const POLLING_INTERVAL = 30000 // 30 seconds
+const POLLING_INTERVAL = 30000
 
-/**
- * Hook for polling student dashboard data
- * 
- * @example
- * ```tsx
- * function StudentDashboard() {
- *   const { data, isLoading, isPolling, refresh } = useStudentDashboardPolling({
- *     onApplicationChange: (app) => {
- *       toast.info(`Application ${app.application_number} updated`)
- *     }
- *   })
- *   
- *   return (
- *     <div>
- *       {isPolling && <span>Live updates active</span>}
- *       <p>Applications: {data?.applications.length}</p>
- *       <p>Unread: {data?.unreadCount}</p>
- *     </div>
- *   )
- * }
- * ```
- */
 export function useStudentDashboardPolling(
   options: UseStudentDashboardPollingOptions = {}
 ): UseStudentDashboardPollingReturn {
@@ -100,33 +57,36 @@ export function useStudentDashboardPolling(
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
-  const [previousApplications, setPreviousApplications] = useState<StudentApplication[]>([])
+  const previousAppsRef = useRef<StudentApplication[]>([])
 
-  // Fetch student dashboard data
   const fetchData = useCallback(async (): Promise<StudentDashboardData> => {
     if (!user?.id) {
-      return { applications: [], notifications: [], unreadCount: 0 }
+      return { applications: [] }
     }
 
-    const [applicationsResult, notificationsResult] = await Promise.all([
-      supabase
-        .from('applications')
-        .select('id, application_number, status, program, created_at, updated_at, payment_status')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('notifications')
-        .select('id, title, message, type, is_read, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20),
-    ])
+    try {
+      const result = await applicationService.list({
+        page: 0,
+        pageSize: 50,
+        sortBy: 'date',
+        sortOrder: 'desc',
+        mine: true,
+      })
 
-    const applications = (applicationsResult.data || []) as StudentApplication[]
-    const notifications = (notificationsResult.data || []) as StudentNotification[]
-    const unreadCount = notifications.filter((n) => !n.is_read).length
+      const applications = (result?.applications || []).map((app: any) => ({
+        id: app.id,
+        application_number: app.application_number,
+        status: app.status,
+        program: app.program,
+        created_at: app.created_at,
+        updated_at: app.updated_at,
+        payment_status: app.payment_status,
+      }))
 
-    return { applications, notifications, unreadCount }
+      return { applications }
+    } catch {
+      return { applications: [] }
+    }
   }, [user?.id])
 
   const query = useQuery({
@@ -137,25 +97,24 @@ export function useStudentDashboardPolling(
     staleTime: pollingInterval / 2,
   })
 
-  // Track changes and notify
+  // Track changes — use ref to avoid infinite loop
   useEffect(() => {
-    if (query.data) {
-      setLastUpdated(new Date())
-      onDataChange?.(query.data)
+    if (!query.data) return
 
-      // Check for application status changes
-      if (onApplicationChange && previousApplications.length > 0) {
-        query.data.applications.forEach((app) => {
-          const prev = previousApplications.find((p) => p.id === app.id)
-          if (prev && prev.status !== app.status) {
-            onApplicationChange(app)
-          }
-        })
+    setLastUpdated(new Date())
+    onDataChange?.(query.data)
+
+    if (onApplicationChange && previousAppsRef.current.length > 0) {
+      for (const app of query.data.applications) {
+        const prev = previousAppsRef.current.find((p) => p.id === app.id)
+        if (prev && prev.status !== app.status) {
+          onApplicationChange(app)
+        }
       }
-
-      setPreviousApplications(query.data.applications)
     }
-  }, [query.data, onDataChange, onApplicationChange, previousApplications])
+
+    previousAppsRef.current = query.data.applications
+  }, [query.data]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const refresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling', user?.id] })

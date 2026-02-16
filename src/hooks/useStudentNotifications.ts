@@ -55,9 +55,9 @@ interface UseStudentNotificationsOptions {
  * Default options
  */
 const DEFAULT_OPTIONS: Required<UseStudentNotificationsOptions> = {
-  sseEnabled: true,
+  sseEnabled: false, // SSE disabled - Vercel Hobby has 10s function timeout
   pollingInterval: 30000,
-  pollingEnabled: true,
+  pollingEnabled: true, // Polling uses notifications API which works
 }
 
 export function useStudentNotifications(options: UseStudentNotificationsOptions = {}) {
