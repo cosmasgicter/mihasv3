@@ -1554,7 +1554,7 @@ export const GradeQueries = {
     text: `
       SELECT g.*, s.name as subject_name
       FROM application_grades g
-      LEFT JOIN grade12_subjects s ON s.id = g.subject_id
+      LEFT JOIN subjects s ON s.id = g.subject_id
       WHERE g.application_id = $1
     `,
     values: [applicationId],
@@ -1857,7 +1857,7 @@ export const NotificationQueries = {
   getPreferences: (userId: string): QueryConfig => ({
     text: `
       SELECT *
-      FROM notification_preferences
+      FROM user_notification_preferences
       WHERE user_id = $1
       LIMIT 1
     `,
@@ -1874,7 +1874,7 @@ export const NotificationQueries = {
     smsEnabled: boolean
   ): QueryConfig => ({
     text: `
-      INSERT INTO notification_preferences (
+      INSERT INTO user_notification_preferences (
         id, user_id, email_enabled, push_enabled, sms_enabled, created_at, updated_at
       )
       VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW(), NOW())
@@ -1939,7 +1939,7 @@ export const NotificationQueries = {
     text: `
       SELECT ps.*, np.email_enabled
       FROM push_subscriptions ps
-      JOIN notification_preferences np ON np.user_id = ps.user_id
+      JOIN user_notification_preferences np ON np.user_id = ps.user_id
       WHERE np.push_enabled = true
     `,
     values: [],
