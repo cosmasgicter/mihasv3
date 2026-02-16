@@ -651,7 +651,7 @@ var GradeQueries = {
     text: `
       SELECT g.*, s.name as subject_name
       FROM application_grades g
-      LEFT JOIN grade12_subjects s ON s.id = g.subject_id
+      LEFT JOIN subjects s ON s.id = g.subject_id
       WHERE g.application_id = $1
     `,
     values: [applicationId]
