@@ -645,7 +645,7 @@ function buildCookieString(name, value, maxAge, path = "/") {
     `Max-Age=${maxAge}`,
     `Path=${path}`,
     "HttpOnly",
-    "SameSite=Strict"
+    "SameSite=Lax"
   ];
   if (isProduction()) {
     parts.push("Secure");

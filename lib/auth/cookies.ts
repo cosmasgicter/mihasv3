@@ -6,7 +6,7 @@
  * REQUIREMENTS:
  * - 4.1: WHEN setting auth cookies, THE Auth_System SHALL set the HttpOnly flag to prevent JavaScript access
  * - 4.2: WHEN setting auth cookies in production, THE Auth_System SHALL set the Secure flag to require HTTPS
- * - 4.3: WHEN setting auth cookies, THE Auth_System SHALL set SameSite=Strict to prevent CSRF attacks
+ * - 4.3: WHEN setting auth cookies, THE Auth_System SHALL set SameSite=Lax to prevent CSRF on unsafe methods while allowing top-level navigations
  * - 4.4: THE Auth_System SHALL set access token cookie with Max-Age of 900 seconds (15 minutes)
  * - 4.5: THE Auth_System SHALL set refresh token cookie with Max-Age of 604800 seconds (7 days)
  * - 4.6: THE Auth_System SHALL set refresh token cookie path to /api/auth to limit exposure
@@ -16,7 +16,7 @@
  * SECURITY NOTES:
  * - HttpOnly prevents XSS attacks from accessing tokens
  * - Secure flag ensures cookies only sent over HTTPS in production
- * - SameSite=Strict prevents CSRF attacks
+ * - SameSite=Lax prevents CSRF on POST/PUT/DELETE while allowing cookies on top-level GET navigations
  * - Refresh token path limited to /api/auth to reduce exposure
  * - Never logs tokens
  */
@@ -67,7 +67,7 @@ function buildCookieString(
     `Max-Age=${maxAge}`,
     `Path=${path}`,
     "HttpOnly",
-    "SameSite=Strict",
+    "SameSite=Lax",
   ];
 
   // Add Secure flag in production to require HTTPS
