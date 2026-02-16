@@ -594,6 +594,18 @@ async function handler(req, res) {
     if (action === "preferences") {
       return await handlePreferences(req, res);
     }
+    if (action === "list") {
+      return await handleList(req, res);
+    }
+    if (action === "mark-read") {
+      return await handleMarkRead(req, res);
+    }
+    if (action === "mark-all-read") {
+      return await handleMarkAllRead(req, res);
+    }
+    if (action === "delete") {
+      return await handleDelete(req, res);
+    }
     if (action === "send") {
       return await handleSend(req, res);
     }
@@ -674,6 +686,70 @@ async function handlePreferences(req, res) {
     return sendSuccess(res, { preferences: result.rows[0] });
   }
   return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+}
+async function handleList(req, res) {
+  if (req.method !== "GET") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  }
+  const result = await query(`SELECT id, title, message, type, is_read, action_url, created_at, read_at
+     FROM notifications WHERE user_id = $1
+     ORDER BY created_at DESC LIMIT 50`, [user.userId]);
+  const notifications = result.rows.map((n) => ({
+    id: n.id,
+    title: n.title,
+    content: n.message,
+    type: n.type || "info",
+    read: n.is_read,
+    action_url: n.action_url,
+    created_at: n.created_at,
+    read_at: n.read_at
+  }));
+  return sendSuccess(res, notifications);
+}
+async function handleMarkRead(req, res) {
+  if (req.method !== "PUT") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  }
+  const { notificationId } = req.body || {};
+  if (!notificationId) {
+    return sendError(res, "notificationId is required", HttpStatus.BAD_REQUEST);
+  }
+  await query(`UPDATE notifications SET is_read = true, read_at = NOW() WHERE id = $1 AND user_id = $2`, [notificationId, user.userId]);
+  return sendSuccess(res, { marked: true });
+}
+async function handleMarkAllRead(req, res) {
+  if (req.method !== "PUT") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  }
+  await query(`UPDATE notifications SET is_read = true, read_at = NOW() WHERE user_id = $1 AND is_read = false`, [user.userId]);
+  return sendSuccess(res, { marked: true });
+}
+async function handleDelete(req, res) {
+  if (req.method !== "DELETE") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  }
+  const { notificationId } = req.body || {};
+  if (!notificationId) {
+    return sendError(res, "notificationId is required", HttpStatus.BAD_REQUEST);
+  }
+  await query(`DELETE FROM notifications WHERE id = $1 AND user_id = $2`, [notificationId, user.userId]);
+  return sendSuccess(res, { deleted: true });
 }
 async function handleSend(req, res) {
   if (req.method !== "POST") {
