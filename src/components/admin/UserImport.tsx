@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
-import { authApi } from '@/lib/apiClient'
+import { apiClient } from '@/services/client'
 import { Upload, FileText, AlertTriangle, CheckCircle, XCircle, Users, Download } from 'lucide-react'
 import { sanitizeForLog, sanitizeText, sanitizeEmail } from '@/lib/sanitize'
 import { toast } from '@/hooks/useToast'
@@ -180,9 +180,9 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
           }
 
           try {
-            // Check for existing user via API
-            const checkResponse = await authApi.checkEmail(userData.email)
-            if (checkResponse.success && !checkResponse.data?.available) {
+            // Check for existing user via new API client
+            const checkData = await apiClient.request<{ available: boolean }>(`/auth?action=check-email&email=${encodeURIComponent(userData.email)}`)
+            if (checkData && !checkData.available) {
               result.duplicates++
               result.failed++
               result.errors.push({ 

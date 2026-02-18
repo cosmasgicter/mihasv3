@@ -28,7 +28,7 @@ import { Container } from '@/components/ui/Container'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/badge'
-import { applicationsApi } from '@/lib/apiClient'
+import { interviewsService } from '@/services/interviews'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface Interview {
@@ -187,15 +187,11 @@ export default function InterviewPage() {
         setState(prev => ({ ...prev, error: null }))
         
         // @requirements 3.2 - Query application_interviews for the student's applications
-        // MIGRATED: Using API client instead of direct Supabase calls
-        const response = await applicationsApi.getInterviews()
-
-        if (!response.success) {
-          throw new Error(response.error || 'Failed to load interviews')
-        }
+        // Uses interviewsService which auto-unwraps the API envelope
+        const data = await interviewsService.list()
 
         // Transform data to match Interview interface
-        const interviews: Interview[] = (response.data?.interviews || []).map((item) => ({
+        const interviews: Interview[] = (data?.interviews || []).map((item) => ({
           id: item.id,
           scheduled_at: item.scheduled_at,
           mode: item.mode,

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
-import { applicationsApi, ApplicationVersion } from '@/lib/apiClient'
+import { apiClient } from '@/services/client'
+import type { ApplicationVersion } from '@/lib/apiClient'
 import { formatDate } from '@/lib/utils'
 import { History, Eye, Download, Clock } from 'lucide-react'
 
@@ -30,9 +31,9 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
 
     try {
       setLoading(true)
-      const response = await applicationsApi.getVersions(applicationId)
-      if (response.success && response.data?.versions) {
-        setVersions(response.data.versions)
+      const data = await apiClient.request<{ versions: ApplicationVersion[] }>(`/applications?action=versions&application_id=${applicationId}`)
+      if (data?.versions) {
+        setVersions(data.versions)
       }
     } catch (error) {
       console.error('Error loading versions:', error)
@@ -45,8 +46,11 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
     if (!applicationId || !user) return
 
     try {
-      const response = await applicationsApi.createVersion(applicationId, formData, changeSummary)
-      if (response.success) {
+      const result = await apiClient.request<{ version: ApplicationVersion }>('/applications?action=versions', {
+        method: 'POST',
+        body: JSON.stringify({ application_id: applicationId, form_data: formData, change_summary: changeSummary })
+      })
+      if (result) {
         // Reload versions
         await loadVersions()
       }
@@ -271,9 +275,12 @@ export function useApplicationVersions(applicationId?: string) {
     if (!applicationId || !user) return
 
     try {
-      const response = await applicationsApi.createVersion(applicationId, formData, changeSummary)
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to create version')
+      const result = await apiClient.request<{ version: ApplicationVersion }>('/applications?action=versions', {
+        method: 'POST',
+        body: JSON.stringify({ application_id: applicationId, form_data: formData, change_summary: changeSummary })
+      })
+      if (!result) {
+        throw new Error('Failed to create version')
       }
       return { success: true }
     } catch (error) {

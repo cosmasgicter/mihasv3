@@ -24,7 +24,7 @@ import { Container } from '@/components/ui/Container'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/badge'
-import { applicationsApi } from '@/lib/apiClient'
+import { applicationService } from '@/services/applications'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface ApplicationWithPayment {
@@ -90,58 +90,57 @@ export default function PaymentPage() {
   const [pendingApplications, setPendingApplications] = useState<ApplicationWithPayment[]>([])
   const [allApplications, setAllApplications] = useState<ApplicationWithPayment[]>([])
 
-  useEffect(() => {
-    async function fetchApplications() {
-      if (!user?.id) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        setError(null)
-        
-        // Fetch all applications for the user to show payment status
-        // @requirements 2.1, 2.2 - Query and display applications with payment status
-        // MIGRATED: Using API client instead of direct Supabase calls
-        const response = await applicationsApi.list({ mine: true })
-
-        if (!response.success) {
-          throw new Error(response.error || 'Failed to load applications')
-        }
-
-        const payload = response.data as ApplicationsListPayload | ApplicationWithPayment[] | null | undefined
-        const listData = payload && !Array.isArray(payload) && Array.isArray(payload.applications)
-          ? payload.applications
-          : (Array.isArray(payload) ? payload : [])
-
-        const applications = listData.map((app) => ({
-          id: app.id,
-          status: app.status,
-          payment_status: app.payment_status,
-          payment_method: app.payment_method,
-          amount: app.amount,
-          momo_ref: app.momo_ref,
-          created_at: app.created_at,
-          program: app.program
-        }))
-
-        setAllApplications(applications)
-        
-        // Filter for pending payments (null or pending_review)
-        // @requirements 2.1 - Query applications where payment_status is null or 'pending_review'
-        const pending = applications.filter(
-          app => app.payment_status === null || app.payment_status === 'pending_review'
-        )
-        setPendingApplications(pending)
-      } catch (err) {
-        console.error('Error fetching applications:', err)
-        // @requirements 6.1 - Display error message on failure
-        setError('Failed to load payment information. Please try again.')
-      } finally {
-        setLoading(false)
-      }
+  async function fetchApplications() {
+    if (!user?.id) {
+      setLoading(false)
+      return
     }
 
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Fetch all applications for the user to show payment status
+      // @requirements 2.1, 2.2 - Query and display applications with payment status
+      // Uses new API client which auto-unwraps the { success, data } envelope
+      const response = await applicationService.list({ mine: true })
+
+      // The new client returns the unwrapped payload directly (PaginatedApplicationsResponse)
+      // Defensive check: handle paginated object, plain array, or null/undefined
+      const payload = response as unknown as ApplicationsListPayload | ApplicationWithPayment[] | null | undefined
+      const listData = payload && !Array.isArray(payload) && Array.isArray(payload.applications)
+        ? payload.applications
+        : (Array.isArray(payload) ? payload : [])
+
+      const applications = listData.map((app) => ({
+        id: app.id,
+        status: app.status,
+        payment_status: app.payment_status,
+        payment_method: app.payment_method,
+        amount: app.amount,
+        momo_ref: app.momo_ref,
+        created_at: app.created_at,
+        program: app.program
+      }))
+
+      setAllApplications(applications)
+      
+      // Filter for pending payments (null or pending_review)
+      // @requirements 2.1 - Query applications where payment_status is null or 'pending_review'
+      const pending = applications.filter(
+        app => app.payment_status === null || app.payment_status === 'pending_review'
+      )
+      setPendingApplications(pending)
+    } catch (err) {
+      console.error('Error fetching applications:', err)
+      // @requirements 6.1 - Display error message on failure
+      setError('Failed to load payment information. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchApplications()
   }, [user?.id])
 
@@ -193,9 +192,19 @@ export default function PaymentPage() {
         {error && (
           <Card className="mb-6 border-destructive/50 bg-destructive/5">
             <CardContent className="pt-6">
-              <div className="flex items-center gap-3 text-destructive">
-                <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                <p>{error}</p>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 text-destructive">
+                  <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                  <p>{error}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchApplications}
+                  className="flex-shrink-0"
+                >
+                  Retry
+                </Button>
               </div>
             </CardContent>
           </Card>

@@ -1,14 +1,12 @@
 /**
  * API Client for MIHAS Application System
  * 
+ * @deprecated This module is deprecated. Use `src/services/client.ts` (ApiClient) 
+ * or the appropriate service module in `src/services/` instead.
+ * Type exports from this file are still valid for backward compatibility.
+ * 
  * Replaces direct Supabase client calls with API endpoint calls.
  * All data operations go through the Vercel serverless functions.
- * 
- * Features:
- * - Automatic credential handling (HTTP-only cookies)
- * - Error handling with typed responses
- * - Request/response logging (no PII)
- * - Retry logic for transient failures
  */
 
 const API_BASE = '/api';
@@ -96,6 +94,7 @@ async function request<T>(
 // Applications API
 // ============================================================================
 
+/** @deprecated Use `applicationService` from `src/services/applications.ts` or `apiClient` from `src/services/client.ts` */
 export const applicationsApi = {
   /**
    * List applications with optional filters
@@ -219,6 +218,7 @@ export const applicationsApi = {
 // Documents API
 // ============================================================================
 
+/** @deprecated Use `apiClient.request('/documents?action=...')` from `src/services/client.ts` */
 export const documentsApi = {
   /**
    * Upload a document
@@ -277,6 +277,7 @@ export const documentsApi = {
 // Catalog API (Programs, Intakes, Subjects)
 // ============================================================================
 
+/** @deprecated Use `catalogService` from `src/services/catalog.ts` */
 export const catalogApi = {
   /**
    * Get all active programs
@@ -311,6 +312,7 @@ export const catalogApi = {
 // Admin API
 // ============================================================================
 
+/** @deprecated Use `apiClient.request('/admin?action=...')` from `src/services/client.ts` */
 export const adminApi = {
   /**
    * Get dashboard statistics
@@ -365,6 +367,7 @@ export const adminApi = {
 // Auth API
 // ============================================================================
 
+/** @deprecated Use `apiClient.request('/auth?action=...')` from `src/services/client.ts` */
 export const authApi = {
   /**
    * Check if email is available for registration
@@ -674,6 +677,7 @@ export interface NotificationPreferences {
   };
 }
 
+/** @deprecated Use `apiClient.request('/notifications?action=...')` from `src/services/client.ts` */
 export const notificationsApi = {
   /**
    * Get user notification preferences

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import type { Application, Intake, ApplicationInterview } from '@/types/database'
-import { applicationsApi } from '@/lib/apiClient'
+import { interviewsService } from '@/services/interviews'
 import { Button } from '@/components/ui/Button'
 import { ContinueApplication } from '@/components/application/ContinueApplication'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
@@ -218,20 +218,16 @@ export default function StudentDashboard() {
       // MIGRATED: Using API client instead of direct Supabase calls
       if (user?.id) {
         try {
-          const interviewResponse = await applicationsApi.getInterviews()
+          const interviewData = await interviewsService.list()
 
           // Check if request was aborted
           if (signal.aborted) return
 
-          if (interviewResponse.success) {
-            // Filter for scheduled/rescheduled interviews
-            const scheduledOnly = (interviewResponse.data?.interviews || []).filter(
-              interview => interview.status === 'scheduled' || interview.status === 'rescheduled'
-            )
-            setScheduledInterviews(scheduledOnly as ApplicationInterview[])
-          } else {
-            setScheduledInterviews([])
-          }
+          // Filter for scheduled/rescheduled interviews
+          const scheduledOnly = (interviewData?.interviews || []).filter(
+            interview => interview.status === 'scheduled' || interview.status === 'rescheduled'
+          )
+          setScheduledInterviews(scheduledOnly as ApplicationInterview[])
         } catch (interviewError) {
           // Silently handle interview fetch errors - not critical for dashboard
           console.warn('Could not fetch interview data:', interviewError)

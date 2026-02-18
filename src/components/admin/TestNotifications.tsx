@@ -3,7 +3,8 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { NotificationService } from '@/lib/notificationService'
 import { emailService } from '@/lib/emailService'
-import { adminApi, applicationsApi } from '@/lib/apiClient'
+import { apiClient } from '@/services/client'
+import { applicationService } from '@/services/applications'
 import { Bell, Mail, Send } from 'lucide-react'
 
 export function TestNotifications() {
@@ -15,15 +16,15 @@ export function TestNotifications() {
     setMessage('')
     
     try {
-      // Get users via admin API
-      const usersResponse = await adminApi.getUsers({ role: 'student', limit: 1 })
+      // Get users via new API client
+      const usersData = await apiClient.request<any[]>('/admin?action=users&role=student&limit=1')
       
-      if (!usersResponse.success || !usersResponse.data || usersResponse.data.length === 0) {
+      if (!usersData || !Array.isArray(usersData) || usersData.length === 0) {
         setMessage('No student users found to test with')
         return
       }
 
-      const testUser = usersResponse.data[0]
+      const testUser = usersData[0]
       
       // Send test in-app notification
       const success = await NotificationService.sendNotification({
@@ -51,15 +52,16 @@ export function TestNotifications() {
     setMessage('')
     
     try {
-      // Get applications via API
-      const appsResponse = await applicationsApi.list({ limit: 1 })
+      // Get applications via new service
+      const appsData = await applicationService.list({ pageSize: 1 })
 
-      if (!appsResponse.success || !appsResponse.data || appsResponse.data.length === 0) {
+      const apps = appsData?.applications
+      if (!apps || apps.length === 0) {
         setMessage('No applications found to test with')
         return
       }
 
-      const testApp = appsResponse.data[0]
+      const testApp = apps[0]
 
       // Queue test email using the application data
       const success = await emailService.sendApplicationStatusEmail(
