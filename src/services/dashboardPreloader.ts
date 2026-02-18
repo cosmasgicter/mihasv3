@@ -1,76 +1,194 @@
-// @ts-nocheck
-/**
- * Dashboard Data Preloader
- * 
- * Preloads critical dashboard data during login redirect to improve perceived performance.
- * Requirements: 4.4
- * 
- * NOTE: Supabase calls have been removed. The preload functions now return empty data
- * as no-ops. Full API-based preloading will be implemented in a later migration task.
- */
-
 import { QueryClient } from '@tanstack/react-query'
 import type { UserProfile } from '@/types/database'
 import { CACHE_CONFIG } from '@/hooks/queries/useSupabaseQuery'
+import { applicationService } from '@/services/applications'
+import { catalogService } from '@/services/catalog'
+import { apiClient } from '@/services/client'
+import { ApiErrorHandler } from '@/lib/apiErrorHandler'
+import { adminDashboardService } from '@/services/admin/dashboard'
 
-/**
- * Identify critical dashboard queries based on user role
- */
+type StudentDashboardPreload = {
+  applications: Array<Record<string, unknown>>
+  studentDashboard: {
+    applications: Array<{
+      id: string
+      application_number: string
+      status: string
+      program: string
+      created_at: string
+      updated_at: string
+      payment_status: string
+    }>
+  }
+  notifications: Array<Record<string, unknown>>
+  intakes: Array<Record<string, unknown>>
+}
+
+type AdminDashboardPreload = {
+  applications: Array<Record<string, unknown>>
+  stats: {
+    totalApplications: number
+    pendingApplications: number
+    approvedApplications: number
+    rejectedApplications: number
+    todayApplications: number
+    weekApplications: number
+  }
+  dashboard: Awaited<ReturnType<typeof adminDashboardService.getOverview>>
+  notifications: Array<Record<string, unknown>>
+}
+
+const isTransientNetworkError = (error: unknown): boolean => ApiErrorHandler.isRetryableError(error)
+
+async function preloadStudentDashboard(_userId: string): Promise<StudentDashboardPreload> {
+  try {
+    const [applicationResult, intakesResult, notificationsResult] = await Promise.all([
+      applicationService.list({
+        page: 0,
+        pageSize: 50,
+        sortBy: 'date',
+        sortOrder: 'desc',
+        mine: true,
+      }),
+      catalogService.getIntakes(),
+      apiClient.request<Array<Record<string, unknown>>>('/notifications?action=list'),
+    ])
+
+    const applications = (applicationResult?.applications ?? []) as Array<Record<string, unknown>>
+
+    return {
+      applications,
+      studentDashboard: {
+        applications: applications.map((app) => ({
+          id: String(app.id ?? ''),
+          application_number: String(app.application_number ?? ''),
+          status: String(app.status ?? ''),
+          program: String(app.program ?? ''),
+          created_at: String(app.created_at ?? ''),
+          updated_at: String(app.updated_at ?? ''),
+          payment_status: String(app.payment_status ?? ''),
+        })),
+      },
+      notifications: (notificationsResult ?? []) as Array<Record<string, unknown>>,
+      intakes: ((intakesResult as { intakes?: Array<Record<string, unknown>> } | null)?.intakes ?? []),
+    }
+  } catch (error) {
+    if (isTransientNetworkError(error)) {
+      console.warn('Transient error preloading student dashboard; skipping preload data.', error)
+      return {
+        applications: [],
+        studentDashboard: { applications: [] },
+        notifications: [],
+        intakes: [],
+      }
+    }
+
+    throw error
+  }
+}
+
+async function preloadAdminDashboard(): Promise<AdminDashboardPreload> {
+  try {
+    const [applicationResult, statsResult, dashboardResult, notificationsResult] = await Promise.all([
+      applicationService.list({
+        page: 0,
+        pageSize: 50,
+        sortBy: 'date',
+        sortOrder: 'desc',
+      }),
+      apiClient.request<{
+        totalApplications?: number
+        pendingApplications?: number
+        approvedApplications?: number
+        rejectedApplications?: number
+        todayApplications?: number
+        weekApplications?: number
+        pendingReviews?: number
+      }>('/admin?action=stats'),
+      adminDashboardService.getOverview(),
+      apiClient.request<Array<Record<string, unknown>>>('/notifications?action=list'),
+    ])
+
+    const stats = {
+      totalApplications: statsResult?.totalApplications ?? 0,
+      pendingApplications: statsResult?.pendingApplications ?? statsResult?.pendingReviews ?? 0,
+      approvedApplications: statsResult?.approvedApplications ?? 0,
+      rejectedApplications: statsResult?.rejectedApplications ?? 0,
+      todayApplications: statsResult?.todayApplications ?? 0,
+      weekApplications: statsResult?.weekApplications ?? 0,
+    }
+
+    return {
+      applications: (applicationResult?.applications ?? []) as Array<Record<string, unknown>>,
+      stats,
+      dashboard: dashboardResult,
+      notifications: (notificationsResult ?? []) as Array<Record<string, unknown>>,
+    }
+  } catch (error) {
+    if (isTransientNetworkError(error)) {
+      console.warn('Transient error preloading admin dashboard; skipping preload data.', error)
+      return {
+        applications: [],
+        stats: {
+          totalApplications: 0,
+          pendingApplications: 0,
+          approvedApplications: 0,
+          rejectedApplications: 0,
+          todayApplications: 0,
+          weekApplications: 0,
+        },
+        dashboard: {
+          stats: {
+            totalApplications: 0,
+            pendingApplications: 0,
+            approvedApplications: 0,
+            rejectedApplications: 0,
+            totalPrograms: 0,
+            activeIntakes: 0,
+            totalStudents: 0,
+            todayApplications: 0,
+            weekApplications: 0,
+            monthApplications: 0,
+            avgProcessingTime: 0,
+            avgProcessingTimeHours: 0,
+            medianProcessingTimeHours: 0,
+            p95ProcessingTimeHours: 0,
+            decisionVelocity24h: 0,
+            activeUsers: 0,
+            activeUsersLast7d: 0,
+            systemHealth: 'good' as const,
+          },
+          statusBreakdown: {},
+          periodTotals: {},
+          totalsSnapshot: {},
+          processingMetrics: {
+            averageHours: 0,
+            averageDays: 0,
+            medianHours: 0,
+            p95Hours: 0,
+            decisionVelocity24h: 0,
+            activeAdminsLast24h: 0,
+            activeAdminsLast7d: 0,
+          },
+          recentActivity: [],
+          generatedAt: null,
+        },
+        notifications: [],
+      }
+    }
+
+    throw error
+  }
+}
+
 export function getCriticalDashboardQueries(role: string): string[] {
   if (role === 'admin' || role === 'super_admin') {
-    return [
-      'admin-applications',
-      'admin-stats',
-      'admin-notifications'
-    ]
+    return ['admin-applications', 'admin-stats', 'admin-dashboard', 'admin-notifications']
   }
-  
-  // Student role
-  return [
-    'student-applications',
-    'student-notifications',
-    'active-intakes'
-  ]
+
+  return ['student-applications', 'student-dashboard-polling', 'student-notifications', 'active-intakes']
 }
 
-/**
- * Preload student dashboard data
- * 
- * TODO: Replace with API-based preloading (applicationService, notificationService, catalogService)
- */
-async function preloadStudentDashboard(_userId: string) {
-  // No-op: Supabase calls removed. Full API migration in a later task.
-  return {
-    applications: [],
-    notifications: [],
-    intakes: []
-  }
-}
-
-/**
- * Preload admin dashboard data
- * 
- * TODO: Replace with API-based preloading (applicationService, apiClient)
- */
-async function preloadAdminDashboard() {
-  // No-op: Supabase calls removed. Full API migration in a later task.
-  return {
-    applications: [],
-    stats: null,
-    notifications: []
-  }
-}
-
-/**
- * Preload dashboard data based on user role
- * 
- * This function:
- * 1. Identifies critical dashboard data based on role
- * 2. Fetches data in parallel
- * 3. Caches data in React Query with appropriate staleTime
- * 
- * Requirements: 4.4
- */
 export async function preloadDashboardData(
   queryClient: QueryClient,
   userId: string,
@@ -84,94 +202,114 @@ export async function preloadDashboardData(
 
   try {
     if (role === 'admin' || role === 'super_admin') {
-      // Preload admin dashboard
       const data = await preloadAdminDashboard()
 
-      // Cache applications
-      if (data.applications) {
-        queryClient.setQueryData(
-          ['applications'],
-          data.applications,
-          {
-            updatedAt: Date.now()
-          }
-        )
-      }
-
-      // Cache stats
-      if (data.stats) {
-        queryClient.setQueryData(
-          ['dashboard-stats'],
-          data.stats,
-          {
-            updatedAt: Date.now()
-          }
-        )
-      }
-
-      // Cache notifications
-      if (data.notifications) {
-        queryClient.setQueryData(
-          ['notifications', userId],
-          data.notifications,
-          {
-            updatedAt: Date.now()
-          }
-        )
-      }
+      queryClient.setQueryData(['applications'], data.applications, { updatedAt: Date.now() })
+      queryClient.setQueryData(['admin-dashboard-polling'], data.stats, { updatedAt: Date.now() })
+      queryClient.setQueryData(['admin-dashboard'], data.dashboard, { updatedAt: Date.now() })
+      queryClient.setQueryData(['notifications', userId], data.notifications, { updatedAt: Date.now() })
     } else {
-      // Preload student dashboard
       const data = await preloadStudentDashboard(userId)
 
-      // Cache applications
-      if (data.applications) {
-        queryClient.setQueryData(
-          ['applications', userId],
-          data.applications,
-          {
-            updatedAt: Date.now()
-          }
-        )
-      }
-
-      // Cache notifications
-      if (data.notifications) {
-        queryClient.setQueryData(
-          ['notifications', userId],
-          data.notifications,
-          {
-            updatedAt: Date.now()
-          }
-        )
-      }
-
-      // Cache intakes
-      if (data.intakes) {
-        queryClient.setQueryData(
-          ['intakes'],
-          data.intakes,
-          {
-            updatedAt: Date.now()
-          }
-        )
-      }
+      queryClient.setQueryData(['applications', userId], data.applications, { updatedAt: Date.now() })
+      queryClient.setQueryData(['student-dashboard-polling', userId], data.studentDashboard, { updatedAt: Date.now() })
+      queryClient.setQueryData(['notifications', userId], data.notifications, { updatedAt: Date.now() })
+      queryClient.setQueryData(['intakes'], data.intakes, { updatedAt: Date.now() })
     }
   } catch (error) {
+    if (isTransientNetworkError(error)) {
+      console.warn('Transient error preloading dashboard data:', error)
+      return
+    }
+
     console.error('Error preloading dashboard data:', error)
-    // Don't throw - preloading is optional
   }
 }
 
-/**
- * Prefetch dashboard queries using React Query
- * 
- * TODO: Replace with API-based prefetching (applicationService, catalogService)
- */
 export async function prefetchDashboardQueries(
-  _queryClient: QueryClient,
-  _userId: string,
-  _role: string
+  queryClient: QueryClient,
+  userId: string,
+  role: string
 ): Promise<void> {
-  // No-op: Supabase calls removed. Full API migration in a later task.
-  return
+  if (role === 'admin' || role === 'super_admin') {
+    await Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: ['applications'],
+        queryFn: async () => (await applicationService.list({ page: 0, pageSize: 50, sortBy: 'date', sortOrder: 'desc' }))?.applications ?? [],
+        ...CACHE_CONFIG.critical,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['admin-dashboard-polling'],
+        queryFn: async () => {
+          const statsResult = await apiClient.request<{
+            totalApplications?: number
+            pendingApplications?: number
+            approvedApplications?: number
+            rejectedApplications?: number
+            todayApplications?: number
+            weekApplications?: number
+            pendingReviews?: number
+          }>('/admin?action=stats')
+
+          return {
+            totalApplications: statsResult?.totalApplications ?? 0,
+            pendingApplications: statsResult?.pendingApplications ?? statsResult?.pendingReviews ?? 0,
+            approvedApplications: statsResult?.approvedApplications ?? 0,
+            rejectedApplications: statsResult?.rejectedApplications ?? 0,
+            todayApplications: statsResult?.todayApplications ?? 0,
+            weekApplications: statsResult?.weekApplications ?? 0,
+          }
+        },
+        ...CACHE_CONFIG.critical,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['admin-dashboard'],
+        queryFn: () => adminDashboardService.getOverview(),
+        ...CACHE_CONFIG.critical,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['notifications', userId],
+        queryFn: async () => (await apiClient.request<Array<Record<string, unknown>>>('/notifications?action=list')) ?? [],
+        ...CACHE_CONFIG.critical,
+      }),
+    ])
+
+    return
+  }
+
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: ['applications', userId],
+      queryFn: async () => (await applicationService.list({ page: 0, pageSize: 50, sortBy: 'date', sortOrder: 'desc', mine: true }))?.applications ?? [],
+      ...CACHE_CONFIG.critical,
+    }),
+    queryClient.prefetchQuery({
+      queryKey: ['student-dashboard-polling', userId],
+      queryFn: async () => {
+        const response = await applicationService.list({ page: 0, pageSize: 50, sortBy: 'date', sortOrder: 'desc', mine: true })
+        return {
+          applications: (response?.applications ?? []).map((app) => ({
+            id: app.id ?? '',
+            application_number: app.application_number ?? '',
+            status: app.status ?? '',
+            program: app.program ?? '',
+            created_at: app.created_at ?? '',
+            updated_at: app.updated_at ?? '',
+            payment_status: app.payment_status ?? '',
+          })),
+        }
+      },
+      ...CACHE_CONFIG.critical,
+    }),
+    queryClient.prefetchQuery({
+      queryKey: ['notifications', userId],
+      queryFn: async () => (await apiClient.request<Array<Record<string, unknown>>>('/notifications?action=list')) ?? [],
+      ...CACHE_CONFIG.critical,
+    }),
+    queryClient.prefetchQuery({
+      queryKey: ['intakes'],
+      queryFn: async () => ((await catalogService.getIntakes())?.intakes ?? []),
+      ...CACHE_CONFIG.static,
+    }),
+  ])
 }
