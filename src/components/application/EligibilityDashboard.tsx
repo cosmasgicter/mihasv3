@@ -19,7 +19,9 @@ import {
   EligibilityAssessmentWithProgram
 } from '@/types/eligibility'
 import { MissingRequirement } from '@/lib/eligibilityEngine'
-import { adminApi, catalogApi, EligibilityAssessment } from '@/lib/apiClient'
+import { apiClient } from '@/services/client'
+import { catalogService } from '@/services/catalog'
+import type { EligibilityAssessment } from '@/lib/apiClient'
 
 function parseMissingRequirements(
   value: EligibilityAssessmentWithProgram['missing_requirements']
@@ -82,9 +84,9 @@ export function EligibilityDashboard() {
 
   const loadPrograms = useCallback(async () => {
     try {
-      const response = await catalogApi.getPrograms()
-      if (response.success && response.data) {
-        const activePrograms = (response.data as Array<{ id: string; name: string; is_active?: boolean }>)
+      const data = await catalogService.getPrograms()
+      if (data) {
+        const activePrograms = (data as Array<{ id: string; name: string; is_active?: boolean }>)
           .filter(p => p.is_active !== false)
           .map(p => ({ id: p.id, name: p.name }))
         setPrograms(activePrograms)
@@ -97,12 +99,15 @@ export function EligibilityDashboard() {
   const loadDashboardData = useCallback(async () => {
     setLoading(true)
     try {
-      // Get eligibility assessments via API
-      const response = await adminApi.getEligibilityAssessments(selectedProgram)
+      // Get eligibility assessments via new API client
+      const params = new URLSearchParams()
+      params.set('action', 'eligibility-assessments')
+      if (selectedProgram && selectedProgram !== 'all') params.set('program_id', selectedProgram)
+      const data = await apiClient.request<{ assessments: EligibilityAssessmentWithProgram[] }>(`/admin?${params}`)
 
-      if (response.success && response.data?.assessments) {
+      if (data?.assessments) {
         const normalizedAssessments = normalizeAssessments(
-          response.data.assessments as EligibilityAssessmentWithProgram[]
+          data.assessments
         )
         const metrics = calculateMetrics(normalizedAssessments)
         setMetrics(metrics)

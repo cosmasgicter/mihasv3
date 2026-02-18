@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { BarChart3, Clock, TrendingUp, AlertCircle } from 'lucide-react'
-import { applicationsApi } from '@/lib/apiClient'
+import { apiClient } from '@/services/client'
 import { animateClasses } from '@/lib/animations'
 
 interface AnalyticsStats {
@@ -27,16 +27,18 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
     if (!userId) return
     
     try {
-      // MIGRATED: Using API client instead of direct Supabase calls
-      const response = await applicationsApi.getStats()
+      // MIGRATED: Using new API client instead of legacy applicationsApi
+      const data = await apiClient.request<{
+        total_drafts: number
+        completed_applications: number
+        total_applications: number
+        avg_time_hours: number
+      }>('/applications?action=stats')
 
-      if (!response.success) {
-        console.error('Analytics query error:', response.error)
+      if (!data) {
+        console.error('Analytics query returned no data')
         return
       }
-
-      const data = response.data
-      if (!data) return
 
       // Convert avg_time_hours to minutes for display
       const avgTimeMinutes = Math.round((data.avg_time_hours || 0) * 60)

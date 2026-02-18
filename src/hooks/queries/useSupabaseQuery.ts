@@ -15,8 +15,11 @@ async function authFetch(url: string, options: RequestInit = {}): Promise<Respon
   })
 }
 
+import { QUERY_CACHE_CONFIG } from '@/lib/queryCacheConfig'
+
 /**
  * Optimized cache configuration based on data volatility patterns
+ * Uses centralized config profiles from queryCacheConfig.ts
  */
 export const CACHE_CONFIG = {
   auth: { 
@@ -24,8 +27,7 @@ export const CACHE_CONFIG = {
     gcTime: 30 * 60 * 1000
   },
   applications: { 
-    staleTime: 1 * 60 * 1000,
-    gcTime: 5 * 60 * 1000
+    ...QUERY_CACHE_CONFIG.critical,
   },
   users: { 
     staleTime: 15 * 60 * 1000,
@@ -36,11 +38,11 @@ export const CACHE_CONFIG = {
     gcTime: 60 * 60 * 1000
   },
   static: { 
-    staleTime: 2 * 60 * 60 * 1000,
-    gcTime: 24 * 60 * 60 * 1000
+    ...QUERY_CACHE_CONFIG.static,
+    gcTime: 24 * 60 * 60 * 1000,
   },
   realtime: { 
-    staleTime: 15 * 1000,
+    ...QUERY_CACHE_CONFIG.polling,
     gcTime: 60 * 1000
   }
 } as const

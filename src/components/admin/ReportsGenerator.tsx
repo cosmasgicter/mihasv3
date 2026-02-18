@@ -1,7 +1,6 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { applicationsApi, adminApi } from '@/lib/apiClient'
 import {
   Download,
   FileText,
@@ -394,13 +393,10 @@ export function ReportsGenerator() {
 
       await AnalyticsService.ensureReportManagerAccess()
 
-      // Fetch application data via API
-      const response = await applicationsApi.list({ limit: 1000 })
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch applications')
-      }
-
-      const applications = (response.data || []).filter(app => {
+      // Fetch application data via new service
+      const appsData = await applicationService.list({ pageSize: 1000 })
+      
+      const applications = (appsData?.applications || []).filter(app => {
         const createdAt = new Date(app.created_at)
         const startDate = new Date(config.startDate)
         const endDate = new Date(config.endDate)

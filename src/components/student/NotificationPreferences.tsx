@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { notificationsApi, type NotificationPreferences as NotificationPreferencesType } from '@/lib/apiClient'
+import { apiClient } from '@/services/client'
+
+interface NotificationPreferencesType {
+  email_enabled: boolean
+  sms_enabled?: boolean
+  push_enabled: boolean
+  notification_types?: {
+    application_update: boolean
+    interview_schedule: boolean
+    document_ready: boolean
+  }
+}
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Bell, Mail, MessageSquare, Check } from 'lucide-react'
@@ -31,14 +42,14 @@ export function NotificationPreferences() {
     }
 
     try {
-      const response = await notificationsApi.getPreferences()
+      const data = await apiClient.request<NotificationPreferencesType>('/notifications?action=preferences')
       
-      if (response.success && response.data) {
+      if (data) {
         setPreferences({
-          email_enabled: response.data.email_enabled ?? true,
-          sms_enabled: response.data.sms_enabled ?? false,
-          push_enabled: response.data.push_enabled ?? true,
-          notification_types: response.data.notification_types ?? {
+          email_enabled: data.email_enabled ?? true,
+          sms_enabled: data.sms_enabled ?? false,
+          push_enabled: data.push_enabled ?? true,
+          notification_types: data.notification_types ?? {
             application_update: true,
             interview_schedule: true,
             document_ready: true
@@ -58,11 +69,14 @@ export function NotificationPreferences() {
     try {
       setSaving(true)
 
-      await notificationsApi.updatePreferences({
-        email_enabled: preferences.email_enabled,
-        sms_enabled: preferences.sms_enabled,
-        push_enabled: preferences.push_enabled,
-        notification_types: preferences.notification_types
+      await apiClient.request('/notifications?action=preferences', {
+        method: 'POST',
+        body: JSON.stringify({
+          email_enabled: preferences.email_enabled,
+          sms_enabled: preferences.sms_enabled,
+          push_enabled: preferences.push_enabled,
+          notification_types: preferences.notification_types
+        })
       })
     } catch (error) {
       console.error('Save preferences error:', error)

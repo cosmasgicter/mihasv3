@@ -131,7 +131,7 @@ export function getCacheStrategy(url: string): keyof typeof PWA_CONFIG.strategie
   const urlObj = new URL(url)
 
   // API requests
-  if (urlObj.pathname.startsWith('/api/') || urlObj.hostname.includes('supabase.co')) {
+  if (urlObj.pathname.startsWith('/api/')) {
     return 'api'
   }
 

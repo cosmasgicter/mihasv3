@@ -13,7 +13,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
-import { authApi } from '@/lib/apiClient';
+import { apiClient } from '@/services/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FormSelect } from '@/components/ui/form-select';
@@ -104,20 +104,15 @@ export default function SignUpPage() {
 
     setEmailChecking(true);
     try {
-      // MIGRATED: Using API client instead of direct Supabase calls
-      const response = await authApi.checkEmail(email);
+      // MIGRATED: Using new API client instead of legacy authApi
+      const response = await apiClient.request<{ available: boolean }>(`/auth?action=check-email&email=${encodeURIComponent(email)}`);
 
-      if (!response.success) {
-        console.warn('Email check error:', response.error);
-        setEmailAvailable(null);
+      const isAvailable = (response as any)?.available ?? null;
+      setEmailAvailable(isAvailable);
+      if (isAvailable === false) {
+        setError('This email is already registered. Please sign in instead.');
       } else {
-        const isAvailable = response.data?.available ?? null;
-        setEmailAvailable(isAvailable);
-        if (isAvailable === false) {
-          setError('This email is already registered. Please sign in instead.');
-        } else {
-          setError('');
-        }
+        setError('');
       }
     } catch (err) {
       console.warn('Email check error:', err);
