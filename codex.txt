@@ -1,99 +1,268 @@
-MIHAS Application System — Post-Migration Fix Report
-=====================================================
+MIHAS Application System — Migration Recovery + Engineering Continuation Brief
+=========================================================================
 Date: 2026-02-18
-Context: Supabase-to-Neon migration (spec: .kiro/specs/supabase-remnant-purge/)
+Owner: Codex handoff for Opus continuation
+Scope: Supabase → Neon, Cloudflare → Vercel, Node tooling → Bun/Vite runtime alignment
 
-ROOT CAUSE
-----------
-The Supabase-to-Neon migration was marked complete but introduced a critical
-response shape mismatch between the API and frontend.
+EXECUTIVE SUMMARY
+-----------------
+A major, high-impact bug was already fixed: API response envelope mismatch between
+`src/services/client.ts` and all Vercel `sendSuccess()` endpoints.
 
-Two API client modules exist in the codebase:
-  1. src/lib/apiClient.ts — older module with its own request() that unwraps
-     data.data ?? data (used by applicationsApi, catalogApi, etc.)
-  2. src/services/client.ts — newer ApiClient class that did NOT unwrap the
-     { success, data } envelope (used by applicationService, catalogService, etc.)
+However, the codebase is still in a mixed migration state:
+- some frontend modules still consume legacy response shapes,
+- some services call endpoints that do not exist,
+- several dashboard/analytics paths are intentionally stubbed to return empty data,
+- refresh/reload behavior is still aggressive and can present as jitter,
+- there are asset fallback and route-contract inconsistencies.
 
-All Vercel API endpoints use sendSuccess(res, payload) from lib/errorHandler.ts
-which wraps responses as { success: true, data: payload }.
+This document captures:
+1) what has already been done,
+2) what remains broken and why,
+3) proof points from source scan,
+4) prioritized next steps to make the platform industry-leading.
 
-The newer client (services/client.ts) returned the FULL envelope, but frontend
-services typed the response as the inner payload type. So response.applications
-was always undefined, resulting in empty arrays everywhere.
 
-AFFECTED FLOWS
---------------
-1. Student Dashboard — applicationService.list() → response.applications = undefined
-   → "No applications yet" shown even when applications exist
-2. Admin Dashboard — same pattern via useApplicationsData hook
-3. Application Wizard — draft loading via applicationsData.useList() → same issue
-4. Admin Programs page — checked response.success and response.data on catalog
-   service results (which were the raw envelope)
-5. Admin Intakes page — same pattern as Programs
-6. Notification Preferences — checked response.success on notification service
-   results that were still wrapped in envelope
-7. Catalog Service — was double-wrapping responses (wrapping already-wrapped data)
+SECTION A — WHAT HAS ALREADY BEEN DONE (VERIFIED)
+--------------------------------------------------
+1) API envelope unwrapping was implemented in the new API client.
+   - `src/services/client.ts` now unwraps `{ success, data }` using
+     `unwrapApiResponse()` for GET and non-GET flows.
+   - This fixed the primary empty-list symptoms where callers expected direct payloads.
 
-ADDITIONALLY: api-src/applications.ts handleDetails() returned a raw array via
-sendSuccess(res, result.rows) instead of the paginated shape
-{ applications, totalCount, page, pageSize } that the frontend expects.
+2) Applications list endpoint was normalized to paginated structure.
+   - `api-src/applications.ts` `handleDetails()` now returns:
+     `{ applications, totalCount, page, pageSize }`.
+   - Filters and query params were added/parsed (`page`, `pageSize`, `status`,
+     `search`, `payment`, `program`, `institution`, `sortBy`, `sortOrder`, `mine`).
 
-FIXES APPLIED
--------------
-1. src/services/client.ts
-   - Added unwrapApiResponse() method that strips { success, data } envelope
-   - Both GET and POST return paths now call unwrapApiResponse()
-   - Removed duplicate method definition
+3) Catalog service and selected admin pages were aligned to unwrapped shape.
+   - `src/services/catalog.ts` no longer double-wraps.
+   - `src/pages/admin/Programs.tsx` and `src/pages/admin/Intakes.tsx`
+     were adapted to direct payload access.
 
-2. api-src/applications.ts
-   - Rewrote handleDetails() to return paginated response shape:
-     { applications, totalCount, page, pageSize }
-   - Added query param parsing: page, pageSize, status, search, payment,
-     program, institution, sortBy, sortOrder, mine
-   - Bundled to api/applications.js
+4) Notification preference flow was updated to avoid stale `response.success`
+   checks in paths now using unwrapped client payload.
 
-3. src/services/catalog.ts
-   - Simplified all methods to return apiClient.request() directly
-   - Removed manual { success, data } wrapping that caused double-wrap
+5) The migration chain has additional already-merged fixes in git history.
+   Recent commits show auth/cookie/column/query compatibility fixes,
+   plus initial envelope mismatch correction.
 
-4. src/services/applications.ts
-   - Fixed update() method: removed manual response.data unwrap since
-     apiClient now unwraps automatically
 
-5. src/pages/admin/Programs.tsx
-   - loadPrograms(): changed from response.success/response.data to
-     response?.programs (direct unwrapped shape)
-   - loadInstitutions(): changed from response.success/response.data to
-     response?.institutions
+SECTION B — SOURCE-SCAN FINDINGS: REMAINING BUGS + BREAKAGE REASONS
+--------------------------------------------------------------------
+B1) Payment page still reads legacy list response shape
+    Severity: HIGH (student UX and payment progression)
 
-6. src/pages/admin/Intakes.tsx
-   - loadIntakes(): changed from response.success/response.data to
-     response?.intakes (direct unwrapped shape)
+Observed:
+- `src/pages/student/Payment.tsx` uses `applicationsApi.list({ mine: true })` and then
+  maps `(response.data || []).map(...)`.
 
-7. src/hooks/useNotificationPreferences.ts
-   - Updated all response.success checks to response truthiness checks
-   - loadPreferences, updateChannelConsent, updateMultipleChannels,
-     updateQuietHours, checkChannelStatus, exportPreferences,
-     revokeAllConsents — all updated
+Why it breaks:
+- `api-src/applications.ts` list/details now returns paginated payload object,
+  not a raw array. If frontend treats it as array, mapping fails or yields no data.
 
-NOT AFFECTED (verified safe)
-----------------------------
-- src/hooks/useAuth.ts — uses its own authFetch() with direct fetch(), not apiClient
-- src/hooks/admin/useApplicationStatusUpdate.ts — same, own authFetch()
-- src/services/sessionService.ts — same, own authFetch()
-- src/lib/apiClient.ts — older client, has its own unwrap, unchanged
-- src/data/applications.ts — passes through applicationService, works after fix
-- src/data/catalog.ts — passes through catalogService, works after fix
+Likely user-visible symptom:
+- payment page appears empty or fails to render expected application payment rows.
 
-FILES CHANGED
--------------
-src/services/client.ts
-src/services/catalog.ts
-src/services/applications.ts
-src/services/offlineDataManager.ts
-src/pages/admin/Programs.tsx
-src/pages/admin/Intakes.tsx
-src/pages/admin/EligibilityManagement.tsx
-src/hooks/useNotificationPreferences.ts
-api-src/applications.ts
-api/applications.js (auto-generated bundle)
+
+B2) Interviews service targets nonexistent routes
+    Severity: HIGH (student/admin interview workflows)
+
+Observed:
+- `src/services/interviews.ts` calls:
+  - `/interview/schedule`
+  - `/interview/reminders`
+- No corresponding `api/interview*.js` or `api-src/interview*.ts` exists.
+
+Why it breaks:
+- Calls resolve to 404; frontend features depending on this service cannot fetch/write.
+
+Important nuance:
+- Interview support currently exists under `/api/applications` actions
+  (`action=interviews`, `action=schedule-interview`) not `/api/interview/*`.
+
+
+B3) Admin service contracts are still inconsistent in places
+    Severity: HIGH (admin dashboards/tools partial failures)
+
+Observed:
+- `src/services/admin/audit.ts` requests `/admin?action=audit-log` and expects
+  `result.data` array semantics.
+- `src/services/eligibilityAppealsService.ts` requests `/admin?action=appeals`
+  and reads `result.data`.
+- `api-src/admin.ts` action switch does NOT expose `audit-log` or `appeals`
+  as valid actions (it lists dashboard/users/settings/register/migrate/stats/errors/
+  set-password/import-settings/reset-settings/eligibility-rules/eligibility-assessments).
+
+Why it breaks:
+- Frontend calls unsupported admin actions => API returns invalid action error.
+- Additionally, residual `result.data` assumptions are risky post-unwrapping.
+
+
+B4) Dashboard/analytics are intentionally stubbed to empty
+    Severity: HIGH ("no data fetched" perception)
+
+Observed:
+- `src/services/dashboardPreloader.ts` explicitly states Supabase calls removed,
+  and returns empty arrays/null no-op placeholders.
+- `src/services/metricsTracking.ts` is explicitly STUBBED and returns empty/default metrics.
+
+Why it breaks:
+- Any dashboard path depending on these services shows zeros/empty state despite DB data.
+
+
+B5) Refresh/jitter risk persists due to aggressive reload strategy
+    Severity: MEDIUM-HIGH (perceived instability)
+
+Observed:
+- `src/main.tsx` triggers `window.location.reload()` on Vite preload/dynamic import
+  and MIME-type related errors.
+- Service worker update flow includes immediate activation patterns and reload behavior.
+- Multiple explicit `window.location.reload()` usages still exist across pages/components.
+
+Why it breaks:
+- On deploy edge cases or SW activation transitions, users may see frequent reloads,
+  especially on constrained/mobile networks.
+
+
+B6) PWA image fallback path mismatch
+    Severity: MEDIUM (offline/degraded UX)
+
+Observed:
+- `src/lib/pwaConfig.ts` fallback image points to `/images/placeholder.png`.
+- Actual asset present is `public/images/placeholder.svg`.
+
+Why it breaks:
+- Offline image fallback can fail because fallback asset path is invalid.
+
+
+B7) Dual API-client architecture remains technical debt
+    Severity: MEDIUM (future regressions)
+
+Observed:
+- `src/lib/apiClient.ts` (legacy envelope-returning client) and
+  `src/services/client.ts` (new unwrapping client) coexist.
+
+Why it breaks over time:
+- Engineers may use wrong client/contract and reintroduce response-shape bugs.
+
+
+SECTION C — ROOT PROBLEMS THAT CAUSED THIS STATE
+-------------------------------------------------
+1) Contract drift between backend response envelope and frontend service typings.
+2) Incomplete route migration (feature code moved, endpoint paths not fully reconciled).
+3) Temporary stubs introduced during migration were not replaced before marking complete.
+4) Coexistence of old/new clients with different semantics.
+5) Operational hardening gaps (SW/reload strategy not tuned for production stability).
+
+
+SECTION D — PRIORITIZED EXECUTION PLAN FOR OPUS (DO THIS NEXT)
+---------------------------------------------------------------
+P0 — Data Integrity + UX Unblock (do first)
+1) Fix Payment page response parsing
+   - Normalize `applicationsApi.list()` payload handling to support paginated object.
+   - Keep legacy fallback only if needed for backward compatibility.
+
+2) Rewire interviews service
+   - Replace `/interview/*` calls with `/applications?action=...` routes,
+     or add proper interview endpoints in `api-src` + bundled `api` output.
+
+3) Reconcile admin action contracts
+   - Either implement `audit-log` and `appeals` actions server-side,
+     or update frontend to only call supported actions.
+
+
+P1 — Remove Empty Dashboard Illusion
+4) Replace dashboard preloader no-ops with real API-backed prefetches.
+5) Replace metricsTracking stubs with real backend-backed metrics calls,
+   or feature-flag/hide widgets until backend is implemented.
+
+
+P2 — Stability / Jitter Reduction
+6) Tighten reload policy in `main.tsx`
+   - Only hard-reload once per build version hash, not broad generic errors.
+   - Add bounded retries and telemetry for reload reasons.
+
+7) Harden service worker update UX
+   - Prefer user-consented refresh flow where possible.
+   - Avoid auto-reload on first controller acquisition.
+
+
+P3 — Migration Debt Cleanup
+8) Consolidate to one API client abstraction.
+   - Define one response contract style and enforce by lint/types.
+
+9) Introduce API contract tests
+   - Validate shape for all key endpoints: applications, admin, catalog,
+     notifications, auth/session.
+
+10) Create migration checklist gate
+   - No migration marked complete unless: routes verified, contracts verified,
+     smoke tests pass, and stubs removed or explicitly feature-flagged.
+
+
+SECTION E — INDUSTRY-LEADING / BEST-IN-CLASS IMPROVEMENTS
+----------------------------------------------------------
+E1) Product Reliability & Observability
+- Add end-to-end synthetic checks (login, student dashboard, admin dashboard,
+  application create/edit/submit, payment workflow).
+- Add OpenTelemetry traces for each API route + frontend fetch spans.
+- Build error budget dashboard (SLOs): API success rate, p95 latency,
+  dashboard data freshness, auth success.
+
+E2) API Contract Governance
+- Generate shared typed API schemas (OpenAPI or zod schemas) consumed by both
+  backend handlers and frontend services.
+- CI contract check: fail build on response shape drift.
+
+E3) Performance Excellence
+- Image pipeline validation in CI (ensure all referenced assets exist and have
+  optimized formats + responsive variants).
+- Real-user monitoring for CLS/LCP/INP by route.
+- Tune React Query stale/refetch policies to avoid excessive churn.
+
+E4) Data Layer Quality
+- DB migration verification scripts against Neon schema on deploy.
+- Add read model materialization for dashboard-heavy queries.
+- Add deterministic seed and snapshot tests for admin analytics.
+
+E5) Security + Session Hardening
+- Session lifecycle tests (cookie issuance, refresh, expiration, role changes).
+- Centralized auth middleware audit to prevent route-level drift.
+- Admin action authorization matrix test suite.
+
+E6) Delivery Process
+- “Migration readiness” template requiring:
+  - endpoint map before/after,
+  - response contract diff,
+  - smoke-run evidence,
+  - rollback plan.
+- Mandatory canary deploy with synthetic smoke before full rollout.
+
+
+SECTION F — OPUS IMPLEMENTATION CHECKLIST (COPY INTO TASK BOARD)
+-----------------------------------------------------------------
+[ ] Fix Payment page list parsing for paginated payload.
+[ ] Fix/repoint interviews service endpoints.
+[ ] Implement or remove unsupported admin actions (`audit-log`, `appeals`).
+[ ] Normalize admin frontend services to current unwrapped contracts.
+[ ] Replace dashboard preloader stubs with real data prefetch.
+[ ] Replace metrics tracking stubs with real metrics data.
+[ ] Correct PWA image fallback path.
+[ ] Reduce hard reload aggressiveness and add reload telemetry.
+[ ] Reduce or remove direct `window.location.reload()` where local refetch suffices.
+[ ] Consolidate to one API client and deprecate the other.
+[ ] Add API contract tests and migration gating checks in CI.
+
+
+SECTION G — FINAL NOTE FOR OPUS
+--------------------------------
+The system is no longer in a completely broken state (major envelope mismatch was
+fixed), but it is not yet production-grade or "best in class" due to contract
+inconsistencies, stubbed data paths, and stability hardening gaps.
+
+Treat this as Phase 2 hardening:
+- restore all critical data flows,
+- eliminate route/shape ambiguity,
+- then move to observability and performance leadership.
