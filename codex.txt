@@ -1,0 +1,99 @@
+MIHAS Application System — Post-Migration Fix Report
+=====================================================
+Date: 2026-02-18
+Context: Supabase-to-Neon migration (spec: .kiro/specs/supabase-remnant-purge/)
+
+ROOT CAUSE
+----------
+The Supabase-to-Neon migration was marked complete but introduced a critical
+response shape mismatch between the API and frontend.
+
+Two API client modules exist in the codebase:
+  1. src/lib/apiClient.ts — older module with its own request() that unwraps
+     data.data ?? data (used by applicationsApi, catalogApi, etc.)
+  2. src/services/client.ts — newer ApiClient class that did NOT unwrap the
+     { success, data } envelope (used by applicationService, catalogService, etc.)
+
+All Vercel API endpoints use sendSuccess(res, payload) from lib/errorHandler.ts
+which wraps responses as { success: true, data: payload }.
+
+The newer client (services/client.ts) returned the FULL envelope, but frontend
+services typed the response as the inner payload type. So response.applications
+was always undefined, resulting in empty arrays everywhere.
+
+AFFECTED FLOWS
+--------------
+1. Student Dashboard — applicationService.list() → response.applications = undefined
+   → "No applications yet" shown even when applications exist
+2. Admin Dashboard — same pattern via useApplicationsData hook
+3. Application Wizard — draft loading via applicationsData.useList() → same issue
+4. Admin Programs page — checked response.success and response.data on catalog
+   service results (which were the raw envelope)
+5. Admin Intakes page — same pattern as Programs
+6. Notification Preferences — checked response.success on notification service
+   results that were still wrapped in envelope
+7. Catalog Service — was double-wrapping responses (wrapping already-wrapped data)
+
+ADDITIONALLY: api-src/applications.ts handleDetails() returned a raw array via
+sendSuccess(res, result.rows) instead of the paginated shape
+{ applications, totalCount, page, pageSize } that the frontend expects.
+
+FIXES APPLIED
+-------------
+1. src/services/client.ts
+   - Added unwrapApiResponse() method that strips { success, data } envelope
+   - Both GET and POST return paths now call unwrapApiResponse()
+   - Removed duplicate method definition
+
+2. api-src/applications.ts
+   - Rewrote handleDetails() to return paginated response shape:
+     { applications, totalCount, page, pageSize }
+   - Added query param parsing: page, pageSize, status, search, payment,
+     program, institution, sortBy, sortOrder, mine
+   - Bundled to api/applications.js
+
+3. src/services/catalog.ts
+   - Simplified all methods to return apiClient.request() directly
+   - Removed manual { success, data } wrapping that caused double-wrap
+
+4. src/services/applications.ts
+   - Fixed update() method: removed manual response.data unwrap since
+     apiClient now unwraps automatically
+
+5. src/pages/admin/Programs.tsx
+   - loadPrograms(): changed from response.success/response.data to
+     response?.programs (direct unwrapped shape)
+   - loadInstitutions(): changed from response.success/response.data to
+     response?.institutions
+
+6. src/pages/admin/Intakes.tsx
+   - loadIntakes(): changed from response.success/response.data to
+     response?.intakes (direct unwrapped shape)
+
+7. src/hooks/useNotificationPreferences.ts
+   - Updated all response.success checks to response truthiness checks
+   - loadPreferences, updateChannelConsent, updateMultipleChannels,
+     updateQuietHours, checkChannelStatus, exportPreferences,
+     revokeAllConsents — all updated
+
+NOT AFFECTED (verified safe)
+----------------------------
+- src/hooks/useAuth.ts — uses its own authFetch() with direct fetch(), not apiClient
+- src/hooks/admin/useApplicationStatusUpdate.ts — same, own authFetch()
+- src/services/sessionService.ts — same, own authFetch()
+- src/lib/apiClient.ts — older client, has its own unwrap, unchanged
+- src/data/applications.ts — passes through applicationService, works after fix
+- src/data/catalog.ts — passes through catalogService, works after fix
+
+FILES CHANGED
+-------------
+src/services/client.ts
+src/services/catalog.ts
+src/services/applications.ts
+src/services/offlineDataManager.ts
+src/pages/admin/Programs.tsx
+src/pages/admin/Intakes.tsx
+src/pages/admin/EligibilityManagement.tsx
+src/hooks/useNotificationPreferences.ts
+api-src/applications.ts
+api/applications.js (auto-generated bundle)

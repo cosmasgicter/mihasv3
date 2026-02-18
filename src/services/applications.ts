@@ -70,11 +70,10 @@ export const applicationService = {
 
   update: async (id: string, data: ApplicationPayload) => {
     const cleanId = id.replace(/^applications-/, '')
-    const response = await apiClient.request<{ success: boolean; data: Application }>(`/applications/${cleanId}`, {
+    return apiClient.request<Application>(`/applications/${cleanId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     })
-    return response?.data ?? null
   },
 
   delete: async (id: string) => {
@@ -224,12 +223,9 @@ export const applicationService = {
         status: string;
         payment_status: string;
         application_fee: number;
-        paid_amount: number;
+        amount: number;
         submitted_at: string;
         created_at: string;
-        grades_summary: string;
-        total_subjects: number;
-        points: number;
         age: number;
         days_since_submission: number;
       }>;

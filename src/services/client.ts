@@ -164,6 +164,22 @@ class ApiClient {
     };
   }
 
+  /**
+   * Unwrap the { success, data } envelope returned by API endpoints.
+   * All Vercel API endpoints return { success: true, data: T } via sendSuccess().
+   * This method extracts the inner `data` so callers get the payload directly.
+   */
+  private unwrapApiResponse<TResponse>(response: TResponse | null): TResponse | null {
+    if (response === null || response === undefined) return null;
+    if (typeof response === 'object' && !Array.isArray(response)) {
+      const obj = response as Record<string, unknown>;
+      if ('success' in obj && 'data' in obj) {
+        return (obj.data ?? null) as TResponse | null;
+      }
+    }
+    return response;
+  }
+
   private getInvalidationPatterns(
     endpoint: string,
     customTargets?: string | string[] | false
@@ -289,7 +305,8 @@ class ApiClient {
           monitoring.queueFlush(false);
         }
 
-        return data;
+        // Unwrap { success, data } envelope from API responses
+        return this.unwrapApiResponse<TResponse>(data);
       }
 
       const response = await fetch(`${API_BASE}${normalizedEndpoint}`, requestInit);
@@ -339,7 +356,8 @@ class ApiClient {
 
       this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
 
-      return payload;
+      // Unwrap { success, data } envelope from API responses
+      return this.unwrapApiResponse<TResponse>(payload);
     } catch (error) {
       // Check if this is an abort error (request cancelled)
       const isAbortError =
