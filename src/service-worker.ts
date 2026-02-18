@@ -31,7 +31,6 @@ self.addEventListener('error', (event) => {
 })
 
 clientsClaim()
-self.skipWaiting()
 
 precacheAndRoute(self.__WB_MANIFEST)
 cleanupOutdatedCaches()
