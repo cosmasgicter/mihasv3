@@ -2,7 +2,7 @@
 
 import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
 import { clientsClaim } from 'workbox-core'
-import { registerRoute } from 'workbox-routing'
+import { registerRoute, setCatchHandler } from 'workbox-routing'
 import { CacheFirst, NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
@@ -14,6 +14,9 @@ declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<unknown> }
 const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.0.0'
 const CACHE_VERSION = `v${APP_VERSION}`
 const CACHE_PREFIX = 'mihas-app'
+
+// Offline fallback asset used when image requests fail
+const IMAGE_FALLBACK_URL = '/images/placeholder.svg'
 
 // Suppress extension-related errors in service worker
 self.addEventListener('error', (event) => {
@@ -34,6 +37,22 @@ clientsClaim()
 
 precacheAndRoute(self.__WB_MANIFEST)
 cleanupOutdatedCaches()
+
+
+const imageFallbackResponse = async (): Promise<Response> => {
+  const fallbackResponse = await caches.match(IMAGE_FALLBACK_URL)
+  if (fallbackResponse) {
+    return fallbackResponse
+  }
+
+  try {
+    return await fetch(IMAGE_FALLBACK_URL)
+  } catch {
+    return new Response('<svg xmlns="http://www.w3.org/2000/svg"/>', {
+      headers: { 'Content-Type': 'image/svg+xml' }
+    })
+  }
+}
 
 
 // ============================================================================
@@ -73,7 +92,8 @@ registerRoute(
         statuses: [0, 200]
       })
     ]
-  })
+  }),
+  'GET'
 )
 
 // CSS and JavaScript - Cache first with 7-day expiration
@@ -451,4 +471,17 @@ self.addEventListener('notificationclose', event => {
       })
     })
   }
+})
+
+
+setCatchHandler(async ({ request }) => {
+  if (request.destination === 'image') {
+    return imageFallbackResponse()
+  }
+
+  if (request.destination === 'document') {
+    return caches.match('/offline.html') || Response.error()
+  }
+
+  return Response.error()
 })

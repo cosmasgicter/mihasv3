@@ -52,6 +52,7 @@ export const PWA_CONFIG = {
     '/offline.html',
     '/manifest.json',
     '/favicon.ico',
+    '/images/placeholder.svg',
     '/images/logos/mihas-logo.png',
     '/images/logos/katc-logo.png'
   ],
@@ -77,7 +78,7 @@ export const PWA_CONFIG = {
   // Offline fallbacks
   fallbacks: {
     page: '/offline.html',
-    image: '/images/placeholder.png',
+    image: '/images/placeholder.svg',
     font: null
   },
 
