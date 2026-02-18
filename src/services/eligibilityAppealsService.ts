@@ -183,15 +183,17 @@ export class EligibilityAppealsService {
       }
 
       const result = await apiClient.request<{
-        data: any[]
+        appeals: any[]
         totalCount: number
+        page: number
+        pageSize: number
       }>(`/admin${buildQueryString(params)}`)
 
       if (!result) {
         return { appeals: [], totalCount: 0, hasMore: false }
       }
 
-      const appeals = result.data?.map(d => this.parseAppealData(d)) || []
+      const appeals = result.appeals?.map(d => this.parseAppealData(d)) || []
       const totalCount = result.totalCount || 0
       const hasMore = pagination ? (pagination.page * pagination.limit) < totalCount : false
 
