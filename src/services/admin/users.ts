@@ -2,9 +2,8 @@ import { apiClient } from '../client'
 
 export const userService = {
   list: async () => {
-    const response = await apiClient.request<{data?: any[], users?: any[]}>('/admin/users')
-    // Backend returns {data: [...]}, normalize to {users: [...]}
-    return { users: response?.data || response?.users || [] }
+    const response = await apiClient.request<{users?: any[]}>('/admin/users')
+    return { users: response?.users || [] }
   },
   getById: (id: string) => apiClient.request(`/admin/users/${encodeURIComponent(id)}`),
   getRole: (id: string) => apiClient.request(`/admin/users/${encodeURIComponent(id)}/role`),

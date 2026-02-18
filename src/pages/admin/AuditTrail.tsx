@@ -357,7 +357,7 @@ export default function AuditTrailPage() {
       
       // Ensure payload has proper structure
       const safePayload = {
-        data: Array.isArray(payload?.data) ? payload.data : [],
+        entries: Array.isArray(payload?.entries) ? payload.entries : [],
         page: payload?.page || 1,
         pageSize: payload?.pageSize || DEFAULT_PAGE_SIZE,
         totalPages: payload?.totalPages || 1,
@@ -365,7 +365,7 @@ export default function AuditTrailPage() {
       }
       
       setResponse(safePayload)
-      if (safePayload.data.length === 0 && Object.keys(appliedFilters).length > 0) {
+      if (safePayload.entries.length === 0 && Object.keys(appliedFilters).length > 0) {
         showInfo('No results', 'No audit entries match your current filters.')
       }
     } catch (requestError) {
@@ -376,7 +376,7 @@ export default function AuditTrailPage() {
       setError(message)
       showError('Load failed', message)
       // Set empty response on error
-      setResponse({ data: [], page: 1, pageSize: DEFAULT_PAGE_SIZE, totalPages: 1, totalCount: 0 })
+      setResponse({ entries: [], page: 1, pageSize: DEFAULT_PAGE_SIZE, totalPages: 1, totalCount: 0 })
     } finally {
       setLoading(false)
     }
@@ -407,14 +407,14 @@ export default function AuditTrailPage() {
   }
 
   const exportAuditLog = () => {
-    if (!response?.data.length) {
+    if (!response?.entries.length) {
       showError('No data', 'No audit entries to export.')
       return
     }
     
     const csv = [
       'Timestamp,Action,Category,Actor Email,Actor ID,Target Table,Target ID,Request IP,User Agent',
-      ...response.data.map(entry => {
+      ...response.entries.map(entry => {
         const actionDetails = (() => {
           const actionLower = entry.action.toLowerCase()
           if (actionLower.includes('login') || actionLower.includes('signin')) return 'Authentication'
@@ -488,7 +488,7 @@ export default function AuditTrailPage() {
               variant="ghost"
               size="sm"
               onClick={exportAuditLog}
-              disabled={!response?.data.length}
+              disabled={!response?.entries.length}
             >
               <Download className="h-4 w-4" />
             </Button>
@@ -515,7 +515,7 @@ export default function AuditTrailPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-accent uppercase tracking-wide">This Page</p>
-                <p className="text-2xl font-bold text-accent-foreground">{response?.data?.length || 0}</p>
+                <p className="text-2xl font-bold text-accent-foreground">{response?.entries?.length || 0}</p>
               </div>
               <div className="p-3 bg-accent rounded-xl">
                 <FileText className="h-5 w-5 text-white" />
@@ -745,11 +745,11 @@ export default function AuditTrailPage() {
               </div>
             ))}
           </div>
-        ) : response?.data?.length ? (
+        ) : response?.entries?.length ? (
           <>
             {/* Audit List */}
             <div className="space-y-3 mb-6">
-              {response.data.map(entry => (
+              {response.entries.map(entry => (
                 <AuditListItem key={entry.id} entry={entry} />
               ))}
             </div>

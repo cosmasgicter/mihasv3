@@ -159,8 +159,24 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         await handleEligibilityAssessments(req, res);
         return;
 
+      case 'audit-log':
+        if (req.method !== 'GET') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleAuditLog(req, res);
+        return;
+
+      case 'appeals':
+        if (req.method !== 'GET') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleAppeals(req, res);
+        return;
+
       default:
-        sendError(res, 'Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments', HttpStatus.BAD_REQUEST);
+        sendError(res, 'Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals', HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -500,8 +516,11 @@ async function handleUsers(req: VercelRequest, res: VercelResponse): Promise<voi
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
     sendSuccess(res, {
-      data: users,
-      meta: { page, limit, total, total_pages: Math.ceil(total / limit) },
+      users,
+      totalCount: total,
+      page,
+      pageSize: limit,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
@@ -1193,4 +1212,124 @@ async function handleEligibilityAssessments(req: VercelRequest, res: VercelRespo
   // eligibility_assessments table does not exist â€” return empty array gracefully
   res.setHeader('Cache-Control', 'public, max-age=60');
   sendSuccess(res, { assessments: [], message: 'Eligibility assessments feature not yet configured' });
+}
+
+/**
+ * Get admin audit log entries
+ *
+ * GET /api/admin?action=audit-log
+ */
+async function handleAuditLog(req: VercelRequest, res: VercelResponse): Promise<void> {
+  let page = parseInt(req.query.page as string || '1', 10);
+  let pageSize = parseInt(req.query.pageSize as string || '50', 10);
+
+  if (isNaN(page) || page < 1) page = 1;
+  if (isNaN(pageSize) || pageSize < 1) pageSize = 50;
+  if (pageSize > 200) pageSize = 200;
+
+  const filterAction = (req.query.filter_action as string | undefined)?.trim();
+  const filterEntityType = (req.query.filter_entity_type as string | undefined)?.trim();
+  const filterFrom = req.query.filter_from as string | undefined;
+  const filterTo = req.query.filter_to as string | undefined;
+  const offset = (page - 1) * pageSize;
+
+  try {
+    const whereClauses: string[] = [];
+    const params: unknown[] = [];
+
+    if (filterAction) {
+      params.push(filterAction);
+      whereClauses.push(`action = $${params.length}`);
+    }
+
+    if (filterEntityType) {
+      params.push(filterEntityType);
+      whereClauses.push(`entity_type = $${params.length}`);
+    }
+
+    if (filterFrom) {
+      params.push(filterFrom);
+      whereClauses.push(`created_at >= $${params.length}::timestamptz`);
+    }
+
+    if (filterTo) {
+      params.push(filterTo);
+      whereClauses.push(`created_at <= $${params.length}::timestamptz`);
+    }
+
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    const countQuery = `SELECT COUNT(*) as count FROM audit_logs ${whereSql}`;
+    const entriesQuery = `
+      SELECT id, actor_id, action, entity_type, entity_id, changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      ${whereSql}
+      ORDER BY created_at DESC
+      LIMIT $${params.length + 1}
+      OFFSET $${params.length + 2}
+    `;
+
+    const [countResult, entriesResult] = await Promise.all([
+      query<{ count: string }>(countQuery, params),
+      query<Record<string, unknown>>(entriesQuery, [...params, pageSize, offset]),
+    ]);
+
+    const totalCount = parseInt(countResult.rows[0]?.count || '0', 10);
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+    sendSuccess(res, {
+      entries: entriesResult.rows,
+      totalCount,
+      page,
+      pageSize,
+      totalPages,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    sendError(res, message, HttpStatus.BAD_REQUEST);
+  }
+}
+
+/**
+ * Get eligibility appeals for admin dashboard.
+ *
+ * GET /api/admin?action=appeals
+ */
+async function handleAppeals(req: VercelRequest, res: VercelResponse): Promise<void> {
+  let page = parseInt(req.query.page as string || '1', 10);
+  let pageSize = parseInt((req.query.limit as string) || (req.query.pageSize as string) || '50', 10);
+
+  if (isNaN(page) || page < 1) page = 1;
+  if (isNaN(pageSize) || pageSize < 1) pageSize = 50;
+  if (pageSize > 200) pageSize = 200;
+
+  const offset = (page - 1) * pageSize;
+
+  try {
+    const [countResult, appealsResult] = await Promise.all([
+      query<{ count: string }>('SELECT COUNT(*) as count FROM eligibility_appeals'),
+      query<Record<string, unknown>>(
+        `SELECT * FROM eligibility_appeals ORDER BY submitted_at DESC NULLS LAST, created_at DESC NULLS LAST LIMIT $1 OFFSET $2`,
+        [pageSize, offset],
+      ),
+    ]);
+
+    const totalCount = parseInt(countResult.rows[0]?.count || '0', 10);
+    sendSuccess(res, {
+      appeals: appealsResult.rows,
+      totalCount,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(totalCount / pageSize)),
+    });
+  } catch {
+    // eligibility_appeals table may not be configured yet.
+    sendSuccess(res, {
+      appeals: [],
+      totalCount: 0,
+      page,
+      pageSize,
+      totalPages: 1,
+    });
+  }
 }

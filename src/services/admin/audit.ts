@@ -32,7 +32,7 @@ export interface AuditLogFilters {
 }
 
 export interface AuditLogResponse {
-  data: AuditLogEntry[]
+  entries: AuditLogEntry[]
   page: number
   pageSize: number
   totalPages: number
@@ -57,7 +57,7 @@ class AdminAuditService {
 
     try {
       const result = await apiClient.request<{
-        data: any[]
+        entries: any[]
         page: number
         pageSize: number
         totalPages: number
@@ -65,14 +65,14 @@ class AdminAuditService {
       }>(`/admin${buildQueryString(params)}`)
 
       if (!result) {
-        return { data: [], page, pageSize, totalPages: 1, totalCount: 0 }
+        return { entries: [], page, pageSize, totalPages: 1, totalCount: 0 }
       }
 
       const totalCount = result.totalCount || 0
       const totalPages = result.totalPages || Math.ceil(totalCount / pageSize) || 1
 
       return {
-        data: (result.data || []).map((log: any) => ({
+        entries: (result.entries || []).map((log: any) => ({
           id: log.id,
           actorId: log.actor_id,
           actorEmail: log.actor_email ?? log.actor?.email ?? null,
