@@ -94,8 +94,7 @@ export function CacheMonitor() {
       await fetchCacheStats()
       
       // Notify user
-      alert('All caches cleared successfully. The page will reload.')
-      window.location.reload()
+      alert('All caches cleared successfully. Refreshed cache statistics.')
     } catch (error) {
       console.error('Failed to clear caches:', error)
       alert('Failed to clear caches. Please try again.')
