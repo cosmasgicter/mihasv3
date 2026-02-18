@@ -66,34 +66,43 @@ This is because Vercel counts any directory inside `api/` toward the function li
 ```
 lib/                   # PROJECT ROOT - shared utilities
 ├── arcjet.ts          # Arcjet security perimeter (shield, bot, rate limits)
-├── auth.ts            # Auth middleware (getAuthUser, requireAuth, requireRole)
+├── auth.ts            # Auth middleware exports (re-exports from auth/)
 ├── auth/              # Auth components
 │   ├── password.ts    # bcrypt hashing (12 rounds)
 │   ├── jwt.ts         # JWT manager (jose, HS256)
 │   ├── cookies.ts     # HTTP-only cookie manager
 │   ├── middleware.ts  # Auth middleware
+│   ├── ownership.ts   # Resource ownership checks
 │   ├── permissions.ts # RBAC (deterministic, no DB lookup)
 │   └── legacy.ts      # Supabase token migration support
+├── base64.ts          # Base64 encoding utilities
 ├── cors.ts            # CORS handler for Vercel
 ├── db.ts              # Database abstraction (Neon serverless only)
+├── errorHandler.ts    # Sanitized error responses (sendSuccess/sendError)
+├── neon-serverless.d.ts # Neon type declarations
 ├── queries.ts         # Typed query builders
-├── errorHandler.ts    # Sanitized error responses
+├── rateLimiter.ts     # Rate limiting utilities
 ├── auditLogger.ts     # Audit logging (no PII)
 ├── realtime.ts        # SSE + polling fallback
 ├── storage.ts         # R2 storage abstraction
 └── sessions.ts        # Device session manager
 
-api/                   # Vercel Serverless Functions (10 endpoints)
+api-src/               # API source TypeScript (edit these, then bundle)
 ├── admin.ts           # ?action=dashboard|users|settings|stats|errors|migrate
-├── applications.ts    # ?action=details|documents|grades|summary|review
+├── applications.ts    # ?action=details|documents|grades|summary|review|export or ?id=xxx
 ├── auth.ts            # ?action=login|logout|refresh|session|register
+├── bootstrap.ts       # Database bootstrap/seed operations
 ├── catalog.ts         # ?type=programs|intakes|subjects
 ├── documents.ts       # ?action=upload|extract
 ├── health.ts          # ?action=ping|db|env|arcjet (consolidated)
 ├── notifications.ts   # ?action=preferences|send
 ├── payments.ts        # ?action=receipt
+├── ping.ts            # Simple ping endpoint
 ├── sessions.ts        # ?action=track|list|revoke|revoke-all
-└── [...path].ts       # Catch-all for unmatched routes
+├── [...path].ts       # Catch-all for unmatched routes
+└── tsconfig.json      # TypeScript config for API
+
+api/                   # Bundled JS files (12 endpoints — DO NOT EDIT)
 ```
 
 ### Vercel Function Pattern (Query Parameter Routing)
@@ -138,6 +147,20 @@ export default withArcjetProtection(handler, 'general');
 - Handle errors gracefully—never expose stack traces
 - Log errors but never log PII
 - Add new functionality as cases in existing consolidated endpoints
+
+### API Response Envelope (CRITICAL)
+All API endpoints wrap responses via `sendSuccess(res, payload)` from `lib/errorHandler.ts`:
+```json
+{ "success": true, "data": { ...actual payload... } }
+```
+The frontend `ApiClient` (`src/services/client.ts`) automatically unwraps this envelope via `unwrapApiResponse()`. Frontend services receive the inner payload directly — never check `response.success` or `response.data` on service results.
+
+### Dual API Client Architecture (IMPORTANT)
+Two API client modules exist — be aware of which one a file uses:
+1. `src/lib/apiClient.ts` — older module, has its own `data.data ?? data` unwrap. Used by some hooks via direct `authFetch()`.
+2. `src/services/client.ts` — newer `ApiClient` class, unwraps `{ success, data }` envelope automatically. Used by all service modules (`src/services/*.ts`).
+
+When adding new frontend code, prefer `src/services/client.ts` (the newer client). Never manually unwrap `response.data` or check `response.success` on results from either client — both handle unwrapping internally.
 
 ### Security Conventions (Arcjet + Custom Auth)
 - Wrap all sensitive routes with `withArcjetProtection()` before handler logic

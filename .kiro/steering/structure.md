@@ -105,31 +105,34 @@ Choose based on data type:
 ```
 api-src/                # Source TypeScript files
 ├── admin.ts           # ?action=dashboard|users|settings|stats|errors|migrate
-├── applications.ts    # ?action=details|documents|grades|summary|review or ?id=xxx
+├── applications.ts    # ?action=details|documents|grades|summary|review|export or ?id=xxx
 ├── auth.ts            # ?action=login|logout|refresh|session|register
+├── bootstrap.ts       # Database bootstrap/seed operations
 ├── catalog.ts         # ?type=programs|intakes|subjects
 ├── documents.ts       # ?action=upload|extract
 ├── health.ts          # ?action=ping|db|env|arcjet (consolidated)
 ├── notifications.ts   # ?action=preferences|send
 ├── payments.ts        # ?action=receipt
+├── ping.ts            # Simple ping endpoint
 ├── sessions.ts        # ?action=track|list|revoke|revoke-all
 ├── [...path].ts       # Catch-all for unmatched routes
 └── tsconfig.json      # TypeScript config for API
 ```
 
-**Bundled files in `api/`** (JavaScript, auto-generated):
+**Bundled files in `api/`** (JavaScript, auto-generated — 12 endpoints):
 ```
 api/                   # Bundled JS files (DO NOT EDIT)
 ├── admin.js
 ├── applications.js
 ├── auth.js
+├── bootstrap.js
 ├── catalog.js
 ├── documents.js
 ├── health.js
 ├── notifications.js
 ├── payments.js
-├── sessions.js
 ├── ping.js
+├── sessions.js
 └── [...path].js
 ```
 
@@ -137,19 +140,25 @@ api/                   # Bundled JS files (DO NOT EDIT)
 ```
 lib/                   # Shared utilities
 ├── arcjet.ts          # Security perimeter (shield, bot, rate limits)
-├── auth.ts            # Auth middleware exports
+├── auth.ts            # Auth middleware exports (re-exports from auth/)
 ├── auth/              # Auth components
 │   ├── password.ts    # bcrypt hashing
 │   ├── jwt.ts         # JWT manager (jose)
 │   ├── cookies.ts     # HTTP-only cookies
 │   ├── middleware.ts  # getAuthUser, requireAuth, requireRole
-│   └── permissions.ts # RBAC (deterministic)
+│   ├── ownership.ts   # Resource ownership checks
+│   ├── permissions.ts # RBAC (deterministic)
+│   └── legacy.ts      # Supabase token migration support
+├── base64.ts          # Base64 encoding utilities
 ├── cors.ts            # CORS handler
 ├── db.ts              # Database abstraction (Neon serverless only)
+├── errorHandler.ts    # Sanitized errors (sendSuccess/sendError envelope)
+├── neon-serverless.d.ts # Neon type declarations
 ├── queries.ts         # Typed query builders
-├── errorHandler.ts    # Sanitized errors
+├── rateLimiter.ts     # Rate limiting utilities
 ├── auditLogger.ts     # Audit logging
 ├── realtime.ts        # SSE + polling
+├── storage.ts         # R2 storage abstraction
 └── sessions.ts        # Device session manager
 ```
 
@@ -188,6 +197,17 @@ export default withArcjetProtection(handler, 'general');
 ```
 
 **Adding new functionality**: Add a new `case` to the appropriate consolidated endpoint's switch statement. Wrap with appropriate auth middleware.
+
+## API Client Architecture (CRITICAL)
+
+Two API client modules exist on the frontend — know which one you're working with:
+
+1. **`src/lib/apiClient.ts`** (older) — has its own `data.data ?? data` unwrap. Some hooks use `authFetch()` directly from this module.
+2. **`src/services/client.ts`** (newer, preferred) — `ApiClient` class that automatically unwraps the `{ success, data }` envelope via `unwrapApiResponse()`. All service modules (`src/services/*.ts`) use this.
+
+All API endpoints return `{ success: true, data: payload }` via `sendSuccess()` in `lib/errorHandler.ts`. Both clients unwrap this internally. **Never manually check `response.success` or access `response.data`** on service results — you get the inner payload directly.
+
+When adding new frontend code, use `src/services/client.ts`.
 
 ## Removed Directories (Migration Complete)
 

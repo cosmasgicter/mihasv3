@@ -110,8 +110,9 @@ When modifying code, verify:
 - [ ] Accessibility (screen reader support)
 - [ ] Audit trails for state changes (no PII in logs)
 - [ ] Using Bun commands (not npm)
-- [ ] API endpoints in `api/` directory (not `functions/`)
+- [ ] API endpoints in `api-src/` directory (source), bundled to `api/` (never edit `api/` directly)
 - [ ] SSE/polling for real-time data (not Supabase Realtime)
 - [ ] Arcjet protection on sensitive routes
 - [ ] HTTP-only cookies for auth tokens (not localStorage)
 - [ ] Deterministic RBAC from JWT (no DB lookup for permissions)
+- [ ] API responses use `sendSuccess()` envelope — frontend clients unwrap automatically, never check `response.success` on service results
