@@ -38,6 +38,13 @@ interface ApplicationWithPayment {
   program: string | null
 }
 
+interface ApplicationsListPayload {
+  applications: ApplicationWithPayment[]
+  totalCount: number
+  page: number
+  pageSize: number
+}
+
 /**
  * Returns the appropriate badge variant and icon for a payment status
  * @requirements 2.3, 2.4 - Payment status indicators
@@ -102,7 +109,12 @@ export default function PaymentPage() {
           throw new Error(response.error || 'Failed to load applications')
         }
 
-        const applications = (response.data || []).map((app) => ({
+        const payload = response.data as ApplicationsListPayload | ApplicationWithPayment[] | null | undefined
+        const listData = payload && !Array.isArray(payload) && Array.isArray(payload.applications)
+          ? payload.applications
+          : (Array.isArray(payload) ? payload : [])
+
+        const applications = listData.map((app) => ({
           id: app.id,
           status: app.status,
           payment_status: app.payment_status,
