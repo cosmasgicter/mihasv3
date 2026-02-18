@@ -1,11 +1,13 @@
 const CACHE_NAME = 'mihas-v2-cache'
 const OFFLINE_URL = '/offline.html'
+const IMAGE_FALLBACK_URL = '/images/placeholder.svg'
 
 const CACHE_URLS = [
   '/',
   '/offline.html',
   '/images/logos/katc-logo.png',
-  '/images/logos/mihas-logo.png'
+  '/images/logos/mihas-logo.png',
+  '/images/placeholder.svg'
 ]
 
 /**
@@ -86,7 +88,7 @@ self.addEventListener('fetch', (event) => {
       })
     }).catch(() => {
       if (event.request.destination === 'image') {
-        return new Response('<svg></svg>', { headers: { 'Content-Type': 'image/svg+xml' } })
+        return caches.match(IMAGE_FALLBACK_URL).then((fallbackResponse) => fallbackResponse || new Response('<svg xmlns="http://www.w3.org/2000/svg"/>', { headers: { 'Content-Type': 'image/svg+xml' } }))
       }
     })
   )
