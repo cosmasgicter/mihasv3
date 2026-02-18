@@ -63,9 +63,8 @@ export default function AdminPrograms() {
       setLoading(true)
       setError('')
       const response = await programService.list()
-      if (!response.success) throw new Error(response.error || 'Failed to load programs')
-      // Sort by name
-      const sortedPrograms = (response.data || []).sort((a: Program, b: Program) => a.name.localeCompare(b.name))
+      // After unwrap, response is { programs: Program[] } directly
+      const sortedPrograms = (response?.programs || []).sort((a: Program, b: Program) => a.name.localeCompare(b.name))
       setPrograms(sortedPrograms)
     } catch (err: any) {
       setError(err.message || 'Failed to load programs')
@@ -77,8 +76,8 @@ export default function AdminPrograms() {
   const loadInstitutions = async () => {
     try {
       const response = await catalogService.getInstitutions()
-      if (!response.success) throw new Error(response.error || 'Failed to load institutions')
-      setInstitutions(response.data || [])
+      // After unwrap, response is { institutions: Institution[] } directly
+      setInstitutions(response?.institutions || [])
     } catch (err: any) {
       console.error('Error loading institutions:', err.message)
     }

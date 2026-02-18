@@ -114,9 +114,8 @@ export default function AdminIntakes() {
       setLoading(true)
       setError('')
       const response = await intakeService.list()
-      if (!response.success) throw new Error(response.error || 'Failed to load intakes')
-      // Sort by year descending
-      const sortedIntakes = (response.data || []).sort((a: Intake, b: Intake) => b.year - a.year)
+      // After unwrap, response is { intakes: Intake[] } directly
+      const sortedIntakes = (response?.intakes || []).sort((a: Intake, b: Intake) => b.year - a.year)
       setIntakes(sortedIntakes)
     } catch (err: any) {
       setError(err.message || 'Failed to load intakes')

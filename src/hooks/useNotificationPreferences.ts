@@ -51,11 +51,11 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
       
       const response = await notificationService.getPreferences(true, 50)
       
-      if (response.success) {
+      if (response) {
         setPreferences(response.preferences)
         setAuditTrail(response.audit_trail || [])
       } else {
-        setError(response.error || 'Failed to load preferences')
+        setError('Failed to load preferences')
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load preferences'
@@ -85,7 +85,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         reason: reason || `User ${enabled ? 'enabled' : 'disabled'} ${channel} notifications`
       })
 
-      if (response.success) {
+      if (response) {
         setPreferences(response.preferences)
         
         toast({
@@ -98,10 +98,10 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         await loadPreferences()
         return true
       } else {
-        setError(response.error || 'Failed to update preferences')
+        setError('Failed to update preferences')
         toast({
           title: 'Error',
-          description: response.error || 'Failed to update preferences',
+          description: 'Failed to update preferences',
           variant: 'destructive'
         })
         return false
@@ -137,7 +137,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         reason: reason || 'Bulk channel preference update'
       })
 
-      if (response.success) {
+      if (response) {
         setPreferences(response.preferences)
         
         toast({
@@ -150,10 +150,10 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         await loadPreferences()
         return true
       } else {
-        setError(response.error || 'Failed to update preferences')
+        setError('Failed to update preferences')
         toast({
           title: 'Error',
-          description: response.error || 'Failed to update preferences',
+          description: 'Failed to update preferences',
           variant: 'destructive'
         })
         return false
@@ -193,7 +193,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         reason: reason || 'Quiet hours preference update'
       })
 
-      if (response.success) {
+      if (response) {
         setPreferences(response.preferences)
         
         toast({
@@ -206,10 +206,10 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         await loadPreferences()
         return true
       } else {
-        setError(response.error || 'Failed to update quiet hours')
+        setError('Failed to update quiet hours')
         toast({
           title: 'Error',
-          description: response.error || 'Failed to update quiet hours',
+          description: 'Failed to update quiet hours',
           variant: 'destructive'
         })
         return false
@@ -234,7 +234,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
 
     try {
       const response = await notificationService.checkConsentStatus(user.id, channel)
-      return response.success ? response : null
+      return response ?? null
     } catch (err) {
       console.error('Error checking channel status:', err)
       return null
@@ -248,7 +248,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
     try {
       const response = await notificationService.exportPreferences()
       
-      if (response.success) {
+      if (response) {
         // Create and download file
         const blob = new Blob([JSON.stringify(response.export_data, null, 2)], {
           type: 'application/json'
@@ -270,7 +270,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
       } else {
         toast({
           title: 'Export Failed',
-          description: response.error || 'Failed to export preferences',
+          description: 'Failed to export preferences',
           variant: 'destructive'
         })
       }
@@ -298,7 +298,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         reason || 'User requested to revoke all consents'
       )
 
-      if (response.success) {
+      if (response) {
         toast({
           title: 'Consents Revoked',
           description: 'All notification consents have been revoked',
@@ -309,10 +309,10 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         await loadPreferences()
         return true
       } else {
-        setError(response.error || 'Failed to revoke consents')
+        setError('Failed to revoke consents')
         toast({
           title: 'Error',
-          description: response.error || 'Failed to revoke consents',
+          description: 'Failed to revoke consents',
           variant: 'destructive'
         })
         return false

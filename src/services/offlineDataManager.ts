@@ -62,9 +62,9 @@ class OfflineDataManager {
       ])
 
       const cache: OfflineDataCache = {
-        programs: programsResult.status === 'fulfilled' ? programsResult.value.data || [] : [],
-        institutions: institutionsResult.status === 'fulfilled' ? institutionsResult.value.data || [] : [],
-        subjects: subjectsResult.status === 'fulfilled' ? subjectsResult.value.data || [] : [],
+        programs: programsResult.status === 'fulfilled' ? programsResult.value?.programs || [] : [],
+        institutions: institutionsResult.status === 'fulfilled' ? institutionsResult.value?.institutions || [] : [],
+        subjects: subjectsResult.status === 'fulfilled' ? subjectsResult.value?.subjects || [] : [],
         userProfile: profileResult.status === 'fulfilled' ? (profileResult.value as any)?.user ?? profileResult.value : null,
         lastUpdated: new Date().toISOString(),
         version: this.CACHE_VERSION

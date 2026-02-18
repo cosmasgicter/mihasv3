@@ -60,8 +60,7 @@ export default function EligibilityManagement() {
 
   const loadPrograms = async () => {
     const response = await programService.list()
-    if (!response.success) throw new Error(response.error || 'Failed to load programs')
-    setPrograms(response.data || [])
+    setPrograms(response?.programs || [])
   }
 
   const loadRules = async () => {

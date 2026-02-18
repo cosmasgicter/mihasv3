@@ -1011,14 +1011,63 @@ async function handleDetails(req, res, userId, isAdmin) {
   if (req.method !== "GET") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
-  let q;
-  if (isAdmin) {
-    q = ApplicationQueries.findAll();
-  } else {
-    q = ApplicationQueries.findByUserId(userId);
+  const page = parseInt(req.query.page || "0", 10);
+  const pageSize = parseInt(req.query.pageSize || "50", 10);
+  const status = req.query.status;
+  const search = req.query.search;
+  const payment = req.query.payment;
+  const program = req.query.program;
+  const institution = req.query.institution;
+  const sortBy = req.query.sortBy || "date";
+  const sortOrder = (req.query.sortOrder || "desc").toUpperCase() === "ASC" ? "ASC" : "DESC";
+  const mine = req.query.mine;
+  const conditions = [];
+  const values = [];
+  let paramIndex = 1;
+  if (!isAdmin || mine === "true") {
+    conditions.push(`user_id = $${paramIndex}`);
+    values.push(userId);
+    paramIndex++;
   }
-  const result = await query(q.text, q.values);
-  return sendSuccess(res, result.rows);
+  if (status) {
+    conditions.push(`status = $${paramIndex}`);
+    values.push(status);
+    paramIndex++;
+  }
+  if (search) {
+    const searchPattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
+    conditions.push(`(full_name ILIKE $${paramIndex} OR email ILIKE $${paramIndex} OR application_number ILIKE $${paramIndex})`);
+    values.push(searchPattern);
+    paramIndex++;
+  }
+  if (payment) {
+    conditions.push(`payment_status = $${paramIndex}`);
+    values.push(payment);
+    paramIndex++;
+  }
+  if (program) {
+    conditions.push(`program = $${paramIndex}`);
+    values.push(program);
+    paramIndex++;
+  }
+  if (institution) {
+    conditions.push(`institution = $${paramIndex}`);
+    values.push(institution);
+    paramIndex++;
+  }
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const sortColumn = sortBy === "date" ? "created_at" : sortBy === "name" ? "full_name" : "created_at";
+  const countResult = await query(`SELECT COUNT(*) as count FROM applications ${whereClause}`, values);
+  const totalCount = parseInt(countResult.rows[0]?.count || "0", 10);
+  const offset = page * pageSize;
+  const dataValues = [...values, pageSize, offset];
+  const result = await query(`SELECT * FROM applications ${whereClause} ORDER BY ${sortColumn} ${sortOrder} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`, dataValues);
+  return sendSuccess(res, {
+    applications: result.rows,
+    totalCount,
+    page,
+    pageSize
+  });
 }
 async function handleDocuments(res) {
   const q = DocumentQueries.findAll();

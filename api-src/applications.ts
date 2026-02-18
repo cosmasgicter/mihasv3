@@ -162,15 +162,87 @@ async function handleDetails(
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  let q;
-  if (isAdmin) {
-    q = ApplicationQueries.findAll();
-  } else {
-    q = ApplicationQueries.findByUserId(userId);
+  // Parse pagination and filter params from query string
+  const page = parseInt(req.query.page as string || '0', 10);
+  const pageSize = parseInt(req.query.pageSize as string || '50', 10);
+  const status = req.query.status as string | undefined;
+  const search = req.query.search as string | undefined;
+  const payment = req.query.payment as string | undefined;
+  const program = req.query.program as string | undefined;
+  const institution = req.query.institution as string | undefined;
+  const sortBy = req.query.sortBy as string || 'date';
+  const sortOrder = (req.query.sortOrder as string || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+  const mine = req.query.mine as string | undefined;
+
+  // Build dynamic query with filters
+  const conditions: string[] = [];
+  const values: (string | number)[] = [];
+  let paramIndex = 1;
+
+  // Scope to user unless admin
+  if (!isAdmin || mine === 'true') {
+    conditions.push(`user_id = $${paramIndex}`);
+    values.push(userId);
+    paramIndex++;
   }
 
-  const result = await query<ApplicationRecord>(q.text, q.values);
-  return sendSuccess(res, result.rows);
+  if (status) {
+    conditions.push(`status = $${paramIndex}`);
+    values.push(status);
+    paramIndex++;
+  }
+
+  if (search) {
+    const searchPattern = `%${search.replace(/[%_]/g, '\\$&')}%`;
+    conditions.push(`(full_name ILIKE $${paramIndex} OR email ILIKE $${paramIndex} OR application_number ILIKE $${paramIndex})`);
+    values.push(searchPattern);
+    paramIndex++;
+  }
+
+  if (payment) {
+    conditions.push(`payment_status = $${paramIndex}`);
+    values.push(payment);
+    paramIndex++;
+  }
+
+  if (program) {
+    conditions.push(`program = $${paramIndex}`);
+    values.push(program);
+    paramIndex++;
+  }
+
+  if (institution) {
+    conditions.push(`institution = $${paramIndex}`);
+    values.push(institution);
+    paramIndex++;
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  // Sort column mapping
+  const sortColumn = sortBy === 'date' ? 'created_at' : sortBy === 'name' ? 'full_name' : 'created_at';
+
+  // Count total
+  const countResult = await query<{ count: string }>(
+    `SELECT COUNT(*) as count FROM applications ${whereClause}`,
+    values
+  );
+  const totalCount = parseInt(countResult.rows[0]?.count || '0', 10);
+
+  // Fetch page
+  const offset = page * pageSize;
+  const dataValues = [...values, pageSize, offset];
+  const result = await query<ApplicationRecord>(
+    `SELECT * FROM applications ${whereClause} ORDER BY ${sortColumn} ${sortOrder} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+    dataValues
+  );
+
+  return sendSuccess(res, {
+    applications: result.rows,
+    totalCount,
+    page,
+    pageSize
+  });
 }
 
 async function handleDocuments(res: VercelResponse) {

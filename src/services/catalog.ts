@@ -36,83 +36,53 @@ interface Institution {
   is_active?: boolean;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
 export const catalogService = {
-  getPrograms: async (): Promise<ApiResponse<Program[]>> => {
-    const data = await apiClient.request<Program[]>('/catalog/programs')
-    return { success: true, data: data || [] }
-  },
-  getIntakes: async (): Promise<ApiResponse<Intake[]>> => {
-    const data = await apiClient.request<Intake[]>('/catalog/intakes')
-    return { success: true, data: data || [] }
-  },
-  getSubjects: async (): Promise<ApiResponse<Subject[]>> => {
-    const data = await apiClient.request<Subject[]>('/catalog/subjects')
-    return { success: true, data: data || [] }
-  },
-  getInstitutions: async (): Promise<ApiResponse<Institution[]>> => {
-    const data = await apiClient.request<Institution[]>('/catalog/institutions')
-    return { success: true, data: data || [] }
-  }
+  getPrograms: () =>
+    apiClient.request<{ programs: Program[] }>('/catalog/programs'),
+  getIntakes: () =>
+    apiClient.request<{ intakes: Intake[] }>('/catalog/intakes'),
+  getSubjects: () =>
+    apiClient.request<{ subjects: Subject[] }>('/catalog/subjects'),
+  getInstitutions: () =>
+    apiClient.request<{ institutions: Institution[] }>('/catalog/institutions'),
 }
 
 export const programService = {
-  list: async (): Promise<ApiResponse<Program[]>> => {
-    const data = await apiClient.request<Program[]>('/catalog/programs')
-    return { success: true, data: data || [] }
-  },
-  create: async (data: { name: string; description?: string; duration_years: number; institution_id: string }): Promise<ApiResponse<Program>> => {
-    const result = await apiClient.request<Program>('/catalog/programs', {
+  list: () =>
+    apiClient.request<{ programs: Program[] }>('/catalog/programs'),
+  create: (data: { name: string; description?: string; duration_years: number; institution_id: string }) =>
+    apiClient.request<Program>('/catalog/programs', {
       method: 'POST',
       body: JSON.stringify(data)
-    })
-    return { success: true, data: result || undefined }
-  },
-  update: async (data: { id: string; name: string; description?: string; duration_years: number; institution_id: string }): Promise<ApiResponse<Program>> => {
-    const result = await apiClient.request<Program>('/catalog/programs', {
+    }),
+  update: (data: { id: string; name: string; description?: string; duration_years: number; institution_id: string }) =>
+    apiClient.request<Program>('/catalog/programs', {
       method: 'PUT',
       body: JSON.stringify(data)
-    })
-    return { success: true, data: result || undefined }
-  },
-  delete: async (id: string): Promise<ApiResponse<void>> => {
-    await apiClient.request('/catalog/programs', {
+    }),
+  delete: (id: string) =>
+    apiClient.request<void>('/catalog/programs', {
       method: 'DELETE',
       body: JSON.stringify({ id })
-    })
-    return { success: true }
-  }
+    }),
 }
 
 export const intakeService = {
-  list: async (): Promise<ApiResponse<Intake[]>> => {
-    const data = await apiClient.request<Intake[]>('/catalog/intakes')
-    return { success: true, data: data || [] }
-  },
-  create: async (data: { name: string; year: number; start_date: string; end_date: string; application_deadline: string; total_capacity: number; available_spots?: number }): Promise<ApiResponse<Intake>> => {
-    const result = await apiClient.request<Intake>('/catalog/intakes', {
+  list: () =>
+    apiClient.request<{ intakes: Intake[] }>('/catalog/intakes'),
+  create: (data: { name: string; year: number; start_date: string; end_date: string; application_deadline: string; total_capacity: number; available_spots?: number }) =>
+    apiClient.request<Intake>('/catalog/intakes', {
       method: 'POST',
       body: JSON.stringify(data)
-    })
-    return { success: true, data: result || undefined }
-  },
-  update: async (data: { id: string; name: string; year: number; start_date: string; end_date: string; application_deadline: string; total_capacity: number; available_spots?: number }): Promise<ApiResponse<Intake>> => {
-    const result = await apiClient.request<Intake>('/catalog/intakes', {
+    }),
+  update: (data: { id: string; name: string; year: number; start_date: string; end_date: string; application_deadline: string; total_capacity: number; available_spots?: number }) =>
+    apiClient.request<Intake>('/catalog/intakes', {
       method: 'PUT',
       body: JSON.stringify(data)
-    })
-    return { success: true, data: result || undefined }
-  },
-  delete: async (id: string): Promise<ApiResponse<void>> => {
-    await apiClient.request('/catalog/intakes', {
+    }),
+  delete: (id: string) =>
+    apiClient.request<void>('/catalog/intakes', {
       method: 'DELETE',
       body: JSON.stringify({ id })
-    })
-    return { success: true }
-  }
+    }),
 }
