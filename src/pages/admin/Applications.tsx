@@ -162,6 +162,7 @@ export default function Applications() {
     pagination,
     hasMore,
     loadNextPage,
+    refreshCurrentPage,
     updateStatus,
     updatePaymentStatus
   } = useApplicationsData(filters)
@@ -357,8 +358,9 @@ export default function Applications() {
   }, [selectedApplication, showSuccess, showError])
 
   const handleRefresh = useCallback(async () => {
-    window.location.reload()
-  }, [])
+    await refreshCurrentPage()
+    showInfo('Refreshed', 'Application data refreshed successfully.')
+  }, [refreshCurrentPage, showInfo])
 
   // Wrapper for updateStatus with error handling and toast notifications
   const handleStatusUpdate = useCallback(async (applicationId: string, newStatus: string) => {

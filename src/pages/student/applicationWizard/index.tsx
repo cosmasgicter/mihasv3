@@ -177,7 +177,7 @@ const ApplicationWizardContent = () => {
               Taking longer than expected?
             </p>
             <Button
-              onClick={() => window.location.reload()}
+              onClick={() => window.location.assign(window.location.pathname)}
               variant="outline"
               size="sm"
               className="w-full"
