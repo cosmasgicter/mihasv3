@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { logReloadEvent, performReload, resolveBuildKey } from '@/lib/reloadControl'
 
 interface ServiceWorkerUpdateState {
   updateAvailable: boolean
@@ -20,6 +21,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
   const SW_RELOAD_PENDING_KEY = 'mihas_sw_reload_pending'
   const SW_RELOAD_HANDLED_KEY = 'mihas_sw_reload_handled'
+  const buildKey = resolveBuildKey()
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) {
@@ -53,6 +55,10 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     let updateInterval: ReturnType<typeof setInterval> | null = null
     let isEffectActive = true
 
+    let lastUpdateCheckAt = 0
+    let lastUpdateFoundAt = 0
+
+
     const handleInstallingStateChange = () => {
       if (!trackedInstallingWorker) {
         return
@@ -84,6 +90,18 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
         return
       }
 
+      const now = Date.now()
+      if (now - lastUpdateFoundAt < 5_000) {
+        logReloadEvent({
+          reason: 'sw_controller_change',
+          mode: 'auto',
+          buildKey,
+          details: { ignored: true, cause: 'updatefound-debounced' }
+        })
+        return
+      }
+      lastUpdateFoundAt = now
+
       if (trackedInstallingWorker) {
         trackedInstallingWorker.removeEventListener('statechange', handleInstallingStateChange)
       }
@@ -101,17 +119,33 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       // Avoid unexpected reloads when SW controller is first attached on mobile.
       // Only reload when an update was explicitly triggered by the user.
       if (sessionStorage.getItem(SW_RELOAD_PENDING_KEY) !== '1') {
+        logReloadEvent({
+          reason: 'sw_controller_change',
+          mode: 'auto',
+          buildKey,
+          details: { ignored: true, cause: 'pending-flag-missing' }
+        })
         return
       }
 
       if (sessionStorage.getItem(SW_RELOAD_HANDLED_KEY) === '1') {
+        logReloadEvent({
+          reason: 'sw_controller_change',
+          mode: 'auto',
+          buildKey,
+          details: { ignored: true, cause: 'already-handled' }
+        })
         return
       }
 
       sessionStorage.setItem(SW_RELOAD_HANDLED_KEY, '1')
       sessionStorage.removeItem(SW_RELOAD_PENDING_KEY)
-      console.log('[SW Update] Controller changed after explicit update, reloading page')
-      window.location.reload()
+      performReload({
+        reason: 'sw_controller_change',
+        mode: 'user',
+        buildKey,
+        details: { source: 'controllerchange' }
+      })
     }
 
     const handleServiceWorkerMessage = (event: MessageEvent) => {
@@ -142,6 +176,12 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
         if (!registration) {
           return
         }
+
+        const now = Date.now()
+        if (now - lastUpdateCheckAt < 30_000) {
+          return
+        }
+        lastUpdateCheckAt = now
 
         registration.update().catch((error) => {
           console.error('[SW Update] Failed to check for updates:', error)
@@ -201,8 +241,13 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       sessionStorage.removeItem(SW_RELOAD_PENDING_KEY)
       setIsUpdating(false)
       
-      // Fallback: force reload
-      window.location.reload()
+      // Fallback: keep prompt visible; avoid hard reload loops
+      logReloadEvent({
+        reason: 'sw_controller_change',
+        mode: 'user',
+        buildKey,
+        details: { updateFailed: true }
+      })
     }
   }
 

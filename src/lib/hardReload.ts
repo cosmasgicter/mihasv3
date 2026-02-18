@@ -1,4 +1,15 @@
+import { logReloadEvent, resolveBuildKey } from '@/lib/reloadControl'
+
 export async function hardReload(): Promise<void> {
+  const buildKey = resolveBuildKey()
+
+  logReloadEvent({
+    reason: 'manual_hard_reload',
+    mode: 'user',
+    buildKey,
+    details: { stage: 'start' }
+  })
+
   try {
     // Unregister service workers so a stale worker doesn't keep serving an old bundle
     if ('serviceWorker' in navigator) {
@@ -27,9 +38,21 @@ export async function hardReload(): Promise<void> {
   try {
     const url = new URL(window.location.href);
     url.searchParams.set('_t', String(Date.now()));
+    logReloadEvent({
+      reason: 'manual_hard_reload',
+      mode: 'user',
+      buildKey,
+      details: { stage: 'replace', href: url.toString() }
+    })
     // Use replace to avoid polluting session history
     window.location.replace(url.toString());
   } catch (e) {
+    logReloadEvent({
+      reason: 'manual_hard_reload',
+      mode: 'user',
+      buildKey,
+      details: { stage: 'fallback-reload', error: String(e) }
+    })
     // fallback to simple reload
     window.location.reload();
   }
