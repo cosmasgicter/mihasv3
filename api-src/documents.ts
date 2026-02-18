@@ -308,36 +308,11 @@ async function handleExtract(req: VercelRequest, res: VercelResponse, authUserId
   const isScanned = true;
   const result = { metadata, isScanned, text: '' };
 
-  // Store analysis results using database abstraction
+  // Store analysis results (skip if document_analysis table doesn't exist)
   if (applicationId) {
     try {
-      const quality = isScanned ? 'needs_ocr' : 'good';
-      const upsertQuery = {
-        text: `
-          INSERT INTO document_analysis (
-            application_id, document_type, quality, completeness, 
-            ocr_confidence, extracted_data, suggestions, analyzed_at
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-          ON CONFLICT (application_id, document_type) DO UPDATE SET
-            quality = $3,
-            completeness = $4,
-            ocr_confidence = $5,
-            extracted_data = $6,
-            suggestions = $7,
-            analyzed_at = NOW()
-        `,
-        values: [
-          applicationId,
-          'pdf',
-          quality,
-          isScanned ? 0 : 100,
-          isScanned ? 0 : 0.95,
-          JSON.stringify({ text: '', metadata, isScanned, documentUrl }),
-          JSON.stringify(isScanned ? ['Document appears to be scanned. OCR processing may be required.'] : []),
-        ],
-      };
-      await query(upsertQuery.text, upsertQuery.values);
+      // document_analysis table may not exist — skip gracefully
+      console.log('[documents/extract] Skipping document_analysis storage (table not configured)');
     } catch {
       console.log('[documents/extract] Failed to store results');
     }

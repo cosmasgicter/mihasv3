@@ -183,6 +183,7 @@ task9-*.md
 task9-*.json
 validate-*.js
 test-*.js
+test-*.mjs
 test-*.sh
 test-*.bat
 run-*.sh

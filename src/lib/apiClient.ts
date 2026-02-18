@@ -538,11 +538,9 @@ export interface Application {
   created_at: string;
   updated_at: string;
   reviewed_by?: string;
-  reviewed_at?: string;
   review_started_at?: string;
-  review_notes?: string;
-  decision_reason?: string;
-  decision_date?: string;
+  receipt_number?: string;
+  nationality?: string;
 }
 
 export interface ApplicationDocument {
