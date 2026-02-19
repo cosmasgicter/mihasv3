@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from '../lib/cors';
 import { query } from '../lib/db';
 import { getAuthUser } from '../lib/auth/middleware';
-import { withArcjetProtection } from '../lib/arcjet';
+import { arcjetProtect, withArcjetProtection } from '../lib/arcjet';
 import { 
   ApplicationQueries, 
   DocumentQueries, 
@@ -39,9 +39,16 @@ import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHan
 async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
+  const action = req.query.action as string;
+
   // Handle HEAD requests for health checks (no auth required)
   if (req.method === 'HEAD') {
     return res.status(200).end();
+  }
+
+  // Dedicated unauthenticated tracking route
+  if (req.method === 'GET' && action === 'track') {
+    return await handlePublicTracking(req, res);
   }
 
   // Get authenticated user (supports both cookie and Bearer token)
@@ -54,7 +61,6 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   const adminRoles = ['admin', 'super_admin', 'admissions_officer'];
   const isAdmin = adminRoles.includes(user.role);
 
-  const action = req.query.action as string;
   const id = req.query.id as string;
 
   try {
@@ -81,6 +87,60 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   } catch (error) {
     return handleError(res, error, 'applications');
   }
+}
+
+interface PublicTrackingResult {
+  status: string;
+  program_name: string | null;
+  intake_name: string | null;
+  submitted_at: string | null;
+  updated_at: string | null;
+  feedback_summary: string | null;
+}
+
+function isValidTrackingCode(code: string): boolean {
+  const value = code.trim();
+  if (!value || value.length > 50) return false;
+  const appNumberPattern = /^(KATC|MIHAS)\d{6}$/;
+  if (appNumberPattern.test(value)) return true;
+  return /^[a-zA-Z0-9\-_]+$/.test(value);
+}
+
+async function handlePublicTracking(req: VercelRequest, res: VercelResponse) {
+  const code = (req.query.code as string | undefined)?.trim() || '';
+
+  if (!isValidTrackingCode(code)) {
+    return sendError(res, 'Invalid tracking code format', HttpStatus.BAD_REQUEST);
+  }
+
+  // Track endpoint uses separate, stricter throttling from authenticated application flows
+  const rateLimitDecision = await arcjetProtect(req, 'session');
+  if (!rateLimitDecision.allowed) {
+    return sendError(res, 'Too many tracking requests. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
+  }
+
+  const result = await query<PublicTrackingResult>(
+    `SELECT
+      status,
+      program AS program_name,
+      intake AS intake_name,
+      submitted_at,
+      updated_at,
+      LEFT(NULLIF(TRIM(admin_feedback), ''), 240) AS feedback_summary
+    FROM applications
+    WHERE public_tracking_code = $1 OR application_number = $1
+    ORDER BY updated_at DESC NULLS LAST
+    LIMIT 1`,
+    [code]
+  );
+
+  if (result.rowCount === 0) {
+    return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+  }
+
+  return sendSuccess(res, {
+    application: result.rows[0]
+  });
 }
 
 /**
