@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/components/ui/Toast'
 import { Activity, Users, FileText, Clock, TrendingUp, RefreshCw, Zap } from 'lucide-react'
 import { useRealtimeMetrics } from '@/hooks/useAnalyticsQueries'
+import { useRealtimeStore } from '@/stores/realtimeStore'
 
 export default function RealtimeMetrics() {
   const [autoRefresh, setAutoRefresh] = useState(true)
   const { error: showError } = useToastStore()
+  const { processed, duplicates, totalLatencyMs } = useRealtimeStore()
 
   // Use React Query hook with auto-refresh
   const { data: metrics, isLoading, refetch } = useRealtimeMetrics(autoRefresh ? 30000 : undefined)
@@ -32,6 +34,9 @@ export default function RealtimeMetrics() {
     if (load >= 60) return 'bg-warning/10'
     return 'bg-success/10'
   }
+
+  const duplicateRate = processed > 0 ? (duplicates / processed) * 100 : 0
+  const deliveryLatencyMs = processed > 0 ? totalLatencyMs / processed : 0
 
   if (isLoading) {
     return (
@@ -219,6 +224,14 @@ export default function RealtimeMetrics() {
                 <span>100%</span>
               </div>
             </div>
+          </div>
+
+          <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+            <p className="text-sm font-medium text-gray-900">Realtime Delivery Latency</p>
+            <p className="text-3xl font-bold text-primary mt-2">{deliveryLatencyMs.toFixed(0)}ms</p>
+            <p className="text-xs text-gray-600 mt-1">Average client-observed event latency</p>
+            <p className="text-sm font-medium text-gray-900 mt-4">Duplicate Rate</p>
+            <p className="text-2xl font-bold text-warning">{duplicateRate.toFixed(2)}%</p>
           </div>
         </div>
 

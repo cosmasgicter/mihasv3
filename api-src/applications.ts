@@ -17,6 +17,7 @@ import {
   USER_ROLES
 } from '../lib/queries';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
+import { publishRealtimeEvent } from '../lib/realtimeBroker';
 
 /**
  * Consolidated Applications API
@@ -606,15 +607,77 @@ async function handleById(
           return sendError(res, 'Cannot approve without verified payment', HttpStatus.BAD_REQUEST);
         }
 
-        const updateQ = ApplicationQueries.updateStatus(applicationId, status as ApplicationStatus, userId, notes);
-        const updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
+        await query('BEGIN');
+        let updateResult;
+        try {
+          const updateQ = ApplicationQueries.updateStatus(applicationId, status as ApplicationStatus, userId, notes);
+          updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
 
-        // Create status history entry
-        const historyQ = StatusHistoryQueries.create(applicationId, status as ApplicationStatus, userId, notes);
-        await query(historyQ.text, historyQ.values);
+          // Create status history entry
+          const historyQ = StatusHistoryQueries.create(applicationId, status as ApplicationStatus, userId, notes);
+          await query(historyQ.text, historyQ.values);
+
+          if (status === 'approved') {
+            await query(
+              `INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+               VALUES ($1, $2, $3, 'success', false, NOW())`,
+              [
+                app.user_id,
+                'Application approved',
+                `Your application ${app.application_number || applicationId} has been approved.`,
+              ]
+            );
+          }
+
+          await query('COMMIT');
+        } catch (error) {
+          await query('ROLLBACK');
+          throw error;
+        }
+
+        const now = new Date().toISOString();
+        const version = Date.now();
+        const baseEvent = {
+          entity_id: applicationId,
+          version,
+          created_at: now,
+        };
+
+        publishRealtimeEvent(app.user_id, {
+          ...baseEvent,
+          event_id: `application_update:${applicationId}:${version}`,
+          event_type: 'application_update',
+          payload: {
+            application_id: applicationId,
+            status,
+            approved: status === 'approved',
+          },
+        });
+
+        publishRealtimeEvent(app.user_id, {
+          ...baseEvent,
+          event_id: `dashboard_refresh:${applicationId}:${version}`,
+          event_type: 'dashboard_refresh',
+          payload: {
+            reason: 'application_status_changed',
+            application_id: applicationId,
+          },
+        });
+
+        if (status === 'approved') {
+          publishRealtimeEvent(app.user_id, {
+            ...baseEvent,
+            event_id: `notification:${applicationId}:${version}`,
+            event_type: 'notification',
+            payload: {
+              title: 'Application approved',
+              message: `Your application ${app.application_number || applicationId} has been approved.`,
+            },
+          });
+        }
 
         console.log('[applications] Status updated:', applicationId, status);
-        return sendSuccess(res, updateResult.rows[0]);
+        return sendSuccess(res, updateResult!.rows[0]);
       }
 
       if (action === 'update_payment_status') {

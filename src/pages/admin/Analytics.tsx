@@ -11,6 +11,7 @@ import { TrendingUp, Users, FileText, CheckCircle, Download, Plus, Edit, Trash2,
 import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { isReportManagerRole } from '@/lib/auth/roles'
 import { useToastStore } from '@/components/ui/Toast'
+import { useRealtimeStore } from '@/stores/realtimeStore'
 
 export default function Analytics() {
  const [loading, setLoading] = useState(true)
@@ -43,6 +44,9 @@ export default function Analytics() {
  const canManageReports = isReportManagerRole(userRole?.role)
  const roleStatusLoading = roleLoading || roleFetching
  const { success: showSuccess, error: showError, info: showInfo } = useToastStore()
+ const { processed, duplicates, totalLatencyMs } = useRealtimeStore()
+ const realtimeDuplicateRate = processed > 0 ? (duplicates / processed) * 100 : 0
+ const realtimeLatencyMs = processed > 0 ? totalLatencyMs / processed : 0
 
  useEffect(() => {
  loadAnalytics()
@@ -382,7 +386,7 @@ export default function Analytics() {
  {activeTab === 'overview' && (
  <>
  {/* Key Metrics */}
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
  <div className="bg-card rounded-2xl shadow-lg border border-border p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
  <div className="flex items-center justify-between">
  <div>
@@ -392,6 +396,19 @@ export default function Analytics() {
  </div>
  <div className="p-3 bg-primary/10 rounded-2xl">
  <FileText className="h-8 w-8 text-primary" />
+ </div>
+ </div>
+ </div>
+
+ <div className="bg-card rounded-2xl shadow-lg border border-border p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
+ <div className="flex items-center justify-between">
+ <div>
+ <p className="text-sm font-medium text-gray-900 mb-1">Realtime Delivery</p>
+ <p className="text-2xl sm:text-3xl font-bold text-primary break-words">{realtimeLatencyMs.toFixed(0)}ms</p>
+ <p className="text-xs text-gray-900 mt-1">Dup rate: {realtimeDuplicateRate.toFixed(2)}%</p>
+ </div>
+ <div className="p-3 bg-primary/10 rounded-2xl">
+ <Bell className="h-8 w-8 text-primary" />
  </div>
  </div>
  </div>

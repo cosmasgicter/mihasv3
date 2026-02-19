@@ -12,7 +12,7 @@ import { withArcjetProtection } from "../lib/arcjet";
 import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
 import { verifyAccessToken } from "../lib/auth/jwt";
 import { extractAccessTokenFromCookie, extractBearerToken } from "../lib/auth/cookies";
-import { 
+import {
   getActiveSessions, 
   deactivateSession, 
   deactivateAllSessions,
@@ -21,6 +21,7 @@ import {
   parseDeviceInfo,
   createSession
 } from "../lib/sessions";
+import { pollRealtimeEvents, recordDeliveryLatency } from '../lib/realtimeBroker';
 
 /**
  * Get user ID from request (cookie or bearer token)
@@ -65,12 +66,49 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         return await handleRevoke(req, res, auth.userId, ipAddress, userAgent);
       case 'revoke-all':
         return await handleRevokeAll(req, res, auth.userId, auth.sessionId, ipAddress, userAgent);
+      case 'connect':
+        return await handleConnect(req, res, auth.userId);
+      case 'poll':
+        return await handlePoll(req, res, auth.userId);
       default:
-        return sendError(res, 'Invalid action. Use: list, track, revoke, revoke-all', HttpStatus.BAD_REQUEST);
+        return sendError(res, 'Invalid action. Use: list, track, revoke, revoke-all, connect, poll', HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error, 'sessions');
   }
+}
+
+async function handleConnect(req: VercelRequest, res: VercelResponse, userId: string) {
+  if (req.method !== 'GET') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const events = pollRealtimeEvents(userId);
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+
+  for (const event of events) {
+    recordDeliveryLatency(event.created_at);
+    res.write(`id: ${event.event_id}\n`);
+    res.write(`event: ${event.event_type}\n`);
+    res.write(`data: ${JSON.stringify(event)}\n\n`);
+  }
+
+  res.write(`event: ping\ndata: ${JSON.stringify({ created_at: new Date().toISOString() })}\n\n`);
+  res.end();
+}
+
+async function handlePoll(req: VercelRequest, res: VercelResponse, userId: string) {
+  if (req.method !== 'GET') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const lastEventId = req.query.lastEventId as string | undefined;
+  const events = pollRealtimeEvents(userId, lastEventId);
+  events.forEach((event) => recordDeliveryLatency(event.created_at));
+
+  return sendSuccess(res, { events });
 }
 
 /**

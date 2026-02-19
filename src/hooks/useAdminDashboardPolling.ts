@@ -79,7 +79,9 @@ export function useAdminDashboardPolling(
     queryKey: ['admin-dashboard-polling'],
     queryFn: fetchStats,
     enabled,
-    refetchInterval: enabled ? pollingInterval : false,
+    refetchInterval: enabled
+      ? () => (document.visibilityState === 'visible' ? pollingInterval : pollingInterval * 2)
+      : false,
     staleTime: pollingInterval / 2,
   })
 
