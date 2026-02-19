@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiClient } from '@/services/client'
+import { Button } from '@/components/ui/Button'
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { Bell, Mail, MessageSquare, Check, MessageCircle, ShieldCheck } from 'lucide-react'
 
 interface NotificationPreferencesType {
   email_enabled: boolean
   sms_enabled?: boolean
-  push_enabled: boolean
+  whatsapp_enabled?: boolean
+  in_app_enabled?: boolean
+  push_enabled?: boolean
+  marketing_emails?: boolean
   notification_types?: {
     application_update: boolean
     interview_schedule: boolean
     document_ready: boolean
   }
 }
-import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { Bell, Mail, MessageSquare, Check } from 'lucide-react'
 
 export function NotificationPreferences() {
   const { user } = useAuth()
@@ -22,8 +25,10 @@ export function NotificationPreferences() {
   const [saving, setSaving] = useState(false)
   const [preferences, setPreferences] = useState({
     email_enabled: true,
-    sms_enabled: false,
-    push_enabled: true,
+    sms_enabled: true,
+    whatsapp_enabled: true,
+    in_app_enabled: true,
+    marketing_emails: false,
     notification_types: {
       application_update: true,
       interview_schedule: true,
@@ -42,14 +47,17 @@ export function NotificationPreferences() {
     }
 
     try {
-      const data = await apiClient.request<NotificationPreferencesType>('/notifications?action=preferences')
-      
-      if (data) {
+      const data = await apiClient.request<{ preferences?: NotificationPreferencesType } | NotificationPreferencesType>('/notifications?action=preferences')
+      const incoming = (data && 'preferences' in data ? data.preferences : data) as NotificationPreferencesType | undefined
+
+      if (incoming) {
         setPreferences({
-          email_enabled: data.email_enabled ?? true,
-          sms_enabled: data.sms_enabled ?? false,
-          push_enabled: data.push_enabled ?? true,
-          notification_types: data.notification_types ?? {
+          email_enabled: true,
+          sms_enabled: incoming.sms_enabled ?? true,
+          whatsapp_enabled: incoming.whatsapp_enabled ?? true,
+          in_app_enabled: incoming.in_app_enabled ?? incoming.push_enabled ?? true,
+          marketing_emails: incoming.marketing_emails ?? false,
+          notification_types: incoming.notification_types ?? {
             application_update: true,
             interview_schedule: true,
             document_ready: true
@@ -72,9 +80,11 @@ export function NotificationPreferences() {
       await apiClient.request('/notifications?action=preferences', {
         method: 'POST',
         body: JSON.stringify({
-          email_enabled: preferences.email_enabled,
           sms_enabled: preferences.sms_enabled,
-          push_enabled: preferences.push_enabled,
+          whatsapp_enabled: preferences.whatsapp_enabled,
+          in_app_enabled: true,
+          push_enabled: true,
+          marketing_emails: preferences.marketing_emails,
           notification_types: preferences.notification_types
         })
       })
@@ -97,35 +107,48 @@ export function NotificationPreferences() {
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Notification Preferences</h2>
-        <p className="text-gray-900">Choose how you want to receive notifications</p>
+        <p className="text-gray-900">Manage optional channels while required operational channels stay enabled.</p>
       </div>
 
-      {/* Channels */}
       <div className="bg-card rounded-lg border border-border p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900 mb-4">Notification Channels</h3>
-        
-        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
+        <h3 className="font-semibold text-gray-900 mb-4">Required Operational Channels</h3>
+
+        <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-dashed border-primary/40">
           <div className="flex items-center gap-3">
             <Mail className="h-5 w-5 text-primary" />
             <div>
-              <p className="font-medium text-gray-900">Email Notifications</p>
-              <p className="text-sm text-gray-900">Receive updates via email</p>
+              <p className="font-medium text-gray-900">Operational Email</p>
+              <p className="text-sm text-gray-900">Mandatory for account, application, and payment notices.</p>
             </div>
           </div>
-          <input
-            type="checkbox"
-            checked={preferences.email_enabled}
-            onChange={(e) => setPreferences({ ...preferences, email_enabled: e.target.checked })}
-            className="h-5 w-5 text-primary rounded"
-          />
-        </label>
+          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded bg-primary/10 text-primary">
+            <ShieldCheck className="h-3.5 w-3.5" /> Mandatory
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-dashed border-primary/40">
+          <div className="flex items-center gap-3">
+            <Bell className="h-5 w-5 text-secondary" />
+            <div>
+              <p className="font-medium text-gray-900">In-App Notifications</p>
+              <p className="text-sm text-gray-900">Mandatory for real-time operational updates inside the portal.</p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded bg-primary/10 text-primary">
+            <ShieldCheck className="h-3.5 w-3.5" /> Mandatory
+          </span>
+        </div>
+      </div>
+
+      <div className="bg-card rounded-lg border border-border p-6 space-y-4">
+        <h3 className="font-semibold text-gray-900 mb-4">Optional Channels & Marketing</h3>
 
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div className="flex items-center gap-3">
             <MessageSquare className="h-5 w-5 text-accent" />
             <div>
               <p className="font-medium text-gray-900">SMS Notifications</p>
-              <p className="text-sm text-gray-900">Receive updates via SMS</p>
+              <p className="text-sm text-gray-900">Text message updates to your phone.</p>
             </div>
           </div>
           <input
@@ -138,69 +161,29 @@ export function NotificationPreferences() {
 
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div className="flex items-center gap-3">
-            <Bell className="h-5 w-5 text-secondary" />
+            <MessageCircle className="h-5 w-5 text-green-600" />
             <div>
-              <p className="font-medium text-gray-900">Push Notifications</p>
-              <p className="text-sm text-gray-900">Receive in-app notifications</p>
+              <p className="font-medium text-gray-900">WhatsApp Notifications</p>
+              <p className="text-sm text-gray-900">Receive the same updates via WhatsApp.</p>
             </div>
           </div>
           <input
             type="checkbox"
-            checked={preferences.push_enabled}
-            onChange={(e) => setPreferences({ ...preferences, push_enabled: e.target.checked })}
-            className="h-5 w-5 text-primary rounded"
-          />
-        </label>
-      </div>
-
-      {/* Types */}
-      <div className="bg-card rounded-lg border border-border p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900 mb-4">Notification Types</h3>
-        
-        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
-          <div>
-            <p className="font-medium text-gray-900">Application Updates</p>
-            <p className="text-sm text-gray-900">Status changes and decisions</p>
-          </div>
-          <input
-            type="checkbox"
-            checked={preferences.notification_types.application_update}
-            onChange={(e) => setPreferences({
-              ...preferences,
-              notification_types: { ...preferences.notification_types, application_update: e.target.checked }
-            })}
+            checked={preferences.whatsapp_enabled}
+            onChange={(e) => setPreferences({ ...preferences, whatsapp_enabled: e.target.checked })}
             className="h-5 w-5 text-primary rounded"
           />
         </label>
 
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div>
-            <p className="font-medium text-gray-900">Interview Schedules</p>
-            <p className="text-sm text-gray-900">Interview invitations and reminders</p>
+            <p className="font-medium text-gray-900">Marketing Emails</p>
+            <p className="text-sm text-gray-900">Optional promotional and campaign messages.</p>
           </div>
           <input
             type="checkbox"
-            checked={preferences.notification_types.interview_schedule}
-            onChange={(e) => setPreferences({
-              ...preferences,
-              notification_types: { ...preferences.notification_types, interview_schedule: e.target.checked }
-            })}
-            className="h-5 w-5 text-primary rounded"
-          />
-        </label>
-
-        <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
-          <div>
-            <p className="font-medium text-gray-900">Document Ready</p>
-            <p className="text-sm text-gray-900">Acceptance letters and receipts</p>
-          </div>
-          <input
-            type="checkbox"
-            checked={preferences.notification_types.document_ready}
-            onChange={(e) => setPreferences({
-              ...preferences,
-              notification_types: { ...preferences.notification_types, document_ready: e.target.checked }
-            })}
+            checked={preferences.marketing_emails}
+            onChange={(e) => setPreferences({ ...preferences, marketing_emails: e.target.checked })}
             className="h-5 w-5 text-primary rounded"
           />
         </label>

@@ -623,53 +623,38 @@ async function handlePreferences(req, res) {
     return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
   if (req.method === "GET") {
-    const q = {
-      text: `SELECT * FROM user_notification_preferences WHERE user_id = $1 LIMIT 1`,
-      values: [user.userId]
-    };
-    const result = await query(q.text, q.values);
-    const preferences = result.rows[0] || {
-      user_id: user.userId,
-      email_enabled: true,
-      push_enabled: true,
-      sms_enabled: false,
-      application_updates: true,
-      payment_reminders: true,
-      interview_reminders: true,
-      marketing_emails: false,
-      quiet_hours_start: null,
-      quiet_hours_end: null
-    };
+    const preferences = await getCanonicalPreferences(user.userId);
     return sendSuccess(res, { preferences });
   }
   if (req.method === "POST") {
-    const { email_enabled, push_enabled, sms_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = req.body;
+    const { sms_enabled, whatsapp_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = req.body;
     const upsertQ = {
       text: `
         INSERT INTO user_notification_preferences (
-          user_id, email_enabled, push_enabled, sms_enabled,
+          user_id, email_enabled, push_enabled, sms_enabled, whatsapp_enabled, in_app_enabled,
           application_updates, payment_reminders, interview_reminders, marketing_emails,
-          quiet_hours_start, quiet_hours_end, updated_at
+          quiet_hours_start, quiet_hours_end, updated_at, created_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+        VALUES ($1, true, true, COALESCE($2, true), COALESCE($3, true), true, $4, $5, $6, $7, $8, $9, NOW(), NOW())
         ON CONFLICT (user_id) DO UPDATE SET
-          email_enabled = COALESCE($2, user_notification_preferences.email_enabled),
-          push_enabled = COALESCE($3, user_notification_preferences.push_enabled),
-          sms_enabled = COALESCE($4, user_notification_preferences.sms_enabled),
-          application_updates = COALESCE($5, user_notification_preferences.application_updates),
-          payment_reminders = COALESCE($6, user_notification_preferences.payment_reminders),
-          interview_reminders = COALESCE($7, user_notification_preferences.interview_reminders),
-          marketing_emails = COALESCE($8, user_notification_preferences.marketing_emails),
-          quiet_hours_start = COALESCE($9, user_notification_preferences.quiet_hours_start),
-          quiet_hours_end = COALESCE($10, user_notification_preferences.quiet_hours_end),
+          email_enabled = true,
+          push_enabled = true,
+          sms_enabled = COALESCE($2, user_notification_preferences.sms_enabled, true),
+          whatsapp_enabled = COALESCE($3, user_notification_preferences.whatsapp_enabled, true),
+          in_app_enabled = true,
+          application_updates = COALESCE($4, user_notification_preferences.application_updates, true),
+          payment_reminders = COALESCE($5, user_notification_preferences.payment_reminders, true),
+          interview_reminders = COALESCE($6, user_notification_preferences.interview_reminders, true),
+          marketing_emails = COALESCE($7, user_notification_preferences.marketing_emails, false),
+          quiet_hours_start = COALESCE($8, user_notification_preferences.quiet_hours_start),
+          quiet_hours_end = COALESCE($9, user_notification_preferences.quiet_hours_end),
           updated_at = NOW()
         RETURNING *
       `,
       values: [
         user.userId,
-        email_enabled ?? true,
-        push_enabled ?? true,
-        sms_enabled ?? false,
+        sms_enabled ?? true,
+        whatsapp_enabled ?? true,
         application_updates ?? true,
         payment_reminders ?? true,
         interview_reminders ?? true,
@@ -773,6 +758,7 @@ async function handleSend(req, res) {
     values: [user_id, title, message, type || "info", action_url || null]
   };
   const result = await query(insertQ.text, insertQ.values);
+  const recipientPreferences = await getCanonicalPreferences(user_id);
   let emailSent = false;
   try {
     const profileQ = {
@@ -781,7 +767,7 @@ async function handleSend(req, res) {
     };
     const profileResult = await query(profileQ.text, profileQ.values);
     const profile = profileResult.rows[0];
-    if (profile?.email && process.env.RESEND_API_KEY) {
+    if (profile?.email && recipientPreferences.email_enabled && process.env.RESEND_API_KEY) {
       const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Student";
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -812,6 +798,27 @@ async function handleSend(req, res) {
   }
   console.log("[notifications/send] Notification created for user:", user_id.substring(0, 8) + "...");
   return sendSuccess(res, { notification: result.rows[0], email_sent: emailSent });
+}
+async function getCanonicalPreferences(userId) {
+  const q = {
+    text: `SELECT * FROM user_notification_preferences WHERE user_id = $1 LIMIT 1`,
+    values: [userId]
+  };
+  const result = await query(q.text, q.values);
+  return {
+    user_id: userId,
+    email_enabled: true,
+    push_enabled: true,
+    sms_enabled: result.rows[0]?.sms_enabled ?? true,
+    whatsapp_enabled: result.rows[0]?.whatsapp_enabled ?? true,
+    in_app_enabled: true,
+    application_updates: result.rows[0]?.application_updates ?? true,
+    payment_reminders: result.rows[0]?.payment_reminders ?? true,
+    interview_reminders: result.rows[0]?.interview_reminders ?? true,
+    marketing_emails: result.rows[0]?.marketing_emails ?? false,
+    quiet_hours_start: result.rows[0]?.quiet_hours_start ?? null,
+    quiet_hours_end: result.rows[0]?.quiet_hours_end ?? null
+  };
 }
 async function handlePushSubscribe(req, res) {
   if (req.method === "POST") {

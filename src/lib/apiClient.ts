@@ -666,8 +666,10 @@ export interface NotificationPreferences {
   user_id: string;
   email_enabled: boolean;
   sms_enabled?: boolean;
+  whatsapp_enabled?: boolean;
   push_enabled: boolean;
   in_app_enabled?: boolean;
+  marketing_emails?: boolean;
   quiet_hours_start?: string;
   quiet_hours_end?: string;
   notification_types?: {
