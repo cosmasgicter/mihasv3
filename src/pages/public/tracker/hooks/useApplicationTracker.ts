@@ -5,10 +5,11 @@ import { logger } from '@/utils/logger'
 import { normalizeSearchTerm, validateSearchTerm } from '../utils/trackerUtils'
 
 export interface PublicApplicationStatus {
-  public_tracking_code: string
-  application_number: string
+  public_tracking_code: string | null
+  application_number: string | null
   status: string
   payment_status: string | null
+  feedback_summary: string | null
   submitted_at: string | null
   updated_at: string | null
   program_name: string | null
@@ -19,6 +20,17 @@ export interface PublicApplicationStatus {
   phone: string | null
   admin_feedback?: string | null
   admin_feedback_date?: string | null
+}
+
+interface TrackApplicationResponse {
+  application: {
+    status: string
+    program_name: string | null
+    intake_name: string | null
+    submitted_at: string | null
+    updated_at: string | null
+    feedback_summary: string | null
+  }
 }
 
 export const useApplicationTracker = () => {
@@ -47,15 +59,9 @@ export const useApplicationTracker = () => {
       setError('')
       setApplication(null)
 
-      const result = await apiClient.request<{
-        success?: boolean
-        application?: PublicApplicationStatus
-        applications?: PublicApplicationStatus[]
-        data?: PublicApplicationStatus
-      }>(`/applications?tracking_code=${encodeURIComponent(normalizedTerm)}`)
+      const result = await apiClient.request<TrackApplicationResponse>(`/applications?action=track&code=${encodeURIComponent(normalizedTerm)}`)
 
-      // Handle various response shapes from the API
-      const data = result?.application ?? result?.data ?? (result?.applications?.[0]) ?? null
+      const data = result?.application ?? null
 
       if (!data) {
         setError('Application not found. Please check your application number or tracking code.')
@@ -64,8 +70,21 @@ export const useApplicationTracker = () => {
       }
 
       setApplication({
-        ...(data as PublicApplicationStatus),
-        payment_status: (data as PublicApplicationStatus)?.payment_status ?? 'pending_review'
+        public_tracking_code: null,
+        application_number: null,
+        status: data.status,
+        payment_status: null,
+        feedback_summary: data.feedback_summary ?? null,
+        submitted_at: data.submitted_at ?? null,
+        updated_at: data.updated_at ?? null,
+        program_name: data.program_name ?? null,
+        intake_name: data.intake_name ?? null,
+        institution: null,
+        full_name: null,
+        email: null,
+        phone: null,
+        admin_feedback: data.feedback_summary ?? null,
+        admin_feedback_date: null
       })
       setSearched(true)
     } catch (error: any) {
