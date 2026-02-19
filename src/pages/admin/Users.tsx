@@ -8,17 +8,12 @@ import { Input } from '@/components/ui/Input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
 import { UserStats } from '@/components/admin/UserStats'
 import { BulkUserOperations } from '@/components/admin/BulkUserOperations'
-import { UserPermissions } from '@/components/admin/UserPermissions'
 import { UserActivityLog } from '@/components/admin/UserActivityLog'
 import { UserExport } from '@/components/admin/UserExport'
 import { UserImport } from '@/components/admin/UserImport'
 import {
   useUsers,
-  useCreateUser,
-  useUpdateUser,
-  useDeleteUser,
-  useUserPermissions,
-  useUpdateUserPermissions
+  useCreateUser
 } from '@/hooks/useApiServices'
 import { ArrowLeft, Users, Shield, User, Plus, Edit, Trash2, Search, Filter, UserPlus, Settings, Eye, EyeOff, BarChart3, CheckSquare, Square, Lock, Clock, Download, Upload, Phone, Calendar, Trophy } from 'lucide-react'
 import { sanitizeForLog } from '@/lib/security'
@@ -51,12 +46,9 @@ const AVAILABLE_ROLES = [
 export default function AdminUsers() {
   const { data: usersData, isLoading: loading, error: queryError, refetch } = useUsers()
   const createUserMutation = useCreateUser()
-  const updateUserMutation = useUpdateUser()
-  const deleteUserMutation = useDeleteUser()
-  const updateUserPermissionsMutation = useUpdateUserPermissions()
-  
-  // userService.list returns { users: [...] }, so access the users property
+
   const users = usersData?.users || []
+  const totalCount = usersData?.totalCount ?? users.length
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
@@ -81,19 +73,12 @@ export default function AdminUsers() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [showStats, setShowStats] = useState(false)
   const [showBulkOps, setShowBulkOps] = useState(false)
-  const [showPermissionsDialog, setShowPermissionsDialog] = useState(false)
-  const [permissionsUser, setPermissionsUser] = useState<UserProfile | null>(null)
   const [showActivityLog, setShowActivityLog] = useState(false)
   const [activityLogUserId, setActivityLogUserId] = useState<string | null>(null)
   const [showExportDialog, setShowExportDialog] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
 
-  const activePermissionsUserId = showPermissionsDialog && permissionsUser ? permissionsUser.user_id : undefined
-  const {
-    data: permissionsData,
-    isLoading: permissionsLoading,
-    refetch: refetchUserPermissions
-  } = useUserPermissions(activePermissionsUserId)
+
 
   useEffect(() => {
     if (queryError) {
@@ -131,52 +116,6 @@ export default function AdminUsers() {
     }
   }
 
-  const updateUser = async () => {
-    if (!selectedUser) return
-    
-    try {
-      await updateUserMutation.mutateAsync({ id: selectedUser.user_id, data: editForm })
-      setShowEditDialog(false)
-      setSelectedUser(null)
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update user'
-      console.error('Failed to update user:', sanitizeForLog(errorMessage))
-      setError(errorMessage)
-    }
-  }
-
-  const deleteUser = async () => {
-    if (!selectedUser) return
-    
-    try {
-      await deleteUserMutation.mutateAsync(selectedUser.user_id)
-      setShowDeleteDialog(false)
-      setSelectedUser(null)
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete user'
-      console.error('Failed to delete user:', sanitizeForLog(errorMessage))
-      setError(errorMessage)
-    }
-  }
-
-
-
-  const openEditDialog = (user: UserProfile) => {
-    setSelectedUser(user)
-    setEditForm({
-      full_name: user.full_name || '',
-      email: user.email || '',
-      phone: user.phone || '',
-      role: user.role
-    })
-    setShowEditDialog(true)
-  }
-
-  const openDeleteDialog = (user: UserProfile) => {
-    setSelectedUser(user)
-    setShowDeleteDialog(true)
-  }
-
   const handleUserSelect = (userId: string) => {
     if (selectedUsers.includes(userId)) {
       setSelectedUsers(selectedUsers.filter(id => id !== userId))
@@ -193,29 +132,10 @@ export default function AdminUsers() {
     }
   }
 
-  const openPermissionsDialog = (user: UserProfile) => {
-    setError('')
-    setPermissionsUser(user)
-    setShowPermissionsDialog(true)
-  }
+  const unsupportedUserManagementMessage = 'Edit, delete, and permissions updates are not yet supported by /api/admin.'
 
-  const handlePermissionsSave = async (permissions: string[]) => {
-    if (!permissionsUser) return
-
-    try {
-      await updateUserPermissionsMutation.mutateAsync({
-        id: permissionsUser.user_id,
-        permissions
-      })
-      await refetchUserPermissions()
-      await refetch()
-      setError('')
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save permissions'
-      console.error('Failed to save permissions:', sanitizeForLog(errorMessage))
-      setError(errorMessage)
-      throw err instanceof Error ? err : new Error(errorMessage)
-    }
+  const notifyUnsupportedOperation = () => {
+    setError(unsupportedUserManagementMessage)
   }
 
   const openActivityLog = (userId: string) => {
@@ -274,7 +194,7 @@ export default function AdminUsers() {
                 </Link>
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-bold">👥 User Management</h1>
-                  <p className="text-white/90 text-sm sm:text-base">Manage user roles and permissions</p>
+                  <p className="text-white/90 text-sm sm:text-base">Manage user accounts (create is currently supported)</p>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-end sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -429,7 +349,7 @@ export default function AdminUsers() {
                 </div>
                 {users.length > 0 && (
                   <p className="text-sm text-gray-900 mt-4">
-                    Total users in system: {users.length}
+                    Total users in system: {totalCount}
                   </p>
                 )}
               </div>
@@ -480,7 +400,7 @@ export default function AdminUsers() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => openEditDialog(user)}
+                            onClick={notifyUnsupportedOperation}
                             className="text-primary border-blue-300 hover:bg-primary/5"
                           >
                             <Edit className="h-3 w-3 mr-1" />
@@ -489,7 +409,7 @@ export default function AdminUsers() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => openPermissionsDialog(user)}
+                            onClick={notifyUnsupportedOperation}
                             className="text-secondary border-purple-300 hover:bg-secondary/5"
                           >
                             <Lock className="h-3 w-3 mr-1" />
@@ -508,7 +428,7 @@ export default function AdminUsers() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => openDeleteDialog(user)}
+                              onClick={notifyUnsupportedOperation}
                               className="text-destructive border-destructive/30 hover:bg-destructive/5"
                             >
                               <Trash2 className="h-3 w-3 mr-1" />
@@ -604,9 +524,9 @@ export default function AdminUsers() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => openEditDialog(user)}
+                                onClick={notifyUnsupportedOperation}
                                 className="text-primary border-blue-300 hover:bg-primary/5"
-                                disabled={selectedUsers.length > 0}
+                                disabled
                               >
                                 <Edit className="h-3 w-3 mr-1" />
                                 Edit
@@ -614,9 +534,9 @@ export default function AdminUsers() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => openPermissionsDialog(user)}
+                                onClick={notifyUnsupportedOperation}
                                 className="text-secondary border-purple-300 hover:bg-secondary/5"
-                                disabled={selectedUsers.length > 0}
+                                disabled
                               >
                                 <Lock className="h-3 w-3 mr-1" />
                                 Permissions
@@ -626,7 +546,7 @@ export default function AdminUsers() {
                                 size="sm"
                                 onClick={() => openActivityLog(user.user_id)}
                                 className="text-gray-900 border-input hover:bg-muted"
-                                disabled={selectedUsers.length > 0}
+                                disabled
                               >
                                 <Clock className="h-3 w-3 mr-1" />
                                 Activity
@@ -635,9 +555,9 @@ export default function AdminUsers() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => openDeleteDialog(user)}
+                                  onClick={notifyUnsupportedOperation}
                                   className="text-destructive border-destructive/30 hover:bg-destructive/5"
-                                  disabled={selectedUsers.length > 0}
+                                  disabled
                                 >
                                   <Trash2 className="h-3 w-3 mr-1" />
                                   Delete
@@ -798,13 +718,13 @@ export default function AdminUsers() {
             <Button
               variant="outline"
               onClick={() => setShowEditDialog(false)}
-              disabled={updateUserMutation.isPending}
+              disabled
             >
               Cancel
             </Button>
             <Button
-              onClick={updateUser}
-              loading={updateUserMutation.isPending}
+              onClick={notifyUnsupportedOperation}
+              loading={false}
               className="bg-primary hover:bg-primary text-white"
             >
               Update User
@@ -837,13 +757,13 @@ export default function AdminUsers() {
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
-              disabled={deleteUserMutation.isPending}
+              disabled
             >
               Cancel
             </Button>
             <Button
-              onClick={deleteUser}
-              loading={deleteUserMutation.isPending}
+              onClick={notifyUnsupportedOperation}
+              loading={false}
               variant="destructive"
             >
               Delete User
@@ -851,21 +771,6 @@ export default function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* User Permissions Dialog */}
-      {permissionsUser && (
-        <UserPermissions
-          user={permissionsUser}
-          isOpen={showPermissionsDialog}
-          initialPermissions={permissionsData?.data}
-          isLoading={permissionsLoading}
-          onClose={() => {
-            setShowPermissionsDialog(false)
-            setPermissionsUser(null)
-          }}
-          onSave={handlePermissionsSave}
-        />
-      )}
 
       {/* User Activity Log Dialog */}
       <UserActivityLog
