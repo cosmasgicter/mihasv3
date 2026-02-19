@@ -6,6 +6,7 @@ import { useToastStore } from '@/components/ui/Toast'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Container } from '@/components/ui/Container'
+import { repairLegacyDocumentReference } from '@/lib/applicationSlip'
 import { createApplicationSlip } from '@/lib/slipService'
 import { logger } from '@/utils/logger'
 import { animateClasses } from '@/lib/animations'
@@ -122,13 +123,23 @@ export default function PublicApplicationTracker() {
       setSlipLoading(true)
 
       if (slipCache?.publicUrl && !slipCache.objectUrl) {
-        const response = await fetch(slipCache.publicUrl)
+        let response = await fetch(slipCache.publicUrl)
+        let canonicalUrl = slipCache.publicUrl
+
+        if (!response.ok) {
+          const repaired = await repairLegacyDocumentReference(slipCache.publicUrl)
+          if (repaired.publicUrl) {
+            canonicalUrl = repaired.publicUrl
+            response = await fetch(canonicalUrl)
+          }
+        }
+
         if (!response.ok) throw new Error('Unable to download stored application slip')
         const blob = await response.blob()
         const objectUrl = URL.createObjectURL(blob)
         setSlipCache(prev => {
           if (prev?.objectUrl) URL.revokeObjectURL(prev.objectUrl)
-          return { ...prev, objectUrl }
+          return { ...prev, objectUrl, publicUrl: canonicalUrl }
         })
         triggerDownload(objectUrl, filename)
         return
