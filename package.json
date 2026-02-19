@@ -15,8 +15,8 @@
     "build:analyze": "bun run type-check && bunx --bun vite build --mode production && bunx vite-bundle-analyzer dist/stats.html",
     "preview": "bunx --bun vite preview",
     "type-check": "tsc --noEmit",
-    "lint": "bunx eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test": "bunx vitest run",
+    "lint": "bun run check:mojibake && bunx eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "bun run check:mojibake && bunx vitest run",
     "test:watch": "bunx vitest",
     "validate:tailwind": "./scripts/validate-tailwind-classes.sh",
     "storage:setup": "bun run setup-storage.js",
@@ -34,7 +34,8 @@
     "audit:notification": "bun run scripts/audit/runFullAudit.ts --notification",
     "audit:performance": "bun run scripts/audit/runFullAudit.ts --performance",
     "audit:deadcode": "bun run scripts/audit/runFullAudit.ts --deadcode",
-    "audit:summary": "bun run scripts/audit/generateSummary.ts"
+    "audit:summary": "bun run scripts/audit/generateSummary.ts",
+    "check:mojibake": "node scripts/check-mojibake.js"
   },
   "dependencies": {
     "@arcjet/decorate": "1.0.0",
