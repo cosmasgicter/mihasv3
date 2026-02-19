@@ -224,6 +224,79 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
   }
 }
 
+async function uploadSlipViaDocumentsApi(applicationNumber: string, blob: Blob, userId?: string) {
+  const fileName = `application-slip-${applicationNumber}.pdf`;
+  const base64 = await blobToBase64(blob);
+
+  return apiClient.request<{ path: string; url: string }>('/documents?action=upload', {
+    method: 'POST',
+    body: JSON.stringify({
+      file: base64,
+      fileName,
+      contentType: 'application/pdf',
+      documentType: 'application_slip',
+      applicationNumber,
+      userId,
+    }),
+  });
+}
+
+async function registerSlipMetadata(applicationNumber: string, path: string, publicUrl?: string) {
+  return apiClient.request<{ documentId: string; publicUrl: string; path: string }>('/documents?action=register-slip', {
+    method: 'POST',
+    body: JSON.stringify({
+      applicationNumber,
+      path,
+      publicUrl,
+      documentName: `Application Slip - ${applicationNumber}.pdf`,
+    }),
+  });
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result;
+      if (typeof result !== 'string') {
+        reject(new Error('Failed to serialize file for upload'));
+        return;
+      }
+
+      const base64 = result.split(',')[1];
+      if (!base64) {
+        reject(new Error('Invalid file payload'));
+        return;
+      }
+
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error('Failed to read blob data'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function repairLegacyDocumentReference(reference: string, applicationId?: string): Promise<{ publicUrl?: string; path?: string }> {
+  if (!reference?.trim()) {
+    return {};
+  }
+
+  try {
+    const resolved = await apiClient.request<{ publicUrl: string; path: string }>('/documents?action=resolve-reference', {
+      method: 'POST',
+      body: JSON.stringify({ reference, applicationId }),
+    });
+
+    return {
+      publicUrl: resolved?.publicUrl,
+      path: resolved?.path,
+    };
+  } catch (error) {
+    console.error('Failed to resolve legacy document reference:', sanitizeForLog(error instanceof Error ? error.message : String(error)));
+    return {};
+  }
+}
+
 export async function persistSlip(applicationNumber: string, blob: Blob, userId?: string): Promise<PersistSlipResult> {
   const trimmedNumber = (applicationNumber || '').trim();
   if (!trimmedNumber) {
@@ -231,70 +304,20 @@ export async function persistSlip(applicationNumber: string, blob: Blob, userId?
   }
 
   try {
-    const sanitizedNumber = trimmedNumber.replace(/[^a-zA-Z0-9_-]/g, '-') || 'application';
-    const timestamp = Date.now();
-    const path = userId 
-      ? `${userId}/${sanitizedNumber}/${timestamp}-application-slip.pdf`
-      : `public/${sanitizedNumber}/${timestamp}-application-slip.pdf`;
+    const uploadResult = await uploadSlipViaDocumentsApi(trimmedNumber, blob, userId);
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('app_docs')
-      .upload(path, blob, { contentType: 'application/pdf', upsert: true });
-
-    if (uploadError || !uploadData) {
-      if (!userId && uploadError?.message?.includes('policy')) {
-        return { success: true, error: 'Slip generated but not stored due to access restrictions' };
-      }
-      return { success: false, error: uploadError?.message || 'Failed to upload application slip' };
+    if (!uploadResult?.path) {
+      return { success: false, error: 'Failed to upload application slip' };
     }
 
-    const { data: urlData } = supabase.storage.from('app_docs').getPublicUrl(uploadData.path);
-    const publicUrl = urlData?.publicUrl;
-    let documentId: string | undefined;
+    const metadataResult = await registerSlipMetadata(trimmedNumber, uploadResult.path, uploadResult.url);
 
-    try {
-      const { data: application } = await supabase
-        .from('applications')
-        .select('id')
-        .eq('application_number', trimmedNumber)
-        .maybeSingle();
-
-      if (application?.id) {
-        const documentPayload = {
-          application_id: application.id,
-          document_type: 'application_slip',
-          document_name: `Application Slip - ${trimmedNumber}.pdf`,
-          file_url: publicUrl || uploadData.path,
-          system_generated: true
-        };
-
-        const { data: existingDocument } = await supabase
-          .from('application_documents')
-          .select('id')
-          .eq('application_id', application.id)
-          .eq('document_type', 'application_slip')
-          .maybeSingle();
-
-        if (existingDocument?.id) {
-          await supabase
-            .from('application_documents')
-            .update({ ...documentPayload, updated_at: new Date().toISOString() })
-            .eq('id', existingDocument.id);
-          documentId = existingDocument.id;
-        } else {
-          const { data: insertData } = await supabase
-            .from('application_documents')
-            .insert(documentPayload)
-            .select('id')
-            .maybeSingle();
-          documentId = insertData?.id;
-        }
-      }
-    } catch (dbError) {
-      console.error('Database error:', sanitizeForLog(dbError instanceof Error ? dbError.message : String(dbError)));
-    }
-
-    return { success: true, path: uploadData.path, publicUrl, documentId };
+    return {
+      success: true,
+      path: metadataResult?.path || uploadResult.path,
+      publicUrl: metadataResult?.publicUrl || uploadResult.url,
+      documentId: metadataResult?.documentId,
+    };
   } catch (error) {
     console.error('Persist error:', sanitizeForLog(error instanceof Error ? error.message : String(error)));
     return { success: false, error: error instanceof Error ? error.message : 'Failed to persist application slip' };

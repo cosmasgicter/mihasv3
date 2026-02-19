@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { repairLegacyDocumentReference } from '@/lib/applicationSlip'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import type { SlipServiceOptions, SlipServiceResult } from '@/lib/slipService'
 
@@ -127,7 +128,17 @@ export function useApplicationSlip({
       setSlipLoading(true)
 
       if (slipCache?.publicUrl && !slipCache.objectUrl) {
-        const response = await fetch(slipCache.publicUrl)
+        let response = await fetch(slipCache.publicUrl)
+        let canonicalUrl = slipCache.publicUrl
+
+        if (!response.ok) {
+          const repaired = await repairLegacyDocumentReference(slipCache.publicUrl)
+          if (repaired.publicUrl) {
+            canonicalUrl = repaired.publicUrl
+            response = await fetch(canonicalUrl)
+          }
+        }
+
         if (!response.ok) {
           console.error('Slip download failed:', response.status)
           throw new Error('Unable to download stored application slip')
@@ -139,7 +150,7 @@ export function useApplicationSlip({
           if (prev?.objectUrl) {
             URL.revokeObjectURL(prev.objectUrl)
           }
-          return { ...prev, objectUrl }
+          return { ...prev, objectUrl, publicUrl: canonicalUrl }
         })
         triggerDownload(objectUrl, filename)
         return
