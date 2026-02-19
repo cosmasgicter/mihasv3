@@ -32,6 +32,7 @@ import { Container } from '@/components/ui/Container'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling } from '@/hooks/useStudentDashboardPolling'
 import { staggerChild, animateClasses } from '@/lib/animations'
+import { getDisplayName } from '@/utils/userDisplayName'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -292,9 +293,10 @@ export default function StudentDashboard() {
 
   const metadata = getUserMetadata(user)
   const profileCompletion = calculateProfileCompletion(profile, metadata)
-  const displayName = sanitizeForDisplay(
-    getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0] || 'Student')
-  )
+  const displayName = sanitizeForDisplay(getDisplayName(profile, {
+    ...user,
+    full_name: getBestValue(user?.full_name, metadata.full_name),
+  }))
   const firstName = displayName?.split(' ')[0] || 'Student'
 
   const {
