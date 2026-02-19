@@ -26,6 +26,38 @@ import { withArcjetProtection } from "../lib/arcjet";
 import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "crypto";
 
+function deriveFullName(params: {
+  full_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+}): string {
+  const normalize = (value?: string | null): string | null => {
+    if (!value) return null;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  };
+
+  const explicitFullName = normalize(params.full_name);
+  if (explicitFullName) return explicitFullName;
+
+  const firstName = normalize(params.first_name ?? params.firstName);
+  const lastName = normalize(params.last_name ?? params.lastName);
+  const combinedName = [firstName, lastName].filter(Boolean).join(' ').trim();
+  if (combinedName) return combinedName;
+
+  const normalizedEmail = normalize(params.email);
+  if (normalizedEmail) {
+    const [localPart] = normalizedEmail.split('@');
+    const cleanLocalPart = normalize(localPart);
+    if (cleanLocalPart) return cleanLocalPart;
+  }
+
+  return 'Student';
+}
+
 /**
  * Auth API Handler
  */
@@ -314,6 +346,7 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
       role: user.role,
       firstName: user.first_name,
       lastName: user.last_name,
+      full_name: deriveFullName(user),
     },
   });
 }
@@ -446,6 +479,7 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
       role: 'student',
       firstName,
       lastName,
+      full_name: deriveFullName({ firstName, lastName, email }),
     },
   }, HttpStatus.CREATED);
 }
@@ -489,6 +523,7 @@ async function handleSession(req: VercelRequest, res: VercelResponse) {
         role: user.role,
         firstName: user.first_name,
         lastName: user.last_name,
+        full_name: deriveFullName(user),
         permissions: payload.permissions,
       },
     });
@@ -547,6 +582,7 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
         role: user.role,
         firstName: user.first_name,
         lastName: user.last_name,
+        full_name: deriveFullName(user),
       },
     });
   } catch {
@@ -649,7 +685,15 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
         return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
       }
 
-      return sendSuccess(res, result.rows[0]);
+      const profileUser = {
+      ...result.rows[0],
+      full_name: deriveFullName(result.rows[0]),
+    };
+
+    return sendSuccess(res, {
+      ...profileUser,
+      user: profileUser,
+    });
     }
 
     const allowedFields = [
@@ -706,7 +750,15 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       return sendError(res, 'Profile not found', HttpStatus.NOT_FOUND);
     }
 
-    return sendSuccess(res, result.rows[0]);
+    const profileUser = {
+      ...result.rows[0],
+      full_name: deriveFullName(result.rows[0]),
+    };
+
+    return sendSuccess(res, {
+      ...profileUser,
+      user: profileUser,
+    });
   } catch (error) {
     // Only clear cookies and return 401 for actual auth errors
     const msg = error instanceof Error ? error.message : '';
@@ -819,6 +871,7 @@ async function handleBootstrap(req: VercelRequest, res: VercelResponse) {
       role: user.role,
       firstName: user.first_name,
       lastName: user.last_name,
+      full_name: deriveFullName(user),
       hadPassword: !!user.password_hash,
     },
   });
