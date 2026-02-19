@@ -2,16 +2,15 @@ MIHAS Application System — Migration Recovery & Hardening Status
 =========================================================================
 Date: 2026-02-19
 Scope: Supabase → Neon, Cloudflare → Vercel, Node → Bun/Vite runtime alignment
-Status: ALL MIGRATION RECOVERY TASKS COMPLETE
+Status: PHASE COMPLETE, RUNTIME SUPABASE SWEEP IN PROGRESS
 
 
 EXECUTIVE SUMMARY
 -----------------
-The migration-recovery-hardening spec has been fully executed. All 13 top-level
-tasks and their subtasks are complete. The codebase has been migrated from the
-legacy API client to the new unwrapping client, Supabase remnants removed,
-reload strategy hardened, React Query caching tuned, and a comprehensive
-property/contract test suite added.
+The migration-recovery-hardening spec is complete, but a focused runtime Supabase
+sweep remains active. High-traffic surfaces are largely API-backed, yet several
+legacy runtime modules still contain direct Supabase/stub access and must be
+removed, replaced, or feature-flag isolated before final migration closure.
 
 
 SECTION A — COMPLETED WORK (MIGRATION RECOVERY & HARDENING)
@@ -191,3 +190,42 @@ Cache Strategy:
   critical (dashboard): 30s stale, refetch on focus
   static (catalog): 5min stale, no refetch on focus
   polling (admin stats): 60s interval minimum
+
+
+SECTION F — FOCUSED RUNTIME SUPABASE SWEEP (2026-02-19)
+--------------------------------------------------------
+Tracked inventory: `docs/migration/runtime-supabase-inventory.md`
+
+Priority focus order:
+  1) Application wizard
+  2) Documents
+  3) Profile/session
+  4) Notifications
+  5) Admin dashboards
+
+Current classified runtime items:
+  - Replace with API call:
+      src/lib/duplicateApplicationCheck.ts
+      src/lib/eligibilityEngine.ts
+      src/lib/notificationService.ts
+  - Remove:
+      src/lib/multiDeviceSession.ts
+      src/lib/authSecurity.ts
+  - Isolate behind feature flag (default OFF):
+      src/lib/analytics.ts
+      src/lib/workflowAutomation.ts
+
+CI guardrails added:
+  - ESLint `no-restricted-imports` for migrated modules blocks new direct
+    Supabase imports and legacy runtime module imports.
+  - `scripts/ci/check-no-supabase-runtime.sh` greps migrated high-traffic
+    paths and fails CI on direct Supabase/stub patterns.
+  - `bun run lint` now includes `bun run check:no-supabase-runtime`.
+
+Known risk areas:
+  - Wizard eligibility and duplicate checks still transit through legacy runtime
+    modules and can reintroduce client-side data coupling until API actions land.
+  - Admin analytics and workflow automation remain legacy-heavy and should stay
+    feature-flagged off in production until endpoint parity is complete.
+  - Session/profile legacy modules are still present in codebase and should be
+    removed once enhanced session behavior is reworked against API/session auth.
