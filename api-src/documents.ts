@@ -70,27 +70,158 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
         }
         return await handleSignedUrl(req, res, user.userId, user.role);
 
+      case 'register-slip':
+        if (req.method !== 'POST') {
+          return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        return await handleRegisterSlip(req, res, user.userId, user.role);
+
+      case 'resolve-reference':
+        if (req.method !== 'POST') {
+          return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        return await handleResolveReference(req, res, user.userId, user.role);
+
       default:
-        return sendError(res, 'Invalid action. Valid: upload, extract, download, delete, signed-url', HttpStatus.BAD_REQUEST);
+        return sendError(res, 'Invalid action. Valid: upload, extract, download, delete, signed-url, register-slip, resolve-reference', HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error, 'documents');
   }
 }
 
+function normalizeLegacySupabasePath(reference: string): string | null {
+  const trimmed = reference.trim();
+  if (!trimmed) return null;
+
+  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const match = parsed.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/app_docs\/(.+)$/i);
+    if (!match?.[1]) return null;
+    return decodeURIComponent(match[1]);
+  } catch {
+    return null;
+  }
+}
+
+async function handleRegisterSlip(req: VercelRequest, res: VercelResponse, authUserId: string, userRole: string) {
+  const { applicationNumber, path, publicUrl, documentName } = req.body || {};
+
+  if (!applicationNumber || !path) {
+    return sendError(res, 'applicationNumber and path are required', HttpStatus.BAD_REQUEST);
+  }
+
+  const applicationResult = await query<{ id: string; user_id: string }>(
+    `SELECT id, user_id FROM applications WHERE application_number = $1 LIMIT 1`,
+    [applicationNumber]
+  );
+
+  const application = applicationResult.rows[0];
+  if (!application) {
+    return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+  }
+
+  const adminRoles = ['admin', 'super_admin', 'admissions_officer'];
+  if (!adminRoles.includes(userRole) && application.user_id !== authUserId) {
+    return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
+  }
+
+  const r2 = getR2Storage();
+  const fileUrl = publicUrl || r2.getPublicUrl(path);
+  const safeDocumentName = documentName || `Application Slip - ${applicationNumber}.pdf`;
+
+  const existingResult = await query<{ id: string }>(
+    `SELECT id FROM application_documents
+     WHERE application_id = $1 AND document_type = 'application_slip'
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [application.id]
+  );
+
+  const existingId = existingResult.rows[0]?.id;
+  let documentId: string;
+
+  if (existingId) {
+    const updated = await query<{ id: string }>(
+      `UPDATE application_documents
+       SET document_name = $2,
+           file_url = $3,
+           system_generated = true,
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING id`,
+      [existingId, safeDocumentName, fileUrl]
+    );
+    documentId = updated.rows[0].id;
+  } else {
+    const inserted = await query<{ id: string }>(
+      `INSERT INTO application_documents (
+        id, application_id, document_type, document_name,
+        file_url, mime_type, system_generated,
+        verification_status, uploaded_at, created_at, updated_at
+      ) VALUES (gen_random_uuid(), $1, 'application_slip', $2, $3, 'application/pdf', true, 'pending', NOW(), NOW(), NOW())
+      RETURNING id`,
+      [application.id, safeDocumentName, fileUrl]
+    );
+    documentId = inserted.rows[0].id;
+  }
+
+  return sendSuccess(res, { documentId, path, publicUrl: fileUrl });
+}
+
+async function handleResolveReference(req: VercelRequest, res: VercelResponse, authUserId: string, userRole: string) {
+  const { reference, applicationId } = req.body || {};
+  if (!reference || typeof reference !== 'string') {
+    return sendError(res, 'reference is required', HttpStatus.BAD_REQUEST);
+  }
+
+  if (applicationId) {
+    const canAccess = await checkDocumentUploadAccess(authUserId, applicationId, userRole);
+    if (!canAccess) {
+      return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
+    }
+  }
+
+  const normalizedPath = normalizeLegacySupabasePath(reference);
+  if (!normalizedPath) {
+    return sendError(res, 'Unsupported document reference', HttpStatus.BAD_REQUEST);
+  }
+
+  const r2 = getR2Storage();
+  const url = r2.getPublicUrl(normalizedPath);
+  return sendSuccess(res, {
+    path: normalizedPath,
+    publicUrl: url,
+    migrated: reference !== normalizedPath,
+  });
+}
+
 /**
  * Upload document to R2
  */
 async function handleUpload(req: VercelRequest, res: VercelResponse, authUserId: string, userRole: string) {
-  const { file, fileName, fileType, contentType, userId, applicationId, documentType } = req.body;
+  const { file, fileName, fileType, contentType, userId, applicationId, applicationNumber, documentType } = req.body;
 
   if (!file || !fileName) {
     return sendError(res, 'File and fileName are required', HttpStatus.BAD_REQUEST);
   }
 
+  let resolvedApplicationId: string | undefined = applicationId;
+  if (!resolvedApplicationId && applicationNumber) {
+    const appResult = await query<{ id: string }>(
+      `SELECT id FROM applications WHERE application_number = $1 LIMIT 1`,
+      [applicationNumber]
+    );
+    resolvedApplicationId = appResult.rows[0]?.id;
+  }
+
   // Ownership check: verify user can upload to this application
-  if (applicationId) {
-    const canUpload = await checkDocumentUploadAccess(authUserId, applicationId, userRole);
+  if (resolvedApplicationId) {
+    const canUpload = await checkDocumentUploadAccess(authUserId, resolvedApplicationId, userRole);
     if (!canUpload) {
       return sendError(res, 'Access denied: cannot upload to this application', HttpStatus.FORBIDDEN);
     }
@@ -111,7 +242,7 @@ async function handleUpload(req: VercelRequest, res: VercelResponse, authUserId:
   const effectiveUserId = isAdmin(userRole) && userId ? userId : authUserId;
   const timestamp = Date.now();
   const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
-  const storagePath = `${effectiveUserId}/${applicationId || 'general'}/${documentType || 'document'}/${timestamp}-${sanitizedFileName}`;
+  const storagePath = `${effectiveUserId}/${resolvedApplicationId || applicationNumber || 'general'}/${documentType || 'document'}/${timestamp}-${sanitizedFileName}`;
 
   // R2 storage only
   if (!isR2Available()) {
