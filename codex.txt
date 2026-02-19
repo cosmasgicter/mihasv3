@@ -1,231 +1,295 @@
-MIHAS Application System — Migration Recovery & Hardening Status
+MIHAS Application System — Opus 4.6 MCP Verification & Recovery Handoff
 =========================================================================
 Date: 2026-02-19
-Scope: Supabase → Neon, Cloudflare → Vercel, Node → Bun/Vite runtime alignment
-Status: PHASE COMPLETE, RUNTIME SUPABASE SWEEP IN PROGRESS
+Audience: Opus 4.6 (with MCP access to Neon + deployment environment)
+Objective: Verify all prior fixes, close remaining loopholes, apply pending migrations to Neon, and complete document migration to Cloudflare R2.
 
-
-EXECUTIVE SUMMARY
+IMPORTANT CONTEXT
 -----------------
-The migration-recovery-hardening spec is complete, but a focused runtime Supabase
-sweep remains active. High-traffic surfaces are largely API-backed, yet several
-legacy runtime modules still contain direct Supabase/stub access and must be
-removed, replaced, or feature-flag isolated before final migration closure.
+This document replaces the previous "all tasks complete" narrative with a verification-first execution plan.
+Treat every item as "trust but verify" against:
+1) live Neon schema/data,
+2) deployed API behavior,
+3) end-to-end UI flows.
+
+No item is considered done until Opus records evidence (query output, API response, UI behavior).
 
 
-SECTION A — COMPLETED WORK (MIGRATION RECOVERY & HARDENING)
-------------------------------------------------------------
-
-A1) API Client Migration (Tasks 1-4)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-All 11 frontend components migrated from legacy `applicationsApi`/`authApi`/
-`adminApi`/`catalogApi`/`notificationsApi` to the new unwrapping client:
-
-- src/pages/student/Payment.tsx → applicationService
-- src/pages/student/Interview.tsx → interviewsService
-- src/pages/student/Dashboard.tsx → applicationService + interviewsService
-- src/pages/auth/SignUpPage.tsx → apiClient.request()
-- src/components/student/NotificationPreferences.tsx → apiClient.request()
-- src/components/application/EligibilityDashboard.tsx → apiClient + catalogService
-- src/components/application/ApplicationVersions.tsx → apiClient.request()
-- src/components/admin/UserImport.tsx → apiClient.request()
-- src/components/admin/TestNotifications.tsx → apiClient + applicationService
-- src/components/admin/ReportsGenerator.tsx → applicationService
-- src/pages/student/applicationWizard/components/AnalyticsDashboard.tsx → apiClient.request()
-
-All `response.success` / `response.data` envelope checks removed.
-Legacy client (`src/lib/apiClient.ts`) deprecated with @deprecated JSDoc tags.
-Only type imports remain from legacy client (ApplicationVersion, EligibilityAssessment).
-
-
-A2) Supabase Remnants Removed (Task 5)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Removed `supabase.co` hostname check from getCacheStrategy in src/lib/pwaConfig.ts
-- API detection now only checks `/api/` path prefix
-- Property test validates URL classification is Supabase-free
-
-
-A3) Reload Strategy Hardened (Task 6)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Verified reloadControl.ts guard logic: per-build, per-reason, per-fingerprint
-  using sessionStorage
-- Error boundary retry buttons use performReload with mode: 'user'
-- Property test validates at-most-one auto-reload per fingerprint
-
-
-A4) Contract Test Infrastructure (Task 7)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Created Zod response schemas for all key endpoints:
-- ApplicationListResponseSchema
-- AdminStatsResponseSchema, AdminDashboardResponseSchema
-- AuditLogResponseSchema, AppealsResponseSchema
-- CatalogProgramsResponseSchema, CatalogIntakesResponseSchema
-- AuthSessionResponseSchema
-- NotificationPreferencesResponseSchema
-
-Contract tests validate sample responses against schemas.
-Property tests verify schema accept/reject behavior.
-
-
-A5) React Query Cache Tuning (Task 9)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Created centralized cache config at src/lib/queryCacheConfig.ts:
-- critical: 30s staleTime, 5min gcTime, refetchOnWindowFocus
-- static: 5min staleTime, 30min gcTime, no refetchOnWindowFocus
-- polling: 30s staleTime, 60s refetchInterval minimum
-
-Updated src/hooks/queries/useSupabaseQuery.ts to use centralized config.
-Property test validates no polling interval below 30 seconds.
-
-
-A6) Metrics & Dashboard Preloader (Task 10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Verified metricsTracking.ts calculation logic is correct
-- Property test validates metrics formulas (approvalRate, completionRate)
-- Property test validates preloader returns valid defaults on transient errors
-
-
-A7) Session Lifecycle & Auth Hardening Tests (Task 11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- tests/property/authCookies.property.test.ts
-  Property 11: setAuthCookies sets HttpOnly, SameSite=Lax, correct Max-Age/Path
-- tests/property/tokenRotation.property.test.ts
-  Property 12: consecutive refresh tokens are always distinct
-- tests/property/adminRbac.property.test.ts
-  Property 13: student/reviewer roles denied admin-write permissions
-
-
-A8) Asset Pipeline Validation (Task 12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- tests/unit/assetValidation.test.ts
-  Property 14: all PWA precache and fallback paths exist in public/
-
-
-SECTION B — FULL TEST FILE INVENTORY
--------------------------------------
-Property tests (tests/property/):
-  paymentPageExtraction.property.test.ts    — Property 1: paginated extraction
-  paymentStatusFiltering.property.test.ts   — Property 2: payment status partition
-  cacheStrategyClassification.property.test.ts — Property 3: URL classification
-  reloadGuard.property.test.ts              — Property 4: reload guard idempotence
-  interviewRouting.property.test.ts         — Property 5: interview service routing
-  schemaValidation.property.test.ts         — Property 7: schema accept/reject
-  metricsConsistency.property.test.ts       — Property 8: metrics formulas
-  preloaderDefaults.property.test.ts        — Property 9: preloader error defaults
-  authCookies.property.test.ts              — Property 11: cookie issuance
-  tokenRotation.property.test.ts            — Property 12: refresh token rotation
-  adminRbac.property.test.ts                — Property 13: RBAC enforcement
-
-Contract tests (tests/unit/contracts/):
-  schemas/index.ts                          — Zod response schemas
-  adminContracts.test.ts                    — Property 6: admin schema validation
-
-Unit tests (tests/unit/):
-  queryCacheConfig.test.ts                  — Property 10: polling interval minimum
-  assetValidation.test.ts                   — Property 14: asset path validation
-
-
-SECTION C — KEY FILES MODIFIED
--------------------------------
-Frontend components (migrated from legacy client):
-  src/pages/student/Payment.tsx
-  src/pages/student/Dashboard.tsx
-  src/pages/student/Interview.tsx
-  src/pages/auth/SignUpPage.tsx
-  src/components/student/NotificationPreferences.tsx
-  src/components/application/EligibilityDashboard.tsx
-  src/components/application/ApplicationVersions.tsx
-  src/components/admin/UserImport.tsx
-  src/components/admin/TestNotifications.tsx
-  src/components/admin/ReportsGenerator.tsx
-  src/pages/student/applicationWizard/components/AnalyticsDashboard.tsx
-
-Infrastructure:
-  src/lib/apiClient.ts              — deprecated with @deprecated tags
-  src/lib/pwaConfig.ts              — removed supabase.co check
-  src/lib/queryCacheConfig.ts       — NEW: centralized cache config
-  src/hooks/queries/useSupabaseQuery.ts — updated to use centralized config
-
-Spec files:
-  .kiro/specs/migration-recovery-hardening/requirements.md
-  .kiro/specs/migration-recovery-hardening/design.md
-  .kiro/specs/migration-recovery-hardening/tasks.md
-
-Steering files:
-  .kiro/steering/tech.md
-  .kiro/steering/structure.md
-  .kiro/steering/product.md
-
-
-SECTION D — REMAINING KNOWN ISSUES
+SECTION 1 — EXECUTION MODE FOR OPUS
 ------------------------------------
-1) Some admin actions (audit-log, appeals) are called by frontend services but
-   may not be implemented as backend actions yet. Contract tests validate the
-   expected shapes but live integration needs verification.
+Opus must execute in this sequence:
+1) Verify current code-to-runtime parity (frontend + API endpoints).
+2) Apply all pending DB migrations to Neon.
+3) Re-run contract checks and end-to-end smoke tests.
+4) Fix any failed flows immediately in code.
+5) Backfill/migrate legacy document URLs to Cloudflare R2.
+6) Re-verify all 24 business issues end-to-end.
 
-2) Dashboard preloader and metricsTracking are still stubbed — they return
-   empty/default data. Real backend-backed implementations needed.
-
-3) Dual API client architecture remains (legacy deprecated, not deleted).
-   Type imports still reference legacy client for ApplicationVersion and
-   EligibilityAssessment types.
-
-4) vitest hangs on some property tests on Windows due to worker pool issues.
-   Tests pass individually but full suite may need --pool forks flag.
-
-
-SECTION E — ARCHITECTURE NOTES
--------------------------------
-API Response Flow:
-  Backend sendSuccess() → { success: true, data: payload }
-  Frontend ApiClient.request() → unwrapApiResponse() → payload directly
-  Never check response.success on service results.
-
-Auth Flow:
-  Login → generateAccessToken (15min) + generateRefreshToken (7d) → HTTP-only cookies
-  Cookie: HttpOnly, SameSite=Lax, Secure (prod), refresh restricted to /api/auth
-  RBAC: deterministic from JWT payload, no DB lookup
-
-Cache Strategy:
-  critical (dashboard): 30s stale, refetch on focus
-  static (catalog): 5min stale, no refetch on focus
-  polling (admin stats): 60s interval minimum
+For each step, Opus should log:
+- command executed,
+- result summary,
+- pass/fail,
+- remediation taken if failed.
 
 
-SECTION F — FOCUSED RUNTIME SUPABASE SWEEP (2026-02-19)
---------------------------------------------------------
-Tracked inventory: `docs/migration/runtime-supabase-inventory.md`
+SECTION 2 — REQUIRED MCP TASKS (NEON)
+--------------------------------------
+Opus must use Neon MCP to complete these tasks:
 
-Priority focus order:
-  1) Application wizard
-  2) Documents
-  3) Profile/session
-  4) Notifications
-  5) Admin dashboards
+A) Migration state discovery
+- List migration table/version state.
+- List local migration files present in repository.
+- Compute "not yet applied" migration set.
 
-Current classified runtime items:
-  - Replace with API call:
-      src/lib/duplicateApplicationCheck.ts
-      src/lib/eligibilityEngine.ts
-      src/lib/notificationService.ts
-  - Remove:
-      src/lib/multiDeviceSession.ts
-      src/lib/authSecurity.ts
-  - Isolate behind feature flag (default OFF):
-      src/lib/analytics.ts
-      src/lib/workflowAutomation.ts
+B) Apply pending migrations
+- Apply pending migrations in order.
+- Abort on first failing migration.
+- For each failure: capture SQL error, identify root cause, patch migration or schema precondition, rerun.
 
-CI guardrails added:
-  - ESLint `no-restricted-imports` for migrated modules blocks new direct
-    Supabase imports and legacy runtime module imports.
-  - `scripts/ci/check-no-supabase-runtime.sh` greps migrated high-traffic
-    paths and fails CI on direct Supabase/stub patterns.
-  - `bun run lint` now includes `bun run check:no-supabase-runtime`.
+C) Schema verification post-migration
+Validate existence and minimal structure of core entities:
+- profiles
+- applications
+- application_documents
+- notifications
+- user_notification_preferences
+- programs
+- intakes
+- institutions
+- audit_logs (or equivalent audit trail table)
 
-Known risk areas:
-  - Wizard eligibility and duplicate checks still transit through legacy runtime
-    modules and can reintroduce client-side data coupling until API actions land.
-  - Admin analytics and workflow automation remain legacy-heavy and should stay
-    feature-flagged off in production until endpoint parity is complete.
-  - Session/profile legacy modules are still present in codebase and should be
-    removed once enhanced session behavior is reworked against API/session auth.
+D) Data integrity checks
+- Ensure foreign keys resolve for applications.program/institution/intake references.
+- Detect null/invalid status values in application lifecycle fields.
+- Identify orphaned application_documents rows.
+
+E) Performance safeguards
+- Verify indexes on hot paths (applications status/date, profiles email/role, notifications user_id/created_at).
+- Add missing indexes via migration if absent.
+
+
+SECTION 3 — ISSUE-BY-ISSUE STATUS + WHAT OPUS MUST VERIFY/FIX
+---------------------------------------------------------------
+Legend:
+- VERIFIED-FIXED: tested and confirmed in runtime
+- PARTIAL: code exists but not fully validated end-to-end
+- BLOCKED: requires backend/schema/runtime work
+
+1) Track Application not working
+Current status: PARTIAL/BLOCKED
+Opus action:
+- Verify public tracking endpoint exists and is unauthenticated by design.
+- Confirm frontend tracker calls the correct endpoint contract.
+- Ensure response includes public-safe fields only.
+- Add rate limiting + input validation.
+
+2) Forgot password not working
+Current status: BLOCKED
+Opus action:
+- Verify auth router supports forgot-password + reset-password actions.
+- Verify reset token creation, expiry, and one-time usage semantics.
+- Verify email delivery trigger and reset completion path.
+
+3) Greeting/name issues ("User", email local-part)
+Current status: PARTIAL
+Opus action:
+- Normalize display name precedence: profile.full_name -> user full name -> first+last -> fallback.
+- Ensure session/login/profile payloads expose canonical full_name.
+
+4) Mojibake/gibberish text in application wizard
+Current status: BLOCKED (content corruption)
+Opus action:
+- Replace corrupted text with clean UTF-8 strings.
+- Add static check to detect mojibake patterns.
+
+5) Student dashboard document downloads failing + Cloudflare migration
+Current status: BLOCKED/HIGH PRIORITY
+Opus action:
+- Ensure all document generation/storage paths use Cloudflare R2-compatible API flow.
+- Remove/replace any legacy Supabase storage dependencies in runtime path.
+- Verify download works for slip/receipt/acceptance where applicable.
+- Migrate old stored document URLs to R2 and update DB references.
+
+6) Draft management reliability
+Current status: PARTIAL
+Opus action:
+- Verify local draft + server draft reconciliation.
+- Verify clear/delete/update operations and event propagation.
+
+7) Application timeline selects relevant app when user has many
+Current status: PARTIAL
+Opus action:
+- Define and enforce relevance rule (latest non-draft priority, fallback latest updated).
+- Validate timeline accuracy under multi-application scenarios.
+
+8) Student payment page + wizard stability
+Current status: PARTIAL
+Opus action:
+- Verify payment state transitions, proof upload, and verification visibility.
+- Validate full wizard navigation/submit flow without dead ends.
+
+9) Interview workflow end-to-end
+Current status: PARTIAL
+Opus action:
+- Verify scheduling, listing, status transitions, and student visibility.
+
+10) Notification defaults/policy (SMS+WhatsApp opt-out model, mandatory email)
+Current status: BLOCKED (policy not fully aligned)
+Opus action:
+- Set default channel preferences per business policy.
+- Enforce mandatory operational email notifications.
+- Ensure UI reflects policy (no invalid opt-out options).
+
+11) Profile page + session management
+Current status: PARTIAL/BLOCKED
+Opus action:
+- Verify GET/PATCH profile endpoint contract.
+- Verify session refresh/logout/login consistency and cache invalidation.
+
+12) Real-time updates after webhook removal
+Current status: PARTIAL
+Opus action:
+- Verify chosen strategy (SSE/polling hybrid) works under low-end device conditions.
+- Ensure admin approval propagates quickly to student dashboard + notifications.
+
+13) Duplicate in-app notifications
+Current status: PARTIAL
+Opus action:
+- Enforce idempotency key/event deduplication by notification/event id.
+
+14) Duplicate code/functionality in codebase
+Current status: PARTIAL
+Opus action:
+- Identify redundant modules and converge to single source of truth for each domain service.
+
+15) Admin dashboard quality/sustainability
+Current status: PARTIAL
+Opus action:
+- Remove nonfunctional widgets.
+- Ensure every card has real data source + clear operational value.
+
+16) Admin users page says no users / CRUD completeness
+Current status: BLOCKED (contract mismatch risk)
+Opus action:
+- Align frontend user service routes/payloads with actual admin API.
+- Verify list/create/update/delete flows with role constraints.
+
+17) Programs page shows "institution unknown"
+Current status: BLOCKED
+Opus action:
+- Ensure program list response includes institution join data.
+- Verify DB foreign keys and fallback mapping.
+
+18) Intakes page reliability
+Current status: PARTIAL
+Opus action:
+- Validate list/create/update/delete and date/deadline constraints.
+
+19) Analytics + realtime pages
+Current status: PARTIAL
+Opus action:
+- Wire metrics to real backend aggregates.
+- Remove/label stubs and validate refresh behavior.
+
+20) Workflow/automation pages necessity and usability
+Current status: PARTIAL
+Opus action:
+- If nonessential, de-scope/hide behind feature flag.
+- If kept, ensure clear purpose, real data, and safe controls.
+
+21) System pages + audit trail completeness
+Current status: PARTIAL/BLOCKED
+Opus action:
+- Ensure audit trail captures critical actor/action/entity changes.
+- Verify queryability and pagination in UI.
+
+22) Roles page mobile friendliness + all pages mobile QA
+Current status: PARTIAL
+Opus action:
+- Run mobile responsiveness audit across admin/student critical pages.
+- Fix overflow, table truncation, tap-target/accessibility issues.
+
+23) Applications page/modal + load more broken
+Current status: PARTIAL/BLOCKED
+Opus action:
+- Validate server pagination + frontend loadMore logic.
+- Fix totalCount/hasMore consistency and duplicate merge behavior.
+
+24) Scalability recommendations for thousands daily users
+Current status: OPEN
+Opus action:
+- Produce concrete scale plan: caching, DB indexing, queueing, idempotency, observability, SLOs.
+
+
+SECTION 4 — DOCUMENT GENERATION & R2 MIGRATION (MANDATORY)
+-----------------------------------------------------------
+Target: 100% functional document generation and retrieval via Cloudflare R2.
+
+Opus must perform:
+1) Runtime path audit
+- Identify every code path generating/storing/downloading documents.
+- Confirm each path routes through current API contract and R2 backend.
+
+2) Legacy URL inventory
+- Query for old Supabase/legacy document URLs in application_documents and related fields.
+- Export mapping: document_id -> old_url -> new_r2_key/new_url.
+
+3) Backfill migration job
+- For each legacy object:
+  a) fetch original file,
+  b) upload to R2 with deterministic key,
+  c) verify checksum/size,
+  d) update DB reference in transaction,
+  e) log outcome.
+
+4) Verification
+- Random sample test downloads after migration.
+- Confirm student dashboard buttons work for migrated and newly generated docs.
+
+5) Safety
+- Keep migration idempotent (re-runnable).
+- Keep rollback metadata (old URL snapshot table/file).
+
+
+SECTION 5 — LOOPHOLE CLOSURE CHECKLIST
+---------------------------------------
+Opus must explicitly verify and close these loopholes:
+- Endpoint/route mismatches between frontend service paths and backend action router.
+- Envelope/response-shape mismatches causing silent UI failures.
+- Stubs in production-critical paths (analytics, workflow, dashboard preloader).
+- Inconsistent auth/session/profile object shapes across pages.
+- Any direct legacy storage/database client usage in active runtime paths.
+- Missing deduplication for notifications/events.
+- Pagination edge cases causing "load more" failures.
+
+
+SECTION 6 — EVIDENCE FORMAT OPUS MUST RETURN
+----------------------------------------------
+For each fixed item, Opus should provide:
+1) Changed files.
+2) Why the root cause happened.
+3) What was changed.
+4) How it was tested (commands + observed output).
+5) Any remaining risk.
+
+No item should be marked completed without executable evidence.
+
+
+SECTION 7 — SUCCESS CRITERIA
+----------------------------
+Mission complete only when all are true:
+- All pending migrations applied to Neon successfully.
+- All critical user flows pass end-to-end (track, forgot/reset, apply, pay, download, profile, notifications, interviews).
+- Admin essentials are functional (users CRUD, applications pagination, programs/intakes integrity, audit trail).
+- Document generation/download works fully on Cloudflare R2.
+- Legacy document references are migrated or explicitly reported with remediation queue.
+- No duplicate notification behavior in-app.
+- Real-time updates behave reliably with fallback strategy.
+
+
+SECTION 8 — FINAL NOTE TO OPUS
+--------------------------------
+Do not assume prior completion claims are accurate.
+Use MCP-backed verification and production-minded fixes.
+Prioritize user-critical reliability over broad refactors.
+Record evidence for every major claim.
