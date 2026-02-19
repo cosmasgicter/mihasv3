@@ -32,6 +32,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { dispatchSSEStatus, triggerSSEReconnect, SSE_RECONNECT_EVENT } from '@/contexts/RealtimeStatusContext'
 import { createSSEClient, type SSEClient } from '@/lib/sseClient'
+import { useRealtimeStore, type RealtimeEventEnvelope } from '@/stores/realtimeStore'
 
 /**
  * SSE Event Types (matches backend api/_lib/realtime.ts)
@@ -42,6 +43,7 @@ export type SSEEventType =
   | 'payment_update'
   | 'interview_scheduled'
   | 'document_processed'
+  | 'dashboard_refresh'
   | 'ping'
 
 /**
@@ -53,6 +55,10 @@ export interface SSEEvent {
   data: Record<string, unknown>
   timestamp: string
   userId?: string
+  event_id?: string
+  entity_id?: string
+  version?: number
+  created_at?: string
 }
 
 /**
@@ -152,11 +158,17 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
   const mountedRef = useRef(true)
   const sseFailedRef = useRef(false)
   const unsubscribersRef = useRef<Array<() => void>>([])
+  const progressiveIntervalRef = useRef(opts.pollingInterval)
 
   /**
    * Dispatch event to registered handlers
    */
   const dispatchEvent = useCallback((event: SSEEvent) => {
+    if (event.event_id && event.entity_id && typeof event.version === 'number' && event.created_at) {
+      const accepted = useRealtimeStore.getState().ingestEvent(event as RealtimeEventEnvelope)
+      if (!accepted) return
+    }
+
     const handlers = handlersRef.current.get(event.type)
     if (handlers) {
       handlers.forEach(handler => {
@@ -182,12 +194,18 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
     const eventData = typeof data === 'object' && data !== null 
       ? data as Record<string, unknown>
       : { value: data }
+
+    const envelope = eventData as Partial<RealtimeEventEnvelope>
     
     return {
       id: `${eventType}_${Date.now()}`,
       type: eventType,
       data: eventData,
       timestamp: new Date().toISOString(),
+      event_id: envelope.event_id,
+      entity_id: envelope.entity_id,
+      version: envelope.version,
+      created_at: envelope.created_at,
     }
   }, [])
 
@@ -203,6 +221,7 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
     
     const poll = async () => {
       if (!mountedRef.current) return
+      if (document.visibilityState === 'hidden') return
       
       try {
         const url = lastEventIdRef.current
@@ -221,9 +240,17 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
         const data = await response.json()
         
         if (data.success && data.data?.events) {
+          const hasEvents = data.data.events.length > 0
           data.data.events.forEach((event: SSEEvent) => {
             dispatchEvent(event)
           })
+          progressiveIntervalRef.current = hasEvents
+            ? opts.pollingInterval
+            : Math.min(progressiveIntervalRef.current * 1.5, 120000)
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current)
+            pollingIntervalRef.current = setInterval(poll, progressiveIntervalRef.current)
+          }
         }
       } catch (err) {
         console.error('[useRealtime] Polling error:', err)
@@ -234,7 +261,7 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
     poll()
     
     // Set up interval
-    pollingIntervalRef.current = setInterval(poll, opts.pollingInterval)
+    pollingIntervalRef.current = setInterval(poll, progressiveIntervalRef.current)
   }, [opts.pollingEnabled, opts.pollingInterval, dispatchEvent])
 
   /**
@@ -330,6 +357,7 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
       'payment_update',
       'interview_scheduled',
       'document_processed',
+      'dashboard_refresh',
       'ping',
     ]
 

@@ -105,7 +105,9 @@ export function useStudentDashboardPolling(
     queryKey: ['student-dashboard-polling', user?.id],
     queryFn: fetchData,
     enabled: enabled && !!user?.id,
-    refetchInterval: enabled ? pollingInterval : false,
+    refetchInterval: enabled
+      ? () => (document.visibilityState === 'visible' ? pollingInterval : pollingInterval * 2)
+      : false,
     staleTime: pollingInterval / 2,
   })
 
