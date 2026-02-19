@@ -49,6 +49,8 @@ export interface RealtimeMetrics {
   averageProcessingTime: number
   systemLoad: number
   lastUpdated: string
+  deliveryLatencyMs?: number
+  duplicateRate?: number
 }
 
 /**
@@ -108,7 +110,9 @@ export const realtimeMetrics = {
       pendingReviews: 0,
       averageProcessingTime: 0,
       systemLoad: 0,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      deliveryLatencyMs: 0,
+      duplicateRate: 0,
     }
   }
 }
