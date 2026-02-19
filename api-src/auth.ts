@@ -24,7 +24,7 @@ import { getPermissionsForRole } from "../lib/auth/permissions";
 import { setAuthCookies, clearAuthCookies, extractAccessTokenFromCookie, extractRefreshTokenFromCookie, extractBearerToken } from "../lib/auth/cookies";
 import { withArcjetProtection } from "../lib/arcjet";
 import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
-import { createHash, timingSafeEqual } from "crypto";
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from "crypto";
 
 /**
  * Auth API Handler
@@ -55,12 +55,171 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         return await handleRoles(req, res);
       case 'profile':
         return await handleProfile(req, res);
+      case 'forgot-password':
+        return await handleForgotPassword(req, res);
+      case 'reset-password':
+        return await handleResetPassword(req, res);
       default:
-        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email, roles, profile', HttpStatus.BAD_REQUEST);
+        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email, roles, profile, forgot-password, reset-password', HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
   }
+}
+
+const PASSWORD_RESET_TOKEN_EXPIRY_MINUTES = 60;
+
+async function ensurePasswordResetTable(): Promise<void> {
+  await query(`
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL,
+      used_at TIMESTAMPTZ NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+}
+
+function hashResetToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+function buildResetPasswordLink(token: string): string {
+  const origin = process.env.APP_URL || process.env.FRONTEND_URL || process.env.PUBLIC_URL || 'http://localhost:5173';
+  return `${origin.replace(/\/$/, '')}/auth/reset-password?token=${encodeURIComponent(token)}`;
+}
+
+async function sendPasswordResetEmail(email: string, fullName: string, resetLink: string): Promise<boolean> {
+  if (!process.env.RESEND_API_KEY) {
+    return false;
+  }
+
+  const emailHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2563eb;">Reset your MIHAS account password</h2>
+      <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+        Hello ${fullName || 'Student'}, we received a request to reset your account password.
+      </p>
+      <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+        Click the button below to continue. This link will expire in ${PASSWORD_RESET_TOKEN_EXPIRY_MINUTES} minutes.
+      </p>
+      <p style="margin-top: 20px;">
+        <a href="${resetLink}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+          Reset Password
+        </a>
+      </p>
+      <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">If you didn't request this, you can safely ignore this email.</p>
+    </div>
+  `;
+
+  const emailResponse = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM || 'noreply@mihas.edu.zm',
+      to: email,
+      subject: 'Reset your MIHAS password',
+      html: emailHtml,
+    }),
+  });
+
+  return emailResponse.ok;
+}
+
+async function handleForgotPassword(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const { email } = req.body || {};
+  if (!email || typeof email !== 'string') {
+    return sendError(res, 'Email is required', HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR');
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  await ensurePasswordResetTable();
+  await query(`DELETE FROM password_reset_tokens WHERE expires_at <= NOW() OR used_at IS NOT NULL`);
+
+  const userResult = await query<{ id: string; email: string; first_name: string | null; last_name: string | null }>(
+    `SELECT id, email, first_name, last_name FROM profiles WHERE email = $1 AND is_active = true LIMIT 1`,
+    [normalizedEmail]
+  );
+
+  if (userResult.rows.length > 0) {
+    const user = userResult.rows[0];
+    const rawToken = randomBytes(32).toString('base64url');
+    const tokenHash = hashResetToken(rawToken);
+
+    await query(`DELETE FROM password_reset_tokens WHERE user_id = $1`, [user.id]);
+    await query(
+      `INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at)
+       VALUES ($1, $2, $3, NOW() + INTERVAL '${PASSWORD_RESET_TOKEN_EXPIRY_MINUTES} minutes')`,
+      [randomUUID(), user.id, tokenHash]
+    );
+
+    const resetLink = buildResetPasswordLink(rawToken);
+    const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+
+    try {
+      await sendPasswordResetEmail(user.email, fullName, resetLink);
+    } catch {
+      console.warn('[AUTH] Password reset email send failed');
+    }
+  }
+
+  return sendSuccess(res, {
+    message: 'If the email exists, a reset link has been sent',
+  });
+}
+
+async function handleResetPassword(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const { token, password } = req.body || {};
+  if (!token || typeof token !== 'string' || !password || typeof password !== 'string') {
+    return sendError(res, 'token and password are required', HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR');
+  }
+
+  if (password.length < 8) {
+    return sendError(res, 'Password must be at least 8 characters', HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR');
+  }
+
+  await ensurePasswordResetTable();
+  await query(`DELETE FROM password_reset_tokens WHERE expires_at <= NOW() OR used_at IS NOT NULL`);
+
+  const tokenHash = hashResetToken(token);
+
+  const tokenResult = await query<{ id: string; user_id: string }>(
+    `SELECT id, user_id
+     FROM password_reset_tokens
+     WHERE token_hash = $1
+       AND used_at IS NULL
+       AND expires_at > NOW()
+     LIMIT 1`,
+    [tokenHash]
+  );
+
+  if (tokenResult.rows.length === 0) {
+    return sendError(res, 'Invalid or expired reset token', HttpStatus.BAD_REQUEST, 'INVALID_TOKEN');
+  }
+
+  const resetToken = tokenResult.rows[0];
+  const hashedPassword = await hashPassword(password);
+
+  await query(`UPDATE profiles SET password_hash = $1, updated_at = NOW() WHERE id = $2`, [hashedPassword, resetToken.user_id]);
+  await query(`UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1`, [resetToken.id]);
+  await query(`DELETE FROM password_reset_tokens WHERE user_id = $1`, [resetToken.user_id]);
+
+  return sendSuccess(res, {
+    message: 'Password reset successfully',
+  });
 }
 
 /**
