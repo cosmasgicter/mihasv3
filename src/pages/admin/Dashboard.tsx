@@ -43,6 +43,7 @@ import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
 import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDisplay'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import OfflineAdminDashboard from '@/components/admin/OfflineAdminDashboard'
+import { getDisplayName } from '@/utils/userDisplayName'
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { DashboardSkeleton } from '@/components/admin/DashboardSkeleton'
@@ -282,6 +283,9 @@ export default function AdminDashboard() {
     activeUsers: stats.activeUsers
   }
 
+  const adminDisplayName = sanitizeForDisplay(getDisplayName(profile, user))
+  const adminFirstName = adminDisplayName.split(' ')[0] || 'Admin'
+
   return (
     <div className="page-container bg-gradient-to-br from-background via-primary/5 to-secondary/5 transition-colors duration-500">
       <main className="w-full max-w-full overflow-x-hidden">
@@ -296,7 +300,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                 <div>
                   <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-2 break-words">
-                    Welcome back, {profile?.full_name?.split(' ')[0] || profile?.first_name || 'Admin'}
+                    Welcome back, {adminFirstName}
                   </h1>
                   <p className="text-sm sm:text-base md:text-lg text-white/90 mb-4 break-words">
                     Here&apos;s your system overview for today

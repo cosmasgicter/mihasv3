@@ -10,6 +10,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile } from '@/types/auth'
 import { CACHE_CONFIG } from '@/hooks/queries/useSupabaseQuery'
+import { getDisplayName } from '@/utils/userDisplayName'
 
 /**
  * Helper for authenticated API calls using HTTP-only cookies
@@ -75,6 +76,29 @@ function useSessionQuery() {
   })
 }
 
+function useProfileQuery(user: User | null) {
+  return useQuery({
+    queryKey: ['user-profile', user?.id],
+    enabled: Boolean(user?.id),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: false,
+    queryFn: async () => {
+      if (!user?.id) return null
+
+      const response = await authFetch('/api/auth?action=profile')
+
+      if (!response.ok) {
+        if (response.status === 401) return null
+        throw new Error(`Profile error: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      return (result?.data?.user ?? result?.data ?? null) as UserProfile | null
+    },
+  })
+}
+
 /**
  * Check if user has admin role
  */
@@ -101,12 +125,17 @@ function checkIsAdmin(user: User | null): boolean {
 export function useOptimizedAuthState(): AuthState {
   // Fetch session with caching
   const { data: sessionData, isLoading: sessionLoading } = useSessionQuery()
-  
-  const profile = null
   const user = sessionData?.user || null
+  const { data: fetchedProfile, isLoading: profileLoading } = useProfileQuery(user)
+  const profile = fetchedProfile
+    ? {
+        ...fetchedProfile,
+        full_name: getDisplayName(fetchedProfile, user),
+      }
+    : null
   const isAuthenticated = Boolean(user)
   const isAdmin = checkIsAdmin(user)
-  const isLoading = sessionLoading
+  const isLoading = sessionLoading || (Boolean(user) && profileLoading)
 
   return {
     user,
