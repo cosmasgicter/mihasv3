@@ -3,6 +3,21 @@ import pluginReactHooks from 'eslint-plugin-react-hooks';
 import pluginReactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 
+const migratedModuleFiles = [
+  'src/pages/student/applicationWizard/**/*.{ts,tsx}',
+  'src/pages/student/ApplicationWizard.tsx',
+  'src/pages/student/ApplicationStatus.tsx',
+  'src/pages/student/Dashboard.tsx',
+  'src/hooks/queries/**/*.{ts,tsx}',
+  'src/services/**/*.{ts,tsx}',
+  'src/components/student/NotificationPreferences.tsx',
+  'src/pages/admin/Dashboard.tsx',
+  'src/pages/admin/Applications.tsx',
+  'src/pages/admin/ApplicationsAdmin.tsx',
+  'src/pages/admin/SystemHealthDashboard.tsx',
+  'src/pages/admin/EnhancedDashboard.tsx',
+];
+
 export default [
   {
     ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
@@ -31,6 +46,26 @@ export default [
       'react-hooks/rules-of-hooks': 'error',
       'react-refresh/only-export-components': 'off',
       'react-hooks/exhaustive-deps': 'off',
+    },
+  },
+  {
+    files: migratedModuleFiles,
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@supabase/supabase-js', '@/lib/supabase*', '**/supabase*'],
+              message: 'Use API services/apiClient; direct Supabase runtime usage is blocked in migrated modules.',
+            },
+            {
+              group: ['@/lib/eligibilityEngine', '@/lib/notificationService', '@/lib/duplicateApplicationCheck'],
+              message: 'Use API-backed services instead of legacy Supabase runtime modules.',
+            },
+          ],
+        },
+      ],
     },
   },
   {
