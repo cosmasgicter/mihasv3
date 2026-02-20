@@ -4,20 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import type { UserProfile } from '@/types/auth'
 import { sanitizeForDisplay } from '@/lib/sanitize'
-
-/**
- * Helper for authenticated API calls using HTTP-only cookies
- */
-async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
+import { authRequest } from '@/services/authController'
 
 interface User {
   id: string
@@ -71,17 +58,13 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         return null
       }
 
-      const response = await authFetch('/api/auth?action=profile')
-      if (response.status === 401) {
+      const result = await authRequest<UserProfile | { user?: UserProfile }>('/api/auth?action=profile')
+      if (!result.success) {
         return null
       }
 
-      if (!response.ok) {
-        throw new Error('Failed to load profile')
-      }
-
-      const result = await response.json()
-      return sanitizeProfile(result?.data ?? null)
+      const payload = (result?.data as { user?: UserProfile })?.user ?? result.data
+      return sanitizeProfile(payload ?? null)
     }
   })
 
@@ -134,17 +117,15 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       logger.log('Attempting to update profile for user:', user.id)
       logger.log('Sanitized updates:', sanitizedUpdates)
 
-      const response = await authFetch('/api/auth?action=profile', {
+      const result = await authRequest<UserProfile>('/api/auth?action=profile', {
         method: 'PATCH',
         body: JSON.stringify(sanitizedUpdates),
       })
 
-      if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}))
-        throw new Error(errorBody?.error || 'Failed to update profile')
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update profile')
       }
 
-      const result = await response.json()
       const data = sanitizeProfile(result?.data)
 
       if (!data) {

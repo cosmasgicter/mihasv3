@@ -1,10 +1,9 @@
-import React, { createContext, useContext, useMemo, useCallback } from 'react'
+import React, { createContext, useContext, useMemo, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
-import {
-  useSessionListener,
-} from '@/hooks/auth/useSessionListener'
+import { useSessionListener } from '@/hooks/auth/useSessionListener'
 import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
+import { configureAuthController } from '@/services/authController'
 
 interface AuthContextType {
   user: User | null
@@ -22,41 +21,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient()
-  
-  // Use session listener for auth actions (signIn, signUp, etc.)
+
   const {
     signIn,
     signUp,
-    signOut: originalSignOut,
+    signOut,
     requestPasswordReset,
     updatePassword,
   } = useSessionListener()
-  
-  // Use optimized auth state for reading auth state (leverages React Query caching)
-  // This avoids redundant session validations and provides non-blocking auth checks
-  // Requirements: 4.5
+
   const { user, profile, isLoading, isAdmin } = useOptimizedAuthState()
-  
-  // Wrap signOut to ensure all caches are cleared immediately
-  // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
-  const signOut = useCallback(async () => {
-    // Clear all cached queries immediately (non-blocking) - Requirements: 13.2
-    queryClient.clear()
-    
-    // Clear any persisted query cache
-    try {
-      localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE')
-    } catch {
-      // Silent fail
-    }
-    
-    // Fire-and-forget the actual signOut - Requirements: 13.3
-    // Don't await - let it run in background
-    originalSignOut().catch(() => {
-      // Silent fail - local state already cleared
-      // Requirements: 13.4
+
+  useEffect(() => {
+    configureAuthController({
+      clearAuthState: () => {
+        queryClient.setQueryData(['auth', 'session'], null)
+      },
+      clearCaches: () => queryClient.clear(),
+      redirectToSignIn: (path) => {
+        window.location.assign(path)
+      },
     })
-  }, [originalSignOut, queryClient])
+  }, [queryClient])
 
   const value = useMemo(() => ({
     user,
@@ -67,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     requestPasswordReset,
-    updatePassword
+    updatePassword,
   }), [user, profile, isLoading, isAdmin, signIn, signUp, signOut, requestPasswordReset, updatePassword])
 
   return (
