@@ -274,9 +274,9 @@ if (!ARCJET_KEY) {
   console.error("[ARCJET] Security layer DISABLED - set ARCJET_KEY immediately");
 }
 var rateLimitConfigs = {
-  auth: { window: "5m", max: 20 },
+  auth: { window: "5m", max: 60 },
   session: { window: "10m", max: 30 },
-  admin: { window: "10m", max: 20 },
+  admin: { window: "10m", max: 60 },
   notification: { window: "10m", max: 50 },
   general: { window: "10m", max: 100 }
 };
