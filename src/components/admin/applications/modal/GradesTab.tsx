@@ -1,5 +1,5 @@
 import { GraduationCap } from 'lucide-react'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 
 interface Grade {
@@ -9,7 +9,7 @@ interface Grade {
 }
 
 export function GradesTab({ grades, loading }: { grades: Grade[], loading: boolean }) {
-  if (loading) return <div className="flex items-center gap-2"><LoadingSpinner size="sm" /><span>Loading...</span></div>
+  if (loading) return <UnifiedLoader variant="inline" size="sm" message="Loading details" />
   if (grades.length === 0) return <div className="text-center py-8"><GraduationCap className="h-8 w-8 mx-auto mb-2" /><p>No grades</p></div>
 
   const normalized = grades.map(g => ({ ...g, normalized: sanitizeGradeValue(g.grade) })).filter((g): g is Grade & { normalized: number } => g.normalized !== null)

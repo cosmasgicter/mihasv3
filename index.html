@@ -27,7 +27,7 @@
     <meta name="referrer" content="no-referrer-when-downgrade" />
     <meta name="robots" content="index, follow" />
     <meta name="description" content="Apply to Mukuba Institute of Health and Allied Sciences (MIHAS). Complete your student application online with real-time eligibility checking for nursing, midwifery, and allied health programs." />
-    
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#2563eb" />
@@ -36,195 +36,21 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="MIHAS" />
     <link rel="apple-touch-icon" href="/images/logos/mihas-logo.png" />
-    
+
     <!-- Performance: Preconnect to critical origins -->
     <!-- Supabase preconnect removed - fully migrated to Neon Postgres -->
-    
+
     <!-- 
       Note: Google Fonts preconnect hints removed as the app uses system fonts (Inter, system-ui).
       If Google Fonts are added in the future, re-add these preconnect hints:
       <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     -->
-    
-    <title>MIHAS Application System</title>
-    
-    <!-- Critical CSS for preloader - inlined for instant display -->
-    <style>
-      /* Base styles */
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html, body { height: 100%; }
-      body { 
-        font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-      
-      /* Preloader Container */
-      #preloader {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%);
-        opacity: 1;
-        transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
-      }
-      
-      #preloader.hidden {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-      }
-      
-      /* Logo Container */
-      .preloader-logo {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 32px;
-        animation: fadeInDown 0.6s ease-out;
-      }
-      
-      /* Graduation Cap Icon (SVG) */
-      .preloader-icon {
-        width: 48px;
-        height: 48px;
-        color: white;
-        animation: pulse 2s ease-in-out infinite;
-      }
-      
-      .preloader-brand {
-        font-size: 28px;
-        font-weight: 700;
-        color: white;
-        letter-spacing: -0.5px;
-      }
-      
-      /* Loading Spinner */
-      .preloader-spinner {
-        position: relative;
-        width: 56px;
-        height: 56px;
-        margin-bottom: 24px;
-      }
 
-      .preloader-svg {
-        width: 100%;
-        height: 100%;
-        animation: spin 1s linear infinite;
-      }
-      
-      .preloader-track {
-        stroke: rgba(255, 255, 255, 0.1);
-      }
-      
-      .preloader-circle {
-        stroke: white;
-        stroke-dasharray: 80;
-        stroke-dashoffset: 60;
-        stroke-linecap: round;
-      }
-      
-      /* Loading Text */
-      .preloader-text {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 14px;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-        animation: fadeInUp 0.6s ease-out 0.2s both;
-      }
-      
-      /* Progress Bar */
-      .preloader-progress {
-        width: 200px;
-        height: 4px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 2px;
-        margin-top: 16px;
-        overflow: hidden;
-        animation: fadeInUp 0.6s ease-out 0.3s both;
-      }
-      
-      .preloader-progress-bar {
-        height: 100%;
-        background: white;
-        border-radius: 2px;
-        animation: progress 2s ease-in-out infinite;
-      }
-      
-      /* Animations */
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-      
-      @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.05); opacity: 0.8; }
-      }
-      
-      @keyframes fadeInDown {
-        from { opacity: 0; transform: translateY(-20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      
-      @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      
-      @keyframes progress {
-        0% { width: 0%; margin-left: 0; }
-        50% { width: 70%; margin-left: 0; }
-        100% { width: 100%; margin-left: 0; }
-      }
-      
-      /* Reduced motion support */
-      @media (prefers-reduced-motion: reduce) {
-        .preloader-icon,
-        .preloader-spinner::before,
-        .preloader-spinner::after,
-        .preloader-progress-bar {
-          animation: none;
-        }
-        .preloader-spinner::before {
-          border-color: white;
-        }
-        .preloader-progress-bar {
-          width: 50%;
-        }
-      }
-      
-    </style>
+    <title>MIHAS Application System</title>
   </head>
   <body>
-    <div id="root">
-      <!-- Branded Preloader -->
-      <div id="preloader" role="status" aria-label="Loading application">
-        <div class="preloader-logo">
-          <!-- Graduation Cap SVG Icon -->
-          <svg class="preloader-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-          </svg>
-          <span class="preloader-brand">MIHAS-KATC</span>
-        </div>
-        <div class="preloader-spinner" aria-hidden="true">
-          <svg class="preloader-svg" viewBox="0 0 50 50">
-            <circle class="preloader-track" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>
-            <circle class="preloader-circle" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>
-          </svg>
-        </div>
-        <p class="preloader-text">Loading your application...</p>
-        <div class="preloader-progress" aria-hidden="true">
-          <div class="preloader-progress-bar"></div>
-        </div>
-      </div>
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

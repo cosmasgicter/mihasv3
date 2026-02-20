@@ -48,7 +48,7 @@ if (import.meta.env.PROD) {
 }
 
 const renderRoute = (route: RouteConfig) => {
-  const { element, guard, lazy } = route
+  const { element, guard } = route
   
   let routeElement: React.ReactElement
   
@@ -67,11 +67,7 @@ const renderRoute = (route: RouteConfig) => {
     routeElement = element
   } else {
     const Component = element as React.ComponentType
-    routeElement = lazy ? (
-      <Suspense fallback={<LoadingFallback />}>
-        <Component />
-      </Suspense>
-    ) : <Component />
+    routeElement = <Component />
   }
   
   switch (guard) {
@@ -88,14 +84,6 @@ const renderRoute = (route: RouteConfig) => {
 
 function App() {
   useEffect(() => {
-    const preloader = document.getElementById('preloader');
-    if (preloader) {
-      preloader.classList.add('hidden');
-      setTimeout(() => {
-        preloader.remove();
-      }, 500);
-    }
-
     // App boot succeeded — clear the chunk reload guard so future
     // deployments can trigger a fresh reload if needed
     sessionStorage.removeItem('mihas_chunk_reload')
@@ -119,27 +107,36 @@ function App() {
                 <AnalyticsTracker>
                   <SessionMonitor />
                   <SimpleErrorBoundary>
-                    <div className="min-h-screen bg-background safe-area-all">
-                      <AppLayout>
-                        <main 
-                          id="main-content" 
-                          tabIndex={-1} 
-                          className="focus:outline-none"
-                          role="main"
-                          aria-label="Main content"
-                        >
-                          <Routes>
-                            {routes.map((route) => (
-                              <Route
-                                key={route.path}
-                                path={route.path}
-                                element={renderRoute(route)}
-                              />
-                            ))}
-                          </Routes>
-                        </main>
-                      </AppLayout>
-                    </div>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback
+                          message="Preparing MIHAS"
+                          label="Preparing MIHAS application"
+                        />
+                      }
+                    >
+                      <div className="min-h-screen bg-background safe-area-all">
+                        <AppLayout>
+                          <main 
+                            id="main-content" 
+                            tabIndex={-1} 
+                            className="focus:outline-none"
+                            role="main"
+                            aria-label="Main content"
+                          >
+                            <Routes>
+                              {routes.map((route) => (
+                                <Route
+                                  key={route.path}
+                                  path={route.path}
+                                  element={renderRoute(route)}
+                                />
+                              ))}
+                            </Routes>
+                          </main>
+                        </AppLayout>
+                      </div>
+                    </Suspense>
                   </SimpleErrorBoundary>
                 </AnalyticsTracker>
               </Router>
