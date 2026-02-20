@@ -9,9 +9,46 @@ import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<unknown> }
 
-// Cache version for invalidation on deployment
-// Uses VITE_APP_VERSION from environment, falls back to package.json version
-const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.0.0'
+type ManifestEntry = {
+  revision?: string | null
+  url?: string
+}
+
+const hashVersion = (value: string): string => {
+  let hash = 0
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(index)
+    hash |= 0
+  }
+  return Math.abs(hash).toString(36)
+}
+
+const resolveManifestFingerprint = (): string | null => {
+  const revisions = self.__WB_MANIFEST
+    .map((entry) => {
+      if (typeof entry !== 'object' || entry === null) {
+        return null
+      }
+
+      const { revision, url } = entry as ManifestEntry
+      if (typeof revision === 'string' && revision.trim().length > 0) {
+        return revision
+      }
+
+      return typeof url === 'string' ? url : null
+    })
+    .filter((revision): revision is string => Boolean(revision))
+
+  if (revisions.length === 0) {
+    return null
+  }
+
+  return hashVersion(revisions.join('|'))
+}
+
+// Cache version for invalidation on deployment.
+// Uses VITE_APP_VERSION when provided, otherwise derives from the generated Workbox manifest.
+const APP_VERSION = import.meta.env.VITE_APP_VERSION?.trim() || resolveManifestFingerprint() || 'dev'
 const CACHE_VERSION = `v${APP_VERSION}`
 const CACHE_PREFIX = 'mihas-app'
 const LEGACY_CACHE_PREFIXES = ['mihas-v2-cache']
@@ -34,7 +71,6 @@ self.addEventListener('error', (event) => {
   }
 })
 
-self.skipWaiting()
 clientsClaim()
 
 precacheAndRoute(self.__WB_MANIFEST)
@@ -122,13 +158,19 @@ registerRoute(
   'GET'
 )
 
-// CSS and JavaScript - Cache first with 7-day expiration
+// CSS and JavaScript hashed bundles - stale-while-revalidate
 registerRoute(
-  ({ request }) => 
-    request.destination === 'style' || 
-    request.destination === 'script',
-  new CacheFirst({
-    cacheName: `${CACHE_PREFIX}-assets-${CACHE_VERSION}`,
+  ({ request, url }) => {
+    if (url.origin !== self.location.origin) {
+      return false
+    }
+
+    const isStaticBundle = /\/assets\/.+-[a-z0-9]{8,}\.(?:js|css)$/i.test(url.pathname)
+    const isStyleOrScript = request.destination === 'style' || request.destination === 'script'
+    return isStyleOrScript && isStaticBundle
+  },
+  new StaleWhileRevalidate({
+    cacheName: `${CACHE_PREFIX}-hashed-bundles-${CACHE_VERSION}`,
     plugins: [
       new ExpirationPlugin({
         maxEntries: 60,
@@ -271,6 +313,7 @@ registerRoute(
 registerRoute(
   ({ url }) => 
     /https:\/\/.*\.supabase\.co\/auth\//i.test(url.href) ||
+    url.pathname.startsWith('/api/auth') ||
     url.pathname.startsWith('/auth/'),
   new NetworkOnly()
 )
