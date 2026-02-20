@@ -1544,7 +1544,23 @@ function verifyLegacyPassword(password, storedHash) {
   }
   return { isValid: false, requiresMigration: true };
 }
-async function handleLogout(_req, res) {
+async function handleLogout(req, res) {
+  const token = extractAccessTokenFromCookie(req) || extractBearerToken(req);
+  if (token) {
+    try {
+      const payload = await verifyAccessToken(token);
+      await query(`UPDATE device_sessions SET is_active = false WHERE user_id = $1 AND is_active = true`, [payload.sub]);
+      try {
+        await logAuditEvent({
+          actor_id: payload.sub,
+          action: "user_logout",
+          entity_type: "session",
+          entity_id: payload.sub,
+          changes: { all_sessions_deactivated: true }
+        });
+      } catch {}
+    } catch {}
+  }
   clearAuthCookies(res);
   return sendSuccess(res, { message: "Logged out successfully" });
 }
