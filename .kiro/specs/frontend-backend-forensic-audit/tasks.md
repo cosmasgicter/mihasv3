@@ -315,7 +315,8 @@ This implementation plan creates a systematic forensic audit system for the MIHA
   
   - [x] 11.4 Implement idempotency checker
     - Create `scripts/audit/notification/idempotencyChecker.ts`
-    - Check for idempotency keys in email dispatches
+    - Check for idempotency keys
+     in email dispatches
     - Flag triggers without deduplication
     - _Requirements: 6.6, 6.7, 6.8_
   
