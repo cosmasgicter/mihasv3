@@ -14,6 +14,7 @@ declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<unknown> }
 const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.0.0'
 const CACHE_VERSION = `v${APP_VERSION}`
 const CACHE_PREFIX = 'mihas-app'
+const LEGACY_CACHE_PREFIXES = ['mihas-v2-cache']
 
 // Offline fallback asset used when image requests fail
 const IMAGE_FALLBACK_URL = '/images/placeholder.svg'
@@ -33,6 +34,7 @@ self.addEventListener('error', (event) => {
   }
 })
 
+self.skipWaiting()
 clientsClaim()
 
 precacheAndRoute(self.__WB_MANIFEST)
@@ -77,9 +79,33 @@ registerRoute(
   })
 )
 
+// Landing page accreditation/program images - deterministic cache strategy
+registerRoute(
+  ({ request, url }) =>
+    request.destination === 'image' &&
+    (url.pathname.startsWith('/images/programs/') || url.pathname.startsWith('/images/accreditation/')),
+  new StaleWhileRevalidate({
+    cacheName: `${CACHE_PREFIX}-landing-images-${CACHE_VERSION}`,
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 40,
+        maxAgeSeconds: 60 * 60 * 24 * 14, // 14 days
+        purgeOnQuotaError: true
+      }),
+      new CacheableResponsePlugin({
+        statuses: [0, 200]
+      })
+    ]
+  }),
+  'GET'
+)
+
 // Images - Cache first with 30-day expiration
 registerRoute(
-  ({ request }) => request.destination === 'image',
+  ({ request, url }) =>
+    request.destination === 'image' &&
+    !url.pathname.startsWith('/images/programs/') &&
+    !url.pathname.startsWith('/images/accreditation/'),
   new CacheFirst({
     cacheName: `${CACHE_PREFIX}-images-${CACHE_VERSION}`,
     plugins: [
@@ -299,9 +325,11 @@ self.addEventListener('activate', (event) => {
       console.log(`[Service Worker] Activating with cache version: ${CACHE_VERSION}`)
       
       const cacheNames = await caches.keys()
-      const oldCaches = cacheNames.filter(
-        name => name.startsWith(CACHE_PREFIX) && !name.includes(CACHE_VERSION)
-      )
+      const oldCaches = cacheNames.filter((name) => {
+        const isLegacyCache = LEGACY_CACHE_PREFIXES.some((prefix) => name.startsWith(prefix))
+        const isCurrentPrefixOutdated = name.startsWith(CACHE_PREFIX) && !name.includes(CACHE_VERSION)
+        return isLegacyCache || isCurrentPrefixOutdated
+      })
       
       if (oldCaches.length > 0) {
         console.log(`[Service Worker] Deleting ${oldCaches.length} old cache(s):`, oldCaches)
@@ -351,7 +379,10 @@ self.addEventListener('message', (event) => {
         const cacheNames = await caches.keys()
         await Promise.all(
           cacheNames
-            .filter(name => name.startsWith(CACHE_PREFIX))
+            .filter((name) =>
+              name.startsWith(CACHE_PREFIX) ||
+              LEGACY_CACHE_PREFIXES.some((prefix) => name.startsWith(prefix))
+            )
             .map(name => caches.delete(name))
         )
         console.log('[Service Worker] All caches cleared')

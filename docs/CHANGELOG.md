@@ -5,6 +5,12 @@ All notable changes to the MIHAS Application System will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **PWA Cache Reset Migration**: Consolidated service worker source of truth to `src/service-worker.ts` (vite-plugin-pwa injectManifest), migrated app registration to plugin helper flow, and added immediate activation (`skipWaiting` + `clientsClaim`) to clear legacy `mihas-v2-cache` and retire old `/sw.js` registrations automatically for existing users.
+- **Landing Page Image Caching**: Added deterministic runtime strategy for `/images/programs/*.webp` and `/images/accreditation/*.webp` with stale-while-revalidate to avoid stale fallback behavior while preserving offline resilience.
+
 ## [3.0.0] - 2025-01-25
 
 ### 🎉 Major Release - Enterprise Eligibility System

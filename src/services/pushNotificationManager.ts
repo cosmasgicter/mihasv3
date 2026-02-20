@@ -84,9 +84,14 @@ class PushNotificationManager {
         return false
       }
 
-      // Register service worker
-      this.registration = await navigator.serviceWorker.register('/sw.js')
-      
+      // Use existing vite-plugin-pwa service worker registration
+      this.registration = await navigator.serviceWorker.getRegistration()
+
+      if (!this.registration) {
+        console.warn('Push notifications unavailable: no service worker registration found')
+        return false
+      }
+
       // Wait for service worker to be ready
       await navigator.serviceWorker.ready
 
