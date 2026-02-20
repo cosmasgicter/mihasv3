@@ -191,9 +191,8 @@ async function handleForgotPassword(req: VercelRequest, res: VercelResponse) {
     email: string;
     first_name: string | null;
     last_name: string | null;
-    full_name: string | null;
   }>(
-    `SELECT id, email, first_name, last_name, full_name
+    `SELECT id, email, first_name, last_name
      FROM profiles WHERE email = $1 AND is_active = true LIMIT 1`,
     [normalizedEmail]
   );
@@ -325,10 +324,9 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
     role: UserRole;
     first_name: string;
     last_name: string;
-    full_name: string | null;
     is_active: boolean;
   }>(
-    `SELECT id, email, password_hash, role, first_name, last_name, full_name, is_active 
+    `SELECT id, email, password_hash, role, first_name, last_name, is_active 
      FROM profiles WHERE email = $1 LIMIT 1`,
     [email.toLowerCase()]
   );
@@ -568,9 +566,8 @@ async function handleSession(req: VercelRequest, res: VercelResponse) {
       role: UserRole;
       first_name: string;
       last_name: string;
-      full_name: string | null;
     }>(
-      'SELECT id, email, role, first_name, last_name, full_name FROM profiles WHERE id = $1',
+      'SELECT id, email, role, first_name, last_name FROM profiles WHERE id = $1',
       [payload.sub]
     );
 
@@ -619,10 +616,9 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
       role: UserRole;
       first_name: string;
       last_name: string;
-      full_name: string | null;
       is_active: boolean;
     }>(
-      'SELECT id, email, role, first_name, last_name, full_name, is_active FROM profiles WHERE id = $1',
+      'SELECT id, email, role, first_name, last_name, is_active FROM profiles WHERE id = $1',
       [userId]
     );
 
