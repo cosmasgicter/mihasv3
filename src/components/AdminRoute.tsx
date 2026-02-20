@@ -1,9 +1,7 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary'
-import { useDebouncedLoading } from '@/hooks/useLoadingState'
 
 interface AdminRouteProps {
   children: React.ReactNode
@@ -17,22 +15,10 @@ interface AdminRouteProps {
  */
 export function AdminRoute({ children }: AdminRouteProps) {
   const { user, isAdmin, isLoading } = useOptimizedAuthState()
-  const showInlineLoader = useDebouncedLoading(isLoading, 200)
   const location = useLocation()
   
   if (isLoading) {
-    if (!showInlineLoader) {
-      return null
-    }
-
-    return (
-      <UnifiedLoader
-        variant="inline"
-        size="md"
-        message="Verifying administrator access"
-        className="w-full py-6"
-      />
-    )
+    return null
   }
 
   if (!user) {

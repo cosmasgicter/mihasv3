@@ -1,9 +1,7 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { StudentErrorBoundary } from '@/components/student/StudentErrorBoundary'
-import { useDebouncedLoading } from '@/hooks/useLoadingState'
 
 interface StudentRouteProps {
   children: React.ReactNode
@@ -17,22 +15,10 @@ interface StudentRouteProps {
  */
 export function StudentRoute({ children }: StudentRouteProps) {
   const { user, isAdmin, isLoading } = useOptimizedAuthState()
-  const showInlineLoader = useDebouncedLoading(isLoading, 200)
   const location = useLocation()
 
   if (isLoading) {
-    if (!showInlineLoader) {
-      return null
-    }
-
-    return (
-      <UnifiedLoader
-        variant="inline"
-        size="md"
-        message="Verifying your session"
-        className="w-full py-6"
-      />
-    )
+    return null
   }
 
   if (!user) {
