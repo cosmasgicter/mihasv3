@@ -86,11 +86,9 @@ export class AdminErrorBoundary extends React.Component<
       errorInfo,
     })
 
-    // In production, send to monitoring service
+    // In production, errors are logged to console only (no external monitoring service configured)
     if (!import.meta.env.DEV) {
-      // TODO: Send to monitoring service (e.g., Sentry, LogRocket)
-      // Example:
-      // Sentry.captureException(error, { contexts: { react: errorInfo } })
+      // Error already logged above
     }
   }
 

@@ -82,9 +82,9 @@ export class ErrorBoundary extends React.Component<
     
     console.error('Error caught by boundary:', errorReport);
     
-    // In production, send to error reporting service
+    // In production, errors are logged to console only (no external monitoring service configured)
     if (!import.meta.env.DEV) {
-      // TODO: Send errorReport to monitoring service (e.g., Sentry, LogRocket)
+      // Error already logged above via console.error
     }
   }
 

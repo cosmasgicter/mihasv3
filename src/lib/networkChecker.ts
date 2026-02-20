@@ -56,26 +56,6 @@ export class NetworkChecker {
     }
   }
 
-  public async checkSupabaseConnectivity(): Promise<boolean> {
-    try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-      if (!supabaseUrl || !supabaseKey) return false
-
-      const response = await fetch(`${supabaseUrl}/rest/v1/`, {
-        method: 'HEAD',
-        cache: 'no-cache',
-        signal: AbortSignal.timeout(10000),
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
-        }
-      })
-      return response.ok
-    } catch {
-      return false
-    }
-  }
 }
 
 export const networkChecker = NetworkChecker.getInstance()
