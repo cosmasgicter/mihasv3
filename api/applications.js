@@ -1294,6 +1294,17 @@ async function handleCreate(req, res, userId) {
       return sendError(res, `Missing required field: ${field}`, HttpStatus.BAD_REQUEST);
     }
   }
+  const INSTITUTION_PROGRAMS = {
+    MIHAS: ["Diploma in Registered Nursing", "Certificate In Psychosocial Counselling"],
+    KATC: ["Diploma in Clinical Medicine", "Diploma in Environmental Health"]
+  };
+  const allowedPrograms = INSTITUTION_PROGRAMS[body.institution];
+  if (!allowedPrograms) {
+    return sendError(res, `Invalid institution: ${body.institution}. Must be MIHAS or KATC`, HttpStatus.BAD_REQUEST);
+  }
+  if (!allowedPrograms.includes(body.program)) {
+    return sendError(res, `Program "${body.program}" is not offered at ${body.institution}. Valid programs: ${allowedPrograms.join(", ")}`, HttpStatus.BAD_REQUEST);
+  }
   const fields = [
     "user_id",
     "application_number",

@@ -170,6 +170,24 @@ async function handleCreate(
     }
   }
 
+  // Validate institution-program mapping
+  const INSTITUTION_PROGRAMS: Record<string, string[]> = {
+    'MIHAS': ['Diploma in Registered Nursing', 'Certificate In Psychosocial Counselling'],
+    'KATC': ['Diploma in Clinical Medicine', 'Diploma in Environmental Health'],
+  };
+
+  const allowedPrograms = INSTITUTION_PROGRAMS[body.institution];
+  if (!allowedPrograms) {
+    return sendError(res, `Invalid institution: ${body.institution}. Must be MIHAS or KATC`, HttpStatus.BAD_REQUEST);
+  }
+  if (!allowedPrograms.includes(body.program)) {
+    return sendError(
+      res,
+      `Program "${body.program}" is not offered at ${body.institution}. Valid programs: ${allowedPrograms.join(', ')}`,
+      HttpStatus.BAD_REQUEST
+    );
+  }
+
   // Build insert query
   const fields = [
     'user_id', 'application_number', 'public_tracking_code', 'full_name',
