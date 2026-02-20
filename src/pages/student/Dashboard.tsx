@@ -17,7 +17,6 @@ import { clearAllDraftData } from '@/lib/draftCleanup'
 import { useDraftManager } from '@/hooks/useDraftManager'
 import { applicationService } from '@/services/applications'
 import { catalogService } from '@/services/catalog'
-import { DashboardSkeleton } from '@/components/student/DashboardSkeleton'
 import { DashboardStatusOverview } from '@/components/student/DashboardStatusOverview'
 import { ApplicationTimeline } from '@/components/student/ApplicationTimeline'
 import { QuickActions } from '@/components/student/QuickActions'
@@ -29,6 +28,7 @@ import { useToastStore } from '@/components/ui/Toast'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { Container } from '@/components/ui/Container'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling } from '@/hooks/useStudentDashboardPolling'
 import { staggerChild, animateClasses } from '@/lib/animations'
@@ -374,7 +374,14 @@ export default function StudentDashboard() {
     <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 w-full max-w-full overflow-x-hidden">
       <Container size="lg">
         {isInitialLoading ? (
-          <DashboardSkeleton />
+          <UnifiedLoader
+            variant="skeleton"
+            size="md"
+            label="Loading student dashboard"
+            className="py-8"
+            skeletonCard
+            skeletonLines={4}
+          />
         ) : (
           <div className="space-y-6 sm:space-y-8">
             {isRefreshing && (

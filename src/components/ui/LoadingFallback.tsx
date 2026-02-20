@@ -12,14 +12,32 @@ interface LoadingFallbackProps {
   message?: string
   label?: string
   timeout?: number
+  delay?: number
 }
 
 export function LoadingFallback({
   message = 'Preparing MIHAS',
   label = 'Preparing MIHAS application',
   timeout = 15000,
+  delay = 180,
 }: LoadingFallbackProps) {
   const [timeoutReached, setTimeoutReached] = useState(false)
+  const [canShowLoader, setCanShowLoader] = useState(delay <= 0)
+
+  useEffect(() => {
+    if (delay <= 0) {
+      setCanShowLoader(true)
+      return
+    }
+
+    const delayTimer = setTimeout(() => {
+      setCanShowLoader(true)
+    }, delay)
+
+    return () => {
+      clearTimeout(delayTimer)
+    }
+  }, [delay])
 
   useEffect(() => {
     if (!timeout) return
@@ -54,6 +72,10 @@ export function LoadingFallback({
         </div>
       </div>
     )
+  }
+
+  if (!canShowLoader) {
+    return null
   }
 
   return (
