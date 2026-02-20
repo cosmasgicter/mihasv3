@@ -158,10 +158,8 @@ export default function NotificationSettings() {
 
     try {
       const action = enable ? 'opt_in' : 'opt_out'
-      const updatedPreferences = await notificationService.updateConsent({
-        channel,
-        action,
-        source: 'student_settings_page'
+      const updatedPreferences = await notificationService.updatePreferences({
+        [`${channel}_enabled`]: enable
       })
 
       setPreferences(prev => ({

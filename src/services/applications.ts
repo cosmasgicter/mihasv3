@@ -57,8 +57,9 @@ export const applicationService = {
 
   getById: (id: string, options?: ApplicationIncludeOptions) => {
     const includeQuery = buildQueryString({ include: options?.include ?? [] })
+    const separator = includeQuery ? '&' : ''
     return apiClient.request<ApplicationDetailResponse>(
-      `/applications/${encodeURIComponent(id)}${includeQuery}`
+      `/applications?id=${encodeURIComponent(id)}${separator}${includeQuery.replace('?', '')}`
     )
   },
 
@@ -70,24 +71,24 @@ export const applicationService = {
 
   update: async (id: string, data: ApplicationPayload) => {
     const cleanId = id.replace(/^applications-/, '')
-    return apiClient.request<Application>(`/applications/${cleanId}`, {
+    return apiClient.request<Application>(`/applications?id=${cleanId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     })
   },
 
   delete: async (id: string) => {
-    await apiClient.request<void>(`/applications/${id}`, {
+    await apiClient.request<void>(`/applications?id=${id}`, {
       method: 'DELETE'
     })
     return { success: true }
   },
 
   updateStatus: (id: string, status: Application['status'], notes?: string) =>
-    apiClient.request<Application>(`/applications/${id}`, {
+    apiClient.request<Application>(`/applications?id=${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ action: 'update_status', status, notes }),
-      invalidateCache: [`/applications/${id}`, '/applications']
+      invalidateCache: [`/applications?id=${id}`, '/applications']
     }),
 
   updatePaymentStatus: (
@@ -95,21 +96,21 @@ export const applicationService = {
     paymentStatus: Application['payment_status'],
     verificationNotes?: string
   ) =>
-    apiClient.request<Application>(`/applications/${id}`, {
+    apiClient.request<Application>(`/applications?id=${id}`, {
       method: 'PATCH',
       body: JSON.stringify({
         action: 'update_payment_status',
         paymentStatus,
         verificationNotes: verificationNotes || undefined
       }),
-      invalidateCache: [`/applications/${id}`, '/applications']
+      invalidateCache: [`/applications?id=${id}`, '/applications']
     }),
 
   verifyDocument: (
     id: string,
     payload: { documentId?: string; documentType?: string; status: string; notes?: string }
   ) =>
-    apiClient.request<Application>(`/applications/${id}`, {
+    apiClient.request<Application>(`/applications?id=${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ action: 'verify_document', ...payload })
     }),
@@ -120,26 +121,26 @@ export const applicationService = {
   },
 
   sendNotification: (id: string, notification: { title: string; message: string }) =>
-    apiClient.request<Application>(`/applications/${id}`, {
+    apiClient.request<Application>(`/applications?id=${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ action: 'send_notification', ...notification })
     }),
 
   generateAcceptanceLetter: (id: string) =>
-    apiClient.request<Application>(`/applications/${id}`, {
+    apiClient.request<Application>(`/applications?id=${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ action: 'generate_acceptance_letter' })
     }),
 
   generateFinanceReceipt: (id: string) =>
-    apiClient.request<Application>(`/applications/${id}`, {
+    apiClient.request<Application>(`/applications?id=${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ action: 'generate_finance_receipt' })
     }),
 
   scheduleInterview: async (id: string, payload: ScheduleInterviewPayload) => {
     const response = await apiClient.request<{ interview: ApplicationInterview }>(
-      `/applications/${id}`,
+      `/applications?id=${id}`,
       {
         method: 'PATCH',
         body: JSON.stringify({
@@ -157,7 +158,7 @@ export const applicationService = {
 
   rescheduleInterview: async (id: string, payload: RescheduleInterviewPayload) => {
     const response = await apiClient.request<{ interview: ApplicationInterview }>(
-      `/applications/${id}`,
+      `/applications?id=${id}`,
       {
         method: 'PATCH',
         body: JSON.stringify({
@@ -175,7 +176,7 @@ export const applicationService = {
 
   cancelInterview: async (id: string, payload: CancelInterviewPayload = {}) => {
     const response = await apiClient.request<{ interview: ApplicationInterview }>(
-      `/applications/${id}`,
+      `/applications?id=${id}`,
       {
         method: 'PATCH',
         body: JSON.stringify({
