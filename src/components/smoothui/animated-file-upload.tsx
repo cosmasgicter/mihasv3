@@ -76,7 +76,7 @@ export const AnimatedFileUpload = forwardRef<HTMLInputElement, AnimatedFileUploa
         {label && (
           <label 
             htmlFor={inputId}
-            className="block text-sm font-medium text-gray-900 mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             {label}
             {required && <span className="text-error ml-1">*</span>}

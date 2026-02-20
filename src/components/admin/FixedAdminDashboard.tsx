@@ -164,7 +164,7 @@ export function FixedAdminDashboard() {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-3 text-gray-900">Loading dashboard...</span>
+        <span className="ml-3 text-foreground">Loading dashboard...</span>
       </div>
     )
   }
@@ -208,10 +208,10 @@ export function FixedAdminDashboard() {
                 >
                   {integerFormatter.format(stats.todayApplications)}
                 </div>
-                <div className="text-xs text-gray-900">Today</div>
+                <div className="text-xs text-foreground">Today</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-900">New Applications</div>
+            <div className="text-sm font-medium text-foreground">New Applications</div>
             <div className="flex items-center mt-2 text-xs">
               <ArrowUp className="h-3 w-3 text-success mr-1" />
               <span className="text-warning-strong">{formatCount(weekTotal)} this week</span>
@@ -235,10 +235,10 @@ export function FixedAdminDashboard() {
                 >
                   {integerFormatter.format(stats.pendingApplications)}
                 </div>
-                <div className="text-xs text-gray-900">Pending</div>
+                <div className="text-xs text-foreground">Pending</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-900">Awaiting Review</div>
+            <div className="text-sm font-medium text-foreground">Awaiting Review</div>
             <div className="text-xs text-accent mt-2">
               In review: {formatCount(inReviewCount)}
             </div>
@@ -261,10 +261,10 @@ export function FixedAdminDashboard() {
                 >
                   {approvalRate}%
                 </div>
-                <div className="text-xs text-gray-900">Rate</div>
+                <div className="text-xs text-foreground">Rate</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-900">Approval Rate</div>
+            <div className="text-sm font-medium text-foreground">Approval Rate</div>
             <div className="flex items-center mt-2 text-xs">
               <TrendingUp className="h-3 w-3 text-success mr-1" />
               <span className="text-warning-strong">Approved: {formatCount(stats.approvedApplications)}</span>
@@ -288,10 +288,10 @@ export function FixedAdminDashboard() {
                 >
                   {decimalFormatter.format(averageProcessingDays)}
                 </div>
-                <div className="text-xs text-gray-900">Days</div>
+                <div className="text-xs text-foreground">Days</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-900">Avg Processing</div>
+            <div className="text-sm font-medium text-foreground">Avg Processing</div>
             <div className="flex items-center mt-2 text-xs">
               <ArrowDown className="h-3 w-3 text-success mr-1" />
               <span className="text-warning-strong">Median: {formatHours(medianProcessingHours)}h</span>
@@ -305,8 +305,8 @@ export function FixedAdminDashboard() {
           className="bg-card rounded-xl shadow-lg border border-border xl:col-span-2 animate-fade-in"
         >
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900"><BarChart3 className="w-5 h-5" /> Status Distribution</h3>
-            <span className="text-sm text-gray-900">Total: {formatCount(totalApplications)}</span>
+            <h3 className="text-lg font-bold text-foreground"><BarChart3 className="w-5 h-5" /> Status Distribution</h3>
+            <span className="text-sm text-foreground">Total: {formatCount(totalApplications)}</span>
           </div>
           <div className="p-6 space-y-4">
             {statusEntries.length > 0 ? (
@@ -319,7 +319,7 @@ export function FixedAdminDashboard() {
 
                 return (
                   <div key={status} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm font-medium text-gray-900">
+                    <div className="flex items-center justify-between text-sm font-medium text-foreground">
                       <span>{formatStatusLabel(status)}</span>
                       <span>{formatCount(numericValue)} ({percentage}%)</span>
                     </div>
@@ -334,7 +334,7 @@ export function FixedAdminDashboard() {
                 )
               })
             ) : (
-              <div className="text-sm text-gray-900 text-center py-6">
+              <div className="text-sm text-foreground text-center py-6">
                 No application statuses available
               </div>
             )}
@@ -345,7 +345,7 @@ export function FixedAdminDashboard() {
           className="bg-card rounded-xl shadow-lg border border-border xl:col-span-2 animate-fade-in"
         >
           <div className="px-6 py-4 border-b border-border">
-            <h3 className="text-lg font-bold text-gray-900"><Zap className="w-5 h-5" /> Processing Performance</h3>
+            <h3 className="text-lg font-bold text-foreground"><Zap className="w-5 h-5" /> Processing Performance</h3>
           </div>
           <div className="p-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -355,8 +355,8 @@ export function FixedAdminDashboard() {
                 { label: 'This Month', value: monthTotal }
               ].map(period => (
                 <div key={period.label} className="p-3 bg-slate-50 rounded-xl">
-                  <div className="text-xs text-gray-900">{period.label}</div>
-                  <div className="mt-1 text-lg font-semibold text-gray-900">
+                  <div className="text-xs text-foreground">{period.label}</div>
+                  <div className="mt-1 text-lg font-semibold text-foreground">
                     {formatCount(period.value)}
                   </div>
                 </div>
@@ -365,41 +365,41 @@ export function FixedAdminDashboard() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-gray-900">
+                <div className="flex items-center space-x-2 text-sm text-foreground">
                   <Clock className="h-4 w-4 text-accent" />
                   <span>Average processing time</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm font-semibold text-foreground">
                   {decimalFormatter.format(averageProcessingDays)} days · {formatHours(averageProcessingHours)}h
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-gray-900">
+                <div className="flex items-center space-x-2 text-sm text-foreground">
                   <TrendingUp className="h-4 w-4 text-accent" />
                   <span>Median decision time</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm font-semibold text-foreground">
                   {formatHours(medianProcessingHours)}h
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-gray-900">
+                <div className="flex items-center space-x-2 text-sm text-foreground">
                   <Zap className="h-4 w-4 text-secondary" />
                   <span>P95 response time</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm font-semibold text-foreground">
                   {formatHours(p95ProcessingHours)}h
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-gray-900">
+                <div className="flex items-center space-x-2 text-sm text-foreground">
                   <Activity className="h-4 w-4 text-primary" />
                   <span>Decisions in last 24h</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm font-semibold text-foreground">
                   {formatCount(processingMetrics.decisionVelocity24h)}
                 </span>
               </div>
@@ -413,7 +413,7 @@ export function FixedAdminDashboard() {
           className="bg-card rounded-xl shadow-lg border border-border animate-fade-in"
         >
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
+            <h3 className="text-lg font-bold text-foreground"><TrendingUp className="w-5 h-5" /> Recent Activity</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -445,14 +445,14 @@ export function FixedAdminDashboard() {
                   >
                     <div className={`w-2 h-2 rounded-full mt-2 ${accentColor}`}></div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{activity.message}</p>
-                      <p className="text-xs text-gray-900">{formatTimestamp(activity.timestamp)}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{activity.message}</p>
+                      <p className="text-xs text-foreground">{formatTimestamp(activity.timestamp)}</p>
                     </div>
                   </div>
                 )
               })
             ) : (
-              <div className="text-center py-8 text-gray-900">
+              <div className="text-center py-8 text-foreground">
                 <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No recent activity</p>
               </div>
@@ -464,12 +464,12 @@ export function FixedAdminDashboard() {
           className="bg-card rounded-xl shadow-lg border border-border animate-fade-in"
         >
           <div className="px-6 py-4 border-b border-border">
-            <h3 className="text-lg font-bold text-gray-900">🛡️ System Health</h3>
+            <h3 className="text-lg font-bold text-foreground">🛡️ System Health</h3>
           </div>
 
           <div className="p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-sm text-gray-900">
+              <div className="flex items-center space-x-2 text-sm text-foreground">
                 <Shield className="h-5 w-5 text-primary" />
                 <span>Overall status</span>
               </div>
@@ -480,7 +480,7 @@ export function FixedAdminDashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center space-x-2 text-xs text-gray-900">
+                <div className="flex items-center space-x-2 text-xs text-foreground">
                   <Users className="h-4 w-4 text-secondary" />
                   <span>Active admins (24h)</span>
                 </div>
@@ -492,16 +492,16 @@ export function FixedAdminDashboard() {
                 </p>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center space-x-2 text-xs text-gray-900">
+                <div className="flex items-center space-x-2 text-xs text-foreground">
                   <TrendingUp className="h-4 w-4 text-sky-600" />
                   <span>Active admins (7d)</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold text-gray-900">
+                <p className="mt-2 text-lg font-semibold text-foreground">
                   {formatCount(processingMetrics.activeAdminsLast7d)}
                 </p>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center space-x-2 text-xs text-gray-900">
+                <div className="flex items-center space-x-2 text-xs text-foreground">
                   <Database className="h-4 w-4 text-emerald-600" />
                   <span>Total applications</span>
                 </div>
@@ -510,11 +510,11 @@ export function FixedAdminDashboard() {
                 </p>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center space-x-2 text-xs text-gray-900">
+                <div className="flex items-center space-x-2 text-xs text-foreground">
                   <Calendar className="h-4 w-4 text-accent" />
                   <span>Active intakes</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold text-gray-900">
+                <p className="mt-2 text-lg font-semibold text-foreground">
                   {formatCount(stats.activeIntakes)}
                 </p>
               </div>

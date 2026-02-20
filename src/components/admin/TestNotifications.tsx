@@ -89,7 +89,7 @@ export function TestNotifications() {
 
   return (
     <div className="bg-card rounded-lg shadow-md p-6">
-      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+      <h3 className="text-lg font-bold text-foreground mb-4 flex items-center">
         <Bell className="h-5 w-5 mr-2" />
         Test Notification System
       </h3>
@@ -126,7 +126,7 @@ export function TestNotifications() {
           </div>
         )}
         
-        <div className="text-xs text-gray-900">
+        <div className="text-xs text-foreground">
           <p>• In-app notifications appear instantly in the notification bell</p>
           <p>• Email notifications are queued and need to be processed by an email service</p>
           <p>• Test with existing student users and applications</p>

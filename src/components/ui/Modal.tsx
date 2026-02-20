@@ -53,12 +53,12 @@ export function Modal({
         {(title || description) && (
           <DialogHeader>
             {title && (
-              <DialogTitle className="text-lg md:text-xl font-semibold text-gray-900">
+              <DialogTitle className="text-lg md:text-xl font-semibold text-foreground">
                 {title}
               </DialogTitle>
             )}
             {description && (
-              <DialogDescription className="mt-1 text-sm text-gray-900">
+              <DialogDescription className="mt-1 text-sm text-foreground">
                 {description}
               </DialogDescription>
             )}

@@ -95,7 +95,7 @@ export function ApplicationsCards({
                       />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-foreground truncate">{application.full_name}</h3>
-                        <p className="text-xs sm:text-sm text-gray-600 font-mono">#{application.application_number}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground font-mono">#{application.application_number}</p>
                       </div>
                     </div>
                     <div className="flex flex-col items-end space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">

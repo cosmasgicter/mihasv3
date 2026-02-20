@@ -90,10 +90,10 @@ export function NotificationTester() {
       </div>
       
       {message && (
-        <p className="text-sm text-gray-700">{message}</p>
+        <p className="text-sm text-muted-foreground">{message}</p>
       )}
       
-      <p className="text-xs text-gray-600">
+      <p className="text-xs text-muted-foreground">
         User ID: {user.id}
       </p>
     </div>

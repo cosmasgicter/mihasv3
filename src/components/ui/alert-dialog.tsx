@@ -79,7 +79,7 @@ const AlertDialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Title
     ref={ref}
-    className={cn('text-lg font-semibold text-gray-900', className)}
+    className={cn('text-lg font-semibold text-foreground', className)}
     {...props}
   />
 ))
@@ -91,7 +91,7 @@ const AlertDialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Description
     ref={ref}
-    className={cn('text-sm text-gray-900', className)}
+    className={cn('text-sm text-foreground', className)}
     {...props}
   />
 ))
@@ -218,7 +218,7 @@ function ConfirmAlertDialog({
             {showCancel && (
               <AlertDialogCancel asChild>
                 <button
-                  className="text-gray-900 hover:text-gray-700 transition-colors p-1 rounded-md hover:bg-gray-100"
+                  className="text-foreground hover:text-muted-foreground transition-colors p-1 rounded-md hover:bg-gray-100"
                   aria-label="Close"
                 >
                   <X className="h-5 w-5" />

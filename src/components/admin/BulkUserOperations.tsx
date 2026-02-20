@@ -75,7 +75,7 @@ export function BulkUserOperations({
         <div className="flex items-center space-x-3">
           <button
             onClick={handleSelectAll}
-            className="flex items-center space-x-2 text-sm font-medium text-gray-900 hover:text-foreground"
+            className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-foreground"
           >
             {selectedUsers.length === users.length ? (
               <CheckSquare className="h-4 w-4 text-primary" />
@@ -87,7 +87,7 @@ export function BulkUserOperations({
             </span>
           </button>
           {selectedUsers.length > 0 && (
-            <span className="text-sm text-gray-900">
+            <span className="text-sm text-foreground">
               {selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected
             </span>
           )}
@@ -122,7 +122,7 @@ export function BulkUserOperations({
       {/* User Selection List */}
       {selectedUsers.length > 0 && (
         <div className="bg-card rounded-lg border border-border p-4">
-          <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+          <h4 className="font-medium text-foreground mb-3 flex items-center">
             <Users className="h-4 w-4 mr-2" />
             Selected Users ({selectedUsers.length})
           </h4>
@@ -137,11 +137,11 @@ export function BulkUserOperations({
                     <CheckSquare className="h-4 w-4" />
                   </button>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate" title={user.full_name || 'No name'}>{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
-                    <p className="text-xs text-gray-900 truncate" title={user.email}>{user.email?.replace(/[<>"'&]/g, '')}</p>
+                    <p className="text-sm font-medium text-foreground truncate" title={user.full_name || 'No name'}>{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
+                    <p className="text-xs text-foreground truncate" title={user.email}>{user.email?.replace(/[<>"'&]/g, '')}</p>
                   </div>
                 </div>
-                <span className="text-xs px-2 py-1 bg-skeleton text-gray-900 rounded">
+                <span className="text-xs px-2 py-1 bg-skeleton text-foreground rounded">
                   {user.role.replace('_', ' ').toUpperCase()}
                 </span>
               </div>
@@ -160,11 +160,11 @@ export function BulkUserOperations({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-gray-900">
+            <p className="text-foreground">
               Update the role for {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}:
             </p>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 New Role
               </label>
               <select
@@ -214,7 +214,7 @@ export function BulkUserOperations({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-gray-900">
+            <p className="text-foreground">
               Are you sure you want to delete {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}?
             </p>
             <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-3">

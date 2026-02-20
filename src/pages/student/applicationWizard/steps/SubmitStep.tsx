@@ -56,19 +56,19 @@ const SubmitStep = ({
       className={`bg-card rounded-lg shadow-lg p-6 border border-border ${animateClasses.fadeIn}`}
       data-testid="submit-step"
     >
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-4">
-        <p className="text-gray-900">
+        <p className="text-foreground">
           Please review all your information before submitting. Once submitted, you cannot make changes.
         </p>
 
         <div className="bg-muted rounded-lg p-4">
-          <h3 className="font-medium text-gray-900 mb-2">Application Summary</h3>
+          <h3 className="font-medium text-foreground mb-2">Application Summary</h3>
           
           {/* Validation Status */}
           <div className="mb-4 p-3 bg-card rounded border">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">Completion Status</h4>
+            <h4 className="text-sm font-medium text-foreground mb-2">Completion Status</h4>
             <div className="space-y-1 text-xs">
               <div className={`flex items-center ${formValues.full_name ? 'text-success' : 'text-error'}`}>
                 {formValues.full_name ? '✓' : '✗'} Personal Information
@@ -84,7 +84,7 @@ const SubmitStep = ({
               </div>
             </div>
           </div>
-          <div className="text-sm text-gray-900 space-y-1">
+          <div className="text-sm text-foreground space-y-1">
             <p>
               <strong>Name:</strong> {formValues.full_name}
             </p>
@@ -116,7 +116,7 @@ const SubmitStep = ({
                   )
                 })}
                 {selectedGrades.length === 0 && (
-                  <p className="text-sm text-gray-900">No subjects selected</p>
+                  <p className="text-sm text-foreground">No subjects selected</p>
                 )}
               </div>
             </div>
@@ -154,7 +154,7 @@ const SubmitStep = ({
             onChange={event => onConfirmChange(event.target.checked)}
             required
           />
-          <label htmlFor="confirm" className="text-sm text-gray-900">
+          <label htmlFor="confirm" className="text-sm text-foreground">
             I confirm that all information provided is accurate and complete.
           </label>
         </div>

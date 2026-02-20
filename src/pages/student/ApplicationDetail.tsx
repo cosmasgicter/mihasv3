@@ -115,8 +115,8 @@ export default function ApplicationDetail() {
           <div className="content-wrapper py-4 sm:py-8">
           <div className="text-center py-8 sm:py-16">
             <XCircle className="h-16 w-16 text-error mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Not Found</h2>
-            <p className="text-gray-900 mb-6">{error || 'The application you are looking for does not exist.'}</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Application Not Found</h2>
+            <p className="text-foreground mb-6">{error || 'The application you are looking for does not exist.'}</p>
             <Link to="/student/dashboard">
               <Button>Return to Dashboard</Button>
             </Link>
@@ -143,8 +143,8 @@ export default function ApplicationDetail() {
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 break-words">Application Details</h1>
-              <p className="text-gray-900 break-all">#{application.application_number}</p>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground break-words">Application Details</h1>
+              <p className="text-foreground break-all">#{application.application_number}</p>
             </div>
             
             <div className="flex items-center space-x-3">
@@ -173,8 +173,8 @@ export default function ApplicationDetail() {
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Documents</h3>
-              <p className="text-gray-900 text-sm">Download your application documents</p>
+              <h3 className="text-lg font-semibold text-foreground mb-1">Documents</h3>
+              <p className="text-foreground text-sm">Download your application documents</p>
             </div>
             <DocumentButtons 
               applicationId={application.id}
@@ -190,32 +190,32 @@ export default function ApplicationDetail() {
             className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
             style={staggerChild(3, 100)}
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
               <User className="h-5 w-5 mr-2 text-primary" />
               Personal Information
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-900">Full Name</label>
-                <p className="text-gray-900 font-medium break-words">{application.full_name}</p>
+                <label className="text-sm font-medium text-foreground">Full Name</label>
+                <p className="text-foreground font-medium break-words">{application.full_name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-900">Email</label>
-                <p className="text-gray-900 font-medium flex items-center">
-                  <Mail className="h-4 w-4 mr-2 text-gray-900 flex-shrink-0" />
+                <label className="text-sm font-medium text-foreground">Email</label>
+                <p className="text-foreground font-medium flex items-center">
+                  <Mail className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
                   <span className="break-all">{application.email}</span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-900">Phone</label>
-                <p className="text-gray-900 font-medium flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-gray-900 flex-shrink-0" />
+                <label className="text-sm font-medium text-foreground">Phone</label>
+                <p className="text-foreground font-medium flex items-center">
+                  <Phone className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
                   <span className="break-all">{application.phone}</span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-900">Nationality</label>
-                <p className="text-gray-900 font-medium flex items-center">
+                <label className="text-sm font-medium text-foreground">Nationality</label>
+                <p className="text-foreground font-medium flex items-center">
                   <MapPin className="h-4 w-4 mr-2 text-foreground" />
                   {application.nationality || 'Zambian'}
                 </p>
@@ -228,30 +228,30 @@ export default function ApplicationDetail() {
             className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
             style={staggerChild(4, 100)}
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
               <GraduationCap className="h-5 w-5 mr-2 text-primary" />
               Program Information
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-900">Program</label>
-                <p className="text-gray-900 font-medium break-words">{application.program}</p>
+                <label className="text-sm font-medium text-foreground">Program</label>
+                <p className="text-foreground font-medium break-words">{application.program}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-900">Institution</label>
-                <p className="text-gray-900 font-medium break-words">
+                <label className="text-sm font-medium text-foreground">Institution</label>
+                <p className="text-foreground font-medium break-words">
                   {application.institution === 'KATC' ? 'Kalulushi Training Centre' : 
                    application.institution === 'MIHAS' ? 'Mukuba Institute of Health and Allied Sciences' : 
                    application.institution}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-900">Intake</label>
-                <p className="text-gray-900 font-medium break-words">{application.intake}</p>
+                <label className="text-sm font-medium text-foreground">Intake</label>
+                <p className="text-foreground font-medium break-words">{application.intake}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-900">Application Fee</label>
-                <p className="text-gray-900 font-medium">ZMW {application.application_fee}</p>
+                <label className="text-sm font-medium text-foreground">Application Fee</label>
+                <p className="text-foreground font-medium">ZMW {application.application_fee}</p>
               </div>
             </div>
           </div>
@@ -261,7 +261,7 @@ export default function ApplicationDetail() {
             className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
             style={staggerChild(5, 100)}
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-primary" />
               Timeline
             </h3>
@@ -269,16 +269,16 @@ export default function ApplicationDetail() {
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-accent rounded-full"></div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Application Created</p>
-                  <p className="text-xs text-gray-900">{formatDate(application.created_at)}</p>
+                  <p className="text-sm font-medium text-foreground">Application Created</p>
+                  <p className="text-xs text-foreground">{formatDate(application.created_at)}</p>
                 </div>
               </div>
               {application.submitted_at && (
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-primary rounded-full"></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Application Submitted</p>
-                    <p className="text-xs text-gray-900">{formatDate(application.submitted_at)}</p>
+                    <p className="text-sm font-medium text-foreground">Application Submitted</p>
+                    <p className="text-xs text-foreground">{formatDate(application.submitted_at)}</p>
                   </div>
                 </div>
               )}
@@ -286,8 +286,8 @@ export default function ApplicationDetail() {
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-accent rounded-full"></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Review Started</p>
-                    <p className="text-xs text-gray-900">{formatDate(application.review_started_at)}</p>
+                    <p className="text-sm font-medium text-foreground">Review Started</p>
+                    <p className="text-xs text-foreground">{formatDate(application.review_started_at)}</p>
                   </div>
                 </div>
               )}
@@ -297,8 +297,8 @@ export default function ApplicationDetail() {
                     application.status === 'approved' ? 'bg-success' : 'bg-error'
                   }`}></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Decision Made</p>
-                    <p className="text-xs text-gray-900">{formatDate(application.decision_date)}</p>
+                    <p className="text-sm font-medium text-foreground">Decision Made</p>
+                    <p className="text-xs text-foreground">{formatDate(application.decision_date)}</p>
                   </div>
                 </div>
               )}
@@ -310,13 +310,13 @@ export default function ApplicationDetail() {
             className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
             style={staggerChild(6, 100)}
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
               <CreditCard className="h-5 w-5 mr-2 text-primary" />
               Payment Status
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-900">Payment Status</label>
+                <label className="text-sm font-medium text-foreground">Payment Status</label>
                 <p className={`font-medium ${
                   application.payment_status === 'verified' ? 'text-success' : 
                   application.payment_status === 'pending' ? 'text-warning' : 'text-error'
@@ -326,13 +326,13 @@ export default function ApplicationDetail() {
               </div>
               {application.payment_verified_at && (
                 <div>
-                  <label className="text-sm font-medium text-gray-900">Verified Date</label>
-                  <p className="text-gray-900 font-medium">{formatDate(application.payment_verified_at)}</p>
+                  <label className="text-sm font-medium text-foreground">Verified Date</label>
+                  <p className="text-foreground font-medium">{formatDate(application.payment_verified_at)}</p>
                 </div>
               )}
               <div>
-                <label className="text-sm font-medium text-gray-900">Tracking Code</label>
-                <p className="text-gray-900 font-medium font-mono break-all">{application.public_tracking_code}</p>
+                <label className="text-sm font-medium text-foreground">Tracking Code</label>
+                <p className="text-foreground font-medium font-mono break-all">{application.public_tracking_code}</p>
               </div>
             </div>
           </div>

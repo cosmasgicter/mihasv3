@@ -108,11 +108,11 @@ export default function OfflineAdminDashboard() {
                 <Calendar className="h-6 w-6 text-primary" />
               </div>
               <div className="text-right">
-                <div className="text-xl sm:text-2xl font-bold text-gray-900 break-words">{stats.todayApplications}</div>
-                <div className="text-xs text-gray-900">Today</div>
+                <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.todayApplications}</div>
+                <div className="text-xs text-foreground">Today</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-900">New Applications</div>
+            <div className="text-sm font-medium text-foreground">New Applications</div>
           </div>
 
           {/* Pending Reviews */}
@@ -124,11 +124,11 @@ export default function OfflineAdminDashboard() {
                 <Clock className="h-6 w-6 text-accent" />
               </div>
               <div className="text-right">
-                <div className="text-xl sm:text-2xl font-bold text-gray-900 break-words">{stats.pendingApplications}</div>
-                <div className="text-xs text-gray-900">Pending</div>
+                <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.pendingApplications}</div>
+                <div className="text-xs text-foreground">Pending</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-900">Awaiting Review</div>
+            <div className="text-sm font-medium text-foreground">Awaiting Review</div>
             <Link to="/admin/applications?status=submitted" className="text-xs text-primary hover:underline mt-2 block">
               Review now →
             </Link>
@@ -143,11 +143,11 @@ export default function OfflineAdminDashboard() {
                 <CheckCircle className="h-6 w-6 text-accent" />
               </div>
               <div className="text-right">
-                <div className="text-xl sm:text-2xl font-bold text-gray-900 break-words">{stats.approvedApplications}</div>
-                <div className="text-xs text-gray-900">Approved</div>
+                <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.approvedApplications}</div>
+                <div className="text-xs text-foreground">Approved</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-900">Successful Applications</div>
+            <div className="text-sm font-medium text-foreground">Successful Applications</div>
           </div>
 
           {/* Processing Time */}
@@ -159,11 +159,11 @@ export default function OfflineAdminDashboard() {
                 <TrendingUp className="h-6 w-6 text-secondary" />
               </div>
               <div className="text-right">
-                <div className="text-xl sm:text-2xl font-bold text-gray-900 break-words">{stats.avgProcessingTime}</div>
-                <div className="text-xs text-gray-900">Days</div>
+                <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.avgProcessingTime}</div>
+                <div className="text-xs text-foreground">Days</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-900">Avg Processing</div>
+            <div className="text-sm font-medium text-foreground">Avg Processing</div>
           </div>
         </div>
 
@@ -178,8 +178,8 @@ export default function OfflineAdminDashboard() {
                   <FileText className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Manage Applications</h3>
-                  <p className="text-sm text-gray-900">Review and process applications</p>
+                  <h3 className="font-semibold text-foreground">Manage Applications</h3>
+                  <p className="text-sm text-foreground">Review and process applications</p>
                 </div>
               </div>
             </div>
@@ -192,8 +192,8 @@ export default function OfflineAdminDashboard() {
                   <Users className="h-6 w-6 text-accent" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">User Management</h3>
-                  <p className="text-sm text-gray-900">Manage users and roles</p>
+                  <h3 className="font-semibold text-foreground">User Management</h3>
+                  <p className="text-sm text-foreground">Manage users and roles</p>
                 </div>
               </div>
             </div>
@@ -206,8 +206,8 @@ export default function OfflineAdminDashboard() {
                   <GraduationCap className="h-6 w-6 text-secondary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Programs & Intakes</h3>
-                  <p className="text-sm text-gray-900">Manage academic programs</p>
+                  <h3 className="font-semibold text-foreground">Programs & Intakes</h3>
+                  <p className="text-sm text-foreground">Manage academic programs</p>
                 </div>
               </div>
             </div>
@@ -218,21 +218,21 @@ export default function OfflineAdminDashboard() {
         <div
           className="bg-card rounded-2xl shadow-lg border border-border p-6"
         >
-          <h3 className="text-lg font-bold text-gray-900 mb-4">System Status</h3>
+          <h3 className="text-lg font-bold text-foreground mb-4">System Status</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-info-strong">{stats.weekApplications}</div>
-              <div className="text-sm text-gray-900">Applications This Week</div>
+              <div className="text-sm text-foreground">Applications This Week</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">{stats.avgProcessingTime}</div>
-              <div className="text-sm text-gray-900">Avg Processing Days</div>
+              <div className="text-2xl font-bold text-foreground">{stats.avgProcessingTime}</div>
+              <div className="text-sm text-foreground">Avg Processing Days</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-warning-strong">
                 {Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)}%
               </div>
-              <div className="text-sm text-gray-900">Success Rate</div>
+              <div className="text-sm text-foreground">Success Rate</div>
             </div>
           </div>
         </div>

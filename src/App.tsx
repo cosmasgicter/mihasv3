@@ -58,8 +58,8 @@ const renderRoute = (route: RouteConfig) => {
     routeElement = (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Page Not Found</h2>
-          <p className="text-gray-600">The requested page could not be loaded.</p>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Page Not Found</h2>
+          <p className="text-muted-foreground">The requested page could not be loaded.</p>
         </div>
       </div>
     )

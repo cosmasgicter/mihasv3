@@ -106,7 +106,7 @@ export function RealtimeStatusIndicator({
           text-xs font-medium
           ${isConnected ? 'text-green-600 dark:text-green-400' : ''}
           ${isReconnecting ? 'text-yellow-600 dark:text-yellow-400' : ''}
-          ${!isConnected && !isReconnecting ? 'text-gray-500 dark:text-gray-400' : ''}
+          ${!isConnected && !isReconnecting ? 'text-muted-foreground dark:text-gray-400' : ''}
         `}>
           {getStatusLabel()}
         </span>

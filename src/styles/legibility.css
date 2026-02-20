@@ -2,27 +2,27 @@
 
 /* Primary Text Hierarchy */
 .text-heading {
-  @apply text-gray-900 dark:text-white font-semibold;
+  @apply text-foreground dark:text-white font-semibold;
 }
 
 .text-subheading {
-  @apply text-gray-900 dark:text-gray-100 font-medium;
+  @apply text-foreground dark:text-gray-100 font-medium;
 }
 
 .text-body {
-  @apply text-gray-900 dark:text-gray-200;
+  @apply text-foreground dark:text-gray-200;
 }
 
 .text-body-secondary {
-  @apply text-gray-800 dark:text-gray-300;
+  @apply text-foreground dark:text-gray-300;
 }
 
 .text-caption {
-  @apply text-gray-700 dark:text-gray-400 text-sm;
+  @apply text-muted-foreground dark:text-gray-400 text-sm;
 }
 
 .text-muted {
-  @apply text-gray-600 dark:text-gray-500;
+  @apply text-muted-foreground dark:text-gray-400;
 }
 
 /* Status Colors - High Contrast */
@@ -44,19 +44,19 @@
 
 /* Background + Text Combinations */
 .bg-success-subtle {
-  @apply bg-green-50 dark:bg-green-900/20 text-gray-800 dark:text-gray-200;
+  @apply bg-green-50 dark:bg-green-900/20 text-foreground dark:text-gray-200;
 }
 
 .bg-warning-subtle {
-  @apply bg-yellow-50 dark:bg-yellow-900/20 text-gray-800 dark:text-gray-200;
+  @apply bg-yellow-50 dark:bg-yellow-900/20 text-foreground dark:text-gray-200;
 }
 
 .bg-error-subtle {
-  @apply bg-red-50 dark:bg-red-900/20 text-gray-800 dark:text-gray-200;
+  @apply bg-red-50 dark:bg-red-900/20 text-foreground dark:text-gray-200;
 }
 
 .bg-info-subtle {
-  @apply bg-blue-50 dark:bg-blue-900/20 text-gray-800 dark:text-gray-200;
+  @apply bg-blue-50 dark:bg-blue-900/20 text-foreground dark:text-gray-200;
 }
 
 /* Badge/Pill Styles */

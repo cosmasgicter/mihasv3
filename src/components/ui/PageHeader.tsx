@@ -24,9 +24,9 @@ export interface PageHeaderProps {
 }
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
- gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-gray-900 border-card/20 shadow-2xl',
- surface: 'bg-card text-gray-900 border border-border shadow-xl',
- subtle: 'bg-card/90 text-gray-900 border border-card/60 shadow-lg backdrop-blur-sm'
+ gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-foreground border-card/20 shadow-2xl',
+ surface: 'bg-card text-foreground border border-border shadow-xl',
+ subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg backdrop-blur-sm'
 }
 
 const statAccentStyles: Record<StatAccent, string> = {
@@ -60,7 +60,7 @@ export function PageHeader({
  const { label, value, icon: statIcon, accent = 'neutral' } = stat
 
  const baseClasses = isGradient
- ? 'bg-card/95 border-card/40 text-gray-900 backdrop-blur-md'
+ ? 'bg-card/95 border-card/40 text-foreground backdrop-blur-md'
  : statAccentStyles[accent]
 
  return (
@@ -109,7 +109,7 @@ export function PageHeader({
 								 <div
 									 className={cn(
 										 'flex items-center justify-center rounded-2xl border shadow-inner',
-										 isGradient ? 'border-card/40 bg-card/95 text-gray-900 backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
+										 isGradient ? 'border-card/40 bg-card/95 text-foreground backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
 									 )}
 									 style={{ width: '3.5rem', height: '3.5rem', fontSize: 'var(--type-2xl)' }}
 								 >

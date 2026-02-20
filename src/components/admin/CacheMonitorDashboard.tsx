@@ -125,7 +125,7 @@ export function CacheMonitorDashboard() {
           </div>
           <div>
             <div className="text-sm text-muted-foreground">Idle</div>
-            <div className="text-2xl font-bold text-gray-600">
+            <div className="text-2xl font-bold text-muted-foreground">
               {metrics.queriesByStatus.idle}
             </div>
           </div>

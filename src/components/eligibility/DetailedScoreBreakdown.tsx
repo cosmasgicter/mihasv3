@@ -61,7 +61,7 @@ export function DetailedScoreBreakdown({
       case 'conditional': return 'text-yellow-700 bg-yellow-50 border-yellow-200'
       case 'needs_improvement': return 'text-orange-700 bg-orange-50 border-orange-200'
       case 'not_eligible': return 'text-red-700 bg-red-50 border-red-200'
-      default: return 'text-gray-700 bg-gray-50 border-gray-200'
+      default: return 'text-muted-foreground bg-gray-50 border-gray-200'
     }
   }
 
@@ -71,7 +71,7 @@ export function DetailedScoreBreakdown({
       case 'competitive': return 'bg-blue-100 text-blue-800'
       case 'minimum_requirements': return 'bg-yellow-100 text-yellow-800'
       case 'below_minimum': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      default: return 'bg-gray-100 text-foreground'
     }
   }
 
@@ -80,7 +80,7 @@ export function DetailedScoreBreakdown({
       case 'high': return <AlertTriangle className="h-4 w-4 text-red-500" />
       case 'medium': return <Info className="h-4 w-4 text-yellow-500" />
       case 'low': return <CheckCircle className="h-4 w-4 text-green-500" />
-      default: return <Info className="h-4 w-4 text-gray-500" />
+      default: return <Info className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -105,9 +105,9 @@ export function DetailedScoreBreakdown({
     return (
       <div className="border rounded-lg p-4 bg-white">
         <div className="flex items-center justify-between mb-3">
-          <h4 className="font-semibold text-gray-900">{title}</h4>
+          <h4 className="font-semibold text-foreground">{title}</h4>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Weight: {(weight * 100).toFixed(0)}%</span>
+            <span className="text-sm text-muted-foreground">Weight: {(weight * 100).toFixed(0)}%</span>
             <span className={`px-2 py-1 rounded text-sm font-medium ${
               percentage >= 80 ? 'bg-green-100 text-green-800' :
               percentage >= 60 ? 'bg-yellow-100 text-yellow-800' :
@@ -131,11 +131,11 @@ export function DetailedScoreBreakdown({
         </div>
         
         <div className="space-y-2">
-          <p className="text-sm text-gray-600">{explanation}</p>
+          <p className="text-sm text-muted-foreground">{explanation}</p>
           <div className="p-3 bg-gray-50 rounded border-l-4 border-blue-400">
-            <p className="text-sm text-gray-700 whitespace-pre-line">{feedback}</p>
+            <p className="text-sm text-muted-foreground whitespace-pre-line">{feedback}</p>
           </div>
-          <div className="flex justify-between text-xs text-gray-500">
+          <div className="flex justify-between text-xs text-muted-foreground">
             <span>Raw Score: {score.toFixed(1)}/{maxScore}</span>
             <span>Weighted Contribution: {weightedContribution.toFixed(1)}</span>
           </div>
@@ -346,7 +346,7 @@ export function DetailedScoreBreakdown({
                     </Button>
                   </div>
                   
-                  <p className="text-sm text-gray-600 mb-3">{rec.description}</p>
+                  <p className="text-sm text-muted-foreground mb-3">{rec.description}</p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                     <div className="flex items-center gap-1">
@@ -394,12 +394,12 @@ export function DetailedScoreBreakdown({
                 <div key={idx} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold">{pathway.name}</h4>
-                    <span className="text-xs text-gray-500">{pathway.timeToCompletion}</span>
+                    <span className="text-xs text-muted-foreground">{pathway.timeToCompletion}</span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">{pathway.description}</p>
+                  <p className="text-sm text-muted-foreground mb-3">{pathway.description}</p>
                   <div>
-                    <h5 className="text-xs font-medium text-gray-700 mb-1">Requirements:</h5>
-                    <ul className="text-xs text-gray-600 space-y-1">
+                    <h5 className="text-xs font-medium text-muted-foreground mb-1">Requirements:</h5>
+                    <ul className="text-xs text-muted-foreground space-y-1">
                       {pathway.requirements.map((req, reqIdx) => (
                         <li key={reqIdx}>• {req}</li>
                       ))}
@@ -429,7 +429,7 @@ export function DetailedScoreBreakdown({
               </div>
               
               <div className="space-y-4">
-                <p className="text-gray-600">{selectedRecommendation.description}</p>
+                <p className="text-muted-foreground">{selectedRecommendation.description}</p>
                 
                 <div>
                   <h4 className="font-semibold mb-2">Action Steps:</h4>
@@ -443,24 +443,24 @@ export function DetailedScoreBreakdown({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h4 className="font-semibold mb-2">Expected Impact:</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       Score increase: +{selectedRecommendation.expectedImpact.scoreIncrease} points
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       {selectedRecommendation.expectedImpact.eligibilityImprovement}
                     </p>
                   </div>
                   
                   <div>
                     <h4 className="font-semibold mb-2">Timeframe:</h4>
-                    <p className="text-sm text-gray-600">{selectedRecommendation.timeframe}</p>
+                    <p className="text-sm text-muted-foreground">{selectedRecommendation.timeframe}</p>
                   </div>
                 </div>
                 
                 {selectedRecommendation.resources && (
                   <div>
                     <h4 className="font-semibold mb-2">Resources:</h4>
-                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                    <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                       {selectedRecommendation.resources.map((resource, idx) => (
                         <li key={idx}>{resource}</li>
                       ))}

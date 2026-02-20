@@ -47,14 +47,14 @@ export function EnhancedInput({
           {required ? (
             <span className="text-error ml-1">*</span>
           ) : showOptional ? (
-            <span className="text-gray-900 ml-1 font-normal">(optional)</span>
+            <span className="text-foreground ml-1 font-normal">(optional)</span>
           ) : null}
         </label>
       )}
       
       <div className="relative">
         {leftIcon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-900">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground">
             {leftIcon}
           </div>
         )}
@@ -64,7 +64,7 @@ export function EnhancedInput({
           className={cn(
             // Base styling
             'block w-full rounded-lg border border-input bg-card',
-            'text-sm text-gray-900 placeholder-muted-foreground',
+            'text-sm text-foreground placeholder-muted-foreground',
             'transition-colors duration-200',
             // Focus states
             'focus:border-primary focus:ring-2 focus:ring-blue-500/20',
@@ -80,7 +80,7 @@ export function EnhancedInput({
             // Success state
             success && 'border-green-300 focus:border-success focus:ring-green-500/20',
             // Disabled state
-            'disabled:bg-muted disabled:text-gray-900 disabled:cursor-not-allowed',
+            'disabled:bg-muted disabled:text-foreground disabled:cursor-not-allowed',
             className
           )}
         />
@@ -91,7 +91,7 @@ export function EnhancedInput({
             onClick={onRightIconClick}
             className={cn(
               'absolute right-3 top-1/2 transform -translate-y-1/2',
-              'text-gray-900 hover:text-foreground',
+              'text-foreground hover:text-foreground',
               'min-w-[24px] min-h-[24px] flex items-center justify-center',
               'focus:outline-none focus:ring-2 focus:ring-blue-500 rounded',
               onRightIconClick ? 'cursor-pointer' : 'cursor-default'
@@ -104,7 +104,7 @@ export function EnhancedInput({
       </div>
       
       {hint && !errorMessage && !success && (
-        <p className="text-xs text-gray-900">{hint}</p>
+        <p className="text-xs text-foreground">{hint}</p>
       )}
       
       <FormError message={errorMessage} />
@@ -153,7 +153,7 @@ export function EnhancedTextarea({
             {required ? (
               <span className="text-error ml-1">*</span>
             ) : showOptional ? (
-              <span className="text-gray-900 ml-1 font-normal">(optional)</span>
+              <span className="text-foreground ml-1 font-normal">(optional)</span>
             ) : null}
           </label>
           
@@ -175,7 +175,7 @@ export function EnhancedTextarea({
         className={cn(
           // Base styling
           'block w-full rounded-lg border border-input bg-card',
-          'text-sm text-gray-900 placeholder-muted-foreground',
+          'text-sm text-foreground placeholder-muted-foreground',
           'transition-colors duration-200',
           // Focus states
           'focus:border-primary focus:ring-2 focus:ring-blue-500/20',
@@ -189,13 +189,13 @@ export function EnhancedTextarea({
           // Success state
           success && 'border-green-300 focus:border-success focus:ring-green-500/20',
           // Disabled state
-          'disabled:bg-muted disabled:text-gray-900 disabled:cursor-not-allowed',
+          'disabled:bg-muted disabled:text-foreground disabled:cursor-not-allowed',
           className
         )}
       />
       
       {hint && !errorMessage && !success && (
-        <p className="text-xs text-gray-900">{hint}</p>
+        <p className="text-xs text-foreground">{hint}</p>
       )}
       
       <FormError message={errorMessage} />
@@ -259,7 +259,7 @@ export function EnhancedSelect({
           {required ? (
             <span className="text-error ml-1">*</span>
           ) : showOptional ? (
-            <span className="text-gray-900 ml-1 font-normal">(optional)</span>
+            <span className="text-foreground ml-1 font-normal">(optional)</span>
           ) : null}
         </label>
       )}
@@ -286,7 +286,7 @@ export function EnhancedSelect({
           // Success state
           success && 'border-green-300 focus:border-success focus:ring-green-500/20',
           // Disabled state
-          'disabled:bg-muted disabled:text-gray-900 disabled:cursor-not-allowed',
+          'disabled:bg-muted disabled:text-foreground disabled:cursor-not-allowed',
           className
         )}
         style={{
@@ -309,7 +309,7 @@ export function EnhancedSelect({
       </select>
       
       {hint && !errorMessage && !success && (
-        <p className="text-xs text-gray-900">{hint}</p>
+        <p className="text-xs text-foreground">{hint}</p>
       )}
       
       <FormError message={errorMessage} />
@@ -348,9 +348,9 @@ export function FormSection({
   return (
     <div className={cn('space-y-4', className)}>
       <div>
-        <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+        <h3 className="text-lg font-medium text-foreground">{title}</h3>
         {description && (
-          <p className="text-sm text-gray-900 mt-1">{description}</p>
+          <p className="text-sm text-foreground mt-1">{description}</p>
         )}
       </div>
       <div className="space-y-4">

@@ -14,11 +14,11 @@ export function FancyPreloader() {
 
         {/* Icon */}
         <div className="mb-6 relative z-10 animate-[spin_3s_linear_infinite]">
-          <GraduationCap className="w-16 h-16 text-gray-900 mx-auto drop-shadow-lg" />
+          <GraduationCap className="w-16 h-16 text-foreground mx-auto drop-shadow-lg" />
         </div>
         
         {/* Title */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 relative z-10 animate-slide-up">
+        <h1 className="text-3xl font-bold text-foreground mb-2 relative z-10 animate-slide-up">
           MIHAS-KATC
         </h1>
         

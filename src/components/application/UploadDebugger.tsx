@@ -104,14 +104,14 @@ export function UploadDebugger() {
       
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Select File to Test Upload
           </label>
           <input
             type="file"
             accept=".pdf,.jpg,.jpeg,.png"
             onChange={handleFileSelect}
-            className="w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
+            className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
           />
         </div>
 
@@ -141,7 +141,7 @@ export function UploadDebugger() {
 
         {uploading && (
           <div>
-            <div className="flex justify-between text-sm text-gray-900 mb-1">
+            <div className="flex justify-between text-sm text-foreground mb-1">
               <span>Progress</span>
               <span>{progress}%</span>
             </div>
@@ -174,7 +174,7 @@ export function UploadDebugger() {
 
         {logs.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Debug Logs:</h3>
+            <h3 className="text-sm font-medium text-foreground mb-2">Debug Logs:</h3>
             <div className="bg-foreground text-green-400 p-3 rounded text-xs font-mono max-h-64 overflow-y-auto">
               {logs.map((log, index) => (
                 <div key={index}>{log}</div>

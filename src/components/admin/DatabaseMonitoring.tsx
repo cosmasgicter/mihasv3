@@ -197,7 +197,7 @@ export default function DatabaseMonitoring() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Database Monitoring</h1>
+        <h1 className="text-2xl font-bold text-foreground">Database Monitoring</h1>
         <div className="flex space-x-3">
           <Button
             onClick={loadDashboardData}
@@ -248,15 +248,15 @@ export default function DatabaseMonitoring() {
             className={`p-4 rounded-lg border ${getStatusColor(metric.status)}`}
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-gray-900">
+              <h3 className="font-medium text-foreground">
                 {metric.metric.replace(/_/g, ' ').toUpperCase()}
               </h3>
               {getStatusIcon(metric.status)}
             </div>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-foreground">
               {metric.current_value.toLocaleString()}
             </p>
-            <p className="text-sm text-gray-900 mt-1">
+            <p className="text-sm text-foreground mt-1">
               {metric.message}
             </p>
           </div>
@@ -265,28 +265,28 @@ export default function DatabaseMonitoring() {
 
       {/* Error Statistics */}
       <div className="bg-card rounded-lg border border-border p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center">
           <Shield className="w-5 h-5 mr-2" />
           Error Statistics (Last 24 Hours)
         </h2>
         
         {errorStats.length === 0 ? (
-          <p className="text-gray-900">No errors recorded in the last 24 hours</p>
+          <p className="text-foreground">No errors recorded in the last 24 hours</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Error Code
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Count
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Last Occurrence
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Recovery Rate
                   </th>
                 </tr>
@@ -294,16 +294,16 @@ export default function DatabaseMonitoring() {
               <tbody className="bg-card divide-y divide-border">
                 {errorStats.map((stat, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       {stat.error_code}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       {stat.error_count}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       {new Date(stat.last_occurrence).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       {stat.recovery_rate ? `${stat.recovery_rate}%` : 'N/A'}
                     </td>
                   </tr>
@@ -316,7 +316,7 @@ export default function DatabaseMonitoring() {
 
       {/* Data Integrity */}
       <div className="bg-card rounded-lg border border-border p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-foreground mb-4">
           Data Integrity Status
         </h2>
         
@@ -329,7 +329,7 @@ export default function DatabaseMonitoring() {
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium text-gray-900">
+                <h3 className="font-medium text-foreground">
                   {issue.issue_type.replace(/_/g, ' ').toUpperCase()}
                 </h3>
                 {issue.issue_count > 0 ? (
@@ -338,7 +338,7 @@ export default function DatabaseMonitoring() {
                   <CheckCircle className="w-5 h-5 text-success" />
                 )}
               </div>
-              <p className="text-sm text-gray-900 mb-2">
+              <p className="text-sm text-foreground mb-2">
                 {issue.description}
               </p>
               <div className="flex justify-between text-sm">

@@ -49,12 +49,12 @@ export function ErrorDisplay({
       </div>
       
       {/* Title */}
-      <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+      <h3 className="text-xl font-semibold text-foreground text-center mb-2">
         {errorMessage.title}
       </h3>
       
       {/* Description */}
-      <p className="text-gray-600 text-center mb-6">
+      <p className="text-muted-foreground text-center mb-6">
         {errorMessage.description}
       </p>
       
@@ -88,7 +88,7 @@ export function ErrorDisplay({
       {/* Technical details (for developers) */}
       {showTechnicalDetails && errorMessage.technicalDetails && (
         <details className="mt-4 text-sm">
-          <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
+          <summary className="cursor-pointer text-muted-foreground hover:text-muted-foreground">
             Technical Details
           </summary>
           <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-x-auto">
@@ -205,7 +205,7 @@ export function ErrorPage({
         
         {/* Additional help */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Need help?{' '}
             <a
               href="/contact"

@@ -142,7 +142,7 @@ export default function StudentSettings() {
               <div className="p-2 bg-primary/10 rounded-lg">
                 <User className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 <User className="w-5 h-5" /> Basic Information
               </h2>
             </div>
@@ -158,7 +158,7 @@ export default function StudentSettings() {
               />
               
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Email Address
                 </label>
                 <div className="relative">
@@ -167,10 +167,10 @@ export default function StudentSettings() {
                     type="email"
                     value={profile?.email || ''}
                     disabled
-                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-gray-900 cursor-not-allowed truncate"
+                    className="form-input-mobile w-full pl-10 pr-3 py-3 border-2 border-border rounded-xl bg-muted text-foreground cursor-not-allowed truncate"
                   />
                 </div>
-                <p className="mt-2 text-xs text-gray-900 bg-accent px-3 py-1 rounded-lg inline-block">
+                <p className="mt-2 text-xs text-foreground bg-accent px-3 py-1 rounded-lg inline-block">
                   🔒 Email cannot be changed
                 </p>
               </div>
@@ -195,7 +195,7 @@ export default function StudentSettings() {
               />
               
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Sex
                 </label>
                 <select
@@ -222,7 +222,7 @@ export default function StudentSettings() {
               <div className="p-2 bg-accent/10 rounded-lg">
                 <MapPin className="h-5 w-5 text-accent" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 📍 Address Information
               </h2>
             </div>
@@ -257,7 +257,7 @@ export default function StudentSettings() {
               <div className="p-2 bg-destructive/10 rounded-lg">
                 <Phone className="h-5 w-5 text-destructive" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 👥 Next of Kin
               </h2>
             </div>
@@ -292,7 +292,7 @@ export default function StudentSettings() {
               <div className="p-2 bg-muted rounded-lg">
                 <Shield className="h-5 w-5 text-secondary" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 🔐 Security & Active Sessions
               </h2>
             </div>

@@ -203,7 +203,7 @@ export function useDetailedEligibility(
       case 'conditional': return 'text-yellow-700 bg-yellow-50 border-yellow-200'
       case 'needs_improvement': return 'text-orange-700 bg-orange-50 border-orange-200'
       case 'not_eligible': return 'text-red-700 bg-red-50 border-red-200'
-      default: return 'text-gray-700 bg-gray-50 border-gray-200'
+      default: return 'text-muted-foreground bg-gray-50 border-gray-200'
     }
   }, [])
   

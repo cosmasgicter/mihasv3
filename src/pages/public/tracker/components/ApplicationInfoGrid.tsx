@@ -24,14 +24,14 @@ const InfoCard: React.FC<InfoCardProps> = ({ icon, iconBg, label, value, index =
     <div className={`flex-shrink-0 p-2 rounded-lg ${iconBg}`}>{icon}</div>
     <div className="flex-1 min-w-0">
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
-      <div className="text-sm font-semibold text-gray-900 mt-1 break-words">{value}</div>
+      <div className="text-sm font-semibold text-foreground mt-1 break-words">{value}</div>
     </div>
   </div>
 )
 
 export const ApplicationInfoGrid: React.FC<ApplicationInfoGridProps> = ({ application }) => (
   <div className={`space-y-4 ${animateClasses.fadeIn}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-    <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+    <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
       <Info className="h-5 w-5 text-primary" />
       Application Details
     </h4>
