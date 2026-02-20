@@ -4,6 +4,13 @@
  * Provides polling-based data fetching for student dashboard.
  * Uses React Query polling (30-second intervals) against the API.
  * 
+ * SSE/Polling Hybrid Strategy:
+ * - Primary transport: React Query polling (reliable on Vercel with 10s function timeout)
+ * - SSE infrastructure exists (lib/realtime.ts, src/lib/sseClient.ts) for future use
+ * - Polling doubles interval when page is hidden (battery-friendly)
+ * - Fingerprint-based deduplication prevents onDataChange firing on identical data
+ * - onApplicationChange only fires when a specific application's status changes
+ * 
  * MIGRATED: Replaced Supabase direct calls with API client.
  */
 
@@ -44,6 +51,16 @@ export interface UseStudentDashboardPollingReturn {
 
 const POLLING_INTERVAL = 30000
 
+/**
+ * Compute a fingerprint of student applications for deduplication.
+ * Compares IDs, statuses, and payment statuses — the fields that matter for dashboard display.
+ * If the fingerprint is identical between polls, onDataChange is not fired.
+ */
+function applicationsFingerprint(apps: StudentApplication[]): string {
+  const sorted = [...apps].sort((a, b) => a.id.localeCompare(b.id))
+  return sorted.map((app) => `${app.id}:${app.status}:${app.payment_status}`).join('|')
+}
+
 export function useStudentDashboardPolling(
   options: UseStudentDashboardPollingOptions = {}
 ): UseStudentDashboardPollingReturn {
@@ -58,6 +75,7 @@ export function useStudentDashboardPolling(
   const queryClient = useQueryClient()
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const previousAppsRef = useRef<StudentApplication[]>([])
+  const previousFingerprintRef = useRef<string | null>(null)
   const onDataChangeRef = useRef<typeof onDataChange>(onDataChange)
   const onApplicationChangeRef = useRef<typeof onApplicationChange>(onApplicationChange)
 
@@ -98,6 +116,7 @@ export function useStudentDashboardPolling(
 
   useEffect(() => {
     previousAppsRef.current = []
+    previousFingerprintRef.current = null
     setLastUpdated(null)
   }, [user?.id])
 
@@ -111,10 +130,17 @@ export function useStudentDashboardPolling(
     staleTime: pollingInterval / 2,
   })
 
-  // Track changes — use ref to avoid infinite loop
+  // Track changes — use ref to avoid infinite loop, fingerprint to skip identical data
   useEffect(() => {
     if (!query.data) return
 
+    const fp = applicationsFingerprint(query.data.applications)
+    if (fp === previousFingerprintRef.current) {
+      // Identical data — skip callback and timestamp update to prevent unnecessary re-renders
+      return
+    }
+
+    previousFingerprintRef.current = fp
     setLastUpdated(new Date())
     onDataChangeRef.current?.(query.data)
 

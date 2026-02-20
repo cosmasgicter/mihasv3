@@ -490,6 +490,12 @@ async function handleDashboard(res: VercelResponse): Promise<void> {
 /**
  * Users list handler
  * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * 
+ * Supports optional query params:
+ *   - page (default 1)
+ *   - limit (default 50, max 100)
+ *   - role (filter by role)
+ *   - search (filter by name or email, case-insensitive)
  */
 async function handleUsers(req: VercelRequest, res: VercelResponse): Promise<void> {
   let page = parseInt(req.query.page as string || '1', 10);
@@ -500,14 +506,38 @@ async function handleUsers(req: VercelRequest, res: VercelResponse): Promise<voi
   if (limit > 100) limit = 100;
 
   const offset = (page - 1) * limit;
+  const role = req.query.role as string | undefined;
+  const search = req.query.search as string | undefined;
+
+  // Build WHERE clauses for optional filters
+  const conditions: string[] = [];
+  const params: (string | number)[] = [];
+  let paramIndex = 1;
+
+  if (role) {
+    conditions.push(`role = $${paramIndex}`);
+    params.push(role);
+    paramIndex++;
+  }
+
+  if (search) {
+    conditions.push(`(LOWER(full_name) LIKE $${paramIndex} OR LOWER(first_name) LIKE $${paramIndex} OR LOWER(last_name) LIKE $${paramIndex} OR LOWER(email) LIKE $${paramIndex})`);
+    params.push(`%${search.toLowerCase()}%`);
+    paramIndex++;
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
   try {
     const [dataResult, countResult] = await Promise.all([
       query<Record<string, unknown>>(
-        `SELECT * FROM profiles ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
-        [limit, offset]
+        `SELECT * FROM profiles ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+        [...params, limit, offset]
       ),
-      query<{ count: string }>('SELECT COUNT(*) as count FROM profiles'),
+      query<{ count: string }>(
+        `SELECT COUNT(*) as count FROM profiles ${whereClause}`,
+        params
+      ),
     ]);
 
     const users = dataResult.rows.map((user) => ({ ...user, user_id: user.id }));
@@ -561,12 +591,15 @@ async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth:
     return;
   }
 
-  // Validate role (only super_admin can create admin users)
-  const allowedRoles = ['student', 'reviewer'];
-  if (auth.role === 'super_admin') {
-    allowedRoles.push('admin');
+  // Validate role
+  const validRoles = ['student', 'reviewer', 'admin', 'super_admin'];
+  const userRole = role && validRoles.includes(role) ? role : 'student';
+
+  // Only super_admin can assign admin or super_admin roles (Requirement 14.3, 14.4)
+  if ((userRole === 'admin' || userRole === 'super_admin') && auth.role !== 'super_admin') {
+    sendError(res, 'Only super_admin can assign admin or super_admin roles', HttpStatus.FORBIDDEN);
+    return;
   }
-  const userRole = role && allowedRoles.includes(role) ? role : 'student';
 
   try {
     // Check if email already exists

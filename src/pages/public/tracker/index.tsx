@@ -92,18 +92,18 @@ export default function PublicApplicationTracker() {
   const buildSlipPayload = useCallback((email: string, userId?: string) => {
     if (!application) return null
     return {
-      public_tracking_code: application.public_tracking_code,
+      public_tracking_code: null,
       application_number: application.application_number,
       status: application.status,
-      payment_status: application.payment_status,
+      payment_status: null,
       submitted_at: application.submitted_at,
       updated_at: application.updated_at,
       program_name: application.program_name,
       intake_name: application.intake_name,
-      institution: application.institution,
-      full_name: application.full_name,
+      institution: null,
+      full_name: null,
       email,
-      phone: application.phone,
+      phone: null,
       admin_feedback: application.admin_feedback,
       admin_feedback_date: application.admin_feedback_date,
       userId
@@ -112,7 +112,7 @@ export default function PublicApplicationTracker() {
 
   const handleDownloadSlip = useCallback(async () => {
     if (!application) return
-    const filename = `Application-Slip-${application.application_number || application.public_tracking_code}.pdf`
+    const filename = `Application-Slip-${application.application_number || 'unknown'}.pdf`
 
     if (slipCache?.objectUrl) {
       triggerDownload(slipCache.objectUrl, filename)
@@ -145,7 +145,7 @@ export default function PublicApplicationTracker() {
         return
       }
 
-      const slipEmail = application.email?.trim() || 'no-email@mihas.local'
+      const slipEmail = 'no-email@mihas.local'
       const payload = buildSlipPayload(slipEmail)
       if (!payload) {
         toast.error('Slip unavailable', 'Missing application details for slip generation.')
@@ -191,11 +191,9 @@ export default function PublicApplicationTracker() {
   const handleEmailSlip = useCallback(async () => {
     if (!application) return
 
-    let emailAddress = application.email?.trim() || ''
-    if (!emailAddress) {
-      const promptResult = window.prompt('Enter the email address to send your application slip to:')
-      emailAddress = promptResult?.trim() || ''
-    }
+    let emailAddress = ''
+    const promptResult = window.prompt('Enter the email address to send your application slip to:')
+    emailAddress = promptResult?.trim() || ''
 
     if (!emailAddress) {
       toast.error('Email required', 'Please provide an email address to receive the slip.')
@@ -228,15 +226,13 @@ export default function PublicApplicationTracker() {
           documentId: result.documentId || prev?.documentId
         }
       })
-
-      setApplication(prev => (prev ? { ...prev, email: emailAddress } : prev))
     } catch (emailError) {
       logger.error('Slip email failed:', emailError)
       toast.error('Email failed', emailError instanceof Error ? emailError.message : 'Unable to email slip')
     } finally {
       setEmailLoading(false)
     }
-  }, [application, buildSlipPayload, setApplication, toast])
+  }, [application, buildSlipPayload, toast])
 
   const handleTryAgain = () => {
     setSearchTerm('')

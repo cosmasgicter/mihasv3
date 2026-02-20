@@ -229,7 +229,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
 
   const loadNextPage = useCallback(async () => {
     if (isLoadingMore || isInitialLoading) return
-    if (totalCount !== 0 && applications.length >= totalCount) return
+    if (applications.length >= totalCount && totalCount > 0) return
     await loadPage(currentPage + 1, 'loadMore')
   }, [applications.length, currentPage, isInitialLoading, isLoadingMore, loadPage, totalCount])
 

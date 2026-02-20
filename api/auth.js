@@ -370,6 +370,178 @@ var UserQueries = {
     values: [email]
   })
 };
+var AuditQueries = {
+  log: (input) => ({
+    text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      RETURNING id, created_at
+    `,
+    values: [
+      input.actor_id,
+      input.action,
+      input.entity_type,
+      input.entity_id,
+      input.changes ? JSON.stringify(input.changes) : null,
+      input.ip_address || null,
+      input.user_agent || null
+    ]
+  }),
+  logAuthEvent: (actorId, action, success, ipAddress, userAgent, additionalInfo) => ({
+    text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      RETURNING id, created_at
+    `,
+    values: [
+      actorId,
+      action,
+      JSON.stringify({ success, ...additionalInfo }),
+      ipAddress,
+      userAgent
+    ]
+  }),
+  logAuthorizationFailure: (actorId, attemptedAction, entityType, entityId, requiredPermission, ipAddress, userAgent) => ({
+    text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      RETURNING id, created_at
+    `,
+    values: [
+      actorId,
+      entityType,
+      entityId,
+      JSON.stringify({
+        attempted_action: attemptedAction,
+        required_permission: requiredPermission
+      }),
+      ipAddress,
+      userAgent
+    ]
+  }),
+  logSessionEvent: (actorId, action, sessionId, ipAddress, userAgent, additionalInfo) => ({
+    text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      RETURNING id, created_at
+    `,
+    values: [
+      actorId,
+      action,
+      sessionId,
+      additionalInfo ? JSON.stringify(additionalInfo) : null,
+      ipAddress,
+      userAgent
+    ]
+  }),
+  findById: (id) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE id = $1
+      LIMIT 1
+    `,
+    values: [id]
+  }),
+  getForEntity: (entityType, entityId, limit = 50) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE entity_type = $1 AND entity_id = $2
+      ORDER BY created_at DESC
+      LIMIT $3
+    `,
+    values: [entityType, entityId, limit]
+  }),
+  getByActor: (actorId, limit = 50) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE actor_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `,
+    values: [actorId, limit]
+  }),
+  getByAction: (action, limit = 50) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE action = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `,
+    values: [action, limit]
+  }),
+  getRecent: (limit, offset) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `,
+    values: [limit, offset]
+  }),
+  getByDateRange: (startDate, endDate, limit = 100) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE created_at >= $1 AND created_at <= $2
+      ORDER BY created_at DESC
+      LIMIT $3
+    `,
+    values: [startDate, endDate, limit]
+  }),
+  countByAction: (action) => ({
+    text: `
+      SELECT COUNT(*) as count
+      FROM audit_logs
+      WHERE action = $1
+    `,
+    values: [action]
+  }),
+  countFailedAuthInWindow: (windowMinutes) => ({
+    text: `
+      SELECT COUNT(*) as count
+      FROM audit_logs
+      WHERE action = 'auth_failure'
+        AND created_at > NOW() - INTERVAL '1 minute' * $1
+    `,
+    values: [windowMinutes]
+  }),
+  deleteOlderThan: (daysOld) => ({
+    text: `
+      DELETE FROM audit_logs
+      WHERE created_at < NOW() - INTERVAL '1 day' * $1
+      RETURNING id
+    `,
+    values: [daysOld]
+  })
+};
 
 // lib/auth/legacy.ts
 async function upgradePasswordHash(userId, newPassword) {
@@ -1017,7 +1189,115 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
 }
 
 // api-src/auth.ts
-import { createHash, timingSafeEqual } from "crypto";
+import { createHash, randomBytes, timingSafeEqual } from "crypto";
+
+// lib/auditLogger.ts
+init_db();
+async function executeQuery(config) {
+  const result = await query(config.text, config.values);
+  return result.rows;
+}
+var SENSITIVE_PATTERNS = [
+  /password/i,
+  /secret/i,
+  /token/i,
+  /key/i,
+  /credential/i,
+  /auth/i,
+  /hash/i,
+  /salt/i,
+  /bearer/i,
+  /cookie/i,
+  /session_id/i,
+  /refresh/i,
+  /access/i
+];
+var PII_PATTERNS = [
+  /email/i,
+  /phone/i,
+  /address/i,
+  /name/i,
+  /ssn/i,
+  /national_id/i,
+  /passport/i,
+  /birth/i
+];
+function isSensitiveField(fieldName) {
+  return SENSITIVE_PATTERNS.some((pattern) => pattern.test(fieldName));
+}
+function isPIIField(fieldName) {
+  return PII_PATTERNS.some((pattern) => pattern.test(fieldName));
+}
+function sanitizeValue(value) {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  if (typeof value === "string") {
+    return sanitizeError(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map(sanitizeValue);
+  }
+  if (typeof value === "object") {
+    return sanitizeContext(value);
+  }
+  return value;
+}
+function sanitizeContext(context) {
+  if (!context || typeof context !== "object") {
+    return null;
+  }
+  const sanitized = {};
+  for (const [key, value] of Object.entries(context)) {
+    if (isSensitiveField(key)) {
+      sanitized[key] = "[REDACTED]";
+      continue;
+    }
+    if (isPIIField(key)) {
+      sanitized[key] = "[PII_REDACTED]";
+      continue;
+    }
+    sanitized[key] = sanitizeValue(value);
+  }
+  return sanitized;
+}
+async function logAuditEvent(input) {
+  try {
+    const sanitizedInput = {
+      ...input,
+      changes: input.changes ? sanitizeContext(input.changes) || undefined : undefined
+    };
+    await executeQuery(AuditQueries.log(sanitizedInput));
+  } catch (error) {
+    console.error("[AuditLogger] Failed to log audit event:", sanitizeError(error instanceof Error ? error.message : String(error)));
+  }
+}
+
+// api-src/auth.ts
+function deriveFullName(params) {
+  const normalize = (value) => {
+    if (!value)
+      return null;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  };
+  const explicitFullName = normalize(params.full_name);
+  if (explicitFullName)
+    return explicitFullName;
+  const firstName = normalize(params.first_name ?? params.firstName);
+  const lastName = normalize(params.last_name ?? params.lastName);
+  const combinedName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  if (combinedName)
+    return combinedName;
+  const normalizedEmail = normalize(params.email);
+  if (normalizedEmail) {
+    const [localPart] = normalizedEmail.split("@");
+    const cleanLocalPart = normalize(localPart);
+    if (cleanLocalPart)
+      return cleanLocalPart;
+  }
+  return "Student";
+}
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
@@ -1042,12 +1322,129 @@ async function handler(req, res) {
         return await handleRoles(req, res);
       case "profile":
         return await handleProfile(req, res);
+      case "forgot-password":
+        return await handleForgotPassword(req, res);
+      case "reset-password":
+        return await handleResetPassword(req, res);
       default:
-        return sendError(res, "Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email, roles, profile", HttpStatus.BAD_REQUEST);
+        return sendError(res, "Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email, roles, profile, forgot-password, reset-password", HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
   }
+}
+function hashResetToken(token) {
+  return createHash("sha256").update(token).digest("hex");
+}
+function buildResetPasswordLink(token) {
+  const origin = process.env.APP_URL || process.env.FRONTEND_URL || process.env.PUBLIC_URL || "http://localhost:5173";
+  return `${origin.replace(/\/$/, "")}/auth/reset-password?token=${encodeURIComponent(token)}`;
+}
+async function sendPasswordResetEmail(email, fullName, resetLink) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("[AUTH] RESEND_API_KEY not configured, cannot send reset email");
+    return false;
+  }
+  const emailHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2563eb;">Reset your MIHAS account password</h2>
+      <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+        Hello ${fullName || "Student"}, we received a request to reset your account password.
+      </p>
+      <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+        Click the button below to continue. This link will expire in 60 minutes.
+      </p>
+      <p style="margin-top: 20px;">
+        <a href="${resetLink}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+          Reset Password
+        </a>
+      </p>
+      <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">If you didn't request this, you can safely ignore this email.</p>
+    </div>
+  `;
+  const emailResponse = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM || "noreply@mihas.edu.zm",
+      to: email,
+      subject: "Reset your MIHAS password",
+      html: emailHtml
+    })
+  });
+  return emailResponse.ok;
+}
+async function handleForgotPassword(req, res) {
+  if (req.method !== "POST") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const { email } = req.body || {};
+  if (!email || typeof email !== "string") {
+    return sendError(res, "Email is required", HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+  }
+  const normalizedEmail = email.toLowerCase().trim();
+  const userResult = await query(`SELECT id, email, first_name, last_name, full_name
+     FROM profiles WHERE email = $1 AND is_active = true LIMIT 1`, [normalizedEmail]);
+  if (userResult.rows.length > 0) {
+    const user = userResult.rows[0];
+    const rawToken = randomBytes(32).toString("hex");
+    const tokenHash = hashResetToken(rawToken);
+    await query(`UPDATE profiles
+       SET reset_token_hash = $1,
+           reset_token_expires = NOW() + INTERVAL '1 hour',
+           reset_token_used = false,
+           updated_at = NOW()
+       WHERE id = $2`, [tokenHash, user.id]);
+    const resetLink = buildResetPasswordLink(rawToken);
+    const fullName = deriveFullName(user);
+    try {
+      const sent = await sendPasswordResetEmail(user.email, fullName, resetLink);
+      if (!sent) {
+        console.warn("[AUTH] Password reset email delivery failed, should be retried");
+      }
+    } catch {
+      console.warn("[AUTH] Password reset email send threw, should be retried");
+    }
+  }
+  return sendSuccess(res, {
+    message: "If an account with that email exists, a password reset link has been sent."
+  });
+}
+async function handleResetPassword(req, res) {
+  if (req.method !== "POST") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const { token, newPassword } = req.body || {};
+  if (!token || typeof token !== "string" || !newPassword || typeof newPassword !== "string") {
+    return sendError(res, "Token and new password are required", HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+  }
+  if (newPassword.length < 8) {
+    return sendError(res, "Password must be at least 8 characters", HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+  }
+  const tokenHash = hashResetToken(token);
+  const profileResult = await query(`SELECT id FROM profiles
+     WHERE reset_token_hash = $1
+       AND reset_token_expires > NOW()
+       AND reset_token_used = false
+     LIMIT 1`, [tokenHash]);
+  if (profileResult.rows.length === 0) {
+    return sendError(res, "Invalid or expired reset token", HttpStatus.BAD_REQUEST, "INVALID_TOKEN");
+  }
+  const profileId = profileResult.rows[0].id;
+  const hashedPassword = await hashPassword(newPassword);
+  await query(`UPDATE profiles
+     SET password_hash = $1,
+         reset_token_used = true,
+         reset_token_hash = NULL,
+         reset_token_expires = NULL,
+         updated_at = NOW()
+     WHERE id = $2`, [hashedPassword, profileId]);
+  return sendSuccess(res, {
+    message: "Password has been reset successfully."
+  });
 }
 async function handleLogin(req, res) {
   if (req.method !== "POST") {
@@ -1057,7 +1454,7 @@ async function handleLogin(req, res) {
   if (!email || !password) {
     return sendError(res, "Email and password required", HttpStatus.BAD_REQUEST);
   }
-  const result = await query(`SELECT id, email, password_hash, role, first_name, last_name, is_active 
+  const result = await query(`SELECT id, email, password_hash, role, first_name, last_name, full_name, is_active 
      FROM profiles WHERE email = $1 LIMIT 1`, [email.toLowerCase()]);
   if (result.rows.length === 0) {
     return sendError(res, "Invalid credentials", HttpStatus.UNAUTHORIZED);
@@ -1094,7 +1491,9 @@ async function handleLogin(req, res) {
       email: user.email,
       role: user.role,
       firstName: user.first_name,
-      lastName: user.last_name
+      lastName: user.last_name,
+      full_name: deriveFullName(user),
+      permissions
     }
   });
 }
@@ -1170,13 +1569,26 @@ async function handleRegister(req, res) {
   const accessToken = await generateAccessToken(userId, email.toLowerCase(), "student", permissions);
   const refreshToken = await generateRefreshToken(userId);
   setAuthCookies(res, accessToken, refreshToken);
+  try {
+    await logAuditEvent({
+      actor_id: userId,
+      action: "user_registered",
+      entity_type: "user",
+      entity_id: userId,
+      changes: { role: "student", self_registered: true }
+    });
+  } catch (auditError) {
+    console.error("[auth] Failed to create registration audit log:", auditError);
+  }
   return sendSuccess(res, {
     user: {
       id: userId,
       email: email.toLowerCase(),
       role: "student",
       firstName,
-      lastName
+      lastName,
+      full_name: deriveFullName({ firstName, lastName, email }),
+      permissions
     }
   }, HttpStatus.CREATED);
 }
@@ -1187,12 +1599,13 @@ async function handleSession(req, res) {
   }
   try {
     const payload = await verifyAccessToken(token);
-    const result = await query("SELECT id, email, role, first_name, last_name FROM profiles WHERE id = $1", [payload.sub]);
+    const result = await query("SELECT id, email, role, first_name, last_name, full_name FROM profiles WHERE id = $1", [payload.sub]);
     if (result.rows.length === 0) {
       clearAuthCookies(res);
       return sendSuccess(res, { user: null });
     }
     const user = result.rows[0];
+    const permissions = payload.permissions;
     return sendSuccess(res, {
       user: {
         id: user.id,
@@ -1200,7 +1613,8 @@ async function handleSession(req, res) {
         role: user.role,
         firstName: user.first_name,
         lastName: user.last_name,
-        permissions: payload.permissions
+        full_name: deriveFullName(user),
+        permissions
       }
     });
   } catch {
@@ -1214,7 +1628,7 @@ async function handleRefresh(req, res) {
   }
   try {
     const { sub: userId } = await verifyRefreshToken(refreshTokenValue);
-    const result = await query("SELECT id, email, role, first_name, last_name, is_active FROM profiles WHERE id = $1", [userId]);
+    const result = await query("SELECT id, email, role, first_name, last_name, full_name, is_active FROM profiles WHERE id = $1", [userId]);
     if (result.rows.length === 0 || !result.rows[0].is_active) {
       clearAuthCookies(res);
       return sendError(res, "User not found or inactive", HttpStatus.UNAUTHORIZED);
@@ -1230,7 +1644,9 @@ async function handleRefresh(req, res) {
         email: user.email,
         role: user.role,
         firstName: user.first_name,
-        lastName: user.last_name
+        lastName: user.last_name,
+        full_name: deriveFullName(user),
+        permissions
       }
     });
   } catch {
@@ -1285,7 +1701,14 @@ async function handleProfile(req, res) {
         clearAuthCookies(res);
         return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
       }
-      return sendSuccess(res, result2.rows[0]);
+      const profileUser2 = {
+        ...result2.rows[0],
+        full_name: deriveFullName(result2.rows[0])
+      };
+      return sendSuccess(res, {
+        ...profileUser2,
+        user: profileUser2
+      });
     }
     const allowedFields = [
       "first_name",
@@ -1316,7 +1739,14 @@ async function handleProfile(req, res) {
     if (result.rows.length === 0) {
       return sendError(res, "Profile not found", HttpStatus.NOT_FOUND);
     }
-    return sendSuccess(res, result.rows[0]);
+    const profileUser = {
+      ...result.rows[0],
+      full_name: deriveFullName(result.rows[0])
+    };
+    return sendSuccess(res, {
+      ...profileUser,
+      user: profileUser
+    });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "";
     if (msg.includes("expired") || msg.includes("signature") || msg.includes("invalid")) {
@@ -1373,6 +1803,7 @@ async function handleBootstrap(req, res) {
       role: user.role,
       firstName: user.first_name,
       lastName: user.last_name,
+      full_name: deriveFullName(user),
       hadPassword: !!user.password_hash
     }
   });

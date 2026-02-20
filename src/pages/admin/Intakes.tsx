@@ -314,7 +314,7 @@ export default function AdminIntakes() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openEdit(intake)}
-                          className="flex-1 text-primary border-blue-300 hover:bg-primary/5"
+                          className="flex-1 text-primary border-blue-300 hover:bg-primary/5 min-h-[44px]"
                         >
                           <Pencil className="h-4 w-4 mr-1" />
                           Edit
@@ -323,7 +323,7 @@ export default function AdminIntakes() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openDelete(intake)}
-                          className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5"
+                          className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5 min-h-[44px]"
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           Delete
@@ -334,7 +334,8 @@ export default function AdminIntakes() {
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden lg:block overflow-x-auto">
+                <div className="hidden lg:block overflow-x-auto -mx-6">
+                  <div className="inline-block min-w-full px-6">
                   <table className="min-w-full divide-y divide-border">
                     <thead className="bg-gradient-to-r from-muted to-purple-50">
                       <tr>
@@ -422,6 +423,7 @@ export default function AdminIntakes() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </>
             )}

@@ -1,13 +1,20 @@
-﻿/**
+/**
  * useAdminDashboardPolling Hook
  *
  * Provides polling-based data fetching for admin dashboard.
- * Uses API client for data fetching (30-second intervals).
+ * Uses React Query polling (30-second intervals) against the API.
+ *
+ * SSE/Polling Hybrid Strategy:
+ * - Primary transport: React Query polling (reliable on Vercel with 10s function timeout)
+ * - SSE infrastructure exists (lib/realtime.ts, src/lib/sseClient.ts) for future use
+ * - Polling doubles interval when page is hidden (battery-friendly)
+ * - React Query structural sharing prevents re-renders on identical data
+ * - onDataChange callback uses ref pattern to avoid stale closure issues
  *
  * @module hooks/useAdminDashboardPolling
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { apiClient } from '@/services/client'
 
 export interface AdminDashboardStats {
@@ -36,6 +43,14 @@ export interface UseAdminDashboardPollingReturn {
 
 const POLLING_INTERVAL = 30000
 
+/**
+ * Compute a fingerprint of admin stats for deduplication.
+ * If the fingerprint is identical between polls, onDataChange is not fired.
+ */
+function statsFingerprint(stats: AdminDashboardStats): string {
+  return `${stats.totalApplications}:${stats.pendingApplications}:${stats.approvedApplications}:${stats.rejectedApplications}:${stats.todayApplications}:${stats.weekApplications}`
+}
+
 export function useAdminDashboardPolling(
   options: UseAdminDashboardPollingOptions = {}
 ): UseAdminDashboardPollingReturn {
@@ -47,6 +62,12 @@ export function useAdminDashboardPolling(
 
   const queryClient = useQueryClient()
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const previousFingerprintRef = useRef<string | null>(null)
+  const onDataChangeRef = useRef<typeof onDataChange>(onDataChange)
+
+  useEffect(() => {
+    onDataChangeRef.current = onDataChange
+  }, [onDataChange])
 
   const fetchStats = useCallback(async (): Promise<AdminDashboardStats> => {
     try {
@@ -86,11 +107,18 @@ export function useAdminDashboardPolling(
   })
 
   useEffect(() => {
-    if (query.data) {
-      setLastUpdated(new Date())
-      onDataChange?.(query.data)
+    if (!query.data) return
+
+    const fp = statsFingerprint(query.data)
+    if (fp === previousFingerprintRef.current) {
+      // Identical data — skip callback and timestamp update
+      return
     }
-  }, [query.data, onDataChange])
+
+    previousFingerprintRef.current = fp
+    setLastUpdated(new Date())
+    onDataChangeRef.current?.(query.data)
+  }, [query.data])
 
   const refresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })

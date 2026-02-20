@@ -13,13 +13,16 @@ import {
   AuthSessionResponseSchema,
 } from '../unit/contracts/schemas'
 
+// Use integer timestamps to avoid Invalid Date from fast-check's fc.date()
+const validDate = fc.integer({ min: 946684800000, max: 4102444800000 }).map(ts => new Date(ts).toISOString())
+
 const validApplication = fc.record({
   id: fc.uuid(),
   application_number: fc.string({ minLength: 1, maxLength: 20 }),
   status: fc.constantFrom('draft', 'submitted', 'under_review', 'approved', 'rejected'),
   program: fc.option(fc.string({ minLength: 1, maxLength: 30 }), { nil: null }),
   payment_status: fc.option(fc.constantFrom('pending_review', 'verified', 'rejected'), { nil: null }),
-  created_at: fc.date().map(d => d.toISOString()),
+  created_at: validDate,
 })
 
 describe('Property 7: Contract schema validation accepts valid and rejects invalid', () => {
@@ -56,7 +59,7 @@ describe('Property 7: Contract schema validation accepts valid and rejects inval
       action: fc.constantFrom('login', 'logout', 'create', 'update', 'delete'),
       entity_type: fc.constantFrom('user', 'application', 'document'),
       entity_id: fc.uuid(),
-      created_at: fc.date().map(d => d.toISOString()),
+      created_at: validDate,
     })
 
     fc.assert(

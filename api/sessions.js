@@ -942,6 +942,24 @@ async function deactivateOtherSessions(userId, currentSessionId, ipAddress = nul
   return { success: true, deactivatedCount: result.rowCount, sessionIds };
 }
 
+// lib/realtimeBroker.ts
+var userEvents = new Map;
+var seenEventIds = new Set;
+var deliveryLatencyTotal = 0;
+function pollRealtimeEvents(userId, lastEventId) {
+  const list = userEvents.get(userId) || [];
+  if (!lastEventId)
+    return list.slice(-25);
+  const index = list.findIndex((event) => event.event_id === lastEventId);
+  if (index === -1)
+    return list.slice(-25);
+  return list.slice(index + 1);
+}
+function recordDeliveryLatency(createdAtIso) {
+  const latency = Math.max(0, Date.now() - new Date(createdAtIso).getTime());
+  deliveryLatencyTotal += latency;
+}
+
 // api-src/sessions.ts
 async function getUserFromRequest(req) {
   const token = extractAccessTokenFromCookie(req) || extractBearerToken(req);
@@ -974,12 +992,49 @@ async function handler(req, res) {
         return await handleRevoke(req, res, auth.userId, ipAddress, userAgent);
       case "revoke-all":
         return await handleRevokeAll(req, res, auth.userId, auth.sessionId, ipAddress, userAgent);
+      case "connect":
+        return await handleConnect(req, res, auth.userId);
+      case "poll":
+        return await handlePoll(req, res, auth.userId);
       default:
-        return sendError(res, "Invalid action. Use: list, track, revoke, revoke-all", HttpStatus.BAD_REQUEST);
+        return sendError(res, "Invalid action. Use: list, track, revoke, revoke-all, connect, poll", HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error, "sessions");
   }
+}
+async function handleConnect(req, res, userId) {
+  if (req.method !== "GET") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const events = pollRealtimeEvents(userId);
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  for (const event of events) {
+    recordDeliveryLatency(event.created_at);
+    res.write(`id: ${event.event_id}
+`);
+    res.write(`event: ${event.event_type}
+`);
+    res.write(`data: ${JSON.stringify(event)}
+
+`);
+  }
+  res.write(`event: ping
+data: ${JSON.stringify({ created_at: new Date().toISOString() })}
+
+`);
+  res.end();
+}
+async function handlePoll(req, res, userId) {
+  if (req.method !== "GET") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const lastEventId = req.query.lastEventId;
+  const events = pollRealtimeEvents(userId, lastEventId);
+  events.forEach((event) => recordDeliveryLatency(event.created_at));
+  return sendSuccess(res, { events });
 }
 async function handleList(req, res, userId, currentSessionId) {
   if (req.method !== "GET") {

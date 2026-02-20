@@ -179,62 +179,19 @@ class MaintenanceService {
     }
   }
 
+  /**
+   * Update checking is not implemented — the system is deployed via Vercel
+   * and updates are applied through git push. This method is a no-op.
+   */
   async checkForUpdates(): Promise<UpdateInfo | null> {
-    try {
-      const currentVersion = '1.0.0'
-      const latestVersion = '1.0.1'
-      
-      if (this.compareVersions(currentVersion, latestVersion) < 0) {
-        return {
-          version: latestVersion,
-          releaseDate: new Date(),
-          features: ['Improved performance', 'New monitoring dashboard'],
-          fixes: ['Fixed file upload issue', 'Resolved authentication bug'],
-          breaking: false
-        }
-      }
-      
-      return null
-    } catch (error) {
-      console.error('Failed to check for updates:', error)
-      return null
-    }
+    return null
   }
 
-  private compareVersions(version1: string, version2: string): number {
-    const v1Parts = version1.split('.').map(Number)
-    const v2Parts = version2.split('.').map(Number)
-    
-    for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-      const v1Part = v1Parts[i] || 0
-      const v2Part = v2Parts[i] || 0
-      
-      if (v1Part < v2Part) return -1
-      if (v1Part > v2Part) return 1
-    }
-    
-    return 0
-  }
-
-  async scheduleUpdate(version: string, scheduledTime: Date) {
-    try {
-      // Fire-and-forget — schedule update via admin API
-      await apiClient.request('/admin?action=schedule-update', {
-        method: 'POST',
-        body: JSON.stringify({
-          version,
-          scheduled_time: scheduledTime.toISOString(),
-          status: 'scheduled'
-        })
-      })
-      
-      monitoring.createAlert('info', 
-        `System update to v${version} scheduled for ${scheduledTime.toLocaleString()}`,
-        { version, scheduledTime: scheduledTime.toISOString() }
-      )
-    } catch (error) {
-      console.error('Failed to schedule update:', error)
-    }
+  /**
+   * Update scheduling is not implemented — Vercel handles deployments.
+   */
+  async scheduleUpdate(_version: string, _scheduledTime: Date) {
+    // No-op: Vercel deployments are triggered by git push
   }
 }
 

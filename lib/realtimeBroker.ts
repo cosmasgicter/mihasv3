@@ -1,4 +1,4 @@
-type RealtimeEventType = 'application_update' | 'notification' | 'dashboard_refresh'
+type RealtimeEventType = 'application_update' | 'notification' | 'dashboard_refresh' | 'payment_update' | 'interview_scheduled'
 
 export interface RealtimeEventEnvelope {
   event_id: string

@@ -1,4 +1,4 @@
-import { apiClient } from '@/services/client'
+import { applicationService } from '@/services/applications'
 
 export interface DuplicateCheckResult {
   hasDuplicate: boolean
@@ -13,30 +13,33 @@ export async function checkDuplicateApplication(
   intake: string
 ): Promise<DuplicateCheckResult> {
   try {
-    const { data, error } = await supabase
-      .from('applications')
-      .select('id, status, application_number')
-      .eq('id', userId)
-      .eq('program', programId)
-      .eq('intake', intake)
-      .in('status', ['submitted', 'under_review', 'approved'])
-      .limit(1)
-      .maybeSingle()
+    // Fetch user's own applications and check for duplicates client-side
+    const result = await applicationService.list({
+      mine: true,
+      status: 'submitted,under_review,approved',
+    })
 
-    if (error) throw error
+    const applications = result?.applications ?? []
 
-    if (data) {
+    const duplicate = applications.find(
+      (app: any) =>
+        (app.program === programId || app.program_id === programId) &&
+        (app.intake === intake || app.intake_id === intake)
+    )
+
+    if (duplicate) {
       return {
         hasDuplicate: true,
-        existingApplicationId: data.id,
-        existingStatus: data.status,
-        message: `You already have a ${data.status} application (#${data.application_number}) for this program and intake.`
+        existingApplicationId: duplicate.id,
+        existingStatus: duplicate.status,
+        message: `You already have a ${duplicate.status} application (#${duplicate.application_number || duplicate.id?.slice(0, 8)}) for this program and intake.`,
       }
     }
 
     return { hasDuplicate: false }
   } catch (error) {
     console.error('Duplicate check error:', error)
+    // Non-blocking — allow the student to proceed
     return { hasDuplicate: false }
   }
 }

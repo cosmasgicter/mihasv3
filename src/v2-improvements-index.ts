@@ -94,16 +94,7 @@ export {
   smartMatchingService
 } from './utils/smart-matching'
 
-export {
-  QueryOptimizer,
-  ConnectionPool,
-  QueryMonitor,
-  DatabaseHealthChecker,
-  connectionPool,
-  queryOptimizer,
-  queryMonitor,
-  dbHealthChecker
-} from './utils/database-optimization'
+// database-optimization utilities removed — Supabase-dependent stubs deleted
 
 // Types
 export type {

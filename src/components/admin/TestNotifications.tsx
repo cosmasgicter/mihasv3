@@ -17,7 +17,8 @@ export function TestNotifications() {
     
     try {
       // Get users via new API client
-      const usersData = await apiClient.request<any[]>('/admin?action=users&role=student&limit=1')
+      const usersResponse = await apiClient.request<{ users?: Array<Record<string, any>> }>('/admin?action=users&role=student&limit=1')
+      const usersData = usersResponse?.users
       
       if (!usersData || !Array.isArray(usersData) || usersData.length === 0) {
         setMessage('No student users found to test with')

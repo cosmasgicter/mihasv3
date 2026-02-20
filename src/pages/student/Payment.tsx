@@ -253,7 +253,7 @@ export default function PaymentPage() {
               {/* @requirements 1.3 - Button to navigate to Application Wizard */}
               <Button 
                 onClick={handleContinueToWizard}
-                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 min-h-[44px]"
               >
                 Continue to Application Wizard
                 <ArrowRight className="h-4 w-4 ml-2" />
@@ -281,13 +281,13 @@ export default function PaymentPage() {
                     return (
                       <div 
                         key={app.id}
-                        className="flex items-center justify-between p-3 rounded-lg border border-warning/30 bg-warning/5 hover:bg-warning/10 transition-colors"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-warning/30 bg-warning/5 hover:bg-warning/10 transition-colors"
                       >
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-foreground truncate">
                             {app.program || 'Application'}
                           </p>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
                             <Badge variant={statusDisplay.variant} className="flex items-center gap-1">
                               {statusDisplay.icon}
                               {statusDisplay.label}
@@ -302,7 +302,7 @@ export default function PaymentPage() {
                           variant="outline" 
                           size="sm"
                           onClick={() => handleViewApplication(app.id)}
-                          className="ml-3 flex-shrink-0"
+                          className="flex-shrink-0 min-h-[44px] w-full sm:w-auto"
                         >
                           View Application
                         </Button>
@@ -339,7 +339,7 @@ export default function PaymentPage() {
                       return (
                         <div 
                           key={app.id}
-                          className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                          className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border transition-colors ${
                             isVerified 
                               ? 'border-success/30 bg-success/5 hover:bg-success/10' 
                               : 'border-destructive/30 bg-destructive/5 hover:bg-destructive/10'
@@ -349,7 +349,7 @@ export default function PaymentPage() {
                             <p className="font-medium text-foreground truncate">
                               {app.program || 'Application'}
                             </p>
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
                               {/* @requirements 2.3 - Success indicator for verified */}
                               {/* @requirements 2.4 - Rejection indicator for rejected */}
                               <Badge variant={statusDisplay.variant} className="flex items-center gap-1">
@@ -373,7 +373,7 @@ export default function PaymentPage() {
                             variant="outline" 
                             size="sm"
                             onClick={() => handleViewApplication(app.id)}
-                            className="ml-3 flex-shrink-0"
+                            className="flex-shrink-0 min-h-[44px] w-full sm:w-auto"
                           >
                             View
                           </Button>
