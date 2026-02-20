@@ -39,9 +39,9 @@ if (!ARCJET_KEY) {
   console.error("[ARCJET] Security layer DISABLED - set ARCJET_KEY immediately");
 }
 var rateLimitConfigs = {
-  auth: { window: "5m", max: 20 },
+  auth: { window: "5m", max: 60 },
   session: { window: "10m", max: 30 },
-  admin: { window: "10m", max: 20 },
+  admin: { window: "10m", max: 60 },
   notification: { window: "10m", max: 50 },
   general: { window: "10m", max: 100 }
 };
@@ -546,7 +546,7 @@ var SessionQueries = {
       )
       VALUES (
         $1, $2, $3, $4, $5,
-        true, NOW(), NOW(), NOW() + INTERVAL '30 days'
+        true, NOW(), NOW(), NOW() + INTERVAL '1 hour'
       )
       RETURNING id, user_id, is_active, last_activity, created_at, expires_at
     `,
@@ -623,7 +623,7 @@ var SessionQueries = {
       UPDATE device_sessions
       SET is_active = false
       WHERE is_active = true 
-        AND (expires_at < NOW() OR last_activity < NOW() - INTERVAL '30 days')
+        AND (expires_at < NOW() OR last_activity < NOW() - INTERVAL '1 hour')
       RETURNING id, user_id
     `,
     values: []

@@ -754,18 +754,23 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
     if (req.method === 'GET') {
       const result = await query<{
         id: string;
+        full_name: string | null;
         first_name: string | null;
         last_name: string | null;
         email: string | null;
         phone: string | null;
         role: UserRole;
         date_of_birth: string | null;
+        sex: string | null;
+        residence_town: string | null;
         nationality: string | null;
         nrc_number: string | null;
         address: string | null;
         avatar_url: string | null;
+        next_of_kin_name: string | null;
+        next_of_kin_phone: string | null;
       }>(
-        `SELECT id, first_name, last_name, email, phone, role, date_of_birth, nationality, nrc_number, address, avatar_url
+        `SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
          FROM profiles WHERE id = $1 LIMIT 1`,
         [payload.sub]
       );
@@ -787,14 +792,19 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
     }
 
     const allowedFields = [
+      'full_name',
       'first_name',
       'last_name',
       'phone',
       'date_of_birth',
+      'sex',
+      'residence_town',
       'nationality',
       'nrc_number',
       'address',
       'avatar_url',
+      'next_of_kin_name',
+      'next_of_kin_phone',
     ] as const;
 
     type AllowedField = typeof allowedFields[number];
@@ -802,6 +812,14 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       (allowedFields as readonly string[]).includes(key);
 
     const updates = req.body || {};
+
+    // If full_name is provided, also split into first_name/last_name for backward compat
+    if (updates.full_name && typeof updates.full_name === 'string') {
+      const parts = updates.full_name.trim().split(/\s+/);
+      if (!updates.first_name) updates.first_name = parts[0] || null;
+      if (!updates.last_name) updates.last_name = parts.slice(1).join(' ') || null;
+    }
+
     const providedFields = Object.keys(updates).filter(isAllowedField);
 
     if (providedFields.length === 0) {
@@ -818,21 +836,26 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
 
     const result = await query<{
       id: string;
+      full_name: string | null;
       first_name: string | null;
       last_name: string | null;
       email: string | null;
       phone: string | null;
       role: UserRole;
       date_of_birth: string | null;
+      sex: string | null;
+      residence_town: string | null;
       nationality: string | null;
       nrc_number: string | null;
       address: string | null;
       avatar_url: string | null;
+      next_of_kin_name: string | null;
+      next_of_kin_phone: string | null;
     }>(
       `UPDATE profiles
        SET ${setClauses.join(', ')}, updated_at = NOW()
        WHERE id = $${providedFields.length + 1}
-       RETURNING id, first_name, last_name, email, phone, role, date_of_birth, nationality, nrc_number, address, avatar_url`,
+       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`,
       values
     );
 

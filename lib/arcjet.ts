@@ -49,12 +49,12 @@ if (!ARCJET_KEY) {
  */
 export const rateLimitConfigs = {
   /**
-   * Auth routes: Strict limits to prevent brute force
-   * - 20 requests per 5 minutes per IP
-   * - Blocks credential stuffing attacks
-   * Requirement: 2.7 (auth routes: 20 requests per 5 minutes)
+   * Auth routes: Moderate limits to prevent brute force while allowing normal usage
+   * - 60 requests per 5 minutes per IP
+   * - Accommodates token refresh cycles + normal login/logout
+   * Requirement: 2.7 (auth routes: 60 requests per 5 minutes)
    */
-  auth: { window: "5m", max: 20 },
+  auth: { window: "5m", max: 60 },
 
   /**
    * Session routes: Moderate limits
@@ -65,12 +65,12 @@ export const rateLimitConfigs = {
   session: { window: "10m", max: 30 },
 
   /**
-   * Admin routes: Strict limits, authenticated users only
-   * - 20 requests per 10 minutes
-   * - Extra protection for sensitive operations
-   * Requirement: 2.7 (admin routes: 20 per 10 minutes)
+   * Admin routes: Moderate limits, authenticated users only
+   * - 60 requests per 10 minutes
+   * - Allows active admin dashboard usage
+   * Requirement: 2.7 (admin routes: 60 per 10 minutes)
    */
-  admin: { window: "10m", max: 20 },
+  admin: { window: "10m", max: 60 },
 
   /**
    * Notification routes: Moderate limits

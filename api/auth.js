@@ -891,9 +891,9 @@ if (!ARCJET_KEY) {
   console.error("[ARCJET] Security layer DISABLED - set ARCJET_KEY immediately");
 }
 var rateLimitConfigs = {
-  auth: { window: "5m", max: 20 },
+  auth: { window: "5m", max: 60 },
   session: { window: "10m", max: 30 },
-  admin: { window: "10m", max: 20 },
+  admin: { window: "10m", max: 60 },
   notification: { window: "10m", max: 50 },
   general: { window: "10m", max: 100 }
 };
@@ -1711,7 +1711,7 @@ async function handleProfile(req, res) {
   try {
     const payload = await verifyAccessToken(token);
     if (req.method === "GET") {
-      const result2 = await query(`SELECT id, first_name, last_name, email, phone, role, date_of_birth, nationality, nrc_number, address, avatar_url
+      const result2 = await query(`SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
          FROM profiles WHERE id = $1 LIMIT 1`, [payload.sub]);
       if (result2.rows.length === 0) {
         clearAuthCookies(res);
@@ -1727,17 +1727,29 @@ async function handleProfile(req, res) {
       });
     }
     const allowedFields = [
+      "full_name",
       "first_name",
       "last_name",
       "phone",
       "date_of_birth",
+      "sex",
+      "residence_town",
       "nationality",
       "nrc_number",
       "address",
-      "avatar_url"
+      "avatar_url",
+      "next_of_kin_name",
+      "next_of_kin_phone"
     ];
     const isAllowedField = (key) => allowedFields.includes(key);
     const updates = req.body || {};
+    if (updates.full_name && typeof updates.full_name === "string") {
+      const parts = updates.full_name.trim().split(/\s+/);
+      if (!updates.first_name)
+        updates.first_name = parts[0] || null;
+      if (!updates.last_name)
+        updates.last_name = parts.slice(1).join(" ") || null;
+    }
     const providedFields = Object.keys(updates).filter(isAllowedField);
     if (providedFields.length === 0) {
       return sendError(res, "No valid fields to update", HttpStatus.BAD_REQUEST);
@@ -1751,7 +1763,7 @@ async function handleProfile(req, res) {
     const result = await query(`UPDATE profiles
        SET ${setClauses.join(", ")}, updated_at = NOW()
        WHERE id = $${providedFields.length + 1}
-       RETURNING id, first_name, last_name, email, phone, role, date_of_birth, nationality, nrc_number, address, avatar_url`, values);
+       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`, values);
     if (result.rows.length === 0) {
       return sendError(res, "Profile not found", HttpStatus.NOT_FOUND);
     }

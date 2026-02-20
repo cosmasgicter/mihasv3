@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Home, FileText, Bell, User, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, FileSearch, TrendingUp } from 'lucide-react'
+import { Home, FileText, Bell, User, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, FileSearch, TrendingUp, CreditCard } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
@@ -9,13 +9,19 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
   const location = useLocation()
   const { user, isAdmin } = useAuth()
   const [showMoreMenu, setShowMoreMenu] = useState(false)
+  const [showStudentMore, setShowStudentMore] = useState(false)
 
   if (!user) return null
 
-  const studentLinks = [
+  const studentMainLinks = [
     { to: '/student/dashboard', icon: Home, label: 'Home' },
     { to: '/apply', icon: FileText, label: 'Apply' },
     { to: '/student/notifications', icon: Bell, label: 'Alerts' },
+  ]
+
+  const studentMoreLinks = [
+    { to: '/student/payment', icon: CreditCard, label: 'Payments' },
+    { to: '/student/interview', icon: Calendar, label: 'Interviews' },
     { to: '/student/profile', icon: User, label: 'Profile' },
   ]
 
@@ -51,7 +57,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
     },
   ]
 
-  const links = isAdmin ? adminMainLinks : studentLinks
+  const links = isAdmin ? adminMainLinks : studentMainLinks
 
   const renderLink = ({ to, icon: Icon, label }: any) => {
     const isActive = location.pathname === to
@@ -94,33 +100,67 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
       >
         <div className="flex justify-around items-center h-16 px-2">
           {links.map(renderLink)}
-          {isAdmin && (
-            <button
-              onClick={() => setShowMoreMenu(!showMoreMenu)}
-              aria-label="More options"
-              aria-expanded={showMoreMenu}
-              aria-haspopup="menu"
-              className={cn(
-                "relative flex flex-col items-center justify-center flex-1 h-full group touch-target",
-                "min-h-[44px] min-w-[44px] px-2"
-              )}
-            >
-              <MoreHorizontal className="h-5 w-5 text-foreground group-hover:text-primary transition-all duration-300" />
-              <span className="text-xs mt-1 text-foreground group-hover:text-primary transition-all duration-300">More</span>
-            </button>
-          )}
+          <button
+            onClick={() => isAdmin ? setShowMoreMenu(!showMoreMenu) : setShowStudentMore(!showStudentMore)}
+            aria-label="More options"
+            aria-expanded={isAdmin ? showMoreMenu : showStudentMore}
+            aria-haspopup="menu"
+            className={cn(
+              "relative flex flex-col items-center justify-center flex-1 h-full group touch-target",
+              "min-h-[44px] min-w-[44px] px-2"
+            )}
+          >
+            <MoreHorizontal className="h-5 w-5 text-foreground group-hover:text-primary transition-all duration-300" />
+            <span className="text-xs mt-1 text-foreground group-hover:text-primary transition-all duration-300">More</span>
+          </button>
         </div>
       </nav>
+
+      {!isAdmin && showStudentMore && (
+        <>
+          <div 
+            onClick={() => setShowStudentMore(false)}
+            onKeyDown={(e) => { if (e.key === 'Escape') setShowStudentMore(false) }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close more menu"
+            className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 animate-fade-in"
+          />
+          <div 
+            className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-2xl shadow-lg border border-border z-50 overflow-hidden animate-fade-in"
+            role="menu"
+            aria-label="Additional student options"
+          >
+            <div className="py-2">
+              {studentMoreLinks.map(({ to, icon: Icon, label }) => {
+                const isActive = location.pathname === to
+                return (
+                  <Link 
+                    key={to} 
+                    to={to} 
+                    onClick={() => setShowStudentMore(false)}
+                    role="menuitem"
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 transition-colors touch-target",
+                      "min-h-[44px]",
+                      isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-accent"
+                    )}
+                  >
+                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <span className="text-sm">{label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
       {isAdmin && showMoreMenu && (
         <>
           <div 
             onClick={() => setShowMoreMenu(false)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') {
-                setShowMoreMenu(false)
-              }
-            }}
+            onKeyDown={(e) => { if (e.key === 'Escape') setShowMoreMenu(false) }}
             role="button"
             tabIndex={0}
             aria-label="Close more menu"
@@ -148,9 +188,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                         className={cn(
                           "flex items-center gap-3 px-3 py-3 transition-colors touch-target",
                           "min-h-[44px]",
-                          isActive 
-                            ? "bg-primary/10 text-primary font-medium" 
-                            : "text-foreground hover:bg-accent"
+                          isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-accent"
                         )}
                       >
                         <Icon className="h-5 w-5 flex-shrink-0" />
@@ -167,4 +205,3 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
     </>
   )
 })
-
