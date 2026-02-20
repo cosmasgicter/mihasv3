@@ -16,12 +16,33 @@ interface DeviceSession {
   created_at: string
 }
 
+const isDeviceSession = (value: unknown): value is DeviceSession => {
+  if (!value || typeof value !== 'object') return false
+
+  const session = value as Partial<DeviceSession>
+
+  return (
+    typeof session.id === 'string' &&
+    typeof session.device_id === 'string' &&
+    typeof session.device_info === 'string' &&
+    typeof session.last_activity === 'string' &&
+    typeof session.is_active === 'boolean' &&
+    typeof session.created_at === 'string'
+  )
+}
+
+const getValidSessions = (value: unknown): DeviceSession[] => {
+  if (!Array.isArray(value)) return []
+  return value.filter(isDeviceSession)
+}
+
 export function ActiveSessions() {
   const { user } = useAuth()
   const [sessions, setSessions] = useState<DeviceSession[]>([])
   const [loading, setLoading] = useState(true)
   const [terminating, setTerminating] = useState<string | null>(null)
   const [terminatingAll, setTerminatingAll] = useState(false)
+  const [hasSessionAccessIssue, setHasSessionAccessIssue] = useState(false)
   const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const { addToast } = useToastStore()
 
@@ -34,17 +55,27 @@ export function ActiveSessions() {
       const response = await fetch('/api/sessions?action=list', {
         credentials: 'include'
       })
+
+      if (response.status === 401) {
+        setSessions([])
+        setHasSessionAccessIssue(true)
+        return
+      }
       
       if (!response.ok) {
         setSessions([])
+        setHasSessionAccessIssue(false)
         return
       }
       
       const result = await response.json()
-      setSessions(result.data || [])
+      const parsedSessions = getValidSessions(result?.data?.sessions ?? [])
+      setSessions(parsedSessions)
+      setHasSessionAccessIssue(!Array.isArray(result?.data?.sessions))
     } catch (error) {
       console.error('Failed to load sessions:', error)
       setSessions([])
+      setHasSessionAccessIssue(false)
     } finally {
       setLoading(false)
     }
@@ -60,19 +91,23 @@ export function ActiveSessions() {
     }
   }, [user, loadSessions])
 
-  const terminateSession = async (deviceId: string) => {
+  const terminateSession = async (sessionId: string) => {
     if (!user) return
     
     try {
-      setTerminating(deviceId)
+      setTerminating(sessionId)
       
-      const response = await fetch(`/api/sessions?action=revoke&device_id=${deviceId}`, {
-        method: 'DELETE',
-        credentials: 'include'
+      const response = await fetch('/api/sessions?action=revoke', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ sessionId })
       })
       
       if (response.ok) {
-        setSessions(prev => prev.filter(s => s.device_id !== deviceId))
+        setSessions(prev => prev.filter(s => s.id !== sessionId))
       }
     } catch (error) {
       console.error('Failed to terminate session:', error)
@@ -149,6 +184,12 @@ export function ActiveSessions() {
   return (
     <Card className="p-4">
       <h3 className="text-lg font-semibold mb-4">Active Sessions</h3>
+
+      {hasSessionAccessIssue && (
+        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Session details are temporarily unavailable. Your current session remains active.
+        </div>
+      )}
       
       {sessions.length === 0 ? (
         <div className="text-center py-4">
@@ -194,11 +235,11 @@ export function ActiveSessions() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => terminateSession(session.device_id)}
-                    disabled={terminating === session.device_id}
+                    onClick={() => terminateSession(session.id)}
+                    disabled={terminating === session.id}
                     className="text-destructive hover:text-error hover:bg-destructive/5"
                   >
-                    {terminating === session.device_id ? 'Terminating...' : 'Terminate'}
+                    {terminating === session.id ? 'Terminating...' : 'Terminate'}
                   </Button>
                 )}
               </div>
