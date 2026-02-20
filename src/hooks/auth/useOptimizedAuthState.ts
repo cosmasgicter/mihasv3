@@ -11,20 +11,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile } from '@/types/auth'
 import { CACHE_CONFIG } from '@/hooks/queries/useSupabaseQuery'
 import { getDisplayName } from '@/utils/userDisplayName'
-
-/**
- * Helper for authenticated API calls using HTTP-only cookies
- */
-async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
+import { authRequest } from '@/services/authController'
 
 interface AuthState {
   user: User | null
@@ -55,17 +42,8 @@ function useSessionQuery() {
   return useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const response = await authFetch('/api/auth?action=session')
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          return null
-        }
-        throw new Error(`Session error: ${response.statusText}`)
-      }
-
-      const result = await response.json()
-      return normalizeSessionResult(result)
+      const result = await authRequest<{ user: User }>('/api/auth?action=session')
+      return result.success ? result.data ?? null : null
     },
     staleTime: CACHE_CONFIG.auth.staleTime, // 10 minutes
     gcTime: CACHE_CONFIG.auth.gcTime, // 30 minutes
@@ -86,15 +64,9 @@ function useProfileQuery(user: User | null) {
     queryFn: async () => {
       if (!user?.id) return null
 
-      const response = await authFetch('/api/auth?action=profile')
-
-      if (!response.ok) {
-        if (response.status === 401) return null
-        throw new Error(`Profile error: ${response.statusText}`)
-      }
-
-      const result = await response.json()
-      return (result?.data?.user ?? result?.data ?? null) as UserProfile | null
+      const result = await authRequest<UserProfile | { user?: UserProfile }>('/api/auth?action=profile')
+      if (!result.success) return null
+      return (result?.data as { user?: UserProfile })?.user ?? (result.data as UserProfile) ?? null
     },
   })
 }
