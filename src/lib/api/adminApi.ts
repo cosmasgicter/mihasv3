@@ -48,14 +48,87 @@ export async function parseJsonResponse<T>(response: Response): Promise<T> {
 
 export interface SystemSetting {
   id: string;
-  setting_key: string;
-  setting_value: string;
-  setting_type: 'string' | 'integer' | 'decimal' | 'boolean';
+  key: string;
+  value: string;
   description: string | null;
+  category: string | null;
   is_public: boolean;
   updated_by: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface BackendSystemSetting {
+  id: string;
+  key: string;
+  value: unknown;
+  description: string | null;
+  category: string | null;
+  is_public: boolean;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SystemSettingPayload {
+  key: string;
+  value: string;
+  description?: string | null;
+  category?: string | null;
+  is_public?: boolean;
+}
+
+
+interface LegacySystemSettingPayload {
+  setting_key?: string;
+  setting_value?: string;
+  category?: string | null;
+  description?: string | null;
+  is_public?: boolean;
+}
+
+function normalizeSettingValue(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (typeof parsed === 'string' || typeof parsed === 'number' || typeof parsed === 'boolean') {
+        return String(parsed);
+      }
+      return value;
+    } catch {
+      return value;
+    }
+  }
+
+  return typeof value === 'object' ? JSON.stringify(value) : String(value);
+}
+
+
+function toSystemSettingPayload(
+  setting: Partial<SystemSettingPayload> | LegacySystemSettingPayload
+): Partial<SystemSettingPayload> {
+  return {
+    key: 'key' in setting ? setting.key : setting.setting_key,
+    value: 'value' in setting ? setting.value : setting.setting_value,
+    description: setting.description,
+    category: setting.category,
+    is_public: setting.is_public,
+  };
+}
+
+function mapBackendSetting(setting: BackendSystemSetting): SystemSetting {
+  return {
+    id: setting.id,
+    key: setting.key,
+    value: normalizeSettingValue(setting.value),
+    description: setting.description,
+    category: setting.category,
+    is_public: setting.is_public,
+    updated_by: setting.updated_by,
+    created_at: setting.created_at,
+    updated_at: setting.updated_at,
+  };
 }
 
 /**
@@ -87,20 +160,28 @@ async function adminFetch<T>(
 }
 
 export async function fetchSettings(): Promise<SystemSetting[]> {
-  const result = await adminFetch<SystemSetting[]>(
+  const result = await adminFetch<{ settings?: BackendSystemSetting[] }>(
     `${getApiBaseUrl()}/api/admin?action=settings`
   );
-  return result.data || [];
+
+  return result.data?.settings?.map(mapBackendSetting) || [];
 }
 
 export async function createSetting(
-  setting: Omit<SystemSetting, 'id' | 'created_at' | 'updated_at' | 'updated_by'>
+  setting: SystemSettingPayload | LegacySystemSettingPayload
 ): Promise<boolean> {
+  const payload = toSystemSettingPayload(setting);
   const result = await adminFetch(
     `${getApiBaseUrl()}/api/admin?action=settings`,
     {
       method: 'POST',
-      body: JSON.stringify(setting),
+      body: JSON.stringify({
+        key: payload.key,
+        value: payload.value,
+        description: payload.description,
+        category: payload.category,
+        is_public: payload.is_public ?? false,
+      }),
     }
   );
   return result.ok;
@@ -108,31 +189,39 @@ export async function createSetting(
 
 export async function updateSetting(
   id: string,
-  updates: Partial<SystemSetting>
+  updates: Partial<SystemSettingPayload | LegacySystemSettingPayload>
 ): Promise<boolean> {
+  const payload = toSystemSettingPayload(updates);
   const result = await adminFetch(
     `${getApiBaseUrl()}/api/admin?action=settings`,
     {
       method: 'PUT',
-      body: JSON.stringify({ id, ...updates }),
+      body: JSON.stringify({
+        id,
+        key: payload.key,
+        value: payload.value,
+        description: payload.description,
+        category: payload.category,
+        is_public: payload.is_public,
+      }),
     }
   );
   return result.ok;
 }
 
-export async function deleteSetting(id: string): Promise<boolean> {
+export async function deleteSetting(id: string, key?: string): Promise<boolean> {
   const result = await adminFetch(
     `${getApiBaseUrl()}/api/admin?action=settings`,
     {
       method: 'DELETE',
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id, key }),
     }
   );
   return result.ok;
 }
 
 export async function importSettings(
-  settings: Omit<SystemSetting, 'id' | 'created_at' | 'updated_at' | 'updated_by'>[]
+  settings: Array<SystemSettingPayload | LegacySystemSettingPayload>
 ): Promise<{ success: boolean; imported?: string[]; errors?: string[]; message?: string }> {
   try {
     const response = await fetch(
@@ -141,7 +230,7 @@ export async function importSettings(
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings }),
+        body: JSON.stringify({ settings: settings.map(toSystemSettingPayload) }),
       }
     );
 
