@@ -54,7 +54,7 @@ const PaymentStep = ({
   return (
     <div
       key="step3"
-      className={`bg-card rounded-lg shadow-lg p-6 border border-border ${animateClasses.fadeIn}`}
+      className={`bg-card rounded-lg shadow-lg p-4 sm:p-6 border border-border ${animateClasses.fadeIn}`}
       data-testid="payment-step"
     >
       <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
@@ -63,9 +63,9 @@ const PaymentStep = ({
         <div
           className={`bg-gradient-to-r from-blue-50 to-green-50 border border-primary/30 rounded-lg p-4 ${animateClasses.scaleIn}`}
         >
-          <div className="flex items-center mb-3">
+          <div className="flex items-start sm:items-center mb-3">
             <CreditCard className="h-5 w-5 text-primary mr-2" />
-            <h3 className="text-md font-medium text-primary-foreground">
+            <h3 className="text-sm sm:text-md font-medium text-primary-foreground leading-snug">
               Payment Required - Multiple Options Available
             </h3>
           </div>
@@ -107,7 +107,7 @@ const PaymentStep = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <div style={staggerChild(0)}>
             <FormSelect
               name="payment_method"

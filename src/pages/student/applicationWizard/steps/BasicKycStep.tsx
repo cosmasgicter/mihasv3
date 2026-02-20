@@ -64,10 +64,10 @@ const BasicKycStep = ({
   return (
     <div
       key="step1"
-      className={`bg-card rounded-lg shadow-lg p-6 border border-border ${shouldAnimate ? animateClasses.fadeIn : ''}`}
+      className={`bg-card rounded-lg shadow-lg p-4 sm:p-6 border border-border ${shouldAnimate ? animateClasses.fadeIn : ''}`}
       data-testid="basic-kyc-step"
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
         {hasAutoPopulatedData && (
           <ProfileCompletionBadge completionPercentage={completionPercentage} />
@@ -88,7 +88,7 @@ const BasicKycStep = ({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <div className="lg:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
           <AnimatedInput
             {...register('full_name')}
