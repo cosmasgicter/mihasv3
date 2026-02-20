@@ -233,8 +233,29 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
 
       // Tell the waiting service worker to skip waiting
       waitingWorker.postMessage({ type: 'SKIP_WAITING' })
+
+      // Normally controllerchange triggers reload; keep a fallback for browsers
+      // that occasionally miss the event during SW activation.
+      window.setTimeout(() => {
+        if (sessionStorage.getItem(SW_RELOAD_PENDING_KEY) !== '1') {
+          return
+        }
+
+        if (sessionStorage.getItem(SW_RELOAD_HANDLED_KEY) === '1') {
+          return
+        }
+
+        sessionStorage.setItem(SW_RELOAD_HANDLED_KEY, '1')
+        sessionStorage.removeItem(SW_RELOAD_PENDING_KEY)
+        performReload({
+          reason: 'sw_controller_change',
+          mode: 'user',
+          buildKey,
+          details: { source: 'skip-waiting-timeout-fallback' }
+        })
+      }, 8000)
       
-      // The controllerchange event will trigger a reload
+      // The controllerchange event should trigger a reload immediately.
       console.log('[SW Update] Activating new service worker...')
     } catch (error) {
       console.error('[SW Update] Failed to update service worker:', error)
