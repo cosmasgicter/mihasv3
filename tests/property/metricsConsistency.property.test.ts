@@ -33,7 +33,10 @@ function calculateApplicationMetrics(apps: AppRecord[]) {
 
 const appRecordArb = fc.record({
   status: fc.constantFrom('draft', 'submitted', 'under_review', 'approved', 'rejected'),
-  submitted_at: fc.option(fc.date().map(d => d.toISOString()), { nil: null }),
+  submitted_at: fc.option(
+    fc.integer({ min: 946684800000, max: 4102444800000 }).map(ts => new Date(ts).toISOString()),
+    { nil: null }
+  ),
 })
 
 describe('Property 8: Metrics calculations are consistent with input data', () => {

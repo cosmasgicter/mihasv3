@@ -22,6 +22,7 @@ import { sanitizeForLog } from '@/lib/security'
 import { findBestSubjectId } from '@/lib/subjectMatcher'
 import { getSessionToken } from '@/lib/sessionUtils'
 import { apiClient } from '@/services/client'
+import { applicationService } from '@/services/applications'
 import { logger } from '@/utils/logger'
 import { safeJsonParse } from '@/lib/utils'
 import { isDraftDeleted, clearDraftDeletedFlag } from '@/lib/draftCleanup'
@@ -489,23 +490,62 @@ const useWizardController = (): UseWizardControllerResult => {
           return
         }
         
-        // Single source: localStorage only (v2)
+        // Load both local and server drafts, then reconcile by timestamp
+        let localDraft: any = null
+        let localTimestamp: Date | null = null
+        let serverApp: any = null
+        let serverTimestamp: Date | null = null
+        
+        // 1. Check localStorage for local draft
         const savedDraft = localStorage.getItem('applicationWizardDraft')
         if (savedDraft) {
           const draft = safeJsonParse(savedDraft, null)
           if (draft && draft.formData && draft.version === 2) {
+            localDraft = draft
+            localTimestamp = draft.savedAt ? new Date(draft.savedAt) : null
+          } else {
+            localStorage.removeItem('applicationWizardDraft')
+          }
+        }
+        
+        // Clean up old sessionStorage drafts
+        sessionStorage.removeItem('applicationWizardDraft')
+        
+        // 2. Check database for server draft
+        if (draftApplications?.applications && draftApplications.applications.length > 0) {
+          serverApp = draftApplications.applications[0]
+          serverTimestamp = serverApp.updated_at ? new Date(serverApp.updated_at) : 
+                          (serverApp.created_at ? new Date(serverApp.created_at) : null)
+        }
+        
+        // 3. Reconcile: pick the most recently updated draft
+        const useLocalDraft = (() => {
+          if (localDraft && !serverApp) return true
+          if (!localDraft && serverApp) return false
+          if (!localDraft && !serverApp) return false // nothing to restore
+          
+          // Both exist — compare timestamps, pick most recent
+          if (localTimestamp && serverTimestamp) {
+            return localTimestamp.getTime() >= serverTimestamp.getTime()
+          }
+          // If timestamps are missing, prefer local (it's the most recent user action)
+          return true
+        })()
+        
+        if (useLocalDraft && localDraft) {
+          // Restore from localStorage
             // 3.2: Restore form values with shouldValidate: false to prevent validation errors
-            Object.keys(draft.formData).forEach(key => {
-              const value = draft.formData[key]
+            Object.keys(localDraft.formData).forEach(key => {
+              const value = localDraft.formData[key]
               if (value !== undefined && value !== null && value !== '') {
                 setValue(key as keyof WizardFormData, value, { shouldValidate: false })
               }
             })
             
             // Handle program ID resolution correctly
-            if (draft.formData.program) {
+            if (localDraft.formData.program) {
               const resolvedProgramId = findProgramId(
-                draft.formData.program,
+                localDraft.formData.program,
                 undefined,
                 programsData?.programs as WizardProgram[] | undefined
               )
@@ -515,13 +555,13 @@ const useWizardController = (): UseWizardControllerResult => {
             }
             
             // Ensure intake is restored
-            if (draft.formData.intake) {
-              setValue('intake', draft.formData.intake, { shouldValidate: false })
+            if (localDraft.formData.intake) {
+              setValue('intake', localDraft.formData.intake, { shouldValidate: false })
             }
             
             // 3.3: Validate grades array structure before setting
-            if (draft.selectedGrades && Array.isArray(draft.selectedGrades)) {
-              const validGrades = draft.selectedGrades.filter((grade: any) => 
+            if (localDraft.selectedGrades && Array.isArray(localDraft.selectedGrades)) {
+              const validGrades = localDraft.selectedGrades.filter((grade: any) => 
                 grade && 
                 typeof grade === 'object' &&
                 typeof grade.subject_id === 'string' &&
@@ -538,18 +578,18 @@ const useWizardController = (): UseWizardControllerResult => {
             
             // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
             // Use currentStepKey for reliable step matching
-            if (draft.currentStepKey) {
-              const index = wizardSteps.findIndex(step => step.key === draft.currentStepKey)
+            if (localDraft.currentStepKey) {
+              const index = wizardSteps.findIndex(step => step.key === localDraft.currentStepKey)
               if (index >= 0) {
                 setCurrentStepIndex(index)
               }
-            } else if (typeof draft.currentStep === 'number') {
-              const index = getStepIndexById(draft.currentStep)
-              setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(draft.currentStep - 1, 0), totalSteps - 1))
+            } else if (typeof localDraft.currentStep === 'number') {
+              const index = getStepIndexById(localDraft.currentStep)
+              setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(localDraft.currentStep - 1, 0), totalSteps - 1))
             }
             
-            if (draft.applicationId) {
-              setApplicationId(draft.applicationId)
+            if (localDraft.applicationId) {
+              setApplicationId(localDraft.applicationId)
             }
             
             draftRestored = true
@@ -559,16 +599,9 @@ const useWizardController = (): UseWizardControllerResult => {
             // 3.4: Show restoration confirmation message only if draft was actually restored
             showSuccess('Draft restored successfully')
             return
-          }
-          localStorage.removeItem('applicationWizardDraft')
-        }
-        
-        // Clean up old sessionStorage drafts
-        sessionStorage.removeItem('applicationWizardDraft')
-
-        // Check database drafts as final fallback
-        if (draftApplications?.applications && draftApplications.applications.length > 0) {
-          const app = draftApplications.applications[0]
+        } else if (serverApp) {
+          // Restore from database (server draft is newer or local doesn't exist)
+          const app = serverApp
           logger.info('[Draft] Restoring from database:', app.id)
           
           // CRITICAL: Set application ID FIRST
@@ -619,6 +652,20 @@ const useWizardController = (): UseWizardControllerResult => {
 
           draftRestored = true
           
+          // Update localStorage to match server state for future reconciliation
+          const syncDraft = {
+            formData: getValues(),
+            selectedGrades,
+            currentStep: stepId,
+            currentStepKey: wizardSteps[Math.min(stepId - 1, wizardSteps.length - 1)]?.key,
+            applicationId: app.id,
+            savedAt: app.updated_at || app.created_at || new Date().toISOString(),
+            version: 2
+          }
+          try {
+            localStorage.setItem('applicationWizardDraft', JSON.stringify(syncDraft))
+          } catch { /* non-critical */ }
+          
           // 3.4: Show restoration confirmation for database draft
           showSuccess('Draft restored successfully')
         }
@@ -658,22 +705,50 @@ const useWizardController = (): UseWizardControllerResult => {
       setIsDraftSaving(true)
       
       const formData = getValues()
+      const now = new Date().toISOString()
       const draft = {
         formData,
         selectedGrades,
         currentStep: currentStepConfig.id,
         currentStepKey: currentStepConfig.key,
         applicationId,
-        savedAt: new Date().toISOString(),
+        savedAt: now,
         version: 2
       }
 
-      // Save synchronously for reliability (no requestIdleCallback delay)
+      // Always save to localStorage first for reliability (works offline)
       try {
         localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
         sessionStorage.removeItem('applicationWizardDraft')
       } catch (error) {
         console.error('Error saving draft:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+      }
+
+      // Persist to server via API if we have an applicationId and are online
+      // This is non-blocking — local draft is retained on failure and retried next interval
+      if (applicationId && navigator.onLine) {
+        try {
+          await applicationService.update(applicationId, {
+            full_name: formData.full_name || undefined,
+            nrc_number: formData.nrc_number || undefined,
+            passport_number: formData.passport_number || undefined,
+            date_of_birth: formData.date_of_birth || undefined,
+            sex: formData.sex || undefined,
+            phone: formData.phone || undefined,
+            email: formData.email || undefined,
+            residence_town: formData.residence_town || undefined,
+            next_of_kin_name: formData.next_of_kin_name || undefined,
+            next_of_kin_phone: formData.next_of_kin_phone || undefined,
+            payment_method: formData.payment_method || undefined,
+            payer_name: formData.payer_name || undefined,
+            payer_phone: formData.payer_phone || undefined,
+            amount: formData.amount || undefined,
+            momo_ref: formData.momo_ref || undefined,
+          } as any)
+        } catch (serverError) {
+          // Non-blocking: local draft is retained, will retry on next 8-second interval
+          console.warn('Server draft save failed, local draft retained:', sanitizeForLog(serverError instanceof Error ? serverError.message : 'Unknown error'))
+        }
       }
 
       // Update UI indicators

@@ -44,6 +44,7 @@ export interface UserRecord {
   role: UserRole;
   first_name: string | null;
   last_name: string | null;
+  full_name: string | null;
   phone: string | null;
   is_active: boolean;
   failed_login_attempts: number;

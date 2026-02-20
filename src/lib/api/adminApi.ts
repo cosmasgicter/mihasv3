@@ -295,10 +295,10 @@ export interface UserWithRole {
 }
 
 export async function fetchUsersWithRoles(): Promise<UserWithRole[]> {
-  const result = await adminFetch<{ data: UserWithRole[]; meta: { total: number } }>(
+  const result = await adminFetch<{ users?: UserWithRole[]; totalCount?: number }>(
     `${getApiBaseUrl()}/api/admin?action=users&limit=100`
   );
-  return result.data?.data || [];
+  return result.data?.users || [];
 }
 
 export async function updateUserRole(userId: string, role: string): Promise<boolean> {

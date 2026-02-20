@@ -198,37 +198,37 @@ export default function AdminUsers() {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-end sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     onClick={() => setShowStats(!showStats)}
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white/20 border-white"
+                    className="text-white hover:bg-white/20 border-white min-h-[44px]"
                   >
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    {showStats ? 'Hide Stats' : 'Show Stats'}
+                    <BarChart3 className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">{showStats ? 'Hide Stats' : 'Show Stats'}</span>
                   </Button>
                   <Button
                     onClick={() => setShowImportDialog(true)}
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white/20 border-white"
+                    className="text-white hover:bg-white/20 border-white min-h-[44px]"
                   >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import
+                    <Upload className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Import</span>
                   </Button>
                   <Button
                     onClick={() => setShowExportDialog(true)}
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white/20 border-white"
+                    className="text-white hover:bg-white/20 border-white min-h-[44px]"
                   >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
+                    <Download className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Export</span>
                   </Button>
                   <Button
                     onClick={() => setShowCreateDialog(true)}
-                    className="bg-card text-secondary hover:bg-accent font-semibold"
+                    className="bg-card text-secondary hover:bg-accent font-semibold min-h-[44px]"
                     size="sm"
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
@@ -396,12 +396,12 @@ export default function AdminUsers() {
                         <div className="text-xs text-gray-900">
                           Joined: {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 justify-end">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={notifyUnsupportedOperation}
-                            className="text-primary border-blue-300 hover:bg-primary/5"
+                            className="text-primary border-blue-300 hover:bg-primary/5 min-h-[44px] min-w-[44px]"
                           >
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
@@ -410,29 +410,29 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={notifyUnsupportedOperation}
-                            className="text-secondary border-purple-300 hover:bg-secondary/5"
+                            className="text-secondary border-purple-300 hover:bg-secondary/5 min-h-[44px] min-w-[44px]"
                           >
                             <Lock className="h-3 w-3 mr-1" />
-                            Permissions
+                            Perms
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => openActivityLog(user.user_id)}
-                            className="text-gray-900 border-input hover:bg-muted"
+                            className="text-gray-900 border-input hover:bg-muted min-h-[44px] min-w-[44px]"
                           >
                             <Clock className="h-3 w-3 mr-1" />
-                            Activity
+                            Log
                           </Button>
                           {user.role !== 'super_admin' && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={notifyUnsupportedOperation}
-                              className="text-destructive border-destructive/30 hover:bg-destructive/5"
+                              className="text-destructive border-destructive/30 hover:bg-destructive/5 min-h-[44px] min-w-[44px]"
                             >
                               <Trash2 className="h-3 w-3 mr-1" />
-                              Delete
+                              Del
                             </Button>
                           )}
                         </div>
@@ -442,7 +442,8 @@ export default function AdminUsers() {
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden lg:block overflow-x-auto">
+                <div className="hidden lg:block overflow-x-auto -mx-6">
+                  <div className="inline-block min-w-full px-6">
                   <table className="min-w-full divide-y divide-border">
                     <thead className="bg-gradient-to-r from-muted to-purple-50">
                       <tr>
@@ -569,6 +570,7 @@ export default function AdminUsers() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </>
             )}

@@ -17,10 +17,16 @@ const suspiciousPatterns = [
   'Â ' 
 ]
 
+// Files to exclude from mojibake scanning (they contain patterns intentionally)
+const excludeFiles = new Set([
+  'scripts/check-mojibake.js',
+])
+
 const files = execSync('git ls-files', { encoding: 'utf8' })
   .split('\n')
   .filter(Boolean)
   .filter((file) => {
+    if (excludeFiles.has(file.replace(/\\/g, '/'))) return false
     const dot = file.lastIndexOf('.')
     const ext = dot >= 0 ? file.slice(dot) : ''
     return textExtensions.has(ext)

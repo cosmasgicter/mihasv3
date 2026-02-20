@@ -579,6 +579,16 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   return res.status(status).json(response);
 }
 
+// lib/notificationPolicy.ts
+var MANDATORY_EMAIL_TYPES = [
+  "application_status_change",
+  "payment_verified",
+  "interview_scheduled"
+];
+function isMandatoryEmailType(type) {
+  return MANDATORY_EMAIL_TYPES.includes(type);
+}
+
 // api-src/notifications.ts
 async function handler(req, res) {
   if (handleCors(req, res))
@@ -733,6 +743,33 @@ async function handleDelete(req, res) {
   await query(`DELETE FROM notifications WHERE id = $1 AND user_id = $2`, [notificationId, user.userId]);
   return sendSuccess(res, { deleted: true });
 }
+async function createNotificationWithDedup(userId, eventType, entityId, entityType, message, channel, extra) {
+  const idempotencyKey = `${eventType}:${entityType}:${entityId}`;
+  const existing = await query(`SELECT id FROM notifications
+     WHERE user_id = $1 AND idempotency_key = $2
+     AND created_at > NOW() - INTERVAL '1 hour'
+     LIMIT 1`, [userId, idempotencyKey]);
+  if (existing.rows.length > 0) {
+    console.log("[notifications/dedup] Duplicate skipped — key:", idempotencyKey, "user:", userId.substring(0, 8) + "...");
+    return { created: false };
+  }
+  const result = await query(`INSERT INTO notifications (id, user_id, type, title, message, idempotency_key, channel, action_url, is_read, created_at)
+     VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, false, NOW())
+     RETURNING *`, [
+    userId,
+    eventType,
+    extra?.title || message,
+    message,
+    idempotencyKey,
+    channel,
+    extra?.action_url || null
+  ]);
+  return {
+    created: true,
+    notificationId: result.rows[0]?.id,
+    notification: result.rows[0]
+  };
+}
 async function handleSend(req, res) {
   if (req.method !== "POST") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
@@ -745,20 +782,34 @@ async function handleSend(req, res) {
   if (!isAdmin) {
     return sendError(res, "Admin access required", HttpStatus.FORBIDDEN);
   }
-  const { user_id, title, message, type, action_url } = req.body;
+  const { user_id, title, message, type, action_url, entity_id, entity_type } = req.body;
   if (!user_id || !title || !message) {
     return sendError(res, "user_id, title, and message are required", HttpStatus.BAD_REQUEST);
   }
-  const insertQ = {
-    text: `
-      INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
-      VALUES ($1, $2, $3, $4, $5, false, NOW())
-      RETURNING *
-    `,
-    values: [user_id, title, message, type || "info", action_url || null]
-  };
-  const result = await query(insertQ.text, insertQ.values);
+  const notificationType = type || "info";
+  const mandatory = isMandatoryEmailType(notificationType);
+  let notificationRow;
+  if (entity_id && entity_type) {
+    const dedupResult = await createNotificationWithDedup(user_id, notificationType, entity_id, entity_type, message, "in_app", { title, action_url: action_url || null });
+    if (!dedupResult.created) {
+      console.log("[notifications/send] Duplicate notification skipped for user:", user_id.substring(0, 8) + "...");
+      return sendSuccess(res, { duplicate: true, message: "Notification already sent within deduplication window" });
+    }
+    notificationRow = dedupResult.notification;
+  } else {
+    const insertQ = {
+      text: `
+        INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+        VALUES ($1, $2, $3, $4, $5, false, NOW())
+        RETURNING *
+      `,
+      values: [user_id, title, message, notificationType, action_url || null]
+    };
+    const result = await query(insertQ.text, insertQ.values);
+    notificationRow = result.rows[0];
+  }
   const recipientPreferences = await getCanonicalPreferences(user_id);
+  const shouldSendEmail = mandatory || Boolean(recipientPreferences.email_enabled);
   let emailSent = false;
   try {
     const profileQ = {
@@ -767,17 +818,8 @@ async function handleSend(req, res) {
     };
     const profileResult = await query(profileQ.text, profileQ.values);
     const profile = profileResult.rows[0];
-    if (profile?.email && recipientPreferences.email_enabled && process.env.RESEND_API_KEY) {
-      const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Student";
-      const emailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">${title}</h2>
-          <p style="font-size: 16px; line-height: 1.6; color: #374151;">${message}</p>
-          ${action_url ? `<p style="margin-top: 20px;"><a href="${action_url}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Details</a></p>` : ""}
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-          <p style="font-size: 14px; color: #6b7280;">MIHAS - Mukuba Institute of Health and Allied Sciences</p>
-        </div>
-      `;
+    if (profile?.email && shouldSendEmail && process.env.RESEND_API_KEY) {
+      const emailHtml = buildNotificationEmailHtml(title, message, action_url);
       const emailResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -792,12 +834,26 @@ async function handleSend(req, res) {
         })
       });
       emailSent = emailResponse.ok;
+      if (mandatory) {
+        console.log("[notifications/send] Mandatory email sent for type:", notificationType, "user:", user_id.substring(0, 8) + "...");
+      }
     }
   } catch {
     console.log("[notifications/send] Email send failed");
   }
   console.log("[notifications/send] Notification created for user:", user_id.substring(0, 8) + "...");
-  return sendSuccess(res, { notification: result.rows[0], email_sent: emailSent });
+  return sendSuccess(res, { notification: notificationRow, email_sent: emailSent, mandatory });
+}
+function buildNotificationEmailHtml(title, message, actionUrl) {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2563eb;">${title}</h2>
+      <p style="font-size: 16px; line-height: 1.6; color: #374151;">${message}</p>
+      ${actionUrl ? `<p style="margin-top: 20px;"><a href="${actionUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Details</a></p>` : ""}
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+      <p style="font-size: 14px; color: #6b7280;">MIHAS - Mukuba Institute of Health and Allied Sciences</p>
+    </div>
+  `;
 }
 async function getCanonicalPreferences(userId) {
   const q = {
@@ -834,5 +890,7 @@ async function handlePushSend(req, res) {
 }
 var notifications_default = withArcjetProtection(handler, "general");
 export {
-  notifications_default as default
+  isMandatoryEmailType,
+  notifications_default as default,
+  MANDATORY_EMAIL_TYPES
 };

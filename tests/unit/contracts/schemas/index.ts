@@ -100,3 +100,16 @@ export const NotificationPreferencesResponseSchema = z.object({
   email_enabled: z.boolean(),
   push_enabled: z.boolean(),
 })
+
+export const AdminUsersResponseSchema = z.object({
+  users: z.array(z.object({
+    id: z.string(),
+    user_id: z.string(),
+    email: z.string(),
+    role: z.string(),
+  }).passthrough()),
+  totalCount: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+  totalPages: z.number(),
+})

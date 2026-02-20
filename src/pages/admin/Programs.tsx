@@ -292,7 +292,7 @@ export default function AdminPrograms() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openEdit(program)}
-                          className="flex-1 text-primary border-blue-300 hover:bg-primary/5"
+                          className="flex-1 text-primary border-blue-300 hover:bg-primary/5 min-h-[44px]"
                         >
                           <Pencil className="h-4 w-4 mr-1" />
                           Edit
@@ -301,7 +301,7 @@ export default function AdminPrograms() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => openDelete(program)}
-                          className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5"
+                          className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5 min-h-[44px]"
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           Delete
@@ -312,7 +312,8 @@ export default function AdminPrograms() {
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden sm:block overflow-x-auto">
+                <div className="hidden sm:block overflow-x-auto -mx-6">
+                  <div className="inline-block min-w-full px-6">
                   <table className="min-w-full divide-y divide-border">
                     <thead className="bg-gradient-to-r from-muted to-blue-50">
                       <tr>
@@ -378,6 +379,7 @@ export default function AdminPrograms() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </>
             )}

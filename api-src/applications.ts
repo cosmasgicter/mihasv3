@@ -18,6 +18,7 @@ import {
 } from '../lib/queries';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
 import { publishRealtimeEvent } from '../lib/realtimeBroker';
+import { logAuditEvent } from '../lib/auditLogger';
 
 /**
  * Consolidated Applications API
@@ -91,6 +92,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
 }
 
 interface PublicTrackingResult {
+  application_number: string;
   status: string;
   program_name: string | null;
   intake_name: string | null;
@@ -122,6 +124,7 @@ async function handlePublicTracking(req: VercelRequest, res: VercelResponse) {
 
   const result = await query<PublicTrackingResult>(
     `SELECT
+      application_number,
       status,
       program AS program_name,
       intake AS intake_name,
@@ -224,8 +227,10 @@ async function handleDetails(
   }
 
   // Parse pagination and filter params from query string
-  const page = parseInt(req.query.page as string || '0', 10);
-  const pageSize = parseInt(req.query.pageSize as string || '50', 10);
+  // Frontend sends 1-based pages; convert to 0-based for OFFSET calculation
+  const rawPage = parseInt(req.query.page as string || '1', 10);
+  const page = Math.max(rawPage, 1);
+  const pageSize = Math.max(parseInt(req.query.pageSize as string || '50', 10), 1);
   const status = req.query.status as string | undefined;
   const search = req.query.search as string | undefined;
   const payment = req.query.payment as string | undefined;
@@ -290,8 +295,8 @@ async function handleDetails(
   );
   const totalCount = parseInt(countResult.rows[0]?.count || '0', 10);
 
-  // Fetch page
-  const offset = page * pageSize;
+  // Fetch page with LIMIT/OFFSET (1-based page → 0-based offset)
+  const offset = (page - 1) * pageSize;
   const dataValues = [...values, pageSize, offset];
   const result = await query<ApplicationRecord>(
     `SELECT * FROM applications ${whereClause} ORDER BY ${sortColumn} ${sortOrder} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
@@ -423,6 +428,45 @@ async function handleScheduleInterview(
     [applicationId, scheduled_at, normalizedMode, location, notes || null, userId]
   );
 
+  // Create audit trail entry (Requirement 12.3)
+  try {
+    await logAuditEvent({
+      actor_id: userId,
+      action: 'interview_scheduled',
+      entity_type: 'application',
+      entity_id: applicationId,
+      changes: { scheduled_at, mode: normalizedMode, interview_id: interviewResult.rows[0]?.id },
+    });
+  } catch (auditError) {
+    console.error('[applications] Failed to create interview audit log:', auditError);
+  }
+
+  // Publish real-time event so student sees the update
+  try {
+    const appOwner = await query<{ user_id: string }>('SELECT user_id FROM applications WHERE id = $1', [applicationId]);
+    if (appOwner.rows[0]?.user_id) {
+      const now = new Date().toISOString();
+      const version = Date.now();
+      publishRealtimeEvent(appOwner.rows[0].user_id, {
+        event_id: `interview_scheduled:${applicationId}:${version}`,
+        event_type: 'interview_scheduled',
+        entity_id: applicationId,
+        version,
+        created_at: now,
+        payload: {
+          application_id: applicationId,
+          interview_id: interviewResult.rows[0]?.id,
+          scheduled_at,
+          mode: normalizedMode,
+          location,
+        },
+      });
+    }
+  } catch (realtimeError) {
+    console.error('[applications] Failed to publish interview realtime event:', realtimeError);
+  }
+
+  console.log('[applications] Interview scheduled:', applicationId, interviewResult.rows[0]?.id);
   return sendSuccess(res, { interview: interviewResult.rows[0] }, HttpStatus.CREATED);
 }
 
@@ -515,6 +559,19 @@ async function handleReview(
       notes
     );
     await query(historyQ.text, historyQ.values);
+
+    // Audit trail for application status change (Requirement 21.1)
+    try {
+      await logAuditEvent({
+        actor_id: userId,
+        action: 'application_status_changed',
+        entity_type: 'application',
+        entity_id: application_id,
+        changes: { new_status: status, review_action: true },
+      });
+    } catch (auditError) {
+      console.error('[applications/review] Failed to create audit log:', auditError);
+    }
 
     console.log('[applications/review] Application reviewed:', application_id, status);
     return sendSuccess(res, { application: updateResult.rows[0] });
@@ -635,6 +692,19 @@ async function handleById(
           throw error;
         }
 
+        // Audit trail for application status change (Requirement 21.1)
+        try {
+          await logAuditEvent({
+            actor_id: userId,
+            action: 'application_status_changed',
+            entity_type: 'application',
+            entity_id: applicationId,
+            changes: { new_status: status },
+          });
+        } catch (auditError) {
+          console.error('[applications] Failed to create status change audit log:', auditError);
+        }
+
         const now = new Date().toISOString();
         const version = Date.now();
         const baseEvent = {
@@ -681,7 +751,7 @@ async function handleById(
       }
 
       if (action === 'update_payment_status') {
-        const { paymentStatus } = payload;
+        const { paymentStatus, verificationNotes } = payload;
         const validPaymentStatuses = ['pending_review', 'verified', 'rejected'];
         if (!validPaymentStatuses.includes(paymentStatus)) {
           return sendError(res, `Invalid payment status. Must be one of: ${validPaymentStatuses.join(', ')}`, HttpStatus.BAD_REQUEST);
@@ -694,8 +764,222 @@ async function handleById(
         );
         const updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
 
+        // Create notification for the student
+        const notificationTitle = paymentStatus === 'verified'
+          ? 'Payment Verified'
+          : paymentStatus === 'rejected'
+            ? 'Payment Rejected'
+            : 'Payment Status Updated';
+        const notificationMessage = paymentStatus === 'verified'
+          ? `Your payment for application ${app.application_number || applicationId} has been verified.`
+          : paymentStatus === 'rejected'
+            ? `Your payment for application ${app.application_number || applicationId} was rejected. Please resubmit your payment proof.`
+            : `Your payment status for application ${app.application_number || applicationId} has been updated to ${paymentStatus}.`;
+
+        try {
+          await query(
+            `INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+             VALUES ($1, $2, $3, $4, false, NOW())`,
+            [
+              app.user_id,
+              notificationTitle,
+              notificationMessage,
+              paymentStatus === 'verified' ? 'success' : paymentStatus === 'rejected' ? 'error' : 'info',
+            ]
+          );
+        } catch (notifError) {
+          console.error('[applications] Failed to create payment notification:', notifError);
+        }
+
+        // Create audit log entry (Requirement 21.3 - payment verification/rejection)
+        try {
+          await logAuditEvent({
+            actor_id: userId,
+            action: paymentStatus === 'verified' ? 'payment_verified' : paymentStatus === 'rejected' ? 'payment_rejected' : 'payment_status_updated',
+            entity_type: 'payment',
+            entity_id: applicationId,
+            changes: { payment_status: paymentStatus },
+          });
+        } catch (auditError) {
+          console.error('[applications] Failed to create payment audit log:', auditError);
+        }
+
+        // Publish real-time event to student
+        const now = new Date().toISOString();
+        const version = Date.now();
+        publishRealtimeEvent(app.user_id, {
+          event_id: `payment_update:${applicationId}:${version}`,
+          event_type: 'payment_update',
+          entity_id: applicationId,
+          version,
+          created_at: now,
+          payload: {
+            application_id: applicationId,
+            payment_status: paymentStatus,
+          },
+        });
+
+        publishRealtimeEvent(app.user_id, {
+          event_id: `dashboard_refresh:${applicationId}:${version}`,
+          event_type: 'dashboard_refresh',
+          entity_id: applicationId,
+          version,
+          created_at: now,
+          payload: {
+            reason: 'payment_status_changed',
+            application_id: applicationId,
+          },
+        });
+
         console.log('[applications] Payment status updated:', applicationId, paymentStatus);
         return sendSuccess(res, updateResult.rows[0]);
+      }
+
+      if (action === 'schedule_interview') {
+        if (!isAdmin) {
+          return sendError(res, 'Forbidden: admin access required', HttpStatus.FORBIDDEN);
+        }
+        const { scheduledAt, mode: interviewMode, location: interviewLocation, notes: interviewNotes } = payload;
+        if (!scheduledAt || !interviewMode || !interviewLocation) {
+          return sendError(res, 'Missing required fields: scheduledAt, mode, location', HttpStatus.BAD_REQUEST);
+        }
+        const normalizedMode = interviewMode === 'in-person' ? 'in_person' : interviewMode;
+        if (!['in_person', 'virtual', 'phone'].includes(normalizedMode)) {
+          return sendError(res, 'Invalid mode. Use: in-person, in_person, virtual, or phone', HttpStatus.BAD_REQUEST);
+        }
+        const interviewResult = await query<{
+          id: string; application_id: string; scheduled_at: string; mode: string;
+          location: string; notes: string | null; status: string;
+        }>(
+          `INSERT INTO application_interviews (
+            application_id, scheduled_at, mode, location, notes, status, created_by, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, 'scheduled', $6, NOW(), NOW())
+          RETURNING id, application_id, scheduled_at, mode, location, notes, status`,
+          [applicationId, scheduledAt, normalizedMode, interviewLocation, interviewNotes || null, userId]
+        );
+        // Audit trail
+        try {
+          await logAuditEvent({
+            actor_id: userId,
+            action: 'interview_scheduled',
+            entity_type: 'application',
+            entity_id: applicationId,
+            changes: { scheduled_at: scheduledAt, mode: normalizedMode, interview_id: interviewResult.rows[0]?.id },
+          });
+        } catch (auditError) {
+          console.error('[applications] Failed to create interview audit log:', auditError);
+        }
+        // Real-time event
+        try {
+          const now = new Date().toISOString();
+          const version = Date.now();
+          publishRealtimeEvent(app.user_id, {
+            event_id: `interview_scheduled:${applicationId}:${version}`,
+            event_type: 'interview_scheduled',
+            entity_id: applicationId,
+            version, created_at: now,
+            payload: { application_id: applicationId, interview_id: interviewResult.rows[0]?.id, scheduled_at: scheduledAt, mode: normalizedMode, location: interviewLocation },
+          });
+        } catch (realtimeError) {
+          console.error('[applications] Failed to publish interview realtime event:', realtimeError);
+        }
+        console.log('[applications] Interview scheduled via PATCH:', applicationId);
+        return sendSuccess(res, { interview: interviewResult.rows[0] }, HttpStatus.CREATED);
+      }
+
+      if (action === 'reschedule_interview') {
+        if (!isAdmin) {
+          return sendError(res, 'Forbidden: admin access required', HttpStatus.FORBIDDEN);
+        }
+        const { scheduledAt, mode: reschedMode, location: reschedLocation, notes: reschedNotes } = payload;
+        if (!scheduledAt) {
+          return sendError(res, 'Missing required field: scheduledAt', HttpStatus.BAD_REQUEST);
+        }
+        // Find the latest scheduled interview for this application
+        const existingInterview = await query<{ id: string }>(
+          `SELECT id FROM application_interviews WHERE application_id = $1 AND status IN ('scheduled', 'rescheduled')
+           ORDER BY created_at DESC LIMIT 1`,
+          [applicationId]
+        );
+        if (existingInterview.rowCount === 0) {
+          return sendError(res, 'No active interview found to reschedule', HttpStatus.NOT_FOUND);
+        }
+        const interviewId = existingInterview.rows[0].id;
+        const setClauses: string[] = [`scheduled_at = $1`, `status = 'rescheduled'`, `updated_at = NOW()`];
+        const updateValues: (string | null)[] = [scheduledAt];
+        let pIdx = 2;
+        if (reschedMode) {
+          const normalizedMode = reschedMode === 'in-person' ? 'in_person' : reschedMode;
+          setClauses.push(`mode = $${pIdx}`); updateValues.push(normalizedMode); pIdx++;
+        }
+        if (reschedLocation) {
+          setClauses.push(`location = $${pIdx}`); updateValues.push(reschedLocation); pIdx++;
+        }
+        if (reschedNotes !== undefined) {
+          setClauses.push(`notes = $${pIdx}`); updateValues.push(reschedNotes || null); pIdx++;
+        }
+        updateValues.push(interviewId);
+        const reschedResult = await query<{
+          id: string; application_id: string; scheduled_at: string; mode: string;
+          location: string; notes: string | null; status: string;
+        }>(
+          `UPDATE application_interviews SET ${setClauses.join(', ')} WHERE id = $${pIdx}
+           RETURNING id, application_id, scheduled_at, mode, location, notes, status`,
+          updateValues
+        );
+        // Audit trail
+        try {
+          await logAuditEvent({
+            actor_id: userId,
+            action: 'interview_rescheduled',
+            entity_type: 'application',
+            entity_id: applicationId,
+            changes: { interview_id: interviewId, scheduled_at: scheduledAt },
+          });
+        } catch (auditError) {
+          console.error('[applications] Failed to create reschedule audit log:', auditError);
+        }
+        console.log('[applications] Interview rescheduled:', applicationId, interviewId);
+        return sendSuccess(res, { interview: reschedResult.rows[0] });
+      }
+
+      if (action === 'cancel_interview') {
+        if (!isAdmin) {
+          return sendError(res, 'Forbidden: admin access required', HttpStatus.FORBIDDEN);
+        }
+        const { notes: cancelNotes } = payload;
+        const existingInterview = await query<{ id: string }>(
+          `SELECT id FROM application_interviews WHERE application_id = $1 AND status IN ('scheduled', 'rescheduled')
+           ORDER BY created_at DESC LIMIT 1`,
+          [applicationId]
+        );
+        if (existingInterview.rowCount === 0) {
+          return sendError(res, 'No active interview found to cancel', HttpStatus.NOT_FOUND);
+        }
+        const interviewId = existingInterview.rows[0].id;
+        const cancelResult = await query<{
+          id: string; application_id: string; scheduled_at: string; mode: string;
+          location: string; notes: string | null; status: string;
+        }>(
+          `UPDATE application_interviews SET status = 'cancelled', notes = COALESCE($1, notes), updated_at = NOW()
+           WHERE id = $2
+           RETURNING id, application_id, scheduled_at, mode, location, notes, status`,
+          [cancelNotes || null, interviewId]
+        );
+        // Audit trail
+        try {
+          await logAuditEvent({
+            actor_id: userId,
+            action: 'interview_cancelled',
+            entity_type: 'application',
+            entity_id: applicationId,
+            changes: { interview_id: interviewId },
+          });
+        } catch (auditError) {
+          console.error('[applications] Failed to create cancel interview audit log:', auditError);
+        }
+        console.log('[applications] Interview cancelled:', applicationId, interviewId);
+        return sendSuccess(res, { interview: cancelResult.rows[0] });
       }
 
       if (action === 'sync_grades') {

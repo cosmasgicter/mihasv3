@@ -29350,6 +29350,92 @@ function handleCors(req, res) {
   return false;
 }
 
+// lib/db.ts
+var DatabaseErrorCode = {
+  CONNECTION_ERROR: "CONNECTION_ERROR",
+  QUERY_ERROR: "QUERY_ERROR",
+  TRANSACTION_ERROR: "TRANSACTION_ERROR",
+  SCHEMA_ERROR: "SCHEMA_ERROR",
+  CONFIG_ERROR: "CONFIG_ERROR",
+  TIMEOUT_ERROR: "TIMEOUT_ERROR",
+  CONSTRAINT_VIOLATION: "CONSTRAINT_VIOLATION",
+  NOT_FOUND: "NOT_FOUND"
+};
+
+class DatabaseError extends Error {
+  code;
+  query;
+  originalError;
+  constructor(message, code = DatabaseErrorCode.QUERY_ERROR, options) {
+    super(message);
+    this.name = "DatabaseError";
+    this.code = code;
+    this.query = options?.query ? sanitizeQueryForLogging(options.query) : undefined;
+    this.originalError = options?.originalError;
+  }
+}
+function getDatabaseConfig() {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new DatabaseError("DATABASE_URL not configured. Set the Neon connection string.", DatabaseErrorCode.CONFIG_ERROR);
+  }
+  return { url };
+}
+function sanitizeQueryForLogging(query) {
+  return query.replace(/'[^']*'/g, "'[REDACTED]'").replace(/"[^"]*"/g, '"[REDACTED]"');
+}
+function extractCommand(query) {
+  const trimmed = query.trim().toUpperCase();
+  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "BEGIN", "COMMIT", "ROLLBACK", "CREATE", "ALTER", "DROP"];
+  for (const cmd of commands) {
+    if (trimmed.startsWith(cmd)) {
+      return cmd;
+    }
+  }
+  return "UNKNOWN";
+}
+async function executeNeonQuery(queryText, params) {
+  const command = extractCommand(queryText);
+  try {
+    const { neon } = await import("@neondatabase/serverless");
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new DatabaseError("DATABASE_URL not configured for Neon", DatabaseErrorCode.CONFIG_ERROR);
+    }
+    const sql = neon(connectionString);
+    let rows;
+    if (params && params.length > 0) {
+      rows = await sql.query(queryText, params);
+    } else {
+      rows = await sql.query(queryText);
+    }
+    const resultRows = Array.isArray(rows) ? rows : [];
+    return {
+      rows: resultRows,
+      rowCount: resultRows.length,
+      command
+    };
+  } catch (error) {
+    if (error instanceof DatabaseError)
+      throw error;
+    const errorMessage = error.message || "Unknown error";
+    if (errorMessage.includes("duplicate key")) {
+      throw new DatabaseError("Duplicate key violation", DatabaseErrorCode.CONSTRAINT_VIOLATION, { query: queryText, originalError: error });
+    }
+    if (errorMessage.includes("foreign key")) {
+      throw new DatabaseError("Foreign key violation", DatabaseErrorCode.CONSTRAINT_VIOLATION, { query: queryText, originalError: error });
+    }
+    if (errorMessage.includes("timeout") || errorMessage.includes("ETIMEDOUT")) {
+      throw new DatabaseError("Database query timeout", DatabaseErrorCode.TIMEOUT_ERROR, { query: queryText, originalError: error });
+    }
+    throw new DatabaseError(`Neon query execution failed: ${errorMessage}`, DatabaseErrorCode.QUERY_ERROR, { query: queryText, originalError: error });
+  }
+}
+async function query(queryText, params) {
+  getDatabaseConfig();
+  return executeNeonQuery(queryText, params);
+}
+
 // lib/auth/jwt.ts
 import { SignJWT, jwtVerify } from "jose";
 var TOKEN_ISSUER = "mihas-auth";
@@ -29804,92 +29890,6 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   return res.status(status).json(response);
 }
 
-// lib/db.ts
-var DatabaseErrorCode = {
-  CONNECTION_ERROR: "CONNECTION_ERROR",
-  QUERY_ERROR: "QUERY_ERROR",
-  TRANSACTION_ERROR: "TRANSACTION_ERROR",
-  SCHEMA_ERROR: "SCHEMA_ERROR",
-  CONFIG_ERROR: "CONFIG_ERROR",
-  TIMEOUT_ERROR: "TIMEOUT_ERROR",
-  CONSTRAINT_VIOLATION: "CONSTRAINT_VIOLATION",
-  NOT_FOUND: "NOT_FOUND"
-};
-
-class DatabaseError extends Error {
-  code;
-  query;
-  originalError;
-  constructor(message, code = DatabaseErrorCode.QUERY_ERROR, options) {
-    super(message);
-    this.name = "DatabaseError";
-    this.code = code;
-    this.query = options?.query ? sanitizeQueryForLogging(options.query) : undefined;
-    this.originalError = options?.originalError;
-  }
-}
-function getDatabaseConfig() {
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new DatabaseError("DATABASE_URL not configured. Set the Neon connection string.", DatabaseErrorCode.CONFIG_ERROR);
-  }
-  return { url };
-}
-function sanitizeQueryForLogging(query) {
-  return query.replace(/'[^']*'/g, "'[REDACTED]'").replace(/"[^"]*"/g, '"[REDACTED]"');
-}
-function extractCommand(query) {
-  const trimmed = query.trim().toUpperCase();
-  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "BEGIN", "COMMIT", "ROLLBACK", "CREATE", "ALTER", "DROP"];
-  for (const cmd of commands) {
-    if (trimmed.startsWith(cmd)) {
-      return cmd;
-    }
-  }
-  return "UNKNOWN";
-}
-async function executeNeonQuery(queryText, params) {
-  const command = extractCommand(queryText);
-  try {
-    const { neon } = await import("@neondatabase/serverless");
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new DatabaseError("DATABASE_URL not configured for Neon", DatabaseErrorCode.CONFIG_ERROR);
-    }
-    const sql = neon(connectionString);
-    let rows;
-    if (params && params.length > 0) {
-      rows = await sql.query(queryText, params);
-    } else {
-      rows = await sql.query(queryText);
-    }
-    const resultRows = Array.isArray(rows) ? rows : [];
-    return {
-      rows: resultRows,
-      rowCount: resultRows.length,
-      command
-    };
-  } catch (error) {
-    if (error instanceof DatabaseError)
-      throw error;
-    const errorMessage = error.message || "Unknown error";
-    if (errorMessage.includes("duplicate key")) {
-      throw new DatabaseError("Duplicate key violation", DatabaseErrorCode.CONSTRAINT_VIOLATION, { query: queryText, originalError: error });
-    }
-    if (errorMessage.includes("foreign key")) {
-      throw new DatabaseError("Foreign key violation", DatabaseErrorCode.CONSTRAINT_VIOLATION, { query: queryText, originalError: error });
-    }
-    if (errorMessage.includes("timeout") || errorMessage.includes("ETIMEDOUT")) {
-      throw new DatabaseError("Database query timeout", DatabaseErrorCode.TIMEOUT_ERROR, { query: queryText, originalError: error });
-    }
-    throw new DatabaseError(`Neon query execution failed: ${errorMessage}`, DatabaseErrorCode.QUERY_ERROR, { query: queryText, originalError: error });
-  }
-}
-async function query(queryText, params) {
-  getDatabaseConfig();
-  return executeNeonQuery(queryText, params);
-}
-
 // lib/auth/ownership.ts
 var ADMIN_ROLES = ["admin", "super_admin"];
 var REVIEWER_ROLES = ["admin", "super_admin", "reviewer"];
@@ -30258,20 +30258,118 @@ async function handler(req, res) {
           return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
         }
         return await handleSignedUrl(req, res, user.userId, user.role);
+      case "register-slip":
+        if (req.method !== "POST") {
+          return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        return await handleRegisterSlip(req, res, user.userId, user.role);
+      case "resolve-reference":
+        if (req.method !== "POST") {
+          return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        return await handleResolveReference(req, res, user.userId, user.role);
       default:
-        return sendError(res, "Invalid action. Valid: upload, extract, download, delete, signed-url", HttpStatus.BAD_REQUEST);
+        return sendError(res, "Invalid action. Valid: upload, extract, download, delete, signed-url, register-slip, resolve-reference", HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error, "documents");
   }
 }
+function normalizeLegacySupabasePath(reference) {
+  const trimmed = reference.trim();
+  if (!trimmed)
+    return null;
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    const match = parsed.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/app_docs\/(.+)$/i);
+    if (!match?.[1])
+      return null;
+    return decodeURIComponent(match[1]);
+  } catch {
+    return null;
+  }
+}
+async function handleRegisterSlip(req, res, authUserId, userRole) {
+  const { applicationNumber, path, publicUrl, documentName } = req.body || {};
+  if (!applicationNumber || !path) {
+    return sendError(res, "applicationNumber and path are required", HttpStatus.BAD_REQUEST);
+  }
+  const applicationResult = await query(`SELECT id, user_id FROM applications WHERE application_number = $1 LIMIT 1`, [applicationNumber]);
+  const application = applicationResult.rows[0];
+  if (!application) {
+    return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
+  }
+  const adminRoles = ["admin", "super_admin", "admissions_officer"];
+  if (!adminRoles.includes(userRole) && application.user_id !== authUserId) {
+    return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
+  }
+  const r2 = getR2Storage();
+  const fileUrl = publicUrl || r2.getPublicUrl(path);
+  const safeDocumentName = documentName || `Application Slip - ${applicationNumber}.pdf`;
+  const existingResult = await query(`SELECT id FROM application_documents
+     WHERE application_id = $1 AND document_type = 'application_slip'
+     ORDER BY created_at DESC
+     LIMIT 1`, [application.id]);
+  const existingId = existingResult.rows[0]?.id;
+  let documentId;
+  if (existingId) {
+    const updated = await query(`UPDATE application_documents
+       SET document_name = $2,
+           file_url = $3,
+           system_generated = true,
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING id`, [existingId, safeDocumentName, fileUrl]);
+    documentId = updated.rows[0].id;
+  } else {
+    const inserted = await query(`INSERT INTO application_documents (
+        id, application_id, document_type, document_name,
+        file_url, mime_type, system_generated,
+        verification_status, uploaded_at, created_at, updated_at
+      ) VALUES (gen_random_uuid(), $1, 'application_slip', $2, $3, 'application/pdf', true, 'pending', NOW(), NOW(), NOW())
+      RETURNING id`, [application.id, safeDocumentName, fileUrl]);
+    documentId = inserted.rows[0].id;
+  }
+  return sendSuccess(res, { documentId, path, publicUrl: fileUrl });
+}
+async function handleResolveReference(req, res, authUserId, userRole) {
+  const { reference, applicationId } = req.body || {};
+  if (!reference || typeof reference !== "string") {
+    return sendError(res, "reference is required", HttpStatus.BAD_REQUEST);
+  }
+  if (applicationId) {
+    const canAccess = await checkDocumentUploadAccess(authUserId, applicationId, userRole);
+    if (!canAccess) {
+      return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
+    }
+  }
+  const normalizedPath = normalizeLegacySupabasePath(reference);
+  if (!normalizedPath) {
+    return sendError(res, "Unsupported document reference", HttpStatus.BAD_REQUEST);
+  }
+  const r2 = getR2Storage();
+  const url = r2.getPublicUrl(normalizedPath);
+  return sendSuccess(res, {
+    path: normalizedPath,
+    publicUrl: url,
+    migrated: reference !== normalizedPath
+  });
+}
 async function handleUpload(req, res, authUserId, userRole) {
-  const { file, fileName, fileType, contentType, userId, applicationId, documentType } = req.body;
+  const { file, fileName, fileType, contentType, userId, applicationId, applicationNumber, documentType } = req.body;
   if (!file || !fileName) {
     return sendError(res, "File and fileName are required", HttpStatus.BAD_REQUEST);
   }
-  if (applicationId) {
-    const canUpload = await checkDocumentUploadAccess(authUserId, applicationId, userRole);
+  let resolvedApplicationId = applicationId;
+  if (!resolvedApplicationId && applicationNumber) {
+    const appResult = await query(`SELECT id FROM applications WHERE application_number = $1 LIMIT 1`, [applicationNumber]);
+    resolvedApplicationId = appResult.rows[0]?.id;
+  }
+  if (resolvedApplicationId) {
+    const canUpload = await checkDocumentUploadAccess(authUserId, resolvedApplicationId, userRole);
     if (!canUpload) {
       return sendError(res, "Access denied: cannot upload to this application", HttpStatus.FORBIDDEN);
     }
@@ -30287,7 +30385,7 @@ async function handleUpload(req, res, authUserId, userRole) {
   const effectiveUserId = isAdmin(userRole) && userId ? userId : authUserId;
   const timestamp = Date.now();
   const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
-  const storagePath = `${effectiveUserId}/${applicationId || "general"}/${documentType || "document"}/${timestamp}-${sanitizedFileName}`;
+  const storagePath = `${effectiveUserId}/${resolvedApplicationId || applicationNumber || "general"}/${documentType || "document"}/${timestamp}-${sanitizedFileName}`;
   if (!isR2Available()) {
     console.error("[documents/upload] R2 storage is not configured");
     return sendError(res, "Storage service unavailable", HttpStatus.SERVICE_UNAVAILABLE);

@@ -33,42 +33,38 @@ export const analyticsData = {
     })
   },
 
-  // Get real-time system health
+  // Get real-time system health via the health endpoint
   useSystemHealth: () => {
     return useQuery({
       queryKey: ['analytics', 'system-health'],
       queryFn: async () => {
         try {
-          // Check database connectivity via health endpoint
-          await apiClient.request('/health?action=db')
-          
+          const dbResult = await apiClient.request<{ status?: string }>('/health?action=db')
           return {
-            database: 'healthy',
-            security: 'secure',
-            performance: 'optimal',
-            uptime: '99.9%'
+            database: dbResult?.status === 'ok' ? 'healthy' : 'degraded',
+            lastChecked: new Date().toISOString(),
           }
         } catch {
           return {
             database: 'error',
-            security: 'secure',
-            performance: 'optimal',
-            uptime: '99.9%'
+            lastChecked: new Date().toISOString(),
           }
         }
       },
       staleTime: 30000,
-      refetchInterval: 60000
+      refetchInterval: 60000,
     })
   },
 
-  // Traffic overview removed - Umami analytics removed in migration
+  // Traffic overview — Umami analytics removed in migration.
+  // Returns static empty shape so existing callers don't break.
+  // TODO: Remove this hook and its callers in a future cleanup pass.
   useTrafficOverview: () => {
     return {
       activeUsers: 0,
       dailyCounts: [],
       isLoading: false,
-      isError: false
+      isError: false,
     }
-  }
+  },
 }

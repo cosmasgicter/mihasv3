@@ -972,8 +972,22 @@ async function handler(req, res) {
         }
         await handleEligibilityAssessments(req, res);
         return;
+      case "audit-log":
+        if (req.method !== "GET") {
+          sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleAuditLog(req, res);
+        return;
+      case "appeals":
+        if (req.method !== "GET") {
+          sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleAppeals(req, res);
+        return;
       default:
-        sendError(res, "Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments", HttpStatus.BAD_REQUEST);
+        sendError(res, "Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals", HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -1210,17 +1224,36 @@ async function handleUsers(req, res) {
   if (limit > 100)
     limit = 100;
   const offset = (page - 1) * limit;
+  const role = req.query.role;
+  const search = req.query.search;
+  const conditions = [];
+  const params = [];
+  let paramIndex = 1;
+  if (role) {
+    conditions.push(`role = $${paramIndex}`);
+    params.push(role);
+    paramIndex++;
+  }
+  if (search) {
+    conditions.push(`(LOWER(full_name) LIKE $${paramIndex} OR LOWER(first_name) LIKE $${paramIndex} OR LOWER(last_name) LIKE $${paramIndex} OR LOWER(email) LIKE $${paramIndex})`);
+    params.push(`%${search.toLowerCase()}%`);
+    paramIndex++;
+  }
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   try {
     const [dataResult, countResult] = await Promise.all([
-      query(`SELECT * FROM profiles ORDER BY created_at DESC LIMIT $1 OFFSET $2`, [limit, offset]),
-      query("SELECT COUNT(*) as count FROM profiles")
+      query(`SELECT * FROM profiles ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`, [...params, limit, offset]),
+      query(`SELECT COUNT(*) as count FROM profiles ${whereClause}`, params)
     ]);
     const users = dataResult.rows.map((user) => ({ ...user, user_id: user.id }));
     const total = parseInt(countResult.rows[0]?.count || "0", 10);
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     sendSuccess(res, {
-      data: users,
-      meta: { page, limit, total, total_pages: Math.ceil(total / limit) }
+      users,
+      totalCount: total,
+      page,
+      pageSize: limit,
+      totalPages: Math.ceil(total / limit)
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
@@ -1242,11 +1275,12 @@ async function handleRegisterUser(req, res, auth) {
     sendError(res, "Password must be at least 8 characters", HttpStatus.BAD_REQUEST);
     return;
   }
-  const allowedRoles = ["student", "reviewer"];
-  if (auth.role === "super_admin") {
-    allowedRoles.push("admin");
+  const validRoles = ["student", "reviewer", "admin", "super_admin"];
+  const userRole = role && validRoles.includes(role) ? role : "student";
+  if ((userRole === "admin" || userRole === "super_admin") && auth.role !== "super_admin") {
+    sendError(res, "Only super_admin can assign admin or super_admin roles", HttpStatus.FORBIDDEN);
+    return;
   }
-  const userRole = role && allowedRoles.includes(role) ? role : "student";
   try {
     const existingResult = await query("SELECT id FROM profiles WHERE email = $1 LIMIT 1", [email.toLowerCase()]);
     if (existingResult.rows.length > 0) {
@@ -1662,6 +1696,100 @@ async function handleUpdateRole(req, res, auth) {
 async function handleEligibilityAssessments(req, res) {
   res.setHeader("Cache-Control", "public, max-age=60");
   sendSuccess(res, { assessments: [], message: "Eligibility assessments feature not yet configured" });
+}
+async function handleAuditLog(req, res) {
+  let page = parseInt(req.query.page || "1", 10);
+  let pageSize = parseInt(req.query.pageSize || "50", 10);
+  if (isNaN(page) || page < 1)
+    page = 1;
+  if (isNaN(pageSize) || pageSize < 1)
+    pageSize = 50;
+  if (pageSize > 200)
+    pageSize = 200;
+  const filterAction = req.query.filter_action?.trim();
+  const filterEntityType = req.query.filter_entity_type?.trim();
+  const filterFrom = req.query.filter_from;
+  const filterTo = req.query.filter_to;
+  const offset = (page - 1) * pageSize;
+  try {
+    const whereClauses = [];
+    const params = [];
+    if (filterAction) {
+      params.push(filterAction);
+      whereClauses.push(`action = $${params.length}`);
+    }
+    if (filterEntityType) {
+      params.push(filterEntityType);
+      whereClauses.push(`entity_type = $${params.length}`);
+    }
+    if (filterFrom) {
+      params.push(filterFrom);
+      whereClauses.push(`created_at >= $${params.length}::timestamptz`);
+    }
+    if (filterTo) {
+      params.push(filterTo);
+      whereClauses.push(`created_at <= $${params.length}::timestamptz`);
+    }
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
+    const countQuery = `SELECT COUNT(*) as count FROM audit_logs ${whereSql}`;
+    const entriesQuery = `
+      SELECT id, actor_id, action, entity_type, entity_id, changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      ${whereSql}
+      ORDER BY created_at DESC
+      LIMIT $${params.length + 1}
+      OFFSET $${params.length + 2}
+    `;
+    const [countResult, entriesResult] = await Promise.all([
+      query(countQuery, params),
+      query(entriesQuery, [...params, pageSize, offset])
+    ]);
+    const totalCount = parseInt(countResult.rows[0]?.count || "0", 10);
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    sendSuccess(res, {
+      entries: entriesResult.rows,
+      totalCount,
+      page,
+      pageSize,
+      totalPages
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    sendError(res, message, HttpStatus.BAD_REQUEST);
+  }
+}
+async function handleAppeals(req, res) {
+  let page = parseInt(req.query.page || "1", 10);
+  let pageSize = parseInt(req.query.limit || req.query.pageSize || "50", 10);
+  if (isNaN(page) || page < 1)
+    page = 1;
+  if (isNaN(pageSize) || pageSize < 1)
+    pageSize = 50;
+  if (pageSize > 200)
+    pageSize = 200;
+  const offset = (page - 1) * pageSize;
+  try {
+    const [countResult, appealsResult] = await Promise.all([
+      query("SELECT COUNT(*) as count FROM eligibility_appeals"),
+      query(`SELECT * FROM eligibility_appeals ORDER BY submitted_at DESC NULLS LAST, created_at DESC NULLS LAST LIMIT $1 OFFSET $2`, [pageSize, offset])
+    ]);
+    const totalCount = parseInt(countResult.rows[0]?.count || "0", 10);
+    sendSuccess(res, {
+      appeals: appealsResult.rows,
+      totalCount,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(totalCount / pageSize))
+    });
+  } catch {
+    sendSuccess(res, {
+      appeals: [],
+      totalCount: 0,
+      page,
+      pageSize,
+      totalPages: 1
+    });
+  }
 }
 export {
   admin_default as default

@@ -13,6 +13,7 @@ import {
   CatalogIntakesResponseSchema,
   AuthSessionResponseSchema,
   NotificationPreferencesResponseSchema,
+  AdminUsersResponseSchema,
 } from './schemas'
 
 describe('API Contract Tests', () => {
@@ -79,5 +80,25 @@ describe('API Contract Tests', () => {
   it('validates NotificationPreferencesResponse shape', () => {
     const sample = { user_id: '1', email_enabled: true, push_enabled: false }
     expect(NotificationPreferencesResponseSchema.safeParse(sample).success).toBe(true)
+  })
+
+  it('validates AdminUsersResponse shape', () => {
+    const sample = {
+      users: [{ id: 'u1', user_id: 'u1', email: 'test@example.com', role: 'student', first_name: 'Test', last_name: 'User', created_at: '2026-01-01T00:00:00Z' }],
+      totalCount: 1, page: 1, pageSize: 50, totalPages: 1,
+    }
+    expect(AdminUsersResponseSchema.safeParse(sample).success).toBe(true)
+  })
+
+  it('validates AdminUsersResponse with empty users array', () => {
+    const sample = {
+      users: [],
+      totalCount: 0, page: 1, pageSize: 50, totalPages: 0,
+    }
+    expect(AdminUsersResponseSchema.safeParse(sample).success).toBe(true)
+  })
+
+  it('rejects AdminUsersResponse missing users array', () => {
+    expect(AdminUsersResponseSchema.safeParse({ totalCount: 0, page: 1, pageSize: 50, totalPages: 0 }).success).toBe(false)
   })
 })

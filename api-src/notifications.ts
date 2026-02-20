@@ -5,6 +5,10 @@ import { getAuthUser } from '../lib/auth/middleware';
 import { withArcjetProtection } from '../lib/arcjet';
 import { USER_ROLES } from '../lib/queries';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
+import { MANDATORY_EMAIL_TYPES, isMandatoryEmailType } from '../lib/notificationPolicy';
+
+// Re-export for backward compatibility and testing convenience
+export { MANDATORY_EMAIL_TYPES, isMandatoryEmailType } from '../lib/notificationPolicy';
 
 /**
  * Consolidated Notifications API
@@ -241,6 +245,66 @@ async function handleDelete(req: VercelRequest, res: VercelResponse) {
   return sendSuccess(res, { deleted: true });
 }
 
+/**
+ * Create a notification with deduplication via idempotency key.
+ * 
+ * Computes key as `event_type:entity_type:entity_id` and checks for an existing
+ * notification with the same key within a 1-hour window. Skips creation if a
+ * duplicate is found.
+ * 
+ * Requirements: 13.1, 13.2
+ */
+async function createNotificationWithDedup(
+  userId: string,
+  eventType: string,
+  entityId: string,
+  entityType: string,
+  message: string,
+  channel: 'email' | 'in_app',
+  extra?: { title?: string; action_url?: string | null }
+): Promise<{ created: boolean; notificationId?: string; notification?: Record<string, unknown> }> {
+  const idempotencyKey = `${eventType}:${entityType}:${entityId}`;
+
+  // Check for existing notification with same key in last hour
+  const existing = await query<{ id: string }>(
+    `SELECT id FROM notifications
+     WHERE user_id = $1 AND idempotency_key = $2
+     AND created_at > NOW() - INTERVAL '1 hour'
+     LIMIT 1`,
+    [userId, idempotencyKey]
+  );
+
+  if (existing.rows.length > 0) {
+    console.log(
+      '[notifications/dedup] Duplicate skipped — key:', idempotencyKey,
+      'user:', userId.substring(0, 8) + '...'
+    );
+    return { created: false };
+  }
+
+  // Create notification with idempotency key
+  const result = await query<Record<string, unknown>>(
+    `INSERT INTO notifications (id, user_id, type, title, message, idempotency_key, channel, action_url, is_read, created_at)
+     VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, false, NOW())
+     RETURNING *`,
+    [
+      userId,
+      eventType,
+      extra?.title || message,
+      message,
+      idempotencyKey,
+      channel,
+      extra?.action_url || null,
+    ]
+  );
+
+  return {
+    created: true,
+    notificationId: result.rows[0]?.id as string,
+    notification: result.rows[0],
+  };
+}
+
 async function handleSend(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
@@ -257,24 +321,54 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
   }
 
-  const { user_id, title, message, type, action_url } = req.body;
+  const { user_id, title, message, type, action_url, entity_id, entity_type } = req.body;
 
   if (!user_id || !title || !message) {
     return sendError(res, 'user_id, title, and message are required', HttpStatus.BAD_REQUEST);
   }
 
-  // Insert notification
-  const insertQ = {
-    text: `
-      INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
-      VALUES ($1, $2, $3, $4, $5, false, NOW())
-      RETURNING *
-    `,
-    values: [user_id, title, message, type || 'info', action_url || null],
-  };
-  const result = await query<Record<string, unknown>>(insertQ.text, insertQ.values);
+  const notificationType = type || 'info';
+  const mandatory = isMandatoryEmailType(notificationType);
+
+  // Use deduplication when entity context is provided, otherwise fall back to direct insert
+  let notificationRow: Record<string, unknown> | undefined;
+
+  if (entity_id && entity_type) {
+    const dedupResult = await createNotificationWithDedup(
+      user_id,
+      notificationType,
+      entity_id,
+      entity_type,
+      message,
+      'in_app',
+      { title, action_url: action_url || null }
+    );
+
+    if (!dedupResult.created) {
+      console.log('[notifications/send] Duplicate notification skipped for user:', user_id.substring(0, 8) + '...');
+      return sendSuccess(res, { duplicate: true, message: 'Notification already sent within deduplication window' });
+    }
+
+    notificationRow = dedupResult.notification;
+  } else {
+    // Legacy path: no entity context, insert directly (backward compatible)
+    const insertQ = {
+      text: `
+        INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+        VALUES ($1, $2, $3, $4, $5, false, NOW())
+        RETURNING *
+      `,
+      values: [user_id, title, message, notificationType, action_url || null],
+    };
+    const result = await query<Record<string, unknown>>(insertQ.text, insertQ.values);
+    notificationRow = result.rows[0];
+  }
 
   const recipientPreferences = await getCanonicalPreferences(user_id);
+
+  // For mandatory types, always send email regardless of user preferences.
+  // For non-mandatory types, respect the user's email_enabled preference.
+  const shouldSendEmail = mandatory || Boolean(recipientPreferences.email_enabled);
 
   let emailSent = false;
   try {
@@ -286,17 +380,8 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
     const profileResult = await query<{ email: string; first_name: string; last_name: string }>(profileQ.text, profileQ.values);
     const profile = profileResult.rows[0];
 
-    if (profile?.email && recipientPreferences.email_enabled && process.env.RESEND_API_KEY) {
-      const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Student';
-      const emailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">${title}</h2>
-          <p style="font-size: 16px; line-height: 1.6; color: #374151;">${message}</p>
-          ${action_url ? `<p style="margin-top: 20px;"><a href="${action_url}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Details</a></p>` : ''}
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-          <p style="font-size: 14px; color: #6b7280;">MIHAS - Mukuba Institute of Health and Allied Sciences</p>
-        </div>
-      `;
+    if (profile?.email && shouldSendEmail && process.env.RESEND_API_KEY) {
+      const emailHtml = buildNotificationEmailHtml(title, message, action_url);
 
       const emailResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -313,13 +398,32 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
       });
 
       emailSent = emailResponse.ok;
+
+      if (mandatory) {
+        console.log('[notifications/send] Mandatory email sent for type:', notificationType, 'user:', user_id.substring(0, 8) + '...');
+      }
     }
   } catch {
     console.log('[notifications/send] Email send failed');
   }
 
   console.log('[notifications/send] Notification created for user:', user_id.substring(0, 8) + '...');
-  return sendSuccess(res, { notification: result.rows[0], email_sent: emailSent });
+  return sendSuccess(res, { notification: notificationRow, email_sent: emailSent, mandatory });
+}
+
+/**
+ * Build the HTML body for a notification email.
+ */
+function buildNotificationEmailHtml(title: string, message: string, actionUrl?: string | null): string {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2563eb;">${title}</h2>
+      <p style="font-size: 16px; line-height: 1.6; color: #374151;">${message}</p>
+      ${actionUrl ? `<p style="margin-top: 20px;"><a href="${actionUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Details</a></p>` : ''}
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+      <p style="font-size: 14px; color: #6b7280;">MIHAS - Mukuba Institute of Health and Allied Sciences</p>
+    </div>
+  `;
 }
 
 async function getCanonicalPreferences(userId: string): Promise<Record<string, unknown>> {

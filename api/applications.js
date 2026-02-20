@@ -364,6 +364,29 @@ function withArcjetProtection(handler, routeType = "general") {
     }
   };
 }
+async function arcjetProtect(req, routeType = "general") {
+  if (!ARCJET_KEY) {
+    console.warn("[ARCJET] WARNING: ARCJET_KEY not set, allowing request");
+    return { allowed: true, reason: "ARCJET_KEY not set" };
+  }
+  try {
+    const protectedAj = createProtectedArcjet(routeType);
+    const decision = await protectedAj.protect(req);
+    if (decision.isDenied()) {
+      const reasonType = getBlockReasonType(decision);
+      console.log("[ARCJET] BLOCKED (manual): reason=" + reasonType + ", id=" + decision.id);
+      return {
+        allowed: false,
+        reason: reasonType
+      };
+    }
+    return { allowed: true };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error("[ARCJET] Service error (manual): " + errorMsg);
+    return { allowed: false, reason: "SECURITY_SERVICE_ERROR" };
+  }
+}
 var aj = ARCJET_KEY ? arcjet({
   key: ARCJET_KEY,
   characteristics: ["ip.src"],
@@ -377,6 +400,178 @@ var aj = ARCJET_KEY ? arcjet({
 }) : null;
 
 // lib/queries.ts
+var AuditQueries = {
+  log: (input) => ({
+    text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      RETURNING id, created_at
+    `,
+    values: [
+      input.actor_id,
+      input.action,
+      input.entity_type,
+      input.entity_id,
+      input.changes ? JSON.stringify(input.changes) : null,
+      input.ip_address || null,
+      input.user_agent || null
+    ]
+  }),
+  logAuthEvent: (actorId, action, success, ipAddress, userAgent, additionalInfo) => ({
+    text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      RETURNING id, created_at
+    `,
+    values: [
+      actorId,
+      action,
+      JSON.stringify({ success, ...additionalInfo }),
+      ipAddress,
+      userAgent
+    ]
+  }),
+  logAuthorizationFailure: (actorId, attemptedAction, entityType, entityId, requiredPermission, ipAddress, userAgent) => ({
+    text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      RETURNING id, created_at
+    `,
+    values: [
+      actorId,
+      entityType,
+      entityId,
+      JSON.stringify({
+        attempted_action: attemptedAction,
+        required_permission: requiredPermission
+      }),
+      ipAddress,
+      userAgent
+    ]
+  }),
+  logSessionEvent: (actorId, action, sessionId, ipAddress, userAgent, additionalInfo) => ({
+    text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      RETURNING id, created_at
+    `,
+    values: [
+      actorId,
+      action,
+      sessionId,
+      additionalInfo ? JSON.stringify(additionalInfo) : null,
+      ipAddress,
+      userAgent
+    ]
+  }),
+  findById: (id) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE id = $1
+      LIMIT 1
+    `,
+    values: [id]
+  }),
+  getForEntity: (entityType, entityId, limit = 50) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE entity_type = $1 AND entity_id = $2
+      ORDER BY created_at DESC
+      LIMIT $3
+    `,
+    values: [entityType, entityId, limit]
+  }),
+  getByActor: (actorId, limit = 50) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE actor_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `,
+    values: [actorId, limit]
+  }),
+  getByAction: (action, limit = 50) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE action = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `,
+    values: [action, limit]
+  }),
+  getRecent: (limit, offset) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `,
+    values: [limit, offset]
+  }),
+  getByDateRange: (startDate, endDate, limit = 100) => ({
+    text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE created_at >= $1 AND created_at <= $2
+      ORDER BY created_at DESC
+      LIMIT $3
+    `,
+    values: [startDate, endDate, limit]
+  }),
+  countByAction: (action) => ({
+    text: `
+      SELECT COUNT(*) as count
+      FROM audit_logs
+      WHERE action = $1
+    `,
+    values: [action]
+  }),
+  countFailedAuthInWindow: (windowMinutes) => ({
+    text: `
+      SELECT COUNT(*) as count
+      FROM audit_logs
+      WHERE action = 'auth_failure'
+        AND created_at > NOW() - INTERVAL '1 minute' * $1
+    `,
+    values: [windowMinutes]
+  }),
+  deleteOlderThan: (daysOld) => ({
+    text: `
+      DELETE FROM audit_logs
+      WHERE created_at < NOW() - INTERVAL '1 day' * $1
+      RETURNING id
+    `,
+    values: [daysOld]
+  })
+};
 var ApplicationQueries = {
   findAll: (limit = 100, offset = 0) => ({
     text: `
@@ -891,12 +1086,118 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   return res.status(status).json(response);
 }
 
+// lib/realtimeBroker.ts
+var MAX_EVENTS_PER_USER = 200;
+var userEvents = new Map;
+var seenEventIds = new Set;
+var publishedCount = 0;
+var duplicateCount = 0;
+function publishRealtimeEvent(userId, event) {
+  if (seenEventIds.has(event.event_id)) {
+    duplicateCount += 1;
+    return;
+  }
+  seenEventIds.add(event.event_id);
+  publishedCount += 1;
+  const list = userEvents.get(userId) || [];
+  list.push(event);
+  if (list.length > MAX_EVENTS_PER_USER) {
+    list.shift();
+  }
+  userEvents.set(userId, list);
+}
+
+// lib/auditLogger.ts
+async function executeQuery(config) {
+  const result = await query(config.text, config.values);
+  return result.rows;
+}
+var SENSITIVE_PATTERNS = [
+  /password/i,
+  /secret/i,
+  /token/i,
+  /key/i,
+  /credential/i,
+  /auth/i,
+  /hash/i,
+  /salt/i,
+  /bearer/i,
+  /cookie/i,
+  /session_id/i,
+  /refresh/i,
+  /access/i
+];
+var PII_PATTERNS = [
+  /email/i,
+  /phone/i,
+  /address/i,
+  /name/i,
+  /ssn/i,
+  /national_id/i,
+  /passport/i,
+  /birth/i
+];
+function isSensitiveField(fieldName) {
+  return SENSITIVE_PATTERNS.some((pattern) => pattern.test(fieldName));
+}
+function isPIIField(fieldName) {
+  return PII_PATTERNS.some((pattern) => pattern.test(fieldName));
+}
+function sanitizeValue(value) {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  if (typeof value === "string") {
+    return sanitizeError(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map(sanitizeValue);
+  }
+  if (typeof value === "object") {
+    return sanitizeContext(value);
+  }
+  return value;
+}
+function sanitizeContext(context) {
+  if (!context || typeof context !== "object") {
+    return null;
+  }
+  const sanitized = {};
+  for (const [key, value] of Object.entries(context)) {
+    if (isSensitiveField(key)) {
+      sanitized[key] = "[REDACTED]";
+      continue;
+    }
+    if (isPIIField(key)) {
+      sanitized[key] = "[PII_REDACTED]";
+      continue;
+    }
+    sanitized[key] = sanitizeValue(value);
+  }
+  return sanitized;
+}
+async function logAuditEvent(input) {
+  try {
+    const sanitizedInput = {
+      ...input,
+      changes: input.changes ? sanitizeContext(input.changes) || undefined : undefined
+    };
+    await executeQuery(AuditQueries.log(sanitizedInput));
+  } catch (error) {
+    console.error("[AuditLogger] Failed to log audit event:", sanitizeError(error instanceof Error ? error.message : String(error)));
+  }
+}
+
 // api-src/applications.ts
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
+  const action = req.query.action;
   if (req.method === "HEAD") {
     return res.status(200).end();
+  }
+  if (req.method === "GET" && action === "track") {
+    return await handlePublicTracking(req, res);
   }
   const user = await getAuthUser(req);
   if (!user) {
@@ -904,7 +1205,6 @@ async function handler(req, res) {
   }
   const adminRoles = ["admin", "super_admin", "admissions_officer"];
   const isAdmin = adminRoles.includes(user.role);
-  const action = req.query.action;
   const id = req.query.id;
   try {
     if (action === "details")
@@ -937,6 +1237,43 @@ async function handler(req, res) {
   } catch (error) {
     return handleError(res, error, "applications");
   }
+}
+function isValidTrackingCode(code) {
+  const value = code.trim();
+  if (!value || value.length > 50)
+    return false;
+  const appNumberPattern = /^(KATC|MIHAS)\d{6}$/;
+  if (appNumberPattern.test(value))
+    return true;
+  return /^[a-zA-Z0-9\-_]+$/.test(value);
+}
+async function handlePublicTracking(req, res) {
+  const code = req.query.code?.trim() || "";
+  if (!isValidTrackingCode(code)) {
+    return sendError(res, "Invalid tracking code format", HttpStatus.BAD_REQUEST);
+  }
+  const rateLimitDecision = await arcjetProtect(req, "session");
+  if (!rateLimitDecision.allowed) {
+    return sendError(res, "Too many tracking requests. Please try again later.", HttpStatus.TOO_MANY_REQUESTS);
+  }
+  const result = await query(`SELECT
+      application_number,
+      status,
+      program AS program_name,
+      intake AS intake_name,
+      submitted_at,
+      updated_at,
+      LEFT(NULLIF(TRIM(admin_feedback), ''), 240) AS feedback_summary
+    FROM applications
+    WHERE public_tracking_code = $1 OR application_number = $1
+    ORDER BY updated_at DESC NULLS LAST
+    LIMIT 1`, [code]);
+  if (result.rowCount === 0) {
+    return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
+  }
+  return sendSuccess(res, {
+    application: result.rows[0]
+  });
 }
 async function handleCreate(req, res, userId) {
   const body = req.body;
@@ -1011,8 +1348,9 @@ async function handleDetails(req, res, userId, isAdmin) {
   if (req.method !== "GET") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
-  const page = parseInt(req.query.page || "0", 10);
-  const pageSize = parseInt(req.query.pageSize || "50", 10);
+  const rawPage = parseInt(req.query.page || "1", 10);
+  const page = Math.max(rawPage, 1);
+  const pageSize = Math.max(parseInt(req.query.pageSize || "50", 10), 1);
   const status = req.query.status;
   const search = req.query.search;
   const payment = req.query.payment;
@@ -1059,7 +1397,7 @@ async function handleDetails(req, res, userId, isAdmin) {
   const sortColumn = sortBy === "date" ? "created_at" : sortBy === "name" ? "full_name" : "created_at";
   const countResult = await query(`SELECT COUNT(*) as count FROM applications ${whereClause}`, values);
   const totalCount = parseInt(countResult.rows[0]?.count || "0", 10);
-  const offset = page * pageSize;
+  const offset = (page - 1) * pageSize;
   const dataValues = [...values, pageSize, offset];
   const result = await query(`SELECT * FROM applications ${whereClause} ORDER BY ${sortColumn} ${sortOrder} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`, dataValues);
   return sendSuccess(res, {
@@ -1129,6 +1467,41 @@ async function handleScheduleInterview(req, res, userId, isAdmin) {
       application_id, scheduled_at, mode, location, notes, status, created_by, created_at, updated_at
     ) VALUES ($1, $2, $3, $4, $5, 'scheduled', $6, NOW(), NOW())
     RETURNING id, application_id, scheduled_at, mode, location, notes, status`, [applicationId, scheduled_at, normalizedMode, location, notes || null, userId]);
+  try {
+    await logAuditEvent({
+      actor_id: userId,
+      action: "interview_scheduled",
+      entity_type: "application",
+      entity_id: applicationId,
+      changes: { scheduled_at, mode: normalizedMode, interview_id: interviewResult.rows[0]?.id }
+    });
+  } catch (auditError) {
+    console.error("[applications] Failed to create interview audit log:", auditError);
+  }
+  try {
+    const appOwner = await query("SELECT user_id FROM applications WHERE id = $1", [applicationId]);
+    if (appOwner.rows[0]?.user_id) {
+      const now = new Date().toISOString();
+      const version = Date.now();
+      publishRealtimeEvent(appOwner.rows[0].user_id, {
+        event_id: `interview_scheduled:${applicationId}:${version}`,
+        event_type: "interview_scheduled",
+        entity_id: applicationId,
+        version,
+        created_at: now,
+        payload: {
+          application_id: applicationId,
+          interview_id: interviewResult.rows[0]?.id,
+          scheduled_at,
+          mode: normalizedMode,
+          location
+        }
+      });
+    }
+  } catch (realtimeError) {
+    console.error("[applications] Failed to publish interview realtime event:", realtimeError);
+  }
+  console.log("[applications] Interview scheduled:", applicationId, interviewResult.rows[0]?.id);
   return sendSuccess(res, { interview: interviewResult.rows[0] }, HttpStatus.CREATED);
 }
 async function handleStats(req, res, userId) {
@@ -1179,6 +1552,17 @@ async function handleReview(req, res, userId, isAdmin) {
     }
     const historyQ = StatusHistoryQueries.create(application_id, status, userId, notes);
     await query(historyQ.text, historyQ.values);
+    try {
+      await logAuditEvent({
+        actor_id: userId,
+        action: "application_status_changed",
+        entity_type: "application",
+        entity_id: application_id,
+        changes: { new_status: status, review_action: true }
+      });
+    } catch (auditError) {
+      console.error("[applications/review] Failed to create audit log:", auditError);
+    }
     console.log("[applications/review] Application reviewed:", application_id, status);
     return sendSuccess(res, { application: updateResult.rows[0] });
   }
@@ -1242,23 +1626,257 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
         if (status === "approved" && app.payment_status !== "verified") {
           return sendError(res, "Cannot approve without verified payment", HttpStatus.BAD_REQUEST);
         }
-        const updateQ2 = ApplicationQueries.updateStatus(applicationId, status, userId, notes);
-        const updateResult2 = await query(updateQ2.text, updateQ2.values);
-        const historyQ = StatusHistoryQueries.create(applicationId, status, userId, notes);
-        await query(historyQ.text, historyQ.values);
+        await query("BEGIN");
+        let updateResult2;
+        try {
+          const updateQ2 = ApplicationQueries.updateStatus(applicationId, status, userId, notes);
+          updateResult2 = await query(updateQ2.text, updateQ2.values);
+          const historyQ = StatusHistoryQueries.create(applicationId, status, userId, notes);
+          await query(historyQ.text, historyQ.values);
+          if (status === "approved") {
+            await query(`INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+               VALUES ($1, $2, $3, 'success', false, NOW())`, [
+              app.user_id,
+              "Application approved",
+              `Your application ${app.application_number || applicationId} has been approved.`
+            ]);
+          }
+          await query("COMMIT");
+        } catch (error) {
+          await query("ROLLBACK");
+          throw error;
+        }
+        try {
+          await logAuditEvent({
+            actor_id: userId,
+            action: "application_status_changed",
+            entity_type: "application",
+            entity_id: applicationId,
+            changes: { new_status: status }
+          });
+        } catch (auditError) {
+          console.error("[applications] Failed to create status change audit log:", auditError);
+        }
+        const now = new Date().toISOString();
+        const version = Date.now();
+        const baseEvent = {
+          entity_id: applicationId,
+          version,
+          created_at: now
+        };
+        publishRealtimeEvent(app.user_id, {
+          ...baseEvent,
+          event_id: `application_update:${applicationId}:${version}`,
+          event_type: "application_update",
+          payload: {
+            application_id: applicationId,
+            status,
+            approved: status === "approved"
+          }
+        });
+        publishRealtimeEvent(app.user_id, {
+          ...baseEvent,
+          event_id: `dashboard_refresh:${applicationId}:${version}`,
+          event_type: "dashboard_refresh",
+          payload: {
+            reason: "application_status_changed",
+            application_id: applicationId
+          }
+        });
+        if (status === "approved") {
+          publishRealtimeEvent(app.user_id, {
+            ...baseEvent,
+            event_id: `notification:${applicationId}:${version}`,
+            event_type: "notification",
+            payload: {
+              title: "Application approved",
+              message: `Your application ${app.application_number || applicationId} has been approved.`
+            }
+          });
+        }
         console.log("[applications] Status updated:", applicationId, status);
         return sendSuccess(res, updateResult2.rows[0]);
       }
       if (action === "update_payment_status") {
-        const { paymentStatus } = payload;
+        const { paymentStatus, verificationNotes } = payload;
         const validPaymentStatuses = ["pending_review", "verified", "rejected"];
         if (!validPaymentStatuses.includes(paymentStatus)) {
           return sendError(res, `Invalid payment status. Must be one of: ${validPaymentStatuses.join(", ")}`, HttpStatus.BAD_REQUEST);
         }
         const updateQ2 = ApplicationQueries.updatePaymentStatus(applicationId, paymentStatus, paymentStatus === "verified" ? userId : null);
         const updateResult2 = await query(updateQ2.text, updateQ2.values);
+        const notificationTitle = paymentStatus === "verified" ? "Payment Verified" : paymentStatus === "rejected" ? "Payment Rejected" : "Payment Status Updated";
+        const notificationMessage = paymentStatus === "verified" ? `Your payment for application ${app.application_number || applicationId} has been verified.` : paymentStatus === "rejected" ? `Your payment for application ${app.application_number || applicationId} was rejected. Please resubmit your payment proof.` : `Your payment status for application ${app.application_number || applicationId} has been updated to ${paymentStatus}.`;
+        try {
+          await query(`INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+             VALUES ($1, $2, $3, $4, false, NOW())`, [
+            app.user_id,
+            notificationTitle,
+            notificationMessage,
+            paymentStatus === "verified" ? "success" : paymentStatus === "rejected" ? "error" : "info"
+          ]);
+        } catch (notifError) {
+          console.error("[applications] Failed to create payment notification:", notifError);
+        }
+        try {
+          await logAuditEvent({
+            actor_id: userId,
+            action: paymentStatus === "verified" ? "payment_verified" : paymentStatus === "rejected" ? "payment_rejected" : "payment_status_updated",
+            entity_type: "payment",
+            entity_id: applicationId,
+            changes: { payment_status: paymentStatus }
+          });
+        } catch (auditError) {
+          console.error("[applications] Failed to create payment audit log:", auditError);
+        }
+        const now = new Date().toISOString();
+        const version = Date.now();
+        publishRealtimeEvent(app.user_id, {
+          event_id: `payment_update:${applicationId}:${version}`,
+          event_type: "payment_update",
+          entity_id: applicationId,
+          version,
+          created_at: now,
+          payload: {
+            application_id: applicationId,
+            payment_status: paymentStatus
+          }
+        });
+        publishRealtimeEvent(app.user_id, {
+          event_id: `dashboard_refresh:${applicationId}:${version}`,
+          event_type: "dashboard_refresh",
+          entity_id: applicationId,
+          version,
+          created_at: now,
+          payload: {
+            reason: "payment_status_changed",
+            application_id: applicationId
+          }
+        });
         console.log("[applications] Payment status updated:", applicationId, paymentStatus);
         return sendSuccess(res, updateResult2.rows[0]);
+      }
+      if (action === "schedule_interview") {
+        if (!isAdmin) {
+          return sendError(res, "Forbidden: admin access required", HttpStatus.FORBIDDEN);
+        }
+        const { scheduledAt, mode: interviewMode, location: interviewLocation, notes: interviewNotes } = payload;
+        if (!scheduledAt || !interviewMode || !interviewLocation) {
+          return sendError(res, "Missing required fields: scheduledAt, mode, location", HttpStatus.BAD_REQUEST);
+        }
+        const normalizedMode = interviewMode === "in-person" ? "in_person" : interviewMode;
+        if (!["in_person", "virtual", "phone"].includes(normalizedMode)) {
+          return sendError(res, "Invalid mode. Use: in-person, in_person, virtual, or phone", HttpStatus.BAD_REQUEST);
+        }
+        const interviewResult = await query(`INSERT INTO application_interviews (
+            application_id, scheduled_at, mode, location, notes, status, created_by, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, 'scheduled', $6, NOW(), NOW())
+          RETURNING id, application_id, scheduled_at, mode, location, notes, status`, [applicationId, scheduledAt, normalizedMode, interviewLocation, interviewNotes || null, userId]);
+        try {
+          await logAuditEvent({
+            actor_id: userId,
+            action: "interview_scheduled",
+            entity_type: "application",
+            entity_id: applicationId,
+            changes: { scheduled_at: scheduledAt, mode: normalizedMode, interview_id: interviewResult.rows[0]?.id }
+          });
+        } catch (auditError) {
+          console.error("[applications] Failed to create interview audit log:", auditError);
+        }
+        try {
+          const now = new Date().toISOString();
+          const version = Date.now();
+          publishRealtimeEvent(app.user_id, {
+            event_id: `interview_scheduled:${applicationId}:${version}`,
+            event_type: "interview_scheduled",
+            entity_id: applicationId,
+            version,
+            created_at: now,
+            payload: { application_id: applicationId, interview_id: interviewResult.rows[0]?.id, scheduled_at: scheduledAt, mode: normalizedMode, location: interviewLocation }
+          });
+        } catch (realtimeError) {
+          console.error("[applications] Failed to publish interview realtime event:", realtimeError);
+        }
+        console.log("[applications] Interview scheduled via PATCH:", applicationId);
+        return sendSuccess(res, { interview: interviewResult.rows[0] }, HttpStatus.CREATED);
+      }
+      if (action === "reschedule_interview") {
+        if (!isAdmin) {
+          return sendError(res, "Forbidden: admin access required", HttpStatus.FORBIDDEN);
+        }
+        const { scheduledAt, mode: reschedMode, location: reschedLocation, notes: reschedNotes } = payload;
+        if (!scheduledAt) {
+          return sendError(res, "Missing required field: scheduledAt", HttpStatus.BAD_REQUEST);
+        }
+        const existingInterview = await query(`SELECT id FROM application_interviews WHERE application_id = $1 AND status IN ('scheduled', 'rescheduled')
+           ORDER BY created_at DESC LIMIT 1`, [applicationId]);
+        if (existingInterview.rowCount === 0) {
+          return sendError(res, "No active interview found to reschedule", HttpStatus.NOT_FOUND);
+        }
+        const interviewId = existingInterview.rows[0].id;
+        const setClauses = [`scheduled_at = $1`, `status = 'rescheduled'`, `updated_at = NOW()`];
+        const updateValues = [scheduledAt];
+        let pIdx = 2;
+        if (reschedMode) {
+          const normalizedMode = reschedMode === "in-person" ? "in_person" : reschedMode;
+          setClauses.push(`mode = $${pIdx}`);
+          updateValues.push(normalizedMode);
+          pIdx++;
+        }
+        if (reschedLocation) {
+          setClauses.push(`location = $${pIdx}`);
+          updateValues.push(reschedLocation);
+          pIdx++;
+        }
+        if (reschedNotes !== undefined) {
+          setClauses.push(`notes = $${pIdx}`);
+          updateValues.push(reschedNotes || null);
+          pIdx++;
+        }
+        updateValues.push(interviewId);
+        const reschedResult = await query(`UPDATE application_interviews SET ${setClauses.join(", ")} WHERE id = $${pIdx}
+           RETURNING id, application_id, scheduled_at, mode, location, notes, status`, updateValues);
+        try {
+          await logAuditEvent({
+            actor_id: userId,
+            action: "interview_rescheduled",
+            entity_type: "application",
+            entity_id: applicationId,
+            changes: { interview_id: interviewId, scheduled_at: scheduledAt }
+          });
+        } catch (auditError) {
+          console.error("[applications] Failed to create reschedule audit log:", auditError);
+        }
+        console.log("[applications] Interview rescheduled:", applicationId, interviewId);
+        return sendSuccess(res, { interview: reschedResult.rows[0] });
+      }
+      if (action === "cancel_interview") {
+        if (!isAdmin) {
+          return sendError(res, "Forbidden: admin access required", HttpStatus.FORBIDDEN);
+        }
+        const { notes: cancelNotes } = payload;
+        const existingInterview = await query(`SELECT id FROM application_interviews WHERE application_id = $1 AND status IN ('scheduled', 'rescheduled')
+           ORDER BY created_at DESC LIMIT 1`, [applicationId]);
+        if (existingInterview.rowCount === 0) {
+          return sendError(res, "No active interview found to cancel", HttpStatus.NOT_FOUND);
+        }
+        const interviewId = existingInterview.rows[0].id;
+        const cancelResult = await query(`UPDATE application_interviews SET status = 'cancelled', notes = COALESCE($1, notes), updated_at = NOW()
+           WHERE id = $2
+           RETURNING id, application_id, scheduled_at, mode, location, notes, status`, [cancelNotes || null, interviewId]);
+        try {
+          await logAuditEvent({
+            actor_id: userId,
+            action: "interview_cancelled",
+            entity_type: "application",
+            entity_id: applicationId,
+            changes: { interview_id: interviewId }
+          });
+        } catch (auditError) {
+          console.error("[applications] Failed to create cancel interview audit log:", auditError);
+        }
+        console.log("[applications] Interview cancelled:", applicationId, interviewId);
+        return sendSuccess(res, { interview: cancelResult.rows[0] });
       }
       if (action === "sync_grades") {
         const { grades } = payload;

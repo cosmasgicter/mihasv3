@@ -150,9 +150,9 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
         className="p-4 cursor-pointer"
         onClick={() => setShowDetails(!showDetails)}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           {/* Left Side - Action Info */}
-          <div className="flex items-center space-x-4 flex-1 min-w-0">
+          <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
             {/* Action Icon */}
             <div className={`p-2 rounded-lg ${actionDetails.bg} ${actionDetails.color} flex-shrink-0`}>
               {actionDetails.icon}
@@ -160,35 +160,35 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
             
             {/* Action Details */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2 mb-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
                 <h3 className="font-semibold text-gray-900 truncate">{actionDetails.label}</h3>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${actionDetails.color} ${actionDetails.bg} border ${actionDetails.border}`}>
                   {actionDetails.category}
                 </span>
               </div>
               
-              <div className="flex items-center space-x-4 text-sm text-gray-900">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-900">
                 {/* Actor */}
-                <div className="flex items-center space-x-1">
-                  <User className="h-3 w-3" />
-                  <span className="truncate max-w-32">{entry.actorEmail || 'System'}</span>
+                <div className="flex items-center space-x-1 min-w-0">
+                  <User className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate max-w-[10rem] sm:max-w-[12rem]">{entry.actorEmail || 'System'}</span>
                 </div>
                 
                 {/* Target */}
                 {entry.targetTable && (
-                  <div className="flex items-center space-x-1">
-                    <Database className="h-3 w-3" />
-                    <span>{getTableDisplayName(entry.targetTable)}</span>
+                  <div className="flex items-center space-x-1 min-w-0">
+                    <Database className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">{getTableDisplayName(entry.targetTable)}</span>
                     {entry.targetId && (
-                      <span className="text-xs text-gray-900 font-mono">#{entry.targetId}</span>
+                      <span className="text-xs text-gray-900 font-mono hidden sm:inline">#{entry.targetId}</span>
                     )}
                   </div>
                 )}
                 
-                {/* IP Address */}
+                {/* IP Address - hidden on mobile to save space */}
                 {entry.requestIp && (
-                  <div className="flex items-center space-x-1">
-                    <Globe className="h-3 w-3" />
+                  <div className="hidden sm:flex items-center space-x-1">
+                    <Globe className="h-3 w-3 flex-shrink-0" />
                     <span className="font-mono text-xs">{entry.requestIp}</span>
                   </div>
                 )}
@@ -197,8 +197,8 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
           </div>
           
           {/* Right Side - Time */}
-          <div className="flex items-center space-x-3 flex-shrink-0">
-            <div className="text-right">
+          <div className="flex items-center justify-between sm:justify-end space-x-3 flex-shrink-0 pl-9 sm:pl-0">
+            <div className="text-left sm:text-right">
               <div className="text-sm font-medium text-gray-900">{relativeTime}</div>
               <div className="text-xs text-gray-900">{exactTime}</div>
             </div>
@@ -451,7 +451,7 @@ export default function AuditTrailPage() {
   const canGoForward = (response?.page ?? 1) < (response?.totalPages ?? 1)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 max-w-full overflow-x-hidden">
       
       {/* Header */}
       <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3 sm:px-6">
