@@ -7,6 +7,7 @@ import {
   performReload,
   resolveBuildKey
 } from '@/lib/reloadControl'
+import { registerSW } from 'virtual:pwa-register'
 
 // Initialize connection manager to suppress extension errors
 import { connectionManager } from '@/lib/connectionFix'
@@ -99,11 +100,23 @@ if (typeof window !== 'undefined') {
   document.body.classList.add('light')
   document.body.style.colorScheme = 'light'
   
-  // Register service worker for offline support (deferred)
+  // Register vite-plugin-pwa service worker and retire legacy /sw.js registrations
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
-    // Defer until after page load to not block initial render
     setTimeout(() => {
-      navigator.serviceWorker.register('/sw.js').catch(() => {})
+      registerSW({
+        immediate: true,
+        onRegisterError(error) {
+          console.error('[PWA] Service worker registration failed:', error)
+        }
+      })
+
+      navigator.serviceWorker.getRegistrations()
+        .then((registrations) => Promise.all(
+          registrations
+            .filter((registration) => registration.active?.scriptURL.endsWith('/sw.js'))
+            .map((registration) => registration.unregister())
+        ))
+        .catch(() => {})
     }, 3000)
   }
 }
