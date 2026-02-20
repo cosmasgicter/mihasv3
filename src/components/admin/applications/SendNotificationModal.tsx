@@ -59,17 +59,17 @@ export function SendNotificationModal({
         </DialogHeader>
 
         <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-          <p className="text-sm text-gray-900">
+          <p className="text-sm text-foreground">
             <strong>To:</strong> {studentName}
           </p>
-          <p className="text-sm text-gray-900">
+          <p className="text-sm text-foreground">
             <strong>Application:</strong> #{applicationNumber}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Subject
             </label>
             <input
@@ -83,7 +83,7 @@ export function SendNotificationModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Message
             </label>
             <textarea

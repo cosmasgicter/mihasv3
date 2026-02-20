@@ -71,7 +71,7 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-700 mb-1">{title}</p>
-          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{value}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-foreground">{value}</p>
           {trend !== undefined && (
             <div className={`flex items-center mt-1 text-sm ${
               trend > 0 ? 'text-success' : trend < 0 ? 'text-error' : 'text-gray-700'

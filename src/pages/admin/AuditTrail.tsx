@@ -161,13 +161,13 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
             {/* Action Details */}
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h3 className="font-semibold text-gray-900 truncate">{actionDetails.label}</h3>
+                <h3 className="font-semibold text-foreground truncate">{actionDetails.label}</h3>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${actionDetails.color} ${actionDetails.bg} border ${actionDetails.border}`}>
                   {actionDetails.category}
                 </span>
               </div>
               
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-900">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-foreground">
                 {/* Actor */}
                 <div className="flex items-center space-x-1 min-w-0">
                   <User className="h-3 w-3 flex-shrink-0" />
@@ -180,7 +180,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
                     <Database className="h-3 w-3 flex-shrink-0" />
                     <span className="truncate">{getTableDisplayName(entry.targetTable)}</span>
                     {entry.targetId && (
-                      <span className="text-xs text-gray-900 font-mono hidden sm:inline">#{entry.targetId}</span>
+                      <span className="text-xs text-foreground font-mono hidden sm:inline">#{entry.targetId}</span>
                     )}
                   </div>
                 )}
@@ -199,10 +199,10 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
           {/* Right Side - Time */}
           <div className="flex items-center justify-between sm:justify-end space-x-3 flex-shrink-0 pl-9 sm:pl-0">
             <div className="text-left sm:text-right">
-              <div className="text-sm font-medium text-gray-900">{relativeTime}</div>
-              <div className="text-xs text-gray-900">{exactTime}</div>
+              <div className="text-sm font-medium text-foreground">{relativeTime}</div>
+              <div className="text-xs text-foreground">{exactTime}</div>
             </div>
-            <ChevronRight className={`h-4 w-4 text-gray-900 transition-transform duration-200 ${showDetails ? 'rotate-90' : ''}`} />
+            <ChevronRight className={`h-4 w-4 text-foreground transition-transform duration-200 ${showDetails ? 'rotate-90' : ''}`} />
           </div>
         </div>
       </div>
@@ -215,20 +215,20 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
             <div className="bg-card rounded-lg p-3 border border-border">
               <div className="flex items-center gap-2 mb-3">
                 <User className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold text-gray-900">Actor Information</span>
+                <span className="text-sm font-semibold text-foreground">Actor Information</span>
               </div>
               <div className="space-y-2">
                 <div>
-                  <span className="text-xs font-medium text-gray-900">Email:</span>
-                  <p className="text-sm text-gray-900">{entry.actorEmail || 'Unknown'}</p>
+                  <span className="text-xs font-medium text-foreground">Email:</span>
+                  <p className="text-sm text-foreground">{entry.actorEmail || 'Unknown'}</p>
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-gray-900">User ID:</span>
-                  <p className="text-sm font-mono text-gray-900">{entry.actorId || 'N/A'}</p>
+                  <span className="text-xs font-medium text-foreground">User ID:</span>
+                  <p className="text-sm font-mono text-foreground">{entry.actorId || 'N/A'}</p>
                 </div>
                 {entry.actorRoles?.length > 0 && (
                   <div>
-                    <span className="text-xs font-medium text-gray-900">Roles:</span>
+                    <span className="text-xs font-medium text-foreground">Roles:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {entry.actorRoles.map((role, index) => (
                         <span
@@ -248,29 +248,29 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
             <div className="bg-card rounded-lg p-3 border border-border">
               <div className="flex items-center gap-2 mb-3">
                 <Activity className="h-4 w-4 text-secondary" />
-                <span className="text-sm font-semibold text-gray-900">Request Details</span>
+                <span className="text-sm font-semibold text-foreground">Request Details</span>
               </div>
               <div className="space-y-2">
                 <div>
-                  <span className="text-xs font-medium text-gray-900">Action:</span>
-                  <p className="text-sm font-mono text-gray-900">{entry.action}</p>
+                  <span className="text-xs font-medium text-foreground">Action:</span>
+                  <p className="text-sm font-mono text-foreground">{entry.action}</p>
                 </div>
                 {entry.requestId && (
                   <div>
-                    <span className="text-xs font-medium text-gray-900">Request ID:</span>
-                    <p className="text-sm font-mono text-gray-900">{entry.requestId}</p>
+                    <span className="text-xs font-medium text-foreground">Request ID:</span>
+                    <p className="text-sm font-mono text-foreground">{entry.requestId}</p>
                   </div>
                 )}
                 {entry.requestIp && (
                   <div>
-                    <span className="text-xs font-medium text-gray-900">IP Address:</span>
-                    <p className="text-sm font-mono text-gray-900">{entry.requestIp}</p>
+                    <span className="text-xs font-medium text-foreground">IP Address:</span>
+                    <p className="text-sm font-mono text-foreground">{entry.requestIp}</p>
                   </div>
                 )}
                 {entry.userAgent && (
                   <div>
-                    <span className="text-xs font-medium text-gray-900">User Agent:</span>
-                    <p className="text-xs text-gray-900 truncate" title={entry.userAgent}>{entry.userAgent}</p>
+                    <span className="text-xs font-medium text-foreground">User Agent:</span>
+                    <p className="text-xs text-foreground truncate" title={entry.userAgent}>{entry.userAgent}</p>
                   </div>
                 )}
               </div>
@@ -282,23 +282,23 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
             <div className="bg-card rounded-lg p-3 border border-border mt-4">
               <div className="flex items-center gap-2 mb-3">
                 <Database className="h-4 w-4 text-accent" />
-                <span className="text-sm font-semibold text-gray-900">Target Information</span>
+                <span className="text-sm font-semibold text-foreground">Target Information</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <span className="text-xs font-medium text-gray-900">Table:</span>
-                  <p className="text-sm text-gray-900">{getTableDisplayName(entry.targetTable)}</p>
+                  <span className="text-xs font-medium text-foreground">Table:</span>
+                  <p className="text-sm text-foreground">{getTableDisplayName(entry.targetTable)}</p>
                 </div>
                 {entry.targetId && (
                   <div>
-                    <span className="text-xs font-medium text-gray-900">Record ID:</span>
-                    <p className="text-sm font-mono text-gray-900">{entry.targetId}</p>
+                    <span className="text-xs font-medium text-foreground">Record ID:</span>
+                    <p className="text-sm font-mono text-foreground">{entry.targetId}</p>
                   </div>
                 )}
                 {entry.targetLabel && (
                   <div>
-                    <span className="text-xs font-medium text-gray-900">Label:</span>
-                    <p className="text-sm text-gray-900">{entry.targetLabel}</p>
+                    <span className="text-xs font-medium text-foreground">Label:</span>
+                    <p className="text-sm text-foreground">{entry.targetLabel}</p>
                   </div>
                 )}
               </div>
@@ -310,7 +310,7 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
             <div className="bg-card rounded-lg p-3 border border-border mt-4">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="h-4 w-4 text-secondary" />
-                <span className="text-sm font-semibold text-gray-900">Additional Data</span>
+                <span className="text-sm font-semibold text-foreground">Additional Data</span>
                 <span className="text-xs bg-skeleton px-2 py-0.5 rounded-full">
                   {metadataLength} fields
                 </span>
@@ -461,8 +461,8 @@ export default function AuditTrailPage() {
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900">System Audit Trail</h1>
-              <p className="text-xs text-gray-900">
+              <h1 className="text-lg font-bold text-foreground">System Audit Trail</h1>
+              <p className="text-xs text-foreground">
                 {response?.totalCount || 0} security events tracked
               </p>
             </div>
@@ -553,7 +553,7 @@ export default function AuditTrailPage() {
           <div className="bg-card rounded-xl p-4 shadow-sm border border-border mb-6 sm:hidden">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1"><Search className="w-5 h-5" /> Search Actions</label>
+                <label className="block text-sm font-medium text-foreground mb-1"><Search className="w-5 h-5" /> Search Actions</label>
                 <Input
                   value={formFilters.action}
                   onChange={event => setFormFilters(filters => ({ ...filters, action: event.target.value }))}
@@ -561,7 +561,7 @@ export default function AuditTrailPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1"><User className="w-5 h-5" /> User Email</label>
+                <label className="block text-sm font-medium text-foreground mb-1"><User className="w-5 h-5" /> User Email</label>
                 <Input
                   value={formFilters.actorEmail}
                   onChange={event => setFormFilters(filters => ({ ...filters, actorEmail: event.target.value }))}
@@ -569,7 +569,7 @@ export default function AuditTrailPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">🗂️ Data Type</label>
+                <label className="block text-sm font-medium text-foreground mb-1">🗂️ Data Type</label>
                 <select
                   value={formFilters.targetTable}
                   onChange={event => setFormFilters(filters => ({ ...filters, targetTable: event.target.value }))}
@@ -587,7 +587,7 @@ export default function AuditTrailPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">From</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">From</label>
                   <Input
                     type="datetime-local"
                     value={formFilters.from}
@@ -595,7 +595,7 @@ export default function AuditTrailPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">To</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">To</label>
                   <Input
                     type="datetime-local"
                     value={formFilters.to}
@@ -620,11 +620,11 @@ export default function AuditTrailPage() {
         <div className="hidden sm:block bg-card rounded-xl p-6 shadow-sm border border-border mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="h-5 w-5 text-foreground" />
-            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+            <h2 className="text-lg font-semibold text-foreground">Filters</h2>
           </div>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1"><Search className="w-5 h-5" /> Search Actions</label>
+              <label className="block text-sm font-medium text-foreground mb-1"><Search className="w-5 h-5" /> Search Actions</label>
               <Input
                 value={formFilters.action}
                 onChange={event => setFormFilters(filters => ({ ...filters, action: event.target.value }))}
@@ -632,7 +632,7 @@ export default function AuditTrailPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1"><User className="w-5 h-5" /> User Email</label>
+              <label className="block text-sm font-medium text-foreground mb-1"><User className="w-5 h-5" /> User Email</label>
               <Input
                 value={formFilters.actorEmail}
                 onChange={event => setFormFilters(filters => ({ ...filters, actorEmail: event.target.value }))}
@@ -640,7 +640,7 @@ export default function AuditTrailPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">🗂️ Data Type</label>
+              <label className="block text-sm font-medium text-foreground mb-1">🗂️ Data Type</label>
               <select
                 value={formFilters.targetTable}
                 onChange={event => setFormFilters(filters => ({ ...filters, targetTable: event.target.value }))}
@@ -657,7 +657,7 @@ export default function AuditTrailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">📂 Category</label>
+              <label className="block text-sm font-medium text-foreground mb-1">📂 Category</label>
               <select
                 value={formFilters.category}
                 onChange={event => setFormFilters(filters => ({ ...filters, category: event.target.value }))}
@@ -673,7 +673,7 @@ export default function AuditTrailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">From</label>
+              <label className="block text-sm font-medium text-foreground mb-1">From</label>
               <Input
                 type="datetime-local"
                 value={formFilters.from}
@@ -681,7 +681,7 @@ export default function AuditTrailPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">To</label>
+              <label className="block text-sm font-medium text-foreground mb-1">To</label>
               <Input
                 type="datetime-local"
                 value={formFilters.to}
@@ -758,18 +758,18 @@ export default function AuditTrailPage() {
             <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-900">
-                    Showing page <span className="font-semibold text-gray-900">{response.page}</span> of{' '}
-                    <span className="font-semibold text-gray-900">{response.totalPages}</span>
+                  <div className="text-sm text-foreground">
+                    Showing page <span className="font-semibold text-foreground">{response.page}</span> of{' '}
+                    <span className="font-semibold text-foreground">{response.totalPages}</span>
                   </div>
                   <div className="h-4 w-px bg-muted" />
-                  <div className="text-sm text-gray-900">
-                    <span className="font-semibold text-gray-900">{response.totalCount}</span> total entries
+                  <div className="text-sm text-foreground">
+                    <span className="font-semibold text-foreground">{response.totalCount}</span> total entries
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-900">Page size:</label>
+                  <label className="text-sm text-foreground">Page size:</label>
                   <Input
                     type="number"
                     min={5}
@@ -809,7 +809,7 @@ export default function AuditTrailPage() {
                         className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                           pageNum === response.page
                             ? 'bg-primary text-white'
-                            : 'text-gray-900 hover:bg-accent'
+                            : 'text-foreground hover:bg-accent'
                         }`}
                       >
                         {pageNum}
@@ -836,8 +836,8 @@ export default function AuditTrailPage() {
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
               <Shield className="h-10 w-10 text-foreground" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Security Events Found</h3>
-            <p className="text-gray-900 mb-6 max-w-md mx-auto">
+            <h3 className="text-xl font-semibold text-foreground mb-2">No Security Events Found</h3>
+            <p className="text-foreground mb-6 max-w-md mx-auto">
               {Object.keys(appliedFilters).length > 0 
                 ? 'No audit entries match your current search criteria. Try adjusting your filters.' 
                 : 'No audit entries have been recorded yet. System activity will appear here.'

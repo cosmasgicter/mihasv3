@@ -183,12 +183,12 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <User className="h-4 w-4 text-gray-900 flex-shrink-0" />
-            <h3 className="font-semibold text-gray-900 truncate">{app.full_name}</h3>
+            <User className="h-4 w-4 text-foreground flex-shrink-0" />
+            <h3 className="font-semibold text-foreground truncate">{app.full_name}</h3>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-900">
+          <div className="flex items-center gap-2 text-sm text-foreground">
             <span className="font-mono">#{app.application_number}</span>
-            <span className="text-gray-900">•</span>
+            <span className="text-foreground">•</span>
             <Calendar className="h-3 w-3" />
             <span>{formatDate(app.submitted_at || app.created_at)}</span>
           </div>
@@ -230,12 +230,12 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
 
       {/* Contact Info */}
       <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-gray-900">
+        <div className="flex items-center gap-2 text-sm text-foreground">
           <Mail className="h-3 w-3 text-foreground" />
           <span className="truncate">{app.email}</span>
         </div>
         {app.phone && (
-          <div className="flex items-center gap-2 text-sm text-gray-900">
+          <div className="flex items-center gap-2 text-sm text-foreground">
             <Phone className="h-3 w-3 text-foreground" />
             <span>{app.phone}</span>
           </div>
@@ -246,12 +246,12 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
       <div className="bg-muted rounded-lg p-3 mb-4">
         <div className="flex items-center gap-2 mb-1">
           <GraduationCap className="h-4 w-4 text-primary" />
-          <span className="font-medium text-gray-900 text-sm">{app.program}</span>
+          <span className="font-medium text-foreground text-sm">{app.program}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-900">
+        <div className="flex items-center gap-2 text-sm text-foreground">
           <Building className="h-3 w-3 text-foreground" />
           <span>{getInstitutionName(app.institution)}</span>
-          <span className="text-gray-900">•</span>
+          <span className="text-foreground">•</span>
           <span>{app.intake}</span>
         </div>
       </div>
@@ -260,18 +260,18 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
       {/* Payment & Grades */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <div className="text-xs text-gray-900 mb-1">Payment Status</div>
+          <div className="text-xs text-foreground mb-1">Payment Status</div>
           {getPaymentBadge(app.payment_status)}
-          <div className="text-sm font-medium text-gray-900 mt-1">
+          <div className="text-sm font-medium text-foreground mt-1">
             K{app.paid_amount || 0} / K{app.application_fee}
           </div>
         </div>
         
         {app.total_subjects > 0 && (
           <div>
-            <div className="text-xs text-gray-900 mb-1">Academic</div>
+            <div className="text-xs text-foreground mb-1">Academic</div>
             <div className="text-sm">
-              <span className="text-gray-900">{app.total_subjects} subjects</span>
+              <span className="text-foreground">{app.total_subjects} subjects</span>
               {app.points > 0 && (
                 <div className={`font-medium ${getPointsColor(app.points)}`}>
                   Points: {app.points}
@@ -284,11 +284,11 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
 
       {app.grades_summary && (
         <div className="mb-4 rounded-lg border border-border bg-muted p-3">
-          <div className="text-xs font-medium uppercase tracking-wide text-gray-900 mb-2">
+          <div className="text-xs font-medium uppercase tracking-wide text-foreground mb-2">
             Grades Summary
           </div>
           <div
-            className="prose prose-sm max-w-none text-gray-900 [&_p]:mb-2"
+            className="prose prose-sm max-w-none text-foreground [&_p]:mb-2"
             dangerouslySetInnerHTML={{ __html: sanitizedGradesSummary }}
           />
         </div>
@@ -341,7 +341,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
                 href={app.result_slip_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-accent hover:bg-skeleton text-gray-900 p-2.5 rounded-lg transition-colors"
+                className="bg-accent hover:bg-skeleton text-foreground p-2.5 rounded-lg transition-colors"
                 title="Result Slip"
               >
                 <FileText className="h-4 w-4" />
@@ -352,7 +352,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
                 href={app.pop_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-accent hover:bg-skeleton text-gray-900 p-2.5 rounded-lg transition-colors"
+                className="bg-accent hover:bg-skeleton text-foreground p-2.5 rounded-lg transition-colors"
                 title="Proof of Payment"
               >
                 <CreditCard className="h-4 w-4" />
@@ -379,7 +379,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
       {/* Loading Overlays */}
       {(updatingStatus || updatingPayment) && (
         <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-card/80">
-          <div className="flex items-center gap-2 text-sm text-gray-900">
+          <div className="flex items-center gap-2 text-sm text-foreground">
             <LoadingSpinner size="sm" />
             <span>Updating...</span>
           </div>
