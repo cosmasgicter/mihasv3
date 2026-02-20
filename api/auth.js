@@ -1,4 +1,20 @@
 import { createRequire } from "node:module";
+var __create = Object.create;
+var __getProtoOf = Object.getPrototypeOf;
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __toESM = (mod, isNodeMode, target) => {
+  target = mod != null ? __create(__getProtoOf(mod)) : {};
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  for (let key of __getOwnPropNames(mod))
+    if (!__hasOwnProp.call(to, key))
+      __defProp(to, key, {
+        get: () => mod[key],
+        enumerable: true
+      });
+  return to;
+};
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
@@ -1386,7 +1402,7 @@ async function handleForgotPassword(req, res) {
     return sendError(res, "Email is required", HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
   }
   const normalizedEmail = email.toLowerCase().trim();
-  const userResult = await query(`SELECT id, email, first_name, last_name, full_name
+  const userResult = await query(`SELECT id, email, first_name, last_name
      FROM profiles WHERE email = $1 AND is_active = true LIMIT 1`, [normalizedEmail]);
   if (userResult.rows.length > 0) {
     const user = userResult.rows[0];
@@ -1454,7 +1470,7 @@ async function handleLogin(req, res) {
   if (!email || !password) {
     return sendError(res, "Email and password required", HttpStatus.BAD_REQUEST);
   }
-  const result = await query(`SELECT id, email, password_hash, role, first_name, last_name, full_name, is_active 
+  const result = await query(`SELECT id, email, password_hash, role, first_name, last_name, is_active 
      FROM profiles WHERE email = $1 LIMIT 1`, [email.toLowerCase()]);
   if (result.rows.length === 0) {
     return sendError(res, "Invalid credentials", HttpStatus.UNAUTHORIZED);
@@ -1599,7 +1615,7 @@ async function handleSession(req, res) {
   }
   try {
     const payload = await verifyAccessToken(token);
-    const result = await query("SELECT id, email, role, first_name, last_name, full_name FROM profiles WHERE id = $1", [payload.sub]);
+    const result = await query("SELECT id, email, role, first_name, last_name FROM profiles WHERE id = $1", [payload.sub]);
     if (result.rows.length === 0) {
       clearAuthCookies(res);
       return sendSuccess(res, { user: null });
@@ -1628,7 +1644,7 @@ async function handleRefresh(req, res) {
   }
   try {
     const { sub: userId } = await verifyRefreshToken(refreshTokenValue);
-    const result = await query("SELECT id, email, role, first_name, last_name, full_name, is_active FROM profiles WHERE id = $1", [userId]);
+    const result = await query("SELECT id, email, role, first_name, last_name, is_active FROM profiles WHERE id = $1", [userId]);
     if (result.rows.length === 0 || !result.rows[0].is_active) {
       clearAuthCookies(res);
       return sendError(res, "User not found or inactive", HttpStatus.UNAUTHORIZED);
