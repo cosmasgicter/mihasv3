@@ -47,6 +47,7 @@ import { getDisplayName } from '@/utils/userDisplayName'
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { DashboardSkeleton } from '@/components/admin/DashboardSkeleton'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 
 interface DashboardStats {
   totalApplications: number
@@ -250,13 +251,13 @@ export default function AdminDashboard() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Profile Loading</h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-4">Setting up your profile...</p>
-          <LoadingSpinner size="lg" />
-        </div>
-      </div>
+      <UnifiedLoader
+        variant="page"
+        size="lg"
+        message="Setting up your profile"
+        label="Setting up admin profile"
+        className="min-h-screen"
+      />
     )
   }
 
