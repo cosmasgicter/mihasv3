@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { StudentErrorBoundary } from '@/components/student/StudentErrorBoundary'
+import { useDebouncedLoading } from '@/hooks/useLoadingState'
 
 interface StudentRouteProps {
   children: React.ReactNode
@@ -16,15 +17,21 @@ interface StudentRouteProps {
  */
 export function StudentRoute({ children }: StudentRouteProps) {
   const { user, isAdmin, isLoading } = useOptimizedAuthState()
+  const showInlineLoader = useDebouncedLoading(isLoading, 200)
   const location = useLocation()
 
   if (isLoading) {
+    if (!showInlineLoader) {
+      return null
+    }
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted to-muted">
-        <div className="text-center p-8 bg-card rounded-xl shadow-lg border border-border max-w-md mx-4">
-          <UnifiedLoader variant="inline" size="lg" message="Verifying your session" />
-        </div>
-      </div>
+      <UnifiedLoader
+        variant="inline"
+        size="md"
+        message="Verifying your session"
+        className="w-full py-6"
+      />
     )
   }
 

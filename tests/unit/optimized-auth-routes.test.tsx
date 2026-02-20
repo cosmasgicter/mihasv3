@@ -5,6 +5,8 @@ const mockUseQuery = vi.fn()
 const mockUseAuthCheck = vi.fn()
 const mockUseOptimizedAuthState = vi.fn()
 
+const mockUseDebouncedLoading = vi.fn()
+
 vi.mock('@tanstack/react-query', () => ({
   useQuery: (options: unknown) => mockUseQuery(options),
   useQueryClient: vi.fn(() => ({
@@ -15,6 +17,11 @@ vi.mock('@tanstack/react-query', () => ({
 vi.mock('@/lib/supabase', () => ({
   getSupabaseClient: vi.fn(),
   isSupabaseConfigured: false,
+}))
+
+
+vi.mock('@/hooks/useLoadingState', () => ({
+  useDebouncedLoading: (isLoading: boolean, delay?: number) => mockUseDebouncedLoading(isLoading, delay),
 }))
 
 vi.mock('@/hooks/queries/useSupabaseQuery', () => ({
@@ -91,7 +98,38 @@ describe('route guards with normalized session-backed auth state', () => {
   beforeEach(() => {
     mockUseAuthCheck.mockReset()
     mockUseOptimizedAuthState.mockReset()
+    mockUseDebouncedLoading.mockReset()
+    mockUseDebouncedLoading.mockReturnValue(true)
   })
+
+  it('ProtectedRoute returns null while loading before anti-flicker threshold', () => {
+    mockUseAuthCheck.mockReturnValue({
+      isAuthenticated: false,
+      isLoading: true,
+      user: null,
+    })
+    mockUseDebouncedLoading.mockReturnValue(false)
+
+    const element = ProtectedRoute({ children: React.createElement('div', null, 'OK') })
+
+    expect(element).toBeNull()
+  })
+
+  it('AdminRoute renders inline loader after anti-flicker threshold', () => {
+    mockUseOptimizedAuthState.mockReturnValue({
+      user: null,
+      isAdmin: false,
+      isLoading: true,
+      profile: null,
+      isAuthenticated: false,
+    })
+    mockUseDebouncedLoading.mockReturnValue(true)
+
+    const element = AdminRoute({ children: React.createElement('div', null, 'Admin') }) as React.ReactElement
+
+    expect(element.props.message).toBe('Verifying administrator access')
+  })
+
 
   it('ProtectedRoute does not redirect authenticated users back to /auth/signin', () => {
     mockUseAuthCheck.mockReturnValue({
