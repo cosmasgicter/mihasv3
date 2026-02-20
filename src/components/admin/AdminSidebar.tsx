@@ -18,17 +18,11 @@ import {
   Users,
   GraduationCap,
   Calendar,
-  BarChart3,
-  Workflow,
-  TrendingUp,
-  Shield,
   FileSearch,
   Settings,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Activity,
-  Gauge,
 } from 'lucide-react';
 
 interface NavItem {
@@ -63,28 +57,10 @@ const adminSections: NavSection[] = [
     ],
   },
   {
-    id: 'analytics',
-    title: 'Analytics & Insights',
-    items: [
-      { to: '/admin/analytics', icon: BarChart3, label: 'Analytics Dashboard' },
-      { to: '/admin/realtime-metrics', icon: Activity, label: 'Live System Metrics' },
-    ],
-  },
-  {
-    id: 'automation',
-    title: 'Automation & Flow',
-    items: [
-      { to: '/admin/workflow', icon: Workflow, label: 'Automation Rules' },
-      { to: '/admin/flow-analysis', icon: TrendingUp, label: 'Application Pipeline' },
-    ],
-  },
-  {
     id: 'system',
     title: 'System',
     items: [
-      { to: '/admin/roles', icon: Shield, label: 'Roles' },
       { to: '/admin/audit', icon: FileSearch, label: 'Audit Trail' },
-      { to: '/admin/system-health', icon: Gauge, label: 'System Health' },
       { to: '/admin/settings', icon: Settings, label: 'Settings' },
     ],
   },
@@ -100,13 +76,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
   const { collapsed, setCollapsed } = useSidebar();
   const permissions = userRole?.permissions ?? [];
   const hasCapability = (required: string[]) => required.some(capability => permissions.includes(capability));
-  const canAccessAdvancedAnalytics = isReportManagerRole(userRole?.role) || hasCapability(['analytics:view', 'analytics:advanced']);
-  const canAccessAutomation = isAdmin || hasCapability(['automation:view', 'automation:manage', 'workflow:manage']);
-  const visibleAdminSections = adminSections.filter(section => {
-    if (section.id === 'analytics') return canAccessAdvancedAnalytics;
-    if (section.id === 'automation') return canAccessAutomation;
-    return true;
-  });
+  const visibleAdminSections = adminSections;
   
   // Track which sections are expanded (all expanded by default)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(

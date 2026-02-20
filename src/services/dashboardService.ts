@@ -405,7 +405,7 @@ class DashboardService {
         severity: 'error',
         timestamp: new Date().toISOString(),
         actionable: true,
-        actionUrl: '/admin/system-health'
+        actionUrl: '/admin/dashboard'
       })
     }
 
@@ -418,7 +418,7 @@ class DashboardService {
         severity: 'warning',
         timestamp: new Date().toISOString(),
         actionable: true,
-        actionUrl: '/admin/workflow-analysis'
+        actionUrl: '/admin/applications'
       })
     }
 

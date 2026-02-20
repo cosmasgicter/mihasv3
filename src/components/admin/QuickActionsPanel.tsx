@@ -35,14 +35,6 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
       urgent: stats.pendingApplications > 0
     },
     {
-      title: 'Analytics',
-      description: 'View insights & reports',
-      icon: BarChart3,
-      href: '/admin/analytics',
-      color: 'from-green-500 to-emerald-600',
-      urgent: false
-    },
-    {
       title: 'Programs',
       description: `${stats.totalPrograms} active programs`,
       icon: GraduationCap,
