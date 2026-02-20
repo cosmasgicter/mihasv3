@@ -16,7 +16,6 @@ import {
   LayoutDashboard,
   FileText,
   Users,
-  BarChart3,
   Settings,
 } from 'lucide-react';
 
@@ -30,7 +29,6 @@ const mobileNavItems: NavItem[] = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/applications', icon: FileText, label: 'Apps' },
   { to: '/admin/users', icon: Users, label: 'Users' },
-  { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 

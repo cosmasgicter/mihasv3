@@ -25,21 +25,12 @@ const StudentPayment = React.lazy(() => import('@/pages/student/Payment'))
 const StudentInterview = React.lazy(() => import('@/pages/student/Interview'))
 const AdminDashboard = React.lazy(() => import('@/pages/admin/Dashboard'))
 const AdminApplications = React.lazy(() => import('@/pages/admin/Applications'))
-const ApplicationsAdmin = React.lazy(() => import('@/pages/admin/ApplicationsAdmin'))
 const AdminPrograms = React.lazy(() => import('@/pages/admin/Programs'))
 const AdminIntakes = React.lazy(() => import('@/pages/admin/Intakes'))
 const AdminUsers = React.lazy(() => import('@/pages/admin/Users'))
 const AdminSettings = React.lazy(() => import('@/pages/admin/Settings'))
-const AdminAnalytics = React.lazy(() => import('@/pages/admin/Analytics'))
-const WorkflowAutomation = React.lazy(() => import('@/pages/admin/WorkflowAutomation'))
 const AuditTrail = React.lazy(() => import('@/pages/admin/AuditTrail'))
-const RoleManagement = React.lazy(() => import('@/pages/admin/RoleManagement'))
-const ApplicationFlowAnalysis = React.lazy(() => import('@/pages/admin/ApplicationFlowAnalysis'))
-const SystemHealthDashboard = React.lazy(() => import('@/pages/admin/SystemHealthDashboard'))
-const ComplianceAnalytics = React.lazy(() => import('@/pages/admin/ComplianceAnalytics'))
-const RealtimeMetrics = React.lazy(() => import('@/pages/admin/RealtimeMetrics'))
 const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index.tsx'))
-const AdminTest = React.lazy(() => import('@/pages/AdminTest'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
 
 // Special components that don't need lazy loading
@@ -88,21 +79,12 @@ export const routes: RouteConfig[] = [
   { path: '/admin', element: AdminDashboard, guard: 'admin', lazy: true },
   { path: '/admin/dashboard', element: AdminDashboard, guard: 'admin', lazy: true },
   { path: '/admin/profile', element: AdminSettings, guard: 'admin', lazy: true },
-  { path: '/admin-test', element: AdminTest, guard: 'auth', lazy: true },
   { path: '/admin/applications', element: AdminApplications, guard: 'admin', lazy: true },
-  { path: '/admin/applications-new', element: ApplicationsAdmin, guard: 'admin', lazy: true },
   { path: '/admin/programs', element: AdminPrograms, guard: 'admin', lazy: true },
   { path: '/admin/intakes', element: AdminIntakes, guard: 'admin', lazy: true },
   { path: '/admin/users', element: AdminUsers, guard: 'admin', lazy: true },
   { path: '/admin/audit', element: AuditTrail, guard: 'admin', lazy: true },
   { path: '/admin/settings', element: AdminSettings, guard: 'admin', lazy: true },
-  { path: '/admin/analytics', element: AdminAnalytics, guard: 'admin', lazy: true },
-  { path: '/admin/compliance-analytics', element: ComplianceAnalytics, guard: 'admin', lazy: true },
-  { path: '/admin/realtime-metrics', element: RealtimeMetrics, guard: 'admin', lazy: true },
-  { path: '/admin/workflow', element: WorkflowAutomation, guard: 'admin', lazy: true },
-  { path: '/admin/flow-analysis', element: ApplicationFlowAnalysis, guard: 'admin', lazy: true },
-  { path: '/admin/roles', element: RoleManagement, guard: 'admin', lazy: true },
-  { path: '/admin/system-health', element: SystemHealthDashboard, guard: 'admin', lazy: true },
   
   // 404 routes
   { path: '/404', element: NotFoundPage, guard: 'public', lazy: true },

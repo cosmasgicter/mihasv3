@@ -263,10 +263,10 @@ export default function EnhancedAdminDashboard() {
               className={`text-center py-6 sm:py-12 ${animateClasses.fadeIn}`}
             >
               <div className="text-6xl mb-4"><BarChart3 className="w-5 h-5" /></div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Advanced Analytics</h3>
-              <p className="text-gray-900 mb-6">Detailed analytics and reporting features coming soon</p>
-              <Button onClick={() => window.location.href = '/admin/analytics'}>
-                View Current Analytics
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Analytics</h3>
+              <p className="text-gray-900 mb-6">Application statistics are available on the dashboard</p>
+              <Button onClick={() => window.location.href = '/admin/dashboard'}>
+                View Dashboard
               </Button>
             </div>
           )}

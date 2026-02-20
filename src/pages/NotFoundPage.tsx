@@ -79,10 +79,10 @@ export default function NotFoundPage() {
 
         if (attemptedPath.includes('analytic') || attemptedPath.includes('report')) {
           suggestions.push({
-            path: '/admin/analytics',
-            label: 'Analytics',
+            path: '/admin/dashboard',
+            label: 'Dashboard',
             icon: <FileText className="h-4 w-4" />,
-            description: 'View system analytics'
+            description: 'View admin dashboard'
           })
         }
       } else {
