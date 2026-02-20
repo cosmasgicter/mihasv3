@@ -225,8 +225,8 @@ export default function Analytics() {
  <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-2xl p-6 text-white shadow-xl mb-8">
  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
  <div>
- <h1 className="text-xl sm:text-2xl md:text-3xl font-bold break-words"><BarChart3 className="w-5 h-5" /> Analytics & Reporting</h1>
- <p className="text-xl text-white/90 mt-2">Application statistics and trends analysis with full CRUD functionality</p>
+ <h1 className="text-xl sm:text-2xl md:text-3xl font-bold break-words"><BarChart3 className="w-5 h-5" /> Analytics Dashboard</h1>
+ <p className="text-xl text-white/90 mt-2">Track admissions performance, trends, and report-ready insights across applications and programs.</p>
  </div>
  <div className="flex items-center space-x-4">
  <Button
@@ -242,6 +242,10 @@ export default function Analytics() {
  <div className="text-sm text-white/80">Total Applications</div>
  </div>
  </div>
+ </div>
+
+ <div className="bg-blue-100 border border-blue-200 text-blue-900 rounded-xl p-4 mt-4">
+ <p className="text-sm">Use this dashboard to monitor overall admissions outcomes and trends. Best for administrators, admissions officers, and reporting teams.</p>
  </div>
  </div>
 

@@ -55,10 +55,10 @@ export default function RealtimeMetrics() {
             <div>
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center gap-2">
                 <Activity className="w-6 h-6" />
-                Real-time Metrics
+                Live System Metrics
               </h1>
               <p className="text-sm text-white/90 mt-2">
-                Live system performance and application metrics
+                Monitor live throughput, queue health, and response times for active operations.
               </p>
             </div>
             <div className="flex items-center space-x-4">
@@ -79,6 +79,9 @@ export default function RealtimeMetrics() {
                 Refresh Now
               </Button>
             </div>
+          </div>
+          <div className="bg-blue-100 border border-blue-200 text-blue-900 rounded-xl p-4 mt-4">
+            <p className="text-sm">Use this page for day-to-day operational monitoring. Best for platform admins and support teams managing active incidents.</p>
           </div>
         </div>
 
