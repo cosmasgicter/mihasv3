@@ -13,6 +13,80 @@ import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator';
 import { generatePaymentReceipt } from '@/lib/receiptGenerator';
 import { getApiBaseUrl } from '@/lib/apiConfig';
 
+type ApplicationPayload = {
+  application_number?: string;
+  public_tracking_code?: string;
+  status?: string;
+  payment_status?: string;
+  submitted_at?: string;
+  updated_at?: string;
+  program?: string;
+  intake?: string;
+  institution?: string;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+};
+
+const summarizePayloadShape = (payload: unknown) => {
+  if (!payload || typeof payload !== 'object') {
+    return { type: typeof payload };
+  }
+
+  const record = payload as Record<string, unknown>;
+  const topLevelKeys = Object.keys(record);
+  const dataKeys =
+    record.data && typeof record.data === 'object'
+      ? Object.keys(record.data as Record<string, unknown>)
+      : [];
+
+  return {
+    type: 'object',
+    topLevelKeys,
+    dataKeys,
+    hasApplicationAtRoot: Boolean(record.application),
+    hasApplicationInData: Boolean(
+      record.data &&
+        typeof record.data === 'object' &&
+        (record.data as Record<string, unknown>).application
+    ),
+  };
+};
+
+export const extractApplicationFromEnvelope = (
+  envelope: unknown,
+  endpoint: string
+): ApplicationPayload => {
+  const parsedEnvelope = envelope as
+    | { data?: { application?: ApplicationPayload }; application?: ApplicationPayload }
+    | null
+    | undefined;
+  const application =
+    parsedEnvelope?.data?.application ?? parsedEnvelope?.application ?? null;
+
+  if (!application || typeof application !== 'object') {
+    console.error('[useDocumentGeneration] Malformed payload: missing application object', {
+      endpoint,
+      responseShape: summarizePayloadShape(envelope),
+    });
+    throw new Error('No application data received');
+  }
+
+  if (!application.application_number || !application.public_tracking_code) {
+    console.error('[useDocumentGeneration] Malformed payload: missing required fields', {
+      endpoint,
+      responseShape: summarizePayloadShape(envelope),
+      missingRequiredFields: {
+        application_number: !application.application_number,
+        public_tracking_code: !application.public_tracking_code,
+      },
+    });
+    throw new Error('Missing required application fields');
+  }
+
+  return application;
+};
+
 export function useDocumentGeneration() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,16 +102,14 @@ export function useDocumentGeneration() {
       logger.log('[useDocumentGeneration] Starting generation for type:', type);
 
       // Fetch application data using cookie auth
-      const response = await fetch(
-        `${getApiBaseUrl()}/api/applications?id=${applicationId}`,
-        {
-          method: 'GET',
-          credentials: 'include', // CRITICAL: Send HTTP-only cookies
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const endpoint = `${getApiBaseUrl()}/api/applications?id=${applicationId}`;
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        credentials: 'include', // CRITICAL: Send HTTP-only cookies
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -46,19 +118,9 @@ export function useDocumentGeneration() {
         throw new Error('Failed to fetch application data');
       }
 
-      const result = await response.json();
-      const application = result.data || result.application;
+      const envelope = await response.json();
+      const application = extractApplicationFromEnvelope(envelope, endpoint);
       logger.log('[useDocumentGeneration] Application data:', application);
-
-      if (!application) {
-        console.error('No application data in response:', result);
-        throw new Error('No application data received');
-      }
-
-      if (!application.application_number || !application.public_tracking_code) {
-        console.error('Missing required fields:', application);
-        throw new Error('Missing required application fields');
-      }
 
       let pdfBlob: Blob;
       let filename: string;
