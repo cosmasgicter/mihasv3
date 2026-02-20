@@ -1,5 +1,5 @@
 import { FileText, Download } from 'lucide-react'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 
 interface DocumentItem {
   id: string
@@ -11,7 +11,7 @@ interface DocumentItem {
 }
 
 export function DocumentsTab({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: any }) {
-  if (loading) return <div className="flex items-center gap-2"><LoadingSpinner size="sm" /><span>Loading...</span></div>
+  if (loading) return <UnifiedLoader variant="inline" size="sm" message="Loading details" />
   
   const all = [...documents]
   if (application) {

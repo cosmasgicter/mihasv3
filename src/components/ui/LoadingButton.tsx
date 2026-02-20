@@ -7,7 +7,7 @@
  * @requirements 5.1, 5.2 - Fast page loading
  */
 
-import { LoadingSpinner } from './LoadingSpinner'
+import { UnifiedSpinner } from './UnifiedLoader'
 import { Button, ButtonProps } from './Button'
 import { cn } from '@/lib/utils'
 
@@ -42,9 +42,9 @@ export function LoadingButton({
         )}
       >
         {loading && (
-          <LoadingSpinner 
-            size="sm" 
-            color={props.variant === 'outline' ? 'primary' : 'white'}
+          <UnifiedSpinner
+            size="sm"
+            className={props.variant === 'outline' ? 'text-primary' : 'text-white'}
           />
         )}
         <span>{loading && loadingText ? loadingText : children}</span>
