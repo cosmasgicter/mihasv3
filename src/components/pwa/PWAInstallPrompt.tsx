@@ -1,34 +1,72 @@
-import React, { useState, useEffect } from 'react'
-import { Download, X } from 'lucide-react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Download, Monitor, Smartphone, X } from 'lucide-react'
 import { usePWA } from '@/hooks/usePWA'
 import { cn } from '@/lib/utils'
 
-/**
- * PWA Install Prompt Component - Sleek minimal banner
- * Requirements: 9.5 - Enhance app-like experience when installed as PWA
- */
+type PlatformHint = {
+  title: string
+  hint: string
+  icon: typeof Smartphone
+}
+
+const getPlatformHint = (): PlatformHint => {
+  if (typeof navigator === 'undefined') {
+    return {
+      title: 'Install the MIHAS app',
+      hint: 'Use your browser install option for quick access.',
+      icon: Download,
+    }
+  }
+
+  const ua = navigator.userAgent.toLowerCase()
+  const isIOS = /iphone|ipad|ipod/.test(ua)
+  const isAndroid = /android/.test(ua)
+
+  if (isIOS) {
+    return {
+      title: 'Install on iPhone or iPad',
+      hint: 'Tap Share, then choose Add to Home Screen to install MIHAS.',
+      icon: Smartphone,
+    }
+  }
+
+  if (isAndroid) {
+    return {
+      title: 'Install on Android',
+      hint: 'Tap Install in your browser banner to add MIHAS to your home screen.',
+      icon: Smartphone,
+    }
+  }
+
+  return {
+    title: 'Install on desktop',
+    hint: 'Use the install icon in the address bar for a dedicated MIHAS app window.',
+    icon: Monitor,
+  }
+}
+
 export const PWAInstallPrompt: React.FC = () => {
   const { canInstall, isInstalled, promptInstall } = usePWA()
   const [showPrompt, setShowPrompt] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
 
+  const platformHint = useMemo(() => getPlatformHint(), [])
+  const PlatformIcon = platformHint.icon
+
   useEffect(() => {
-    // Check if user has dismissed the prompt before
     const dismissedTime = localStorage.getItem('pwa_prompt_dismissed')
     if (dismissedTime) {
-      const daysSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24)
+      const daysSinceDismissed = (Date.now() - parseInt(dismissedTime, 10)) / (1000 * 60 * 60 * 24)
       if (daysSinceDismissed < 7) {
         setDismissed(true)
         return
       }
     }
 
-    // Show prompt after a delay if app can be installed
     if (canInstall && !isInstalled && !dismissed) {
       const timer = setTimeout(() => {
         setShowPrompt(true)
-        // Trigger animation after mount
         requestAnimationFrame(() => setIsVisible(true))
       }, 5000)
 
@@ -61,32 +99,54 @@ export const PWAInstallPrompt: React.FC = () => {
   return (
     <div
       className={cn(
-        'fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50',
+        'fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-50',
         'transform transition-all duration-200 ease-out',
         isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
       )}
     >
-      <div className="flex items-center gap-3 bg-card/95 backdrop-blur-sm border border-border rounded-full shadow-lg px-4 py-2.5">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Download className="h-4 w-4 text-primary" />
+      <div className="rounded-2xl border border-primary/20 bg-card/95 p-4 shadow-2xl backdrop-blur-sm">
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <img src="/images/logos/mihas-logo.webp" alt="MIHAS" className="h-10 w-10 rounded-lg object-contain bg-white p-1" />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Mukuba Institute of Health & Allied Sciences</p>
+              <h3 className="text-base font-bold text-foreground">Install MIHAS Student Portal</h3>
+            </div>
           </div>
-          <span className="text-sm font-medium truncate">Install MIHAS App</span>
-        </div>
-        
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <button
-            onClick={handleInstall}
-            className="px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          >
-            Install
-          </button>
           <button
             onClick={handleDismiss}
-            className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+            className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
             aria-label="Dismiss"
           >
             <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <p className="mb-3 text-sm text-muted-foreground">
+          Get a faster sign-in experience, offline-ready access to key pages, and one-tap entry for your applications.
+        </p>
+
+        <div className="mb-4 flex items-start gap-2 rounded-xl bg-primary/10 px-3 py-2">
+          <PlatformIcon className="mt-0.5 h-4 w-4 text-primary" />
+          <div>
+            <p className="text-sm font-medium text-foreground">{platformHint.title}</p>
+            <p className="text-xs text-muted-foreground">{platformHint.hint}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleInstall}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Download className="h-4 w-4" />
+            Install app
+          </button>
+          <button
+            onClick={handleDismiss}
+            className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50"
+          >
+            Not now
           </button>
         </div>
       </div>

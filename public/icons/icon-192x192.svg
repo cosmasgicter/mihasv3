@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="MIHAS app icon">
+  <defs>
+    <linearGradient id="mihas-gradient-192" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="44" fill="#081225" />
+  <rect x="16" y="16" width="160" height="160" rx="34" fill="url(#mihas-gradient-192)" />
+  <rect x="52" y="58" width="16" height="66" fill="#ffffff" rx="3" />
+  <rect x="79" y="79" width="34" height="16" fill="#ffffff" rx="3" />
+  <rect x="113" y="58" width="16" height="66" fill="#ffffff" rx="3" />
+  <circle cx="132" cy="57" r="12" fill="#22d3ee" />
+  <text x="96" y="144" text-anchor="middle" font-size="19" font-family="Inter, Arial, sans-serif" font-weight="700" letter-spacing="1.4" fill="#ffffff">MIHAS</text>
+</svg>

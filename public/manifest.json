@@ -10,25 +10,34 @@
   "scope": "/",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "16x16 32x32 48x48",
-      "type": "image/x-icon",
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/images/logos/mihas-logo.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "/images/logos/mihas-logo.png",
+      "src": "/icons/icon-192x192-maskable.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512x512-maskable.svg",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -39,8 +48,9 @@
       "url": "/apply?shortcut=new-application",
       "icons": [
         {
-          "src": "/images/logos/mihas-logo.png",
-          "sizes": "192x192"
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
         }
       ]
     },
@@ -51,8 +61,9 @@
       "url": "/dashboard?shortcut=dashboard",
       "icons": [
         {
-          "src": "/images/logos/mihas-logo.png",
-          "sizes": "192x192"
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
         }
       ]
     },
@@ -63,26 +74,11 @@
       "url": "/applications?shortcut=applications",
       "icons": [
         {
-          "src": "/images/logos/mihas-logo.png",
-          "sizes": "192x192"
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
         }
       ]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/images/screenshot-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile application view"
-    },
-    {
-      "src": "/images/screenshot-desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Desktop application view"
     }
   ],
   "prefer_related_applications": false,
@@ -102,8 +98,15 @@
     {
       "action": "/upload",
       "accept": {
-        "application/pdf": [".pdf"],
-        "image/*": [".jpg", ".jpeg", ".png", ".gif"]
+        "application/pdf": [
+          ".pdf"
+        ],
+        "image/*": [
+          ".jpg",
+          ".jpeg",
+          ".png",
+          ".gif"
+        ]
       }
     }
   ],
@@ -118,12 +121,19 @@
       "files": [
         {
           "name": "documents",
-          "accept": ["application/pdf", "image/*"]
+          "accept": [
+            "application/pdf",
+            "image/*"
+          ]
         }
       ]
     }
   },
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "handle_links": "preferred",
   "related_applications": [],
   "iarc_rating_id": ""
