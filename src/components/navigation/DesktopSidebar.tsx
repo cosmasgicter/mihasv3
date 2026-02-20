@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react'
 import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, BarChart3, Settings, Shield, Workflow, FileSearch, TrendingUp, Activity, Gauge, CreditCard } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRoleQuery, isReportManagerRole } from '@/hooks/auth/useRoleQuery'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { designTokens } from '@/design-system/tokens'
 import { cn } from '@/lib/utils'
@@ -41,16 +42,16 @@ const adminSections: NavSection[] = [
     id: 'analytics',
     title: 'Analytics & Insights',
     items: [
-      { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
-      { to: '/admin/realtime-metrics', icon: Activity, label: 'Real-time' },
+      { to: '/admin/analytics', icon: BarChart3, label: 'Analytics Dashboard' },
+      { to: '/admin/realtime-metrics', icon: Activity, label: 'Live System Metrics' },
     ],
   },
   {
     id: 'automation',
     title: 'Automation & Flow',
     items: [
-      { to: '/admin/workflow', icon: Workflow, label: 'Workflow' },
-      { to: '/admin/flow-analysis', icon: TrendingUp, label: 'Flow Analysis' },
+      { to: '/admin/workflow', icon: Workflow, label: 'Automation Rules' },
+      { to: '/admin/flow-analysis', icon: TrendingUp, label: 'Application Pipeline' },
     ],
   },
   {
@@ -77,7 +78,17 @@ const studentLinks: NavItem[] = [
 export const DesktopSidebar = React.memo(function DesktopSidebar() {
   const location = useLocation()
   const { user, isAdmin } = useAuth()
+  const { userRole } = useRoleQuery({ user, enabled: Boolean(user) })
   const { collapsed, setCollapsed } = useSidebar()
+  const permissions = userRole?.permissions ?? []
+  const hasCapability = (required: string[]) => required.some(capability => permissions.includes(capability))
+  const canAccessAdvancedAnalytics = isReportManagerRole(userRole?.role) || hasCapability(['analytics:view', 'analytics:advanced'])
+  const canAccessAutomation = isAdmin || hasCapability(['automation:view', 'automation:manage', 'workflow:manage'])
+  const visibleAdminSections = adminSections.filter(section => {
+    if (section.id === 'analytics') return canAccessAdvancedAnalytics
+    if (section.id === 'automation') return canAccessAutomation
+    return true
+  })
   
   // Track which sections are expanded (all expanded by default)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
@@ -150,7 +161,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
         {isAdmin ? (
-          adminSections.map((section) => (
+          visibleAdminSections.map((section) => (
             <SidebarSection
               key={section.id}
               section={section}

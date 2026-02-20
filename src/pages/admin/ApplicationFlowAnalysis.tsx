@@ -13,11 +13,15 @@ export default function ApplicationFlowAnalysis() {
               <TrendingUp className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Application Flow Analysis</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Application Pipeline</h1>
               <p className="text-gray-600 mt-1">
-                Comprehensive analysis of user journeys, workflow bottlenecks, and automation opportunities
+                Review where applications slow down and identify opportunities to streamline end-to-end processing.
               </p>
             </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 text-blue-900 rounded-xl p-4 mb-6">
+            <p className="text-sm">Use this page to diagnose handoff delays across the admissions lifecycle. Best for operations leads, admins, and process owners.</p>
           </div>
 
           {/* Key Features */}
