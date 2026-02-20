@@ -33,7 +33,7 @@ export const documentExtractionService = {
     applicationId?: string
   ): Promise<PDFExtractionResult> => {
     try {
-      const result = await apiClient.request<PDFExtractionResult>('/documents/extract', {
+      const result = await apiClient.request<PDFExtractionResult>('/documents?action=extract', {
         method: 'POST',
         body: JSON.stringify({ documentUrl, applicationId }),
         skipCache: true

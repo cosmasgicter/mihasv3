@@ -1,6 +1,7 @@
 import { apiClient } from './client'
 
 export const documentService = {
+  /** Upload a document. Maps to POST /api/documents?action=upload */
   upload: (data: { file: File; fileType: string; applicationId: string; userId?: string }) => {
     const formData = new FormData()
     formData.append('file', data.file)
@@ -8,22 +9,23 @@ export const documentService = {
     formData.append('applicationId', data.applicationId)
     if (data.userId) formData.append('userId', data.userId)
     
-    return apiClient.request('/documents/upload', {
+    return apiClient.request('/documents?action=upload', {
       method: 'POST',
       body: formData,
       headers: {} // Let browser set Content-Type for FormData
     })
   },
 
-  generateAcceptanceLetter: (applicationId: string) =>
-    apiClient.request('/documents/acceptance-letter', {
+  /** Extract text from a document. Maps to POST /api/documents?action=extract */
+  extract: (data: { documentUrl: string; applicationId?: string }) =>
+    apiClient.request('/documents?action=extract', {
       method: 'POST',
-      body: JSON.stringify({ applicationId })
+      body: JSON.stringify(data)
     }),
 
-  generateFinanceReceipt: (applicationId: string) =>
-    apiClient.request('/documents/finance-receipt', {
-      method: 'POST',
-      body: JSON.stringify({ applicationId })
-    })
+  /** Get a signed download URL. Maps to GET /api/documents?action=signed-url&key=... */
+  getSignedUrl: (key: string) =>
+    apiClient.request(`/documents?action=signed-url&key=${encodeURIComponent(key)}`, {
+      method: 'GET'
+    }),
 }

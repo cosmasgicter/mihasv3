@@ -333,31 +333,13 @@ export class MultiChannelNotificationService {
     type: string,
     content: string
   ): Promise<ChannelDeliveryResult> {
-    try {
-      const response = await notificationService.dispatchChannel({
-        userId,
-        channel,
-        type,
-        content
-      })
-
-      return {
-        channel,
-        success: true,
-        status: response?.status || 'sent',
-        messageId: response?.messageId ?? null
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error'
-      console.error(`${channel.toUpperCase()} dispatch failed:`, sanitizeForLog(message))
-      const normalizedMessage = message.toLowerCase()
-      const blocked = normalizedMessage.includes('precondition failed') || normalizedMessage.includes('opt-in')
-
-      return {
-        channel,
-        success: false,
-        status: blocked ? 'blocked' : 'error'
-      }
+    // SMS/WhatsApp dispatch removed (Twilio integration removed)
+    // These channels are no longer available — return graceful failure
+    console.warn(`${channel.toUpperCase()} dispatch skipped — channel not available`)
+    return {
+      channel,
+      success: false,
+      status: 'unsupported'
     }
   }
 

@@ -73,9 +73,9 @@ export function NotificationPreferences({ onPreferencesChange }: NotificationPre
   const loadPreferences = async () => {
     try {
       setLoading(true)
-      const response = await notificationService.getPreferences(true, 20)
+      const response = await notificationService.getPreferences()
       
-      if (response.success) {
+      if (response) {
         setPreferences(response.preferences)
         setAuditTrail(response.audit_trail || [])
         onPreferencesChange?.(response.preferences)
@@ -97,22 +97,18 @@ export function NotificationPreferences({ onPreferencesChange }: NotificationPre
       setSaving(true)
       
       const response = await notificationService.updatePreferences({
-        action: 'update_channel',
-        channel,
-        enabled,
-        reason: `User ${enabled ? 'enabled' : 'disabled'} ${channel} notifications`
+        [`${channel}_enabled`]: enabled
       })
 
-      if (response.success) {
+      if (response) {
         setPreferences(response.preferences)
         onPreferencesChange?.(response.preferences)
         
         toast.success(`${CHANNEL_LABELS[channel as keyof typeof CHANNEL_LABELS]} ${enabled ? 'enabled' : 'disabled'}`)
         
-        // Reload audit trail
         loadPreferences()
       } else {
-        toast.error(response.error || 'Failed to update preferences')
+        toast.error('Failed to update preferences')
       }
     } catch (error) {
       console.error('Error updating channel preference:', error)
@@ -129,23 +125,19 @@ export function NotificationPreferences({ onPreferencesChange }: NotificationPre
       setSaving(true)
       
       const response = await notificationService.updatePreferences({
-        action: 'update_quiet_hours',
         quiet_hours_start: quietHoursStart,
-        quiet_hours_end: quietHoursEnd,
-        timezone,
-        reason: 'User updated quiet hours settings'
+        quiet_hours_end: quietHoursEnd
       })
 
-      if (response.success) {
+      if (response) {
         setPreferences(response.preferences)
         onPreferencesChange?.(response.preferences)
         
         toast.success('Your quiet hours preferences have been saved')
         
-        // Reload audit trail
         loadPreferences()
       } else {
-        toast.error(response.error || 'Failed to update quiet hours')
+        toast.error('Failed to update quiet hours')
       }
     } catch (error) {
       console.error('Error updating quiet hours:', error)
@@ -157,26 +149,32 @@ export function NotificationPreferences({ onPreferencesChange }: NotificationPre
 
   const exportPreferences = async () => {
     try {
-      const response = await notificationService.exportPreferences()
-      
-      if (response.success) {
-        // Create and download file
-        const blob = new Blob([JSON.stringify(response.export_data, null, 2)], {
-          type: 'application/json'
-        })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `notification-preferences-${user?.id}.json`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
-        
-        toast.success('Your preferences have been exported')
-      } else {
-        toast.error(response.error || 'Failed to export preferences')
+      // Export current preferences as a local download — no separate backend endpoint
+      if (!preferences) {
+        toast.error('No preferences to export')
+        return
       }
+
+      const exportData = {
+        userId: user?.id,
+        preferences,
+        auditTrail,
+        exportedAt: new Date().toISOString()
+      }
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json'
+      })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `notification-preferences-${user?.id}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      toast.success('Your preferences have been exported')
     } catch (error) {
       console.error('Error exporting preferences:', error)
       toast.error('Failed to export preferences')

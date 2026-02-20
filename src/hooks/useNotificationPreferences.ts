@@ -230,50 +230,43 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
 
   // Check consent status for a specific channel
   const checkChannelStatus = useCallback(async (channel: string): Promise<ConsentStatus | null> => {
-    if (!user) return null
+    if (!user || !preferences) return null
 
-    try {
-      const response = await notificationService.checkConsentStatus(user.id, channel)
-      return response ?? null
-    } catch (err) {
-      console.error('Error checking channel status:', err)
-      return null
-    }
-  }, [user])
+    // Derive consent status from loaded preferences — no separate endpoint needed
+    const enabled = Boolean(preferences[`${channel}_enabled` as keyof NotificationPreferences])
+    return { channel, enabled } as ConsentStatus
+  }, [user, preferences])
 
   // Export preferences data
   const exportPreferences = useCallback(async () => {
-    if (!user) return
+    if (!user || !preferences) return
 
     try {
-      const response = await notificationService.exportPreferences()
-      
-      if (response) {
-        // Create and download file
-        const blob = new Blob([JSON.stringify(response.export_data, null, 2)], {
-          type: 'application/json'
-        })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `notification-preferences-${user.id}.json`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
-        
-        toast({
-          title: 'Export Complete',
-          description: 'Your preferences have been exported',
-          variant: 'success'
-        })
-      } else {
-        toast({
-          title: 'Export Failed',
-          description: 'Failed to export preferences',
-          variant: 'destructive'
-        })
+      // Export current preferences as a local download — no separate backend endpoint needed
+      const exportData = {
+        userId: user.id,
+        preferences,
+        auditTrail,
+        exportedAt: new Date().toISOString()
       }
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json'
+      })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `notification-preferences-${user.id}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      toast({
+        title: 'Export Complete',
+        description: 'Your preferences have been exported',
+        variant: 'success'
+      })
     } catch (err) {
       console.error('Error exporting preferences:', err)
       toast({
@@ -282,9 +275,9 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         variant: 'destructive'
       })
     }
-  }, [user])
+  }, [user, preferences, auditTrail])
 
-  // Revoke all consents
+  // Revoke all consents — update all channels to disabled via preferences endpoint
   const revokeAllConsents = useCallback(async (reason?: string): Promise<boolean> => {
     if (!user) return false
 
@@ -292,11 +285,14 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
       setSaving(true)
       setError(null)
       
-      const response = await notificationService.revokeAllConsents(
-        user.id, 
-        undefined, 
-        reason || 'User requested to revoke all consents'
-      )
+      const response = await notificationService.updatePreferences({
+        sms_enabled: false,
+        whatsapp_enabled: false,
+        application_updates: false,
+        payment_reminders: false,
+        interview_reminders: false,
+        marketing_emails: false
+      })
 
       if (response) {
         toast({
@@ -305,7 +301,6 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
           variant: 'success'
         })
         
-        // Reload preferences
         await loadPreferences()
         return true
       } else {

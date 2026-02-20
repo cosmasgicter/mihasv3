@@ -534,6 +534,7 @@ class PushNotificationManager {
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include', // Send HTTP-only auth cookies
         body: JSON.stringify({
           subscription: subscription.toJSON(),
           userAgent: navigator.userAgent,
