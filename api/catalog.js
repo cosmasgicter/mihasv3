@@ -666,17 +666,15 @@ function normalizeProgram(row) {
   return {
     id: row.id,
     name: row.name,
+    code: row.code,
     description: row.description ?? "",
-    duration_years: Number(row.duration_years ?? 0),
-    institution_id: row.institution_id,
+    duration_months: Number(row.duration_months ?? 0),
+    duration_years: Math.ceil(Number(row.duration_months ?? 0) / 12),
+    application_fee: Number(row.application_fee ?? 153),
+    tuition_fee: row.tuition_fee ? Number(row.tuition_fee) : null,
+    regulatory_body: row.regulatory_body,
+    accreditation_status: row.accreditation_status,
     is_active: row.is_active !== false,
-    institution_name: row.institution_name,
-    institution_code: row.institution_code,
-    institutions: row.institution_id ? {
-      id: row.institution_id,
-      name: row.institution_name ?? "Unknown Institution",
-      code: row.institution_code ?? undefined
-    } : undefined,
     created_at: row.created_at,
     updated_at: row.updated_at
   };
@@ -685,27 +683,19 @@ function normalizeIntake(row) {
   return {
     id: row.id,
     name: row.name,
-    year: Number(row.year ?? new Date(row.start_date).getFullYear()),
+    year: Number(row.year ?? (row.start_date ? new Date(row.start_date).getFullYear() : new Date().getFullYear())),
+    semester: row.semester,
     start_date: row.start_date,
     end_date: row.end_date,
+    application_start_date: row.application_start_date,
     application_deadline: row.application_deadline,
-    total_capacity: Number(row.total_capacity ?? 0),
-    available_spots: Number(row.available_spots ?? 0),
+    max_capacity: Number(row.max_capacity ?? 0),
+    current_enrollment: Number(row.current_enrollment ?? 0),
+    available_spots: Math.max(0, Number(row.max_capacity ?? 0) - Number(row.current_enrollment ?? 0)),
     is_active: row.is_active !== false,
     created_at: row.created_at,
     updated_at: row.updated_at
   };
-}
-async function validateInstitution(institutionId) {
-  const result = await query("SELECT id, name, code, description, is_active FROM institutions WHERE id = $1 LIMIT 1", [institutionId]);
-  if (result.rowCount === 0) {
-    return null;
-  }
-  const institution = result.rows[0];
-  if (!institution.is_active) {
-    return null;
-  }
-  return institution;
 }
 async function ensureAdmin(req, res) {
   const user = await getAuthUser(req);
@@ -721,20 +711,21 @@ async function ensureAdmin(req, res) {
 }
 async function listPrograms(res, includeInactive, shouldCache) {
   const result = await query(`SELECT
-      p.id,
-      p.name,
-      p.description,
-      COALESCE(p.duration_years, CEIL(COALESCE(p.duration_months, 0)::numeric / 12)::int) AS duration_years,
-      p.institution_id,
-      p.is_active,
-      p.created_at,
-      p.updated_at,
-      i.name AS institution_name,
-      i.code AS institution_code
-    FROM programs p
-    LEFT JOIN institutions i ON i.id = p.institution_id
-    WHERE ($1::boolean = true OR p.is_active = true)
-    ORDER BY p.name ASC`, [includeInactive]);
+      id,
+      name,
+      code,
+      description,
+      duration_months,
+      application_fee,
+      tuition_fee,
+      regulatory_body,
+      accreditation_status,
+      is_active,
+      created_at,
+      updated_at
+    FROM programs
+    WHERE ($1::boolean = true OR is_active = true)
+    ORDER BY name ASC`, [includeInactive]);
   if (shouldCache) {
     res.setHeader("Cache-Control", "public, max-age=300");
   }
@@ -745,11 +736,13 @@ async function listIntakes(res, includeInactive, shouldCache) {
       id,
       name,
       COALESCE(year, EXTRACT(YEAR FROM start_date)::int) AS year,
+      semester,
       start_date,
       end_date,
+      application_start_date,
       application_deadline,
-      COALESCE(total_capacity, 0) AS total_capacity,
-      COALESCE(available_spots, 0) AS available_spots,
+      COALESCE(max_capacity, 0) AS max_capacity,
+      COALESCE(current_enrollment, 0) AS current_enrollment,
       is_active,
       created_at,
       updated_at
@@ -764,44 +757,36 @@ async function listIntakes(res, includeInactive, shouldCache) {
 async function createProgram(req, res) {
   const body = req.body || {};
   const name = String(body.name || "").trim();
+  const code = String(body.code || "").trim();
   const description = typeof body.description === "string" ? body.description.trim() : "";
-  const durationYears = Number(body.duration_years);
-  const institutionId = String(body.institution_id || "").trim();
+  const durationMonths = Number(body.duration_months);
+  const applicationFee = body.application_fee !== undefined ? Number(body.application_fee) : 153;
+  const tuitionFee = body.tuition_fee !== undefined ? Number(body.tuition_fee) : null;
+  const regulatoryBody = typeof body.regulatory_body === "string" ? body.regulatory_body.trim() : null;
   if (!name) {
     return sendError(res, "Program name is required", HttpStatus.BAD_REQUEST);
   }
-  if (!institutionId) {
-    return sendError(res, "institution_id is required", HttpStatus.BAD_REQUEST);
+  if (!code) {
+    return sendError(res, "Program code is required", HttpStatus.BAD_REQUEST);
   }
-  if (!Number.isFinite(durationYears) || durationYears < 1 || durationYears > 10) {
-    return sendError(res, "duration_years must be between 1 and 10", HttpStatus.BAD_REQUEST);
+  if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 120) {
+    return sendError(res, "duration_months must be between 1 and 120", HttpStatus.BAD_REQUEST);
   }
-  const institution = await validateInstitution(institutionId);
-  if (!institution) {
-    return sendError(res, "Invalid or inactive institution_id", HttpStatus.BAD_REQUEST);
-  }
-  const result = await query(`INSERT INTO programs (name, description, duration_years, institution_id, is_active, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, true, NOW(), NOW())
-     RETURNING
-      id,
-      name,
-      description,
-      duration_years,
-      institution_id,
-      is_active,
-      created_at,
-      updated_at,
-      $5::text AS institution_name,
-      $6::text AS institution_code`, [name, description || null, durationYears, institutionId, institution.name, institution.code || null]);
+  const result = await query(`INSERT INTO programs (name, code, description, duration_months, application_fee, tuition_fee, regulatory_body, is_active, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), NOW())
+     RETURNING *`, [name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody]);
   return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
 }
 async function updateProgram(req, res) {
   const body = req.body || {};
   const id = String(body.id || "").trim();
   const name = String(body.name || "").trim();
+  const code = String(body.code || "").trim();
   const description = typeof body.description === "string" ? body.description.trim() : "";
-  const durationYears = Number(body.duration_years);
-  const institutionId = String(body.institution_id || "").trim();
+  const durationMonths = Number(body.duration_months);
+  const applicationFee = body.application_fee !== undefined ? Number(body.application_fee) : null;
+  const tuitionFee = body.tuition_fee !== undefined ? Number(body.tuition_fee) : null;
+  const regulatoryBody = typeof body.regulatory_body === "string" ? body.regulatory_body.trim() : null;
   const isActive = typeof body.is_active === "boolean" ? body.is_active : undefined;
   if (!id) {
     return sendError(res, "Program id is required", HttpStatus.BAD_REQUEST);
@@ -809,35 +794,24 @@ async function updateProgram(req, res) {
   if (!name) {
     return sendError(res, "Program name is required", HttpStatus.BAD_REQUEST);
   }
-  if (!institutionId) {
-    return sendError(res, "institution_id is required", HttpStatus.BAD_REQUEST);
+  if (!code) {
+    return sendError(res, "Program code is required", HttpStatus.BAD_REQUEST);
   }
-  if (!Number.isFinite(durationYears) || durationYears < 1 || durationYears > 10) {
-    return sendError(res, "duration_years must be between 1 and 10", HttpStatus.BAD_REQUEST);
-  }
-  const institution = await validateInstitution(institutionId);
-  if (!institution) {
-    return sendError(res, "Invalid or inactive institution_id", HttpStatus.BAD_REQUEST);
+  if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 120) {
+    return sendError(res, "duration_months must be between 1 and 120", HttpStatus.BAD_REQUEST);
   }
   const result = await query(`UPDATE programs
      SET name = $2,
-         description = $3,
-         duration_years = $4,
-         institution_id = $5,
-         is_active = COALESCE($6, is_active),
+         code = $3,
+         description = $4,
+         duration_months = $5,
+         application_fee = COALESCE($6, application_fee),
+         tuition_fee = $7,
+         regulatory_body = $8,
+         is_active = COALESCE($9, is_active),
          updated_at = NOW()
      WHERE id = $1
-     RETURNING
-      id,
-      name,
-      description,
-      duration_years,
-      institution_id,
-      is_active,
-      created_at,
-      updated_at,
-      $7::text AS institution_name,
-      $8::text AS institution_code`, [id, name, description || null, durationYears, institutionId, isActive ?? null, institution.name, institution.code || null]);
+     RETURNING *`, [id, name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, isActive ?? null]);
   if (result.rowCount === 0) {
     return sendError(res, "Program not found", HttpStatus.NOT_FOUND);
   }
@@ -863,31 +837,26 @@ async function createIntake(req, res) {
   const body = req.body || {};
   const name = String(body.name || "").trim();
   const year = Number(body.year);
+  const semester = typeof body.semester === "string" ? body.semester.trim() : null;
   const startDate = String(body.start_date || "").trim();
   const endDate = String(body.end_date || "").trim();
   const applicationDeadline = String(body.application_deadline || "").trim();
-  const totalCapacity = Number(body.total_capacity);
-  const availableSpots = Number(body.available_spots ?? totalCapacity);
+  const maxCapacity = Number(body.max_capacity || body.total_capacity);
   if (!name || !startDate || !endDate || !applicationDeadline) {
     return sendError(res, "name, start_date, end_date, and application_deadline are required", HttpStatus.BAD_REQUEST);
   }
   if (!Number.isFinite(year) || year < 2000) {
     return sendError(res, "Valid year is required", HttpStatus.BAD_REQUEST);
   }
-  if (!Number.isFinite(totalCapacity) || totalCapacity < 1) {
-    return sendError(res, "total_capacity must be at least 1", HttpStatus.BAD_REQUEST);
-  }
-  if (!Number.isFinite(availableSpots) || availableSpots < 0 || availableSpots > totalCapacity) {
-    return sendError(res, "available_spots must be between 0 and total_capacity", HttpStatus.BAD_REQUEST);
+  if (!Number.isFinite(maxCapacity) || maxCapacity < 1) {
+    return sendError(res, "max_capacity must be at least 1", HttpStatus.BAD_REQUEST);
   }
   const result = await query(`INSERT INTO intakes (
-      name, year, start_date, end_date, application_deadline,
-      total_capacity, available_spots, is_active, created_at, updated_at
+      name, year, semester, start_date, end_date, application_deadline,
+      max_capacity, current_enrollment, is_active, created_at, updated_at
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), NOW())
-    RETURNING
-      id, name, year, start_date, end_date, application_deadline,
-      total_capacity, available_spots, is_active, created_at, updated_at`, [name, year, startDate, endDate, applicationDeadline, totalCapacity, availableSpots]);
+    VALUES ($1, $2, $3, $4, $5, $6, $7, 0, true, NOW(), NOW())
+    RETURNING *`, [name, year, semester, startDate, endDate, applicationDeadline, maxCapacity]);
   return sendSuccess(res, { intake: normalizeIntake(result.rows[0]) });
 }
 async function updateIntake(req, res) {
@@ -895,11 +864,12 @@ async function updateIntake(req, res) {
   const id = String(body.id || "").trim();
   const name = String(body.name || "").trim();
   const year = Number(body.year);
+  const semester = typeof body.semester === "string" ? body.semester.trim() : null;
   const startDate = String(body.start_date || "").trim();
   const endDate = String(body.end_date || "").trim();
   const applicationDeadline = String(body.application_deadline || "").trim();
-  const totalCapacity = Number(body.total_capacity);
-  const availableSpots = Number(body.available_spots ?? totalCapacity);
+  const maxCapacity = Number(body.max_capacity || body.total_capacity);
+  const currentEnrollment = body.current_enrollment !== undefined ? Number(body.current_enrollment) : null;
   const isActive = typeof body.is_active === "boolean" ? body.is_active : undefined;
   if (!id) {
     return sendError(res, "Intake id is required", HttpStatus.BAD_REQUEST);
@@ -910,26 +880,22 @@ async function updateIntake(req, res) {
   if (!Number.isFinite(year) || year < 2000) {
     return sendError(res, "Valid year is required", HttpStatus.BAD_REQUEST);
   }
-  if (!Number.isFinite(totalCapacity) || totalCapacity < 1) {
-    return sendError(res, "total_capacity must be at least 1", HttpStatus.BAD_REQUEST);
-  }
-  if (!Number.isFinite(availableSpots) || availableSpots < 0 || availableSpots > totalCapacity) {
-    return sendError(res, "available_spots must be between 0 and total_capacity", HttpStatus.BAD_REQUEST);
+  if (!Number.isFinite(maxCapacity) || maxCapacity < 1) {
+    return sendError(res, "max_capacity must be at least 1", HttpStatus.BAD_REQUEST);
   }
   const result = await query(`UPDATE intakes
      SET name = $2,
          year = $3,
-         start_date = $4,
-         end_date = $5,
-         application_deadline = $6,
-         total_capacity = $7,
-         available_spots = $8,
-         is_active = COALESCE($9, is_active),
+         semester = $4,
+         start_date = $5,
+         end_date = $6,
+         application_deadline = $7,
+         max_capacity = $8,
+         current_enrollment = COALESCE($9, current_enrollment),
+         is_active = COALESCE($10, is_active),
          updated_at = NOW()
      WHERE id = $1
-     RETURNING
-       id, name, year, start_date, end_date, application_deadline,
-       total_capacity, available_spots, is_active, created_at, updated_at`, [id, name, year, startDate, endDate, applicationDeadline, totalCapacity, availableSpots, isActive ?? null]);
+     RETURNING *`, [id, name, year, semester, startDate, endDate, applicationDeadline, maxCapacity, currentEnrollment, isActive ?? null]);
   if (result.rowCount === 0) {
     return sendError(res, "Intake not found", HttpStatus.NOT_FOUND);
   }
