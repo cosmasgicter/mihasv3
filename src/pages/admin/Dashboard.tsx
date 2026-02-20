@@ -17,22 +17,10 @@ import {
   GraduationCap,
   Calendar,
   Settings,
-  TrendingUp,
   AlertTriangle,
   BarChart3,
   Activity,
-  Database,
-  Shield,
-  Zap,
-  Bell,
-  RefreshCw,
-  Eye,
-  Download,
-  Filter,
-  Search,
-  Plus,
-  ArrowUp,
-  ArrowDown
+  RefreshCw
 } from 'lucide-react'
 import { animateClasses } from '@/lib/animations'
 import { Link } from 'react-router-dom'
