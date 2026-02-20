@@ -1,5 +1,5 @@
 import { History, CheckCircle, XCircle, Eye, Clock } from 'lucide-react'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { formatDate } from '@/lib/utils'
 
 interface StatusHistoryItem {
@@ -12,7 +12,7 @@ interface StatusHistoryItem {
 }
 
 export function StatusHistoryTab({ history, loading }: { history: StatusHistoryItem[], loading: boolean }) {
-  if (loading) return <div className="flex items-center gap-2"><LoadingSpinner size="sm" /><span>Loading...</span></div>
+  if (loading) return <UnifiedLoader variant="inline" size="sm" message="Loading details" />
   if (history.length === 0) return <div className="text-center py-8"><History className="h-8 w-8 mx-auto mb-2" /><p>No history</p></div>
   
   const getIcon = (status: string) => {
