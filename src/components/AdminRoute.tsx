@@ -1,7 +1,7 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary'
 
 interface AdminRouteProps {
@@ -21,7 +21,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <UnifiedLoader variant="inline" size="lg" message="Verifying administrator access" />
       </div>
     )
   }
