@@ -8,9 +8,6 @@ import {
   Users, 
   Settings,
   Download,
-  Activity,
-  Bell,
-  Shield,
   Zap,
   ScrollText
 } from 'lucide-react'
@@ -60,18 +57,6 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
       description: 'System configuration'
     },
     {
-      title: 'Monitoring',
-      icon: Activity,
-      href: '/admin/monitoring',
-      description: 'System health'
-    },
-    {
-      title: 'Security',
-      icon: Shield,
-      href: '/admin/security',
-      description: 'Security settings'
-    },
-    {
       title: 'Audit trail',
       icon: ScrollText,
       href: '/admin/audit',
@@ -87,8 +72,8 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         style={staggerChild(0)}
       >
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-lg font-bold text-gray-900"><Zap className="w-5 h-5" /> Quick Actions</h3>
-          <p className="text-sm text-gray-900 mt-1">Manage your system efficiently</p>
+          <h3 className="text-lg font-bold text-foreground"><Zap className="w-5 h-5" /> Quick Actions</h3>
+          <p className="text-sm text-muted-foreground mt-1">Manage your system efficiently</p>
         </div>
         
         <div className="p-6">
@@ -131,7 +116,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         style={staggerChild(2)}
       >
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-lg font-bold text-gray-900">🛠️ System Tools</h3>
+          <h3 className="text-lg font-bold text-foreground">🛠️ System Tools</h3>
         </div>
         
         <div className="p-6 space-y-3">
@@ -150,7 +135,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                     <Icon className="h-4 w-4 mr-3" />
                     <div className="text-left">
                       <div className="font-medium">{action.title}</div>
-                      <div className="text-xs text-gray-900">{action.description}</div>
+                      <div className="text-xs text-muted-foreground">{action.description}</div>
                     </div>
                   </Button>
                 </div>
@@ -173,7 +158,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
               <Download className="h-4 w-4 mr-3" />
               <div className="text-left">
                 <div className="font-medium">Export Data</div>
-                <div className="text-xs text-gray-900">Download reports</div>
+                <div className="text-xs text-muted-foreground">Download reports</div>
               </div>
             </Button>
           </div>
@@ -185,15 +170,15 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         className={`${animateClasses.slideUp} opacity-0 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-primary/30`}
         style={staggerChild(4)}
       >
-        <h3 className="text-lg font-bold text-gray-900 mb-4"><BarChart3 className="w-5 h-5" /> Quick Stats</h3>
+        <h3 className="text-lg font-bold text-foreground mb-4"><BarChart3 className="w-5 h-5" /> Quick Stats</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-info-strong">{stats.pendingApplications}</div>
-            <div className="text-sm text-gray-900">Pending</div>
+            <div className="text-2xl font-bold text-primary">{stats.pendingApplications}</div>
+            <div className="text-sm text-muted-foreground">Pending</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">{stats.totalPrograms}</div>
-            <div className="text-sm text-gray-900">Programs</div>
+            <div className="text-2xl font-bold text-secondary">{stats.totalPrograms}</div>
+            <div className="text-sm text-muted-foreground">Programs</div>
           </div>
         </div>
       </div>

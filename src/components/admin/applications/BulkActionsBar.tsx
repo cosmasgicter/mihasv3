@@ -30,7 +30,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
   return (
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
       <div className="bg-card rounded-xl shadow-lg border border-border p-4 flex items-center gap-3">
-        <span className="text-sm font-medium text-gray-900">
+        <span className="text-sm font-medium text-foreground">
           {selectedIds.length} selected
         </span>
         
@@ -77,7 +77,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
           size="sm"
           variant="ghost"
           onClick={onClearSelection}
-          className="text-gray-900 hover:text-foreground"
+          className="text-foreground hover:text-foreground"
         >
           Clear
         </Button>

@@ -93,14 +93,14 @@ export function ApplicationsTable({
                     onChange={handleSelectAll}
                     className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
                   />
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-foreground">
                     {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'Select all'}
                   </span>
                 </div>
                 {selectedIds.length > 0 && (
                   <button
                     onClick={() => onSelectionChange([])}
-                    className="text-sm text-gray-900 hover:text-foreground"
+                    className="text-sm text-foreground hover:text-foreground"
                   >
                     Clear selection
                   </button>
@@ -127,12 +127,12 @@ export function ApplicationsTable({
           
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-card rounded-xl p-6 border border-border shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-900">
-                Showing <span className="font-semibold text-gray-900">{loadedCount}</span>
+              <div className="text-sm text-foreground">
+                Showing <span className="font-semibold text-foreground">{loadedCount}</span>
                 {totalCount > 0 && (
                   <>
                     {' '}of{' '}
-                    <span className="font-semibold text-gray-900">{totalCount}</span>
+                    <span className="font-semibold text-foreground">{totalCount}</span>
                   </>
                 )}{' '}
                 applications
@@ -140,7 +140,7 @@ export function ApplicationsTable({
               {totalCount > 0 && (
                 <div className="h-4 w-px bg-muted" />
               )}
-              <div className="text-xs text-gray-900">
+              <div className="text-xs text-foreground">
                 {Math.round((loadedCount / Math.max(totalCount, 1)) * 100)}% loaded
               </div>
             </div>
@@ -157,7 +157,7 @@ export function ApplicationsTable({
               </button>
             ) : (
               totalCount > 0 && (
-                <div className="flex items-center gap-2 text-sm text-gray-900">
+                <div className="flex items-center gap-2 text-sm text-foreground">
                   <CheckCircle className="h-4 w-4 text-success" />
                   All applications loaded
                 </div>
@@ -170,8 +170,8 @@ export function ApplicationsTable({
           <div className="mx-auto w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
             <FileText className="h-8 w-8 text-foreground" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
-          <p className="text-sm text-gray-900">Try adjusting your filters to see more results.</p>
+          <h3 className="text-lg font-medium text-foreground mb-2">No applications found</h3>
+          <p className="text-sm text-foreground">Try adjusting your filters to see more results.</p>
         </div>
       )}
     </div>

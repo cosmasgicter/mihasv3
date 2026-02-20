@@ -237,8 +237,8 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Authentication Required</h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-4">Please sign in to access the admin dashboard.</p>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Authentication Required</h2>
+          <p className="text-muted-foreground mb-4">Please sign in to access the admin dashboard.</p>
           <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
         </div>
       </div>
@@ -330,7 +330,7 @@ export default function AdminDashboard() {
                     size="sm"
                     onClick={handleManualRefresh}
                     disabled={isRefreshing || isManualRefreshing}
-                    className="bg-card/80 border-white/30 text-gray-900 hover:bg-white/90 flex items-center gap-2"
+                    className="bg-card/80 border-white/30 text-foreground hover:bg-white/90 flex items-center gap-2"
                   >
                     <RefreshCw className={`h-4 w-4 ${(isRefreshing || isManualRefreshing) ? 'animate-spin' : ''}`} />
                     {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
@@ -390,13 +390,6 @@ export default function AdminDashboard() {
             lastUpdated={lastUpdated}
             onRefresh={handleManualRefresh}
             isRefreshing={isRefreshing || isManualRefreshing}
-            showSystemHealth={true}
-            systemHealth={{
-              database: stats.systemHealth === 'excellent' || stats.systemHealth === 'good' ? 'healthy' : stats.systemHealth === 'warning' ? 'degraded' : 'down',
-              api: stats.systemHealth === 'excellent' || stats.systemHealth === 'good' ? 'healthy' : stats.systemHealth === 'warning' ? 'degraded' : 'down',
-              storage: 'healthy',
-              auth: 'healthy',
-            }}
           />
         </div>
 

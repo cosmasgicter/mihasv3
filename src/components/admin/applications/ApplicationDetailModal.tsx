@@ -125,7 +125,7 @@ interface ApplicationDetailModalProps {
 function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-gray-900">
+ <div className="flex items-center gap-2 text-sm text-foreground">
  <LoadingSpinner size="sm" />
  <span>Loading grades...</span>
  </div>
@@ -134,8 +134,8 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 
  if (grades.length === 0) {
  return (
- <div className="text-center py-8 text-gray-900">
- <GraduationCap className="h-8 w-8 mx-auto mb-2 text-gray-900" />
+ <div className="text-center py-8 text-foreground">
+ <GraduationCap className="h-8 w-8 mx-auto mb-2 text-foreground" />
  <p className="text-sm">No grades recorded</p>
  </div>
  )
@@ -159,11 +159,11 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  <div className="space-y-4">
  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
  <div>
- <p className="text-sm font-medium text-gray-900">{grades.length} Subjects</p>
+ <p className="text-sm font-medium text-foreground">{grades.length} Subjects</p>
  <p className="text-xs text-info-strong">Grade 12 Results</p>
  </div>
  <div className="text-right">
- <p className="text-lg font-bold text-gray-900">{totalPoints}</p>
+ <p className="text-lg font-bold text-foreground">{totalPoints}</p>
  <p className="text-xs text-info-strong">Points (Best 5)</p>
  </div>
  </div>
@@ -177,7 +177,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  isBestFive ? 'bg-green-50 border-green-200' : 'bg-card border-border'
  }`}>
  <div>
- <span className="font-medium text-gray-900">{grade.subject_name}</span>
+ <span className="font-medium text-foreground">{grade.subject_name}</span>
  {isBestFive && <span className="ml-2 text-xs text-accent font-medium">BEST 5</span>}
  </div>
  <span className={`px-3 py-1 rounded-full text-sm font-bold ${
@@ -198,7 +198,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem[], loading: boolean }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-gray-900">
+ <div className="flex items-center gap-2 text-sm text-foreground">
  <LoadingSpinner size="sm" />
  <span>Loading history...</span>
  </div>
@@ -207,8 +207,8 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
  
  if (history.length === 0) {
  return (
- <div className="text-center py-8 text-gray-900">
- <History className="h-8 w-8 mx-auto mb-2 text-gray-900" />
+ <div className="text-center py-8 text-foreground">
+ <History className="h-8 w-8 mx-auto mb-2 text-foreground" />
  <p className="text-sm">No status changes recorded</p>
  </div>
  )
@@ -233,18 +233,18 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
  </div>
  <div className="flex-1">
  <div className="flex items-center justify-between mb-1">
- <p className="font-medium text-gray-900 capitalize">
+ <p className="font-medium text-foreground capitalize">
  {item.status.replace('_', ' ')}
  </p>
- <p className="text-xs text-gray-900">
+ <p className="text-xs text-foreground">
  {formatDate(item.created_at)}
  </p>
  </div>
- <p className="text-sm text-gray-900 mb-2">
+ <p className="text-sm text-foreground mb-2">
  Changed by {item.changed_by_profile?.full_name || item.changed_by_profile?.email || 'System'}
  </p>
  {item.notes && (
- <p className="text-sm text-gray-900 bg-muted p-2 rounded">
+ <p className="text-sm text-foreground bg-muted p-2 rounded">
  {item.notes}
  </p>
  )}
@@ -258,7 +258,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
 function DocumentsDisplay({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: ApplicationWithDetails | null }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-gray-900">
+ <div className="flex items-center gap-2 text-sm text-foreground">
  <LoadingSpinner size="sm" />
  <span>Loading documents...</span>
  </div>
@@ -306,8 +306,8 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  
  if (allDocuments.length === 0) {
  return (
- <div className="text-center py-8 text-gray-900">
- <FileText className="h-8 w-8 mx-auto mb-2 text-gray-900" />
+ <div className="text-center py-8 text-foreground">
+ <FileText className="h-8 w-8 mx-auto mb-2 text-foreground" />
  <p className="text-sm">No documents uploaded</p>
  </div>
  )
@@ -330,8 +330,8 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  }`} />
  </div>
  <div>
- <p className="font-medium text-gray-900">{doc.document_name}</p>
- <div className="flex items-center gap-2 text-xs text-gray-900">
+ <p className="font-medium text-foreground">{doc.document_name}</p>
+ <div className="flex items-center gap-2 text-xs text-foreground">
  <span className={`px-2 py-1 rounded-full ${
  doc.verification_status === 'verified' ? 'bg-green-100 text-green-900' :
  doc.verification_status === 'rejected' ? 'bg-red-100 text-red-900' :
@@ -340,7 +340,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  {doc.verification_status.toUpperCase()}
  </span>
  {doc.system_generated && (
- <span className="bg-primary/10 text-gray-900 px-2 py-1 rounded-full">
+ <span className="bg-primary/10 text-foreground px-2 py-1 rounded-full">
  SYSTEM
  </span>
  )}
@@ -349,7 +349,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  )}
  </div>
  {doc.verification_notes && (
- <p className="text-xs text-gray-900 mt-1">{doc.verification_notes}</p>
+ <p className="text-xs text-foreground mt-1">{doc.verification_notes}</p>
  )}
  </div>
  </div>
@@ -357,7 +357,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  href={doc.file_url}
  target="_blank"
  rel="noopener noreferrer"
- className="flex items-center gap-1 px-3 py-2 text-sm text-primary hover:text-gray-900 hover:bg-blue-50 rounded-lg transition-colors"
+ className="flex items-center gap-1 px-3 py-2 text-sm text-primary hover:text-foreground hover:bg-blue-50 rounded-lg transition-colors"
  >
  <Download className="h-4 w-4" />
  View
@@ -700,7 +700,7 @@ export function ApplicationDetailModal({
  case 'rejected': return <XCircle className="h-5 w-5 text-destructive" />
  case 'under_review': return <Eye className="h-5 w-5 text-accent" />
  case 'submitted': return <AlertCircle className="h-5 w-5 text-primary" />
- default: return <Clock className="h-5 w-5 text-gray-900" />
+ default: return <Clock className="h-5 w-5 text-foreground" />
  }
  }
 
@@ -754,12 +754,12 @@ export function ApplicationDetailModal({
  <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
  </div>
  <div className="min-w-0 flex-1">
- <h2 className="text-base sm:text-xl font-bold text-gray-900 truncate" title={application.full_name}>
+ <h2 className="text-base sm:text-xl font-bold text-foreground truncate" title={application.full_name}>
  {application.full_name}
  </h2>
- <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-900 flex-wrap">
+ <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-foreground flex-wrap">
  <span className="font-mono truncate">#{application.application_number}</span>
- <span className="text-gray-900 hidden sm:inline">•</span>
+ <span className="text-foreground hidden sm:inline">•</span>
  <div className="flex items-center gap-1">
  {getStatusIcon(application.status)}
  <span className="capitalize truncate">{application.status.replace('_', ' ')}</span>
@@ -790,7 +790,7 @@ export function ApplicationDetailModal({
  className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
  activeTab === tab.id
  ? 'border-primary text-primary'
- : 'border-transparent text-gray-900 hover:text-gray-900 hover:border-input'
+ : 'border-transparent text-foreground hover:text-foreground hover:border-input'
  }`}
  >
  <Icon className="h-4 w-4 flex-shrink-0" />
@@ -807,7 +807,7 @@ export function ApplicationDetailModal({
  <div className="flex items-center justify-center py-12">
  <div className="text-center">
  <LoadingSpinner size="lg" className="mx-auto mb-4" />
- <p className="text-gray-900">Loading application details...</p>
+ <p className="text-foreground">Loading application details...</p>
  </div>
  </div>
  ) : (
@@ -820,8 +820,8 @@ export function ApplicationDetailModal({
  <div className="flex items-center gap-3">
  {getStatusIcon(application.status)}
  <div>
- <p className="text-sm font-medium text-gray-900">Application Status</p>
- <p className="text-lg font-bold text-gray-900 capitalize">
+ <p className="text-sm font-medium text-foreground">Application Status</p>
+ <p className="text-lg font-bold text-foreground capitalize">
  {application.status.replace('_', ' ')}
  </p>
  </div>
@@ -832,7 +832,7 @@ export function ApplicationDetailModal({
  <div className="flex items-center gap-3">
  {getPaymentIcon(application.payment_status || 'pending')}
  <div>
- <p className="text-sm font-medium text-gray-900">Payment Status</p>
+ <p className="text-sm font-medium text-foreground">Payment Status</p>
  <p className="text-lg font-bold text-green-900 capitalize">
  {(application.payment_status || 'pending').replace('_', ' ')}
  </p>
@@ -844,7 +844,7 @@ export function ApplicationDetailModal({
  <div className="flex items-center gap-3">
  <Calendar className="h-5 w-5 text-secondary" />
  <div>
- <p className="text-sm font-medium text-gray-900">Submitted</p>
+ <p className="text-sm font-medium text-foreground">Submitted</p>
  <p className="text-lg font-bold text-secondary-foreground">
  {formatDate(application.submitted_at || application.created_at)}
  </p>
@@ -858,14 +858,14 @@ export function ApplicationDetailModal({
  <div className="flex items-center gap-3">
  <Calendar className="h-10 w-10 text-primary" />
  <div>
- <p className="text-sm text-gray-900">Upcoming interview</p>
- <p className="text-base font-semibold text-gray-900">
+ <p className="text-sm text-foreground">Upcoming interview</p>
+ <p className="text-base font-semibold text-foreground">
  {formatInterviewDateTime(currentInterview?.scheduled_at)}
  </p>
  </div>
  </div>
- <div className="text-sm text-gray-900">
- <p className="font-medium text-gray-900">
+ <div className="text-sm text-foreground">
+ <p className="font-medium text-foreground">
  Mode: {formatInterviewModeLabel(currentInterview?.mode)}
  </p>
  <p>Status: {formatInterviewStatus(currentInterview?.status)}</p>
@@ -875,54 +875,54 @@ export function ApplicationDetailModal({
 
  {/* Personal Information */}
  <div className="bg-card border border-border rounded-xl p-6">
- <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+ <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <User className="h-5 w-5 text-primary" />
  Personal Information
  </h3>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="space-y-4">
  <div className="flex items-center gap-3">
- <Mail className="h-4 w-4 text-gray-900" />
+ <Mail className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-gray-900">Email</p>
- <p className="font-medium text-gray-900">{applicationData?.application?.email || application.email}</p>
+ <p className="text-sm text-foreground">Email</p>
+ <p className="font-medium text-foreground">{applicationData?.application?.email || application.email}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <Phone className="h-4 w-4 text-gray-900" />
+ <Phone className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-gray-900">Phone</p>
- <p className="font-medium text-gray-900">{applicationData?.application?.phone || application.phone || 'Not provided'}</p>
+ <p className="text-sm text-foreground">Phone</p>
+ <p className="font-medium text-foreground">{applicationData?.application?.phone || application.phone || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <Calendar className="h-4 w-4 text-gray-900" />
+ <Calendar className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-gray-900">Date of Birth</p>
- <p className="font-medium text-gray-900">{applicationData?.application?.date_of_birth ? formatDate(applicationData.application.date_of_birth) : (application.date_of_birth ? formatDate(application.date_of_birth) : 'Not provided')}</p>
+ <p className="text-sm text-foreground">Date of Birth</p>
+ <p className="font-medium text-foreground">{applicationData?.application?.date_of_birth ? formatDate(applicationData.application.date_of_birth) : (application.date_of_birth ? formatDate(application.date_of_birth) : 'Not provided')}</p>
  </div>
  </div>
  </div>
  <div className="space-y-4">
  <div className="flex items-center gap-3">
- <MapPin className="h-4 w-4 text-gray-900" />
+ <MapPin className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-gray-900">Residence</p>
- <p className="font-medium text-gray-900">{applicationData?.application?.residence_town || application.residence_town || 'Not provided'}</p>
+ <p className="text-sm text-foreground">Residence</p>
+ <p className="font-medium text-foreground">{applicationData?.application?.residence_town || application.residence_town || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <Users className="h-4 w-4 text-gray-900" />
+ <Users className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-gray-900">Next of Kin</p>
- <p className="font-medium text-gray-900">{applicationData?.application?.next_of_kin_name || application.next_of_kin_name || 'Not provided'}</p>
+ <p className="text-sm text-foreground">Next of Kin</p>
+ <p className="font-medium text-foreground">{applicationData?.application?.next_of_kin_name || application.next_of_kin_name || 'Not provided'}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <FileText className="h-4 w-4 text-gray-900" />
+ <FileText className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-gray-900">NRC Number</p>
- <p className="font-medium text-gray-900">{applicationData?.application?.nrc_number || application.nrc_number || applicationData?.application?.passport_number || application.passport_number || 'Not provided'}</p>
+ <p className="text-sm text-foreground">NRC Number</p>
+ <p className="font-medium text-foreground">{applicationData?.application?.nrc_number || application.nrc_number || applicationData?.application?.passport_number || application.passport_number || 'Not provided'}</p>
  </div>
  </div>
  </div>
@@ -931,30 +931,30 @@ export function ApplicationDetailModal({
 
  {/* Program Information */}
  <div className="bg-card border border-border rounded-xl p-6">
- <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+ <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <GraduationCap className="h-5 w-5 text-primary" />
  Program Information
  </h3>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="flex items-center gap-3">
- <GraduationCap className="h-4 w-4 text-gray-900" />
+ <GraduationCap className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-gray-900">Program</p>
- <p className="font-medium text-gray-900">{application.program}</p>
+ <p className="text-sm text-foreground">Program</p>
+ <p className="font-medium text-foreground">{application.program}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <Building className="h-4 w-4 text-gray-900" />
+ <Building className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-gray-900">Institution</p>
- <p className="font-medium text-gray-900">{getInstitutionName(application.institution)}</p>
+ <p className="text-sm text-foreground">Institution</p>
+ <p className="font-medium text-foreground">{getInstitutionName(application.institution)}</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <Calendar className="h-4 w-4 text-gray-900" />
+ <Calendar className="h-4 w-4 text-foreground" />
  <div>
- <p className="text-sm text-gray-900">Intake</p>
- <p className="font-medium text-gray-900">{application.intake}</p>
+ <p className="text-sm text-foreground">Intake</p>
+ <p className="font-medium text-foreground">{application.intake}</p>
  </div>
  </div>
  </div>
@@ -962,25 +962,25 @@ export function ApplicationDetailModal({
 
  {/* Payment Information */}
  <div className="bg-card border border-border rounded-xl p-6">
- <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+ <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <CreditCard className="h-5 w-5 text-primary" />
  Payment Information
  </h3>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="space-y-4">
  <div>
- <p className="text-sm text-gray-900 mb-1">Payment Method</p>
- <p className="font-medium text-gray-900">{applicationData?.application?.payment_method || application.payment_method || 'Not specified'}</p>
+ <p className="text-sm text-foreground mb-1">Payment Method</p>
+ <p className="font-medium text-foreground">{applicationData?.application?.payment_method || application.payment_method || 'Not specified'}</p>
  </div>
  <div>
- <p className="text-sm text-gray-900 mb-1">Amount Paid</p>
+ <p className="text-sm text-foreground mb-1">Amount Paid</p>
  <p className="text-2xl font-bold text-warning-strong">
  K{applicationData?.application?.amount || application.amount || 0} / K{applicationData?.application?.application_fee || application.application_fee || 153}
  </p>
  </div>
  <div>
- <p className="text-sm text-gray-900 mb-1">Payer Name</p>
- <p className="font-medium text-gray-900">{applicationData?.application?.payer_name || application.payer_name || 'Not provided'}</p>
+ <p className="text-sm text-foreground mb-1">Payer Name</p>
+ <p className="font-medium text-foreground">{applicationData?.application?.payer_name || application.payer_name || 'Not provided'}</p>
  </div>
  </div>
  {application.payment_verified_at && (
@@ -1004,7 +1004,7 @@ export function ApplicationDetailModal({
 
  {/* Admin Feedback */}
  <div className="bg-blue-50 border border-primary/30 rounded-xl p-6">
- <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+ <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <AlertCircle className="h-5 w-5" />
  Admin Feedback
  </h3>
@@ -1043,7 +1043,7 @@ export function ApplicationDetailModal({
  {activeTab === 'interview' && (
  <div className="space-y-6">
  <div className="bg-card border border-border rounded-xl p-6">
- <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+ <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <Calendar className="h-5 w-5 text-primary" />
  Interview Overview
  </h3>
@@ -1052,8 +1052,8 @@ export function ApplicationDetailModal({
  <div className="flex items-center gap-3">
  <Clock className="h-5 w-5 text-primary" />
  <div>
- <p className="text-sm text-gray-900">Scheduled for</p>
- <p className="text-base font-medium text-gray-900">
+ <p className="text-sm text-foreground">Scheduled for</p>
+ <p className="text-base font-medium text-foreground">
  {formatInterviewDateTime(currentInterview?.scheduled_at)}
  </p>
  </div>
@@ -1061,27 +1061,27 @@ export function ApplicationDetailModal({
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div className="bg-blue-50 border border-primary/30 rounded-lg p-4">
  <p className="text-sm text-primary uppercase tracking-wide">Mode</p>
- <p className="text-lg font-semibold text-gray-900">
+ <p className="text-lg font-semibold text-foreground">
  {formatInterviewModeLabel(currentInterview?.mode)}
  </p>
  </div>
  <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
  <p className="text-sm text-primary uppercase tracking-wide">Status</p>
- <p className="text-lg font-semibold text-gray-900 capitalize">
+ <p className="text-lg font-semibold text-foreground capitalize">
  {formatInterviewStatus(currentInterview?.status)}
  </p>
  </div>
  </div>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
- <p className="text-sm font-medium text-gray-900 mb-1">Location / Link</p>
- <p className="text-base text-gray-900">
+ <p className="text-sm font-medium text-foreground mb-1">Location / Link</p>
+ <p className="text-base text-foreground">
  {currentInterview?.location || 'Not provided'}
  </p>
  </div>
  <div>
- <p className="text-sm font-medium text-gray-900 mb-1">Notes</p>
- <p className="text-base text-gray-900">
+ <p className="text-sm font-medium text-foreground mb-1">Notes</p>
+ <p className="text-base text-foreground">
  {currentInterview?.notes || 'No additional notes recorded.'}
  </p>
  </div>
@@ -1089,9 +1089,9 @@ export function ApplicationDetailModal({
  </div>
  ) : (
  <div className="text-center py-8">
- <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-900" />
- <p className="text-base font-medium text-gray-900 mb-1">No interview scheduled yet</p>
- <p className="text-sm text-gray-900">
+ <Calendar className="h-12 w-12 mx-auto mb-3 text-foreground" />
+ <p className="text-base font-medium text-foreground mb-1">No interview scheduled yet</p>
+ <p className="text-sm text-foreground">
  Use the form below to schedule and notify the applicant about their interview.
  </p>
  </div>
@@ -1099,7 +1099,7 @@ export function ApplicationDetailModal({
  </div>
 
  <div className="bg-card border border-border rounded-xl p-6">
- <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+ <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <Users className="h-5 w-5 text-primary" />
  Manage Interview Schedule
  </h3>
@@ -1119,7 +1119,7 @@ export function ApplicationDetailModal({
  <form onSubmit={event => { void handleInterviewSubmit(event) }} className="space-y-5">
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
- <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="interview-scheduled-at">
+ <label className="block text-sm font-medium text-foreground mb-1" htmlFor="interview-scheduled-at">
  Interview date &amp; time
  </label>
  <input
@@ -1132,7 +1132,7 @@ export function ApplicationDetailModal({
  />
  </div>
  <div>
- <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="interview-mode">
+ <label className="block text-sm font-medium text-foreground mb-1" htmlFor="interview-mode">
  Interview mode
  </label>
  <select
@@ -1149,7 +1149,7 @@ export function ApplicationDetailModal({
  </div>
 
  <div>
- <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="interview-location">
+ <label className="block text-sm font-medium text-foreground mb-1" htmlFor="interview-location">
  Location / meeting link
  </label>
  <input
@@ -1163,7 +1163,7 @@ export function ApplicationDetailModal({
  </div>
 
  <div>
- <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="interview-notes">
+ <label className="block text-sm font-medium text-foreground mb-1" htmlFor="interview-notes">
  Notes for applicant
  </label>
  <textarea

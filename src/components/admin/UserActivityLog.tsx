@@ -155,7 +155,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
         <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted rounded-lg">
           <div className="flex-1">
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-900 h-4 w-4" />
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground h-4 w-4" />
               <input
                 type="text"
                 placeholder="Filter by action..."
@@ -167,7 +167,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
           </div>
           <div className="sm:w-48">
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-900 h-4 w-4" />
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground h-4 w-4" />
               <input
                 type="date"
                 value={dateFilter}
@@ -192,9 +192,9 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
             </div>
           ) : filteredActivities.length === 0 ? (
             <div className="text-center py-8">
-              <Clock className="h-12 w-12 text-gray-900 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Activity Found</h3>
-              <p className="text-gray-900">
+              <Clock className="h-12 w-12 text-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No Activity Found</h3>
+              <p className="text-foreground">
                 {filter || dateFilter ? 'No activities match your filters.' : 'No activity recorded for this user.'}
               </p>
             </div>
@@ -208,27 +208,27 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-sm font-medium text-gray-900">
+                      <h4 className="text-sm font-medium text-foreground">
                         {ACTION_LABELS[activity.action] || activity.action}
                       </h4>
-                      <time className="text-xs text-gray-900">
+                      <time className="text-xs text-foreground">
                         {new Date(activity.created_at).toLocaleString()}
                       </time>
                     </div>
                     
-                    <p className="text-sm text-gray-900 mb-2">
+                    <p className="text-sm text-foreground mb-2">
                       {formatActivityDetails(activity)}
                     </p>
                     
                     {activity.performed_by_name && (
-                      <div className="flex items-center space-x-2 text-xs text-gray-900">
+                      <div className="flex items-center space-x-2 text-xs text-foreground">
                         <User className="h-3 w-3" />
                         <span>Performed by: {activity.performed_by_name}</span>
                       </div>
                     )}
                     
                     {activity.details.ip_address && (
-                      <div className="text-xs text-gray-900 mt-1">
+                      <div className="text-xs text-foreground mt-1">
                         IP: {activity.details.ip_address}
                       </div>
                     )}
@@ -240,7 +240,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
         </div>
 
         <div className="flex justify-between items-center p-4 border-t border-border">
-          <div className="text-sm text-gray-900">
+          <div className="text-sm text-foreground">
             {filteredActivities.length} of {activities.length} activities
           </div>
           <Button onClick={onClose} className="bg-primary hover:bg-primary text-white">

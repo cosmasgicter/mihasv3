@@ -28,7 +28,6 @@ import {
   Sparkles
 } from 'lucide-react';
 import { AnimatedCounter } from '@/components/smoothui/animated-counter';
-import { StatusIndicator, StatusBadge } from '@/components/8starlabs/status-indicator';
 import { cn } from '@/lib/utils';
 import { staggerChild } from '@/lib/animations';
 
@@ -58,13 +57,6 @@ interface RealtimeMetricsDisplayProps {
   isRefreshing?: boolean;
   className?: string;
   compact?: boolean;
-  showSystemHealth?: boolean;
-  systemHealth?: {
-    database: 'healthy' | 'degraded' | 'down';
-    api: 'healthy' | 'degraded' | 'down';
-    storage: 'healthy' | 'degraded' | 'down';
-    auth: 'healthy' | 'degraded' | 'down';
-  };
 }
 
 const colorConfig = {
@@ -294,8 +286,6 @@ export function RealtimeMetricsDisplay({
   isRefreshing = false,
   className,
   compact = false,
-  showSystemHealth = false,
-  systemHealth,
 }: RealtimeMetricsDisplayProps) {
   // Track previous values for change indicators
   const [previousValues, setPreviousValues] = useState<Record<string, number>>({});
@@ -384,16 +374,6 @@ export function RealtimeMetricsDisplay({
       trend: 'stable',
     },
   ];
-  
-  // Map system health status to StatusIndicator status
-  const mapHealthStatus = (status: 'healthy' | 'degraded' | 'down'): 'operational' | 'degraded' | 'down' => {
-    switch (status) {
-      case 'healthy': return 'operational';
-      case 'degraded': return 'degraded';
-      case 'down': return 'down';
-      default: return 'operational';
-    }
-  };
   
   return (
     <div className={cn('space-y-6', className)}>
@@ -500,48 +480,6 @@ export function RealtimeMetricsDisplay({
         </div>
       </div>
       
-      {/* System Health Section */}
-      {showSystemHealth && systemHealth && (
-        <div
-          className="bg-card rounded-xl border border-border p-4 animate-slide-up opacity-0"
-          style={staggerChild(6)}
-        >
-          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            System Health
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-              <StatusIndicator 
-                status={mapHealthStatus(systemHealth.database)} 
-                size="sm"
-              />
-              <span className="text-sm text-foreground">Database</span>
-            </div>
-            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-              <StatusIndicator 
-                status={mapHealthStatus(systemHealth.api)} 
-                size="sm"
-              />
-              <span className="text-sm text-foreground">API</span>
-            </div>
-            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-              <StatusIndicator 
-                status={mapHealthStatus(systemHealth.storage)} 
-                size="sm"
-              />
-              <span className="text-sm text-foreground">Storage</span>
-            </div>
-            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-              <StatusIndicator 
-                status={mapHealthStatus(systemHealth.auth)} 
-                size="sm"
-              />
-              <span className="text-sm text-foreground">Auth</span>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
