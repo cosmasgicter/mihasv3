@@ -557,7 +557,7 @@ export const SessionQueries = {
       )
       VALUES (
         $1, $2, $3, $4, $5,
-        true, NOW(), NOW(), NOW() + INTERVAL '30 days'
+        true, NOW(), NOW(), NOW() + INTERVAL '1 hour'
       )
       RETURNING id, user_id, is_active, last_activity, created_at, expires_at
     `,
@@ -675,7 +675,7 @@ export const SessionQueries = {
       UPDATE device_sessions
       SET is_active = false
       WHERE is_active = true 
-        AND (expires_at < NOW() OR last_activity < NOW() - INTERVAL '30 days')
+        AND (expires_at < NOW() OR last_activity < NOW() - INTERVAL '1 hour')
       RETURNING id, user_id
     `,
     values: [],
