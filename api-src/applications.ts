@@ -682,32 +682,58 @@ async function handleById(
           return sendError(res, 'Cannot approve without verified payment', HttpStatus.BAD_REQUEST);
         }
 
-        await query('BEGIN');
         let updateResult;
         try {
-          const updateQ = ApplicationQueries.updateStatus(applicationId, status as ApplicationStatus, userId, notes);
-          updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
+          const notificationTitle = 'Application approved';
+          const notificationMessage = `Your application ${app.application_number || applicationId} has been approved.`;
 
-          // Create status history entry
-          const historyQ = StatusHistoryQueries.create(applicationId, status as ApplicationStatus, userId, notes);
-          await query(historyQ.text, historyQ.values);
-
-          if (status === 'approved') {
-            await query(
-              `INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
-               VALUES ($1, $2, $3, 'success', false, NOW())`,
-              [
-                app.user_id,
-                'Application approved',
-                `Your application ${app.application_number || applicationId} has been approved.`,
-              ]
+          updateResult = await query<ApplicationRecord>(
+            `WITH updated_application AS (
+               UPDATE applications
+               SET
+                 status = $2,
+                 reviewed_by = $3,
+                 review_started_at = COALESCE(review_started_at, NOW()),
+                 updated_at = NOW()
+               WHERE id = $1
+               RETURNING *
+             ), history_insert AS (
+               INSERT INTO status_history (application_id, status, changed_by, notes, changed_at)
+               SELECT id, $2, $3, $4, NOW()
+               FROM updated_application
+               RETURNING id
+             ), notification_insert AS (
+               INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+               SELECT user_id, $5, $6, 'success', false, NOW()
+               FROM updated_application
+               WHERE $2 = 'approved'
+               RETURNING id
+             )
+             SELECT ua.*
+             FROM updated_application ua`,
+            [applicationId, status, userId, notes || null, notificationTitle, notificationMessage]
+          );
+        } catch (error) {
+          const message = (error as Error).message?.toLowerCase() || '';
+          if (message.includes('notifications')) {
+            return sendError(
+              res,
+              'Status update failed during notification persistence; no changes were applied.',
+              HttpStatus.CONFLICT
             );
           }
-
-          await query('COMMIT');
-        } catch (error) {
-          await query('ROLLBACK');
+          if (message.includes('status_history')) {
+            return sendError(
+              res,
+              'Status update failed during history persistence; no changes were applied.',
+              HttpStatus.CONFLICT
+            );
+          }
           throw error;
+        }
+
+        if (!updateResult || updateResult.rowCount === 0) {
+          return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
         }
 
         // Audit trail for application status change (Requirement 21.1)
@@ -775,14 +801,6 @@ async function handleById(
           return sendError(res, `Invalid payment status. Must be one of: ${validPaymentStatuses.join(', ')}`, HttpStatus.BAD_REQUEST);
         }
 
-        const updateQ = ApplicationQueries.updatePaymentStatus(
-          applicationId, 
-          paymentStatus as PaymentStatus, 
-          paymentStatus === 'verified' ? userId : null
-        );
-        const updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
-
-        // Create notification for the student
         const notificationTitle = paymentStatus === 'verified'
           ? 'Payment Verified'
           : paymentStatus === 'rejected'
@@ -794,19 +812,49 @@ async function handleById(
             ? `Your payment for application ${app.application_number || applicationId} was rejected. Please resubmit your payment proof.`
             : `Your payment status for application ${app.application_number || applicationId} has been updated to ${paymentStatus}.`;
 
+        let updateResult;
         try {
-          await query(
-            `INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
-             VALUES ($1, $2, $3, $4, false, NOW())`,
+          updateResult = await query<ApplicationRecord>(
+            `WITH updated_application AS (
+               UPDATE applications
+               SET
+                 payment_status = $2,
+                 payment_verified_by = $3,
+                 payment_verified_at = CASE WHEN $2 = 'verified' THEN NOW() ELSE NULL END,
+                 updated_at = NOW()
+               WHERE id = $1
+               RETURNING *
+             ), notification_insert AS (
+               INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+               SELECT user_id, $4, $5, $6, false, NOW()
+               FROM updated_application
+               RETURNING id
+             )
+             SELECT ua.*
+             FROM updated_application ua`,
             [
-              app.user_id,
+              applicationId,
+              paymentStatus,
+              paymentStatus === 'verified' ? userId : null,
               notificationTitle,
               notificationMessage,
               paymentStatus === 'verified' ? 'success' : paymentStatus === 'rejected' ? 'error' : 'info',
             ]
           );
         } catch (notifError) {
-          console.error('[applications] Failed to create payment notification:', notifError);
+          const message = (notifError as Error).message?.toLowerCase() || '';
+          if (message.includes('notifications')) {
+            return sendError(
+              res,
+              'Payment status update failed during notification persistence; no changes were applied.',
+              HttpStatus.CONFLICT
+            );
+          }
+          throw notifError;
+        }
+
+        if (!updateResult || updateResult.rowCount === 0) {
+          return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
         }
 
         // Create audit log entry (Requirement 21.3 - payment verification/rejection)
