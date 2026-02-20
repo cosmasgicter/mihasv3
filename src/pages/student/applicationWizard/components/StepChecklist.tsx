@@ -20,7 +20,7 @@ export const StepChecklist = ({ items, title = 'Step Checklist' }: StepChecklist
       className={`bg-card border border-border rounded-lg p-4 ${animateClasses.slideUp}`}
     >
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
         <span className={`text-xs font-medium ${allCompleted ? 'text-success' : 'text-muted-foreground'}`}>
           {completedCount}/{items.length}
         </span>

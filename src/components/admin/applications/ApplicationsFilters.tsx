@@ -137,7 +137,7 @@ export function ApplicationsFilters({
         {/* Search */}
         <div className="md:col-span-2">
           <div className="relative">
-            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search applications..."

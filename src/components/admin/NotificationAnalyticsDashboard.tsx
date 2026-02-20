@@ -358,7 +358,7 @@ export default function NotificationAnalyticsDashboard() {
       case 'in-app':
         return 'text-orange-600 bg-orange-50 border-orange-200'
       default:
-        return 'text-gray-600 bg-gray-50 border-gray-200'
+        return 'text-muted-foreground bg-gray-50 border-gray-200'
     }
   }
 
@@ -422,7 +422,7 @@ export default function NotificationAnalyticsDashboard() {
                   className={`flex items-center px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.key
                       ? 'border-blue-500 text-blue-600 bg-blue-50'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      : 'border-transparent text-muted-foreground hover:text-muted-foreground hover:border-gray-300'
                   }`}
                 >
                   <Icon className="h-4 w-4 mr-2" />
@@ -437,7 +437,7 @@ export default function NotificationAnalyticsDashboard() {
         {/* Filters */}
         <Card className="p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+            <h3 className="text-lg font-bold text-foreground flex items-center">
               <Filter className="h-5 w-5 mr-2" />
               Filters & Export
             </h3>
@@ -454,7 +454,7 @@ export default function NotificationAnalyticsDashboard() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Time Period</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Time Period</label>
               <select
                 value={dateRange.days}
                 onChange={(e) => setDateRange(prev => ({ ...prev, days: parseInt(e.target.value) }))}
@@ -467,7 +467,7 @@ export default function NotificationAnalyticsDashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Channel Filter</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Channel Filter</label>
               <select
                 value={dateRange.channel}
                 onChange={(e) => setDateRange(prev => ({ ...prev, channel: e.target.value }))}
@@ -482,7 +482,7 @@ export default function NotificationAnalyticsDashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Group By</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Group By</label>
               <select
                 value={dateRange.groupBy}
                 onChange={(e) => setDateRange(prev => ({ ...prev, groupBy: e.target.value as 'hour' | 'day' }))}
@@ -493,7 +493,7 @@ export default function NotificationAnalyticsDashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Export Format</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Export Format</label>
               <select
                 value={exportFormat}
                 onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
@@ -525,11 +525,11 @@ export default function NotificationAnalyticsDashboard() {
               <Card className="p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Total Notifications</p>
-                    <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Total Notifications</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-foreground">
                       {analytics.summary.total_notifications.toLocaleString()}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Last {analytics.summary.time_period_days} days
                     </p>
                   </div>
@@ -542,11 +542,11 @@ export default function NotificationAnalyticsDashboard() {
               <Card className="p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Success Rate</p>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Success Rate</p>
                     <p className="text-2xl sm:text-3xl font-bold text-green-600">
                       {analytics.summary.overall_success_rate.toFixed(1)}%
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {analytics.summary.successful_deliveries.toLocaleString()} delivered
                     </p>
                   </div>
@@ -559,11 +559,11 @@ export default function NotificationAnalyticsDashboard() {
               <Card className="p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Failed Deliveries</p>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Failed Deliveries</p>
                     <p className="text-2xl sm:text-3xl font-bold text-red-600">
                       {analytics.summary.failed_deliveries.toLocaleString()}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {((analytics.summary.failed_deliveries / analytics.summary.total_notifications) * 100).toFixed(1)}% failure rate
                     </p>
                   </div>
@@ -576,11 +576,11 @@ export default function NotificationAnalyticsDashboard() {
               <Card className="p-6 hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Active Channels</p>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Active Channels</p>
                     <p className="text-2xl sm:text-3xl font-bold text-purple-600">
                       {analytics.channel_breakdown.length}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Notification channels
                     </p>
                   </div>
@@ -594,7 +594,7 @@ export default function NotificationAnalyticsDashboard() {
             {/* Channel Breakdown */}
             <Card className="mb-8 overflow-hidden">
               <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                <h3 className="text-xl font-bold text-foreground flex items-center">
                   <Bell className="w-5 h-5 mr-2" />
                   Channel Performance Overview
                 </h3>
@@ -642,7 +642,7 @@ export default function NotificationAnalyticsDashboard() {
             {/* Top Performing Channels */}
             <Card className="overflow-hidden">
               <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                <h3 className="text-xl font-bold text-foreground flex items-center">
                   <TrendingUp className="w-5 h-5 mr-2" />
                   Top Performing Channels
                 </h3>
@@ -656,8 +656,8 @@ export default function NotificationAnalyticsDashboard() {
                           {getChannelIcon(channel.channel)}
                         </div>
                         <div className="ml-4">
-                          <h4 className="font-semibold text-gray-900 capitalize">{channel.channel}</h4>
-                          <p className="text-sm text-gray-600">
+                          <h4 className="font-semibold text-foreground capitalize">{channel.channel}</h4>
+                          <p className="text-sm text-muted-foreground">
                             {channel.total_notifications.toLocaleString()} notifications sent
                           </p>
                         </div>
@@ -666,7 +666,7 @@ export default function NotificationAnalyticsDashboard() {
                         <div className="text-2xl font-bold text-green-600">
                           {channel.success_rate.toFixed(1)}%
                         </div>
-                        <div className="text-sm text-gray-500">Success Rate</div>
+                        <div className="text-sm text-muted-foreground">Success Rate</div>
                       </div>
                     </div>
                   ))}
@@ -679,7 +679,7 @@ export default function NotificationAnalyticsDashboard() {
         {activeTab === 'delivery' && deliveryRates && (
           <Card className="overflow-hidden">
             <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center">
+              <h3 className="text-xl font-bold text-foreground flex items-center">
                 <TrendingUp className="w-5 h-5 mr-2" />
                 Delivery Rates Over Time ({deliveryRates.group_by === 'hour' ? 'Hourly' : 'Daily'})
               </h3>
@@ -689,16 +689,16 @@ export default function NotificationAnalyticsDashboard() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         {deliveryRates.group_by === 'hour' ? 'Hour' : 'Date'}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Total Notifications
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Success Rate
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Channels
                       </th>
                     </tr>
@@ -706,16 +706,16 @@ export default function NotificationAnalyticsDashboard() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {deliveryRates.delivery_rates.map((rate, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {deliveryRates.group_by === 'hour' 
                             ? `${rate.hour}:00` 
                             : new Date(rate.date || '').toLocaleDateString()
                           }
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {rate.total_notifications.toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             rate.overall_success_rate >= 90 
                               ? 'bg-green-100 text-green-800'
@@ -726,7 +726,7 @@ export default function NotificationAnalyticsDashboard() {
                             {rate.overall_success_rate.toFixed(1)}%
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           <div className="flex flex-wrap gap-1">
                             {Object.entries(rate.channels).map(([channel, data]) => (
                               <span
@@ -756,8 +756,8 @@ export default function NotificationAnalyticsDashboard() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Total Users</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Total Users</p>
+                    <p className="text-2xl font-bold text-foreground">
                       {userEngagement.statistics.total_users.toLocaleString()}
                     </p>
                   </div>
@@ -768,7 +768,7 @@ export default function NotificationAnalyticsDashboard() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Avg Engagement</p>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Avg Engagement</p>
                     <p className="text-2xl font-bold text-green-600">
                       {userEngagement.statistics.avg_engagement_score.toFixed(1)}%
                     </p>
@@ -780,11 +780,11 @@ export default function NotificationAnalyticsDashboard() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">High Engagement</p>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">High Engagement</p>
                     <p className="text-2xl font-bold text-purple-600">
                       {userEngagement.statistics.high_engagement_users}
                     </p>
-                    <p className="text-xs text-gray-500">Users ≥80%</p>
+                    <p className="text-xs text-muted-foreground">Users ≥80%</p>
                   </div>
                   <CheckCircle className="h-8 w-8 text-purple-600" />
                 </div>
@@ -793,7 +793,7 @@ export default function NotificationAnalyticsDashboard() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Popular Channel</p>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Popular Channel</p>
                     <p className="text-lg font-bold text-orange-600 capitalize">
                       {userEngagement.statistics.most_popular_channel || 'N/A'}
                     </p>
@@ -808,7 +808,7 @@ export default function NotificationAnalyticsDashboard() {
             {/* Channel Distribution */}
             <Card className="mb-8 overflow-hidden">
               <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900">Channel Preference Distribution</h3>
+                <h3 className="text-xl font-bold text-foreground">Channel Preference Distribution</h3>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -833,26 +833,26 @@ export default function NotificationAnalyticsDashboard() {
             {/* User Engagement Details */}
             <Card className="overflow-hidden">
               <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900">User Engagement Details</h3>
+                <h3 className="text-xl font-bold text-foreground">User Engagement Details</h3>
               </div>
               <div className="p-6">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           User ID
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Engagement Score
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Preferred Channel
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Notifications Received
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Notifications Opened
                         </th>
                       </tr>
@@ -860,10 +860,10 @@ export default function NotificationAnalyticsDashboard() {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {userEngagement.user_engagement.slice(0, 20).map((user, index) => (
                         <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             {user.user_id.substring(0, 8)}...
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               user.engagement_score >= 80 
                                 ? 'bg-green-100 text-green-800'
@@ -874,16 +874,16 @@ export default function NotificationAnalyticsDashboard() {
                               {user.engagement_score.toFixed(1)}%
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             <div className="flex items-center">
                               {getChannelIcon(user.preferred_channel)}
                               <span className="ml-2 capitalize">{user.preferred_channel}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             {user.total_notifications_received}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             {user.total_notifications_opened}
                           </td>
                         </tr>
@@ -901,7 +901,7 @@ export default function NotificationAnalyticsDashboard() {
             {/* Recommendations */}
             <Card className="mb-8 overflow-hidden">
               <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                <h3 className="text-xl font-bold text-foreground flex items-center">
                   <Clock className="w-5 h-5 mr-2" />
                   Optimal Delivery Time Recommendations
                 </h3>
@@ -922,7 +922,7 @@ export default function NotificationAnalyticsDashboard() {
                           <span className="text-sm">Success Rate:</span>
                           <span className="font-medium">{rec.success_rate.toFixed(1)}%</span>
                         </div>
-                        <p className="text-sm text-gray-600 mt-3">{rec.recommendation}</p>
+                        <p className="text-sm text-muted-foreground mt-3">{rec.recommendation}</p>
                       </div>
                     </div>
                   ))}
@@ -933,23 +933,23 @@ export default function NotificationAnalyticsDashboard() {
             {/* Detailed Time Analysis */}
             <Card className="overflow-hidden">
               <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900">Detailed Time Analysis</h3>
+                <h3 className="text-xl font-bold text-foreground">Detailed Time Analysis</h3>
               </div>
               <div className="p-6">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Hour
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Channel
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Success Rate
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Total Notifications
                         </th>
                       </tr>
@@ -960,16 +960,16 @@ export default function NotificationAnalyticsDashboard() {
                         .slice(0, 20)
                         .map((analysis, index) => (
                         <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             {analysis.hour}:00
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             <div className="flex items-center">
                               {getChannelIcon(analysis.channel)}
                               <span className="ml-2 capitalize">{analysis.channel}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               analysis.success_rate >= 90 
                                 ? 'bg-green-100 text-green-800'
@@ -980,7 +980,7 @@ export default function NotificationAnalyticsDashboard() {
                               {analysis.success_rate.toFixed(1)}%
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             {analysis.total_notifications.toLocaleString()}
                           </td>
                         </tr>
@@ -996,7 +996,7 @@ export default function NotificationAnalyticsDashboard() {
         {activeTab === 'channels' && channelPerformance && (
           <Card className="overflow-hidden">
             <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center">
+              <h3 className="text-xl font-bold text-foreground flex items-center">
                 <Bell className="w-5 h-5 mr-2" />
                 Channel Performance Comparison
               </h3>
@@ -1043,19 +1043,19 @@ export default function NotificationAnalyticsDashboard() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Channel
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Total Notifications
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Success Rate
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Delivery Rate
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Avg Delivery Time
                       </th>
                     </tr>
@@ -1065,16 +1065,16 @@ export default function NotificationAnalyticsDashboard() {
                       .sort((a, b) => b.avg_success_rate - a.avg_success_rate)
                       .map((channel, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           <div className="flex items-center">
                             {getChannelIcon(channel.channel)}
                             <span className="ml-2 font-medium capitalize">{channel.channel}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {channel.total_notifications.toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             channel.avg_success_rate >= 90 
                               ? 'bg-green-100 text-green-800'
@@ -1085,10 +1085,10 @@ export default function NotificationAnalyticsDashboard() {
                             {channel.avg_success_rate.toFixed(1)}%
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {channel.avg_delivery_rate.toFixed(1)}%
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {channel.avg_delivery_time_seconds.toFixed(1)}s
                         </td>
                       </tr>

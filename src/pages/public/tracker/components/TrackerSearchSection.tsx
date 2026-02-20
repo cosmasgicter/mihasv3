@@ -92,7 +92,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <Mail className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-sm">Check Your Email</h3>
+              <h3 className="font-semibold text-foreground text-sm">Check Your Email</h3>
               <p className="text-xs text-muted-foreground mt-1">Application number sent after submission</p>
             </div>
           </div>
@@ -102,7 +102,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <Hash className="h-5 w-5 text-warning" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-sm">Format Example</h3>
+              <h3 className="font-semibold text-foreground text-sm">Format Example</h3>
               <p className="text-xs font-mono text-muted-foreground mt-1">MIHAS123456</p>
             </div>
           </div>
@@ -112,7 +112,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <Zap className="h-5 w-5 text-success" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-sm">Instant Results</h3>
+              <h3 className="font-semibold text-foreground text-sm">Instant Results</h3>
               <p className="text-xs text-muted-foreground mt-1">Real-time updates without login</p>
             </div>
           </div>

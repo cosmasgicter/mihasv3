@@ -89,7 +89,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
                   <FileText className="h-5 w-5" />
                   My Drafts
                 </h2>
@@ -165,14 +165,14 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                         </div>
                       ) : (
                         <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-medium text-gray-900">{draft.draft_name}</h3>
+                          <h3 className="font-medium text-foreground">{draft.draft_name}</h3>
                           <div className="flex gap-1">
                             <button
                               onClick={() => {
                                 setEditingId(draft.id)
                                 setEditName(draft.draft_name)
                               }}
-                              className="text-caption hover:text-gray-900 p-1"
+                              className="text-caption hover:text-foreground p-1"
                             >
                               <Edit2 className="h-3.5 w-3.5" />
                             </button>

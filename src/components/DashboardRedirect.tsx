@@ -46,7 +46,7 @@ export function DashboardRedirect() {
               </div>
             </div>
             <div className="text-center space-y-2">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-foreground">
                 {loading ? 'Loading...' : 'Preparing your dashboard...'}
               </h3>
               <p className="text-sm text-caption">Please wait a moment...</p>

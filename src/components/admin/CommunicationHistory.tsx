@@ -93,7 +93,7 @@ export function CommunicationHistory({ applicantId, className }: CommunicationHi
       case 'in-app':
         return 'text-purple-600 bg-purple-50 border-purple-200'
       default:
-        return 'text-gray-600 bg-gray-50 border-gray-200'
+        return 'text-muted-foreground bg-gray-50 border-gray-200'
     }
   }
 

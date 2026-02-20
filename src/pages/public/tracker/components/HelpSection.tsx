@@ -21,11 +21,11 @@ export const HelpSection: React.FC = () => {
                 <div className="p-2 rounded-lg bg-primary/10">
                   <FileSearch className="h-5 w-5 text-primary" />
                 </div>
-                <h4 className="font-semibold text-gray-900 text-base">
+                <h4 className="font-semibold text-foreground text-base">
                   Where to find your application number?
                 </h4>
               </div>
-              <ul className="space-y-2 text-sm text-gray-700">
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">•</span>
                   <span>Check your email confirmation after submitting</span>
@@ -47,11 +47,11 @@ export const HelpSection: React.FC = () => {
                 <div className="p-2 rounded-lg bg-warning/10">
                   <Target className="h-5 w-5 text-warning" />
                 </div>
-                <h4 className="font-semibold text-gray-900 text-base">
+                <h4 className="font-semibold text-foreground text-base">
                   Application Status Meanings
                 </h4>
               </div>
-              <ul className="space-y-2 text-sm text-gray-700">
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <Rocket className="h-4 w-4 text-warning flex-shrink-0 mt-0.5" />
                   <span><strong>Submitted:</strong> Application received and queued</span>
@@ -80,13 +80,13 @@ export const HelpSection: React.FC = () => {
               <MapPin className="h-5 w-5 text-secondary" />
             </div>
             
-            <h4 className="text-center text-lg font-semibold text-gray-900 mb-4">
+            <h4 className="text-center text-lg font-semibold text-foreground mb-4">
               Contact Information
             </h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <p className="font-semibold text-gray-900 mb-2 flex items-center justify-center gap-2">
+                <p className="font-semibold text-foreground mb-2 flex items-center justify-center gap-2">
                   <Mail className="h-4 w-4 text-primary" />
                   Email Support
                 </p>
@@ -96,7 +96,7 @@ export const HelpSection: React.FC = () => {
               </div>
               
               <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <p className="font-semibold text-gray-900 mb-2 flex items-center justify-center gap-2">
+                <p className="font-semibold text-foreground mb-2 flex items-center justify-center gap-2">
                   <Phone className="h-4 w-4 text-secondary" />
                   Phone Support
                 </p>

@@ -78,7 +78,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
         variant="outline"
         size="sm"
         onClick={() => setShowVersions(true)}
-        className="text-gray-900 hover:text-foreground"
+        className="text-foreground hover:text-foreground"
       >
         <History className="h-4 w-4 mr-2" />
         Version History
@@ -91,7 +91,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
       <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-foreground">
               Application Version History
             </h3>
             <Button
@@ -108,14 +108,14 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
           {/* Version List */}
           <div className="w-1/3 border-r overflow-y-auto">
             <div className="p-4">
-              <h4 className="font-medium text-gray-900 mb-3">Versions</h4>
+              <h4 className="font-medium text-foreground mb-3">Versions</h4>
               
               {loading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 </div>
               ) : versions.length === 0 ? (
-                <div className="text-center py-8 text-gray-900">
+                <div className="text-center py-8 text-foreground">
                   <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">No versions found</p>
                 </div>
@@ -135,13 +135,13 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                         <span className="font-medium text-sm">
                           Version {version.version_number}
                         </span>
-                        <span className="text-xs text-gray-900">
+                        <span className="text-xs text-foreground">
                           {formatDate(version.created_at)}
                         </span>
                       </div>
                       
                       {version.change_summary && (
-                        <p className="text-xs text-gray-900 truncate">
+                        <p className="text-xs text-foreground truncate">
                           {version.change_summary.replace(/[<>&"']/g, (char) => {
                             const entities: Record<string, string> = {
                               '<': '&lt;',
@@ -157,7 +157,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                       
                       <div className="flex items-center mt-2 space-x-1">
                         <Clock className="h-3 w-3 text-foreground" />
-                        <span className="text-xs text-gray-900">
+                        <span className="text-xs text-foreground">
                           {new Date(version.created_at).toLocaleTimeString()}
                         </span>
                       </div>
@@ -173,7 +173,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
             {selectedVersion ? (
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-medium text-gray-900">
+                  <h4 className="font-medium text-foreground">
                     Version {selectedVersion.version_number} Details
                   </h4>
                   <div className="flex space-x-2">
@@ -201,20 +201,20 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Created
                     </label>
-                    <p className="text-sm text-gray-900">
+                    <p className="text-sm text-foreground">
                       {formatDate(selectedVersion.created_at)}
                     </p>
                   </div>
 
                   {selectedVersion.change_summary && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Changes
                       </label>
-                      <p className="text-sm text-gray-900">
+                      <p className="text-sm text-foreground">
                         {selectedVersion.change_summary?.replace(/[<>&"']/g, (char) => {
                           const entities: Record<string, string> = {
                             '<': '&lt;',
@@ -230,11 +230,11 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Form Data Preview
                     </label>
                     <div className="bg-muted rounded-lg p-3 max-h-64 overflow-y-auto">
-                      <pre className="text-xs text-gray-900 whitespace-pre-wrap">
+                      <pre className="text-xs text-foreground whitespace-pre-wrap">
                         {JSON.stringify(selectedVersion.form_data, null, 2)}
                       </pre>
                     </div>
@@ -242,7 +242,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-900">
+              <div className="flex items-center justify-center h-full text-foreground">
                 <div className="text-center">
                   <Eye className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">Select a version to view details</p>

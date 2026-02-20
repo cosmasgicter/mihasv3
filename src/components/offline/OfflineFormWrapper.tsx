@@ -144,7 +144,7 @@ export function OfflineFormWrapper({
 
         <div className="flex items-center space-x-2">
           {lastSyncTime && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-muted-foreground">
               Last sync: {lastSyncTime.toLocaleTimeString()}
             </span>
           )}

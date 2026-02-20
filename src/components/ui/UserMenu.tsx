@@ -56,11 +56,11 @@ export function UserMenu() {
             <User className="w-4 h-4 text-primary" />
           </div>
         )}
-        <span className="hidden md:block text-sm font-medium text-gray-900 truncate max-w-[120px]">
+        <span className="hidden md:block text-sm font-medium text-foreground truncate max-w-[120px]">
           {firstName}
         </span>
         <ChevronDown className={cn(
-          "w-4 h-4 text-gray-900 transition-transform",
+          "w-4 h-4 text-foreground transition-transform",
           isOpen && "rotate-180"
         )} />
       </Button>
@@ -71,15 +71,15 @@ export function UserMenu() {
           data-testid="user-menu-dropdown"
         >
           <div className="px-4 py-2 border-b border-border">
-            <p className="text-sm font-medium text-gray-900 truncate" title={fullName}>
+            <p className="text-sm font-medium text-foreground truncate" title={fullName}>
               {fullName}
             </p>
-            <p className="text-xs text-gray-600 break-all" title={user?.email}>{user?.email}</p>
+            <p className="text-xs text-muted-foreground break-all" title={user?.email}>{user?.email}</p>
           </div>
           
           <Link
             to="/profile"
-            className="flex items-center px-4 py-2 text-sm text-gray-900 hover:bg-muted"
+            className="flex items-center px-4 py-2 text-sm text-foreground hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
             <User className="w-4 h-4 mr-3" />
@@ -88,7 +88,7 @@ export function UserMenu() {
           
           <Link
             to="/settings"
-            className="flex items-center px-4 py-2 text-sm text-gray-900 hover:bg-muted"
+            className="flex items-center px-4 py-2 text-sm text-foreground hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
             <Settings className="w-4 h-4 mr-3" />

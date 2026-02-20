@@ -9,7 +9,7 @@ export const ApplicationActions: React.FC = () => {
       <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
         {/* Help Text */}
         <div className="text-center lg:text-left">
-          <p className="text-base font-semibold text-gray-900 flex items-center justify-center lg:justify-start gap-2">
+          <p className="text-base font-semibold text-foreground flex items-center justify-center lg:justify-start gap-2">
             <HelpCircle className="h-5 w-5 text-primary" />
             Need Help?
           </p>

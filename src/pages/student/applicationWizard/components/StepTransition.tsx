@@ -59,7 +59,7 @@ export const StepContainer = ({
       {(title || description) && (
         <div className="mb-6">
           {title && (
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+            <h2 className="text-lg font-semibold text-foreground">{title}</h2>
           )}
           {description && (
             <p className="text-sm text-muted-foreground mt-1">{description}</p>

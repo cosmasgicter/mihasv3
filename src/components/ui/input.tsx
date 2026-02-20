@@ -15,13 +15,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-900 mb-1.5">
+          <label className="block text-sm font-medium text-foreground mb-1.5">
             {label}
           </label>
         )}
         <div className="relative">
           {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground">
               {icon}
             </div>
           )}
@@ -63,7 +63,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helperText && !error && (
-          <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-gray-900">
+          <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-foreground">
             {helperText}
           </p>
         )}

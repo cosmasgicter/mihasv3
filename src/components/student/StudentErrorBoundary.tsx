@@ -111,10 +111,10 @@ export class StudentErrorBoundary extends React.Component<
                 <AlertTriangle className="h-8 w-8 text-amber-500" />
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                <h1 className="text-2xl font-bold text-foreground mb-2">
                   Something went wrong
                 </h1>
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   We encountered an error while loading this page. Don't worry - your
                   application data is safely saved. Please try again.
                 </p>

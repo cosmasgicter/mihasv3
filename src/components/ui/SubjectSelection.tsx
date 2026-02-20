@@ -121,7 +121,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
       {/* Header with counter and add button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-foreground">
             Subject Selection
           </h3>
           <div className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -199,8 +199,8 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
                 aria-label={`Add ${subject.name} (${subject.code}) - ${subject.category} subject`}
               >
                 <div>
-                  <p className="font-medium text-gray-900">{subject.name}</p>
-                  <p className="text-sm text-gray-900">{subject.code} • {subject.category}</p>
+                  <p className="font-medium text-foreground">{subject.name}</p>
+                  <p className="text-sm text-foreground">{subject.code} • {subject.category}</p>
                 </div>
                 <Plus className="h-4 w-4 text-foreground" aria-hidden="true" />
               </button>
@@ -208,7 +208,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           </div>
           
           {filteredSubjects.length === 0 && (
-            <p className="text-center text-gray-900 py-4" role="status">
+            <p className="text-center text-foreground py-4" role="status">
               {searchTerm ? 'No subjects found matching your search.' : 'All available subjects have been added.'}
             </p>
           )}
@@ -221,7 +221,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           {/* Core subjects */}
           {coreSubjects.length > 0 && (
             <div>
-              <h4 className="font-medium text-gray-900 mb-3">Core Subjects ({coreSubjects.length})</h4>
+              <h4 className="font-medium text-foreground mb-3">Core Subjects ({coreSubjects.length})</h4>
               <div className="space-y-2" role="list" aria-label="Selected core subjects">
                 {coreSubjects.map((subject, index) => (
                   <SubjectCard
@@ -248,7 +248,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           {/* Elective subjects */}
           {electiveSubjects.length > 0 && (
             <div>
-              <h4 className="font-medium text-gray-900 mb-3">Elective Subjects ({electiveSubjects.length})</h4>
+              <h4 className="font-medium text-foreground mb-3">Elective Subjects ({electiveSubjects.length})</h4>
               <div className="space-y-2" role="list" aria-label="Selected elective subjects">
                 {electiveSubjects.map((subject, index) => (
                   <SubjectCard
@@ -275,7 +275,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
           {/* Show add button if no subjects selected */}
           {selectedSubjects.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-900 mb-4">No subjects selected yet</p>
+              <p className="text-foreground mb-4">No subjects selected yet</p>
               <AddSubjectButton 
                 onClick={() => setShowAddForm(!showAddForm)}
                 isOpen={showAddForm}
@@ -321,10 +321,10 @@ function AddSubjectButton({ onClick, isOpen, disabled, variant = 'secondary' }: 
       disabled={disabled}
       className={`w-full p-4 border-2 border-dashed rounded-lg transition-all duration-200 ${
         disabled 
-          ? 'border-border text-gray-900 cursor-not-allowed'
+          ? 'border-border text-foreground cursor-not-allowed'
           : isPrimary
           ? 'border-blue-300 text-primary hover:border-blue-400 hover:bg-blue-50'
-          : 'border-input text-gray-900 hover:border-input hover:bg-muted'
+          : 'border-input text-foreground hover:border-input hover:bg-muted'
       } ${isOpen ? 'bg-blue-50 border-blue-400' : ''}`}
     >
       <div className="flex items-center justify-center space-x-2">
@@ -370,8 +370,8 @@ function SubjectCard({
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="font-medium text-gray-900">{subject.name}</p>
-              <p className="text-sm text-gray-900">{subject.code}</p>
+              <p className="font-medium text-foreground">{subject.name}</p>
+              <p className="text-sm text-foreground">{subject.code}</p>
             </div>
             <button
               type="button"
@@ -385,7 +385,7 @@ function SubjectCard({
           
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor={gradeId} className="block text-xs font-medium text-gray-900 mb-1">
+              <label htmlFor={gradeId} className="block text-xs font-medium text-foreground mb-1">
                 Grade
               </label>
               <select
@@ -409,7 +409,7 @@ function SubjectCard({
             </div>
             
             <div>
-              <label htmlFor={scoreId} className="block text-xs font-medium text-gray-900 mb-1">
+              <label htmlFor={scoreId} className="block text-xs font-medium text-foreground mb-1">
                 Score (%)
               </label>
               <input

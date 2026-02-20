@@ -76,7 +76,7 @@ const SubmissionSuccess = ({
         <div className={animateClasses.scaleIn}>
           <CheckCircle className="h-16 w-16 text-accent mx-auto mb-6" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Application Submitted Successfully!</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-4">Application Submitted Successfully!</h2>
 
 
 
@@ -116,7 +116,7 @@ const SubmissionSuccess = ({
           </div>
         </div>
 
-        <p className="text-gray-900 mb-6">
+        <p className="text-foreground mb-6">
           Your application is now under review. You'll receive notifications about status updates.
         </p>
 

@@ -106,19 +106,19 @@ export function NotificationPreferences() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Notification Preferences</h2>
-        <p className="text-gray-900">Manage optional channels while required operational channels stay enabled.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Notification Preferences</h2>
+        <p className="text-foreground">Manage optional channels while required operational channels stay enabled.</p>
       </div>
 
       <div className="bg-card rounded-lg border border-border p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900 mb-4">Required Operational Channels</h3>
+        <h3 className="font-semibold text-foreground mb-4">Required Operational Channels</h3>
 
         <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-dashed border-primary/40">
           <div className="flex items-center gap-3">
             <Mail className="h-5 w-5 text-primary" />
             <div>
-              <p className="font-medium text-gray-900">Operational Email</p>
-              <p className="text-sm text-gray-900">Mandatory for account, application, and payment notices.</p>
+              <p className="font-medium text-foreground">Operational Email</p>
+              <p className="text-sm text-foreground">Mandatory for account, application, and payment notices.</p>
             </div>
           </div>
           <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded bg-primary/10 text-primary">
@@ -130,8 +130,8 @@ export function NotificationPreferences() {
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-secondary" />
             <div>
-              <p className="font-medium text-gray-900">In-App Notifications</p>
-              <p className="text-sm text-gray-900">Mandatory for real-time operational updates inside the portal.</p>
+              <p className="font-medium text-foreground">In-App Notifications</p>
+              <p className="text-sm text-foreground">Mandatory for real-time operational updates inside the portal.</p>
             </div>
           </div>
           <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded bg-primary/10 text-primary">
@@ -141,14 +141,14 @@ export function NotificationPreferences() {
       </div>
 
       <div className="bg-card rounded-lg border border-border p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900 mb-4">Optional Channels & Marketing</h3>
+        <h3 className="font-semibold text-foreground mb-4">Optional Channels & Marketing</h3>
 
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div className="flex items-center gap-3">
             <MessageSquare className="h-5 w-5 text-accent" />
             <div>
-              <p className="font-medium text-gray-900">SMS Notifications</p>
-              <p className="text-sm text-gray-900">Text message updates to your phone.</p>
+              <p className="font-medium text-foreground">SMS Notifications</p>
+              <p className="text-sm text-foreground">Text message updates to your phone.</p>
             </div>
           </div>
           <input
@@ -163,8 +163,8 @@ export function NotificationPreferences() {
           <div className="flex items-center gap-3">
             <MessageCircle className="h-5 w-5 text-green-600" />
             <div>
-              <p className="font-medium text-gray-900">WhatsApp Notifications</p>
-              <p className="text-sm text-gray-900">Receive the same updates via WhatsApp.</p>
+              <p className="font-medium text-foreground">WhatsApp Notifications</p>
+              <p className="text-sm text-foreground">Receive the same updates via WhatsApp.</p>
             </div>
           </div>
           <input
@@ -177,8 +177,8 @@ export function NotificationPreferences() {
 
         <label className="flex items-center justify-between p-4 bg-muted rounded-lg cursor-pointer hover:bg-accent">
           <div>
-            <p className="font-medium text-gray-900">Marketing Emails</p>
-            <p className="text-sm text-gray-900">Optional promotional and campaign messages.</p>
+            <p className="font-medium text-foreground">Marketing Emails</p>
+            <p className="text-sm text-foreground">Optional promotional and campaign messages.</p>
           </div>
           <input
             type="checkbox"

@@ -43,7 +43,7 @@ export function StorageExample() {
             onChange={handleFileUpload}
             disabled={uploading}
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-            className="block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
+            className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10"
           />
         </div>
 
@@ -61,7 +61,7 @@ export function StorageExample() {
           </div>
         )}
 
-        <div className="text-sm text-gray-900">
+        <div className="text-sm text-foreground">
           <p><strong>Available buckets:</strong></p>
           <ul className="list-disc list-inside mt-1">
             <li>documents (public) - for general documents</li>

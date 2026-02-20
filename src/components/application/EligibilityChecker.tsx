@@ -80,7 +80,7 @@ export function EligibilityChecker({
       case 'minor':
         return 'text-warning bg-yellow-50'
       default:
-        return 'text-gray-900 bg-muted'
+        return 'text-foreground bg-muted'
     }
   }
 
@@ -121,8 +121,8 @@ export function EligibilityChecker({
   if (!assessment) {
     return (
       <div className="bg-card rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Eligibility Assessment</h3>
-        <p className="text-gray-900">Add subjects and grades to see eligibility status</p>
+        <h3 className="text-lg font-semibold text-foreground mb-4">Eligibility Assessment</h3>
+        <p className="text-foreground">Add subjects and grades to see eligibility status</p>
       </div>
     )
   }
@@ -183,7 +183,7 @@ export function EligibilityChecker({
       {/* Missing Requirements */}
       {assessment.missing_requirements.length > 0 && (
         <div className="bg-card rounded-lg shadow p-6">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center">
             <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
             Missing Requirements
           </h4>
@@ -208,7 +208,7 @@ export function EligibilityChecker({
       {/* Recommendations */}
       {assessment.recommendations.length > 0 && (
         <div className="bg-card rounded-lg shadow p-6">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center">
             <TrendingUp className="h-5 w-5 text-primary mr-2" />
             Recommendations
           </h4>
@@ -216,7 +216,7 @@ export function EligibilityChecker({
             {assessment.recommendations.map((rec: string, index: number) => (
               <li key={index} className="flex items-start space-x-2">
                 <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                <span className="text-gray-900">{rec}</span>
+                <span className="text-foreground">{rec}</span>
               </li>
             ))}
           </ul>
@@ -225,7 +225,7 @@ export function EligibilityChecker({
 
       {/* Actions */}
       <div className="bg-card rounded-lg shadow p-6">
-        <h4 className="text-lg font-semibold text-gray-900 mb-4">Actions</h4>
+        <h4 className="text-lg font-semibold text-foreground mb-4">Actions</h4>
         <div className="flex flex-wrap gap-3">
           <Button
             onClick={performEligibilityCheck}
@@ -264,7 +264,7 @@ export function EligibilityChecker({
             <h3 className="text-lg font-semibold mb-4">Submit Eligibility Appeal</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Reason for Appeal
                 </label>
                 <textarea

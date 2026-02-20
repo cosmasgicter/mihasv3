@@ -82,12 +82,12 @@ const EducationStep = ({
       className={`bg-card rounded-lg shadow-lg p-4 sm:p-6 border border-border ${animateClasses.fadeIn}`}
       data-testid="education-step"
     >
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-6">
         <div>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h3 className="text-md font-medium text-gray-900">Grade 12 Subjects (Minimum 5 required)</h3>
+            <h3 className="text-md font-medium text-foreground">Grade 12 Subjects (Minimum 5 required)</h3>
             <Button
               type="button"
               onClick={event => {
@@ -128,7 +128,7 @@ const EducationStep = ({
           )}
 
           {selectedGrades.length > 0 && (
-            <div className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-gray-900 uppercase tracking-wide">
+            <div className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-foreground uppercase tracking-wide">
               <div className="col-span-6">Subject</div>
               <div className="col-span-3">Grade</div>
               <div className="col-span-3">Action</div>
@@ -144,7 +144,7 @@ const EducationStep = ({
               >
                 {/* Subject Select */}
                 <div className="sm:col-span-6">
-                  <label className="block text-xs font-medium text-gray-900 mb-1 sm:hidden">
+                  <label className="block text-xs font-medium text-foreground mb-1 sm:hidden">
                     Subject
                   </label>
                   <StandaloneSelect
@@ -159,7 +159,7 @@ const EducationStep = ({
 
                 {/* Grade Select */}
                 <div className="sm:col-span-3">
-                  <label className="block text-xs font-medium text-gray-900 mb-1 sm:hidden">
+                  <label className="block text-xs font-medium text-foreground mb-1 sm:hidden">
                     Grade
                   </label>
                   <StandaloneSelect

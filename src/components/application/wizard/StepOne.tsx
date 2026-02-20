@@ -30,7 +30,7 @@ export const StepOne: React.FC<StepOneProps> = ({ register, control, errors, sel
     <div 
       className="bg-card rounded-lg shadow-lg p-6 border border-border animate-fade-in"
     >
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+      <h2 className="text-lg font-semibold text-foreground mb-4">
         Step 1: Basic KYC Information
       </h2>
       

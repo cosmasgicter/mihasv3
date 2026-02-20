@@ -218,7 +218,7 @@ export function CacheMonitor() {
           <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
             <Database className="h-8 w-8 text-blue-600" />
             <div>
-              <p className="text-sm text-gray-600">Total Caches</p>
+              <p className="text-sm text-muted-foreground">Total Caches</p>
               <p className="text-2xl font-bold">{cacheStats.totalCaches}</p>
             </div>
           </div>
@@ -227,7 +227,7 @@ export function CacheMonitor() {
           <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
             <Database className="h-8 w-8 text-green-600" />
             <div>
-              <p className="text-sm text-gray-600">Total Size</p>
+              <p className="text-sm text-muted-foreground">Total Size</p>
               <p className="text-2xl font-bold">{formatBytes(cacheStats.totalSize)}</p>
             </div>
           </div>
@@ -236,7 +236,7 @@ export function CacheMonitor() {
           <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
             <Clock className="h-8 w-8 text-purple-600" />
             <div>
-              <p className="text-sm text-gray-600">Last Updated</p>
+              <p className="text-sm text-muted-foreground">Last Updated</p>
               <p className="text-2xl font-bold">{formatRelativeTime(cacheStats.lastUpdated)}</p>
             </div>
           </div>
@@ -283,7 +283,7 @@ export function CacheMonitor() {
         </div>
 
         {lastCleared && (
-          <p className="text-sm text-gray-600 mt-4">
+          <p className="text-sm text-muted-foreground mt-4">
             Last cleared: {formatRelativeTime(lastCleared)}
           </p>
         )}
@@ -294,17 +294,17 @@ export function CacheMonitor() {
         <h2 className="text-lg font-semibold mb-4">Version Information</h2>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-gray-600">Current Version:</span>
+            <span className="text-muted-foreground">Current Version:</span>
             <span className="font-mono">{currentVersion || 'Unknown'}</span>
           </div>
           {newVersion && (
             <div className="flex justify-between">
-              <span className="text-gray-600">Available Version:</span>
+              <span className="text-muted-foreground">Available Version:</span>
               <span className="font-mono text-blue-600">{newVersion}</span>
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-gray-600">Service Worker:</span>
+            <span className="text-muted-foreground">Service Worker:</span>
             <span className={`font-semibold ${
               'serviceWorker' in navigator ? 'text-green-600' : 'text-red-600'
             }`}>
@@ -312,7 +312,7 @@ export function CacheMonitor() {
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Cache API:</span>
+            <span className="text-muted-foreground">Cache API:</span>
             <span className={`font-semibold ${
               'caches' in window ? 'text-green-600' : 'text-red-600'
             }`}>

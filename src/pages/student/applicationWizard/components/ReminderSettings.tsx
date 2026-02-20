@@ -56,7 +56,7 @@ export const ReminderSettings = ({ email, fullName, draftName }: ReminderSetting
     <div
       className={`bg-card border border-border rounded-lg p-4 ${animateClasses.slideUp}`}
     >
-      <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+      <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
         <Bell className="h-4 w-4" />
         Email Reminders
       </h3>

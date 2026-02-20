@@ -98,7 +98,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
               variant="outline"
               size="sm"
               onClick={onShare}
-              className="bg-white/95 border-white/30 text-gray-900 hover:bg-white"
+              className="bg-white/95 border-white/30 text-foreground hover:bg-white"
             >
               <Share2 className="h-4 w-4 mr-2" />
               Share
@@ -107,7 +107,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
               variant="outline"
               size="sm"
               onClick={onCopy}
-              className="bg-white/95 border-white/30 text-gray-900 hover:bg-white"
+              className="bg-white/95 border-white/30 text-foreground hover:bg-white"
             >
               <Copy className="h-4 w-4 mr-2" />
               {copied ? 'Copied!' : 'Copy #'}
@@ -121,7 +121,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
               size="sm"
               onClick={onDownloadSlip}
               loading={slipLoading}
-              className="bg-white/95 border-white/30 text-gray-900 hover:bg-white"
+              className="bg-white/95 border-white/30 text-foreground hover:bg-white"
             >
               <Download className="h-4 w-4 mr-2" />
               Download Slip
@@ -131,7 +131,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
               size="sm"
               onClick={onEmailSlip}
               loading={emailLoading}
-              className="bg-white/95 border-white/30 text-gray-900 hover:bg-white"
+              className="bg-white/95 border-white/30 text-foreground hover:bg-white"
             >
               <Mail className="h-4 w-4 mr-2" />
               Email Slip

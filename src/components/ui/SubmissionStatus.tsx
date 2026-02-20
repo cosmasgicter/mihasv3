@@ -53,11 +53,11 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
         <div className="flex items-center space-x-3">
           {getStatusIcon()}
           <div>
-            <p className="font-medium text-gray-900">{status.message}</p>
+            <p className="font-medium text-foreground">{status.message}</p>
             {status.step && (
-              <p className="text-sm text-gray-900">Step: {status.step}</p>
+              <p className="text-sm text-foreground">Step: {status.step}</p>
             )}
-            <p className="text-xs text-gray-900">
+            <p className="text-xs text-foreground">
               {new Date(status.timestamp).toLocaleString()}
             </p>
           </div>
@@ -67,7 +67,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
           {status.status === 'failed' && onRetry && (
             <button
               onClick={onRetry}
-              className="px-3 py-1 text-sm bg-primary text-gray-900 rounded hover:bg-primary"
+              className="px-3 py-1 text-sm bg-primary text-foreground rounded hover:bg-primary"
             >
               Retry
             </button>
@@ -75,7 +75,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
           {(status.status === 'processing' || status.status === 'retry') && onCancel && (
             <button
               onClick={onCancel}
-              className="p-1 text-gray-900 hover:text-foreground"
+              className="p-1 text-foreground hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </button>

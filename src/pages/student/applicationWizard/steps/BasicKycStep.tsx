@@ -68,7 +68,7 @@ const BasicKycStep = ({
       data-testid="basic-kyc-step"
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         {hasAutoPopulatedData && (
           <ProfileCompletionBadge completionPercentage={completionPercentage} />
         )}
@@ -82,7 +82,7 @@ const BasicKycStep = ({
             <CheckCircle className="h-4 w-4" />
             <span className="font-medium">Profile data automatically populated</span>
           </div>
-          <p className="text-xs text-gray-900 mt-1">
+          <p className="text-xs text-foreground mt-1">
             Some fields have been pre-filled from your profile. Please review and update as needed.
           </p>
         </div>
@@ -99,7 +99,7 @@ const BasicKycStep = ({
 
         <div style={shouldAnimate ? staggerChild(1) : undefined}>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-gray-900">NRC Number</span>
+            <span className="text-sm font-medium text-foreground">NRC Number</span>
             <FieldHelp
               title="National Registration Card"
               description="Your Zambian National Registration Card number. Required for Zambian citizens."
@@ -149,7 +149,7 @@ const BasicKycStep = ({
 
         <div style={shouldAnimate ? staggerChild(5) : undefined}>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-gray-900">Phone Number *</span>
+            <span className="text-sm font-medium text-foreground">Phone Number *</span>
             <FieldHelp
               title="Contact Phone Number"
               description="Your primary phone number for communication. Include country code for international numbers."
@@ -245,7 +245,7 @@ const BasicKycStep = ({
         <div
           className={`mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20 ${shouldAnimate ? animateClasses.scaleIn : ''}`}
         >
-          <p className="text-sm text-gray-900 font-medium">
+          <p className="text-sm text-foreground font-medium">
             <strong>Institution:</strong>{' '}
             {selectedInstitutionLabel || 'MIHAS'}
           </p>
