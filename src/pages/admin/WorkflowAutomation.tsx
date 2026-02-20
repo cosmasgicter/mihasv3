@@ -140,10 +140,10 @@ export default function WorkflowAutomation() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center">
                 <Zap className="h-8 w-8 mr-3 text-secondary" />
-                Workflow Automation
+                Automation Rules
               </h1>
               <p className="text-gray-900 mt-2">
-                Manage automated workflows and business rules
+                Configure automated rules that reduce manual review steps and speed up processing.
               </p>
             </div>
             <div className="flex items-center space-x-3">
@@ -155,6 +155,9 @@ export default function WorkflowAutomation() {
                 Run Manual Execution
               </Button>
             </div>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 text-blue-900 rounded-xl p-4 mt-4">
+            <p className="text-sm">Use this workspace to maintain automation logic safely. Best for admins responsible for policy enforcement and process optimization.</p>
           </div>
         </div>
 

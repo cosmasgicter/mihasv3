@@ -10,6 +10,7 @@ import React, { useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { useRoleQuery, isReportManagerRole } from '@/hooks/auth/useRoleQuery';
 import { designTokens } from '@/design-system/tokens';
 import {
   LayoutDashboard,
@@ -18,7 +19,6 @@ import {
   GraduationCap,
   Calendar,
   BarChart3,
-  Brain,
   Workflow,
   TrendingUp,
   Shield,
@@ -28,11 +28,7 @@ import {
   ChevronRight,
   ChevronDown,
   Activity,
-  Bell,
-  Database,
   Gauge,
-  PieChart,
-  LineChart,
 } from 'lucide-react';
 
 interface NavItem {
@@ -70,18 +66,16 @@ const adminSections: NavSection[] = [
     id: 'analytics',
     title: 'Analytics & Insights',
     items: [
-      { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
-      { to: '/admin/ai-insights', icon: Brain, label: 'AI Insights' },
-      { to: '/admin/predictive-analytics', icon: LineChart, label: 'Predictive' },
-      { to: '/admin/realtime-metrics', icon: Activity, label: 'Real-time' },
+      { to: '/admin/analytics', icon: BarChart3, label: 'Analytics Dashboard' },
+      { to: '/admin/realtime-metrics', icon: Activity, label: 'Live System Metrics' },
     ],
   },
   {
     id: 'automation',
     title: 'Automation & Flow',
     items: [
-      { to: '/admin/workflow', icon: Workflow, label: 'Workflow' },
-      { to: '/admin/flow-analysis', icon: TrendingUp, label: 'Flow Analysis' },
+      { to: '/admin/workflow', icon: Workflow, label: 'Automation Rules' },
+      { to: '/admin/flow-analysis', icon: TrendingUp, label: 'Application Pipeline' },
     ],
   },
   {
@@ -102,7 +96,17 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ className }: AdminSidebarProps) {
   const location = useLocation();
+  const { userRole, isAdmin } = useRoleQuery();
   const { collapsed, setCollapsed } = useSidebar();
+  const permissions = userRole?.permissions ?? [];
+  const hasCapability = (required: string[]) => required.some(capability => permissions.includes(capability));
+  const canAccessAdvancedAnalytics = isReportManagerRole(userRole?.role) || hasCapability(['analytics:view', 'analytics:advanced']);
+  const canAccessAutomation = isAdmin || hasCapability(['automation:view', 'automation:manage', 'workflow:manage']);
+  const visibleAdminSections = adminSections.filter(section => {
+    if (section.id === 'analytics') return canAccessAdvancedAnalytics;
+    if (section.id === 'automation') return canAccessAutomation;
+    return true;
+  });
   
   // Track which sections are expanded (all expanded by default)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
@@ -181,7 +185,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
 
       {/* Navigation sections */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-        {adminSections.map((section) => (
+        {visibleAdminSections.map((section) => (
           <SidebarSection
             key={section.id}
             section={section}
