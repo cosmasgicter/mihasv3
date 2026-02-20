@@ -96,6 +96,7 @@ const ApplicationWizardContent = () => {
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
   useAnalytics(user?.id, null, currentStepIndex, currentStepConfig.key)
   const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
+  const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
 
   const getChecklistItems = () => {
     // Defensive: some test setups call this component without a populated form.watch()
@@ -267,12 +268,12 @@ const ApplicationWizardContent = () => {
                   <div className="flex-1 bg-border rounded-full h-2 overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-primary to-success transition-all duration-500 ease-out"
-                      style={{ width: `%` }}
+                      style={{ width: `${progressPercent}%` }}
                     />
                   </div>
                   <div className="flex flex-col items-end">
                     <span className="text-xs font-medium text-caption whitespace-nowrap">
-                      {Math.round(((currentStepIndex + 1) / totalSteps) * 100)}%
+                      {progressPercent}%
                     </span>
                     <span className="text-xs text-caption whitespace-nowrap hidden sm:block">
                       {formattedTime}
