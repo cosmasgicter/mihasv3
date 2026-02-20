@@ -11,11 +11,14 @@ import { fetchSettings, createSetting, updateSetting, deleteSetting, importSetti
 
 
 
+type SettingValueType = 'string' | 'integer' | 'decimal' | 'boolean'
+
 interface NewSetting {
-  setting_key: string
-  setting_value: string
-  setting_type: 'string' | 'integer' | 'decimal' | 'boolean'
+  key: string
+  value: string
+  valueType: SettingValueType
   description: string
+  category: string
   is_public: boolean
 }
 
@@ -33,10 +36,11 @@ export default function AdminSettings() {
   const [editForm, setEditForm] = useState<Partial<SystemSetting>>({})
   const confirmDialog = useConfirmDialog()
   const [newSetting, setNewSetting] = useState<NewSetting>({
-    setting_key: '',
-    setting_value: '',
-    setting_type: 'string',
+    key: '',
+    value: '',
+    valueType: 'string',
     description: '',
+    category: '',
     is_public: false
   })
 
@@ -56,6 +60,23 @@ export default function AdminSettings() {
     loadSettings()
   }, [loadSettings])
 
+
+
+  const inferValueType = (value: string): SettingValueType => {
+    const trimmed = value.trim().toLowerCase()
+    if (trimmed === 'true' || trimmed === 'false') return 'boolean'
+    if (/^-?\d+$/.test(trimmed)) return 'integer'
+    if (/^-?\d*\.\d+$/.test(trimmed)) return 'decimal'
+    return 'string'
+  }
+
+  const getValueTypeClass = (type: SettingValueType) => {
+    if (type === 'boolean') return 'bg-purple-100 text-purple-800'
+    if (type === 'integer') return 'bg-primary/10 text-primary-foreground'
+    if (type === 'decimal') return 'bg-accent/10 text-accent-foreground'
+    return 'bg-accent text-foreground'
+  }
+
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => setSuccess(''), 3000)
@@ -74,7 +95,7 @@ export default function AdminSettings() {
   }
 
   const handleEditSave = async (id: string) => {
-    const validationErrors = validateSetting(editForm)
+    const validationErrors = validateSetting(editForm, inferValueType(editForm.value || ''))
     if (validationErrors.length > 0) {
       setError(validationErrors.join(', '))
       return
@@ -84,7 +105,7 @@ export default function AdminSettings() {
       setSaving(true)
       setError('')
       const success = await updateSetting(id, {
-        setting_value: editForm.setting_value,
+        value: editForm.value,
         description: editForm.description,
         is_public: editForm.is_public
       })
@@ -111,7 +132,7 @@ export default function AdminSettings() {
     try {
       setSaving(true)
       setError('')
-      const success = await deleteSetting(id)
+      const success = await deleteSetting(id, key)
       if (!success) throw new Error('Delete failed')
       setSuccess('Setting deleted successfully!')
       loadSettings()
@@ -122,24 +143,27 @@ export default function AdminSettings() {
     }
   }
 
-  const validateSetting = (setting: NewSetting | Partial<SystemSetting>) => {
+  const validateSetting = (
+    setting: Pick<NewSetting, 'key' | 'value'> | Partial<SystemSetting>,
+    valueType: SettingValueType
+  ) => {
     const errors: string[] = []
     
-    if (!setting.setting_key?.trim()) {
+    if (!setting.key?.trim()) {
       errors.push('Setting key is required')
-    } else if (!/^[a-z0-9_]+$/.test(setting.setting_key)) {
+    } else if (!/^[a-z0-9_]+$/.test(setting.key)) {
       errors.push('Setting key must contain only lowercase letters, numbers, and underscores')
     }
     
-    if (!setting.setting_value?.trim()) {
+    if (!setting.value?.trim()) {
       errors.push('Setting value is required')
     } else {
       // Validate based on type
-      if (setting.setting_type === 'boolean' && !['true', 'false'].includes(setting.setting_value.toLowerCase())) {
+      if (valueType === 'boolean' && !['true', 'false'].includes(setting.value.toLowerCase())) {
         errors.push('Boolean value must be "true" or "false"')
-      } else if (setting.setting_type === 'integer' && !/^-?\d+$/.test(setting.setting_value)) {
+      } else if (valueType === 'integer' && !/^-?\d+$/.test(setting.value)) {
         errors.push('Integer value must be a whole number')
-      } else if (setting.setting_type === 'decimal' && !/^-?\d*\.?\d+$/.test(setting.setting_value)) {
+      } else if (valueType === 'decimal' && !/^-?\d*\.?\d+$/.test(setting.value)) {
         errors.push('Decimal value must be a valid number')
       }
     }
@@ -148,7 +172,7 @@ export default function AdminSettings() {
   }
 
   const handleAddNew = async () => {
-    const validationErrors = validateSetting(newSetting)
+    const validationErrors = validateSetting(newSetting, newSetting.valueType)
     if (validationErrors.length > 0) {
       setError(validationErrors.join(', '))
       return
@@ -163,10 +187,11 @@ export default function AdminSettings() {
       setSuccess('Setting added successfully!')
       setShowAddForm(false)
       setNewSetting({
-        setting_key: '',
-        setting_value: '',
-        setting_type: 'string',
+        key: '',
+        value: '',
+        valueType: 'string',
         description: '',
+        category: '',
         is_public: false
       })
       loadSettings()
@@ -178,7 +203,7 @@ export default function AdminSettings() {
   }
 
   const filteredSettings = settings.filter(setting => {
-    const matchesSearch = setting.setting_key.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = setting.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (setting.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
     const matchesFilter = filterType === 'all' || 
                          (filterType === 'public' && setting.is_public) ||
@@ -203,7 +228,7 @@ export default function AdminSettings() {
   }
 
   const groupedSettings = filteredSettings.reduce((acc, setting) => {
-    const category = getSettingCategory(setting.setting_key)
+    const category = setting.category || getSettingCategory(setting.key)
     if (!acc[category]) acc[category] = []
     acc[category].push(setting)
     return acc
@@ -357,7 +382,7 @@ export default function AdminSettings() {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-900">
-                  {new Set(settings.map(s => s.setting_type)).size}
+                  {new Set(settings.map(s => inferValueType(s.value))).size}
                 </div>
                 <div className="text-sm text-gray-900">Data Types</div>
               </div>
@@ -467,13 +492,13 @@ export default function AdminSettings() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <Input
                         label="Setting Key"
-                        value={newSetting.setting_key}
-                        onChange={(e) => setNewSetting({...newSetting, setting_key: e.target.value})}
+                        value={newSetting.key}
+                        onChange={(e) => setNewSetting({...newSetting, key: e.target.value})}
                         placeholder="e.g., max_file_size"
                       />
                       <StandaloneSelect
-                        value={newSetting.setting_type}
-                        onChange={(value) => setNewSetting({...newSetting, setting_type: value as any})}
+                        value={newSetting.valueType}
+                        onChange={(value) => setNewSetting({...newSetting, valueType: value as SettingValueType})}
                         options={[
                           { value: 'string', label: 'String' },
                           { value: 'integer', label: 'Integer' },
@@ -484,9 +509,9 @@ export default function AdminSettings() {
                       />
                       <Input
                         label="Value"
-                        value={newSetting.setting_value}
-                        onChange={(e) => setNewSetting({...newSetting, setting_value: e.target.value})}
-                        placeholder={newSetting.setting_type === 'boolean' ? 'true or false' : 'Enter value'}
+                        value={newSetting.value}
+                        onChange={(e) => setNewSetting({...newSetting, value: e.target.value})}
+                        placeholder={newSetting.valueType === 'boolean' ? 'true or false' : 'Enter value'}
                       />
                       <div className="flex items-center space-x-2">
                         <input
@@ -506,6 +531,13 @@ export default function AdminSettings() {
                       value={newSetting.description}
                       onChange={(e) => setNewSetting({...newSetting, description: e.target.value})}
                       placeholder="Brief description of this setting"
+                      className="mb-4"
+                    />
+                    <Input
+                      label="Category"
+                      value={newSetting.category}
+                      onChange={(e) => setNewSetting({...newSetting, category: e.target.value})}
+                      placeholder="e.g., general"
                       className="mb-4"
                     />
                     <div className="flex space-x-3">
@@ -535,15 +567,12 @@ export default function AdminSettings() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
                                   <Database className="h-4 w-4 text-foreground" />
-                                  <span className="text-sm font-semibold text-gray-900">{setting.setting_key}</span>
+                                  <span className="text-sm font-semibold text-gray-900">{setting.key}</span>
                                 </div>
                                 <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
-                                  setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
-                                  setting.setting_type === 'integer' ? 'bg-primary/10 text-primary-foreground' :
-                                  setting.setting_type === 'decimal' ? 'bg-accent/10 text-accent-foreground' :
-                                  'bg-accent text-foreground'
+                                  getValueTypeClass(inferValueType(setting.value))
                                 }`}>
-                                  {setting.setting_type}
+                                  {inferValueType(setting.value)}
                                 </span>
                               </div>
                               <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
@@ -554,7 +583,7 @@ export default function AdminSettings() {
                             </div>
                             <div className="mb-3">
                               <div className="text-lg font-bold text-gray-900 mb-1">
-                                {formatValue(setting.setting_value, setting.setting_type)}
+                                {formatValue(setting.value, inferValueType(setting.value))}
                               </div>
                               <p className="text-xs text-gray-900">{setting.description || 'No description'}</p>
                             </div>
@@ -571,7 +600,7 @@ export default function AdminSettings() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleDelete(setting.id, setting.setting_key)}
+                                onClick={() => handleDelete(setting.id, setting.key)}
                                 className="text-destructive hover:text-error"
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -614,30 +643,27 @@ export default function AdminSettings() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <Database className="h-4 w-4 text-gray-900 mr-2" />
-                                <span className="text-sm font-medium text-gray-900">{setting.setting_key}</span>
+                                <span className="text-sm font-medium text-gray-900">{setting.key}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               {editingId === setting.id ? (
                                 <Input
-                                  value={editForm.setting_value || ''}
-                                  onChange={(e) => setEditForm({...editForm, setting_value: e.target.value})}
+                                  value={editForm.value || ''}
+                                  onChange={(e) => setEditForm({...editForm, value: e.target.value})}
                                   className="w-full"
                                 />
                               ) : (
                                 <span className="text-sm text-gray-900 break-words">
-                                  {formatValue(setting.setting_value, setting.setting_type)}
+                                  {formatValue(setting.value, inferValueType(setting.value))}
                                 </span>
                               )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                setting.setting_type === 'boolean' ? 'bg-purple-100 text-purple-800' :
-                                setting.setting_type === 'integer' ? 'bg-primary/10 text-primary-foreground' :
-                                setting.setting_type === 'decimal' ? 'bg-accent/10 text-accent-foreground' :
-                                'bg-accent text-foreground'
+                                getValueTypeClass(inferValueType(setting.value))
                               }`}>
-                                {setting.setting_type}
+                                {inferValueType(setting.value)}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -704,7 +730,7 @@ export default function AdminSettings() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => handleDelete(setting.id, setting.setting_key)}
+                                    onClick={() => handleDelete(setting.id, setting.key)}
                                     className="text-destructive hover:text-error"
                                   >
                                     <Trash2 className="h-4 w-4" />
