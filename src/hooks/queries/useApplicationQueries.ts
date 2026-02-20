@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
 import { apiClient } from '@/services/client'
 import { CACHE_CONFIG } from './useSupabaseQuery'
@@ -23,28 +23,5 @@ export const useApplicationAnalytics = () => {
       return result?.data ?? []
     },
     ...CACHE_CONFIG.analytics
-  })
-}
-
-export const useInsertAnalytics = () => {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: async (analyticsData: Record<string, unknown>) => {
-      // Analytics tracking is non-critical — fire-and-forget
-      try {
-        await apiClient.request('/applications?action=analytics', {
-          method: 'POST',
-          body: JSON.stringify(analyticsData)
-        })
-      } catch {
-        // Silently swallow — analytics is non-critical
-        console.error('Analytics insert failed (non-critical)')
-      }
-      return null
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['application_analytics'] })
-    }
   })
 }
