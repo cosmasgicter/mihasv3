@@ -23,8 +23,8 @@ const hashVersion = (value: string): string => {
   return Math.abs(hash).toString(36)
 }
 
-const resolveManifestFingerprint = (): string | null => {
-  const revisions = self.__WB_MANIFEST
+const resolveManifestFingerprint = (manifest: Array<unknown>): string | null => {
+  const revisions = manifest
     .map((entry) => {
       if (typeof entry !== 'object' || entry === null) {
         return null
@@ -46,9 +46,12 @@ const resolveManifestFingerprint = (): string | null => {
   return hashVersion(revisions.join('|'))
 }
 
+// Capture the manifest once — workbox injectManifest replaces this single reference
+const WB_MANIFEST = self.__WB_MANIFEST
+
 // Cache version for invalidation on deployment.
 // Uses VITE_APP_VERSION when provided, otherwise derives from the generated Workbox manifest.
-const APP_VERSION = import.meta.env.VITE_APP_VERSION?.trim() || resolveManifestFingerprint() || 'dev'
+const APP_VERSION = import.meta.env.VITE_APP_VERSION?.trim() || resolveManifestFingerprint(WB_MANIFEST) || 'dev'
 const CACHE_VERSION = `v${APP_VERSION}`
 const CACHE_PREFIX = 'mihas-app'
 const LEGACY_CACHE_PREFIXES = ['mihas-v2-cache']
@@ -73,7 +76,7 @@ self.addEventListener('error', (event) => {
 
 clientsClaim()
 
-precacheAndRoute(self.__WB_MANIFEST)
+precacheAndRoute(WB_MANIFEST)
 cleanupOutdatedCaches()
 
 
@@ -202,46 +205,11 @@ registerRoute(
   })
 )
 
-// Supabase Storage - Cache first for uploaded files
-registerRoute(
-  ({ url }) => /https:\/\/.*\.supabase\.co\/storage\/v1\//i.test(url.href),
-  new CacheFirst({
-    cacheName: `${CACHE_PREFIX}-supabase-storage-${CACHE_VERSION}`,
-    plugins: [
-      new ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
-        purgeOnQuotaError: true
-      }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
-    ]
-  })
-)
+
 
 // ============================================================================
 // API RESPONSES - NetworkFirst Strategy
 // ============================================================================
-
-// Supabase REST API - Network first with 5-minute cache fallback
-registerRoute(
-  ({ url }) => /https:\/\/.*\.supabase\.co\/rest\/v1\//i.test(url.href),
-  new NetworkFirst({
-    cacheName: `${CACHE_PREFIX}-supabase-api-${CACHE_VERSION}`,
-    networkTimeoutSeconds: 3,
-    plugins: [
-      new ExpirationPlugin({
-        maxEntries: 100,
-        maxAgeSeconds: 60 * 5, // 5 minutes
-        purgeOnQuotaError: true
-      }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
-    ]
-  })
-)
 
 // Vercel API - Network Only for high volatility
 // High volatility endpoints (applications, realtime)
@@ -312,7 +280,6 @@ registerRoute(
 // Auth endpoints - Network only (never cache)
 registerRoute(
   ({ url }) => 
-    /https:\/\/.*\.supabase\.co\/auth\//i.test(url.href) ||
     url.pathname.startsWith('/api/auth') ||
     url.pathname.startsWith('/auth/'),
   new NetworkOnly()
