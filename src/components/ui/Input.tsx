@@ -28,11 +28,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             type={type}
             className={cn(
-              'w-full h-10 px-3 rounded-lg touch-target',
+              'w-full min-h-[44px] h-11 px-3 rounded-lg touch-target',
               'bg-background',
               'border border-input',
               'text-foreground',
-              'placeholder:text-foreground',
+              'placeholder:text-muted-foreground',
               'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
               'transition-all duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
