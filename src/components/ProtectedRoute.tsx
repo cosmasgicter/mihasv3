@@ -1,8 +1,6 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthCheck } from '@/hooks/auth/useOptimizedAuthState'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
-import { useDebouncedLoading } from '@/hooks/useLoadingState'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -17,22 +15,10 @@ interface ProtectedRouteProps {
  */
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuthCheck()
-  const showInlineLoader = useDebouncedLoading(isLoading, 200)
   const location = useLocation()
 
   if (isLoading) {
-    if (!showInlineLoader) {
-      return null
-    }
-
-    return (
-      <UnifiedLoader
-        variant="inline"
-        size="md"
-        message="Verifying your session"
-        className="w-full py-6"
-      />
-    )
+    return null
   }
 
   if (!isAuthenticated) {

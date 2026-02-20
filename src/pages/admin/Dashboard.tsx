@@ -46,7 +46,6 @@ import OfflineAdminDashboard from '@/components/admin/OfflineAdminDashboard'
 import { getDisplayName } from '@/utils/userDisplayName'
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import { DashboardSkeleton } from '@/components/admin/DashboardSkeleton'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 
 interface DashboardStats {
@@ -228,7 +227,16 @@ export default function AdminDashboard() {
   }, [isPolling, loadDashboardStats, profile, user])
 
   if (isInitialLoading) {
-    return <DashboardSkeleton />
+    return (
+      <UnifiedLoader
+        variant="skeleton"
+        size="md"
+        label="Loading admin dashboard"
+        className="py-8"
+        skeletonCard
+        skeletonLines={4}
+      />
+    )
   }
 
   // Show offline dashboard if network error
