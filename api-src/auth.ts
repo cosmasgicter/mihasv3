@@ -466,8 +466,35 @@ function verifyLegacyPassword(password: string, storedHash: string | null): { is
 /**
  * Handle logout
  * POST /api/auth?action=logout
+ * 
+ * Deactivates ALL active sessions for the user, then clears auth cookies.
  */
-async function handleLogout(_req: VercelRequest, res: VercelResponse) {
+async function handleLogout(req: VercelRequest, res: VercelResponse) {
+  // Try to identify the user so we can deactivate their sessions
+  const token = extractAccessTokenFromCookie(req) || extractBearerToken(req);
+  if (token) {
+    try {
+      const payload = await verifyAccessToken(token);
+      // Deactivate all sessions for this user
+      await query(
+        `UPDATE device_sessions SET is_active = false WHERE user_id = $1 AND is_active = true`,
+        [payload.sub]
+      );
+      // Audit trail
+      try {
+        await logAuditEvent({
+          actor_id: payload.sub,
+          action: 'user_logout',
+          entity_type: 'session',
+          entity_id: payload.sub,
+          changes: { all_sessions_deactivated: true },
+        });
+      } catch { /* non-blocking */ }
+    } catch {
+      // Token expired/invalid — still clear cookies, just can't deactivate sessions
+    }
+  }
+
   clearAuthCookies(res);
   return sendSuccess(res, { message: 'Logged out successfully' });
 }

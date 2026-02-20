@@ -645,7 +645,7 @@ export const SessionQueries = {
         id, user_id, device_info, ip_address, user_agent,
         last_activity, created_at, expires_at
       FROM device_sessions
-      WHERE user_id = $1 AND is_active = true
+      WHERE user_id = $1 AND is_active = true AND expires_at > NOW()
       ORDER BY last_activity DESC
     `,
     values: [userId],
@@ -658,7 +658,7 @@ export const SessionQueries = {
     text: `
       SELECT COUNT(*) as count
       FROM device_sessions
-      WHERE user_id = $1 AND is_active = true
+      WHERE user_id = $1 AND is_active = true AND expires_at > NOW()
     `,
     values: [userId],
   }),
