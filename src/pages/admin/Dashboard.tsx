@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { logger } from '@/lib/logger'
 import { useAuth } from '@/contexts/AuthContext'
 import { adminDashboardService } from '@/services/admin/dashboard'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Button } from '@/components/ui/Button'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
@@ -35,7 +35,6 @@ import OfflineAdminDashboard from '@/components/admin/OfflineAdminDashboard'
 import { getDisplayName } from '@/utils/userDisplayName'
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 
 interface DashboardStats {
   totalApplications: number
@@ -402,7 +401,7 @@ export default function AdminDashboard() {
             <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium text-info-strong">
-                  <LoadingSpinner size="sm" />
+                  <UnifiedLoader variant="inline" size="sm" label="Refreshing metrics" />
                   <span>Refreshing dashboard metrics…</span>
                 </div>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10 sm:w-56">

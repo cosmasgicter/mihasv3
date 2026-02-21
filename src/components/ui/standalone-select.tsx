@@ -1,4 +1,5 @@
 /**
+ * @deprecated Use `Select` from '@/components/ui/select' for canonical select primitives.
  * StandaloneSelect Component - Controlled Select without RHF dependency
  * 
  * Provides a form-friendly API for shadcn/ui Select without requiring
@@ -16,6 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+
+let hasWarnedStandaloneSelect = false
 
 export interface SelectOption {
   value: string
@@ -80,6 +83,11 @@ export const StandaloneSelect = React.forwardRef<HTMLButtonElement, StandaloneSe
     },
     ref
   ) => {
+    if (process.env.NODE_ENV !== 'production' && !hasWarnedStandaloneSelect) {
+      hasWarnedStandaloneSelect = true
+      console.warn('[DEPRECATED] StandaloneSelect is deprecated. Use canonical Select primitives from @/components/ui.')
+    }
+
     const selectId = React.useId()
     const errorId = `${selectId}-error`
     const helperId = `${selectId}-helper`

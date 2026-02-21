@@ -2,6 +2,8 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 import { EnhancedLoadingSpinner } from './EnhancedLoadingSpinner'
 
+let hasWarnedMobileOptimizedButton = false
+
 /**
  * @deprecated Use `Button` from '@/components/ui/Button' instead.
  * This component will be removed in a future release.
@@ -33,6 +35,11 @@ export function MobileOptimizedButton({
   disabled,
   ...props
 }: MobileOptimizedButtonProps) {
+  if (process.env.NODE_ENV !== 'production' && !hasWarnedMobileOptimizedButton) {
+    hasWarnedMobileOptimizedButton = true
+    console.warn('[DEPRECATED] MobileOptimizedButton is deprecated. Use Button from @/components/ui instead.')
+  }
+
   // Base classes for all buttons
   const baseClasses = cn(
     'inline-flex items-center justify-center gap-2 font-medium',

@@ -1,6 +1,8 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 
+let hasWarnedLightweightButton = false
+
 /**
  * @deprecated Use `Button` from '@/components/ui/Button' instead.
  * This component will be removed in a future release.
@@ -22,6 +24,11 @@ export function LightweightButton({
   children,
   ...props
 }: LightweightButtonProps) {
+  if (process.env.NODE_ENV !== 'production' && !hasWarnedLightweightButton) {
+    hasWarnedLightweightButton = true
+    console.warn('[DEPRECATED] LightweightButton is deprecated. Use Button from @/components/ui instead.')
+  }
+
   const baseClasses = 'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50'
   
   const variantClasses = {

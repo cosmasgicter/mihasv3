@@ -3,6 +3,8 @@ import { cn } from '@/lib/utils'
 import { useEnhancedResponsive, useDeviceOptimizations } from '@/hooks/useEnhancedResponsive'
 import { Loader2 } from 'lucide-react'
 
+let hasWarnedTouchOptimizedButton = false
+
 /**
  * @deprecated Use `Button` from '@/components/ui/Button' instead.
  * This component will be removed in a future release.
@@ -38,6 +40,11 @@ export function TouchOptimizedButton({
   onClick,
   ...props
 }: TouchOptimizedButtonProps) {
+  if (process.env.NODE_ENV !== 'production' && !hasWarnedTouchOptimizedButton) {
+    hasWarnedTouchOptimizedButton = true
+    console.warn('[DEPRECATED] TouchOptimizedButton is deprecated. Use Button from @/components/ui instead.')
+  }
+
   const responsive = useEnhancedResponsive()
   const optimizations = useDeviceOptimizations()
 
