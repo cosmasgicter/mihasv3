@@ -72,6 +72,26 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, loading = false, disabled, children, onClick, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
+    const isDev = process.env.NODE_ENV !== 'production'
+
+    let slotChild: React.ReactNode = children
+
+    if (asChild) {
+      if (isDev && (!React.isValidElement(children) || React.Children.count(children) !== 1)) {
+        throw new Error(
+          'Button with asChild expects exactly one valid React element child. Example: <Button asChild><a /></Button>.'
+        )
+      }
+
+      if (React.isValidElement<{ children?: React.ReactNode }>(children)) {
+        slotChild = React.cloneElement(children, undefined, (
+          <>
+            {loading && <LoadingSpinner size="sm" color="current" className="mr-2" />}
+            {children.props.children}
+          </>
+        ))
+      }
+    }
     
     // Prevent click when loading or disabled
     const handleClick = React.useCallback(
@@ -100,8 +120,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         onClick={handleClick}
         {...props}
       >
-        {loading && <LoadingSpinner size="sm" color="current" className="mr-2" />}
-        {children}
+        {asChild ? slotChild : (
+          <>
+            {loading && <LoadingSpinner size="sm" color="current" className="mr-2" />}
+            {children}
+          </>
+        )}
       </Comp>
     )
   }
