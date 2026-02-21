@@ -1,8 +1,8 @@
 /**
- * LandingPage - Block-based architecture with SmoothUI animations
+ * LandingPage - Single-source landing sections with SmoothUI animations
  * 
  * @requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9
- * Visual redesign with ShadcnBlocks patterns and scroll-triggered animations
+ * Landing sections are intentionally defined in this page to avoid duplicate block patterns.
  */
 
 import React, { useCallback, useEffect } from 'react';
