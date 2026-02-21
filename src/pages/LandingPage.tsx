@@ -212,12 +212,12 @@ function HeroSection({ onTrackCta }: { onTrackCta: (eventName: string, destinati
           Launch Your Healthcare Career in Zambia & Beyond – Apply for Accredited Health Sciences Programs with 92% Job Placement Success
         </p>
         <div className="flex flex-col xs:flex-row gap-4 sm:gap-6 justify-center items-center max-w-md xs:max-w-none mx-auto">
-          <Link to="/auth/signup" className="w-full xs:w-auto" onClick={() => onTrackCta('landing_hero_start_application_click', '/auth/signup')}>
-            <Button variant="gradient" size="xl" className="w-full xs:w-auto min-h-[48px] px-6 sm:px-8">
+          <Button asChild variant="gradient" size="xl" className="w-full xs:w-auto min-h-[48px] px-6 sm:px-8">
+            <Link to="/auth/signup" onClick={() => onTrackCta('landing_hero_start_application_click', '/auth/signup')}>
               <span className="mr-2">Start Your Application</span>
               <ArrowRight className="w-5 h-5" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <Button asChild variant="outline" size="xl" className="w-full xs:w-auto border-2 border-white bg-white/10 text-white hover:bg-white hover:text-primary font-semibold backdrop-blur-sm min-h-[48px] px-6 sm:px-8">
             <a href="#features" onClick={(event) => handleInPageAnchor(event, 'features', 'landing_hero_learn_more_click')}>
               <span className="mr-2">Learn More</span>
