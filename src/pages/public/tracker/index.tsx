@@ -11,6 +11,7 @@ import { createApplicationSlip } from '@/lib/slipService'
 import { logger } from '@/utils/logger'
 import { animateClasses } from '@/lib/animations'
 import { useApplicationTracker } from './hooks/useApplicationTracker'
+import { Seo } from '@/components/seo/Seo'
 import {
   TrackerSearchSection,
   ApplicationStatusHeader,
@@ -244,6 +245,11 @@ export default function PublicApplicationTracker() {
 
   return (
     <div className="min-h-screen bg-background safe-area-top safe-area-bottom">
+      <Seo
+        title="Track Your Application | MIHAS-KATC Admissions"
+        description="Track your MIHAS-KATC application status in real time using your application number and view key admissions milestones."
+        path="/track-application"
+      />
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
         <Container size="lg">
