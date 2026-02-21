@@ -23,17 +23,42 @@ const TooltipContent = React.forwardRef<
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
 interface TooltipProps {
-  children: React.ReactNode
   content: React.ReactNode
   side?: 'top' | 'right' | 'bottom' | 'left'
   className?: string
 }
 
-function Tooltip({ children, content, side = 'top', className }: TooltipProps) {
+interface TooltipAsChildProps extends TooltipProps {
+  asChild?: true
+  children: React.ReactElement
+}
+
+interface TooltipDefaultTriggerProps extends TooltipProps {
+  asChild: false
+  children: React.ReactNode
+}
+
+type TooltipWrapperProps = TooltipAsChildProps | TooltipDefaultTriggerProps
+
+function Tooltip({ children, content, side = 'top', className, asChild = true }: TooltipWrapperProps) {
+  if (asChild && process.env.NODE_ENV !== 'production') {
+    if (!React.isValidElement(children) || React.Children.count(children) !== 1) {
+      throw new Error(
+        'Tooltip with asChild expects exactly one valid React element child. Example: <Tooltip asChild><button>Hover</button></Tooltip>.'
+      )
+    }
+  }
+
   return (
     <TooltipProvider>
       <TooltipRoot>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        {asChild ? (
+          <TooltipTrigger asChild>{children}</TooltipTrigger>
+        ) : (
+          <TooltipTrigger>
+            <span>{children}</span>
+          </TooltipTrigger>
+        )}
         <TooltipContent side={side} className={className}>
           {content}
         </TooltipContent>
