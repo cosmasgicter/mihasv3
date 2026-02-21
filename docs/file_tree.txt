@@ -857,7 +857,6 @@ C:\Users\Administrator\Documents\mihasv3\src\components\ui\ActiveSessions.tsx
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\AdminNavigation.tsx                                         
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\Alert.tsx                                                   
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\alert-dialog.tsx                                            
-C:\Users\Administrator\Documents\mihasv3\src\components\ui\AnimatedBackground.tsx                                      
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\AnimatedCard.tsx                                            
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\AnimatedPage.tsx                                            
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\AnimatedSection.tsx                                         
@@ -920,7 +919,6 @@ C:\Users\Administrator\Documents\mihasv3\src\components\ui\PageLoadingFallback.t
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\PageTransition.tsx                                          
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\Pagination.tsx                                              
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\ParticlesBackground.tsx                                     
-C:\Users\Administrator\Documents\mihasv3\src\components\ui\ParticleSystem.tsx                                          
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\PasswordInput.tsx                                           
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\ProfileAutoPopulationIndicator.tsx                          
 C:\Users\Administrator\Documents\mihasv3\src\components\ui\progress.tsx                                                
