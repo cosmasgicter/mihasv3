@@ -23,7 +23,7 @@ All UI components now follow **shadcn/ui patterns** with **Radix UI primitives**
 | **Button** | `@/components/ui/Button` | shadcn/ui + Radix Slot | All variants preserved |
 | **Input** | `@/components/ui/Input` | shadcn/ui | RHF register() compatible |
 | **Textarea** | `@/components/ui/textarea` | shadcn/ui | RHF register() compatible |
-| **Card** | `@/components/ui/card` | shadcn/ui | CardHeader, CardTitle, CardContent, CardFooter |
+| **Card** | `@/components/ui` | shadcn/ui | CardHeader, CardTitle, CardContent, CardFooter |
 
 ### Form Components (RHF Controller Pattern)
 

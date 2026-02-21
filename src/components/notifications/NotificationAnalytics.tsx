@@ -23,7 +23,7 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import { notificationTracker, DeliveryMetrics } from '@/services/notificationTracker'
 import { useAuth } from '@/hooks/useAuth'
 

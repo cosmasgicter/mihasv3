@@ -1,4 +1,4 @@
-import { SkeletonDashboard } from '@/components/ui/Skeleton'
+import { SkeletonDashboard } from '@/components/ui'
 
 export function DashboardSkeleton() {
   return (
