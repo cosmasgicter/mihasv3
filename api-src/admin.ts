@@ -662,6 +662,14 @@ async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth:
  */
 async function handleDashboardStats(res: VercelResponse): Promise<void> {
   try {
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const tomorrowStart = new Date(todayStart);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
     // Get counts using direct SQL queries (Neon-compatible)
     const [
       totalAppsResult,
@@ -669,6 +677,9 @@ async function handleDashboardStats(res: VercelResponse): Promise<void> {
       programCountsResult,
       recentAppsResult,
       userCountsResult,
+      todayResult,
+      weekResult,
+      monthResult,
     ] = await Promise.all([
       query<{ count: string }>('SELECT COUNT(*) as count FROM applications'),
       query<{ status: string; count: string }>(
@@ -685,6 +696,18 @@ async function handleDashboardStats(res: VercelResponse): Promise<void> {
       ),
       query<{ role: string; count: string }>(
         `SELECT role, COUNT(*) as count FROM profiles GROUP BY role`
+      ),
+      query<{ count: string }>(
+        `SELECT COUNT(*) as count FROM applications WHERE created_at >= $1 AND created_at < $2`,
+        [todayStart.toISOString(), tomorrowStart.toISOString()]
+      ),
+      query<{ count: string }>(
+        `SELECT COUNT(*) as count FROM applications WHERE created_at >= $1`,
+        [weekAgo]
+      ),
+      query<{ count: string }>(
+        `SELECT COUNT(*) as count FROM applications WHERE created_at >= $1`,
+        [monthAgo]
       ),
     ]);
 
@@ -706,6 +729,9 @@ async function handleDashboardStats(res: VercelResponse): Promise<void> {
     }
 
     const pendingCount = (statusBreakdown['submitted'] || 0) + (statusBreakdown['under_review'] || 0);
+    const todayApplications = parseInt(todayResult.rows[0]?.count || '0', 10);
+    const weekApplications = parseInt(weekResult.rows[0]?.count || '0', 10);
+    const monthApplications = parseInt(monthResult.rows[0]?.count || '0', 10);
 
     res.setHeader('Cache-Control', 'public, max-age=60');
 
@@ -714,6 +740,9 @@ async function handleDashboardStats(res: VercelResponse): Promise<void> {
       pendingApplications: pendingCount,
       approvedApplications: statusBreakdown['approved'] || 0,
       rejectedApplications: statusBreakdown['rejected'] || 0,
+      todayApplications,
+      weekApplications,
+      monthApplications,
       statusBreakdown,
       programBreakdown,
       userBreakdown,
