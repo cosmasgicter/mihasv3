@@ -113,11 +113,6 @@ Desktop.ini
 # Output of 'npm pack'
 *.tgz
 
-# Cloudflare
-.wrangler/
-.dev.vars
-.mf/
-
 # Netlify
 .netlify/
 
