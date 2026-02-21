@@ -29,7 +29,8 @@ interface OfflineIndicatorProps {
 }
 
 export function OfflineIndicator({ className, showDetails = false }: OfflineIndicatorProps) {
-  const { isOnline, syncStatus, isSyncing, syncNow, lastSyncResult } = useOffline()
+  const { isOnline, syncStatus, syncNow } = useOffline()
+  const isSyncing = syncStatus.isPending
 
   const handleSyncClick = async () => {
     if (!isSyncing && isOnline) {
@@ -43,24 +44,24 @@ export function OfflineIndicator({ className, showDetails = false }: OfflineIndi
 
   const getStatusColor = () => {
     if (!isOnline) return 'text-red-500'
-    if (syncStatus.errors > 0) return 'text-yellow-500'
-    if (syncStatus.pending > 0) return 'text-blue-500'
+    if (syncStatus.failedRequests > 0) return 'text-yellow-500'
+    if (syncStatus.pendingRequests > 0) return 'text-blue-500'
     return 'text-green-500'
   }
 
   const getStatusIcon = () => {
     if (!isOnline) return <WifiOff className="w-4 h-4" />
     if (isSyncing) return <RefreshCw className="w-4 h-4 animate-spin" />
-    if (syncStatus.errors > 0) return <AlertCircle className="w-4 h-4" />
-    if (syncStatus.pending > 0) return <Cloud className="w-4 h-4" />
+    if (syncStatus.failedRequests > 0) return <AlertCircle className="w-4 h-4" />
+    if (syncStatus.pendingRequests > 0) return <Cloud className="w-4 h-4" />
     return <CheckCircle className="w-4 h-4" />
   }
 
   const getStatusText = () => {
     if (!isOnline) return 'Offline'
     if (isSyncing) return 'Syncing...'
-    if (syncStatus.errors > 0) return `${syncStatus.errors} sync errors`
-    if (syncStatus.pending > 0) return `${syncStatus.pending} pending`
+    if (syncStatus.failedRequests > 0) return `${syncStatus.failedRequests} sync errors`
+    if (syncStatus.pendingRequests > 0) return `${syncStatus.pendingRequests} pending`
     return 'Online'
   }
 
@@ -79,7 +80,7 @@ export function OfflineIndicator({ className, showDetails = false }: OfflineIndi
         <span>{getStatusText()}</span>
       </div>
 
-      {showDetails && (syncStatus.pending > 0 || syncStatus.errors > 0) && (
+      {showDetails && (syncStatus.pendingRequests > 0 || syncStatus.failedRequests > 0) && (
         <div className="flex items-center space-x-2 animate-fade-in">
           {isOnline && !isSyncing && (
             <Button
