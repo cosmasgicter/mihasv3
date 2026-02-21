@@ -556,6 +556,23 @@ async function handleReview(
       return sendError(res, 'application_id and status are required', HttpStatus.BAD_REQUEST);
     }
 
+    const validStatuses: ApplicationStatus[] = ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'pending_documents'];
+    if (!validStatuses.includes(status as ApplicationStatus)) {
+      return sendError(res, `Invalid status. Must be one of: ${validStatuses.join(', ')}`, HttpStatus.BAD_REQUEST);
+    }
+
+    const existingAppQ = ApplicationQueries.findById(application_id);
+    const existingAppResult = await query<ApplicationRecord>(existingAppQ.text, existingAppQ.values);
+    const existingApp = existingAppResult.rows[0];
+
+    if (!existingApp) {
+      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (status === 'approved' && existingApp.payment_status !== 'verified') {
+      return sendError(res, 'Cannot approve without verified payment', HttpStatus.BAD_REQUEST);
+    }
+
     // Update application status
     const updateQ = ApplicationQueries.updateStatus(
       application_id, 
@@ -622,11 +639,20 @@ async function handleById(
       return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
     }
 
+    const {
+      grades = [],
+      documents = [],
+      statusHistory = [],
+      interview = null,
+      ...application
+    } = data as Record<string, unknown>;
+
     return sendSuccess(res, {
-      application: data,
-      grades: data.grades || [],
-      documents: data.documents || [],
-      statusHistory: data.statusHistory || [],
+      application,
+      grades,
+      documents,
+      statusHistory,
+      interview,
     });
   }
 
@@ -698,8 +724,8 @@ async function handleById(
                WHERE id = $1
                RETURNING *
              ), history_insert AS (
-               INSERT INTO status_history (application_id, status, changed_by, notes, changed_at)
-               SELECT id, $2, $3, $4, NOW()
+               INSERT INTO application_status_history (id, application_id, status, changed_by, notes, created_at)
+               SELECT gen_random_uuid(), id, $2, $3, $4, NOW()
                FROM updated_application
                RETURNING id
              ), notification_insert AS (
@@ -722,7 +748,7 @@ async function handleById(
               HttpStatus.CONFLICT
             );
           }
-          if (message.includes('status_history')) {
+          if (message.includes('application_status_history') || message.includes('status_history')) {
             return sendError(
               res,
               'Status update failed during history persistence; no changes were applied.',
@@ -1096,7 +1122,7 @@ async function fetchApplicationDetails(id: string, include?: string) {
 
   const application = appResult.rows[0];
   const result: Record<string, unknown> = { ...application };
-  const includes = include ? include.split(',') : ['grades', 'documents', 'statusHistory'];
+  const includes = include ? include.split(',') : ['grades', 'documents', 'statusHistory', 'interview'];
 
   // Fetch grades with subject names
   const gradesQ = GradeQueries.findByApplicationId(id);
@@ -1115,6 +1141,43 @@ async function fetchApplicationDetails(id: string, include?: string) {
     const historyQ = StatusHistoryQueries.findByApplicationId(id);
     const historyResult = await query<StatusHistoryRecord>(historyQ.text, historyQ.values);
     result.statusHistory = historyResult.rows;
+  }
+
+  // Fetch latest interview
+  if (includes.includes('interview')) {
+    const interviewResult = await query<{
+      id: string;
+      application_id: string;
+      scheduled_at: string;
+      mode: string;
+      location: string | null;
+      status: string;
+      notes: string | null;
+      created_by: string | null;
+      updated_by: string | null;
+      created_at: string;
+      updated_at: string;
+    }>(
+      `SELECT
+        id,
+        application_id,
+        scheduled_at,
+        mode,
+        location,
+        status,
+        notes,
+        created_by,
+        updated_by,
+        created_at,
+        updated_at
+      FROM application_interviews
+      WHERE application_id = $1
+      ORDER BY updated_at DESC NULLS LAST, created_at DESC
+      LIMIT 1`,
+      [id]
+    );
+
+    result.interview = interviewResult.rows[0] || null;
   }
 
   return result;

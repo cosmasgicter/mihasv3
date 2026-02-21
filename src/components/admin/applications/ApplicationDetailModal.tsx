@@ -451,18 +451,18 @@ export function ApplicationDetailModal({
  try {
  setLoading(true)
  const response = await applicationService.getById(application.id, { 
- include: ['grades', 'statusHistory', 'documents'] 
+ include: ['grades', 'statusHistory', 'documents', 'interview'] 
  })
  
- // Handle the API response structure
- // API returns: { success, data, application, grades, documents, statusHistory, interview }
- const data = response?.data || response
+ const payload = response || {}
+ const primaryApplication = payload?.application || application
+
  setApplicationData({
- application: data,
- grades: response?.grades || data?.grades || [],
- statusHistory: response?.statusHistory || data?.statusHistory || [],
- documents: response?.documents || data?.documents || [],
- interview: response?.interview || data?.interview || null
+ application: primaryApplication,
+ grades: payload?.grades || [],
+ statusHistory: payload?.statusHistory || [],
+ documents: payload?.documents || [],
+ interview: payload?.interview || payload?.application?.interview || null
  })
  } catch (error) {
  console.error('Failed to load application details:', error)
