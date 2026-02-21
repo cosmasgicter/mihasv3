@@ -114,7 +114,7 @@ if (typeof window !== 'undefined') {
 
 // Enhanced fetch with caching and retry logic
 export interface FetchWithCacheOptions {
-  cache?: boolean
+  useLocalCache?: boolean
   cacheTTL?: number
   retries?: number
   retryDelay?: number
@@ -132,7 +132,7 @@ export async function fetchWithCache<T>(
   options: RequestInit & FetchWithCacheOptions = {}
 ): Promise<T> {
   const {
-    cache = true,
+    useLocalCache = true,
     cacheTTL = 5 * 60 * 1000, // 5 minutes
     retries = 3,
     retryDelay = 1000,
@@ -158,7 +158,7 @@ export async function fetchWithCache<T>(
   })}`
 
   // Check cache for GET requests
-  if (cache && (!options.method || options.method === 'GET')) {
+  if (useLocalCache && (!options.method || options.method === 'GET')) {
     const cached = apiCache.get<T>(resolvedCacheKey)
     if (cached) {
       return cached
@@ -222,7 +222,7 @@ export async function fetchWithCache<T>(
       }
 
       // Cache successful GET responses
-      if (cache && (!options.method || options.method === 'GET')) {
+      if (useLocalCache && (!options.method || options.method === 'GET')) {
         apiCache.set(resolvedCacheKey, data, cacheTTL)
       }
 
@@ -290,7 +290,7 @@ export async function postWithoutCache<T>(
     ...options,
     method: 'POST',
     body: JSON.stringify(data),
-    cache: false
+    useLocalCache: false
   })
 }
 
@@ -303,7 +303,7 @@ export async function putWithoutCache<T>(
     ...options,
     method: 'PUT',
     body: JSON.stringify(data),
-    cache: false
+    useLocalCache: false
   })
 }
 
@@ -314,7 +314,7 @@ export async function deleteWithoutCache<T>(
   return fetchWithCache<T>(url, {
     ...options,
     method: 'DELETE',
-    cache: false
+    useLocalCache: false
   })
 }
 
@@ -361,7 +361,7 @@ export async function prefetchData(
   // Use low priority for prefetch requests
   const prefetchOptions = {
     ...options,
-    cache: true,
+    useLocalCache: true,
     cacheTTL: 10 * 60 * 1000, // 10 minutes for prefetched data
     retries: 1 // Fewer retries for prefetch
   }
