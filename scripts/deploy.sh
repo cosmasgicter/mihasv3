@@ -39,6 +39,17 @@ npm run build:prod
 log "✅ Build completed! Contents:"
 ls -la dist/
 
+log "🔎 Verifying sitemap/robots build artifacts..."
+if [[ ! -f "dist/sitemap.xml" ]]; then
+  echo "❌ Missing dist/sitemap.xml" >&2
+  exit 1
+fi
+if [[ ! -f "dist/robots.txt" ]]; then
+  echo "❌ Missing dist/robots.txt" >&2
+  exit 1
+fi
+log "✅ sitemap.xml and robots.txt are present"
+
 publish_to_cdn() {
   log "☁️  Publishing build artifacts to CloudFront origin..."
   ensure_command aws

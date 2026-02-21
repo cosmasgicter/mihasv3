@@ -21,6 +21,7 @@ import {
   Twitter, Linkedin 
 } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { Seo } from '@/components/seo/Seo';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import '@/styles/accreditation.css';
 
@@ -114,6 +115,70 @@ const socialLinks = [
   { name: 'Facebook', href: 'https://www.facebook.com/', icon: Facebook },
   { name: 'Twitter', href: 'https://x.com/', icon: Twitter },
   { name: 'LinkedIn', href: 'https://www.linkedin.com/', icon: Linkedin }
+];
+
+const landingStructuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'MIHAS-KATC Admissions',
+    alternateName: 'Mukuba Institute of Health and Allied Sciences & Kalulushi Training Centre',
+    url: '***REMOVED***',
+    logo: '***REMOVED***/images/logos/mihas-logo.png',
+    email: 'info@mihas.edu.zm',
+    telephone: '+260961515151',
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'ZM',
+      addressLocality: 'Kalulushi',
+    },
+    sameAs: [
+      'https://www.facebook.com/',
+      'https://x.com/',
+      'https://www.linkedin.com/'
+    ]
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'EducationalOrganization',
+    name: 'MIHAS-KATC Admissions',
+    url: '***REMOVED***',
+    educationalCredentialAwarded: [
+      'Diploma in Registered Nursing',
+      'Diploma in Clinical Medicine',
+      'Diploma in Environmental Health'
+    ],
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Health Sciences Programs',
+      itemListElement: [
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Course',
+            name: 'Diploma in Registered Nursing',
+            provider: { '@type': 'EducationalOrganization', name: 'Mukuba Institute of Health and Applied Sciences' }
+          }
+        },
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Course',
+            name: 'Diploma in Clinical Medicine',
+            provider: { '@type': 'EducationalOrganization', name: 'Kalulushi Training Centre' }
+          }
+        },
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Course',
+            name: 'Diploma in Environmental Health',
+            provider: { '@type': 'EducationalOrganization', name: 'Kalulushi Training Centre' }
+          }
+        }
+      ]
+    }
+  }
 ];
 
 function smoothScrollToSection(sectionId: string) {
@@ -559,6 +624,12 @@ export default function LandingPage() {
 
   return (
     <PageTransition mode="fade">
+      <Seo
+        title="MIHAS-KATC Admissions | Apply to Accredited Health Science Programs"
+        description="Apply online to MIHAS-KATC accredited nursing and allied health diploma programs. Track admissions, deadlines, and enrollment updates in one portal."
+        path="/"
+        structuredData={landingStructuredData}
+      />
       <div className="min-h-screen bg-background overflow-x-hidden">
         {/* Fixed Header with hide-on-scroll-down behavior */}
         <ResponsiveHeader />

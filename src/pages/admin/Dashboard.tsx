@@ -25,6 +25,7 @@ import {
 import { animateClasses } from '@/lib/animations'
 import { Link } from 'react-router-dom'
 import { useAnalytics } from '@/hooks/useAnalytics'
+import { Seo } from '@/components/seo/Seo'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
 import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
@@ -216,25 +217,50 @@ export default function AdminDashboard() {
 
   if (isInitialLoading) {
     return (
-      <UnifiedLoader
-        variant="skeleton"
-        size="md"
-        label="Loading admin dashboard"
-        className="py-8"
-        skeletonCard
-        skeletonLines={4}
-      />
+      <>
+        <Seo
+          title="Admin Dashboard | MIHAS-KATC Admissions"
+          description="Manage MIHAS-KATC admissions, monitor application metrics, and review operational alerts from the admin dashboard."
+          path="/admin/dashboard"
+          noindex
+        />
+        <UnifiedLoader
+          variant="skeleton"
+          size="md"
+          label="Loading admin dashboard"
+          className="py-8"
+          skeletonCard
+          skeletonLines={4}
+        />
+      </>
     )
   }
 
   // Show offline dashboard if network error
   if (networkError) {
-    return <OfflineAdminDashboard />
+    return (
+      <>
+        <Seo
+          title="Admin Dashboard Offline | MIHAS-KATC Admissions"
+          description="The MIHAS-KATC admin dashboard is currently offline. Reconnect to continue admissions administration."
+          path="/admin/dashboard"
+          noindex
+        />
+        <OfflineAdminDashboard />
+      </>
+    )
   }
 
   // Fallback if user or profile is missing
   if (!user) {
     return (
+      <>
+        <Seo
+          title="Admin Sign In Required | MIHAS-KATC Admissions"
+          description="Sign in with an authorized admin account to access MIHAS-KATC admissions operations."
+          path="/admin/dashboard"
+          noindex
+        />
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-foreground mb-2">Authentication Required</h2>
@@ -242,11 +268,19 @@ export default function AdminDashboard() {
           <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
         </div>
       </div>
+      </>
     )
   }
 
   if (!profile) {
     return (
+      <>
+        <Seo
+          title="Preparing Admin Profile | MIHAS-KATC Admissions"
+          description="Setting up your MIHAS-KATC admin profile before loading dashboard analytics and controls."
+          path="/admin/dashboard"
+          noindex
+        />
       <UnifiedLoader
         variant="page"
         size="lg"
@@ -254,6 +288,7 @@ export default function AdminDashboard() {
         label="Setting up admin profile"
         className="min-h-screen"
       />
+      </>
     )
   }
 
@@ -284,6 +319,13 @@ export default function AdminDashboard() {
   const adminFirstName = adminDisplayName.split(' ')[0] || 'Admin'
 
   return (
+    <>
+      <Seo
+        title="Admin Dashboard | MIHAS-KATC Admissions"
+        description="Manage MIHAS-KATC admissions, monitor application metrics, and review operational alerts from the admin dashboard."
+        path="/admin/dashboard"
+        noindex
+      />
     <div className="page-container bg-gradient-to-br from-background via-primary/5 to-secondary/5 transition-colors duration-500">
       <main className="w-full max-w-full overflow-x-hidden">
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 safe-area-bottom">
@@ -453,5 +495,6 @@ export default function AdminDashboard() {
       
 
     </div>
-  )
+      </>
+  );
 }
