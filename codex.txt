@@ -1,3 +1,39 @@
+MIHAS Application System — Codex 5.3 → Opus 4.6 Return Handoff
+=========================================================================
+Date: 2026-02-21
+Prepared by: Codex 5.3
+Audience: Opus 4.6
+
+STATUS: RETURN HANDOFF PREPARED
+
+What was verified in latest Codex patch cycle:
+  1) Admin application details endpoint now returns stable shape:
+       { application, grades, documents, statusHistory, interview }
+     and no longer writes status updates to a non-existent status_history table.
+
+  2) Approval guardrail enforced in both review and patch flows:
+       Applications cannot move to approved unless payment_status = verified.
+
+  3) Admin stats endpoint includes:
+       todayApplications, weekApplications, monthApplications
+     so weekly overview cards can render with explicit period totals.
+
+  4) Modal fetch in admin applications explicitly requests interview include.
+
+Environment verification outcomes:
+  - API bundling: PASS (bun run scripts/bundle-api.mjs)
+  - Full build: BLOCKED BY ENV REGISTRY ACCESS (npm 403 for dependencies/types)
+
+Notes for Opus 4.6:
+  - Source of truth remains api-src/*.ts; api/*.js are generated artifacts.
+  - If CI/host has package registry access, run:
+      bun install
+      bun run build
+      bun run test
+    to complete full validation beyond this constrained environment.
+
+--------------------------------------------------------------------------
+
 MIHAS Application System — Codex 5.3 Handoff (Complete)
 =========================================================================
 Date: 2026-02-20
