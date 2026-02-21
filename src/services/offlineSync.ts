@@ -16,6 +16,13 @@ type LocalStorageOfflineEntry<TType extends OfflineRecordType> = {
   timestamp: number
 }
 
+export interface OfflineSyncStatus {
+  isPending: boolean
+  lastSyncAt?: Date
+  pendingRequests: number
+  failedRequests: number
+}
+
 function isOfflineDraftPayload(value: unknown): value is OfflineApplicationDraftData {
   if (!value || typeof value !== 'object') {
     return false
@@ -60,9 +67,31 @@ async function getCurrentUser(): Promise<{ id: string } | null> {
 }
 
 class OfflineSyncService {
+  private readonly LAST_SYNC_KEY = 'offline_last_sync'
   private isProcessing = false
   private retryAttempts = new Map<string, number>()
   private maxRetries = 3
+  private initialized = false
+  private periodicSyncInterval: number | null = null
+
+  /**
+   * Retry rules:
+   * - Each queued item gets up to `maxRetries` attempts.
+   * - Retry attempts are tracked in-memory for IndexedDB records and in localStorage metadata for fallback records.
+   * - Items that hit max retries are treated as failed and excluded from automatic processing until explicitly cleared.
+   */
+  private isFailed(itemId: string): boolean {
+    return (this.retryAttempts.get(itemId) || 0) >= this.maxRetries
+  }
+
+  private markRetry(itemId: string): void {
+    const attempts = this.retryAttempts.get(itemId) || 0
+    this.retryAttempts.set(itemId, attempts + 1)
+  }
+
+  private clearRetry(itemId: string): void {
+    this.retryAttempts.delete(itemId)
+  }
 
   // Store data offline
   async storeOffline<TType extends OfflineRecordType>(
@@ -101,26 +130,27 @@ class OfflineSyncService {
       const offlineData = await offlineStorage.getAll(user.id)
 
       for (const item of offlineData) {
+        if (this.isFailed(item.id)) {
+          continue
+        }
+
         try {
           await this.syncToServer(item)
           await offlineStorage.remove(item.id)
-          this.retryAttempts.delete(item.id)
+          this.clearRetry(item.id)
         } catch (error) {
           console.error('Failed to sync offline data:', error)
-          
-          const attempts = this.retryAttempts.get(item.id) || 0
-          if (attempts >= this.maxRetries) {
-            console.error('Max retries reached for item', sanitizeForLog(String(item.id)), 'removing from queue')
-            await offlineStorage.remove(item.id)
-            this.retryAttempts.delete(item.id)
-          } else {
-            this.retryAttempts.set(item.id, attempts + 1)
+
+          this.markRetry(item.id)
+          if (this.isFailed(item.id)) {
+            console.error('Max retries reached for item', sanitizeForLog(String(item.id)), 'keeping as failed')
           }
         }
       }
 
       // Also process localStorage fallback data
       await this.processLocalStorageData(user.id)
+      this.setLastSyncTime(new Date())
     } catch (error) {
       console.error('Error processing offline data:', error)
     } finally {
@@ -153,6 +183,11 @@ class OfflineSyncService {
           continue
         }
 
+        const retryCount = Number(localStorage.getItem(`offline_retry_${key}`) || '0')
+        if (retryCount >= this.maxRetries) {
+          continue
+        }
+
         await this.syncToServer({
           id: key,
           type,
@@ -162,9 +197,13 @@ class OfflineSyncService {
         })
 
         localStorage.removeItem(key)
+        localStorage.removeItem(`offline_retry_${key}`)
       } catch (error) {
         console.error(`Failed to sync localStorage data ${key}:`, error)
-        localStorage.removeItem(key) // Remove corrupted data
+
+        const retryKey = `offline_retry_${key}`
+        const currentRetryCount = Number(localStorage.getItem(retryKey) || '0')
+        localStorage.setItem(retryKey, String(currentRetryCount + 1))
       }
     }
   }
@@ -225,6 +264,10 @@ class OfflineSyncService {
 
   // Initialize service with event listeners
   async init() {
+    if (this.initialized) {
+      return
+    }
+
     try {
       await offlineStorage.init()
     } catch {
@@ -236,9 +279,13 @@ class OfflineSyncService {
       this.processOfflineData()
     })
 
-    // Listen for offline events
-    window.addEventListener('offline', () => {
-    })
+    this.periodicSyncInterval = window.setInterval(() => {
+      if (navigator.onLine) {
+        this.processOfflineData()
+      }
+    }, 30000)
+
+    this.initialized = true
 
     // Process any existing offline data on startup
     if (navigator.onLine) {
@@ -263,6 +310,123 @@ class OfflineSyncService {
       console.error('Failed to get offline data count:', error)
       return 0
     }
+  }
+
+  async getSyncStatus(): Promise<OfflineSyncStatus> {
+    const user = await getCurrentUser()
+    if (!user) {
+      return {
+        isPending: this.isProcessing,
+        lastSyncAt: this.getLastSyncTime(),
+        pendingRequests: 0,
+        failedRequests: 0
+      }
+    }
+
+    const offlineData = await offlineStorage.getAll(user.id)
+    const pendingIndexedDbItems = offlineData.filter((item) => !this.isFailed(item.id)).length
+    const failedIndexedDbItems = offlineData.filter((item) => this.isFailed(item.id)).length
+
+    const fallbackKeys = Object.keys(localStorage).filter(key => key.startsWith('offline_') && key.includes(user.id))
+
+    const failedFallbackItems = fallbackKeys.filter((key) => {
+      const retryCount = Number(localStorage.getItem(`offline_retry_${key}`) || '0')
+      return retryCount >= this.maxRetries
+    }).length
+
+    return {
+      isPending: this.isProcessing,
+      lastSyncAt: this.getLastSyncTime(),
+      pendingRequests: pendingIndexedDbItems + (fallbackKeys.length - failedFallbackItems),
+      failedRequests: failedIndexedDbItems + failedFallbackItems
+    }
+  }
+
+  async clearFailedRequests(): Promise<void> {
+    const user = await getCurrentUser()
+    if (!user) {
+      return
+    }
+
+    const offlineData = await offlineStorage.getAll(user.id)
+    for (const item of offlineData) {
+      if (this.isFailed(item.id)) {
+        await offlineStorage.remove(item.id)
+        this.clearRetry(item.id)
+      }
+    }
+
+    const fallbackKeys = Object.keys(localStorage).filter(key => key.startsWith('offline_') && key.includes(user.id))
+    for (const key of fallbackKeys) {
+      const retryKey = `offline_retry_${key}`
+      const retryCount = Number(localStorage.getItem(retryKey) || '0')
+      if (retryCount >= this.maxRetries) {
+        localStorage.removeItem(key)
+        localStorage.removeItem(retryKey)
+      }
+    }
+  }
+
+  async syncQueue(): Promise<void> {
+    await this.processOfflineData()
+  }
+
+  async queueRequest(
+    url: string,
+    method: string,
+    _headers: Record<string, string> = {},
+    body?: Record<string, unknown>
+  ): Promise<string> {
+    if (method.toUpperCase() !== 'POST' || !url.includes('/applications') || !body) {
+      throw new Error('Only POST /applications requests are supported by the offline sync pipeline.')
+    }
+
+    const user = await getCurrentUser()
+    if (!user) {
+      throw new Error('Cannot queue offline request without an authenticated user.')
+    }
+
+    await this.init()
+
+    if (body.action === 'save_draft') {
+      const id = await offlineStorage.store({
+        type: 'application_draft',
+        userId: user.id,
+        data: {
+          form_data: (body.form_data as OfflineApplicationDraftData['form_data']) || {},
+          uploaded_files: (body.uploaded_files as OfflineApplicationDraftData['uploaded_files']) || [],
+          current_step: Number(body.current_step || 0),
+          version: Number(body.version || 1)
+        }
+      })
+
+      if (navigator.onLine) {
+        this.processOfflineData()
+      }
+
+      return id
+    }
+
+    const id = await offlineStorage.store({
+      type: 'form_submission',
+      userId: user.id,
+      data: body as OfflineFormSubmissionData
+    })
+
+    if (navigator.onLine) {
+      this.processOfflineData()
+    }
+
+    return id
+  }
+
+  private getLastSyncTime(): Date | undefined {
+    const stored = localStorage.getItem(this.LAST_SYNC_KEY)
+    return stored ? new Date(stored) : undefined
+  }
+
+  private setLastSyncTime(date: Date): void {
+    localStorage.setItem(this.LAST_SYNC_KEY, date.toISOString())
   }
 }
 

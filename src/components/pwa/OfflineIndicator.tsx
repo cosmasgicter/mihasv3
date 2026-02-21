@@ -1,28 +1,48 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { WifiOff, Wifi, RefreshCw, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { offlineManager } from '@/services/offlineManager'
+import { offlineSyncService, type OfflineSyncStatus } from '@/services/offlineSync'
 
 /**
  * Offline Indicator Component
  * Shows connection status and pending sync operations
  * Requirements: 9.5 - Add offline-first architecture improvements
  */
+const emptyStatus: OfflineSyncStatus = {
+  isPending: false,
+  pendingRequests: 0,
+  failedRequests: 0
+}
+
 export const OfflineIndicator: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
-  const [syncStatus, setSyncStatus] = useState(offlineManager.getSyncStatus())
+  const [syncStatus, setSyncStatus] = useState<OfflineSyncStatus>(emptyStatus)
   const [showDetails, setShowDetails] = useState(false)
 
+  const refreshSyncStatus = useCallback(async () => {
+    setSyncStatus(await offlineSyncService.getSyncStatus())
+  }, [])
+
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
+    offlineSyncService.init()
+    refreshSyncStatus()
+
+    const handleOnline = async () => {
+      setIsOnline(true)
+      await offlineSyncService.syncQueue()
+      await refreshSyncStatus()
+    }
+
+    const handleOffline = () => {
+      setIsOnline(false)
+      refreshSyncStatus()
+    }
 
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
 
-    // Update sync status periodically
     const interval = setInterval(() => {
-      setSyncStatus(offlineManager.getSyncStatus())
+      refreshSyncStatus()
     }, 5000)
 
     return () => {
@@ -30,19 +50,18 @@ export const OfflineIndicator: React.FC = () => {
       window.removeEventListener('offline', handleOffline)
       clearInterval(interval)
     }
-  }, [])
+  }, [refreshSyncStatus])
 
   const handleSync = async () => {
-    await offlineManager.syncQueue()
-    setSyncStatus(offlineManager.getSyncStatus())
+    await offlineSyncService.syncQueue()
+    await refreshSyncStatus()
   }
 
-  const handleClearFailed = () => {
-    offlineManager.clearFailedRequests()
-    setSyncStatus(offlineManager.getSyncStatus())
+  const handleClearFailed = async () => {
+    await offlineSyncService.clearFailedRequests()
+    await refreshSyncStatus()
   }
 
-  // Don't show anything if online and no pending requests
   if (isOnline && syncStatus.pendingRequests === 0 && syncStatus.failedRequests === 0) {
     return null
   }
@@ -50,8 +69,7 @@ export const OfflineIndicator: React.FC = () => {
   return (
     <div className="fixed top-16 right-4 z-40 animate-slide-up">
       <div className="bg-background border rounded-lg shadow-lg p-3 min-w-[280px]">
-        {/* Status Header */}
-        <div 
+        <div
           className="flex items-center justify-between cursor-pointer"
           onClick={() => setShowDetails(!showDetails)}
         >
@@ -79,7 +97,6 @@ export const OfflineIndicator: React.FC = () => {
           )}
         </div>
 
-        {/* Details Panel */}
         {showDetails && (
           <div className="mt-3 pt-3 border-t space-y-2 animate-fade-in">
             {!isOnline && (
@@ -115,7 +132,6 @@ export const OfflineIndicator: React.FC = () => {
               </p>
             )}
 
-            {/* Action Buttons */}
             <div className="flex gap-2 pt-2">
               {isOnline && syncStatus.pendingRequests > 0 && (
                 <Button
