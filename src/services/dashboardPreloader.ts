@@ -236,7 +236,7 @@ export async function prefetchDashboardQueries(
       queryClient.prefetchQuery({
         queryKey: ['applications'],
         queryFn: async () => (await applicationService.list({ page: 0, pageSize: 50, sortBy: 'date', sortOrder: 'desc' }))?.applications ?? [],
-        ...CACHE_CONFIG.critical,
+        ...CACHE_CONFIG.applications,
       }),
       queryClient.prefetchQuery({
         queryKey: ['admin-dashboard-polling'],
@@ -260,17 +260,17 @@ export async function prefetchDashboardQueries(
             weekApplications: statsResult?.weekApplications ?? 0,
           }
         },
-        ...CACHE_CONFIG.critical,
+        ...CACHE_CONFIG.applications,
       }),
       queryClient.prefetchQuery({
         queryKey: ['admin-dashboard'],
         queryFn: () => adminDashboardService.getOverview(),
-        ...CACHE_CONFIG.critical,
+        ...CACHE_CONFIG.applications,
       }),
       queryClient.prefetchQuery({
         queryKey: ['notifications', userId],
         queryFn: async () => (await apiClient.request<Array<Record<string, unknown>>>('/notifications?action=list')) ?? [],
-        ...CACHE_CONFIG.critical,
+        ...CACHE_CONFIG.applications,
       }),
     ])
 
@@ -281,7 +281,7 @@ export async function prefetchDashboardQueries(
     queryClient.prefetchQuery({
       queryKey: ['applications', userId],
       queryFn: async () => (await applicationService.list({ page: 0, pageSize: 50, sortBy: 'date', sortOrder: 'desc', mine: true }))?.applications ?? [],
-      ...CACHE_CONFIG.critical,
+      ...CACHE_CONFIG.applications,
     }),
     queryClient.prefetchQuery({
       queryKey: ['student-dashboard-polling', userId],
@@ -299,12 +299,12 @@ export async function prefetchDashboardQueries(
           })),
         }
       },
-      ...CACHE_CONFIG.critical,
+      ...CACHE_CONFIG.applications,
     }),
     queryClient.prefetchQuery({
       queryKey: ['notifications', userId],
       queryFn: async () => (await apiClient.request<Array<Record<string, unknown>>>('/notifications?action=list')) ?? [],
-      ...CACHE_CONFIG.critical,
+      ...CACHE_CONFIG.applications,
     }),
     queryClient.prefetchQuery({
       queryKey: ['intakes'],
