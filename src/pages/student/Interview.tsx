@@ -25,9 +25,9 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui'
 import { interviewsService } from '@/services/interviews'
 import { useAuth } from '@/contexts/AuthContext'
 

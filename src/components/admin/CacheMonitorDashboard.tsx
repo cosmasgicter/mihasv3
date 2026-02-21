@@ -8,7 +8,7 @@
 
 import React from 'react'
 import { useCacheMonitor } from '@/hooks/useCacheMonitor'
-import { Card } from '@/components/ui/card'
+import { Card } from '@/components/ui'
 import { Button } from '@/components/ui/button'
 
 export function CacheMonitorDashboard() {

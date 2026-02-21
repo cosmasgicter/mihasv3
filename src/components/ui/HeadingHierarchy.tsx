@@ -226,7 +226,7 @@ export function SectionTitle({
  * HeadingCardTitle Component
  * 
  * A title for card components that uses heading hierarchy, typically h3 or h4.
- * Note: Use CardTitle from @/components/ui/Card for standard card titles.
+ * Note: Use CardTitle from @/components/ui for standard card titles.
  */
 interface HeadingCardTitleProps {
   children: ReactNode

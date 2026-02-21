@@ -8,7 +8,7 @@
 
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { skipLinkClasses } from '@/lib/accessibility-utils'
+import { APP_MAIN_CONTENT_ID, skipLinkClasses } from '@/lib/accessibility-utils'
 
 interface SkipLinkProps {
   href?: string
@@ -17,7 +17,7 @@ interface SkipLinkProps {
 }
 
 export function SkipLink({ 
-  href = '#main-content', 
+  href = `#${APP_MAIN_CONTENT_ID}`, 
   children = 'Skip to main content',
   className 
 }: SkipLinkProps) {

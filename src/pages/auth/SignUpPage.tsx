@@ -22,6 +22,7 @@ import { Turnstile } from '@/components/ui/Turnstile';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { NotificationService } from '@/lib/notificationService';
+import { Seo } from '@/components/seo/Seo';
 import { staggerChild, animateClasses } from '@/lib/animations';
 import { 
   Loader2,
@@ -179,6 +180,11 @@ export default function SignUpPage() {
   if (success) {
     return (
       <>
+      <Seo
+        title="Create Account | MIHAS-KATC Admissions Portal"
+        description="Create your MIHAS-KATC admissions account to start your nursing or allied health application and submit required details securely."
+        path="/auth/signup"
+      />
         {isRegistering && <AuthLoadingOverlay message="Creating your account..." />}
         <AuthLayout
           title="Account created successfully!"
@@ -204,6 +210,11 @@ export default function SignUpPage() {
 
   return (
     <>
+      <Seo
+        title="Create Account | MIHAS-KATC Admissions Portal"
+        description="Create your MIHAS-KATC admissions account to start your nursing or allied health application and submit required details securely."
+        path="/auth/signup"
+      />
       {isRegistering && <AuthLoadingOverlay message="Creating your account..." />}
       <AuthLayout
         title="Create your account"

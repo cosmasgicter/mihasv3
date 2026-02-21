@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { animateClasses } from '@/lib/animations';
+import { Seo } from '@/components/seo/Seo';
 import {
   Loader2,
   AlertCircle,
@@ -151,6 +152,12 @@ export default function ResetPasswordPage() {
   // Verifying state
   if (status === 'verifying') {
     return (
+      <>
+        <Seo
+          title="Verify Reset Link | MIHAS-KATC Admissions"
+          description="Verifying your MIHAS-KATC password reset link before allowing password update."
+          path="/auth/reset-password"
+        />
       <AuthLayout
         title="Verifying your link"
         description="Please wait while we verify your password reset link..."
@@ -162,12 +169,19 @@ export default function ResetPasswordPage() {
           <p className="text-sm text-muted-foreground">Verifying your password reset link...</p>
         </div>
       </AuthLayout>
+      </>
     );
   }
 
   // Success state
   if (status === 'success') {
     return (
+      <>
+        <Seo
+          title="Password Updated | MIHAS-KATC Admissions"
+          description="Your MIHAS-KATC account password was updated successfully. Sign in again to continue your application journey."
+          path="/auth/reset-password"
+        />
       <AuthLayout
         title="Password updated!"
         description="Your password has been successfully reset"
@@ -201,12 +215,19 @@ export default function ResetPasswordPage() {
           </Button>
         </div>
       </AuthLayout>
+      </>
     );
   }
 
   // Error state
   if (status === 'error') {
     return (
+      <>
+        <Seo
+          title="Reset Link Error | MIHAS-KATC Admissions"
+          description="The MIHAS-KATC password reset link is invalid or expired. Request a new link to continue."
+          path="/auth/reset-password"
+        />
       <AuthLayout
         title="Unable to reset password"
         description="There was a problem with your reset link"
@@ -248,11 +269,18 @@ export default function ResetPasswordPage() {
           </div>
         </div>
       </AuthLayout>
+      </>
     );
   }
 
   // Ready state - show form
   return (
+    <>
+      <Seo
+        title="Set New Password | MIHAS-KATC Admissions"
+        description="Create a new secure password for your MIHAS-KATC admissions account."
+        path="/auth/reset-password"
+      />
     <AuthLayout
       title="Choose a new password"
       description="Enter a new password for your account. Make sure it's strong and unique to keep your account secure."
@@ -336,5 +364,6 @@ export default function ResetPasswordPage() {
         </div>
       </form>
     </AuthLayout>
+    </>
   );
 }

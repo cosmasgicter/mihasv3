@@ -11,6 +11,7 @@ import { createApplicationSlip } from '@/lib/slipService'
 import { logger } from '@/utils/logger'
 import { animateClasses } from '@/lib/animations'
 import { useApplicationTracker } from './hooks/useApplicationTracker'
+import { Seo } from '@/components/seo/Seo'
 import {
   TrackerSearchSection,
   ApplicationStatusHeader,
@@ -95,12 +96,12 @@ export default function PublicApplicationTracker() {
       public_tracking_code: null,
       application_number: application.application_number,
       status: application.status,
-      payment_status: null,
+      payment_status: application.payment_status,
       submitted_at: application.submitted_at,
       updated_at: application.updated_at,
       program_name: application.program_name,
       intake_name: application.intake_name,
-      institution: null,
+      institution: application.institution,
       full_name: null,
       email,
       phone: null,
@@ -145,7 +146,7 @@ export default function PublicApplicationTracker() {
         return
       }
 
-      const slipEmail = 'no-email@mihas.local'
+      const slipEmail = application.email?.trim() || 'no-email@mihas.local'
       const payload = buildSlipPayload(slipEmail)
       if (!payload) {
         toast.error('Slip unavailable', 'Missing application details for slip generation.')
@@ -191,9 +192,11 @@ export default function PublicApplicationTracker() {
   const handleEmailSlip = useCallback(async () => {
     if (!application) return
 
-    let emailAddress = ''
-    const promptResult = window.prompt('Enter the email address to send your application slip to:')
-    emailAddress = promptResult?.trim() || ''
+    let emailAddress = application.email?.trim() || ''
+    if (!emailAddress) {
+      const promptResult = window.prompt('Enter the email address to send your application slip to:')
+      emailAddress = promptResult?.trim() || ''
+    }
 
     if (!emailAddress) {
       toast.error('Email required', 'Please provide an email address to receive the slip.')
@@ -242,6 +245,11 @@ export default function PublicApplicationTracker() {
 
   return (
     <div className="min-h-screen bg-background safe-area-top safe-area-bottom">
+      <Seo
+        title="Track Your Application | MIHAS-KATC Admissions"
+        description="Track your MIHAS-KATC application status in real time using your application number and view key admissions milestones."
+        path="/track-application"
+      />
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
         <Container size="lg">

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Legacy API Cleanup**: Removed unused `api-src/_auth.ts.legacy` as dead legacy code to prevent accidental runtime/source-root coupling.
 - **PWA Cache Reset Migration**: Consolidated service worker source of truth to `src/service-worker.ts` (vite-plugin-pwa injectManifest), migrated app registration to plugin helper flow, and added immediate activation (`skipWaiting` + `clientsClaim`) to clear legacy `mihas-v2-cache` and retire old `/sw.js` registrations automatically for existing users.
 - **Landing Page Image Caching**: Added deterministic runtime strategy for `/images/programs/*.webp` and `/images/accreditation/*.webp` with stale-while-revalidate to avoid stale fallback behavior while preserving offline resilience.
 

@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { Turnstile } from '@/components/ui/Turnstile';
 import { useAuth } from '@/contexts/AuthContext';
 import { animateClasses } from '@/lib/animations';
+import { Seo } from '@/components/seo/Seo';
 import { 
   Loader2, 
   AlertCircle, 
@@ -97,6 +98,12 @@ export default function ForgotPasswordPage() {
   // Success state
   if (success) {
     return (
+      <>
+        <Seo
+          title="Check Your Email | MIHAS-KATC Password Reset"
+          description="Password reset requested. Check your email for instructions to regain access to your MIHAS-KATC admissions account."
+          path="/auth/forgot-password"
+        />
       <AuthLayout
         title="Check your email"
         description="We've sent you password reset instructions"
@@ -141,10 +148,17 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
       </AuthLayout>
+      </>
     );
   }
 
   return (
+    <>
+      <Seo
+        title="Forgot Password | MIHAS-KATC Admissions Portal"
+        description="Request a secure password reset link to recover access to your MIHAS-KATC admissions account."
+        path="/auth/forgot-password"
+      />
     <AuthLayout
       title="Reset your password"
       description="Enter the email associated with your account and we'll send you instructions to reset your password."
@@ -219,5 +233,6 @@ export default function ForgotPasswordPage() {
         </p>
       </form>
     </AuthLayout>
+    </>
   );
 }
