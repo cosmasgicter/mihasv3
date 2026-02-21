@@ -6,7 +6,9 @@ export { Select } from './select'
 export { FormSelect } from './form-select'
 export type { FormSelectProps, SelectOption } from './form-select'
 export { Checkbox, CheckboxWithLabel } from './checkbox'
-export { Radio, RadioGroup } from './Radio'
+export { RadioGroup, RadioGroupItem } from './radio-group'
+/** @deprecated Prefer RadioGroup primitives from '@/components/ui/radio-group'. */
+export { Radio } from './Radio'
 export { Switch } from './switch'
 export { Label } from './label'
 
@@ -71,23 +73,27 @@ export { Progress } from './progress'
 export { Skeleton, SkeletonText } from './skeleton'
 export { SkeletonDashboard } from './skeletons'
 
-// Loading Components
-export { LoadingSpinner } from './LoadingSpinner'
-export { LoadingButton } from './LoadingButton'
-export { LoadingOverlay } from './LoadingOverlay'
-export { SkeletonLoader, SkeletonCard, SkeletonTable, SkeletonAvatar } from './SkeletonLoader'
-export { ProgressIndicator, CircularProgress, IndeterminateProgress } from './ProgressIndicator'
-
-// Unified Loader System (Requirement 3.3)
+// Loading Components (canonical)
 export { 
-  UnifiedLoader, 
-  PageLoader, 
-  InlineLoader, 
-  SkeletonLoader as UnifiedSkeletonLoader, 
-  OverlayLoader,
-  UnifiedSpinner 
+  UnifiedLoader,
+  UnifiedSpinner,
+  PageLoader,
+  InlineLoader,
+  SkeletonLoader as UnifiedSkeletonLoader,
+  OverlayLoader
 } from './UnifiedLoader'
 export type { UnifiedLoaderProps } from './UnifiedLoader'
+
+// Loading Components (backward-compatible aliases)
+/** @deprecated Prefer UnifiedLoader variants from '@/components/ui'. */
+export { LoadingSpinner } from './LoadingSpinner'
+/** @deprecated Prefer Button loading prop from '@/components/ui'. */
+export { LoadingButton } from './LoadingButton'
+/** @deprecated Prefer UnifiedLoader variant="overlay" from '@/components/ui'. */
+export { LoadingOverlay } from './LoadingOverlay'
+/** @deprecated Prefer UnifiedLoader variant="skeleton" from '@/components/ui'. */
+export { SkeletonLoader, SkeletonCard, SkeletonTable, SkeletonAvatar } from './SkeletonLoader'
+export { ProgressIndicator, CircularProgress, IndeterminateProgress } from './ProgressIndicator'
 
 // Form Components
 export { FileUpload } from './FileUpload'
@@ -120,5 +126,15 @@ export {
 } from './HeadingHierarchy'
 
 // Touch Components
+/** @deprecated Prefer Button from '@/components/ui'. */
 export { TouchButton } from './TouchButton'
+/** @deprecated Prefer Button from '@/components/ui'. */
 export { TouchOptimizedButton, TouchOptimizedIconButton } from './TouchOptimizedButton'
+
+// Deprecated button/select wrappers
+/** @deprecated Prefer Button from '@/components/ui'. */
+export { LightweightButton } from './LightweightButton'
+/** @deprecated Prefer Button from '@/components/ui'. */
+export { MobileOptimizedButton, FloatingActionButton, MobileButtonGroup, QuickActionButton } from './MobileOptimizedButton'
+/** @deprecated Prefer Select from '@/components/ui/select'. */
+export { StandaloneSelect } from './standalone-select'

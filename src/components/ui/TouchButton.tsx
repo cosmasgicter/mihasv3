@@ -3,6 +3,8 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 import { useTouchFeedback } from '@/hooks/useTouchFeedback'
 
+let hasWarnedTouchButton = false
+
 /**
  * @deprecated Use `Button` from '@/components/ui/Button' instead.
  * This component will be removed in a future release.
@@ -22,6 +24,11 @@ export function TouchButton({
   className, 
   ...props 
 }: TouchButtonProps) {
+  if (process.env.NODE_ENV !== 'production' && !hasWarnedTouchButton) {
+    hasWarnedTouchButton = true
+    console.warn('[DEPRECATED] TouchButton is deprecated. Use Button from @/components/ui instead.')
+  }
+
   const { isPressed, touchHandlers } = useTouchFeedback()
 
   const variantClasses = {
