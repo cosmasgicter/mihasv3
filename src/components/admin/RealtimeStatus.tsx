@@ -1,5 +1,5 @@
 import { AlertCircle, Wifi, WifiOff } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Alert, AlertDescription } from '@/components/ui/Alert'
 
 interface RealtimeStatusProps {
   isConnected: boolean

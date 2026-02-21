@@ -165,7 +165,15 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
    */
   const dispatchEvent = useCallback((event: SSEEvent) => {
     if (event.event_id && event.entity_id && typeof event.version === 'number' && event.created_at) {
-      const accepted = useRealtimeStore.getState().ingestEvent(event as RealtimeEventEnvelope)
+      const envelope: RealtimeEventEnvelope = {
+        event_id: event.event_id,
+        entity_id: event.entity_id,
+        version: event.version,
+        created_at: event.created_at,
+        event_type: event.type,
+        payload: event.data,
+      }
+      const accepted = useRealtimeStore.getState().ingestEvent(envelope)
       if (!accepted) return
     }
 

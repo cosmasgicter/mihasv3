@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Command } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './Dialog';
-import { Input } from './Input';
+import { Input } from './input';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 
 interface CommandItem {

@@ -1,5 +1,5 @@
 import { HelpCircle } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui'
+import { TooltipRoot, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface FieldHelpProps {
   title: string
@@ -10,7 +10,7 @@ interface FieldHelpProps {
 export const FieldHelp = ({ title, description, example }: FieldHelpProps) => {
   return (
     <TooltipProvider delayDuration={200}>
-      <Tooltip>
+      <TooltipRoot>
         <TooltipTrigger type="button" className="inline-flex items-center">
           <HelpCircle className="h-4 w-4 text-caption hover:text-primary transition-colors" />
         </TooltipTrigger>
@@ -25,7 +25,7 @@ export const FieldHelp = ({ title, description, example }: FieldHelpProps) => {
             )}
           </div>
         </TooltipContent>
-      </Tooltip>
+      </TooltipRoot>
     </TooltipProvider>
   )
 }

@@ -70,7 +70,7 @@ async function preloadStudentDashboard(_userId: string): Promise<StudentDashboar
         })),
       },
       notifications: (notificationsResult ?? []) as Array<Record<string, unknown>>,
-      intakes: ((intakesResult as { intakes?: Array<Record<string, unknown>> } | null)?.intakes ?? []),
+      intakes: ((intakesResult as unknown as { intakes?: Array<Record<string, unknown>> } | null)?.intakes ?? []),
     }
   } catch (error) {
     if (isTransientNetworkError(error)) {

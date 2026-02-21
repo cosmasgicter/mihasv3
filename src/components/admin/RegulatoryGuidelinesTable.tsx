@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { Search, Filter, Eye, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
-import { Input } from '../ui/Input'
+import { Input } from '../ui/input'
 import { Button } from '../ui/Button'
 import { regulatoryEngine, RegulatoryGuideline } from '@/lib/regulatoryGuidelines'
 
