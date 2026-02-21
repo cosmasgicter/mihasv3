@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { programService, catalogService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { StandaloneSelect } from '@/components/ui/standalone-select'
 import {

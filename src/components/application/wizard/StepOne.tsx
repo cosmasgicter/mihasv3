@@ -1,6 +1,6 @@
 import React from 'react'
 import { UseFormRegister, FieldErrors, Control } from 'react-hook-form'
-import { Input } from '@/components/ui/Input'
+import { Input } from '@/components/ui/input'
 import { FormSelect } from '@/components/ui/form-select'
 
 interface WizardFormData {

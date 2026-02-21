@@ -12,7 +12,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthLayout } from '@/components/auth/AuthLayout';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/Button';
 import { Turnstile } from '@/components/ui/Turnstile';
 import { useAuth } from '@/contexts/AuthContext';

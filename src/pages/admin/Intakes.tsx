@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { intakeService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Input } from '@/components/ui/input'
 import {
   Dialog,
   DialogContent,

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Input } from '@/components/ui/Input'
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { StandaloneSelect } from '@/components/ui/standalone-select'

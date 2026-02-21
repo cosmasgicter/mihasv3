@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Search, Mail, Hash, Zap, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Input } from '@/components/ui/input'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { animateClasses } from '@/lib/animations'
 

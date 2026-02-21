@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/services/client';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { FormSelect } from '@/components/ui/form-select';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Turnstile } from '@/components/ui/Turnstile';

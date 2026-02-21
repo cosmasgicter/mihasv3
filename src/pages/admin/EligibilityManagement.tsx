@@ -4,7 +4,7 @@ import { fetchEligibilityRules, createEligibilityRule, updateEligibilityRule, de
 import { programService } from '@/services/catalog'
 import { EligibilityDashboard } from '@/components/application/EligibilityDashboard'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { StandaloneSelect } from '@/components/ui/standalone-select'
 import { useToastStore } from '@/components/ui/Toast'
