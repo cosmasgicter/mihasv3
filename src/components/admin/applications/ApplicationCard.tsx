@@ -1,5 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
-import { sanitizeHtml } from '@/lib/sanitizer'
+import React, { useCallback, useState } from 'react'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Eye, FileText, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building, MessageSquare } from 'lucide-react'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
@@ -122,11 +121,6 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
       </span>
     )
   }, [])
-
-  const sanitizedGradesSummary = useMemo(
-    () => sanitizeHtml(app.grades_summary ?? ''),
-    [app.grades_summary]
-  )
 
   const handleSendMessage = async (data: CommunicationData) => {
     try {
@@ -287,10 +281,9 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
           <div className="text-xs font-medium uppercase tracking-wide text-foreground mb-2">
             Grades Summary
           </div>
-          <div
-            className="prose prose-sm max-w-none text-foreground [&_p]:mb-2"
-            dangerouslySetInnerHTML={{ __html: sanitizedGradesSummary }}
-          />
+          <div className="text-sm text-foreground whitespace-pre-line break-words">
+            {app.grades_summary}
+          </div>
         </div>
       )}
 
