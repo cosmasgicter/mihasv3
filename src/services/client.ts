@@ -268,13 +268,12 @@ class ApiClient {
 
         let responseMeta: { ok: boolean; statusCode: number; duration: number } | null = null;
 
-        // Build fetch options - use type assertion to handle cache property conflict
-        // FetchWithCacheOptions.cache is boolean, RequestInit.cache is RequestCache
+        // Build fetch options for cached GET requests
         const fetchOptions = {
           method,
           headers: requestHeaders,
           credentials: 'include' as RequestCredentials,
-          cache: shouldUseCache,
+          useLocalCache: shouldUseCache,
           ...(cacheTTL !== undefined ? { cacheTTL } : {}),
           ...(cacheKey ? { cacheKey } : {}),
           transformResponse: (response: Response) =>
