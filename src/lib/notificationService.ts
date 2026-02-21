@@ -43,25 +43,21 @@ export class NotificationService {
     type: string
   ): Promise<boolean> {
     try {
-      const { data } = await supabase.rpc('generate_notification_dedup_hash', {
-        p_user_id: userId,
-        p_title: title,
-        p_message: content,
-        p_type: type
-      })
+      const result = await apiClient.request<{ duplicate?: boolean }>(
+        '/api/notifications?action=check-duplicate',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            user_id: userId,
+            title,
+            message: content,
+            type,
+          }),
+          useCache: false,
+        }
+      )
 
-      if (!data) return false
-
-      const { data: existing } = await supabase
-        .from('in_app_notifications')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('dedup_hash', data)
-        .gte('created_at', new Date(Date.now() - 60000).toISOString())
-        .limit(1)
-        .maybeSingle()
-
-      return !!existing
+      return Boolean(result?.duplicate)
     } catch {
       return false
     }
@@ -90,21 +86,21 @@ export class NotificationService {
         return true // Silent success - duplicate prevented
       }
 
-      const { error } = await supabase
-        .from('in_app_notifications')
-        .insert({
-          user_id: data.userId,
-          title: sanitizedTitle,
-          content: sanitizedContent,
-          type: notifType,
-          action_url: data.actionUrl,
-          read: false
-        })
-
-      if (error) {
-        console.error('Failed to send notification:', sanitizeForLog(error.message))
-        return false
-      }
+      await apiClient.request<{ duplicate?: boolean; notification?: Record<string, unknown> }>(
+        '/api/notifications?action=create',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            user_id: data.userId,
+            title: sanitizedTitle,
+            message: sanitizedContent,
+            type: notifType,
+            action_url: data.actionUrl,
+          }),
+          useCache: false,
+          invalidateCache: '/api/notifications?action=list',
+        }
+      )
 
       return true
     } catch (error) {
