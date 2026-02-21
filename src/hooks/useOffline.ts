@@ -1,18 +1,33 @@
 import { useState, useEffect, useCallback } from 'react'
-import { offlineManager } from '@/services/offlineManager'
+import { offlineSyncService, OfflineSyncStatus } from '@/services/offlineSync'
 
 /**
  * Hook for managing offline state and sync
  * Requirements: 9.5 - Add offline-first architecture improvements
  */
+const emptyStatus: OfflineSyncStatus = {
+  isPending: false,
+  pendingRequests: 0,
+  failedRequests: 0
+}
+
 export function useOffline() {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
-  const [syncStatus, setSyncStatus] = useState(offlineManager.getSyncStatus())
+  const [syncStatus, setSyncStatus] = useState<OfflineSyncStatus>(emptyStatus)
+
+  const updateSyncStatus = useCallback(async () => {
+    const status = await offlineSyncService.getSyncStatus()
+    setSyncStatus(status)
+  }, [])
 
   useEffect(() => {
-    const handleOnline = () => {
+    offlineSyncService.init()
+    updateSyncStatus()
+
+    const handleOnline = async () => {
       setIsOnline(true)
-      updateSyncStatus()
+      await offlineSyncService.syncQueue()
+      await updateSyncStatus()
     }
 
     const handleOffline = () => {
@@ -23,56 +38,37 @@ export function useOffline() {
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
 
-    // Update sync status periodically
-    const interval = setInterval(updateSyncStatus, 5000)
+    const interval = setInterval(() => {
+      updateSyncStatus()
+    }, 5000)
 
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
       clearInterval(interval)
     }
-  }, [])
+  }, [updateSyncStatus])
 
-  const updateSyncStatus = useCallback(() => {
-    setSyncStatus(offlineManager.getSyncStatus())
-  }, [])
-
-  const queueRequest = useCallback((
+  const queueRequest = useCallback(async (
     url: string,
     method: string,
     headers: Record<string, string> = {},
-    body?: any
-  ): string => {
-    const requestId = offlineManager.queueRequest(url, method, headers, body)
-    updateSyncStatus()
+    body?: Record<string, unknown>
+  ): Promise<string> => {
+    const requestId = await offlineSyncService.queueRequest(url, method, headers, body)
+    await updateSyncStatus()
     return requestId
   }, [updateSyncStatus])
 
   const syncNow = useCallback(async () => {
-    await offlineManager.syncQueue()
-    updateSyncStatus()
+    await offlineSyncService.syncQueue()
+    await updateSyncStatus()
   }, [updateSyncStatus])
 
-  const clearFailed = useCallback(() => {
-    offlineManager.clearFailedRequests()
-    updateSyncStatus()
+  const clearFailed = useCallback(async () => {
+    await offlineSyncService.clearFailedRequests()
+    await updateSyncStatus()
   }, [updateSyncStatus])
-
-  const cacheData = useCallback(async (key: string, data: any, ttl?: number) => {
-    await offlineManager.cacheData(key, data, ttl)
-  }, [])
-
-  const getCachedData = useCallback(<T,>(key: string): T | null => {
-    return offlineManager.getCachedData<T>(key)
-  }, [])
-
-  const clearCache = useCallback(() => {
-    offlineManager.clearCache()
-  }, [])
-
-  const prefetchResources = useCallback(async (urls: string[]) => {
-    await offlineManager.prefetchResources(urls)
-  }, [])
 
   return {
     isOnline,
@@ -80,10 +76,6 @@ export function useOffline() {
     queueRequest,
     syncNow,
     clearFailed,
-    cacheData,
-    getCachedData,
-    clearCache,
-    prefetchResources
   }
 }
 
