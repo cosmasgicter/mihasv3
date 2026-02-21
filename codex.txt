@@ -1,3 +1,160 @@
+MIHAS Application System — UI/UX Unification + Delivery Handoff to Opus 4.6
+=========================================================================
+Date: 2026-02-21
+Prepared by: Codex 5.3
+Audience: Opus 4.6
+Priority: CRITICAL (Brand, Conversion, Reliability)
+
+EXECUTIVE CONTEXT
+- User requested major UI/UX redesign toward world-class quality, single source of truth, smooth performance, and high SEO potential.
+- Static architecture review completed. No runtime build/test execution was possible in this handoff-only step.
+- This section documents what was done, key duplication/inconsistency risks, and a direct execution plan for Opus 4.6.
+
+WHAT HAS BEEN DONE IN THIS CYCLE
+1) Performed a front-end consistency and architecture pass across:
+   - App composition (`src/App.tsx`, layouts, routing)
+   - Landing page and section architecture (`src/pages/LandingPage.tsx`, `src/components/blocks/*`)
+   - UI primitive layer (`src/components/ui/*`)
+   - Metadata/SEO baseline (`index.html`)
+2) Identified high-impact duplication and source-of-truth fragmentation patterns.
+3) Produced implementation-ready action plan with explicit sequencing to avoid regressions.
+4) Added dedicated incident plan for notifications + emails not working.
+
+DUPLICATION / INCONSISTENCY FINDINGS (MUST UNIFY)
+A) Duplicate UI primitive files by case/name (single-source-of-truth violation)
+   - `src/components/ui/Card.tsx` and `src/components/ui/card.tsx` (duplicated implementation)
+   - `src/components/ui/Tooltip.tsx` and `src/components/ui/tooltip.tsx`
+   - `src/components/ui/Skeleton.tsx` and `src/components/ui/skeleton.tsx`
+   - Inconsistent imports are already present across codebase:
+     - both `@/components/ui/Card` and `@/components/ui/card`.
+   IMPACT: platform-specific case issues, style drift, harder maintenance, onboarding confusion.
+
+B) Import path inconsistencies and probable broken imports
+   - Imports to `@/components/ui/Badge` exist while canonical file is `badge.tsx`.
+   IMPACT: build/runtime risk, hidden dead paths, unexpected CI failures.
+
+C) Page/section architecture split across two patterns
+   - Landing page includes large inline section components in `src/pages/LandingPage.tsx`.
+   - Separate reusable block system exists in `src/components/blocks/*`.
+   IMPACT: fragmentation, duplicated design language, slower iteration, inconsistent polish.
+
+D) Duplicated transition systems
+   - `src/components/smoothui/page-transition.tsx`
+   - `src/components/ui/PageTransition.tsx`
+   IMPACT: divergent motion behavior, inconsistent reduced-motion handling, non-unified UX.
+
+E) Semantics/accessibility inconsistency
+   - Main content landmark responsibilities are split across top app shell and app layout patterns.
+   IMPACT: potential duplicate main landmarks and skip-link confusion depending on auth layout path.
+
+F) Placeholder links on marketing surface
+   - Landing page quick links/social links include `#` placeholders.
+   IMPACT: trust/conversion drop, poor crawl path quality, weak perceived completeness.
+
+G) Backup artifacts committed in source
+   - `.bak` files exist in src tree (example pages/components).
+   IMPACT: code archaeology noise, accidental stale reference, lower quality signal.
+
+OPUS 4.6 ACTION PLAN — UNIFY TO ONE SOURCE OF TRUTH
+Execute in this order.
+
+PHASE 1 — Canonical Design System (Foundation)
+1. Choose canonical naming convention for UI primitives (recommend lowercase shadcn style).
+2. Keep ONLY one implementation for each primitive:
+   - card, badge, tooltip, skeleton, dialog, toast, etc.
+3. Standardize imports via `@/components/ui` barrel wherever practical.
+4. Add lint/import rules for case-sensitive path consistency and duplicate primitive ban.
+5. Remove duplicate files after import migration passes.
+
+PHASE 2 — Architecture Consolidation (Page Composition)
+1. Decide and document: landing sections live in `components/blocks` OR local page composition—pick one.
+2. If blocks win (recommended), refactor `LandingPage` to compose shared blocks only.
+3. Remove duplicated page transition implementation; keep one motion system with reduced-motion support.
+4. Normalize spacing/type tokens usage across landing, auth, student, admin shells.
+
+PHASE 3 — Accessibility + Semantics Hardening
+1. Enforce exactly one `<main>` landmark per rendered page.
+2. Validate skip-link target IDs in all auth/public/private shells.
+3. Keep focus-visible styles token-driven and globally consistent.
+4. Add automated a11y smoke checks for nav landmarks, headings, and keyboard paths.
+
+PHASE 4 — Marketing UX + Conversion Quality
+1. Replace all placeholder `#` links with real routes/anchors.
+2. Ensure hero/footer CTAs map to measurable conversion goals (apply, track, contact).
+3. Add trust components (accreditation proof, outcomes, testimonials where available).
+4. Ensure motion remains subtle and performant (<300ms transitions, no layout thrash).
+
+PHASE 5 — SEO / Growth Baseline
+1. Add route-level metadata strategy (title, description, canonical, OG/Twitter tags).
+2. Add JSON-LD for Organization + EducationalOrganization + Program where appropriate.
+3. Validate sitemap/robots and indexability for public routes.
+4. Add performance budgets and track core web vitals by route.
+
+NOTIFICATIONS + EMAILS INCIDENT: HANDOVER FIX PLAN (CRITICAL)
+Symptoms reported by user: notifications and emails not working.
+
+Likely system touchpoints in repo:
+- API: `api/notifications.js`, `api-src/notifications.ts`
+- Queue/storage: `email_queue`, `notifications`, `user_notification_preferences` tables
+- Edge function: `supabase/functions/send-email/index.ts` (legacy/special path)
+- Services/hooks: `src/services/notifications.ts`, `src/hooks/useStudentNotifications.ts`, `src/hooks/useEmailNotifications.ts`
+
+Immediate triage checklist (execute in order):
+1) CONTRACT + ROUTING VALIDATION
+   - Verify frontend calls match active backend endpoints and methods.
+   - Confirm API source-of-truth is `api-src/*.ts` and generated `api/*.js` are in sync.
+
+2) ENV + PROVIDER VALIDATION
+   - Confirm all mail provider env vars exist in runtime (API + worker/function contexts).
+   - Confirm sender domain, SPF/DKIM/DMARC status and from-address policy.
+
+3) DELIVERY PIPELINE VALIDATION
+   - Insert synthetic notification/email and trace full path:
+     request -> API handler -> DB queue write -> processor/worker -> provider response.
+   - Capture correlation IDs in logs (do not include PII).
+
+4) DATABASE HEALTH CHECK
+   - Check row creation in `notifications` and `email_queue`.
+   - Check retry/dead-letter semantics; confirm failed entries are surfaced.
+
+5) ERROR OBSERVABILITY IMPROVEMENT
+   - Add structured error codes for each stage: enqueue, template render, provider send, ack.
+   - Ensure frontend receives safe, actionable status messages.
+
+6) USER PREFERENCES + AUTH CHECK
+   - Verify notification preference gates are not silently suppressing all sends.
+   - Verify auth/role checks are not rejecting notification endpoints unexpectedly.
+
+7) PROVIDER SANDBOX/QUOTA CHECK
+   - Confirm account not in sandbox mode, rate-limited, or blocked by reputation settings.
+
+8) END-TO-END TEST COVERAGE
+   - Add integration tests for:
+     a) enqueue success
+     b) provider failure and retry
+     c) preference opt-out behavior
+     d) idempotent duplicate send prevention
+
+9) FALLBACK + RECOVERY
+   - Implement graceful fallback status in UI when delivery is degraded.
+   - Add admin diagnostics panel showing queue depth, failure rate, last success timestamp.
+
+Definition of Done for incident:
+- Test email sent and delivered in production-like environment.
+- Notification appears in-app and delivery status is traceable.
+- Failed sends retry with bounded backoff and are visible in diagnostics.
+- Alerts configured for sustained failure rate.
+
+QUALITY BAR (WORLD-CLASS TARGET)
+- One canonical design system and import contract.
+- Zero duplicate primitive implementations.
+- Zero placeholder production links.
+- A11y landmarks/focus/keyboard flows verified.
+- Route-level SEO complete for all public pages.
+- Notifications/emails monitored with auditable delivery lifecycle.
+
+--------------------------------------------------------------------------
+
 MIHAS Application System — Codex 5.3 → Opus 4.6 Return Handoff
 =========================================================================
 Date: 2026-02-21
