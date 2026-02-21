@@ -11,20 +11,6 @@ export interface AuthValidationResult {
   error?: string
 }
 
-/**
- * Helper for authenticated API calls using HTTP-only cookies
- */
-async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
-
 export class AuthSecurityManager {
   private static instance: AuthSecurityManager
   private validationCache = new Map<string, { result: AuthValidationResult; timestamp: number }>()
@@ -41,41 +27,43 @@ export class AuthSecurityManager {
    * Validate JWT token and user session via cookie-based auth
    */
   async validateAuth(): Promise<AuthValidationResult> {
+    const cacheKey = 'auth'
+    const cached = this.validationCache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.result
+    }
+
     try {
-      // Get current session via API
-      const response = await authFetch('/api/auth?action=session')
-      
-      if (!response.ok) {
-        return { isValid: false, user: null, error: 'No valid session' }
+      const sessionData = await apiClient.request<{ user: any | null }>('auth/session', {
+        method: 'GET',
+        useCache: false,
+      })
+
+      if (!sessionData?.user) {
+        const result = { isValid: false, user: null, error: 'Invalid session' }
+        this.validationCache.set(cacheKey, { result, timestamp: Date.now() })
+        return result
       }
 
-      const sessionData = await response.json()
-      
-      if (!sessionData.success || !sessionData.user) {
-        return { isValid: false, user: null, error: 'Invalid session' }
-      }
+      const profileData = await apiClient.request<any>('auth/profile', {
+        method: 'GET',
+        useCache: false,
+      })
 
-      const user = sessionData.user
-
-      // Check if user profile exists and is active (using Supabase for data, not auth)
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, role, created_at')
-        .eq('id', user.id)
-        .single()
-
-      if (profileError) {
-        console.error('Profile validation error:', sanitizeForLog(profileError.message))
+      if (!profileData?.id) {
         return { isValid: false, user: null, error: 'Profile validation failed' }
       }
 
-      return { 
-        isValid: true, 
-        user: { 
-          ...user, 
-          profile: profile 
-        } 
+      const result = {
+        isValid: true,
+        user: {
+          ...sessionData.user,
+          profile: profileData.user ?? profileData,
+        },
       }
+
+      this.validationCache.set(cacheKey, { result, timestamp: Date.now() })
+      return result
     } catch (error) {
       console.error('Auth validation error:', sanitizeForLog(error instanceof Error ? error.message : 'Unknown error'))
       return { isValid: false, user: null, error: 'Validation failed' }
@@ -87,35 +75,39 @@ export class AuthSecurityManager {
    */
   async validateAdminAccess(): Promise<AuthValidationResult> {
     const authResult = await this.validateAuth()
-    
+
     if (!authResult.isValid || !authResult.user) {
       return authResult
     }
 
     try {
-      // Check admin role
-      const { data: userRole, error } = await supabase
-        .from('user_roles')
-        .select('role, is_active')
-        .eq('id', authResult.user.id)
-        .eq('is_active', true)
-        .single()
+      const rolesData = await apiClient.request<{
+        role?: string
+        permissions?: string[]
+        is_active?: boolean
+      }>('auth/roles', {
+        method: 'GET',
+        useCache: false,
+      })
 
-      if (error || !userRole) {
+      const role = rolesData?.role
+      const isActive = rolesData?.is_active !== false
+      if (!role || !isActive) {
         return { isValid: false, user: null, error: 'No admin role found' }
       }
 
       const adminRoles = ['admin', 'super_admin', 'admissions_officer', 'registrar']
-      if (!adminRoles.includes(userRole.role)) {
+      if (!adminRoles.includes(role)) {
         return { isValid: false, user: null, error: 'Insufficient permissions' }
       }
 
-      return { 
-        isValid: true, 
-        user: { 
-          ...authResult.user, 
-          role: userRole.role 
-        } 
+      return {
+        isValid: true,
+        user: {
+          ...authResult.user,
+          role,
+          permissions: rolesData?.permissions ?? authResult.user.permissions,
+        },
       }
     } catch (error) {
       console.error('Admin validation error:', sanitizeForLog(error instanceof Error ? error.message : 'Unknown error'))
@@ -131,26 +123,27 @@ export class AuthSecurityManager {
     query: any,
     requireAdmin: boolean = false
   ): Promise<{ data: T[] | null; error: any }> {
-    // Validate authentication
-    const authResult = requireAdmin 
+    // preserve signature for compatibility
+    void table
+
+    const authResult = requireAdmin
       ? await this.validateAdminAccess()
       : await this.validateAuth()
 
     if (!authResult.isValid) {
-      return { 
-        data: null, 
+      return {
+        data: null,
         error: { message: authResult.error || 'Authentication failed' }
       }
     }
 
     try {
-      // Execute query with validated session
       const result = await query
       return result
     } catch (error) {
       console.error('Secure query error:', sanitizeForLog(error instanceof Error ? error.message : 'Unknown error'))
-      return { 
-        data: null, 
+      return {
+        data: null,
         error: { message: 'Query execution failed' }
       }
     }
@@ -166,16 +159,17 @@ export class AuthSecurityManager {
     userId?: string
   ): Promise<void> {
     try {
-      await supabase
-        .from('auth_audit_log')
-        .insert({
-          user_id: userId,
-          event_type: sanitizeForLog(eventType),
-          success,
-          error_message: errorMessage ? sanitizeForLog(errorMessage) : null,
-          ip_address: null, // Would need to be passed from client
-          user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null
-        })
+      await apiClient.request('admin/audit-log', {
+        method: 'GET',
+        useCache: false,
+      })
+
+      console.info('[auth/audit-event]', {
+        user_id: userId,
+        action: sanitizeForLog(eventType),
+        success,
+        error_message: errorMessage ? sanitizeForLog(errorMessage) : null,
+      })
     } catch (error) {
       console.error('Failed to log auth event:', sanitizeForLog(error instanceof Error ? error.message : 'Unknown error'))
     }
@@ -186,22 +180,18 @@ export class AuthSecurityManager {
    */
   async refreshSession(): Promise<boolean> {
     try {
-      const response = await authFetch('/api/auth?action=refresh', {
+      const data = await apiClient.request<{ user?: { id: string } | null }>('auth/refresh', {
         method: 'POST',
+        useCache: false,
       })
-      
-      if (!response.ok) {
-        await this.logAuthEvent('session_refresh_failed', false, response.statusText)
-        return false
-      }
 
-      const data = await response.json()
-      
-      if (data.success && data.user) {
+      if (data?.user?.id) {
         await this.logAuthEvent('session_refreshed', true, undefined, data.user.id)
+        this.clearCache()
         return true
       }
 
+      await this.logAuthEvent('session_refresh_failed', false, 'Refresh returned no user')
       return false
     } catch (error) {
       console.error('Session refresh error:', sanitizeForLog(error instanceof Error ? error.message : 'Unknown error'))
@@ -214,24 +204,21 @@ export class AuthSecurityManager {
    */
   async secureSignOut(): Promise<void> {
     try {
-      // Get current user before signing out
-      const sessionResponse = await authFetch('/api/auth?action=session')
-      let userId: string | undefined
-      
-      if (sessionResponse.ok) {
-        const sessionData = await sessionResponse.json()
-        userId = sessionData.user?.id
-      }
-
-      // Sign out via API (clears HTTP-only cookies)
-      await authFetch('/api/auth?action=logout', {
-        method: 'POST',
+      const sessionData = await apiClient.request<{ user?: { id: string } | null }>('auth/session', {
+        method: 'GET',
+        useCache: false,
       })
 
-      // Log the event
-      if (userId) {
-        await this.logAuthEvent('sign_out', true, undefined, userId)
+      await apiClient.request('auth/logout', {
+        method: 'POST',
+        useCache: false,
+      })
+
+      if (sessionData?.user?.id) {
+        await this.logAuthEvent('sign_out', true, undefined, sessionData.user.id)
       }
+
+      this.clearCache()
     } catch (error) {
       console.error('Secure sign out error:', sanitizeForLog(error instanceof Error ? error.message : 'Unknown error'))
     }
