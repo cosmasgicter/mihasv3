@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { Skeleton } from '@/components/ui/Skeleton';
+import { Skeleton } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
 interface DashboardSkeletonProps {

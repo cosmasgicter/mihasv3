@@ -17,7 +17,7 @@ import {
   CreditCard,
   TrendingUp
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { StatusIndicator, StatusBadge } from '@/components/8starlabs';
 import { cn } from '@/lib/utils';
 import { animateClasses, staggerChild } from '@/lib/animations';

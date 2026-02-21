@@ -13,7 +13,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Switch } from '@/components/ui/Switch'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import { Alert, AlertDescription } from '@/components/ui/Alert'
 import { pushNotificationManager } from '@/services/pushNotificationManager'
 import { useAuth } from '@/hooks/useAuth'

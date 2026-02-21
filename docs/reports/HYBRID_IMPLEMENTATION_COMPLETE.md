@@ -123,7 +123,7 @@
 // Example: New form
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 
 export function NewForm() {
@@ -178,7 +178,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 ### 4. Use Utility Components
 ```tsx
 // Example: Status badges
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui'
 
 <Badge variant="success">Approved</Badge>
 <Badge variant="warning">Pending</Badge>
