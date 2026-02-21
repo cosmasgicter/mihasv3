@@ -162,7 +162,7 @@ WHERE application_number = 'MIHAS202500001';
 
 ✅ **Database error**
 - Check browser console
-- Check Sentry for errors
+- Check Vercel logs for errors
 - Contact tech support
 
 **Verify Requirements**:
@@ -190,7 +190,7 @@ WHERE application_number = 'MIHAS202500001';
 - Update if incorrect
 
 ✅ **Email service down**
-- Check Supabase status
+- Check Resend status (https://resend-status.com)
 - Wait and try again
 
 ✅ **Email blocked**
@@ -247,7 +247,7 @@ performance.now()
 ✅ **Realtime not working**
 - Check internet connection
 - Logout and login
-- Check Supabase status
+- Check Vercel deployment status
 
 ✅ **Race condition**
 - Wait 1-2 seconds
@@ -289,7 +289,7 @@ window.location.reload(true)
 
 ### 10. Database Errors
 
-**Symptoms**: "Database error" or "RLS policy violation"
+**Symptoms**: "Database error" or query failure
 
 **Causes & Solutions**:
 
@@ -301,19 +301,18 @@ window.location.reload(true)
 - Check user role
 - Contact admin for access
 
-✅ **RLS policy blocking**
+✅ **API authorization blocking**
 - Check you own the data
 - Admins can access all data
 
 ✅ **Database down**
-- Check Supabase status
+- Check Neon Postgres status (https://neonstatus.com)
 - Wait for recovery
 
-**Check RLS**:
-```sql
--- Admin can check policies
-SELECT * FROM pg_policies 
-WHERE tablename = 'applications';
+**Check via API**:
+```bash
+# Check database connectivity
+curl https://apply.mihas.edu.zm/api/health?action=db
 ```
 
 ## Error Codes
@@ -328,14 +327,13 @@ WHERE tablename = 'applications';
 | 404 | Not Found | Check URL |
 | 500 | Server Error | Contact support |
 
-### Supabase Errors
+### Database Errors
 
 | Code | Meaning | Solution |
 |------|---------|----------|
-| PGRST116 | RLS violation | Check permissions |
-| PGRST301 | Not found | Check ID exists |
 | 23505 | Duplicate | Record already exists |
 | 23503 | Foreign key | Related record missing |
+| SECURITY_VIOLATION | Arcjet block | Rate limit or bot detection triggered |
 
 ## Browser-Specific Issues
 
@@ -366,28 +364,25 @@ WHERE tablename = 'applications';
 ```bash
 # Clear everything and rebuild
 rm -rf node_modules dist .vite
-npm install
-npm run build
+bun install
+bun run build
 ```
 
 ### TypeScript Errors
 
 ```bash
 # Check types
-npm run type-check
+bun run type-check
 
 # Common fixes
-npm install @types/node --save-dev
+bun add -d @types/node
 ```
 
-### Supabase Connection
+### Database Connection
 
 ```bash
-# Test connection
-supabase db ping
-
-# Reset connection
-supabase db reset
+# Test Neon Postgres connection
+curl https://apply.mihas.edu.zm/api/health?action=db
 ```
 
 ### Port Already in Use
@@ -397,7 +392,7 @@ supabase db reset
 lsof -ti:5173 | xargs kill -9
 
 # Or use different port
-npm run dev -- --port 3000
+bun run dev -- --port 3000
 ```
 
 ## Getting Help
@@ -464,33 +459,31 @@ npm run dev -- --port 3000
 1. **Test locally** - Before deploying
 2. **Check console** - No errors before commit
 3. **Run migrations** - Keep DB in sync
-4. **Monitor Sentry** - Check for new errors
+4. **Monitor Vercel logs** - Check for new errors
 5. **Update dependencies** - Security patches
 
 ## Status Pages
 
 Check if services are down:
-- Supabase: https://status.supabase.com
-- Cloudflare: https://cloudflarestatus.com
+- Neon Postgres: https://neonstatus.com
+- Vercel: https://vercel-status.com
 - GitHub: https://githubstatus.com
 
 ## Logs & Monitoring
 
 ### Check Logs
 
-**Sentry** (Errors):
-- https://sentry.io/mihas
-- Shows all production errors
-- Stack traces included
+**Vercel** (Errors & API):
+- https://vercel.com/dashboard → Select project → Logs
+- Shows all production errors and API function logs
+- Filter by function name, status code, or time range
 
-**Cloudflare** (API):
+**Health Endpoints**:
 ```bash
-wrangler pages deployment tail
-```
-
-**Supabase** (Database):
-```bash
-supabase functions logs
+# Quick system check
+curl https://apply.mihas.edu.zm/api/health?action=ping
+curl https://apply.mihas.edu.zm/api/health?action=db
+curl https://apply.mihas.edu.zm/api/health?action=env
 ```
 
 ### Monitor Performance

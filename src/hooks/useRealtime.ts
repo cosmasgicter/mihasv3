@@ -117,7 +117,7 @@ const DEFAULT_OPTIONS: Required<UseRealtimeOptions> = {
   maxReconnectAttempts: 3,
   initialBackoff: 1000,
   maxBackoff: 30000,
-  pollingEnabled: false, // No backend polling endpoint exists yet
+  pollingEnabled: true, // Polling enabled - backend endpoint exists at /api/sessions?action=poll
   batteryFriendly: true,
 }
 

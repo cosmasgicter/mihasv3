@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { EligibilityAssessment, MissingRequirement } from '@/lib/eligibilityEngine'
 
-export interface SupabaseEligibilityAssessmentRow extends EligibilityAssessment {
+export interface EligibilityAssessmentRow extends EligibilityAssessment {
   id: string
   created_at: string
   updated_at?: string | null
@@ -10,7 +10,7 @@ export interface SupabaseEligibilityAssessmentRow extends EligibilityAssessment 
   recommendations: string | string[]
 }
 
-export interface EligibilityAssessmentWithProgram extends SupabaseEligibilityAssessmentRow {
+export interface EligibilityAssessmentWithProgram extends EligibilityAssessmentRow {
   programs?: {
     name: string | null
     code?: string | null

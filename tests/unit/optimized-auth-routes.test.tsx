@@ -24,7 +24,7 @@ vi.mock('@/hooks/useLoadingState', () => ({
   useDebouncedLoading: (isLoading: boolean, delay?: number) => mockUseDebouncedLoading(isLoading, delay),
 }))
 
-vi.mock('@/hooks/queries/useSupabaseQuery', () => ({
+vi.mock('@/hooks/queries/useQueryConfig', () => ({
   CACHE_CONFIG: {
     auth: {
       staleTime: 1000,

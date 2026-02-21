@@ -392,14 +392,14 @@ export class UserJourneyMapper {
         id: 'email_verification',
         name: 'Email Verification',
         type: 'external_service',
-        location: 'Supabase Auth',
+        location: 'Custom JWT Auth',
         interactions: ['account_activation', 'email_confirmation']
       },
       {
         id: 'user_profiles_table',
         name: 'User Profiles Database',
         type: 'database_table',
-        location: 'supabase.user_profiles',
+        location: 'database.profiles',
         interactions: ['profile_storage', 'user_data_retrieval']
       },
 
@@ -422,7 +422,7 @@ export class UserJourneyMapper {
         id: 'applications_table',
         name: 'Applications Database',
         type: 'database_table',
-        location: 'supabase.applications',
+        location: 'database.applications',
         interactions: ['application_storage', 'status_updates', 'data_retrieval']
       },
 
@@ -445,7 +445,7 @@ export class UserJourneyMapper {
         id: 'application_grades_table',
         name: 'Application Grades Database',
         type: 'database_table',
-        location: 'supabase.application_grades',
+        location: 'database.application_grades',
         interactions: ['grade_storage', 'eligibility_calculation']
       },
 
@@ -461,7 +461,7 @@ export class UserJourneyMapper {
         id: 'document_storage',
         name: 'Document Storage',
         type: 'external_service',
-        location: 'Supabase Storage',
+        location: 'R2 Storage',
         interactions: ['file_storage', 'access_control', 'retrieval']
       },
 
@@ -1638,7 +1638,7 @@ export class AutomationOpportunityIdentifier {
       },
       technicalRequirements: {
         systems: ['Application Database', 'Notification System', 'File Storage'],
-        integrations: ['Supabase', 'Cloudflare Functions', 'External APIs'],
+        integrations: ['Neon Postgres', 'Vercel Functions', 'External APIs'],
         dataRequirements: ['Historical processing data', 'Business rules', 'User preferences'],
         securityConsiderations: ['Data encryption', 'Access controls', 'Audit logging']
       },

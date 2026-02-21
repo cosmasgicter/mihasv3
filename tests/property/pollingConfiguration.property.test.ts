@@ -22,7 +22,7 @@ import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 
 // Import the actual CACHE_CONFIG from the codebase
-import { CACHE_CONFIG } from '../../src/hooks/queries/useSupabaseQuery';
+import { CACHE_CONFIG } from '../../src/hooks/queries/useQueryConfig';
 
 /**
  * Interface representing a React Query polling configuration

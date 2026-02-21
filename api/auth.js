@@ -1,8 +1,34 @@
 import { createRequire } from "node:module";
+var __defProp = Object.defineProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, {
+      get: all[name],
+      enumerable: true,
+      configurable: true,
+      set: (newValue) => all[name] = () => newValue
+    });
+};
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
 // lib/db.ts
+var exports_db = {};
+__export(exports_db, {
+  verifyDatabaseSchema: () => verifyDatabaseSchema,
+  userQueries: () => userQueries,
+  transaction: () => transaction,
+  sessionQueries: () => sessionQueries,
+  query: () => query,
+  getDatabaseType: () => detectDatabaseType,
+  detectDatabaseType: () => detectDatabaseType,
+  auditQueries: () => auditQueries,
+  DatabaseErrorCode: () => DatabaseErrorCode,
+  DatabaseError: () => DatabaseError
+});
+function detectDatabaseType() {
+  return "neon";
+}
 function getDatabaseConfig() {
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -64,7 +90,84 @@ async function query(queryText, params) {
   getDatabaseConfig();
   return executeNeonQuery(queryText, params);
 }
-var DatabaseErrorCode, DatabaseError;
+async function transaction(operations) {
+  if (operations.length === 0) {
+    return [];
+  }
+  const results = [];
+  try {
+    await query("BEGIN");
+    for (const op of operations) {
+      const result = await query(op.text, op.values);
+      results.push(result);
+    }
+    await query("COMMIT");
+    return results;
+  } catch (error) {
+    try {
+      await query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("[DB] Rollback failed:", rollbackError.message);
+    }
+    if (error instanceof DatabaseError) {
+      throw new DatabaseError(`Transaction failed: ${error.message}`, DatabaseErrorCode.TRANSACTION_ERROR, { query: error.query, originalError: error });
+    }
+    throw new DatabaseError(`Transaction failed: ${error.message}`, DatabaseErrorCode.TRANSACTION_ERROR, { originalError: error });
+  }
+}
+async function verifyDatabaseSchema() {
+  const errors = [];
+  const warnings = [];
+  console.log("[DB] Verifying Neon database schema...");
+  for (const table of REQUIRED_TABLES) {
+    try {
+      await query(`SELECT 1 FROM ${table} LIMIT 1`);
+      console.log(`[DB] ✓ Table '${table}' exists`);
+    } catch (error) {
+      const errorMsg = error.message;
+      if (errorMsg.includes("does not exist") || errorMsg.includes("relation") || errorMsg.includes("404")) {
+        errors.push(`Required table '${table}' is missing`);
+        console.error(`[DB] ✗ Table '${table}' is missing`);
+      } else {
+        warnings.push(`Could not verify table '${table}': ${errorMsg}`);
+        console.warn(`[DB] ? Table '${table}' verification inconclusive`);
+      }
+    }
+  }
+  if (!errors.some((e) => e.includes("'profiles'"))) {
+    try {
+      const columnCheckQuery = `
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'profiles' 
+        AND column_name = ANY($1)
+      `;
+      const result = await query(columnCheckQuery, [REQUIRED_PROFILE_COLUMNS]);
+      const existingColumns = new Set(result.rows.map((r) => r.column_name));
+      for (const col of REQUIRED_PROFILE_COLUMNS) {
+        if (!existingColumns.has(col)) {
+          if (col === "password_hash" || col === "refresh_token_hash") {
+            warnings.push(`Column 'profiles.${col}' is missing - run auth migration`);
+            console.warn(`[DB] ? Column 'profiles.${col}' missing (migration needed)`);
+          } else {
+            errors.push(`Required column 'profiles.${col}' is missing`);
+            console.error(`[DB] ✗ Column 'profiles.${col}' is missing`);
+          }
+        }
+      }
+    } catch (error) {
+      warnings.push(`Could not verify profiles columns: ${error.message}`);
+    }
+  }
+  const ok = errors.length === 0;
+  if (ok) {
+    console.log("[DB] Schema verification passed");
+  } else {
+    console.error(`[DB] Schema verification failed with ${errors.length} error(s)`);
+  }
+  return { ok, errors, warnings };
+}
+var DatabaseErrorCode, DatabaseError, REQUIRED_TABLES, REQUIRED_PROFILE_COLUMNS, userQueries, sessionQueries, auditQueries;
 var init_db = __esm(() => {
   DatabaseErrorCode = {
     CONNECTION_ERROR: "CONNECTION_ERROR",
@@ -87,6 +190,1214 @@ var init_db = __esm(() => {
       this.query = options?.query ? sanitizeQueryForLogging(options.query) : undefined;
       this.originalError = options?.originalError;
     }
+  };
+  REQUIRED_TABLES = [
+    "profiles",
+    "device_sessions",
+    "audit_logs"
+  ];
+  REQUIRED_PROFILE_COLUMNS = [
+    "id",
+    "email",
+    "role",
+    "password_hash",
+    "refresh_token_hash"
+  ];
+  userQueries = {
+    findByEmail: (email) => ({
+      text: `SELECT id, email, password_hash, refresh_token_hash, role, first_name, last_name, 
+                  is_active, failed_login_attempts, locked_until, created_at, updated_at 
+           FROM profiles 
+           WHERE email = $1 
+           LIMIT 1`,
+      values: [email]
+    }),
+    findById: (id) => ({
+      text: `SELECT id, email, role, first_name, last_name, is_active, created_at, updated_at 
+           FROM profiles 
+           WHERE id = $1 
+           LIMIT 1`,
+      values: [id]
+    }),
+    create: (id, email, passwordHash, role, firstName, lastName) => ({
+      text: `INSERT INTO profiles (id, email, password_hash, role, first_name, last_name, is_active, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
+           RETURNING id, email, role, is_active`,
+      values: [id, email, passwordHash, role, firstName, lastName]
+    }),
+    updatePassword: (id, passwordHash) => ({
+      text: `UPDATE profiles 
+           SET password_hash = $2, password_changed_at = NOW(), updated_at = NOW() 
+           WHERE id = $1`,
+      values: [id, passwordHash]
+    }),
+    updateRefreshToken: (id, tokenHash) => ({
+      text: `UPDATE profiles 
+           SET refresh_token_hash = $2, updated_at = NOW() 
+           WHERE id = $1`,
+      values: [id, tokenHash]
+    }),
+    findByRefreshToken: (tokenHash) => ({
+      text: `SELECT id, email, role, is_active 
+           FROM profiles 
+           WHERE refresh_token_hash = $1 AND is_active = true
+           LIMIT 1`,
+      values: [tokenHash]
+    }),
+    incrementFailedAttempts: (id) => ({
+      text: `UPDATE profiles 
+           SET failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1, updated_at = NOW() 
+           WHERE id = $1`,
+      values: [id]
+    }),
+    resetFailedAttempts: (id) => ({
+      text: `UPDATE profiles 
+           SET failed_login_attempts = 0, locked_until = NULL, updated_at = NOW() 
+           WHERE id = $1`,
+      values: [id]
+    }),
+    lockAccount: (id, lockUntil) => ({
+      text: `UPDATE profiles 
+           SET locked_until = $2, updated_at = NOW() 
+           WHERE id = $1`,
+      values: [id, lockUntil]
+    })
+  };
+  sessionQueries = {
+    create: (id, userId, deviceInfo, ipAddress, userAgent) => ({
+      text: `INSERT INTO device_sessions (id, user_id, device_info, ip_address, user_agent, is_active, last_activity, created_at, expires_at)
+           VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW(), NOW() + INTERVAL '30 days')
+           RETURNING id, user_id, is_active, created_at`,
+      values: [id, userId, deviceInfo, ipAddress, userAgent || ""]
+    }),
+    updateActivity: (id) => ({
+      text: `UPDATE device_sessions 
+           SET last_activity = NOW() 
+           WHERE id = $1 AND is_active = true`,
+      values: [id]
+    }),
+    deactivate: (id) => ({
+      text: `UPDATE device_sessions 
+           SET is_active = false 
+           WHERE id = $1`,
+      values: [id]
+    }),
+    deactivateAllForUser: (userId) => ({
+      text: `UPDATE device_sessions 
+           SET is_active = false 
+           WHERE user_id = $1`,
+      values: [userId]
+    }),
+    getActiveForUser: (userId) => ({
+      text: `SELECT id, device_info, ip_address, user_agent, last_activity, created_at 
+           FROM device_sessions 
+           WHERE user_id = $1 AND is_active = true 
+           ORDER BY last_activity DESC`,
+      values: [userId]
+    }),
+    deactivateExpired: () => ({
+      text: `UPDATE device_sessions 
+           SET is_active = false 
+           WHERE is_active = true AND last_activity < NOW() - INTERVAL '30 days'`,
+      values: []
+    })
+  };
+  auditQueries = {
+    log: (actorId, action, entityType, entityId, changes, ipAddress, userAgent) => ({
+      text: `INSERT INTO audit_logs (actor_id, action, entity_type, entity_id, changes, ip_address, user_agent, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+      values: [actorId, action, entityType, entityId, JSON.stringify(changes), ipAddress, userAgent]
+    })
+  };
+});
+
+// lib/queries.ts
+var exports_queries = {};
+__export(exports_queries, {
+  userQueries: () => UserQueries,
+  statusHistoryQueries: () => StatusHistoryQueries,
+  sessionQueries: () => SessionQueries,
+  paymentQueries: () => PaymentQueries,
+  notificationQueries: () => NotificationQueries,
+  gradeQueries: () => GradeQueries,
+  documentQueries: () => DocumentQueries,
+  catalogQueries: () => CatalogQueries,
+  auditQueries: () => AuditQueries,
+  applicationQueries: () => ApplicationQueries,
+  UserQueries: () => UserQueries,
+  USER_ROLES: () => USER_ROLES,
+  StatusHistoryQueries: () => StatusHistoryQueries,
+  SessionQueries: () => SessionQueries,
+  PaymentQueries: () => PaymentQueries,
+  PAYMENT_STATUS: () => PAYMENT_STATUS,
+  NotificationQueries: () => NotificationQueries,
+  GradeQueries: () => GradeQueries,
+  DocumentQueries: () => DocumentQueries,
+  DOCUMENT_VERIFICATION_STATUS: () => DOCUMENT_VERIFICATION_STATUS,
+  CatalogQueries: () => CatalogQueries,
+  AuditQueries: () => AuditQueries,
+  ApplicationQueries: () => ApplicationQueries,
+  APPLICATION_STATUS: () => APPLICATION_STATUS
+});
+var USER_ROLES, UserQueries, SessionQueries, AuditQueries, APPLICATION_STATUS, PAYMENT_STATUS, ApplicationQueries, DOCUMENT_VERIFICATION_STATUS, DocumentQueries, GradeQueries, StatusHistoryQueries, CatalogQueries, NotificationQueries, PaymentQueries;
+var init_queries = __esm(() => {
+  USER_ROLES = {
+    SUPER_ADMIN: "super_admin",
+    ADMIN: "admin",
+    REVIEWER: "reviewer",
+    STUDENT: "student"
+  };
+  UserQueries = {
+    findByEmail: (email) => ({
+      text: `
+      SELECT 
+        id, email, password_hash, refresh_token_hash, role,
+        first_name, last_name, phone, is_active,
+        failed_login_attempts, locked_until, password_changed_at,
+        created_at, updated_at
+      FROM profiles
+      WHERE email = $1
+      LIMIT 1
+    `,
+      values: [email]
+    }),
+    findById: (id) => ({
+      text: `
+      SELECT 
+        id, email, password_hash, refresh_token_hash, role,
+        first_name, last_name, phone, is_active,
+        failed_login_attempts, locked_until, password_changed_at,
+        created_at, updated_at
+      FROM profiles
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    }),
+    findByIdPublic: (id) => ({
+      text: `
+      SELECT 
+        id, email, role, first_name, last_name,
+        is_active, created_at, updated_at
+      FROM profiles
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    }),
+    findByRefreshToken: (tokenHash) => ({
+      text: `
+      SELECT id, email, role, is_active, refresh_token_hash
+      FROM profiles
+      WHERE refresh_token_hash = $1 AND is_active = true
+      LIMIT 1
+    `,
+      values: [tokenHash]
+    }),
+    create: (id, email, passwordHash, role, firstName, lastName) => ({
+      text: `
+      INSERT INTO profiles (
+        id, email, password_hash, role, first_name, last_name,
+        is_active, failed_login_attempts, created_at, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, true, 0, NOW(), NOW())
+      RETURNING id, email, role, is_active, created_at
+    `,
+      values: [id, email, passwordHash, role, firstName, lastName]
+    }),
+    createWithoutPassword: (id, email, role, firstName, lastName) => ({
+      text: `
+      INSERT INTO profiles (
+        id, email, role, first_name, last_name,
+        is_active, failed_login_attempts, created_at, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, true, 0, NOW(), NOW())
+      ON CONFLICT (id) DO NOTHING
+      RETURNING id, email, role, is_active
+    `,
+      values: [id, email, role, firstName, lastName]
+    }),
+    updatePassword: (id, passwordHash) => ({
+      text: `
+      UPDATE profiles
+      SET 
+        password_hash = $2,
+        password_changed_at = NOW(),
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+      values: [id, passwordHash]
+    }),
+    updateRefreshToken: (id, tokenHash) => ({
+      text: `
+      UPDATE profiles
+      SET 
+        refresh_token_hash = $2,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+      values: [id, tokenHash]
+    }),
+    incrementFailedAttempts: (id) => ({
+      text: `
+      UPDATE profiles
+      SET 
+        failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING failed_login_attempts
+    `,
+      values: [id]
+    }),
+    resetFailedAttempts: (id) => ({
+      text: `
+      UPDATE profiles
+      SET 
+        failed_login_attempts = 0,
+        locked_until = NULL,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+      values: [id]
+    }),
+    lockAccount: (id, lockUntil) => ({
+      text: `
+      UPDATE profiles
+      SET 
+        locked_until = $2,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, locked_until
+    `,
+      values: [id, lockUntil]
+    }),
+    unlockAccount: (id) => ({
+      text: `
+      UPDATE profiles
+      SET 
+        locked_until = NULL,
+        failed_login_attempts = 0,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+      values: [id]
+    }),
+    updateRole: (id, role) => ({
+      text: `
+      UPDATE profiles
+      SET 
+        role = $2,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, role
+    `,
+      values: [id, role]
+    }),
+    deactivate: (id) => ({
+      text: `
+      UPDATE profiles
+      SET 
+        is_active = false,
+        refresh_token_hash = NULL,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+      values: [id]
+    }),
+    reactivate: (id) => ({
+      text: `
+      UPDATE profiles
+      SET 
+        is_active = true,
+        failed_login_attempts = 0,
+        locked_until = NULL,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+      values: [id]
+    }),
+    list: (limit, offset) => ({
+      text: `
+      SELECT 
+        id, email, role, first_name, last_name,
+        is_active, created_at, updated_at
+      FROM profiles
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `,
+      values: [limit, offset]
+    }),
+    listByRole: (role, limit, offset) => ({
+      text: `
+      SELECT 
+        id, email, role, first_name, last_name,
+        is_active, created_at, updated_at
+      FROM profiles
+      WHERE role = $1
+      ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3
+    `,
+      values: [role, limit, offset]
+    }),
+    count: () => ({
+      text: `SELECT COUNT(*) as count FROM profiles`,
+      values: []
+    }),
+    countByRole: (role) => ({
+      text: `SELECT COUNT(*) as count FROM profiles WHERE role = $1`,
+      values: [role]
+    }),
+    emailExists: (email) => ({
+      text: `SELECT EXISTS(SELECT 1 FROM profiles WHERE email = $1) as exists`,
+      values: [email]
+    })
+  };
+  SessionQueries = {
+    create: (id, userId, deviceInfo, ipAddress, userAgent) => ({
+      text: `
+      INSERT INTO device_sessions (
+        id, user_id, device_info, ip_address, user_agent,
+        is_active, last_activity, created_at, expires_at
+      )
+      VALUES (
+        $1, $2, $3, $4, $5,
+        true, NOW(), NOW(), NOW() + INTERVAL '1 hour'
+      )
+      RETURNING id, user_id, is_active, last_activity, created_at, expires_at
+    `,
+      values: [id, userId, JSON.stringify(deviceInfo), ipAddress, userAgent]
+    }),
+    findById: (id) => ({
+      text: `
+      SELECT 
+        id, user_id, device_info, ip_address, user_agent,
+        is_active, last_activity, created_at, expires_at
+      FROM device_sessions
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    }),
+    updateActivity: (id) => ({
+      text: `
+      UPDATE device_sessions
+      SET last_activity = NOW()
+      WHERE id = $1 AND is_active = true
+      RETURNING id, last_activity
+    `,
+      values: [id]
+    }),
+    deactivate: (id) => ({
+      text: `
+      UPDATE device_sessions
+      SET is_active = false
+      WHERE id = $1
+      RETURNING id
+    `,
+      values: [id]
+    }),
+    deactivateAllForUser: (userId) => ({
+      text: `
+      UPDATE device_sessions
+      SET is_active = false
+      WHERE user_id = $1 AND is_active = true
+      RETURNING id
+    `,
+      values: [userId]
+    }),
+    deactivateAllExcept: (userId, currentSessionId) => ({
+      text: `
+      UPDATE device_sessions
+      SET is_active = false
+      WHERE user_id = $1 AND id != $2 AND is_active = true
+      RETURNING id
+    `,
+      values: [userId, currentSessionId]
+    }),
+    getActiveForUser: (userId) => ({
+      text: `
+      SELECT 
+        id, user_id, device_info, ip_address, user_agent,
+        last_activity, created_at, expires_at
+      FROM device_sessions
+      WHERE user_id = $1 AND is_active = true AND expires_at > NOW()
+      ORDER BY last_activity DESC
+    `,
+      values: [userId]
+    }),
+    countActiveForUser: (userId) => ({
+      text: `
+      SELECT COUNT(*) as count
+      FROM device_sessions
+      WHERE user_id = $1 AND is_active = true AND expires_at > NOW()
+    `,
+      values: [userId]
+    }),
+    deactivateExpired: () => ({
+      text: `
+      UPDATE device_sessions
+      SET is_active = false
+      WHERE is_active = true 
+        AND (expires_at < NOW() OR last_activity < NOW() - INTERVAL '1 hour')
+      RETURNING id, user_id
+    `,
+      values: []
+    }),
+    deleteOldInactive: (daysOld) => ({
+      text: `
+      DELETE FROM device_sessions
+      WHERE is_active = false 
+        AND created_at < NOW() - INTERVAL '1 day' * $1
+      RETURNING id
+    `,
+      values: [daysOld]
+    }),
+    isValid: (id) => ({
+      text: `
+      SELECT EXISTS(
+        SELECT 1 FROM device_sessions
+        WHERE id = $1 
+          AND is_active = true 
+          AND expires_at > NOW()
+      ) as is_valid
+    `,
+      values: [id]
+    }),
+    extendExpiration: (id, days) => ({
+      text: `
+      UPDATE device_sessions
+      SET 
+        expires_at = NOW() + INTERVAL '1 day' * $2,
+        last_activity = NOW()
+      WHERE id = $1 AND is_active = true
+      RETURNING id, expires_at
+    `,
+      values: [id, days]
+    })
+  };
+  AuditQueries = {
+    log: (input) => ({
+      text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      RETURNING id, created_at
+    `,
+      values: [
+        input.actor_id,
+        input.action,
+        input.entity_type,
+        input.entity_id,
+        input.changes ? JSON.stringify(input.changes) : null,
+        input.ip_address || null,
+        input.user_agent || null
+      ]
+    }),
+    logAuthEvent: (actorId, action, success, ipAddress, userAgent, additionalInfo) => ({
+      text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      RETURNING id, created_at
+    `,
+      values: [
+        actorId,
+        action,
+        JSON.stringify({ success, ...additionalInfo }),
+        ipAddress,
+        userAgent
+      ]
+    }),
+    logAuthorizationFailure: (actorId, attemptedAction, entityType, entityId, requiredPermission, ipAddress, userAgent) => ({
+      text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      RETURNING id, created_at
+    `,
+      values: [
+        actorId,
+        entityType,
+        entityId,
+        JSON.stringify({
+          attempted_action: attemptedAction,
+          required_permission: requiredPermission
+        }),
+        ipAddress,
+        userAgent
+      ]
+    }),
+    logSessionEvent: (actorId, action, sessionId, ipAddress, userAgent, additionalInfo) => ({
+      text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      RETURNING id, created_at
+    `,
+      values: [
+        actorId,
+        action,
+        sessionId,
+        additionalInfo ? JSON.stringify(additionalInfo) : null,
+        ipAddress,
+        userAgent
+      ]
+    }),
+    findById: (id) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    }),
+    getForEntity: (entityType, entityId, limit = 50) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE entity_type = $1 AND entity_id = $2
+      ORDER BY created_at DESC
+      LIMIT $3
+    `,
+      values: [entityType, entityId, limit]
+    }),
+    getByActor: (actorId, limit = 50) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE actor_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `,
+      values: [actorId, limit]
+    }),
+    getByAction: (action, limit = 50) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE action = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `,
+      values: [action, limit]
+    }),
+    getRecent: (limit, offset) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `,
+      values: [limit, offset]
+    }),
+    getByDateRange: (startDate, endDate, limit = 100) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE created_at >= $1 AND created_at <= $2
+      ORDER BY created_at DESC
+      LIMIT $3
+    `,
+      values: [startDate, endDate, limit]
+    }),
+    countByAction: (action) => ({
+      text: `
+      SELECT COUNT(*) as count
+      FROM audit_logs
+      WHERE action = $1
+    `,
+      values: [action]
+    }),
+    countFailedAuthInWindow: (windowMinutes) => ({
+      text: `
+      SELECT COUNT(*) as count
+      FROM audit_logs
+      WHERE action = 'auth_failure'
+        AND created_at > NOW() - INTERVAL '1 minute' * $1
+    `,
+      values: [windowMinutes]
+    }),
+    deleteOlderThan: (daysOld) => ({
+      text: `
+      DELETE FROM audit_logs
+      WHERE created_at < NOW() - INTERVAL '1 day' * $1
+      RETURNING id
+    `,
+      values: [daysOld]
+    })
+  };
+  APPLICATION_STATUS = {
+    DRAFT: "draft",
+    SUBMITTED: "submitted",
+    UNDER_REVIEW: "under_review",
+    PENDING_DOCUMENTS: "pending_documents",
+    APPROVED: "approved",
+    REJECTED: "rejected"
+  };
+  PAYMENT_STATUS = {
+    PENDING_REVIEW: "pending_review",
+    VERIFIED: "verified",
+    REJECTED: "rejected"
+  };
+  ApplicationQueries = {
+    findAll: (limit = 100, offset = 0) => ({
+      text: `
+      SELECT *
+      FROM applications
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `,
+      values: [limit, offset]
+    }),
+    findByUserId: (userId) => ({
+      text: `
+      SELECT *
+      FROM applications
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+    `,
+      values: [userId]
+    }),
+    findById: (id) => ({
+      text: `
+      SELECT *
+      FROM applications
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    }),
+    findByIdForUser: (id, userId) => ({
+      text: `
+      SELECT *
+      FROM applications
+      WHERE id = $1 AND user_id = $2
+      LIMIT 1
+    `,
+      values: [id, userId]
+    }),
+    findPendingReview: () => ({
+      text: `
+      SELECT *
+      FROM applications
+      WHERE status = 'submitted'
+      ORDER BY submitted_at ASC
+    `,
+      values: []
+    }),
+    findByStatus: (status) => ({
+      text: `
+      SELECT *
+      FROM applications
+      WHERE status = $1
+      ORDER BY created_at DESC
+    `,
+      values: [status]
+    }),
+    updateStatus: (id, status, reviewedBy, notes) => ({
+      text: `
+      UPDATE applications
+      SET 
+        status = $2,
+        reviewed_by = $3,
+        review_started_at = COALESCE(review_started_at, NOW()),
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING *
+    `,
+      values: [id, status, reviewedBy]
+    }),
+    update: (id, data) => {
+      const fields = [];
+      const values = [id];
+      let paramIndex = 2;
+      const allowedFields = [
+        "full_name",
+        "nrc_number",
+        "passport_number",
+        "date_of_birth",
+        "sex",
+        "phone",
+        "email",
+        "residence_town",
+        "next_of_kin_name",
+        "next_of_kin_phone",
+        "program",
+        "intake",
+        "institution",
+        "result_slip_url",
+        "extra_kyc_url",
+        "payment_method",
+        "payer_name",
+        "payer_phone",
+        "amount",
+        "paid_at",
+        "momo_ref",
+        "pop_url",
+        "payment_status",
+        "status",
+        "submitted_at"
+      ];
+      for (const field of allowedFields) {
+        if (field in data) {
+          fields.push(`${field} = $${paramIndex}`);
+          values.push(data[field]);
+          paramIndex++;
+        }
+      }
+      fields.push("updated_at = NOW()");
+      return {
+        text: `
+        UPDATE applications
+        SET ${fields.join(", ")}
+        WHERE id = $1
+        RETURNING *
+      `,
+        values
+      };
+    },
+    updatePaymentStatus: (id, paymentStatus, verifiedBy) => ({
+      text: `
+      UPDATE applications
+      SET 
+        payment_status = $2,
+        payment_verified_by = $3,
+        payment_verified_at = CASE WHEN $2 = 'verified' THEN NOW() ELSE NULL END,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING *
+    `,
+      values: [id, paymentStatus, verifiedBy]
+    }),
+    submit: (id) => ({
+      text: `
+      UPDATE applications
+      SET 
+        status = 'submitted',
+        submitted_at = NOW(),
+        updated_at = NOW()
+      WHERE id = $1 AND status = 'draft'
+      RETURNING *
+    `,
+      values: [id]
+    }),
+    delete: (id) => ({
+      text: `
+      DELETE FROM applications
+      WHERE id = $1
+      RETURNING id
+    `,
+      values: [id]
+    }),
+    checkOwnership: (id, userId) => ({
+      text: `
+      SELECT EXISTS(
+        SELECT 1 FROM applications
+        WHERE id = $1 AND user_id = $2
+      ) as is_owner
+    `,
+      values: [id, userId]
+    }),
+    getSummary: () => ({
+      text: `
+      SELECT id, status, created_at
+      FROM applications
+      ORDER BY created_at DESC
+    `,
+      values: []
+    }),
+    countByStatus: (status) => ({
+      text: `
+      SELECT COUNT(*) as count
+      FROM applications
+      WHERE status = $1
+    `,
+      values: [status]
+    }),
+    count: () => ({
+      text: `SELECT COUNT(*) as count FROM applications`,
+      values: []
+    })
+  };
+  DOCUMENT_VERIFICATION_STATUS = {
+    PENDING: "pending",
+    VERIFIED: "verified",
+    REJECTED: "rejected"
+  };
+  DocumentQueries = {
+    findAll: (limit = 100, offset = 0) => ({
+      text: `
+      SELECT *
+      FROM application_documents
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `,
+      values: [limit, offset]
+    }),
+    findByApplicationId: (applicationId) => ({
+      text: `
+      SELECT *
+      FROM application_documents
+      WHERE application_id = $1
+      ORDER BY created_at DESC
+    `,
+      values: [applicationId]
+    }),
+    findById: (id) => ({
+      text: `
+      SELECT *
+      FROM application_documents
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    }),
+    create: (doc) => ({
+      text: `
+      INSERT INTO application_documents (
+        id, application_id, document_type, document_name,
+        file_url, file_size, mime_type, system_generated,
+        verification_status, uploaded_at, created_at, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending', NOW(), NOW(), NOW())
+      RETURNING *
+    `,
+      values: [
+        doc.id,
+        doc.applicationId,
+        doc.documentType,
+        doc.documentName,
+        doc.fileUrl,
+        doc.fileSize || null,
+        doc.mimeType || null,
+        doc.systemGenerated || false
+      ]
+    }),
+    updateVerification: (id, status, verifiedBy, notes) => ({
+      text: `
+      UPDATE application_documents
+      SET 
+        verification_status = $2,
+        verified_by = $3,
+        verified_at = NOW(),
+        verification_notes = $4,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING *
+    `,
+      values: [id, status, verifiedBy, notes || null]
+    }),
+    delete: (id) => ({
+      text: `
+      DELETE FROM application_documents
+      WHERE id = $1
+      RETURNING id, file_url
+    `,
+      values: [id]
+    }),
+    countByApplication: (applicationId) => ({
+      text: `
+      SELECT COUNT(*) as count
+      FROM application_documents
+      WHERE application_id = $1
+    `,
+      values: [applicationId]
+    })
+  };
+  GradeQueries = {
+    findAll: (limit = 100, offset = 0) => ({
+      text: `
+      SELECT *
+      FROM application_grades
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `,
+      values: [limit, offset]
+    }),
+    findByApplicationId: (applicationId) => ({
+      text: `
+      SELECT g.*, s.name as subject_name
+      FROM application_grades g
+      LEFT JOIN subjects s ON s.id = g.subject_id
+      WHERE g.application_id = $1
+    `,
+      values: [applicationId]
+    }),
+    upsert: (applicationId, subjectId, grade) => ({
+      text: `
+      INSERT INTO application_grades (id, application_id, subject_id, grade, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, NOW())
+      ON CONFLICT (application_id, subject_id) DO UPDATE SET grade = $3
+      RETURNING *
+    `,
+      values: [applicationId, subjectId, grade]
+    }),
+    deleteByApplication: (applicationId) => ({
+      text: `
+      DELETE FROM application_grades
+      WHERE application_id = $1
+      RETURNING id
+    `,
+      values: [applicationId]
+    })
+  };
+  StatusHistoryQueries = {
+    create: (applicationId, status, changedBy, notes) => ({
+      text: `
+      INSERT INTO application_status_history (
+        id, application_id, status, changed_by, notes, created_at
+      )
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())
+      RETURNING *
+    `,
+      values: [applicationId, status, changedBy, notes || null]
+    }),
+    findByApplicationId: (applicationId) => ({
+      text: `
+      SELECT *
+      FROM application_status_history
+      WHERE application_id = $1
+      ORDER BY created_at DESC
+    `,
+      values: [applicationId]
+    })
+  };
+  CatalogQueries = {
+    getPrograms: () => ({
+      text: `
+      SELECT 
+        id, name, code, description, duration_months,
+        application_fee, tuition_fee, requirements,
+        regulatory_body, accreditation_status, is_active,
+        created_at, updated_at
+      FROM programs
+      ORDER BY created_at DESC
+    `,
+      values: []
+    }),
+    getActivePrograms: () => ({
+      text: `
+      SELECT 
+        id, name, code, description, duration_months,
+        application_fee, tuition_fee, requirements,
+        regulatory_body, accreditation_status, is_active,
+        created_at, updated_at
+      FROM programs
+      WHERE is_active = true
+      ORDER BY name ASC
+    `,
+      values: []
+    }),
+    getProgramById: (id) => ({
+      text: `
+      SELECT 
+        id, name, code, description, duration_months,
+        application_fee, tuition_fee, requirements,
+        regulatory_body, accreditation_status, is_active,
+        created_at, updated_at
+      FROM programs
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    }),
+    getIntakes: () => ({
+      text: `
+      SELECT *
+      FROM intakes
+      ORDER BY created_at DESC
+    `,
+      values: []
+    }),
+    getActiveIntakes: () => ({
+      text: `
+      SELECT *
+      FROM intakes
+      WHERE is_active = true AND application_deadline > NOW()
+      ORDER BY start_date ASC
+    `,
+      values: []
+    }),
+    getIntakeById: (id) => ({
+      text: `
+      SELECT *
+      FROM intakes
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    }),
+    getSubjects: () => ({
+      text: `
+      SELECT *
+      FROM subjects
+      WHERE is_active = true
+      ORDER BY name ASC
+    `,
+      values: []
+    }),
+    getSubjectById: (id) => ({
+      text: `
+      SELECT *
+      FROM subjects
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    })
+  };
+  NotificationQueries = {
+    getPreferences: (userId) => ({
+      text: `
+      SELECT *
+      FROM user_notification_preferences
+      WHERE user_id = $1
+      LIMIT 1
+    `,
+      values: [userId]
+    }),
+    upsertPreferences: (userId, emailEnabled, pushEnabled, smsEnabled) => ({
+      text: `
+      INSERT INTO user_notification_preferences (
+        id, user_id, email_enabled, push_enabled, sms_enabled, created_at, updated_at
+      )
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW(), NOW())
+      ON CONFLICT (user_id) DO UPDATE SET
+        email_enabled = $2,
+        push_enabled = $3,
+        sms_enabled = $4,
+        updated_at = NOW()
+      RETURNING *
+    `,
+      values: [userId, emailEnabled, pushEnabled, smsEnabled]
+    }),
+    getPushSubscription: (userId) => ({
+      text: `
+      SELECT *
+      FROM push_subscriptions
+      WHERE user_id = $1
+      LIMIT 1
+    `,
+      values: [userId]
+    }),
+    createPushSubscription: (userId, endpoint, keys) => ({
+      text: `
+      INSERT INTO push_subscriptions (id, user_id, endpoint, keys, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, NOW())
+      ON CONFLICT (user_id) DO UPDATE SET
+        endpoint = $2,
+        keys = $3
+      RETURNING *
+    `,
+      values: [userId, endpoint, JSON.stringify(keys)]
+    }),
+    deletePushSubscription: (userId) => ({
+      text: `
+      DELETE FROM push_subscriptions
+      WHERE user_id = $1
+      RETURNING id
+    `,
+      values: [userId]
+    }),
+    getUsersWithPushEnabled: () => ({
+      text: `
+      SELECT ps.*, np.email_enabled
+      FROM push_subscriptions ps
+      JOIN user_notification_preferences np ON np.user_id = ps.user_id
+      WHERE np.push_enabled = true
+    `,
+      values: []
+    })
+  };
+  PaymentQueries = {
+    getApplicationForReceipt: (applicationId, userId, isAdmin) => {
+      if (isAdmin) {
+        return {
+          text: `
+          SELECT 
+            a.*,
+            CONCAT(p.first_name, ' ', p.last_name) as applicant_name,
+            p.email as applicant_email,
+            p.phone as applicant_phone
+          FROM applications a
+          JOIN profiles p ON p.id = a.user_id
+          WHERE a.id = $1
+          LIMIT 1
+        `,
+          values: [applicationId]
+        };
+      }
+      return {
+        text: `
+        SELECT 
+          a.*,
+          CONCAT(p.first_name, ' ', p.last_name) as applicant_name,
+          p.email as applicant_email,
+          p.phone as applicant_phone
+        FROM applications a
+        JOIN profiles p ON p.id = a.user_id
+        WHERE a.id = $1 AND a.user_id = $2
+        LIMIT 1
+      `,
+        values: [applicationId, userId]
+      };
+    },
+    getPaymentHistory: (userId) => ({
+      text: `
+      SELECT 
+        id, application_number, amount, payment_method,
+        payment_status, paid_at, payment_verified_at
+      FROM applications
+      WHERE user_id = $1 AND amount IS NOT NULL
+      ORDER BY paid_at DESC NULLS LAST
+    `,
+      values: [userId]
+    }),
+    updatePayment: (applicationId, paymentMethod, amount, payerName, payerPhone, momoRef, popUrl) => ({
+      text: `
+      UPDATE applications
+      SET 
+        payment_method = $2,
+        amount = $3,
+        payer_name = $4,
+        payer_phone = $5,
+        momo_ref = $6,
+        pop_url = $7,
+        paid_at = NOW(),
+        payment_status = 'pending_review',
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING *
+    `,
+      values: [applicationId, paymentMethod, amount, payerName, payerPhone, momoRef || null, popUrl || null]
+    })
   };
 });
 
@@ -153,409 +1464,6 @@ async function verifyPassword(password, hash) {
     return false;
   }
 }
-
-// lib/auth/legacy.ts
-init_db();
-import { jwtVerify, decodeJwt } from "jose";
-
-// lib/queries.ts
-var UserQueries = {
-  findByEmail: (email) => ({
-    text: `
-      SELECT 
-        id, email, password_hash, refresh_token_hash, role,
-        first_name, last_name, phone, is_active,
-        failed_login_attempts, locked_until, password_changed_at,
-        created_at, updated_at
-      FROM profiles
-      WHERE email = $1
-      LIMIT 1
-    `,
-    values: [email]
-  }),
-  findById: (id) => ({
-    text: `
-      SELECT 
-        id, email, password_hash, refresh_token_hash, role,
-        first_name, last_name, phone, is_active,
-        failed_login_attempts, locked_until, password_changed_at,
-        created_at, updated_at
-      FROM profiles
-      WHERE id = $1
-      LIMIT 1
-    `,
-    values: [id]
-  }),
-  findByIdPublic: (id) => ({
-    text: `
-      SELECT 
-        id, email, role, first_name, last_name,
-        is_active, created_at, updated_at
-      FROM profiles
-      WHERE id = $1
-      LIMIT 1
-    `,
-    values: [id]
-  }),
-  findByRefreshToken: (tokenHash) => ({
-    text: `
-      SELECT id, email, role, is_active, refresh_token_hash
-      FROM profiles
-      WHERE refresh_token_hash = $1 AND is_active = true
-      LIMIT 1
-    `,
-    values: [tokenHash]
-  }),
-  create: (id, email, passwordHash, role, firstName, lastName) => ({
-    text: `
-      INSERT INTO profiles (
-        id, email, password_hash, role, first_name, last_name,
-        is_active, failed_login_attempts, created_at, updated_at
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, true, 0, NOW(), NOW())
-      RETURNING id, email, role, is_active, created_at
-    `,
-    values: [id, email, passwordHash, role, firstName, lastName]
-  }),
-  createWithoutPassword: (id, email, role, firstName, lastName) => ({
-    text: `
-      INSERT INTO profiles (
-        id, email, role, first_name, last_name,
-        is_active, failed_login_attempts, created_at, updated_at
-      )
-      VALUES ($1, $2, $3, $4, $5, true, 0, NOW(), NOW())
-      ON CONFLICT (id) DO NOTHING
-      RETURNING id, email, role, is_active
-    `,
-    values: [id, email, role, firstName, lastName]
-  }),
-  updatePassword: (id, passwordHash) => ({
-    text: `
-      UPDATE profiles
-      SET 
-        password_hash = $2,
-        password_changed_at = NOW(),
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING id
-    `,
-    values: [id, passwordHash]
-  }),
-  updateRefreshToken: (id, tokenHash) => ({
-    text: `
-      UPDATE profiles
-      SET 
-        refresh_token_hash = $2,
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING id
-    `,
-    values: [id, tokenHash]
-  }),
-  incrementFailedAttempts: (id) => ({
-    text: `
-      UPDATE profiles
-      SET 
-        failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING failed_login_attempts
-    `,
-    values: [id]
-  }),
-  resetFailedAttempts: (id) => ({
-    text: `
-      UPDATE profiles
-      SET 
-        failed_login_attempts = 0,
-        locked_until = NULL,
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING id
-    `,
-    values: [id]
-  }),
-  lockAccount: (id, lockUntil) => ({
-    text: `
-      UPDATE profiles
-      SET 
-        locked_until = $2,
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING id, locked_until
-    `,
-    values: [id, lockUntil]
-  }),
-  unlockAccount: (id) => ({
-    text: `
-      UPDATE profiles
-      SET 
-        locked_until = NULL,
-        failed_login_attempts = 0,
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING id
-    `,
-    values: [id]
-  }),
-  updateRole: (id, role) => ({
-    text: `
-      UPDATE profiles
-      SET 
-        role = $2,
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING id, role
-    `,
-    values: [id, role]
-  }),
-  deactivate: (id) => ({
-    text: `
-      UPDATE profiles
-      SET 
-        is_active = false,
-        refresh_token_hash = NULL,
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING id
-    `,
-    values: [id]
-  }),
-  reactivate: (id) => ({
-    text: `
-      UPDATE profiles
-      SET 
-        is_active = true,
-        failed_login_attempts = 0,
-        locked_until = NULL,
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING id
-    `,
-    values: [id]
-  }),
-  list: (limit, offset) => ({
-    text: `
-      SELECT 
-        id, email, role, first_name, last_name,
-        is_active, created_at, updated_at
-      FROM profiles
-      ORDER BY created_at DESC
-      LIMIT $1 OFFSET $2
-    `,
-    values: [limit, offset]
-  }),
-  listByRole: (role, limit, offset) => ({
-    text: `
-      SELECT 
-        id, email, role, first_name, last_name,
-        is_active, created_at, updated_at
-      FROM profiles
-      WHERE role = $1
-      ORDER BY created_at DESC
-      LIMIT $2 OFFSET $3
-    `,
-    values: [role, limit, offset]
-  }),
-  count: () => ({
-    text: `SELECT COUNT(*) as count FROM profiles`,
-    values: []
-  }),
-  countByRole: (role) => ({
-    text: `SELECT COUNT(*) as count FROM profiles WHERE role = $1`,
-    values: [role]
-  }),
-  emailExists: (email) => ({
-    text: `SELECT EXISTS(SELECT 1 FROM profiles WHERE email = $1) as exists`,
-    values: [email]
-  })
-};
-var AuditQueries = {
-  log: (input) => ({
-    text: `
-      INSERT INTO audit_logs (
-        actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-      RETURNING id, created_at
-    `,
-    values: [
-      input.actor_id,
-      input.action,
-      input.entity_type,
-      input.entity_id,
-      input.changes ? JSON.stringify(input.changes) : null,
-      input.ip_address || null,
-      input.user_agent || null
-    ]
-  }),
-  logAuthEvent: (actorId, action, success, ipAddress, userAgent, additionalInfo) => ({
-    text: `
-      INSERT INTO audit_logs (
-        actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      )
-      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
-      RETURNING id, created_at
-    `,
-    values: [
-      actorId,
-      action,
-      JSON.stringify({ success, ...additionalInfo }),
-      ipAddress,
-      userAgent
-    ]
-  }),
-  logAuthorizationFailure: (actorId, attemptedAction, entityType, entityId, requiredPermission, ipAddress, userAgent) => ({
-    text: `
-      INSERT INTO audit_logs (
-        actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      )
-      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
-      RETURNING id, created_at
-    `,
-    values: [
-      actorId,
-      entityType,
-      entityId,
-      JSON.stringify({
-        attempted_action: attemptedAction,
-        required_permission: requiredPermission
-      }),
-      ipAddress,
-      userAgent
-    ]
-  }),
-  logSessionEvent: (actorId, action, sessionId, ipAddress, userAgent, additionalInfo) => ({
-    text: `
-      INSERT INTO audit_logs (
-        actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      )
-      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
-      RETURNING id, created_at
-    `,
-    values: [
-      actorId,
-      action,
-      sessionId,
-      additionalInfo ? JSON.stringify(additionalInfo) : null,
-      ipAddress,
-      userAgent
-    ]
-  }),
-  findById: (id) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      WHERE id = $1
-      LIMIT 1
-    `,
-    values: [id]
-  }),
-  getForEntity: (entityType, entityId, limit = 50) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      WHERE entity_type = $1 AND entity_id = $2
-      ORDER BY created_at DESC
-      LIMIT $3
-    `,
-    values: [entityType, entityId, limit]
-  }),
-  getByActor: (actorId, limit = 50) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      WHERE actor_id = $1
-      ORDER BY created_at DESC
-      LIMIT $2
-    `,
-    values: [actorId, limit]
-  }),
-  getByAction: (action, limit = 50) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      WHERE action = $1
-      ORDER BY created_at DESC
-      LIMIT $2
-    `,
-    values: [action, limit]
-  }),
-  getRecent: (limit, offset) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      ORDER BY created_at DESC
-      LIMIT $1 OFFSET $2
-    `,
-    values: [limit, offset]
-  }),
-  getByDateRange: (startDate, endDate, limit = 100) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      WHERE created_at >= $1 AND created_at <= $2
-      ORDER BY created_at DESC
-      LIMIT $3
-    `,
-    values: [startDate, endDate, limit]
-  }),
-  countByAction: (action) => ({
-    text: `
-      SELECT COUNT(*) as count
-      FROM audit_logs
-      WHERE action = $1
-    `,
-    values: [action]
-  }),
-  countFailedAuthInWindow: (windowMinutes) => ({
-    text: `
-      SELECT COUNT(*) as count
-      FROM audit_logs
-      WHERE action = 'auth_failure'
-        AND created_at > NOW() - INTERVAL '1 minute' * $1
-    `,
-    values: [windowMinutes]
-  }),
-  deleteOlderThan: (daysOld) => ({
-    text: `
-      DELETE FROM audit_logs
-      WHERE created_at < NOW() - INTERVAL '1 day' * $1
-      RETURNING id
-    `,
-    values: [daysOld]
-  })
-};
-
-// lib/auth/legacy.ts
-async function upgradePasswordHash(userId, newPassword) {
-  try {
-    const passwordHash = await hashPassword(newPassword);
-    const updateQuery = UserQueries.updatePassword(userId, passwordHash);
-    await query(updateQuery.text, updateQuery.values);
-    console.log(`[Legacy Auth] Upgraded password hash for user: ${userId}`);
-    return true;
-  } catch (error) {
-    console.error("[Legacy Auth] Error upgrading password hash:", error.message);
-    return false;
-  }
-}
 function needsPasswordUpgrade(user) {
   if (!user.password_hash) {
     return true;
@@ -563,9 +1471,23 @@ function needsPasswordUpgrade(user) {
   const isBcrypt = /^\$2[aby]\$\d{1,2}\$/.test(user.password_hash);
   return !isBcrypt;
 }
+async function upgradePasswordHash(userId, newPassword) {
+  const { query: dbQuery } = await Promise.resolve().then(() => (init_db(), exports_db));
+  const { UserQueries: UserQueries2 } = await Promise.resolve().then(() => (init_queries(), exports_queries));
+  try {
+    const passwordHash = await hashPassword(newPassword);
+    const updateQuery = UserQueries2.updatePassword(userId, passwordHash);
+    await dbQuery(updateQuery.text, updateQuery.values);
+    console.log(`[PASSWORD] Upgraded password hash for user: ${userId}`);
+    return true;
+  } catch (error) {
+    console.error("[PASSWORD] Error upgrading password hash:", error.message);
+    return false;
+  }
+}
 
 // lib/auth/jwt.ts
-import { SignJWT, jwtVerify as jwtVerify2 } from "jose";
+import { SignJWT, jwtVerify } from "jose";
 var ACCESS_TOKEN_EXPIRATION = "15m";
 var REFRESH_TOKEN_EXPIRATION = "7d";
 var TOKEN_ISSUER = "mihas-auth";
@@ -630,7 +1552,7 @@ async function verifyAccessToken(token) {
   }
   try {
     const secret = getAccessTokenSecret();
-    const { payload } = await jwtVerify2(token, secret, {
+    const { payload } = await jwtVerify(token, secret, {
       issuer: TOKEN_ISSUER,
       audience: TOKEN_AUDIENCE,
       algorithms: [ALGORITHM]
@@ -688,7 +1610,7 @@ async function verifyRefreshToken(token) {
   }
   try {
     const secret = getRefreshTokenSecret();
-    const { payload } = await jwtVerify2(token, secret, {
+    const { payload } = await jwtVerify(token, secret, {
       issuer: TOKEN_ISSUER,
       audience: TOKEN_AUDIENCE,
       algorithms: [ALGORITHM]
@@ -733,6 +1655,7 @@ async function verifyRefreshToken(token) {
 }
 
 // lib/auth/permissions.ts
+init_queries();
 var USER_ROLES2 = {
   SUPER_ADMIN: "super_admin",
   ADMIN: "admin",
@@ -1193,6 +2116,7 @@ import { createHash, randomBytes, timingSafeEqual } from "crypto";
 
 // lib/auditLogger.ts
 init_db();
+init_queries();
 async function executeQuery(config) {
   const result = await query(config.text, config.values);
   return result.rows;
@@ -1314,8 +2238,6 @@ async function handler(req, res) {
         return await handleSession(req, res);
       case "refresh":
         return await handleRefresh(req, res);
-      case "bootstrap":
-        return await handleBootstrap(req, res);
       case "check-email":
         return await handleCheckEmail(req, res);
       case "roles":
@@ -1327,7 +2249,7 @@ async function handler(req, res) {
       case "reset-password":
         return await handleResetPassword(req, res);
       default:
-        return sendError(res, "Invalid action. Use: login, logout, register, session, refresh, bootstrap, check-email, roles, profile, forgot-password, reset-password", HttpStatus.BAD_REQUEST);
+        return sendError(res, "Invalid action. Use: login, logout, register, session, refresh, check-email, roles, profile, forgot-password, reset-password", HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
@@ -1467,13 +2389,13 @@ async function handleLogin(req, res) {
     const legacyAuthResult = verifyLegacyPassword(password, user.password_hash);
     if (!legacyAuthResult.isValid) {
       if (legacyAuthResult.requiresMigration) {
-        return sendError(res, "Password migration required. Use account recovery or bootstrap migration to reset your password.", HttpStatus.UNAUTHORIZED, "PASSWORD_MIGRATION_REQUIRED");
+        return sendError(res, "Password migration required. Use the forgot-password flow to reset your password.", HttpStatus.UNAUTHORIZED, "PASSWORD_MIGRATION_REQUIRED");
       }
       return sendError(res, "Invalid credentials", HttpStatus.UNAUTHORIZED);
     }
     const upgraded = await upgradePasswordHash(user.id, password);
     if (!upgraded) {
-      return sendError(res, "Password migration required. Use account recovery or bootstrap migration to reset your password.", HttpStatus.UNAUTHORIZED, "PASSWORD_MIGRATION_REQUIRED");
+      return sendError(res, "Password migration required. Use the forgot-password flow to reset your password.", HttpStatus.UNAUTHORIZED, "PASSWORD_MIGRATION_REQUIRED");
     }
   } else {
     const isValid = await verifyPassword(password, user.password_hash);
@@ -1796,45 +2718,6 @@ async function handleCheckEmail(req, res) {
   }
   const existing = await query("SELECT id FROM profiles WHERE email = $1 LIMIT 1", [email.toLowerCase()]);
   return sendSuccess(res, { available: existing.rows.length === 0 });
-}
-async function handleBootstrap(req, res) {
-  if (req.method !== "POST") {
-    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
-  }
-  const { email, password, secret } = req.body || {};
-  const BOOTSTRAP_SECRET = process.env.BOOTSTRAP_SECRET || process.env.MIGRATE_SECRET || process.env.JWT_SECRET;
-  if (!BOOTSTRAP_SECRET) {
-    return sendError(res, "Bootstrap not configured", HttpStatus.SERVICE_UNAVAILABLE);
-  }
-  if (!secret || secret !== BOOTSTRAP_SECRET) {
-    return sendError(res, "Invalid bootstrap secret", HttpStatus.UNAUTHORIZED);
-  }
-  if (!email || !password) {
-    return sendError(res, "Email and password required", HttpStatus.BAD_REQUEST);
-  }
-  if (password.length < 8) {
-    return sendError(res, "Password must be at least 8 characters", HttpStatus.BAD_REQUEST);
-  }
-  const result = await query(`SELECT id, email, role, first_name, last_name, password_hash 
-     FROM profiles WHERE email = $1 LIMIT 1`, [email.toLowerCase()]);
-  if (result.rows.length === 0) {
-    return sendError(res, "User not found", HttpStatus.NOT_FOUND);
-  }
-  const user = result.rows[0];
-  const passwordHash = await hashPassword(password);
-  await query(`UPDATE profiles SET password_hash = $1, updated_at = NOW() WHERE id = $2`, [passwordHash, user.id]);
-  return sendSuccess(res, {
-    message: "Password set successfully",
-    user: {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      full_name: deriveFullName(user),
-      hadPassword: !!user.password_hash
-    }
-  });
 }
 export {
   auth_default as default

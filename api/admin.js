@@ -1,60 +1,8 @@
 import { createRequire } from "node:module";
+var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
-// lib/cors.ts
-var ALLOWED_ORIGINS = [
-  "https://apply.mihas.edu.zm",
-  "https://mihas.vercel.app",
-  "http://localhost:5173",
-  "http://localhost:3000"
-];
-function getCorsHeaders(origin) {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Max-Age": "86400"
-  };
-}
-function handleCors(req, res) {
-  const origin = req.headers.origin;
-  const headers = getCorsHeaders(origin);
-  Object.entries(headers).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
-  if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return true;
-  }
-  return false;
-}
-
 // lib/db.ts
-var DatabaseErrorCode = {
-  CONNECTION_ERROR: "CONNECTION_ERROR",
-  QUERY_ERROR: "QUERY_ERROR",
-  TRANSACTION_ERROR: "TRANSACTION_ERROR",
-  SCHEMA_ERROR: "SCHEMA_ERROR",
-  CONFIG_ERROR: "CONFIG_ERROR",
-  TIMEOUT_ERROR: "TIMEOUT_ERROR",
-  CONSTRAINT_VIOLATION: "CONSTRAINT_VIOLATION",
-  NOT_FOUND: "NOT_FOUND"
-};
-
-class DatabaseError extends Error {
-  code;
-  query;
-  originalError;
-  constructor(message, code = DatabaseErrorCode.QUERY_ERROR, options) {
-    super(message);
-    this.name = "DatabaseError";
-    this.code = code;
-    this.query = options?.query ? sanitizeQueryForLogging(options.query) : undefined;
-    this.originalError = options?.originalError;
-  }
-}
 function getDatabaseConfig() {
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -116,6 +64,241 @@ async function query(queryText, params) {
   getDatabaseConfig();
   return executeNeonQuery(queryText, params);
 }
+var DatabaseErrorCode, DatabaseError;
+var init_db = __esm(() => {
+  DatabaseErrorCode = {
+    CONNECTION_ERROR: "CONNECTION_ERROR",
+    QUERY_ERROR: "QUERY_ERROR",
+    TRANSACTION_ERROR: "TRANSACTION_ERROR",
+    SCHEMA_ERROR: "SCHEMA_ERROR",
+    CONFIG_ERROR: "CONFIG_ERROR",
+    TIMEOUT_ERROR: "TIMEOUT_ERROR",
+    CONSTRAINT_VIOLATION: "CONSTRAINT_VIOLATION",
+    NOT_FOUND: "NOT_FOUND"
+  };
+  DatabaseError = class DatabaseError extends Error {
+    code;
+    query;
+    originalError;
+    constructor(message, code = DatabaseErrorCode.QUERY_ERROR, options) {
+      super(message);
+      this.name = "DatabaseError";
+      this.code = code;
+      this.query = options?.query ? sanitizeQueryForLogging(options.query) : undefined;
+      this.originalError = options?.originalError;
+    }
+  };
+});
+
+// lib/queries.ts
+var AuditQueries;
+var init_queries = __esm(() => {
+  AuditQueries = {
+    log: (input) => ({
+      text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      RETURNING id, created_at
+    `,
+      values: [
+        input.actor_id,
+        input.action,
+        input.entity_type,
+        input.entity_id,
+        input.changes ? JSON.stringify(input.changes) : null,
+        input.ip_address || null,
+        input.user_agent || null
+      ]
+    }),
+    logAuthEvent: (actorId, action, success, ipAddress, userAgent, additionalInfo) => ({
+      text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      RETURNING id, created_at
+    `,
+      values: [
+        actorId,
+        action,
+        JSON.stringify({ success, ...additionalInfo }),
+        ipAddress,
+        userAgent
+      ]
+    }),
+    logAuthorizationFailure: (actorId, attemptedAction, entityType, entityId, requiredPermission, ipAddress, userAgent) => ({
+      text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      RETURNING id, created_at
+    `,
+      values: [
+        actorId,
+        entityType,
+        entityId,
+        JSON.stringify({
+          attempted_action: attemptedAction,
+          required_permission: requiredPermission
+        }),
+        ipAddress,
+        userAgent
+      ]
+    }),
+    logSessionEvent: (actorId, action, sessionId, ipAddress, userAgent, additionalInfo) => ({
+      text: `
+      INSERT INTO audit_logs (
+        actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      )
+      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      RETURNING id, created_at
+    `,
+      values: [
+        actorId,
+        action,
+        sessionId,
+        additionalInfo ? JSON.stringify(additionalInfo) : null,
+        ipAddress,
+        userAgent
+      ]
+    }),
+    findById: (id) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    }),
+    getForEntity: (entityType, entityId, limit = 50) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE entity_type = $1 AND entity_id = $2
+      ORDER BY created_at DESC
+      LIMIT $3
+    `,
+      values: [entityType, entityId, limit]
+    }),
+    getByActor: (actorId, limit = 50) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE actor_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `,
+      values: [actorId, limit]
+    }),
+    getByAction: (action, limit = 50) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE action = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `,
+      values: [action, limit]
+    }),
+    getRecent: (limit, offset) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `,
+      values: [limit, offset]
+    }),
+    getByDateRange: (startDate, endDate, limit = 100) => ({
+      text: `
+      SELECT 
+        id, actor_id, action, entity_type, entity_id,
+        changes, ip_address, user_agent, created_at
+      FROM audit_logs
+      WHERE created_at >= $1 AND created_at <= $2
+      ORDER BY created_at DESC
+      LIMIT $3
+    `,
+      values: [startDate, endDate, limit]
+    }),
+    countByAction: (action) => ({
+      text: `
+      SELECT COUNT(*) as count
+      FROM audit_logs
+      WHERE action = $1
+    `,
+      values: [action]
+    }),
+    countFailedAuthInWindow: (windowMinutes) => ({
+      text: `
+      SELECT COUNT(*) as count
+      FROM audit_logs
+      WHERE action = 'auth_failure'
+        AND created_at > NOW() - INTERVAL '1 minute' * $1
+    `,
+      values: [windowMinutes]
+    }),
+    deleteOlderThan: (daysOld) => ({
+      text: `
+      DELETE FROM audit_logs
+      WHERE created_at < NOW() - INTERVAL '1 day' * $1
+      RETURNING id
+    `,
+      values: [daysOld]
+    })
+  };
+});
+
+// lib/cors.ts
+var ALLOWED_ORIGINS = [
+  "https://apply.mihas.edu.zm",
+  "https://mihas.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000"
+];
+function getCorsHeaders(origin) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Max-Age": "86400"
+  };
+}
+function handleCors(req, res) {
+  const origin = req.headers.origin;
+  const headers = getCorsHeaders(origin);
+  Object.entries(headers).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return true;
+  }
+  return false;
+}
+
+// api-src/admin.ts
+init_db();
 
 // lib/errorHandler.ts
 var HttpStatus = {
@@ -622,181 +805,9 @@ async function hashPassword(password) {
   }
 }
 
-// lib/queries.ts
-var AuditQueries = {
-  log: (input) => ({
-    text: `
-      INSERT INTO audit_logs (
-        actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-      RETURNING id, created_at
-    `,
-    values: [
-      input.actor_id,
-      input.action,
-      input.entity_type,
-      input.entity_id,
-      input.changes ? JSON.stringify(input.changes) : null,
-      input.ip_address || null,
-      input.user_agent || null
-    ]
-  }),
-  logAuthEvent: (actorId, action, success, ipAddress, userAgent, additionalInfo) => ({
-    text: `
-      INSERT INTO audit_logs (
-        actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      )
-      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
-      RETURNING id, created_at
-    `,
-    values: [
-      actorId,
-      action,
-      JSON.stringify({ success, ...additionalInfo }),
-      ipAddress,
-      userAgent
-    ]
-  }),
-  logAuthorizationFailure: (actorId, attemptedAction, entityType, entityId, requiredPermission, ipAddress, userAgent) => ({
-    text: `
-      INSERT INTO audit_logs (
-        actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      )
-      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
-      RETURNING id, created_at
-    `,
-    values: [
-      actorId,
-      entityType,
-      entityId,
-      JSON.stringify({
-        attempted_action: attemptedAction,
-        required_permission: requiredPermission
-      }),
-      ipAddress,
-      userAgent
-    ]
-  }),
-  logSessionEvent: (actorId, action, sessionId, ipAddress, userAgent, additionalInfo) => ({
-    text: `
-      INSERT INTO audit_logs (
-        actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      )
-      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
-      RETURNING id, created_at
-    `,
-    values: [
-      actorId,
-      action,
-      sessionId,
-      additionalInfo ? JSON.stringify(additionalInfo) : null,
-      ipAddress,
-      userAgent
-    ]
-  }),
-  findById: (id) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      WHERE id = $1
-      LIMIT 1
-    `,
-    values: [id]
-  }),
-  getForEntity: (entityType, entityId, limit = 50) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      WHERE entity_type = $1 AND entity_id = $2
-      ORDER BY created_at DESC
-      LIMIT $3
-    `,
-    values: [entityType, entityId, limit]
-  }),
-  getByActor: (actorId, limit = 50) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      WHERE actor_id = $1
-      ORDER BY created_at DESC
-      LIMIT $2
-    `,
-    values: [actorId, limit]
-  }),
-  getByAction: (action, limit = 50) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      WHERE action = $1
-      ORDER BY created_at DESC
-      LIMIT $2
-    `,
-    values: [action, limit]
-  }),
-  getRecent: (limit, offset) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      ORDER BY created_at DESC
-      LIMIT $1 OFFSET $2
-    `,
-    values: [limit, offset]
-  }),
-  getByDateRange: (startDate, endDate, limit = 100) => ({
-    text: `
-      SELECT 
-        id, actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      FROM audit_logs
-      WHERE created_at >= $1 AND created_at <= $2
-      ORDER BY created_at DESC
-      LIMIT $3
-    `,
-    values: [startDate, endDate, limit]
-  }),
-  countByAction: (action) => ({
-    text: `
-      SELECT COUNT(*) as count
-      FROM audit_logs
-      WHERE action = $1
-    `,
-    values: [action]
-  }),
-  countFailedAuthInWindow: (windowMinutes) => ({
-    text: `
-      SELECT COUNT(*) as count
-      FROM audit_logs
-      WHERE action = 'auth_failure'
-        AND created_at > NOW() - INTERVAL '1 minute' * $1
-    `,
-    values: [windowMinutes]
-  }),
-  deleteOlderThan: (daysOld) => ({
-    text: `
-      DELETE FROM audit_logs
-      WHERE created_at < NOW() - INTERVAL '1 day' * $1
-      RETURNING id
-    `,
-    values: [daysOld]
-  })
-};
-
 // lib/auditLogger.ts
+init_db();
+init_queries();
 async function executeQuery(config) {
   const result = await query(config.text, config.values);
   return result.rows;

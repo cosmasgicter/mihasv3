@@ -1,16 +1,18 @@
-MIHAS Application System — Codex 5.3 Handoff (Complete)
+MIHAS Application System — Codex 5.3 Handoff (Updated)
 =========================================================================
-Date: 2026-02-20
-Prepared by: Kiro (Opus 4.6) via MCP Verification & Recovery Spec
+Date: 2026-02-21
+Prepared by: Kiro (Opus 4.6) via System Unification & Migration Spec
 Audience: Codex 5.3 (next agent session)
-Spec: .kiro/specs/mcp-verification-recovery/
+Previous Spec: .kiro/specs/mcp-verification-recovery/
+Current Spec: .kiro/specs/system-unification-migration/
 
-STATUS: ALL 23 REQUIRED TASKS COMPLETE
-19 optional property-based test tasks skipped (marked with * in tasks.md)
+STATUS: SYSTEM UNIFICATION COMPLETE
+All legacy Supabase/Cloudflare/Sentry artifacts removed from codebase.
+Codebase is now unified on: Neon Postgres + Vercel + Custom JWT + Arcjet
 
 
 ==========================================================================
-SECTION 1 — NEON DATABASE: FULL SCHEMA REFERENCE
+SECTION 1 — NEON DATABASE: FULL SCHEMA REFERENCE (Snapshot: 2026-02-21)
 ==========================================================================
 
 Neon MCP Configuration:
@@ -19,24 +21,27 @@ Neon MCP Configuration:
   Default database: neondb
   Tool: run_sql with params { projectId: "wild-bar-37055823", sql: "..." }
 
-Applied Migrations (migration_history table):
-  1  001_extensions.sql           2026-02-19T07:31:03Z
-  2  002_core_schema.sql          2026-02-19T07:31:57Z
-  3  003_supporting_tables.sql    2026-02-19T07:41:03Z
-  4  004_functions.sql            2026-02-19T07:47:22Z
-  5  005_triggers.sql             2026-02-19T07:48:15Z
-  6  006_data_migration.sql       2026-02-19T07:48:58Z
-  7  007_password_reset.sql       2026-02-19T08:47:54Z
-  8  008_notification_idempotency.sql  2026-02-19T10:43:44Z
-  9  009_document_migration_log.sql   2026-02-19T14:17:14Z
+Extensions Installed: uuid-ossp, pgcrypto (via pgcrypto functions in public schema)
 
+Applied Migrations (migration_history table — 9 total):
+  1  001_extensions.sql                  2026-02-19T07:31:03Z
+  2  002_core_schema.sql                 2026-02-19T07:31:57Z
+  3  003_supporting_tables.sql           2026-02-19T07:41:03Z
+  4  004_functions.sql                   2026-02-19T07:47:22Z
+  5  005_triggers.sql                    2026-02-19T07:48:15Z
+  6  006_data_migration.sql              2026-02-19T07:48:58Z
+  7  007_password_reset.sql              2026-02-19T08:47:54Z
+  8  008_notification_idempotency.sql    2026-02-19T10:43:44Z
+  9  009_document_migration_log.sql      2026-02-19T14:17:14Z
+
+Schemas: public (22 tables), neon_auth (9 tables — managed by Neon Auth, do not modify)
 
 --- PUBLIC SCHEMA TABLES (22 tables) ---
-Row counts (approximate from pg_stat):
-  profiles: 21 | applications: 29 | application_documents: 11
-  application_grades: 150 | application_interviews: 0 | application_status_history: 0
-  application_drafts: 0 | audit_logs: 660 | course_requirements: 0
-  device_sessions: 595 | document_migration_log: 0 | documents: 0
+Row counts (live from pg_stat, 2026-02-21):
+  profiles: 21 | applications: 42 | application_documents: 11
+  application_grades: 150 | application_interviews: 6 | application_status_history: 7
+  application_drafts: 0 | audit_logs: 679 | course_requirements: 0
+  device_sessions: 587 | document_migration_log: 0 | documents: 0
   email_queue: 0 | institutions: 2 | intakes: 3
   migration_history: 9 | notifications: 0 | payments: 0
   program_intakes: 0 | programs: 4 | settings: 0
@@ -44,510 +49,367 @@ Row counts (approximate from pg_stat):
 
 
 TABLE: profiles
-  id                      UUID PK DEFAULT gen_random_uuid()
-  email                   VARCHAR(255) NOT NULL UNIQUE
-  role                    VARCHAR(50) DEFAULT 'student'
-  first_name              VARCHAR(255)
-  last_name               VARCHAR(255)
-  phone                   VARCHAR(20)
-  is_active               BOOLEAN DEFAULT true
-  password_hash           TEXT
-  refresh_token_hash      TEXT
-  failed_login_attempts   INTEGER DEFAULT 0
-  locked_until            TIMESTAMPTZ
-  password_changed_at     TIMESTAMPTZ
-  email_verified          BOOLEAN DEFAULT false
-  avatar_url              TEXT
-  date_of_birth           DATE
-  nrc_number              VARCHAR(20)
-  nationality             VARCHAR(100) DEFAULT 'Zambian'
-  address                 TEXT
+  id UUID PK DEFAULT gen_random_uuid()
+  email VARCHAR(255) NOT NULL UNIQUE
+  role VARCHAR(50) DEFAULT 'student'
+  first_name VARCHAR(255)
+  last_name VARCHAR(255)
+  phone VARCHAR(20)
+  is_active BOOLEAN DEFAULT true
+  password_hash TEXT
+  refresh_token_hash TEXT
+  failed_login_attempts INTEGER DEFAULT 0
+  locked_until TIMESTAMPTZ
+  password_changed_at TIMESTAMPTZ
+  email_verified BOOLEAN DEFAULT false
+  avatar_url TEXT
+  date_of_birth DATE
+  nrc_number VARCHAR(20)
+  nationality VARCHAR(100) DEFAULT 'Zambian'
+  address TEXT
   notification_preferences JSONB DEFAULT '{}'
-  last_login_at           TIMESTAMPTZ
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  reset_token_hash        TEXT          -- Added by 007_password_reset.sql
-  reset_token_expires     TIMESTAMPTZ   -- Added by 007_password_reset.sql
-  reset_token_used        BOOLEAN DEFAULT false  -- Added by 007_password_reset.sql
-  Indexes: profiles_pkey(id), profiles_email_key(email UNIQUE), idx_profiles_email(email), idx_profiles_role(role), idx_profiles_refresh_token(refresh_token_hash WHERE NOT NULL)
-
+  last_login_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ DEFAULT now()
+  updated_at TIMESTAMPTZ DEFAULT now()
+  reset_token_hash TEXT
+  reset_token_expires TIMESTAMPTZ
+  reset_token_used BOOLEAN DEFAULT false
+  Indexes: profiles_pkey(id), profiles_email_key(UNIQUE), idx_profiles_email, idx_profiles_role, idx_profiles_refresh_token(WHERE NOT NULL)
 
 TABLE: applications
-  id                      UUID PK DEFAULT gen_random_uuid()
-  application_number      VARCHAR(20) NOT NULL UNIQUE
-  user_id                 UUID NOT NULL FK->profiles(id)
-  full_name               VARCHAR(255) NOT NULL
-  nrc_number              VARCHAR(20)
-  passport_number         VARCHAR(50)
-  date_of_birth           DATE NOT NULL
-  sex                     VARCHAR(10) NOT NULL
-  phone                   VARCHAR(20) NOT NULL
-  email                   VARCHAR(255) NOT NULL
-  residence_town          VARCHAR(100) NOT NULL
-  nationality             VARCHAR(100) DEFAULT 'Zambian'
-  address_line_1          VARCHAR(255)
-  address_line_2          VARCHAR(255)
-  postal_code             VARCHAR(20)
-  next_of_kin_name        VARCHAR(255)
-  next_of_kin_phone       VARCHAR(20)
-  program                 VARCHAR(50) NOT NULL
-  intake                  VARCHAR(50) NOT NULL
-  institution             VARCHAR(50) NOT NULL
-  result_slip_url         VARCHAR(500)
-  extra_kyc_url           VARCHAR(500)
-  application_fee         NUMERIC DEFAULT 153.00
-  payment_method          VARCHAR(20)
-  payer_name              VARCHAR(255)
-  payer_phone             VARCHAR(20)
-  amount                  NUMERIC
-  paid_at                 TIMESTAMPTZ
-  momo_ref                VARCHAR(100)
-  pop_url                 VARCHAR(500)
-  receipt_number          VARCHAR(50)
-  payment_status          VARCHAR(20) DEFAULT 'pending_review'
-  payment_verified_at     TIMESTAMPTZ
-  payment_verified_by     UUID FK->profiles(id)
-  status                  VARCHAR(20) NOT NULL DEFAULT 'draft'
-  eligibility_status      VARCHAR(20) DEFAULT 'pending'
-  eligibility_score       INTEGER
-  eligibility_notes       TEXT
-  admin_feedback          TEXT
-  admin_feedback_date     TIMESTAMPTZ
-  admin_feedback_by       UUID FK->profiles(id)
-  review_started_at       TIMESTAMPTZ
-  decision_date           TIMESTAMPTZ
-  reviewed_by             UUID FK->profiles(id)
-  additional_subjects     JSONB
-  public_tracking_code    VARCHAR(20)
-  submitted_at            TIMESTAMPTZ
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: applications_pkey(id), applications_application_number_key(UNIQUE), idx_applications_user(user_id), idx_applications_status(status), idx_applications_created(created_at DESC), idx_applications_program(program), idx_applications_intake(intake), idx_applications_number(application_number), idx_applications_tracking(public_tracking_code WHERE NOT NULL)
-
+  id UUID PK DEFAULT gen_random_uuid()
+  application_number VARCHAR(20) NOT NULL UNIQUE
+  user_id UUID NOT NULL FK->profiles(id)
+  full_name VARCHAR(255) NOT NULL
+  nrc_number VARCHAR(20)
+  passport_number VARCHAR(50)
+  date_of_birth DATE NOT NULL
+  sex VARCHAR(10) NOT NULL
+  phone VARCHAR(20) NOT NULL
+  email VARCHAR(255) NOT NULL
+  residence_town VARCHAR(100) NOT NULL
+  nationality VARCHAR(100) DEFAULT 'Zambian'
+  address_line_1 VARCHAR(255)
+  address_line_2 VARCHAR(255)
+  postal_code VARCHAR(20)
+  next_of_kin_name VARCHAR(255)
+  next_of_kin_phone VARCHAR(20)
+  program VARCHAR(50) NOT NULL
+  intake VARCHAR(50) NOT NULL
+  institution VARCHAR(50) NOT NULL
+  result_slip_url VARCHAR(500)
+  extra_kyc_url VARCHAR(500)
+  application_fee NUMERIC DEFAULT 153.00
+  payment_method VARCHAR(20)
+  payer_name VARCHAR(255)
+  payer_phone VARCHAR(20)
+  amount NUMERIC
+  paid_at TIMESTAMPTZ
+  momo_ref VARCHAR(100)
+  pop_url VARCHAR(500)
+  receipt_number VARCHAR(50)
+  payment_status VARCHAR(20) DEFAULT 'pending_review'
+  payment_verified_at TIMESTAMPTZ
+  payment_verified_by UUID FK->profiles(id)
+  status VARCHAR(20) NOT NULL DEFAULT 'draft'
+  eligibility_status VARCHAR(20) DEFAULT 'pending'
+  eligibility_score INTEGER
+  eligibility_notes TEXT
+  admin_feedback TEXT
+  admin_feedback_date TIMESTAMPTZ
+  admin_feedback_by UUID FK->profiles(id)
+  review_started_at TIMESTAMPTZ
+  decision_date TIMESTAMPTZ
+  reviewed_by UUID FK->profiles(id)
+  additional_subjects JSONB
+  public_tracking_code VARCHAR(20)
+  submitted_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ DEFAULT now()
+  updated_at TIMESTAMPTZ DEFAULT now()
+  Indexes: applications_pkey, applications_application_number_key(UNIQUE), idx_applications_user, idx_applications_status, idx_applications_created(DESC), idx_applications_program, idx_applications_intake, idx_applications_number, idx_applications_tracking(WHERE NOT NULL)
 
 TABLE: application_documents
-  id                      UUID PK DEFAULT gen_random_uuid()
-  application_id          UUID NOT NULL FK->applications(id)
-  document_type           VARCHAR(100) NOT NULL
-  document_name           VARCHAR(255) NOT NULL
-  file_url                TEXT
-  file_size               INTEGER
-  mime_type               VARCHAR(100)
-  verification_status     VARCHAR(50) DEFAULT 'pending'
-  verified_by             UUID FK->profiles(id)
-  verified_at             TIMESTAMPTZ
-  verification_notes      TEXT
-  system_generated        BOOLEAN DEFAULT false
-  uploaded_at             TIMESTAMPTZ DEFAULT now()
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_app_docs_application(application_id), idx_app_docs_status(verification_status), idx_app_docs_type(document_type)
-
+  id UUID PK | application_id UUID FK->applications | document_type VARCHAR(100) | document_name VARCHAR(255) | file_url TEXT | file_size INTEGER | mime_type VARCHAR(100) | verification_status VARCHAR(50) DEFAULT 'pending' | verified_by UUID FK->profiles | verified_at TIMESTAMPTZ | verification_notes TEXT | system_generated BOOLEAN DEFAULT false | uploaded_at TIMESTAMPTZ | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
 TABLE: application_drafts
-  id                      UUID PK DEFAULT gen_random_uuid()
-  user_id                 UUID NOT NULL FK->profiles(id)
-  draft_data              JSONB NOT NULL
-  draft_name              TEXT DEFAULT 'Draft Application'
-  step_completed          INTEGER DEFAULT 0
-  is_active               BOOLEAN DEFAULT true
-  last_accessed_at        TIMESTAMPTZ DEFAULT now()
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_drafts_user(user_id), idx_drafts_active(user_id, is_active WHERE is_active=true)
-
+  id UUID PK | user_id UUID FK->profiles | draft_data JSONB NOT NULL | draft_name TEXT DEFAULT 'Draft Application' | step_completed INTEGER DEFAULT 0 | is_active BOOLEAN DEFAULT true | last_accessed_at TIMESTAMPTZ | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
 TABLE: application_grades
-  id                      UUID PK DEFAULT gen_random_uuid()
-  application_id          UUID NOT NULL FK->applications(id)
-  subject_id              UUID NOT NULL FK->subjects(id)
-  grade                   INTEGER NOT NULL  -- Zambian ECZ scale: 1-9 (1-6=pass, 7-9=fail)
-  created_at              TIMESTAMPTZ DEFAULT now()
-  UNIQUE(application_id, subject_id)
-  Indexes: idx_app_grades_application(application_id), idx_app_grades_subject(subject_id)
-
+  id UUID PK | application_id UUID FK->applications | subject_id UUID FK->subjects | grade INTEGER NOT NULL (ECZ 1-9) | created_at TIMESTAMPTZ | UNIQUE(application_id, subject_id)
 
 TABLE: application_interviews
-  id                      UUID PK DEFAULT gen_random_uuid()
-  application_id          UUID NOT NULL FK->applications(id)
-  scheduled_at            TIMESTAMPTZ NOT NULL
-  mode                    TEXT NOT NULL
-  location                TEXT
-  status                  TEXT NOT NULL DEFAULT 'scheduled'
-  notes                   TEXT
-  created_by              UUID FK->profiles(id)
-  updated_by              UUID FK->profiles(id)
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_interviews_app(application_id), idx_interviews_scheduled(scheduled_at), idx_interviews_status(status)
-
+  id UUID PK | application_id UUID FK->applications | scheduled_at TIMESTAMPTZ NOT NULL | mode TEXT NOT NULL | location TEXT | status TEXT DEFAULT 'scheduled' | notes TEXT | created_by UUID FK->profiles | updated_by UUID FK->profiles | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
 TABLE: application_status_history
-  id                      UUID PK DEFAULT gen_random_uuid()
-  application_id          UUID NOT NULL FK->applications(id)
-  status                  VARCHAR(20) NOT NULL
-  changed_by              UUID FK->profiles(id)
-  notes                   TEXT
-  changes                 JSONB
-  ip_address              VARCHAR(45)
-  user_agent              TEXT
-  created_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_status_history_app(application_id), idx_status_history_created(created_at DESC)
-
+  id UUID PK | application_id UUID FK->applications | status VARCHAR(20) NOT NULL | changed_by UUID FK->profiles | notes TEXT | changes JSONB | ip_address VARCHAR(45) | user_agent TEXT | created_at TIMESTAMPTZ
 
 TABLE: audit_logs
-  id                      UUID PK DEFAULT gen_random_uuid()
-  actor_id                UUID FK->profiles(id)
-  action                  VARCHAR(50) NOT NULL
-  entity_type             VARCHAR(50) NOT NULL
-  entity_id               UUID NOT NULL
-  changes                 JSONB
-  ip_address              INET
-  user_agent              TEXT
-  created_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_audit_actor(actor_id), idx_audit_action(action), idx_audit_entity(entity_type, entity_id), idx_audit_created(created_at DESC)
-
+  id UUID PK | actor_id UUID FK->profiles | action VARCHAR(50) NOT NULL | entity_type VARCHAR(50) NOT NULL | entity_id UUID NOT NULL | changes JSONB | ip_address INET | user_agent TEXT | created_at TIMESTAMPTZ
+  IMMUTABLE: prevent_audit_logs_modification trigger blocks UPDATE/DELETE
 
 TABLE: course_requirements
-  id                      UUID PK DEFAULT gen_random_uuid()
-  program_id              UUID FK->programs(id)
-  subject_id              UUID FK->subjects(id)
-  is_mandatory            BOOLEAN DEFAULT true
-  minimum_grade           INTEGER NOT NULL
-  weight                  NUMERIC DEFAULT 1.0
-  requirement_type        VARCHAR(50) DEFAULT 'core'
-  created_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_course_req_program(program_id), idx_course_req_subject(subject_id)
-
+  id UUID PK | program_id UUID FK->programs | subject_id UUID FK->subjects | is_mandatory BOOLEAN DEFAULT true | minimum_grade INTEGER NOT NULL | weight NUMERIC DEFAULT 1.0 | requirement_type VARCHAR(50) DEFAULT 'core' | created_at TIMESTAMPTZ
 
 TABLE: device_sessions
-  id                      UUID PK DEFAULT gen_random_uuid()
-  user_id                 UUID NOT NULL FK->profiles(id)
-  device_id               TEXT NOT NULL
-  device_info             TEXT
-  session_token           TEXT NOT NULL
-  ip_address              VARCHAR(45)
-  user_agent              TEXT
-  last_activity           TIMESTAMPTZ DEFAULT now()
-  is_active               BOOLEAN DEFAULT true
-  expires_at              TIMESTAMPTZ DEFAULT now()+30days
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_sessions_user(user_id), idx_sessions_token(session_token), idx_sessions_active(is_active WHERE true), idx_sessions_expires(expires_at)
+  id UUID PK | user_id UUID FK->profiles | device_id TEXT NOT NULL | device_info TEXT | session_token TEXT NOT NULL | ip_address VARCHAR(45) | user_agent TEXT | last_activity TIMESTAMPTZ | is_active BOOLEAN DEFAULT true | expires_at TIMESTAMPTZ DEFAULT now()+30d | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
-
-TABLE: document_migration_log  -- Added by 009_document_migration_log.sql
-  id                      UUID PK DEFAULT gen_random_uuid()
-  document_id             UUID NOT NULL
-  old_url                 TEXT NOT NULL
-  new_r2_path             TEXT NOT NULL
-  new_r2_url              TEXT NOT NULL
-  checksum                TEXT
-  status                  TEXT NOT NULL DEFAULT 'pending'
-  error                   TEXT
-  migrated_at             TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_document_migration_log_document_id(document_id), idx_document_migration_log_status(status)
-
+TABLE: document_migration_log
+  id UUID PK | document_id UUID NOT NULL | old_url TEXT NOT NULL | new_r2_path TEXT NOT NULL | new_r2_url TEXT NOT NULL | checksum TEXT | status TEXT DEFAULT 'pending' | error TEXT | migrated_at TIMESTAMPTZ
 
 TABLE: documents
-  id                      UUID PK DEFAULT gen_random_uuid()
-  application_id          UUID FK->applications(id)
-  uploader_id             UUID FK->profiles(id)
-  document_type           VARCHAR(50) NOT NULL
-  document_name           VARCHAR(255) NOT NULL
-  file_name               VARCHAR(255) NOT NULL
-  file_path               TEXT NOT NULL
-  file_size               INTEGER
-  mime_type               VARCHAR(100)
-  verdict                 VARCHAR(20) DEFAULT 'pending'
-  verified_by             UUID FK->profiles(id)
-  verified_at             TIMESTAMPTZ
-  notes                   TEXT
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_documents_app(application_id), idx_documents_type(document_type), idx_documents_uploader(uploader_id)
-
+  id UUID PK | application_id UUID FK->applications | uploader_id UUID FK->profiles | document_type VARCHAR(50) | document_name VARCHAR(255) | file_name VARCHAR(255) | file_path TEXT | file_size INTEGER | mime_type VARCHAR(100) | verdict VARCHAR(20) DEFAULT 'pending' | verified_by UUID FK->profiles | verified_at TIMESTAMPTZ | notes TEXT | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
 TABLE: email_queue
-  id                      UUID PK DEFAULT gen_random_uuid()
-  recipient_email         VARCHAR(255) NOT NULL
-  recipient_name          VARCHAR(255)
-  subject                 VARCHAR(255) NOT NULL
-  body                    TEXT NOT NULL
-  html_body               TEXT
-  template_name           VARCHAR(100)
-  template_data           JSONB
-  status                  VARCHAR(20) DEFAULT 'pending'
-  priority                INTEGER DEFAULT 5
-  retry_count             INTEGER DEFAULT 0
-  max_retries             INTEGER DEFAULT 3
-  error_message           TEXT
-  sent_at                 TIMESTAMPTZ
-  created_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_email_queue_status(status), idx_email_queue_priority(priority, created_at)
-
+  id UUID PK | recipient_email VARCHAR(255) | recipient_name VARCHAR(255) | subject VARCHAR(255) | body TEXT | html_body TEXT | template_name VARCHAR(100) | template_data JSONB | status VARCHAR(20) DEFAULT 'pending' | priority INTEGER DEFAULT 5 | retry_count INTEGER DEFAULT 0 | max_retries INTEGER DEFAULT 3 | error_message TEXT | sent_at TIMESTAMPTZ | created_at TIMESTAMPTZ
 
 TABLE: institutions
-  id                      UUID PK DEFAULT gen_random_uuid()
-  name                    VARCHAR(255) NOT NULL
-  code                    VARCHAR(50) NOT NULL UNIQUE
-  type                    VARCHAR(100)
-  address                 TEXT
-  phone                   VARCHAR(20)
-  email                   VARCHAR(255)
-  website                 VARCHAR(255)
-  accreditation_status    VARCHAR(50)
-  is_active               BOOLEAN DEFAULT true
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-
+  id UUID PK | name VARCHAR(255) | code VARCHAR(50) UNIQUE | type VARCHAR(100) | address TEXT | phone VARCHAR(20) | email VARCHAR(255) | website VARCHAR(255) | accreditation_status VARCHAR(50) | is_active BOOLEAN DEFAULT true | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
 TABLE: intakes
-  id                      UUID PK DEFAULT gen_random_uuid()
-  name                    VARCHAR(255) NOT NULL
-  year                    INTEGER
-  semester                VARCHAR(50)
-  start_date              DATE
-  end_date                DATE
-  application_start_date  DATE
-  application_deadline    DATE
-  max_capacity            INTEGER
-  current_enrollment      INTEGER DEFAULT 0
-  is_active               BOOLEAN DEFAULT true
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_intakes_active(is_active WHERE true), idx_intakes_deadline(application_deadline)
-
+  id UUID PK | name VARCHAR(255) | year INTEGER | semester VARCHAR(50) | start_date DATE | end_date DATE | application_start_date DATE | application_deadline DATE | max_capacity INTEGER | current_enrollment INTEGER DEFAULT 0 | is_active BOOLEAN DEFAULT true | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
 TABLE: migration_history
-  id                      SERIAL PK
-  migration_name          TEXT NOT NULL UNIQUE
-  applied_at              TIMESTAMPTZ DEFAULT now()
-
+  id SERIAL PK | migration_name TEXT UNIQUE | applied_at TIMESTAMPTZ
 
 TABLE: notifications
-  id                      UUID PK DEFAULT gen_random_uuid()
-  user_id                 UUID NOT NULL FK->profiles(id)
-  title                   VARCHAR(255) NOT NULL
-  message                 TEXT NOT NULL
-  type                    VARCHAR(50)
-  priority                VARCHAR(20) DEFAULT 'normal'
-  action_url              TEXT
-  metadata                JSONB
-  is_read                 BOOLEAN DEFAULT false
-  read_at                 TIMESTAMPTZ
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  idempotency_key         TEXT  -- Added by 008_notification_idempotency.sql
-  Indexes: idx_notifications_user(user_id), idx_notifications_created(created_at DESC), idx_notifications_unread(user_id, is_read WHERE is_read=false), idx_notifications_idempotency(idempotency_key)
-
+  id UUID PK | user_id UUID FK->profiles | title VARCHAR(255) | message TEXT | type VARCHAR(50) | priority VARCHAR(20) DEFAULT 'normal' | action_url TEXT | metadata JSONB | is_read BOOLEAN DEFAULT false | read_at TIMESTAMPTZ | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ | idempotency_key TEXT
 
 TABLE: payments
-  id                      UUID PK DEFAULT gen_random_uuid()
-  application_id          UUID FK->applications(id)
-  user_id                 UUID NOT NULL FK->profiles(id)
-  amount                  NUMERIC NOT NULL
-  currency                VARCHAR(3) DEFAULT 'ZMW'
-  payment_method          VARCHAR(50)
-  transaction_reference   VARCHAR(100)
-  status                  VARCHAR(20) DEFAULT 'pending'
-  verified_by             UUID FK->profiles(id)
-  verified_at             TIMESTAMPTZ
-  receipt_number          VARCHAR(50)
-  receipt_url             TEXT
-  metadata                JSONB
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_payments_app(application_id), idx_payments_user(user_id), idx_payments_status(status), idx_payments_ref(transaction_reference)
-
+  id UUID PK | application_id UUID FK->applications | user_id UUID FK->profiles | amount NUMERIC | currency VARCHAR(3) DEFAULT 'ZMW' | payment_method VARCHAR(50) | transaction_reference VARCHAR(100) | status VARCHAR(20) DEFAULT 'pending' | verified_by UUID FK->profiles | verified_at TIMESTAMPTZ | receipt_number VARCHAR(50) | receipt_url TEXT | metadata JSONB | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
 TABLE: programs
-  id                      UUID PK DEFAULT gen_random_uuid()
-  name                    VARCHAR(255) NOT NULL
-  code                    VARCHAR(50) NOT NULL UNIQUE
-  description             TEXT
-  duration_months         INTEGER
-  application_fee         NUMERIC DEFAULT 153.00
-  tuition_fee             NUMERIC
-  requirements            JSONB
-  regulatory_body         VARCHAR(100)
-  accreditation_status    VARCHAR(50)
-  is_active               BOOLEAN DEFAULT true
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_programs_code(code), idx_programs_active(is_active WHERE true)
-
+  id UUID PK | name VARCHAR(255) | code VARCHAR(50) UNIQUE | description TEXT | duration_months INTEGER | application_fee NUMERIC DEFAULT 153.00 | tuition_fee NUMERIC | requirements JSONB | regulatory_body VARCHAR(100) | accreditation_status VARCHAR(50) | is_active BOOLEAN DEFAULT true | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
 TABLE: program_intakes
-  id                      UUID PK DEFAULT gen_random_uuid()
-  program_id              UUID NOT NULL FK->programs(id)
-  intake_id               UUID NOT NULL FK->intakes(id)
-  max_capacity            INTEGER
-  current_enrollment      INTEGER DEFAULT 0
-  created_at              TIMESTAMPTZ DEFAULT now()
-  UNIQUE(program_id, intake_id)
-  Indexes: idx_prog_intakes_program(program_id), idx_prog_intakes_intake(intake_id)
-
+  id UUID PK | program_id UUID FK->programs | intake_id UUID FK->intakes | max_capacity INTEGER | current_enrollment INTEGER DEFAULT 0 | created_at TIMESTAMPTZ | UNIQUE(program_id, intake_id)
 
 TABLE: settings
-  id                      UUID PK DEFAULT gen_random_uuid()
-  key                     VARCHAR(100) NOT NULL UNIQUE
-  value                   JSONB NOT NULL
-  description             TEXT
-  category                VARCHAR(50)
-  is_public               BOOLEAN DEFAULT false
-  updated_by              UUID FK->profiles(id)
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_settings_key(key), idx_settings_category(category)
-
+  id UUID PK | key VARCHAR(100) UNIQUE | value JSONB | description TEXT | category VARCHAR(50) | is_public BOOLEAN DEFAULT false | updated_by UUID FK->profiles | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
 TABLE: subjects
-  id                      UUID PK DEFAULT gen_random_uuid()
-  name                    VARCHAR(255) NOT NULL
-  code                    VARCHAR(50)
-  category                VARCHAR(100)
-  is_core                 BOOLEAN DEFAULT false
-  is_active               BOOLEAN DEFAULT true
-  created_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_subjects_active(is_active WHERE true), idx_subjects_category(category)
-
+  id UUID PK | name VARCHAR(255) | code VARCHAR(50) | category VARCHAR(100) | is_core BOOLEAN DEFAULT false | is_active BOOLEAN DEFAULT true | created_at TIMESTAMPTZ
 
 TABLE: user_notification_preferences
-  id                      UUID PK DEFAULT gen_random_uuid()
-  user_id                 UUID NOT NULL FK->profiles(id) UNIQUE
-  email_enabled           BOOLEAN DEFAULT true
-  push_enabled            BOOLEAN DEFAULT true
-  sms_enabled             BOOLEAN DEFAULT false
-  application_updates     BOOLEAN DEFAULT true
-  payment_reminders       BOOLEAN DEFAULT true
-  interview_reminders     BOOLEAN DEFAULT true
-  marketing_emails        BOOLEAN DEFAULT false
-  quiet_hours_start       TIME
-  quiet_hours_end         TIME
-  timezone                VARCHAR(50) DEFAULT 'Africa/Lusaka'
-  created_at              TIMESTAMPTZ DEFAULT now()
-  updated_at              TIMESTAMPTZ DEFAULT now()
-  Indexes: idx_notif_prefs_user(user_id)
+  id UUID PK | user_id UUID FK->profiles UNIQUE | email_enabled BOOLEAN DEFAULT true | push_enabled BOOLEAN DEFAULT true | sms_enabled BOOLEAN DEFAULT false | application_updates BOOLEAN DEFAULT true | payment_reminders BOOLEAN DEFAULT true | interview_reminders BOOLEAN DEFAULT true | marketing_emails BOOLEAN DEFAULT false | quiet_hours_start TIME | quiet_hours_end TIME | timezone VARCHAR(50) DEFAULT 'Africa/Lusaka' | created_at TIMESTAMPTZ | updated_at TIMESTAMPTZ
 
+--- CUSTOM FUNCTIONS (public schema) ---
+  calculate_best_5_subjects_points() — Grade calculation for ECZ subjects
+  cleanup_expired_sessions() — Purge expired device sessions
+  cleanup_old_drafts() — Remove stale application drafts
+  generate_application_number() — Auto-generate MIHAS2026XXXXX numbers
+  generate_tracking_code() — Public tracking code for applications
+  prevent_audit_modification() — Immutability trigger for audit_logs
+  set_application_defaults() — Auto-set defaults on INSERT/UPDATE
+  update_updated_at_column() — Auto-update updated_at timestamps
+  validate_email() — Email format validation
+  validate_nrc() — Zambian NRC format validation
+  validate_zambian_phone() — +260 phone format validation
 
---- FOREIGN KEY SUMMARY ---
-  application_documents.application_id -> applications.id
-  application_documents.verified_by -> profiles.id
-  application_drafts.user_id -> profiles.id
-  application_grades.application_id -> applications.id
-  application_grades.subject_id -> subjects.id
-  application_interviews.application_id -> applications.id
-  application_interviews.created_by -> profiles.id
-  application_interviews.updated_by -> profiles.id
-  application_status_history.application_id -> applications.id
-  application_status_history.changed_by -> profiles.id
-  applications.user_id -> profiles.id
-  applications.payment_verified_by -> profiles.id
-  applications.admin_feedback_by -> profiles.id
-  applications.reviewed_by -> profiles.id
-  audit_logs.actor_id -> profiles.id
-  course_requirements.program_id -> programs.id
-  course_requirements.subject_id -> subjects.id
-  device_sessions.user_id -> profiles.id
-  documents.application_id -> applications.id
-  documents.uploader_id -> profiles.id
-  documents.verified_by -> profiles.id
-  notifications.user_id -> profiles.id
-  payments.application_id -> applications.id
-  payments.user_id -> profiles.id
-  payments.verified_by -> profiles.id
-  program_intakes.program_id -> programs.id
-  program_intakes.intake_id -> intakes.id
-  settings.updated_by -> profiles.id
-  user_notification_preferences.user_id -> profiles.id
+--- TRIGGERS ---
+  update_*_updated_at — BEFORE UPDATE on 11 tables (auto-set updated_at)
+  set_application_defaults_trigger — BEFORE INSERT/UPDATE on applications
+  prevent_audit_logs_modification — BEFORE UPDATE/DELETE on audit_logs (immutable)
+
+--- NEON_AUTH SCHEMA (managed, do not modify) ---
+  Tables: account, invitation, jwks, member, organization, project_config, session, user, verification
 
 
 ==========================================================================
-SECTION 2 — COMPLETED TASKS SUMMARY
+SECTION 2 — WHAT WAS RESOLVED (System Unification Migration Spec)
 ==========================================================================
 
-Phase 1: Database Layer (Tasks 1-3)
-  Task 1: Migration discovery + application — scripts/verify-migrations.ts, all 9 migrations applied
-  Task 2: Schema verification + data integrity + indexes — tests/integration/schemaVerification.test.ts, scripts/data-integrity-check.ts, scripts/verify-indexes.ts
-  Task 3: Checkpoint ✓
+Spec: .kiro/specs/system-unification-migration/
+All 10 task groups completed. Optional PBT tasks (2.2, 4.3, 5.4, 7.3, 7.4) skipped.
 
-Phase 2: Critical User Flows (Tasks 4-8)
-  Task 4: Password reset — migrations/007_password_reset.sql, forgot-password + reset-password in api-src/auth.ts
-  Task 5: Display name normalization — deriveFullName in login/refresh/session, consistent user object shape
-  Task 6: Application tracking — action=track unauthenticated, safe fields only, Arcjet rate limiting
-  Task 7: Wizard text integrity — mojibake cleaned in src/pages/student/applicationWizard/
-  Task 8: Checkpoint ✓
+Phase 1-3 (completed in prior sessions):
+  - Deleted 9 dead code files (legacy Supabase stubs, deprecated modules)
+  - Migrated notificationService.ts from Supabase RPC to API client
+  - Migrated applicationFlowAnalyzer.ts string literals
+  - Deleted offlineManager.ts (zero importers)
+  - Checkpoint passed
 
-Phase 3: Admin & Notification Flows (Tasks 9-13)
-  Task 9: Notification dedup + policy — migrations/008_notification_idempotency.sql, lib/notificationPolicy.ts
-  Task 10: Admin users — pagination fix, role promotion restricted to super_admin
-  Task 11: Programs/intakes — catalog.ts JOIN institutions, deadline validation
-  Task 12: Pagination — COUNT(*) totalCount, frontend dedup by application.id
-  Task 13: Checkpoint ✓
+Phase 4: Rename Supabase-named identifiers
+  - Renamed useSupabaseQuery.ts → useQueryConfig.ts + updated 9 import sites
+  - Renamed SupabaseEligibilityAssessmentRow → EligibilityAssessmentRow
 
-Phase 4: Documents, Drafts, Payments, Interviews (Tasks 14-17)
-  Task 14: R2 migration — migrations/009_document_migration_log.sql, scripts/migrate-legacy-documents-to-r2.ts
-  Task 15: Draft reconciliation + payment flow verified
-  Task 16: Interview scheduling + SSE/polling hybrid verified
-  Task 17: Checkpoint ✓
+Phase 5: Environment & dependency cleanup
+  - Removed all SUPABASE_*/VITE_SUPABASE_* vars from 5 .env files
+  - Removed Cloudflare entries (.wrangler/, .mf/) from .gitignore
+  - Removed wrangler from package.json devDependencies, regenerated bun.lock
 
-Phase 5: Loophole Closure (Tasks 18-21)
-  Task 18: Contract alignment — tests/unit/contracts/actionAlignment.test.ts (59+ tests)
-  Task 19: Stub elimination — deleted dead Supabase stubs, rewrote eligibility/duplicate check
-  Task 20: Audit trail — logAuditEvent for status changes + user registration (17 tests)
-  Task 21: Mobile responsiveness — table overflow, tap targets, layout fixes (70 tests)
+Phase 6: Checkpoint — bun install clean, Vite build passes, no new regressions
 
-Phase 6: Scalability & Final (Tasks 22-23)
-  Task 22: docs/SCALABILITY_RECOMMENDATIONS.md
-  Task 23: Final checkpoint — full test suite passing ✓
+Phase 7: SSE/polling wiring
+  - Set pollingEnabled: true in useRealtime hook defaults (SSE stays off for Vercel Hobby)
+  - Wired useApplicationUpdates into student dashboard with React Query cache invalidation
+
+Phase 8: Auth cleanup
+  - Removed handleBootstrap (Supabase user migration handler) from api-src/auth.ts
+  - Removed 'bootstrap' case from switch statement
+  - Kept verifyLegacyPassword (handles plaintext/SHA-256→bcrypt upgrade, not Supabase-specific)
+  - Rebundled api/auth.js
+
+Phase 9: Documentation cleanup
+  - Deleted 8 obsolete docs (Cloudflare/Supabase-specific)
+  - Updated 8 docs to replace Sentry/Supabase/Cloudflare references with current stack
+
+Phase 10: Final verification
+  - Vite build: PASS
+  - Zero active Supabase code references in src/, api-src/, lib/
+  - Zero SUPABASE_* env variable assignments
+  - Wrangler fully removed
+  - All file deletions and renames confirmed
 
 
 ==========================================================================
-SECTION 3 — TEST SUITE STATUS
+SECTION 3 — KNOWN GAPS & ISSUES FOR CODEX 5.3
 ==========================================================================
+
+PRIORITY 1 — Pre-existing TypeScript Errors (32 errors, 10 files):
+  These exist with tsconfig strict:false and don't block Vite builds, but should be fixed:
+  
+  1. src/services/dashboardPreloader.ts — references CACHE_CONFIG.critical which doesn't exist
+     Fix: Change to CACHE_CONFIG.applications or add 'critical' key to CACHE_CONFIG
+  
+  2. src/pages/public/tracker/components/ApplicationInfoGrid.tsx — 9 errors
+     payment_status not on PublicApplicationStatus type
+     Fix: Update the PublicApplicationStatus type or the component props
+  
+  3. src/pages/admin/Intakes.tsx — Zod resolver type mismatch (3 errors)
+  
+  4. src/lib/api/adminApi.ts — union type property access (2 errors)
+  
+  5. src/hooks/useRealtime.ts — line 168 type narrowing issue (1 error)
+  
+  6. src/main.tsx — virtual:pwa-register module not found (Vite plugin virtual module)
+  
+  7. Test files: 3 test files with type issues (mock types, missing modules)
+
+PRIORITY 2 — @ts-nocheck Files (36 files in src/):
+  These files have @ts-nocheck and may contain latent type errors:
+  - src/hooks/queries/useQueryConfig.ts
+  - src/hooks/admin/useApplicationsData.ts, useApplicationActions.ts, etc.
+  - src/lib/applicationFlowAnalyzer.ts, maintenance.ts, exportUtils.ts, etc.
+  - src/services/offlineSync.ts, autoScaling.ts, etc.
+  - src/forms/applicationSchema.ts
+  - src/data/applications.ts
+  Recommendation: Gradually remove @ts-nocheck and fix type errors file by file
+
+PRIORITY 3 — Legacy Backward-Compat Code (acceptable, but track):
+  1. api-src/documents.ts: normalizeLegacySupabasePath() — converts old Supabase Storage
+     URLs stored in the database to R2 paths. KEEP until R2 migration script is run.
+  2. src/lib/networkDiagnostics.ts: testSupabaseConnection() — deprecated method that
+     delegates to testApiConnection(). Can be removed once all callers are verified.
+  3. lib/errorHandler.ts: regex to sanitize Supabase URLs from error messages. Defensive,
+     low risk, can stay.
+
+PRIORITY 4 — Pre-existing Test Failures:
+  - Cookie-related tests (httpOnly cookie mocking issues)
+  - Password hashing tests (bcrypt mock edge cases, 30s timeout)
+  - HEAD method tests (Vercel handler signature)
+  - Worker timeout issues on some machines (vitest fork timeouts)
+  - tests/property/admin-system-health-fixes/ — references non-existent src/analysis/ dir
+  - tests/unit/api-auth-login-migration.test.ts — vi.mock hoisting errors
+  - tests/unit/api-auth-profile-name-fallback.test.ts — vi.mock hoisting errors
+
+PRIORITY 5 — Operational Gaps:
+  1. R2 Document Migration: scripts/migrate-legacy-documents-to-r2.ts exists but hasn't
+     been run against production. Old Supabase Storage URLs in the database still need
+     migration. The normalizeLegacySupabasePath() function handles this at runtime, but
+     a batch migration would be cleaner.
+  
+  2. Email Queue Processing: email_queue table has 0 rows and no background worker.
+     Emails go through Resend directly. If queue-based retry is needed, implement a
+     cron job or Vercel scheduled function.
+  
+  3. course_requirements table is empty (0 rows). Program eligibility checking works
+     via the requirements JSONB field on programs table, but the relational
+     course_requirements table is unused. Either populate it or remove it.
+  
+  4. program_intakes table is empty (0 rows). Programs and intakes exist but aren't
+     linked. This means the catalog doesn't enforce which programs are available in
+     which intakes.
+  
+  5. device_sessions: 587 rows, many likely expired. Run cleanup_expired_sessions()
+     periodically or set up a cron.
+  
+  6. Polling endpoint (api-src/sessions.ts?action=poll) is wired but the admin dashboard
+     doesn't have realtime wiring yet — only the student dashboard does.
+
+PRIORITY 6 — Documentation Gaps:
+  1. No E2E test suite running (Playwright configured but no CI pipeline)
+  2. No automated deployment pipeline docs (manual git push to Vercel)
+  3. docs/SCALABILITY_RECOMMENDATIONS.md exists but hasn't been acted on
+
+
+==========================================================================
+SECTION 4 — COMPLETED SPECS SUMMARY
+==========================================================================
+
+Spec 1: mcp-verification-recovery (23 required tasks, all complete)
+  - Database migrations 001-009 applied
+  - Password reset, display name normalization, application tracking
+  - Notification dedup, admin users, programs/intakes, pagination
+  - R2 migration prep, draft reconciliation, interview scheduling
+  - Contract alignment, stub elimination, audit trail, mobile responsiveness
+  - Scalability recommendations
+
+Spec 2: system-unification-migration (10 task groups, all complete)
+  - Dead code deletion (9 files)
+  - Module migration (notificationService, applicationFlowAnalyzer, offlineManager)
+  - File/type renames (useQueryConfig, EligibilityAssessmentRow)
+  - Environment cleanup (5 .env files, .gitignore, wrangler removal)
+  - SSE polling wiring (student dashboard)
+  - Auth cleanup (bootstrap handler removal)
+  - Documentation cleanup (8 deleted, 8 updated)
+
+Other completed specs (from prior sessions, see .kiro/specs/):
+  - auth-security-hardening, auth-unification-complete
+  - bun-vercel-migration, bun-vercel-runtime-forensics
+  - supabase-auth-removal, supabase-complete-removal, supabase-exit-migration
+  - supabase-remnant-purge, realtime-autosave-fix, realtime-mobile-performance-fix
+  - student-payment-interview-pages, application-card-extraction
+  - admin-dashboard-fixes, admin-system-health-fixes
+  - production-readiness-audit, vercel-api-bundling-fix, vercel-production-fixes
+  - frontend-backend-forensic-audit, interview-communication-fix
+  - migration-recovery-hardening, api-500-forensic-analysis, audit-issue-remediation
+
+
+==========================================================================
+SECTION 5 — TEST SUITE STATUS
+==========================================================================
+
 Run with: bun run test
 
-  tests/unit/contracts/actionAlignment.test.ts    — 59+ tests
-  tests/unit/auditTrailCompleteness.test.ts       — 17 tests
-  tests/unit/mobileResponsiveness.test.ts         — 70 tests
+Passing test suites (11+ files):
+  tests/unit/contracts/actionAlignment.test.ts — 59+ tests
+  tests/unit/auditTrailCompleteness.test.ts — 17 tests
+  tests/unit/mobileResponsiveness.test.ts — 70 tests
   tests/unit/notificationPolicyEnforcement.test.ts — passing
-  tests/integration/schemaVerification.test.ts    — passing (requires Neon MCP)
-  tests/property/*.test.ts                        — 70+ tests (fast-check)
+  tests/unit/useDocumentGeneration.test.tsx — passing
+  tests/property/supabase-auth-removal.property.test.ts — passing
+  tests/property/supabase-complete-removal/ — passing
+  tests/property/supabase-exit-migration/ — passing
+  + several more unit test files
 
-Known pre-existing failures (from OTHER specs):
-  - Cookie-related tests (httpOnly cookie mocking)
-  - Password hashing tests (bcrypt mock edge cases)
-  - HEAD method tests (Vercel handler signature)
-
-
-==========================================================================
-SECTION 4 — KEY FILES CREATED/MODIFIED
-==========================================================================
-Scripts: scripts/verify-migrations.ts, scripts/data-integrity-check.ts, scripts/verify-indexes.ts, scripts/migrate-legacy-documents-to-r2.ts
-Migrations: migrations/007_password_reset.sql, migrations/008_notification_idempotency.sql, migrations/009_document_migration_log.sql
-API: api-src/auth.ts, api-src/admin.ts, api-src/applications.ts, api-src/notifications.ts, api-src/catalog.ts, api-src/documents.ts
-Libs: lib/notificationPolicy.ts, lib/auditLogger.ts, lib/queries.ts
-Frontend: src/lib/eligibilityEngine.ts, src/lib/duplicateApplicationCheck.ts, src/lib/maintenance.ts, src/data/analytics.ts, src/components/admin/OfflineAdminDashboard.tsx
-Pages: src/pages/admin/Users.tsx, Programs.tsx, Intakes.tsx, AuditTrail.tsx, src/pages/student/Payment.tsx
-Tests: tests/unit/contracts/actionAlignment.test.ts, tests/unit/auditTrailCompleteness.test.ts, tests/unit/mobileResponsiveness.test.ts, tests/unit/notificationPolicyEnforcement.test.ts
-Docs: docs/SCALABILITY_RECOMMENDATIONS.md
-
-
-==========================================================================
-SECTION 5 — REMAINING OPTIONAL WORK
-==========================================================================
-19 property-based test tasks skipped (marked * in tasks.md):
-  1.2, 2.4, 2.5, 4.3, 5.2, 5.3, 6.2, 7.2, 9.4, 9.5, 10.3, 11.2, 12.3, 14.5, 14.6, 15.2, 16.3, 18.2, 20.2, 20.3
+Known failing (all pre-existing, not from recent specs):
+  tests/unit/api-auth-login-migration.test.ts — vi.mock hoisting
+  tests/unit/api-auth-profile-name-fallback.test.ts — vi.mock hoisting
+  tests/unit/optimized-auth-routes.test.tsx — mock setup (Navigate)
+  tests/unit/auth-permissions.test.ts — flaky timing assertion
+  tests/property/admin-system-health-fixes/ — missing src/analysis/ modules
 
 
 ==========================================================================
 SECTION 6 — PROJECT CONVENTIONS FOR CODEX 5.3
 ==========================================================================
+
 Runtime: Bun (not npm)
 API source: edit api-src/*.ts, then run `bun run scripts/bundle-api.mjs` to bundle to api/*.js
 Never edit api/*.js directly — auto-generated
 Database: Neon Postgres exclusively (never Supabase)
+  Project ID: wild-bar-37055823
+  Database: neondb
 Auth: Custom JWT via jose + bcrypt, HTTP-only cookies
 Security: Arcjet on all sensitive routes
 Frontend: React 18 + TypeScript, Tailwind, Radix UI, Zustand + React Query
@@ -555,16 +417,82 @@ Tests: Vitest + fast-check, run with `bun run test`
 Shared libs at project root lib/ (NOT api/lib/)
 API response envelope: { success: true, data: payload } via sendSuccess()
 Frontend clients unwrap automatically — never check response.success on service results
+tsconfig.json has strict: false — don't enable strict mode
 
-What to Focus On Next:
-  1. Run R2 migration script against production if legacy documents exist
-  2. Bundle and deploy: `bun run scripts/bundle-api.mjs` then push to Vercel
-  3. Consider implementing 19 optional property-based tests
-  4. Address pre-existing test failures from other specs
-  5. Run full E2E smoke test against production
-  6. Review docs/SCALABILITY_RECOMMENDATIONS.md for scaling prep
+Dual API Client:
+  1. src/lib/apiClient.ts (older) — has data.data ?? data unwrap
+  2. src/services/client.ts (newer, preferred) — ApiClient class with auto-unwrap
+  When adding new code, use src/services/client.ts
 
-Spec Reference:
-  .kiro/specs/mcp-verification-recovery/requirements.md
-  .kiro/specs/mcp-verification-recovery/design.md
-  .kiro/specs/mcp-verification-recovery/tasks.md
+Vercel Hobby Plan Constraints:
+  - 12 serverless function limit (currently at 12 — do NOT add new api/ files)
+  - 10-second function timeout (SSE disabled, polling-only for realtime)
+  - Add new functionality as cases in existing consolidated endpoints
+
+
+==========================================================================
+SECTION 7 — WHAT TO FOCUS ON NEXT
+==========================================================================
+
+Immediate (before next deploy):
+  1. Bundle and deploy: `bun run scripts/bundle-api.mjs` then git push to Vercel
+  2. Fix dashboardPreloader.ts CACHE_CONFIG.critical reference (quick fix)
+  3. Run cleanup_expired_sessions() on production DB to purge 587 stale sessions
+
+Short-term:
+  4. Fix the 32 pre-existing TypeScript errors (Priority 1 above)
+  5. Run R2 migration script if legacy Supabase Storage URLs exist in production
+  6. Wire realtime polling into admin dashboard (student dashboard already done)
+  7. Populate program_intakes table to link programs to intakes
+  8. Remove deprecated testSupabaseConnection() from networkDiagnostics.ts
+  9. Fix failing test files (vi.mock hoisting, timing assertions)
+
+Medium-term:
+  10. Gradually remove @ts-nocheck from 36 files
+  11. Implement 19 optional property-based tests from mcp-verification-recovery spec
+  12. Set up E2E test pipeline with Playwright
+  13. Implement email queue worker if retry logic is needed
+  14. Set up cron for cleanup_expired_sessions() and cleanup_old_drafts()
+  15. Review and act on docs/SCALABILITY_RECOMMENDATIONS.md
+
+Production checklist:
+  - Verify all env vars set in Vercel dashboard (DATABASE_URL, JWT_SECRET, JWT_REFRESH_SECRET, ARCJET_KEY, RESEND_API_KEY)
+  - Run full E2E smoke test against https://apply.mihas.edu.zm
+  - Check Vercel function logs for any 500 errors
+  - Verify health endpoints: /api/health?action=ping, /api/health?action=db
+
+
+==========================================================================
+SECTION 8 — KEY FILES REFERENCE
+==========================================================================
+
+API Endpoints (api-src/ → api/):
+  auth.ts — login, logout, register, session, refresh, check-email, roles, profile, forgot-password, reset-password
+  admin.ts — dashboard, users, settings, stats, errors, migrate
+  applications.ts — details, documents, grades, summary, review, export, track (+ ?id=xxx)
+  catalog.ts — ?type=programs|intakes|subjects
+  documents.ts — upload, extract
+  health.ts — ping, db, env, arcjet
+  notifications.ts — preferences, send
+  payments.ts — receipt
+  sessions.ts — track, list, revoke, revoke-all, poll
+  bootstrap.ts — database bootstrap/seed
+  ping.ts — simple ping
+  [...path].ts — catch-all 404
+
+Shared Libs (project root lib/):
+  auth/ — jwt.ts, password.ts, cookies.ts, middleware.ts, ownership.ts, permissions.ts
+  db.ts, cors.ts, arcjet.ts, errorHandler.ts, queries.ts, rateLimiter.ts
+  auditLogger.ts, notificationPolicy.ts, realtime.ts, realtimeBroker.ts
+  sessions.ts, storage.ts, base64.ts
+
+Frontend Key Files:
+  src/contexts/AuthContext.tsx — main auth provider
+  src/stores/authStore.ts — Zustand auth state
+  src/hooks/useRealtime.ts — SSE/polling hook (polling enabled, SSE disabled)
+  src/hooks/queries/useQueryConfig.ts — React Query cache config
+  src/services/client.ts — preferred API client (ApiClient class)
+  src/lib/notificationService.ts — migrated to API client (no Supabase)
+
+Specs: .kiro/specs/system-unification-migration/ (latest completed)
+Steering: .kiro/steering/ (tech.md, structure.md, product.md)

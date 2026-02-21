@@ -21,9 +21,6 @@ vi.mock('../../lib/db', () => ({
 vi.mock('../../lib/auth/password', () => ({
   hashPassword: vi.fn(),
   verifyPassword: verifyPasswordMock,
-}));
-
-vi.mock('../../lib/auth/legacy', () => ({
   needsPasswordUpgrade: vi.fn(() => false),
   upgradePasswordHash: vi.fn(),
 }));

@@ -1,60 +1,8 @@
 import { createRequire } from "node:module";
+var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
-// lib/cors.ts
-var ALLOWED_ORIGINS = [
-  "https://apply.mihas.edu.zm",
-  "https://mihas.vercel.app",
-  "http://localhost:5173",
-  "http://localhost:3000"
-];
-function getCorsHeaders(origin) {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Max-Age": "86400"
-  };
-}
-function handleCors(req, res) {
-  const origin = req.headers.origin;
-  const headers = getCorsHeaders(origin);
-  Object.entries(headers).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
-  if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return true;
-  }
-  return false;
-}
-
 // lib/db.ts
-var DatabaseErrorCode = {
-  CONNECTION_ERROR: "CONNECTION_ERROR",
-  QUERY_ERROR: "QUERY_ERROR",
-  TRANSACTION_ERROR: "TRANSACTION_ERROR",
-  SCHEMA_ERROR: "SCHEMA_ERROR",
-  CONFIG_ERROR: "CONFIG_ERROR",
-  TIMEOUT_ERROR: "TIMEOUT_ERROR",
-  CONSTRAINT_VIOLATION: "CONSTRAINT_VIOLATION",
-  NOT_FOUND: "NOT_FOUND"
-};
-
-class DatabaseError extends Error {
-  code;
-  query;
-  originalError;
-  constructor(message, code = DatabaseErrorCode.QUERY_ERROR, options) {
-    super(message);
-    this.name = "DatabaseError";
-    this.code = code;
-    this.query = options?.query ? sanitizeQueryForLogging(options.query) : undefined;
-    this.originalError = options?.originalError;
-  }
-}
 function getDatabaseConfig() {
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -116,6 +64,64 @@ async function query(queryText, params) {
   getDatabaseConfig();
   return executeNeonQuery(queryText, params);
 }
+var DatabaseErrorCode, DatabaseError;
+var init_db = __esm(() => {
+  DatabaseErrorCode = {
+    CONNECTION_ERROR: "CONNECTION_ERROR",
+    QUERY_ERROR: "QUERY_ERROR",
+    TRANSACTION_ERROR: "TRANSACTION_ERROR",
+    SCHEMA_ERROR: "SCHEMA_ERROR",
+    CONFIG_ERROR: "CONFIG_ERROR",
+    TIMEOUT_ERROR: "TIMEOUT_ERROR",
+    CONSTRAINT_VIOLATION: "CONSTRAINT_VIOLATION",
+    NOT_FOUND: "NOT_FOUND"
+  };
+  DatabaseError = class DatabaseError extends Error {
+    code;
+    query;
+    originalError;
+    constructor(message, code = DatabaseErrorCode.QUERY_ERROR, options) {
+      super(message);
+      this.name = "DatabaseError";
+      this.code = code;
+      this.query = options?.query ? sanitizeQueryForLogging(options.query) : undefined;
+      this.originalError = options?.originalError;
+    }
+  };
+});
+
+// lib/cors.ts
+var ALLOWED_ORIGINS = [
+  "https://apply.mihas.edu.zm",
+  "https://mihas.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000"
+];
+function getCorsHeaders(origin) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Max-Age": "86400"
+  };
+}
+function handleCors(req, res) {
+  const origin = req.headers.origin;
+  const headers = getCorsHeaders(origin);
+  Object.entries(headers).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return true;
+  }
+  return false;
+}
+
+// api-src/bootstrap.ts
+init_db();
 
 // lib/auth/password.ts
 import bcrypt from "bcryptjs";

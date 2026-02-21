@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useEffect, useRef, useState, useMemo } from 'react'
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
@@ -31,6 +31,8 @@ import { Container } from '@/components/ui/Container'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling } from '@/hooks/useStudentDashboardPolling'
+import { useApplicationUpdates } from '@/hooks/useRealtime'
+import { useQueryClient } from '@tanstack/react-query'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { getDisplayName } from '@/utils/userDisplayName'
 
@@ -75,6 +77,20 @@ export default function StudentDashboard() {
       console.log('[StudentDashboard] Data updated via polling')
     }
   })
+
+  // Realtime application status updates via useRealtime polling
+  // Requirements: 8.1, 8.2 - Subscribe to application_update events and refresh dashboard
+  const queryClient = useQueryClient()
+  useApplicationUpdates(
+    useCallback((data: Record<string, unknown>) => {
+      // Invalidate React Query cache to trigger refetch of dashboard data
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
+      queryClient.invalidateQueries({ queryKey: ['student-dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling'] })
+      // Also reload local state
+      loadDashboardData()
+    }, [queryClient])
+  )
 
   useEffect(() => {
     if (user) {

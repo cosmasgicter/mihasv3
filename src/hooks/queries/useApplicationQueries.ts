@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
 import { apiClient } from '@/services/client'
-import { CACHE_CONFIG } from './useSupabaseQuery'
+import { CACHE_CONFIG } from './useQueryConfig'
 
 export const useApplicationDrafts = (userId?: string) => {
   return useQuery({
