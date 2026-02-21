@@ -14,7 +14,7 @@ import { join, relative, extname } from 'node:path';
 import type { EmailDispatchPoint } from '../types';
 
 /** Directories to scan for email dispatch points */
-const SCAN_DIRECTORIES = ['api-src', 'src', 'lib', 'scripts', 'supabase/functions'];
+const SCAN_DIRECTORIES = ['api-src', 'src', 'lib', 'scripts'];
 
 /** File extensions to scan */
 const SCAN_EXTENSIONS = ['.ts', '.tsx', '.js'];

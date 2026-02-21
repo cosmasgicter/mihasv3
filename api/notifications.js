@@ -588,6 +588,170 @@ var MANDATORY_EMAIL_TYPES = [
 function isMandatoryEmailType(type) {
   return MANDATORY_EMAIL_TYPES.includes(type);
 }
+var EMAIL_TYPE_MAP = {
+  welcome: { templateName: "welcome", preferenceKey: null },
+  application_submitted: { templateName: "application-submitted", preferenceKey: "application_updates" },
+  application_status_change: { templateName: "status-change", preferenceKey: null },
+  payment_verified: { templateName: "payment-verified", preferenceKey: null },
+  interview_scheduled: { templateName: "interview-scheduled", preferenceKey: null },
+  info: { templateName: "generic", preferenceKey: "application_updates" },
+  warning: { templateName: "generic", preferenceKey: "application_updates" }
+};
+function getEmailMapping(type) {
+  return EMAIL_TYPE_MAP[type] ?? null;
+}
+
+// lib/emailTemplates.ts
+var PORTAL_URL = "https://apply.mihas.edu.zm";
+function esc(value) {
+  const lookup = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  };
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => lookup[ch] ?? ch);
+}
+function greeting(name) {
+  return name ? `Dear ${esc(name)},` : "Hello,";
+}
+function actionButton(url, label) {
+  return `<tr><td style="padding:24px 0;">
+    <a href="${esc(url)}" style="display:inline-block;padding:12px 28px;background-color:#0ea5e9;color:#ffffff;font-weight:600;border-radius:6px;text-decoration:none;font-size:15px;">${esc(label)}</a>
+  </td></tr>`;
+}
+function wrapLayout(content) {
+  const year = new Date().getFullYear();
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MIHAS Notification</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f6f9;font-family:'Helvetica Neue',Arial,sans-serif;color:#1f2937;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f6f9;padding:32px 0;">
+    <tr><td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;overflow:hidden;">
+        <!-- Header -->
+        <tr>
+          <td style="background-color:#0f172a;padding:24px 40px;text-align:center;">
+            <h1 style="margin:0;font-size:20px;color:#ffffff;font-weight:700;letter-spacing:0.5px;">Mukuba Institute of Health and Allied Sciences</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:#94a3b8;">MIHAS Admissions Portal</p>
+          </td>
+        </tr>
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px 40px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              ${content}
+            </table>
+          </td>
+        </tr>
+        <!-- Footer -->
+        <tr>
+          <td style="padding:20px 40px;background-color:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#64748b;line-height:1.6;">
+              &copy; ${year} Mukuba Institute of Health and Allied Sciences (MIHAS). All rights reserved.<br/>
+              This is an automated message. Please do not reply directly to this email.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+function welcomeTemplate(data) {
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">Welcome to MIHAS! Your account has been created successfully. You can now begin your application through our admissions portal.</p>
+      <p style="margin:0 0 4px;">Here is what to do next:</p>
+      <ul style="margin:0 0 16px;padding-left:20px;color:#374151;">
+        <li>Complete your profile information</li>
+        <li>Start a new application</li>
+        <li>Upload required documents</li>
+      </ul>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "Go to Portal")}`;
+  return wrapLayout(rows);
+}
+function applicationSubmittedTemplate(data) {
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">Your application has been submitted successfully. Our admissions team will review it and notify you of any updates.</p>
+      ${data.applicationNumber ? `<p style="margin:0 0 8px;"><strong>Application Number:</strong> ${esc(data.applicationNumber)}</p>` : ""}
+      ${data.programName ? `<p style="margin:0 0 16px;"><strong>Programme:</strong> ${esc(data.programName)}</p>` : ""}
+      <p style="margin:0;">You can track your application status at any time through the portal.</p>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "Track Application")}`;
+  return wrapLayout(rows);
+}
+function statusChangeTemplate(data) {
+  const statusDisplay = data.status ? data.status.replace(/[_\s]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "Updated";
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">The status of your application has been updated.</p>
+      ${data.applicationNumber ? `<p style="margin:0 0 8px;"><strong>Application Number:</strong> ${esc(data.applicationNumber)}</p>` : ""}
+      <p style="margin:0 0 8px;"><strong>New Status:</strong> ${esc(statusDisplay)}</p>
+      ${data.programName ? `<p style="margin:0 0 16px;"><strong>Programme:</strong> ${esc(data.programName)}</p>` : ""}
+      <p style="margin:0;">Log in to the portal for full details.</p>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "View Application")}`;
+  return wrapLayout(rows);
+}
+function paymentVerifiedTemplate(data) {
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">Your payment has been verified. Thank you for completing this step in the admissions process.</p>
+      ${data.applicationNumber ? `<p style="margin:0 0 8px;"><strong>Application Number:</strong> ${esc(data.applicationNumber)}</p>` : ""}
+      ${data.programName ? `<p style="margin:0 0 16px;"><strong>Programme:</strong> ${esc(data.programName)}</p>` : ""}
+      <p style="margin:0;">You will be notified of the next steps shortly.</p>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "View Application")}`;
+  return wrapLayout(rows);
+}
+function interviewScheduledTemplate(data) {
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">An interview has been scheduled for your application. Please review the details below and make sure to attend on time.</p>
+      ${data.applicationNumber ? `<p style="margin:0 0 8px;"><strong>Application Number:</strong> ${esc(data.applicationNumber)}</p>` : ""}
+      ${data.interviewDate ? `<p style="margin:0 0 8px;"><strong>Date &amp; Time:</strong> ${esc(data.interviewDate)}</p>` : ""}
+      ${data.interviewLocation ? `<p style="margin:0 0 8px;"><strong>Location:</strong> ${esc(data.interviewLocation)}</p>` : ""}
+      ${data.programName ? `<p style="margin:0 0 16px;"><strong>Programme:</strong> ${esc(data.programName)}</p>` : ""}
+      <p style="margin:0;">If you need to reschedule, please contact the admissions office as soon as possible.</p>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "View Details")}`;
+  return wrapLayout(rows);
+}
+function genericTemplate(data) {
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">${esc(data.message || "You have a new notification from MIHAS. Please log in to the portal for details.")}</p>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "Go to Portal")}`;
+  return wrapLayout(rows);
+}
+var TEMPLATE_MAP = {
+  welcome: welcomeTemplate,
+  "application-submitted": applicationSubmittedTemplate,
+  "status-change": statusChangeTemplate,
+  "payment-verified": paymentVerifiedTemplate,
+  "interview-scheduled": interviewScheduledTemplate,
+  generic: genericTemplate
+};
+function renderEmailTemplate(templateName, data) {
+  const render = TEMPLATE_MAP[templateName] || TEMPLATE_MAP["generic"];
+  return render(data);
+}
 
 // api-src/notifications.ts
 async function handler(req, res) {
@@ -830,6 +994,11 @@ async function handleCreate(req, res) {
   const created = await query(`INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at, idempotency_key, channel)
      VALUES ($1, $2, $3, $4, $5, false, NOW(), $6, 'in_app')
      RETURNING *`, [targetUserId, title, message, notificationType, action_url || null, idempotencyKey]);
+  try {
+    await queueEmailForNotification(targetUserId, notificationType, title, message, action_url);
+  } catch {
+    console.log("[notifications/create] Email queuing failed — in-app notification still created");
+  }
   return sendSuccess(res, { duplicate: false, notification: created.rows[0] });
 }
 async function handleSend(req, res) {
@@ -872,50 +1041,53 @@ async function handleSend(req, res) {
   }
   const recipientPreferences = await getCanonicalPreferences(user_id);
   const shouldSendEmail = mandatory || Boolean(recipientPreferences.email_enabled);
-  let emailSent = false;
+  let emailQueued = false;
   try {
-    const profileQ = {
-      text: `SELECT email, first_name, last_name FROM profiles WHERE id = $1 LIMIT 1`,
-      values: [user_id]
-    };
-    const profileResult = await query(profileQ.text, profileQ.values);
-    const profile = profileResult.rows[0];
-    if (profile?.email && shouldSendEmail && process.env.RESEND_API_KEY) {
-      const emailHtml = buildNotificationEmailHtml(title, message, action_url);
-      const emailResponse = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          from: process.env.EMAIL_FROM || "noreply@mihas.edu.zm",
-          to: profile.email,
-          subject: title,
-          html: emailHtml
-        })
-      });
-      emailSent = emailResponse.ok;
-      if (mandatory) {
-        console.log("[notifications/send] Mandatory email sent for type:", notificationType, "user:", user_id.substring(0, 8) + "...");
-      }
+    if (shouldSendEmail) {
+      emailQueued = await queueEmailForNotification(user_id, notificationType, title, message, action_url);
     }
   } catch {
-    console.log("[notifications/send] Email send failed");
+    console.log("[notifications/send] Email queuing failed — in-app notification still created");
   }
   console.log("[notifications/send] Notification created for user:", user_id.substring(0, 8) + "...");
-  return sendSuccess(res, { notification: notificationRow, email_sent: emailSent, mandatory });
+  return sendSuccess(res, { notification: notificationRow, email_queued: emailQueued, mandatory });
 }
-function buildNotificationEmailHtml(title, message, actionUrl) {
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #2563eb;">${title}</h2>
-      <p style="font-size: 16px; line-height: 1.6; color: #374151;">${message}</p>
-      ${actionUrl ? `<p style="margin-top: 20px;"><a href="${actionUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Details</a></p>` : ""}
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-      <p style="font-size: 14px; color: #6b7280;">MIHAS - Mukuba Institute of Health and Allied Sciences</p>
-    </div>
-  `;
+async function queueEmailForNotification(userId, notificationType, title, message, actionUrl) {
+  const mapping = getEmailMapping(notificationType);
+  if (!mapping) {
+    return false;
+  }
+  const profileResult = await query(`SELECT email, first_name FROM profiles WHERE id = $1 LIMIT 1`, [userId]);
+  const profile = profileResult.rows[0];
+  if (!profile?.email) {
+    console.log("[notifications/email-queue] No email on profile — skipping email queue");
+    return false;
+  }
+  if (mapping.preferenceKey !== null) {
+    const preferences = await getCanonicalPreferences(userId);
+    if (!preferences[mapping.preferenceKey]) {
+      console.log("[notifications/email-queue] User opted out of category — skipping");
+      return false;
+    }
+  }
+  const htmlBody = renderEmailTemplate(mapping.templateName, {
+    recipientName: profile.first_name || undefined,
+    message,
+    actionUrl: actionUrl || undefined
+  });
+  await query(`INSERT INTO email_queue (recipient_email, recipient_name, subject, body, html_body, template_name, template_data, status, priority)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8)`, [
+    profile.email,
+    profile.first_name || null,
+    title,
+    message,
+    htmlBody,
+    mapping.templateName,
+    JSON.stringify({ recipientName: profile.first_name || null, message, actionUrl: actionUrl || null }),
+    mapping.preferenceKey === null ? 1 : 5
+  ]);
+  console.log("[notifications/email-queue] Email queued — type:", notificationType);
+  return true;
 }
 async function getCanonicalPreferences(userId) {
   const q = {

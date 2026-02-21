@@ -1,9 +1,0 @@
-
-> mihas-application-system-v2@1.0.0 dev
-> vite --config vite.config.local.ts
-
-
-  VITE v6.4.1  ready in 227 ms
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: http://192.168.0.2:5173/
