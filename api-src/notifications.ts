@@ -5,7 +5,8 @@ import { getAuthUser } from '../lib/auth/middleware';
 import { withArcjetProtection } from '../lib/arcjet';
 import { USER_ROLES } from '../lib/queries';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
-import { MANDATORY_EMAIL_TYPES, isMandatoryEmailType } from '../lib/notificationPolicy';
+import { MANDATORY_EMAIL_TYPES, isMandatoryEmailType, getEmailMapping } from '../lib/notificationPolicy';
+import { renderEmailTemplate } from '../lib/emailTemplates';
 
 // Re-export for backward compatibility and testing convenience
 export { MANDATORY_EMAIL_TYPES, isMandatoryEmailType } from '../lib/notificationPolicy';
@@ -392,6 +393,13 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
     [targetUserId, title, message, notificationType, action_url || null, idempotencyKey]
   );
 
+  // --- Email queuing (additive — never blocks in-app notification) ---
+  try {
+    await queueEmailForNotification(targetUserId, notificationType, title, message, action_url);
+  } catch {
+    console.log('[notifications/create] Email queuing failed — in-app notification still created');
+  }
+
   return sendSuccess(res, { duplicate: false, notification: created.rows[0] });
 }
 
@@ -456,64 +464,88 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
 
   const recipientPreferences = await getCanonicalPreferences(user_id);
 
-  // For mandatory types, always send email regardless of user preferences.
+  // For mandatory types, always queue email regardless of user preferences.
   // For non-mandatory types, respect the user's email_enabled preference.
   const shouldSendEmail = mandatory || Boolean(recipientPreferences.email_enabled);
 
-  let emailSent = false;
+  let emailQueued = false;
   try {
-    // Get user profile for email
-    const profileQ = {
-      text: `SELECT email, first_name, last_name FROM profiles WHERE id = $1 LIMIT 1`,
-      values: [user_id],
-    };
-    const profileResult = await query<{ email: string; first_name: string; last_name: string }>(profileQ.text, profileQ.values);
-    const profile = profileResult.rows[0];
-
-    if (profile?.email && shouldSendEmail && process.env.RESEND_API_KEY) {
-      const emailHtml = buildNotificationEmailHtml(title, message, action_url);
-
-      const emailResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: process.env.EMAIL_FROM || 'noreply@mihas.edu.zm',
-          to: profile.email,
-          subject: title,
-          html: emailHtml,
-        }),
-      });
-
-      emailSent = emailResponse.ok;
-
-      if (mandatory) {
-        console.log('[notifications/send] Mandatory email sent for type:', notificationType, 'user:', user_id.substring(0, 8) + '...');
-      }
+    if (shouldSendEmail) {
+      emailQueued = await queueEmailForNotification(user_id, notificationType, title, message, action_url);
     }
   } catch {
-    console.log('[notifications/send] Email send failed');
+    console.log('[notifications/send] Email queuing failed — in-app notification still created');
   }
 
   console.log('[notifications/send] Notification created for user:', user_id.substring(0, 8) + '...');
-  return sendSuccess(res, { notification: notificationRow, email_sent: emailSent, mandatory });
+  return sendSuccess(res, { notification: notificationRow, email_queued: emailQueued, mandatory });
 }
 
 /**
- * Build the HTML body for a notification email.
+ * Queue an email for a notification if the type is email-eligible and the user
+ * has not opted out. Mandatory types always queue regardless of preferences.
+ *
+ * Returns true if an email was queued, false otherwise.
  */
-function buildNotificationEmailHtml(title: string, message: string, actionUrl?: string | null): string {
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #2563eb;">${title}</h2>
-      <p style="font-size: 16px; line-height: 1.6; color: #374151;">${message}</p>
-      ${actionUrl ? `<p style="margin-top: 20px;"><a href="${actionUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Details</a></p>` : ''}
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-      <p style="font-size: 14px; color: #6b7280;">MIHAS - Mukuba Institute of Health and Allied Sciences</p>
-    </div>
-  `;
+async function queueEmailForNotification(
+  userId: string,
+  notificationType: string,
+  title: string,
+  message: string,
+  actionUrl?: string | null
+): Promise<boolean> {
+  const mapping = getEmailMapping(notificationType);
+  if (!mapping) {
+    // Not an email-eligible type — nothing to queue
+    return false;
+  }
+
+  // Look up user email from profiles
+  const profileResult = await query<{ email: string; first_name: string }>(
+    `SELECT email, first_name FROM profiles WHERE id = $1 LIMIT 1`,
+    [userId]
+  );
+  const profile = profileResult.rows[0];
+
+  if (!profile?.email) {
+    console.log('[notifications/email-queue] No email on profile — skipping email queue');
+    return false;
+  }
+
+  // Check user notification preferences for non-mandatory types
+  if (mapping.preferenceKey !== null) {
+    const preferences = await getCanonicalPreferences(userId);
+    if (!preferences[mapping.preferenceKey]) {
+      console.log('[notifications/email-queue] User opted out of category — skipping');
+      return false;
+    }
+  }
+
+  // Render email HTML via template module
+  const htmlBody = renderEmailTemplate(mapping.templateName, {
+    recipientName: profile.first_name || undefined,
+    message,
+    actionUrl: actionUrl || undefined,
+  });
+
+  // Insert into email_queue
+  await query(
+    `INSERT INTO email_queue (recipient_email, recipient_name, subject, body, html_body, template_name, template_data, status, priority)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8)`,
+    [
+      profile.email,
+      profile.first_name || null,
+      title,
+      message,
+      htmlBody,
+      mapping.templateName,
+      JSON.stringify({ recipientName: profile.first_name || null, message, actionUrl: actionUrl || null }),
+      mapping.preferenceKey === null ? 1 : 5, // mandatory = high priority
+    ]
+  );
+
+  console.log('[notifications/email-queue] Email queued — type:', notificationType);
+  return true;
 }
 
 async function getCanonicalPreferences(userId: string): Promise<Record<string, unknown>> {
