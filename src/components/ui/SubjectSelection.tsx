@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { Button } from './Button'
-import { Input } from './Input'
+import { Input } from './input'
 import { Plus, Search, GripVertical, X, AlertCircle } from 'lucide-react'
 import { Subject } from '@/forms/applicationSchema'
 

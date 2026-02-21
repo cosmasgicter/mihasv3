@@ -7,8 +7,8 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { offlineDataManager } from '@/services/offlineDataManager'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/Alert'
+import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { Wifi, WifiOff, CloudUpload, AlertCircle, CheckCircle } from 'lucide-react'
 
