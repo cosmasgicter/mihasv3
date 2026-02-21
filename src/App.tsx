@@ -14,7 +14,6 @@ import { AppLayout } from '@/components/navigation/AppLayout'
 import { SessionMonitor } from '@/components/auth/SessionMonitor'
 import { LoadingFallback } from '@/components/ui/LoadingFallback'
 import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
-import { SkipLinks } from '@/components/ui/SkipLinks'
 import { SafeAreaProvider } from '@/components/ui/SafeAreaProvider'
 import { routes, type RouteConfig } from '@/routes/config'
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
@@ -98,7 +97,6 @@ function App() {
           <AuthProvider>
             <RealtimeStatusProvider>
               <SafeAreaProvider>
-              <SkipLinks />
               <ToastContainer />
               <PWAInstallPrompt />
               <OfflineIndicator />
@@ -117,23 +115,15 @@ function App() {
                     >
                       <div className="min-h-screen bg-background safe-area-all">
                         <AppLayout>
-                          <main 
-                            id="main-content" 
-                            tabIndex={-1} 
-                            className="focus:outline-none"
-                            role="main"
-                            aria-label="Main content"
-                          >
-                            <Routes>
-                              {routes.map((route) => (
-                                <Route
-                                  key={route.path}
-                                  path={route.path}
-                                  element={renderRoute(route)}
-                                />
-                              ))}
-                            </Routes>
-                          </main>
+                          <Routes>
+                            {routes.map((route) => (
+                              <Route
+                                key={route.path}
+                                path={route.path}
+                                element={renderRoute(route)}
+                              />
+                            ))}
+                          </Routes>
                         </AppLayout>
                       </div>
                     </Suspense>

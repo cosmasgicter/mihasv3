@@ -8,6 +8,7 @@ import { useResponsive } from '@/hooks/useResponsive'
 import ParticlesBackground from '@/components/ui/ParticlesBackground'
 import { SkipLink } from '@/components/ui/SkipLink'
 import { designTokens } from '@/design-system/tokens'
+import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -27,14 +28,14 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
 
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden">
-      <SkipLink href="#main-content">Skip to main content</SkipLink>
+      <SkipLink href={`#${APP_MAIN_CONTENT_ID}`}>Skip to main content</SkipLink>
       {/* Decorative background particles - disabled on mobile inside component */}
       <ParticlesBackground enabled={!isMobile} />
       <DesktopSidebar />
       <div className="flex flex-col flex-1 min-w-0">
         <Header />
         <main
-          id="main-content"
+          id={APP_MAIN_CONTENT_ID}
           className="pb-20 md:pb-6 min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out"
           style={{
             paddingTop: 'var(--header-height)',

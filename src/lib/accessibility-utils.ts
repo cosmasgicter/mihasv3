@@ -24,6 +24,11 @@ export interface SkipLinkConfig {
 }
 
 /**
+ * Canonical main landmark id for the primary application shell.
+ */
+export const APP_MAIN_CONTENT_ID = 'app-main-content'
+
+/**
  * Default skip links for the application
  * 
  * The primary skip link points to main content (most common use case).
@@ -32,7 +37,7 @@ export interface SkipLinkConfig {
  * Requirements: 4.4 - Skip links should have correct href targets (main content, not footer)
  */
 export const defaultSkipLinks: SkipLinkConfig[] = [
-  { targetId: 'main-content', label: 'Skip to main content' },
+  { targetId: APP_MAIN_CONTENT_ID, label: 'Skip to main content' },
 ]
 
 /**

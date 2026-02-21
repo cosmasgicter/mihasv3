@@ -46,6 +46,22 @@ export default [
       'react-hooks/rules-of-hooks': 'error',
       'react-refresh/only-export-components': 'off',
       'react-hooks/exhaustive-deps': 'off',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@/components/ui/Card',
+                '@/components/ui/Badge',
+                '@/components/ui/Tooltip',
+                '@/components/ui/Skeleton',
+              ],
+              message: 'Use canonical ui primitive imports from @/components/ui barrel exports.',
+            },
+          ],
+        },
+      ],
     },
   },
   {

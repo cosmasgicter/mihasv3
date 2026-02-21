@@ -36,6 +36,33 @@ const NOTIFICATION_TEMPLATES = {
 } as const
 
 export class NotificationService {
+  private static async checkDuplicate(
+    userId: string,
+    title: string,
+    content: string,
+    type: string
+  ): Promise<boolean> {
+    try {
+      const result = await apiClient.request<{ duplicate?: boolean }>(
+        '/api/notifications?action=check-duplicate',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            user_id: userId,
+            title,
+            message: content,
+            type,
+          }),
+          useCache: false,
+        }
+      )
+
+      return Boolean(result?.duplicate)
+    } catch {
+      return false
+    }
+  }
+
   static async sendNotification(data: NotificationData): Promise<boolean> {
     if (!data.userId || !data.title || !data.content) {
       console.error('Missing required notification data')
@@ -47,21 +74,33 @@ export class NotificationService {
       const sanitizedContent = sanitizeText(data.content)
       const notifType = data.type || 'info'
 
-      const result = await apiClient.request<{ duplicate?: boolean; notification?: unknown }>('/api/notifications?action=send', {
-        method: 'POST',
-        body: JSON.stringify({
-          user_id: data.userId,
-          title: sanitizedTitle,
-          message: sanitizedContent,
-          type: notifType,
-          action_url: data.actionUrl || null,
-        }),
-      })
+      // Check for duplicates in last 60 seconds
+      const isDuplicate = await this.checkDuplicate(
+        data.userId,
+        sanitizedTitle,
+        sanitizedContent,
+        notifType
+      )
 
-      // Backend returns { duplicate: true } when dedup catches a repeat — treat as silent success
-      if (result && typeof result === 'object' && 'duplicate' in result && result.duplicate) {
-        return false
+      if (isDuplicate) {
+        return true // Silent success - duplicate prevented
       }
+
+      await apiClient.request<{ duplicate?: boolean; notification?: Record<string, unknown> }>(
+        '/api/notifications?action=create',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            user_id: data.userId,
+            title: sanitizedTitle,
+            message: sanitizedContent,
+            type: notifType,
+            action_url: data.actionUrl,
+          }),
+          useCache: false,
+          invalidateCache: '/api/notifications?action=list',
+        }
+      )
 
       return true
     } catch (error) {

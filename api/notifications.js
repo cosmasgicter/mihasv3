@@ -613,6 +613,12 @@ async function handler(req, res) {
     if (action === "delete") {
       return await handleDelete(req, res);
     }
+    if (action === "check-duplicate") {
+      return await handleCheckDuplicate(req, res);
+    }
+    if (action === "create") {
+      return await handleCreate(req, res);
+    }
     if (action === "send") {
       return await handleSend(req, res);
     }
@@ -769,6 +775,62 @@ async function createNotificationWithDedup(userId, eventType, entityId, entityTy
     notificationId: result.rows[0]?.id,
     notification: result.rows[0]
   };
+}
+async function handleCheckDuplicate(req, res) {
+  if (req.method !== "POST") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  }
+  const { user_id, title, message, type } = req.body || {};
+  const targetUserId = user_id || user.userId;
+  if (!targetUserId || !title || !message) {
+    return sendError(res, "user_id, title, and message are required", HttpStatus.BAD_REQUEST);
+  }
+  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (targetUserId !== user.userId && !isAdmin) {
+    return sendError(res, "Forbidden", HttpStatus.FORBIDDEN);
+  }
+  const normalizedType = type || "info";
+  const idempotencyKey = `${targetUserId}:${normalizedType}:${title}:${message}`;
+  const existing = await query(`SELECT id FROM notifications
+     WHERE user_id = $1 AND idempotency_key = $2
+     AND created_at > NOW() - INTERVAL '1 minute'
+     LIMIT 1`, [targetUserId, idempotencyKey]);
+  return sendSuccess(res, { duplicate: existing.rows.length > 0 });
+}
+async function handleCreate(req, res) {
+  if (req.method !== "POST") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  }
+  const { user_id, title, message, type, action_url } = req.body || {};
+  const targetUserId = user_id || user.userId;
+  if (!targetUserId || !title || !message) {
+    return sendError(res, "user_id, title, and message are required", HttpStatus.BAD_REQUEST);
+  }
+  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (targetUserId !== user.userId && !isAdmin) {
+    return sendError(res, "Forbidden", HttpStatus.FORBIDDEN);
+  }
+  const notificationType = type || "info";
+  const idempotencyKey = `${targetUserId}:${notificationType}:${title}:${message}`;
+  const existing = await query(`SELECT id FROM notifications
+     WHERE user_id = $1 AND idempotency_key = $2
+     AND created_at > NOW() - INTERVAL '1 minute'
+     LIMIT 1`, [targetUserId, idempotencyKey]);
+  if (existing.rows.length > 0) {
+    return sendSuccess(res, { duplicate: true });
+  }
+  const created = await query(`INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at, idempotency_key, channel)
+     VALUES ($1, $2, $3, $4, $5, false, NOW(), $6, 'in_app')
+     RETURNING *`, [targetUserId, title, message, notificationType, action_url || null, idempotencyKey]);
+  return sendSuccess(res, { duplicate: false, notification: created.rows[0] });
 }
 async function handleSend(req, res) {
   if (req.method !== "POST") {

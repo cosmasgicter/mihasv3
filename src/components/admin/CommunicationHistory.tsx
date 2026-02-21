@@ -6,8 +6,8 @@
  */
 
 import React, { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
+import { Badge } from '@/components/ui'
 import { Alert } from '@/components/ui/Alert'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Mail, MessageSquare, Phone, Clock, CheckCircle, XCircle, AlertCircle, User } from 'lucide-react'

@@ -77,7 +77,7 @@ Created a universal, responsive skeleton component system with:
 **After**: 3 lines using SkeletonDashboard
 
 ```typescript
-import { SkeletonDashboard } from '@/components/ui/Skeleton'
+import { SkeletonDashboard } from '@/components/ui'
 
 export function DashboardSkeleton() {
   return (
@@ -104,7 +104,7 @@ export function DashboardSkeleton() {
 **After**: 15 lines using SkeletonCard
 
 ```typescript
-import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton'
+import { SkeletonCard, Skeleton } from '@/components/ui'
 
 export function ApplicationsSkeleton() {
   return (

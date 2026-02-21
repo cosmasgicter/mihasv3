@@ -9,7 +9,7 @@
 
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { defaultSkipLinks, skipLinkClasses, type SkipLinkConfig } from '@/lib/accessibility-utils'
+import { APP_MAIN_CONTENT_ID, defaultSkipLinks, skipLinkClasses, type SkipLinkConfig } from '@/lib/accessibility-utils'
 
 interface SkipLinksProps {
   /** Custom skip links configuration */
@@ -94,14 +94,13 @@ interface MainContentProps {
 export function MainContent({
   children,
   className,
-  id = 'main-content',
+  id = APP_MAIN_CONTENT_ID,
 }: MainContentProps) {
   return (
     <main
       id={id}
       className={cn('outline-none', className)}
       tabIndex={-1}
-      role="main"
     >
       {children}
     </main>
