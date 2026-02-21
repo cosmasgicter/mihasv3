@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import type { UserProfile } from '@/types/database'
-import { CACHE_CONFIG } from '@/hooks/queries/useSupabaseQuery'
+import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 import { applicationService } from '@/services/applications'
 import { catalogService } from '@/services/catalog'
 import { apiClient } from '@/services/client'

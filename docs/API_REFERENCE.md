@@ -3,19 +3,19 @@
 ## Base URL
 
 ```
-Production: https://mihasv3.pages.dev
-Development: http://localhost:8788
+Production: ***REMOVED***
+Development: http://localhost:5173
 ```
 
 ## Authentication
 
-All API endpoints require authentication via JWT token in the Authorization header:
+All API endpoints require authentication via HTTP-only cookies (set automatically on login) or JWT token in the Authorization header:
 
 ```http
 Authorization: Bearer <jwt_token>
 ```
 
-Get token from Supabase Auth after login.
+Tokens are managed automatically by the API client. Login via `POST /api/auth?action=login` sets HTTP-only cookies.
 
 ## Rate Limiting
 
@@ -558,36 +558,50 @@ PATCH /users/profile
 
 ## SDK Examples
 
-### JavaScript/TypeScript
+### JavaScript/TypeScript (API Client)
 ```typescript
-import { createClient } from '@supabase/supabase-js'
+import { ApiClient } from '@/services/client'
 
-const supabase = createClient(
-  'https://your-project.supabase.co',
-  'your-anon-key'
-)
+const api = new ApiClient()
 
 // Get applications
-const { data, error } = await supabase
-  .from('applications')
-  .select('*')
-  .eq('status', 'submitted')
+const applications = await api.get('/api/applications')
 
-// Update application
-const { data, error } = await supabase
-  .from('applications')
-  .update({ status: 'approved' })
-  .eq('id', applicationId)
+// Update application status
+const result = await api.post('/api/applications?action=review', {
+  applicationId: 'uuid',
+  status: 'approved',
+  notes: 'All requirements met'
+})
+```
+
+### Using fetch directly
+```typescript
+// Get applications
+const response = await fetch('***REMOVED***/api/applications', {
+  credentials: 'include', // Include HTTP-only cookies
+  headers: { 'Content-Type': 'application/json' }
+})
+const data = await response.json()
+// data = { success: true, data: [...] }
+
+// Create application
+const response = await fetch('***REMOVED***/api/applications', {
+  method: 'POST',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ full_name: 'John Doe', email: 'john@example.com' })
+})
 ```
 
 ### cURL
 ```bash
-# Get applications
-curl -X GET https://mihasv3.pages.dev/applications \
+# Get applications (with cookie auth)
+curl -X GET ***REMOVED***/api/applications \
   -H "Authorization: Bearer <token>"
 
 # Create application
-curl -X POST https://mihasv3.pages.dev/applications \
+curl -X POST ***REMOVED***/api/applications \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"full_name":"John Doe","email":"john@example.com"}'
@@ -604,13 +618,13 @@ headers = {
 
 # Get applications
 response = requests.get(
-    'https://mihasv3.pages.dev/applications',
+    '***REMOVED***/api/applications',
     headers=headers
 )
 
 # Create application
 response = requests.post(
-    'https://mihasv3.pages.dev/applications',
+    '***REMOVED***/api/applications',
     headers=headers,
     json={'full_name': 'John Doe', 'email': 'john@example.com'}
 )

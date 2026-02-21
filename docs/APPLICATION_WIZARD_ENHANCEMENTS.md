@@ -176,10 +176,10 @@ Comprehensive enhancement of the MIHAS application wizard to improve user experi
 - Completion percentage display
 - Database function for stats calculation
 
-#### 4. **Cloud Sync** ⏳ (Deferred)
-- Already implemented via Supabase
-- Real-time sync across devices
-- Offline support via PWA
+#### 4. **Cloud Sync** ✅
+- Implemented via API client + Neon Postgres
+- Auto-save syncs data across devices via backend API
+- Offline support via PWA service worker
 
 #### 5. **AI-Powered Assistance** ⏳ (Future)
 - Smart field suggestions

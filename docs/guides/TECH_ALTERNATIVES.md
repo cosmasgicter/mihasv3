@@ -25,22 +25,21 @@
 
 | Current | Best Alternative | Why Alternative | Keep Current? |
 |---------|-----------------|-----------------|---------------|
-| **Supabase** | Firebase | Better DX, more features | ✅ YES - Supabase cheaper, open-source |
-| **Supabase** | Appwrite | Self-hosted | ✅ YES - Supabase better docs |
-| **Supabase** | PocketBase | Lightweight | ❌ NO - Too limited for enterprise |
+| **Neon Postgres** | Supabase | BaaS with more features | ✅ YES - Neon cheaper, serverless-native |
+| **Neon Postgres** | PlanetScale | MySQL serverless | ✅ YES - PostgreSQL better for this use case |
 | **PostgreSQL** | MongoDB | NoSQL flexibility | ✅ YES - Relational data needs SQL |
 
-**Verdict**: Keep Supabase ✅
+**Verdict**: Keep Neon Postgres ✅
 
 ## 🚀 Hosting & Deployment
 
 | Current | Best Alternative | Why Alternative | Keep Current? |
 |---------|-----------------|-----------------|---------------|
-| **Cloudflare Pages** | Vercel | Better DX, analytics | ⚠️ CONSIDER - Vercel easier |
-| **Cloudflare Pages** | Netlify | Simpler setup | ⚠️ CONSIDER - Similar features |
-| **Cloudflare Pages** | AWS Amplify | More control | ✅ YES - CF cheaper, faster |
+| **Vercel** | Cloudflare Pages | Cheaper, faster edge | ✅ YES - Vercel better DX, serverless functions |
+| **Vercel** | Netlify | Simpler setup | ✅ YES - Vercel better for React apps |
+| **Vercel** | AWS Amplify | More control | ✅ YES - Vercel simpler deployment |
 
-**Verdict**: Cloudflare is best for price/performance ✅
+**Verdict**: Vercel is best for DX and serverless ✅
 
 ## 📊 State Management
 
@@ -89,21 +88,21 @@
 | Current | Best Alternative | Why Alternative | Keep Current? |
 |---------|-----------------|-----------------|---------------|
 | **DOMPurify** | sanitize-html | More options | ✅ YES - DOMPurify industry standard |
-| **Supabase Auth** | Auth0 | More features | ✅ YES - Supabase integrated |
-| **Supabase Auth** | Clerk | Better UX | ⚠️ CONSIDER - Clerk has better UI |
+| **Custom JWT (jose)** | Auth0 | More features | ✅ YES - Custom JWT is lightweight and sufficient |
+| **Custom JWT (jose)** | Clerk | Better UX | ⚠️ CONSIDER - Clerk has better UI |
+| **Arcjet** | None | Security perimeter | ✅ YES - Shield, bot detection, rate limiting |
 
-**Verdict**: Consider Clerk for auth UI ⚠️
+**Verdict**: Keep custom JWT + Arcjet ✅
 
 ## 📈 Analytics & Monitoring
 
 | Current | Best Alternative | Why Alternative | Keep Current? |
 |---------|-----------------|-----------------|---------------|
 | **Web Vitals** | None | Standard | ✅ YES |
-| **Umami** (current) | Plausible | Better UI | ⚠️ CONSIDER - Similar features |
-| **None** | Sentry | Error tracking | ❌ ADD - Need error tracking |
-| **None** | PostHog | Product analytics | ❌ ADD - Need user insights |
+| **Vercel Logs** | Datadog | More features | ✅ YES - Vercel logs sufficient for current scale |
+| **None** | PostHog | Product analytics | ⚠️ CONSIDER - Useful for user insights |
 
-**Verdict**: Add Sentry + PostHog ❌
+**Verdict**: Consider PostHog for product analytics ⚠️
 
 ## 🎨 Animation Libraries
 
@@ -150,11 +149,11 @@
 
 | Current | Best Alternative | Why Alternative | Keep Current? |
 |---------|-----------------|-----------------|---------------|
-| **Supabase Realtime** | Socket.io | More control | ✅ YES - Supabase integrated |
-| **Supabase Realtime** | Pusher | Managed service | ✅ YES - Supabase cheaper |
-| **Supabase Realtime** | Ably | More reliable | ✅ YES - Supabase sufficient |
+| **SSE + Polling** | Socket.io | More control | ✅ YES - SSE/polling works with Vercel serverless |
+| **SSE + Polling** | Pusher | Managed service | ⚠️ CONSIDER - Better for persistent connections |
+| **SSE + Polling** | Ably | More reliable | ⚠️ CONSIDER - Better for scale |
 
-**Verdict**: Keep Supabase ✅
+**Verdict**: Keep SSE + Polling for Vercel compatibility ✅
 
 ## 🖼️ Image Processing
 
@@ -180,8 +179,8 @@
 ### ✅ Keep (Excellent Choices)
 1. React 18 + TypeScript + Vite
 2. Tailwind CSS + Radix UI
-3. Supabase (PostgreSQL + Auth + Storage)
-4. Cloudflare Pages
+3. Neon Postgres + Custom JWT Auth + Arcjet
+4. Vercel (Static + Serverless Functions)
 5. Zustand + React Query
 6. React Hook Form + Zod
 7. Playwright + Vitest
@@ -190,41 +189,37 @@
 
 ### ⚠️ Consider Upgrading
 1. **Radix UI → Shadcn/ui** - Pre-styled components
-2. **Cloudflare Pages → Vercel** - Better DX (if budget allows)
-3. **Supabase Auth → Clerk** - Better auth UI
-4. **Umami → Plausible** - Better analytics UI
-5. **Recharts → Apache ECharts** - Better performance
-6. **Resend → Postmark** - Better deliverability
+2. **Custom JWT → Clerk** - Better auth UI (if budget allows)
+3. **Recharts → Apache ECharts** - Better performance
+4. **Resend → Postmark** - Better deliverability
 
 ### ❌ Must Add
-1. **Sentry** - Error tracking
-2. **PostHog** - Product analytics
-3. **OneSignal** - Push notifications (easier than Web Push)
+1. **PostHog** - Product analytics
 
 ## 💰 Cost Comparison
 
 ### Current Stack (Monthly)
-- Supabase: $25 (Pro)
-- Cloudflare Pages: $0 (Free tier)
+- Neon Postgres: $19 (Launch plan)
+- Vercel: $0 (Hobby plan)
 - Resend: $20 (10k emails)
-- **Total**: ~$45/month
+- Arcjet: $0 (Free tier)
+- **Total**: ~$39/month
 
 ### Alternative Stack (Monthly)
 - Firebase: $50 (Blaze)
 - Vercel: $20 (Pro)
 - SendGrid: $20 (10k emails)
 - Clerk: $25 (Auth)
-- Sentry: $26 (Team)
 - PostHog: $0 (Free tier)
-- **Total**: ~$141/month
+- **Total**: ~$115/month
 
 ### Recommended Stack (Monthly)
-- Supabase: $25 (Pro)
-- Cloudflare Pages: $0 (Free)
+- Neon Postgres: $19 (Launch)
+- Vercel: $0 (Hobby)
 - Resend: $20 (10k emails)
-- Sentry: $26 (Team)
+- Arcjet: $0 (Free)
 - PostHog: $0 (Free)
-- **Total**: ~$71/month (+$26 for critical features)
+- **Total**: ~$39/month
 
 ## 🎯 Final Verdict
 
@@ -237,7 +232,6 @@
 - Production-ready
 
 **Only Missing**:
-- Error tracking (Sentry)
 - Product analytics (PostHog)
 
-**Action**: Add Sentry + PostHog, keep everything else ✅
+**Action**: Add PostHog, keep everything else ✅

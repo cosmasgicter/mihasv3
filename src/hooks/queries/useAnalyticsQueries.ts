@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/client'
-import { CACHE_CONFIG } from './useSupabaseQuery'
+import { CACHE_CONFIG } from './useQueryConfig'
 
 // Prediction analytics — feature REMOVED in simplification.
 // Returns empty so existing callers don't break.

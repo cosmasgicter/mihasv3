@@ -20,9 +20,6 @@ vi.mock('../../lib/db', () => ({
 vi.mock('../../lib/auth/password', () => ({
   hashPassword: hashPasswordMock,
   verifyPassword: verifyPasswordMock,
-}));
-
-vi.mock('../../lib/auth/legacy', () => ({
   needsPasswordUpgrade: (user: { password_hash: string | null }) => {
     if (!user.password_hash) return true;
     return !/^\$2[aby]\$\d{1,2}\$/.test(user.password_hash);

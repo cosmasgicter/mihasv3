@@ -249,8 +249,9 @@ CREATE POLICY policy_name ON table_name
 **Requires Downtime**: No
 
 **Remediation**:
-1. Go to Supabase Dashboard → Authentication → Settings
-2. Enable "Prevent sign-ups with leaked passwords"
+1. Implement password breach checking in the custom auth registration flow
+2. Use a breached password API (e.g., Have I Been Pwned) during registration
+3. Block sign-ups with known compromised passwords
 
 ## Performance Optimization
 

@@ -1637,25 +1637,45 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
         if (status === "approved" && app.payment_status !== "verified") {
           return sendError(res, "Cannot approve without verified payment", HttpStatus.BAD_REQUEST);
         }
-        await query("BEGIN");
         let updateResult2;
         try {
-          const updateQ2 = ApplicationQueries.updateStatus(applicationId, status, userId, notes);
-          updateResult2 = await query(updateQ2.text, updateQ2.values);
-          const historyQ = StatusHistoryQueries.create(applicationId, status, userId, notes);
-          await query(historyQ.text, historyQ.values);
-          if (status === "approved") {
-            await query(`INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
-               VALUES ($1, $2, $3, 'success', false, NOW())`, [
-              app.user_id,
-              "Application approved",
-              `Your application ${app.application_number || applicationId} has been approved.`
-            ]);
-          }
-          await query("COMMIT");
+          const notificationTitle = "Application approved";
+          const notificationMessage = `Your application ${app.application_number || applicationId} has been approved.`;
+          updateResult2 = await query(`WITH updated_application AS (
+               UPDATE applications
+               SET
+                 status = $2,
+                 reviewed_by = $3,
+                 review_started_at = COALESCE(review_started_at, NOW()),
+                 updated_at = NOW()
+               WHERE id = $1
+               RETURNING *
+             ), history_insert AS (
+               INSERT INTO status_history (application_id, status, changed_by, notes, changed_at)
+               SELECT id, $2, $3, $4, NOW()
+               FROM updated_application
+               RETURNING id
+             ), notification_insert AS (
+               INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+               SELECT user_id, $5, $6, 'success', false, NOW()
+               FROM updated_application
+               WHERE $2 = 'approved'
+               RETURNING id
+             )
+             SELECT ua.*
+             FROM updated_application ua`, [applicationId, status, userId, notes || null, notificationTitle, notificationMessage]);
         } catch (error) {
-          await query("ROLLBACK");
+          const message = error.message?.toLowerCase() || "";
+          if (message.includes("notifications")) {
+            return sendError(res, "Status update failed during notification persistence; no changes were applied.", HttpStatus.CONFLICT);
+          }
+          if (message.includes("status_history")) {
+            return sendError(res, "Status update failed during history persistence; no changes were applied.", HttpStatus.CONFLICT);
+          }
           throw error;
+        }
+        if (!updateResult2 || updateResult2.rowCount === 0) {
+          return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
         }
         try {
           await logAuditEvent({
@@ -1714,20 +1734,43 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
         if (!validPaymentStatuses.includes(paymentStatus)) {
           return sendError(res, `Invalid payment status. Must be one of: ${validPaymentStatuses.join(", ")}`, HttpStatus.BAD_REQUEST);
         }
-        const updateQ2 = ApplicationQueries.updatePaymentStatus(applicationId, paymentStatus, paymentStatus === "verified" ? userId : null);
-        const updateResult2 = await query(updateQ2.text, updateQ2.values);
         const notificationTitle = paymentStatus === "verified" ? "Payment Verified" : paymentStatus === "rejected" ? "Payment Rejected" : "Payment Status Updated";
         const notificationMessage = paymentStatus === "verified" ? `Your payment for application ${app.application_number || applicationId} has been verified.` : paymentStatus === "rejected" ? `Your payment for application ${app.application_number || applicationId} was rejected. Please resubmit your payment proof.` : `Your payment status for application ${app.application_number || applicationId} has been updated to ${paymentStatus}.`;
+        let updateResult2;
         try {
-          await query(`INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
-             VALUES ($1, $2, $3, $4, false, NOW())`, [
-            app.user_id,
+          updateResult2 = await query(`WITH updated_application AS (
+               UPDATE applications
+               SET
+                 payment_status = $2,
+                 payment_verified_by = $3,
+                 payment_verified_at = CASE WHEN $2 = 'verified' THEN NOW() ELSE NULL END,
+                 updated_at = NOW()
+               WHERE id = $1
+               RETURNING *
+             ), notification_insert AS (
+               INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+               SELECT user_id, $4, $5, $6, false, NOW()
+               FROM updated_application
+               RETURNING id
+             )
+             SELECT ua.*
+             FROM updated_application ua`, [
+            applicationId,
+            paymentStatus,
+            paymentStatus === "verified" ? userId : null,
             notificationTitle,
             notificationMessage,
             paymentStatus === "verified" ? "success" : paymentStatus === "rejected" ? "error" : "info"
           ]);
         } catch (notifError) {
-          console.error("[applications] Failed to create payment notification:", notifError);
+          const message = notifError.message?.toLowerCase() || "";
+          if (message.includes("notifications")) {
+            return sendError(res, "Payment status update failed during notification persistence; no changes were applied.", HttpStatus.CONFLICT);
+          }
+          throw notifError;
+        }
+        if (!updateResult2 || updateResult2.rowCount === 0) {
+          return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
         }
         try {
           await logAuditEvent({

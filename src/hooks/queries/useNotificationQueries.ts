@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notificationService } from '@/services/notifications'
-import { CACHE_CONFIG } from './useSupabaseQuery'
+import { CACHE_CONFIG } from './useQueryConfig'
 
 export const useNotificationPreferences = (userId?: string) => {
   return useQuery({

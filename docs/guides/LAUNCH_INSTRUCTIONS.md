@@ -2,45 +2,49 @@
 
 ## ✅ What's Already Done
 
-1. ✅ Sentry installed and configured
-2. ✅ All critical security issues fixed
-3. ✅ Database migrations applied
-4. ✅ Test checklist created
-5. ✅ Monitoring setup guide ready
+1. ✅ All critical security issues fixed
+2. ✅ Database migrations applied (Neon Postgres)
+3. ✅ Custom JWT auth system deployed
+4. ✅ Arcjet security perimeter configured
+5. ✅ Test checklist created
 
 ---
 
 ## 🎯 What YOU Need to Do (30 minutes)
 
-### Step 1: Get Sentry DSN (5 minutes)
+### Step 1: Verify Environment Variables (5 minutes)
 
-1. Go to https://sentry.io/signup/
-2. Create free account (or login)
-3. Create new project:
-   - Name: "MIHAS Application System"
-   - Platform: "React"
-4. Copy your DSN (looks like: `https://xxxxx@o123456.ingest.sentry.io/123456`)
+1. Go to Vercel dashboard → Select project
+2. Settings → Environment Variables → Production
+3. Verify these are set:
+   - `DATABASE_URL` — Neon Postgres connection string
+   - `JWT_SECRET` — 32+ char secret for access tokens
+   - `JWT_REFRESH_SECRET` — 32+ char secret for refresh tokens
+   - `ARCJET_KEY` — Arcjet API key
+   - `RESEND_API_KEY` — Resend email key
+   - `EMAIL_FROM` — noreply@mihas.edu.zm
 
-### Step 2: Add Sentry to Cloudflare (2 minutes)
-
-1. Go to Cloudflare Pages dashboard
-2. Select your project
-3. Settings → Environment Variables → Production
-4. Add new variable:
-   - Name: `VITE_SENTRY_DSN`
-   - Value: [paste your DSN from Step 1]
-5. Click "Save"
-
-### Step 3: Deploy (1 minute)
+### Step 2: Deploy (1 minute)
 
 ```bash
 git pull
-# Sentry is already installed and configured
-# Just deploy:
 git push
 ```
 
-Cloudflare will automatically redeploy with Sentry enabled.
+Vercel will automatically build and deploy.
+
+### Step 3: Verify Health Endpoints (2 minutes)
+
+```bash
+# Check system is alive
+curl ***REMOVED***/api/health?action=ping
+
+# Check database connectivity
+curl ***REMOVED***/api/health?action=db
+
+# Check environment variables
+curl ***REMOVED***/api/health?action=env
+```
 
 ---
 
@@ -52,7 +56,7 @@ Cloudflare will automatically redeploy with Sentry enabled.
 4. Fill in:
    - Monitor Type: HTTP(s)
    - Friendly Name: "MIHAS Application System"
-   - URL: `https://mihasv3.pages.dev`
+   - URL: `***REMOVED***`
    - Monitoring Interval: 5 minutes
 5. Add Alert Contact:
    - Email: `***REMOVED***`
@@ -73,10 +77,6 @@ Open `CRITICAL_USER_FLOWS_TEST.md` and test:
 4. ✅ Application Approval (admin)
 5. ✅ Security - Try accessing admin as student
 
-**Test Credentials**:
-- Admin: `cosmas@beanola.com` / `Beanola2025`
-- Create test student: `test@example.com` / `TestPass123!`
-
 **Expected Results**:
 - All flows work end-to-end
 - Emails sent correctly
@@ -87,11 +87,10 @@ Open `CRITICAL_USER_FLOWS_TEST.md` and test:
 
 ### Step 6: Verify Monitoring (2 minutes)
 
-1. **Check Sentry**:
-   - Go to Sentry dashboard
-   - Trigger test error: Add `throw new Error("Test")` to any page
-   - Refresh page
-   - Verify error appears in Sentry
+1. **Check Vercel Logs**:
+   - Go to Vercel dashboard → Logs
+   - Trigger a test request
+   - Verify logs appear
 
 2. **Check UptimeRobot**:
    - Pause monitor
@@ -99,20 +98,16 @@ Open `CRITICAL_USER_FLOWS_TEST.md` and test:
    - Verify you receive email alert
    - Resume monitor
 
-3. **Check Cloudflare Analytics**:
-   - Go to Cloudflare dashboard
-   - Click "Analytics"
-   - Verify data showing
-
 ---
 
 ## 🎉 Launch Checklist
 
-- [ ] Sentry DSN added to Cloudflare environment
+- [ ] Environment variables set in Vercel
 - [ ] Code deployed to production
+- [ ] Health endpoints returning OK
 - [ ] UptimeRobot monitor created
 - [ ] Critical tests passed (5/5 minimum)
-- [ ] Monitoring verified (all 3 services)
+- [ ] Monitoring verified
 - [ ] Admin credentials working
 - [ ] Email notifications working
 - [ ] Backup plan documented
@@ -128,45 +123,47 @@ git revert HEAD
 git push
 ```
 
+Or use Vercel dashboard → Deployments → Promote a previous deployment.
+
 ### Emergency Contacts:
 - **Technical**: cosmas@beanola.com
-- **Cloudflare Support**: https://dash.cloudflare.com/support
-- **Supabase Support**: https://supabase.com/dashboard/support
+- **Vercel Support**: https://vercel.com/support
+- **Neon Support**: https://neon.tech/docs/introduction/support
 
 ### Common Issues:
 
-**Issue**: Sentry not showing errors
-- **Fix**: Check DSN is correct in Cloudflare env vars
-- **Fix**: Verify `VITE_NODE_ENV=production` is set
+**Issue**: Application not loading
+- **Fix**: Check Vercel deployment logs
+- **Fix**: Check Neon Postgres database is running (`/api/health?action=db`)
+- **Fix**: Rollback to previous version
 
 **Issue**: UptimeRobot not alerting
 - **Fix**: Check email address is verified
 - **Fix**: Check monitor is not paused
 
-**Issue**: Application not loading
-- **Fix**: Check Cloudflare deployment logs
-- **Fix**: Check Supabase database is running
-- **Fix**: Rollback to previous version
+**Issue**: Auth not working
+- **Fix**: Verify `JWT_SECRET` and `JWT_REFRESH_SECRET` are set in Vercel env vars
+- **Fix**: Check `/api/auth?action=session` returns valid response
 
 ---
 
 ## 📊 Post-Launch Monitoring (First 24 Hours)
 
 ### Hour 1:
-- [ ] Check Sentry for errors
+- [ ] Check Vercel logs for errors
 - [ ] Verify UptimeRobot shows "Up"
 - [ ] Test 1 complete application flow
-- [ ] Monitor Cloudflare Analytics
+- [ ] Check health endpoints
 
 ### Hour 6:
-- [ ] Review error count in Sentry
+- [ ] Review Vercel function logs
 - [ ] Check application performance
 - [ ] Verify emails being sent
 - [ ] Review user feedback
 
 ### Hour 24:
 - [ ] Full system health check
-- [ ] Review all monitoring dashboards
+- [ ] Review Vercel analytics
 - [ ] Document any issues found
 - [ ] Plan fixes for next sprint
 
@@ -200,21 +197,18 @@ git push
 ## ✅ You're Ready!
 
 **Estimated Time**: 30 minutes total
-- Sentry setup: 7 minutes
+- Environment verification: 5 minutes
 - UptimeRobot: 5 minutes
 - Testing: 15 minutes
-- Verification: 3 minutes
+- Verification: 5 minutes
 
-**Current Status**: All code ready, just need external services configured
-
-**Confidence Level**: 95% - System is solid, just needs final checks
+**Current Status**: All code ready, just need final checks
 
 ---
 
 **Good luck with the launch! 🚀**
 
 Questions? Check:
-- `MONITORING_SETUP.md` - Detailed monitoring guide
 - `CRITICAL_USER_FLOWS_TEST.md` - Test scenarios
 - `PRODUCTION_READINESS_REPORT.md` - Full assessment
 - `SECURITY_AUDIT_REPORT.md` - Security details

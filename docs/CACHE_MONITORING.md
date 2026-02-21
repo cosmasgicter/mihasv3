@@ -216,7 +216,7 @@ MONITORING_INTERVAL_MS = 30000 // 30 seconds
 
 ### React Query Cache Configuration
 
-Located in `src/hooks/queries/useSupabaseQuery.ts`:
+Located in `src/hooks/queries/useQueryConfig.ts`:
 
 ```typescript
 export const CACHE_CONFIG = {

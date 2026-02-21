@@ -206,3 +206,55 @@ export function verifyTokenHash(token: string, storedHash: string): boolean {
     return false;
   }
 }
+
+
+// ============================================================================
+// Password Migration Utilities
+// ============================================================================
+
+/**
+ * Check if a user needs password hash upgrade
+ * 
+ * Users with null password_hash or non-bcrypt hashes need upgrade.
+ * This supports the migration from legacy password formats to bcrypt.
+ * 
+ * @param user - Object with password_hash field
+ * @returns true if password hash needs upgrade
+ */
+export function needsPasswordUpgrade(user: { password_hash: string | null }): boolean {
+  if (!user.password_hash) {
+    return true;
+  }
+
+  // Check if it's already a bcrypt hash ($2a$, $2b$, or $2y$)
+  const isBcrypt = /^\$2[aby]\$\d{1,2}\$/.test(user.password_hash);
+  return !isBcrypt;
+}
+
+/**
+ * Upgrade user's password hash to bcrypt
+ * 
+ * Called when a legacy user logs in to upgrade their password hash
+ * from the old format to bcrypt.
+ * 
+ * @param userId - User ID
+ * @param newPassword - The new password to hash
+ * @returns true if successful
+ */
+export async function upgradePasswordHash(userId: string, newPassword: string): Promise<boolean> {
+  // Import query and UserQueries lazily to avoid circular dependencies
+  const { query: dbQuery } = await import('../db');
+  const { UserQueries } = await import('../queries');
+
+  try {
+    const passwordHash = await hashPassword(newPassword);
+    const updateQuery = UserQueries.updatePassword(userId, passwordHash);
+    await dbQuery(updateQuery.text, updateQuery.values);
+
+    console.log(`[PASSWORD] Upgraded password hash for user: ${userId}`);
+    return true;
+  } catch (error) {
+    console.error('[PASSWORD] Error upgrading password hash:', (error as Error).message);
+    return false;
+  }
+}

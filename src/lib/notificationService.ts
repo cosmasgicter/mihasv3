@@ -36,37 +36,6 @@ const NOTIFICATION_TEMPLATES = {
 } as const
 
 export class NotificationService {
-  private static async checkDuplicate(
-    userId: string,
-    title: string,
-    content: string,
-    type: string
-  ): Promise<boolean> {
-    try {
-      const { data } = await supabase.rpc('generate_notification_dedup_hash', {
-        p_user_id: userId,
-        p_title: title,
-        p_message: content,
-        p_type: type
-      })
-
-      if (!data) return false
-
-      const { data: existing } = await supabase
-        .from('in_app_notifications')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('dedup_hash', data)
-        .gte('created_at', new Date(Date.now() - 60000).toISOString())
-        .limit(1)
-        .maybeSingle()
-
-      return !!existing
-    } catch {
-      return false
-    }
-  }
-
   static async sendNotification(data: NotificationData): Promise<boolean> {
     if (!data.userId || !data.title || !data.content) {
       console.error('Missing required notification data')
@@ -78,31 +47,19 @@ export class NotificationService {
       const sanitizedContent = sanitizeText(data.content)
       const notifType = data.type || 'info'
 
-      // Check for duplicates in last 60 seconds
-      const isDuplicate = await this.checkDuplicate(
-        data.userId,
-        sanitizedTitle,
-        sanitizedContent,
-        notifType
-      )
-
-      if (isDuplicate) {
-        return true // Silent success - duplicate prevented
-      }
-
-      const { error } = await supabase
-        .from('in_app_notifications')
-        .insert({
+      const result = await apiClient.request<{ duplicate?: boolean; notification?: unknown }>('/api/notifications?action=send', {
+        method: 'POST',
+        body: JSON.stringify({
           user_id: data.userId,
           title: sanitizedTitle,
-          content: sanitizedContent,
+          message: sanitizedContent,
           type: notifType,
-          action_url: data.actionUrl,
-          read: false
-        })
+          action_url: data.actionUrl || null,
+        }),
+      })
 
-      if (error) {
-        console.error('Failed to send notification:', sanitizeForLog(error.message))
+      // Backend returns { duplicate: true } when dedup catches a repeat — treat as silent success
+      if (result && typeof result === 'object' && 'duplicate' in result && result.duplicate) {
         return false
       }
 

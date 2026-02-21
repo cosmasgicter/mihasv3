@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 
 const textExtensions = new Set([
@@ -35,6 +35,7 @@ const files = execSync('git ls-files', { encoding: 'utf8' })
 const matches = []
 
 for (const file of files) {
+  if (!existsSync(file)) continue
   const content = readFileSync(file, 'utf8')
   const lines = content.split('\n')
   lines.forEach((line, index) => {

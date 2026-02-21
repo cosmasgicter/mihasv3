@@ -9,7 +9,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile } from '@/types/auth'
-import { CACHE_CONFIG } from '@/hooks/queries/useSupabaseQuery'
+import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 import { getDisplayName } from '@/utils/userDisplayName'
 import { authRequest } from '@/services/authController'
 

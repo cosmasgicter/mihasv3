@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { documentService } from '@/services/documents'
 import { apiClient } from '@/services/client'
-import { CACHE_CONFIG } from './useSupabaseQuery'
+import { CACHE_CONFIG } from './useQueryConfig'
 
 export const useStorageUpload = (bucket: string) => {
   const queryClient = useQueryClient()

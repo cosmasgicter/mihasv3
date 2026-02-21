@@ -2,9 +2,7 @@
 /**
  * Query cache configuration and auth query hooks.
  *
- * NAMING NOTE: This file is named "useSupabaseQuery" for historical reasons.
- * It does NOT use Supabase — all queries go through cookie-based fetch or
- * the ApiClient. The name is kept to avoid a mass-rename across many importers.
+ * All queries go through cookie-based fetch or the ApiClient.
  */
 import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query'
 
@@ -53,6 +51,7 @@ export const CACHE_CONFIG = {
     gcTime: 60 * 1000
   }
 } as const
+
 
 export const useAuthSession = (options?: Partial<UseQueryOptions>) => {
   return useQuery({

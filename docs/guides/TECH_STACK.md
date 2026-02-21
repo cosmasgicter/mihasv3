@@ -63,16 +63,27 @@
 ## 🗄️ Backend & Database
 
 ### Backend as a Service
-- **Supabase** 2.48.1 - PostgreSQL + Auth + Storage
+- **Neon Postgres** - Serverless PostgreSQL database
   - PostgreSQL database
-  - Row Level Security (RLS)
-  - Real-time subscriptions
-  - Authentication
-  - File storage
+  - Serverless driver (@neondatabase/serverless)
+  - Connection pooling
+  - Branching for development
+
+### Authentication
+- **Custom JWT (jose)** - HS256 token signing
+  - HTTP-only cookies
+  - Access tokens (15min) + Refresh tokens (7d)
+  - bcrypt password hashing (12 rounds)
+  - Role-based access control (embedded in JWT)
+
+### Security
+- **Arcjet** - Security perimeter
+  - Shield rules
+  - Bot detection
+  - Rate limiting
 
 ### API & Serverless
-- **Cloudflare Pages** - Hosting & serverless functions
-- **Wrangler** 4.43.0 - Cloudflare CLI
+- **Vercel Functions** - Serverless API endpoints
 - **Express** 4.21.2 - Local API server (dev)
 - **CORS** 2.8.5 - Cross-origin requests
 
@@ -102,9 +113,9 @@
 - **DOMPurify** 3.2.3 - XSS protection
 
 ### Authentication
-- Supabase Auth (built-in)
-- JWT tokens
-- Row Level Security
+- Custom JWT auth (jose + bcrypt)
+- HTTP-only cookies
+- Role-based access control (deterministic, no DB lookup)
 
 ## 📈 Analytics & Monitoring
 
@@ -112,7 +123,8 @@
 - **Web Vitals** 4.2.4 - Core Web Vitals tracking
 
 ### Error Tracking
-- Ready for Sentry integration
+- Vercel function logs for API errors
+- Browser console for frontend errors
 
 ## 🧪 Testing
 
@@ -143,8 +155,8 @@
 - **Web Push** 3.6.7 - Push notifications
 
 ### Deployment
-- **Cloudflare Pages** - Hosting
-- **Wrangler** 4.43.0 - Deployment CLI
+- **Vercel** - Hosting (static + serverless functions)
+- **Bun** - Runtime and package manager
 
 ## 🛠️ Development Tools
 
@@ -220,8 +232,6 @@
 
 ### Chunk Breakdown
 - React vendor: 225 KB
-- Supabase: 145 KB
-- Motion: 110 KB
 - Forms: 54 KB
 - Excel: 1.3 MB (lazy)
 - PDF: 892 KB (lazy)
@@ -231,13 +241,11 @@
 
 ## 🔧 Configuration Files
 
-- `package.json` - Dependencies
-- `tsconfig.json` - TypeScript config
-- `vite.config.production.ts` - Production build
-- `vite.config.local.ts` - Development build
+- `vercel.json` - Vercel deployment config
+- `bunfig.toml` - Bun runtime configuration
+- `vite.config.ts` - Vite build settings
 - `tailwind.config.js` - Tailwind CSS
 - `postcss.config.js` - PostCSS
-- `wrangler.toml` - Cloudflare config
 - `playwright.config.ts` - E2E tests
 - `vitest.config.ts` - Unit tests
 
@@ -262,11 +270,12 @@
 
 - XSS protection (DOMPurify)
 - CSRF protection
-- Rate limiting
+- Rate limiting (Arcjet)
 - Input validation (Zod)
-- SQL injection prevention (Supabase RLS)
-- Secure headers (Cloudflare)
+- SQL injection prevention (parameterized queries)
+- Secure headers (Vercel)
 - HTTPS only
+- Bot detection (Arcjet)
 
 ## 📈 Performance Metrics
 
@@ -278,9 +287,9 @@
 
 ## 🎯 Key Features Enabled
 
-1. **Authentication** - Supabase Auth
-2. **File Upload** - Supabase Storage + Dropzone
-3. **Real-time** - Supabase subscriptions
+1. **Authentication** - Custom JWT (jose + bcrypt + HTTP-only cookies)
+2. **File Upload** - R2 Storage + Dropzone
+3. **Real-time** - SSE + polling
 4. **Animations** - Framer Motion + Particles
 5. **Forms** - React Hook Form + Zod
 6. **PDF Generation** - jsPDF
@@ -290,6 +299,7 @@
 10. **PWA** - Vite PWA Plugin
 11. **Testing** - Playwright + Vitest
 12. **Performance** - Web Vitals tracking
+13. **Security** - Arcjet (shield, bot detection, rate limiting)
 
 ---
 
