@@ -68,7 +68,8 @@ export { Accordion } from './accordion'
 export { Separator } from './separator'
 export { Tooltip } from './tooltip'
 export { Progress } from './progress'
-export { Skeleton } from './skeleton'
+export { Skeleton, SkeletonText } from './skeleton'
+export { SkeletonDashboard } from './skeletons'
 
 // Loading Components
 export { LoadingSpinner } from './LoadingSpinner'
