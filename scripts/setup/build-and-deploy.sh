@@ -41,6 +41,16 @@ if [ ! -d ".netlify/functions" ]; then
     exit 1
 fi
 
+if [ ! -f "dist/sitemap.xml" ]; then
+    echo "❌ Error: dist/sitemap.xml not found"
+    exit 1
+fi
+
+if [ ! -f "dist/robots.txt" ]; then
+    echo "❌ Error: dist/robots.txt not found"
+    exit 1
+fi
+
 echo "📊 Build statistics:"
 echo "- HTML files: $(find dist -name "*.html" | wc -l)"
 echo "- JS files: $(find dist -name "*.js" | wc -l)"
