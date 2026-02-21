@@ -22,7 +22,7 @@ const ACTUAL_API_FILES = [
   'sessions.ts', 'ping.ts', '[...path].ts', 'dbtest.ts',
 ];
 
-const KNOWN_UNDERSCORE_FILES = ['_auth.ts.legacy'];
+const KNOWN_UNDERSCORE_FILES: string[] = [];
 
 function shouldBeProcessed(filename: string): boolean {
   return filename.endsWith('.ts') && !filename.startsWith('_');

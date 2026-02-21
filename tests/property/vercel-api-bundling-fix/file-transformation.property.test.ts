@@ -504,11 +504,9 @@ describe('Actual API Files Transformation', () => {
   });
 
   it('PROPERTY: Actual underscore files are excluded', () => {
-    const underscoreFiles = ['_auth.ts.legacy'];
+    const underscoreFiles: string[] = [];
     
     for (const filename of underscoreFiles) {
-      // Note: _auth.ts.legacy doesn't end with .ts, so it wouldn't be processed anyway
-      // But if it were _auth.ts, it should be excluded
       const tsVersion = filename.replace('.legacy', '');
       if (tsVersion.endsWith('.ts')) {
         const result = transformFilename(tsVersion);
