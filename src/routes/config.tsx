@@ -31,6 +31,7 @@ const AdminUsers = React.lazy(() => import('@/pages/admin/Users'))
 const AdminSettings = React.lazy(() => import('@/pages/admin/Settings'))
 const AuditTrail = React.lazy(() => import('@/pages/admin/AuditTrail'))
 const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index.tsx'))
+const ContactPage = React.lazy(() => import('@/pages/ContactPage'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
 
 // Special components that don't need lazy loading
@@ -50,6 +51,7 @@ export const routes: RouteConfig[] = [
   // Public routes - all lazy loaded for optimal bundle size
   { path: '/', element: LandingPage, guard: 'public', lazy: true },
   { path: '/track-application', element: PublicApplicationTracker, guard: 'public', lazy: true },
+  { path: '/contact', element: ContactPage, guard: 'public', lazy: true },
   { path: '/auth/signin', element: SignInPage, guard: 'public', lazy: true },
   { path: '/signin', element: SignInPage, guard: 'public', lazy: true },
   { path: '/login', element: SignInPage, guard: 'public', lazy: true },
