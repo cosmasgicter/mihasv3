@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Card } from '@/components/ui/card'
+import { Card } from '@/components/ui'
 import { Button } from '@/components/ui/button'
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate'
 import { RefreshCw, Database, Clock, AlertCircle, CheckCircle, XCircle } from 'lucide-react'

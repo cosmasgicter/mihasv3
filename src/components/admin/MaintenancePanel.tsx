@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { maintenance, MaintenanceTask } from '@/lib/maintenance'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
+import { Badge } from '@/components/ui'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { 
   Play, 

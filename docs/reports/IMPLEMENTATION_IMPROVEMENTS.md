@@ -232,7 +232,7 @@ const cardVariants = cva('p-4 rounded-lg', {
 **Solution**:
 ```tsx
 // Create consistent loading components
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui'
 
 // Before: No loading state
 {data && <DataTable data={data} />}
