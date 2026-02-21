@@ -6,7 +6,7 @@
  * - Replace `<EnhancedLoadingSpinner />` with `<LoadingSpinner />`
  * - Replace `<EnhancedLoadingSpinner variant="dots" />` with `<LoadingSpinner showPulse />`
  * - Replace `<FullScreenLoader />` with `<LoadingOverlay />` from '@/components/ui/LoadingOverlay'
- * - Replace `<SkeletonCard />` with `<SkeletonCard />` from '@/components/ui/SkeletonLoader'
+ * - Replace `<SkeletonCard />` with `<SkeletonCard />` from '@/components/uiLoader'
  */
 import React from 'react'
 import { cn } from '@/lib/utils'

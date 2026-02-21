@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
+import { Card } from '@/components/ui'
 import { formatDistanceToNow } from 'date-fns'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { terminateAllOtherSessions } from '@/services/sessionService'

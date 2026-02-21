@@ -257,7 +257,7 @@ function generatePageComponent(config: PageStateConfig): string {
   
   // Add component imports for loading/empty handling
   if (config.loadingHandlingTypes.includes('skeleton-component')) {
-    imports.push(`import { Skeleton } from '@/components/ui/Skeleton';`);
+    imports.push(`import { Skeleton } from '@/components/ui';`);
   }
   if (config.loadingHandlingTypes.includes('spinner-component')) {
     imports.push(`import { Spinner } from '@/components/ui/Spinner';`);
@@ -443,7 +443,7 @@ export function PendingPage() {
             const content = `
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Skeleton } from '@/components/ui/Skeleton';
+import { Skeleton } from '@/components/ui';
 
 export function SkeletonPage() {
   const { data, isLoading } = useQuery({
@@ -874,7 +874,7 @@ export function UnusedIsLoading() {
       const content = `
 import React, { Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Skeleton } from '@/components/ui/Skeleton';
+import { Skeleton } from '@/components/ui';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { Timeline, TimelineItem } from '@/components/8starlabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { History, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { animateClasses } from '@/lib/animations';

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
+import { Card } from '@/components/ui'
 import { useToastStore } from '@/components/ui/Toast'
 import { 
   Bell, 
