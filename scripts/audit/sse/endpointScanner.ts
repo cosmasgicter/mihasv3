@@ -28,7 +28,6 @@ const SCAN_EXTENSIONS = ['.ts'];
  */
 const SKIP_FILES = [
   'tsconfig.json',
-  '_auth.ts.legacy',
 ];
 
 /**
