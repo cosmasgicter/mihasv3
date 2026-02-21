@@ -25,7 +25,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import { notificationTracker, DeliveryMetrics } from '@/services/notificationTracker'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface NotificationAnalyticsProps {
   className?: string
