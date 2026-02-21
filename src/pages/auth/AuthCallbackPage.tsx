@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logger } from '@/utils/logger'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate()
@@ -95,7 +95,7 @@ export default function AuthCallbackPage() {
         <div className="mx-auto w-full max-w-md">
         <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="text-center">
-            <LoadingSpinner size="lg" className="mx-auto mb-4" />
+            <UnifiedLoader variant="inline" size="lg" className="mx-auto mb-4" label="Completing authentication" />
             <h3 className="text-lg font-medium text-foreground mb-2">Completing Authentication</h3>
             <p className="text-sm text-foreground">Please wait while we verify your account...</p>
           </div>

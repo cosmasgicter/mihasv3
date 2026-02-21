@@ -6,7 +6,7 @@ import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
 import { SystemMonitoring } from '@/components/admin/SystemMonitoring'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Button } from '@/components/ui/Button'
 import { analyticsData } from '@/data/analytics'
 import { 
@@ -73,7 +73,7 @@ export default function EnhancedAdminDashboard() {
         <div
           className={`text-center ${animateClasses.scaleIn}`}
         >
-          <LoadingSpinner size="lg" />
+          <UnifiedLoader variant="inline" size="lg" label="Loading dashboard" />
           <p className="mt-4 text-lg text-foreground font-medium">Loading dashboard...</p>
         </div>
       </div>
