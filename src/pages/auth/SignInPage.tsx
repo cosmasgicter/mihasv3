@@ -14,7 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';

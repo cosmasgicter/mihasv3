@@ -1,5 +1,5 @@
 import React from 'react'
-import { Input } from '@/components/ui/Input'
+import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 import type { ApplicationFilters } from '@/hooks/admin/useApplicationFilters'
 import { DRAFT_FILTER_OPTIONS } from '@/hooks/admin/useApplicationFilters'

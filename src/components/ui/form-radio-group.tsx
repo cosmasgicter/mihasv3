@@ -10,7 +10,7 @@
 import * as React from 'react'
 import { Controller, Control, FieldValues, Path } from 'react-hook-form'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Label } from '@/components/ui/Label'
+import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
 export interface RadioOption {

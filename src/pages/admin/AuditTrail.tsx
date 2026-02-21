@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { formatDistanceToNow, format } from 'date-fns'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Input } from '@/components/ui/input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { useToastStore } from '@/components/ui/Toast'
 import {
