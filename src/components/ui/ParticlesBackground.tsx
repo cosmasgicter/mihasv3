@@ -5,7 +5,8 @@ interface ParticlesProps {
   className?: string
 }
 
-// Lightweight canvas particle background. No external deps.
+// Canonical particle background implementation (replaces legacy AnimatedBackground/ParticleSystem).
+// Lightweight canvas animation with no external dependencies.
 export const ParticlesBackground: React.FC<ParticlesProps> = ({ enabled = true, className = '' }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
