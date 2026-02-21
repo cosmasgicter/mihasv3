@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
+import { Seo } from '@/components/seo/Seo';
 import { staggerChild, animateClasses } from '@/lib/animations';
 import { AlertCircle } from 'lucide-react';
 
@@ -35,6 +36,21 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const seoByPath = {
+    '/auth/signin': {
+      title: 'Sign In | MIHAS-KATC Admissions Portal',
+      description: 'Sign in to the MIHAS-KATC admissions portal to continue your application, upload documents, and check admission updates.',
+    },
+    '/signin': {
+      title: 'Login Access | MIHAS-KATC Admissions Portal',
+      description: 'Access your MIHAS-KATC student admissions account to continue your enrollment journey and monitor progress.',
+    },
+    '/login': {
+      title: 'Applicant Login | MIHAS-KATC Admissions',
+      description: 'Applicant login for MIHAS-KATC. Securely sign in to manage applications, payments, and status updates.',
+    },
+  } as const;
+  const seoConfig = seoByPath[location.pathname as keyof typeof seoByPath] || seoByPath['/auth/signin'];
 
   const {
     register,
@@ -78,6 +94,11 @@ export default function SignInPage() {
 
   return (
     <>
+      <Seo
+        title={seoConfig.title}
+        description={seoConfig.description}
+        path={location.pathname}
+      />
       {isAuthenticating && <AuthLoadingOverlay message="Signing you in..." />}
       <AuthLayout
         title="Sign in to your account"

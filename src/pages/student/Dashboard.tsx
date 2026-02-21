@@ -33,6 +33,7 @@ import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling } from '@/hooks/useStudentDashboardPolling'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { getDisplayName } from '@/utils/userDisplayName'
+import { Seo } from '@/components/seo/Seo'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -371,6 +372,13 @@ export default function StudentDashboard() {
   }
 
   return (
+    <>
+      <Seo
+        title="Student Dashboard | MIHAS-KATC Admissions"
+        description="View your MIHAS-KATC application progress, pending actions, interview updates, and key admission milestones."
+        path="/student/dashboard"
+        noindex
+      />
     <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 w-full max-w-full overflow-x-hidden">
       <Container size="lg">
         {isInitialLoading ? (
@@ -804,5 +812,6 @@ export default function StudentDashboard() {
       />
       </Container>
     </div>
-  )
+      </>
+  );
 }
