@@ -1,4 +1,20 @@
 import { createRequire } from "node:module";
+var __create = Object.create;
+var __getProtoOf = Object.getPrototypeOf;
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __toESM = (mod, isNodeMode, target) => {
+  target = mod != null ? __create(__getProtoOf(mod)) : {};
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  for (let key of __getOwnPropNames(mod))
+    if (!__hasOwnProp.call(to, key))
+      __defProp(to, key, {
+        get: () => mod[key],
+        enumerable: true
+      });
+  return to;
+};
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
 // lib/cors.ts
@@ -1317,12 +1333,22 @@ async function handleRegisterUser(req, res, auth) {
 }
 async function handleDashboardStats(res) {
   try {
+    const now = new Date;
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const tomorrowStart = new Date(todayStart);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const [
       totalAppsResult,
       statusCountsResult,
       programCountsResult,
       recentAppsResult,
-      userCountsResult
+      userCountsResult,
+      todayResult,
+      weekResult,
+      monthResult
     ] = await Promise.all([
       query("SELECT COUNT(*) as count FROM applications"),
       query(`SELECT status, COUNT(*) as count FROM applications GROUP BY status`),
@@ -1331,7 +1357,10 @@ async function handleDashboardStats(res) {
          FROM applications 
          ORDER BY created_at DESC 
          LIMIT 5`),
-      query(`SELECT role, COUNT(*) as count FROM profiles GROUP BY role`)
+      query(`SELECT role, COUNT(*) as count FROM profiles GROUP BY role`),
+      query(`SELECT COUNT(*) as count FROM applications WHERE created_at >= $1 AND created_at < $2`, [todayStart.toISOString(), tomorrowStart.toISOString()]),
+      query(`SELECT COUNT(*) as count FROM applications WHERE created_at >= $1`, [weekAgo]),
+      query(`SELECT COUNT(*) as count FROM applications WHERE created_at >= $1`, [monthAgo])
     ]);
     const totalApplications = parseInt(totalAppsResult.rows[0]?.count || "0", 10);
     const statusBreakdown = {};
@@ -1347,12 +1376,18 @@ async function handleDashboardStats(res) {
       userBreakdown[row.role] = parseInt(row.count, 10);
     }
     const pendingCount = (statusBreakdown["submitted"] || 0) + (statusBreakdown["under_review"] || 0);
+    const todayApplications = parseInt(todayResult.rows[0]?.count || "0", 10);
+    const weekApplications = parseInt(weekResult.rows[0]?.count || "0", 10);
+    const monthApplications = parseInt(monthResult.rows[0]?.count || "0", 10);
     res.setHeader("Cache-Control", "public, max-age=60");
     sendSuccess(res, {
       totalApplications,
       pendingApplications: pendingCount,
       approvedApplications: statusBreakdown["approved"] || 0,
       rejectedApplications: statusBreakdown["rejected"] || 0,
+      todayApplications,
+      weekApplications,
+      monthApplications,
       statusBreakdown,
       programBreakdown,
       userBreakdown,
