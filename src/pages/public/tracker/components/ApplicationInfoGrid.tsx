@@ -37,7 +37,7 @@ export const ApplicationInfoGrid: React.FC<ApplicationInfoGridProps> = ({ applic
     </h4>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <InfoCard icon={<FileText className="h-4 w-4 text-primary" />} iconBg="bg-primary/10" label="Application Number" value={<span className="font-mono">{application.application_number}</span>} index={0} />
-      <InfoCard icon={<User className="h-4 w-4 text-secondary" />} iconBg="bg-secondary/10" label="Applicant" value={displayValue(application.full_name)} index={1} />
+      <InfoCard icon={<User className="h-4 w-4 text-secondary" />} iconBg="bg-secondary/10" label="Applicant" value={displayValue(application.email, 'Applicant details unavailable')} index={1} />
       <InfoCard icon={<GraduationCap className="h-4 w-4 text-purple-600" />} iconBg="bg-purple-100" label="Program" value={displayValue(application.program_name, 'Program unavailable')} index={2} />
       <InfoCard icon={<Calendar className="h-4 w-4 text-warning" />} iconBg="bg-warning/10" label="Intake Period" value={displayValue(application.intake_name, 'Intake unavailable')} index={3} />
       <InfoCard icon={<Clock className="h-4 w-4 text-orange-600" />} iconBg="bg-orange-100" label="Submitted On" value={application.submitted_at ? formatDisplayDate(application.submitted_at) : 'Not submitted yet'} index={4} />
