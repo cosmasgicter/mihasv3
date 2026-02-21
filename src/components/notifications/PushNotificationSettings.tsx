@@ -16,7 +16,7 @@ import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import { Alert, AlertDescription } from '@/components/ui/Alert'
 import { pushNotificationManager } from '@/services/pushNotificationManager'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface PushNotificationSettingsProps {
   className?: string

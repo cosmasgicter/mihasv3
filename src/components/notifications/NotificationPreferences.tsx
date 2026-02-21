@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui'
 import { AlertCircle, Bell, Clock, Download, History, Mail, MessageSquare, Smartphone, Volume2 } from 'lucide-react'
 import { notificationService } from '@/services/notifications'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToastStore } from '@/components/ui/Toast'
 import type { NotificationPreferences, PreferenceAuditEntry } from '@/types/notifications'
 
