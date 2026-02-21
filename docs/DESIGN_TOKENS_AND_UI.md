@@ -33,6 +33,7 @@ const collapsed = designTokens.layout.sidebarCollapsed
 
 - File: `src/components/ui/ParticlesBackground.tsx`
 - Lightweight canvas-based particle effect. Key points:
+- This is the single supported particle background implementation; legacy `AnimatedBackground` and `ParticleSystem` were removed to reduce maintenance and bundle overhead.
   - Respects `prefers-reduced-motion` and will not animate if set.
   - Disabled on mobile by default (the `AppLayout` passes `enabled={!isMobile}`).
   - `pointer-events: none` so it won't block UI interactions.
