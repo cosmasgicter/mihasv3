@@ -86,12 +86,17 @@ export function Turnstile({
     }
 
     return () => {
-      if (widgetIdRef.current && window.turnstile) {
-        try {
-          window.turnstile.remove(widgetIdRef.current)
-        } catch (error) {
-          console.error('Turnstile cleanup error:', error)
-        }
+      if (!widgetIdRef.current || !window.turnstile?.remove) {
+        widgetIdRef.current = null
+        isLoadedRef.current = false
+        return
+      }
+
+      try {
+        window.turnstile.remove(widgetIdRef.current)
+      } catch (error) {
+        console.error('Turnstile cleanup error:', error)
+      } finally {
         widgetIdRef.current = null
         isLoadedRef.current = false
       }
