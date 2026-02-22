@@ -1,7 +1,6 @@
 // @ts-nocheck
 import React, { useState, useCallback, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useToastStore } from '@/components/ui/Toast'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -12,6 +11,7 @@ import { logger } from '@/utils/logger'
 import { animateClasses } from '@/lib/animations'
 import { useApplicationTracker } from './hooks/useApplicationTracker'
 import { Seo } from '@/components/seo/Seo'
+import { ResponsiveHeader } from '@/components/navigation/ResponsiveHeader'
 import {
   TrackerSearchSection,
   ApplicationStatusHeader,
@@ -250,20 +250,7 @@ export default function PublicApplicationTracker() {
         description="Track your MIHAS-KATC application status in real time using your application number and view key admissions milestones."
         path="/track-application"
       />
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
-        <Container size="lg">
-          <div className="flex items-center justify-between py-4">
-            <Link 
-              to="/" 
-              className="inline-flex items-center text-primary hover:text-primary/80 transition-colors group touch-target"
-            >
-              <ArrowLeft className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-              <span className="font-semibold text-base">Back to Home</span>
-            </Link>
-          </div>
-        </Container>
-      </header>
+      <ResponsiveHeader />
 
       <main className="py-6 sm:py-8 lg:py-12">
         <Container size="lg" className="space-y-6 sm:space-y-8">
