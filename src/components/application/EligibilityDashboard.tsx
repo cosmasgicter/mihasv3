@@ -21,7 +21,7 @@ import {
 import { MissingRequirement } from '@/lib/eligibilityEngine'
 import { apiClient } from '@/services/client'
 import { catalogService } from '@/services/catalog'
-import type { EligibilityAssessment } from '@/lib/apiClient'
+import type { EligibilityAssessment } from '@/types/eligibilityAssessment'
 
 function parseMissingRequirements(
   value: EligibilityAssessmentWithProgram['missing_requirements']

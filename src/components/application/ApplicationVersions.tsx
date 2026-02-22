@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiClient } from '@/services/client'
-import type { ApplicationVersion } from '@/lib/apiClient'
+import type { ApplicationVersion } from '@/types/application'
 import { formatDate } from '@/lib/utils'
 import { History, Eye, Download, Clock } from 'lucide-react'
 
-// Use the ApplicationVersion type from apiClient.ts - no local redefinition needed
+// Shared ApplicationVersion type
 
 interface ApplicationVersionsProps {
   applicationId?: string
