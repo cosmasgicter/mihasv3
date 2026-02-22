@@ -1,452 +1,146 @@
-/**
- * ResponsiveHeader Component - Enhanced navigation header with scroll behavior
- * 
- * Features:
- * - Sticky header with hide-on-scroll-down behavior
- * - Mobile hamburger menu with slide-in animation
- * - Current page highlighting with visual indicators
- * 
- * @requirements 4.1, 4.2, 4.3, 4.5 - Navigation system redesign
- * @performance Optimized to eliminate forced reflows - uses CSS transitions instead of Framer Motion
- */
-
-import React, { useState, useEffect, useCallback, useMemo, useRef, type RefCallback } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronRight, GraduationCap, LayoutDashboard, LogOut, Home, Search, UserPlus, LogIn } from '@/components/icons';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRoleQuery } from '@/hooks/auth/useRoleQuery';
+import React, { useMemo, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/Button'
+import {
+  GraduationCap,
+  Home,
+  Search,
+  Phone,
+  LogIn,
+  UserPlus,
+  LayoutDashboard,
+  Menu,
+  X,
+  LogOut,
+} from '@/components/icons'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
+import { cn } from '@/lib/utils'
 
 export interface NavigationItem {
-  href: string;
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  description?: string;
+  href: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
 }
 
 interface ResponsiveHeaderProps {
-  className?: string;
+  className?: string
 }
-
-// Custom hook for scroll direction detection - optimized to prevent reflows
-function useScrollDirection(threshold = 10) {
-  const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(null);
-  const [isAtTop, setIsAtTop] = useState(true);
-  const lastScrollYRef = useRef(0);
-  const tickingRef = useRef(false);
-  // Cache scroll values to batch reads
-  const scrollStateRef = useRef({ direction: null as 'up' | 'down' | null, atTop: true });
-
-  useEffect(() => {
-    // Read initial scroll position once - batch DOM read
-    const initialScrollY = window.scrollY;
-    lastScrollYRef.current = initialScrollY;
-    const initialAtTop = initialScrollY < threshold;
-    scrollStateRef.current = { direction: null, atTop: initialAtTop };
-    setIsAtTop(initialAtTop);
-
-    const updateScrollDirection = () => {
-      // Single DOM read - batch all reads before any state updates
-      const scrollY = window.scrollY;
-      const lastScrollY = lastScrollYRef.current;
-      
-      // Calculate new values without triggering state updates yet
-      const newIsAtTop = scrollY < threshold;
-      const diff = scrollY - lastScrollY;
-      let newDirection = scrollStateRef.current.direction;
-      
-      if (Math.abs(diff) >= threshold) {
-        newDirection = diff > 0 ? 'down' : 'up';
-        lastScrollYRef.current = scrollY > 0 ? scrollY : 0;
-      }
-      
-      // Batch state updates - only update if values actually changed
-      const prevState = scrollStateRef.current;
-      if (prevState.direction !== newDirection || prevState.atTop !== newIsAtTop) {
-        scrollStateRef.current = { direction: newDirection, atTop: newIsAtTop };
-        
-        // Single batch of state updates
-        if (prevState.direction !== newDirection) {
-          setScrollDirection(newDirection);
-        }
-        if (prevState.atTop !== newIsAtTop) {
-          setIsAtTop(newIsAtTop);
-        }
-      }
-      
-      tickingRef.current = false;
-    };
-
-    const onScroll = () => {
-      if (!tickingRef.current) {
-        tickingRef.current = true;
-        requestAnimationFrame(updateScrollDirection);
-      }
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [threshold]);
-
-  return { scrollDirection, isAtTop };
-}
-
-// Check for reduced motion preference once at module level
-const prefersReducedMotion = typeof window !== 'undefined' 
-  ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
-  : false;
 
 export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { isAdmin } = useRoleQuery({ user });
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { scrollDirection, isAtTop } = useScrollDirection();
-  const mobileMenuRef = useRef<HTMLElement>(null);
+  const { user, signOut } = useAuth()
+  const { isAdmin } = useRoleQuery({ user })
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [open, setOpen] = useState(false)
 
-  // Sync inert attribute with menu state (React 18 doesn't support inert prop)
-  useEffect(() => {
-    const el = mobileMenuRef.current;
-    if (!el) return;
-    if (isMenuOpen) {
-      el.removeAttribute('inert');
-    } else {
-      el.setAttribute('inert', '');
-    }
-  }, [isMenuOpen]);
+  const dashboardPath = isAdmin ? '/admin/dashboard' : '/student/dashboard'
 
-  // Determine if header should be visible
-  const isHeaderVisible = isAtTop || scrollDirection === 'up' || isMenuOpen;
-
-  // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
-  // Navigate immediately, don't wait for signOut to complete
-  const handleSignOut = useCallback(async () => {
-    // Navigate first for instant feedback - Requirements: 13.1
-    navigate('/');
-    
-    // Fire-and-forget signOut - Requirements: 13.3
-    signOut().catch((error) => {
-      console.error('Sign out failed:', error);
-      // Already navigated, so just log the error
-      // Requirements: 13.4 - Still redirect even if API fails
-    });
-  }, [signOut, navigate]);
-
-  const dashboardPath = isAdmin ? '/admin/dashboard' : '/student/dashboard';
-  const dashboardLabel = isAdmin ? 'Admin Dashboard' : 'Dashboard';
-
-  // Navigation items
-  const navigationItems = useMemo<NavigationItem[]>(() => {
-    const items: NavigationItem[] = [
-      { href: '/', label: 'Home', icon: Home, description: 'Return to homepage' },
-      { href: '/track-application', label: 'Track Application', icon: Search, description: 'Check your application status' },
-    ];
+  const items = useMemo<NavigationItem[]>(() => {
+    const base = [
+      { href: '/', label: 'Home', icon: Home },
+      { href: '/track-application', label: 'Track', icon: Search },
+      { href: '/contact', label: 'Contact', icon: Phone },
+    ]
 
     if (!user) {
-      items.push(
-        { href: '/auth/signin', label: 'Sign In', icon: LogIn, description: 'Access your account' },
-        { href: '/auth/signup', label: 'Sign Up', icon: UserPlus, description: 'Create a new account' }
-      );
-    } else {
-      items.push({
-        href: dashboardPath,
-        label: dashboardLabel,
-        icon: LayoutDashboard,
-        description: 'Go to your dashboard',
-      });
+      return [...base, { href: '/auth/signin', label: 'Sign in', icon: LogIn }]
     }
 
-    return items;
-  }, [user, dashboardPath, dashboardLabel]);
+    return [...base, { href: dashboardPath, label: 'Dashboard', icon: LayoutDashboard }]
+  }, [dashboardPath, user])
 
-  // Check if route is active
-  const isActiveRoute = useCallback((href: string) => {
-    if (href === '/') {
-      return location.pathname === '/';
-    }
-    return location.pathname.startsWith(href);
-  }, [location.pathname]);
-
-  // Toggle mobile menu - batch DOM writes to prevent reflows
-  const toggleMenu = useCallback(() => {
-    setIsMenuOpen((prev) => {
-      const newState = !prev;
-      // Use requestAnimationFrame to batch DOM write after state update
-      requestAnimationFrame(() => {
-        document.body.style.overflow = newState ? 'hidden' : '';
-      });
-      return newState;
-    });
-  }, []);
-
-  // Close mobile menu - batch DOM writes to prevent reflows
-  const closeMenu = useCallback(() => {
-    setIsMenuOpen(false);
-    // Use requestAnimationFrame to batch DOM write after state update
-    requestAnimationFrame(() => {
-      document.body.style.overflow = '';
-    });
-  }, []);
-
-  // Handle navigation
-  const handleNavigate = useCallback((href: string) => {
-    closeMenu();
-    navigate(href);
-  }, [closeMenu, navigate]);
-
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMenuOpen) {
-        closeMenu();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      // Batch DOM write in cleanup to prevent reflows
-      requestAnimationFrame(() => {
-        document.body.style.overflow = '';
-      });
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isMenuOpen, closeMenu]);
-
-  // Brand component - simplified without motion
-  const Brand = (
-    <Link 
-      to="/" 
-      className="flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg group"
-      aria-label="MIHAS-KATC Home"
-    >
-      <div className={cn(
-        "flex items-center space-x-2",
-        !prefersReducedMotion && "transition-transform duration-200 group-hover:scale-[1.02]"
-      )}>
-        <GraduationCap className="h-8 w-8 text-primary" aria-hidden="true" />
-        <span className="text-xl font-bold text-foreground">MIHAS-KATC</span>
-      </div>
-    </Link>
-  );
+  const handleSignOut = async () => {
+    setOpen(false)
+    navigate('/')
+    await signOut().catch(() => undefined)
+  }
 
   return (
-    <>
-      {/* Header - CSS transitions instead of Framer Motion */}
-      <header
-        className={cn(
-          'fixed top-0 left-0 right-0 z-50',
-          'bg-card/95 backdrop-blur-md border-b border-border/50 shadow-sm',
-          !prefersReducedMotion && 'transition-transform duration-300 ease-out',
-          !isHeaderVisible && !prefersReducedMotion && '-translate-y-full',
-          className
-        )}
-        aria-label="Main navigation"
-      >
-        <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3 sm:py-4 max-w-7xl mx-auto">
-            {/* Brand */}
-            {Brand}
+    <header className={cn('sticky top-0 z-50 border-b border-border/80 bg-card/95 backdrop-blur-xl', className)}>
+      <div className="container-responsive px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-3">
+          <Link to="/" className="inline-flex items-center gap-2 font-semibold text-foreground">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white">
+              <GraduationCap className="h-5 w-5" />
+            </span>
+            <span className="hidden sm:inline">MIHAS Admissions</span>
+          </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-2" aria-label="Desktop navigation">
-              {navigationItems.map((item) => {
-                const isActive = isActiveRoute(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={cn(
-                      'px-4 py-2 rounded-lg font-medium transition-all duration-200',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                      isActive
-                        ? 'bg-primary text-primary-foreground shadow-md'
-                        : 'text-foreground hover:bg-accent hover:text-accent-foreground'
-                    )}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-              
-              {user && (
-                <Button
-                  variant="outline"
-                  size="md"
-                  onClick={handleSignOut}
-                  className="ml-2 border-border text-foreground hover:bg-accent"
-                >
-                  <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Sign Out
-                </Button>
-              )}
-            </nav>
-
-            {/* Mobile Menu Button - CSS transitions */}
-            <button
-              className={cn(
-                'lg:hidden p-3 rounded-xl',
-                'bg-card hover:bg-muted transition-colors duration-200',
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                'min-h-[48px] min-w-[48px] touch-target',
-                'border-2 border-border shadow-sm',
-                !prefersReducedMotion && 'active:scale-95 transition-transform'
-              )}
-              onClick={toggleMenu}
-              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={isMenuOpen}
-              aria-controls="mobile-menu"
-            >
-              <div className={cn(
-                !prefersReducedMotion && 'transition-transform duration-200',
-                isMenuOpen && !prefersReducedMotion && 'rotate-90'
-              )}>
-                {isMenuOpen ? (
-                  <X className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
-                ) : (
-                  <Menu className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
-                )}
-              </div>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Menu Overlay - CSS transitions */}
-      {/* Backdrop */}
-      <div
-        className={cn(
-          'fixed inset-0 bg-black/70 backdrop-blur-sm lg:hidden',
-          !prefersReducedMotion && 'transition-opacity duration-300',
-          isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        )}
-        style={{ zIndex: 9998 }}
-        onClick={closeMenu}
-        aria-hidden="true"
-      />
-
-      {/* Mobile Menu Panel - CSS transitions */}
-      <nav
-        id="mobile-menu"
-        ref={mobileMenuRef}
-        className={cn(
-          'fixed top-0 right-0 h-full w-80 max-w-[85vw]',
-          'bg-card shadow-2xl lg:hidden',
-          'border-l-4 border-primary overflow-y-auto',
-          !prefersReducedMotion && 'transition-transform duration-300 ease-out',
-          isMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        )}
-        style={{ zIndex: 9999 }}
-        aria-label="Mobile navigation"
-      >
-        <div className="flex flex-col h-full">
-          {/* Mobile Menu Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-primary/5 to-secondary/5">
-            <div className="flex items-center space-x-3">
-              <GraduationCap className="h-7 w-7 text-primary" aria-hidden="true" />
-              <span className="text-xl font-bold text-foreground">MIHAS-KATC</span>
-            </div>
-            <button
-              className={cn(
-                'p-2 rounded-lg hover:bg-accent transition-colors duration-200',
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                'min-h-[44px] min-w-[44px] touch-target',
-                !prefersReducedMotion && 'active:scale-95 transition-transform'
-              )}
-              onClick={closeMenu}
-              aria-label="Close menu"
-            >
-              <X className="h-6 w-6" aria-hidden="true" />
-            </button>
-          </div>
-
-          {/* Navigation Items */}
-          <div className="flex flex-col flex-1 overflow-hidden">
-            <div className="flex flex-col space-y-2 p-6 flex-1 overflow-y-auto">
-              {navigationItems.map((item, index) => {
-                const isActive = isActiveRoute(item.href);
-                const Icon = item.icon;
-
-                return (
-                  <div
-                    key={item.href}
-                    className={cn(
-                      !prefersReducedMotion && 'transition-all duration-200',
-                      isMenuOpen && !prefersReducedMotion && 'animate-fade-in-right'
-                    )}
-                    style={!prefersReducedMotion ? { animationDelay: `${index * 50}ms` } : undefined}
-                  >
-                    <button
-                      onClick={() => handleNavigate(item.href)}
-                      className={cn(
-                        'w-full flex items-center justify-between px-4 py-4 rounded-xl',
-                        'transition-all duration-200 min-h-[48px] touch-target',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                        isActive
-                          ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg'
-                          : 'bg-card text-foreground hover:bg-accent border-2 border-border hover:border-primary'
-                      )}
-                      aria-current={isActive ? 'page' : undefined}
-                    >
-                      <div className="flex items-center space-x-3">
-                        {Icon && <Icon className="h-5 w-5" aria-hidden="true" />}
-                        <div className="text-left">
-                          <span className="font-semibold">{item.label}</span>
-                          {isActive && (
-                            <div className="text-xs opacity-80 mt-0.5">Current Page</div>
-                          )}
-                        </div>
-                      </div>
-                      <ChevronRight className="h-5 w-5 opacity-60" aria-hidden="true" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Mobile Menu Footer */}
-            <div className="p-6 border-t border-border/70 bg-muted/50">
-              {user ? (
-                <button
-                  onClick={() => {
-                    closeMenu();
-                    handleSignOut();
-                  }}
+          <nav className="hidden items-center gap-2 md:flex" aria-label="Primary">
+            {items.map(({ href, label }) => {
+              const active = location.pathname === href
+              return (
+                <Link
+                  key={href}
+                  to={href}
                   className={cn(
-                    'w-full flex items-center justify-center space-x-3 px-4 py-4',
-                    'bg-destructive text-destructive-foreground rounded-xl',
-                    'hover:bg-destructive/90 shadow-lg hover:shadow-xl',
-                    'transition-all duration-200 font-medium min-h-[48px] touch-target',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive'
+                    'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    active ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'
                   )}
                 >
-                  <LogOut className="h-5 w-5" aria-hidden="true" />
-                  <span>Sign Out</span>
-                </button>
-              ) : (
-                <p className="text-foreground text-base text-center font-medium">
-                  Your Future Starts Here
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+                  {label}
+                </Link>
+              )
+            })}
+            {!user && (
+              <Button asChild size="sm" variant="gradient" className="ml-2">
+                <Link to="/auth/signup">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Apply now
+                </Link>
+              </Button>
+            )}
+            {user && (
+              <Button size="sm" variant="outline" onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </Button>
+            )}
+          </nav>
 
-      {/* Spacer to prevent content from going under fixed header - uses CSS variable for height */}
-      <div 
-        className="h-16 sm:h-[72px]" 
-        style={{ 
-          // Use CSS custom property for potential dynamic height adjustments
-          // This avoids layout recalculations when the value is read
-          '--header-height': 'var(--header-height, 4rem)'
-        } as React.CSSProperties}
-        aria-hidden="true" 
-      />
-    </>
-  );
+          <button
+            type="button"
+            className="grid h-10 w-10 place-items-center rounded-lg border border-border md:hidden"
+            aria-label="Toggle menu"
+            aria-expanded={open}
+            onClick={() => setOpen(prev => !prev)}
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+
+      <div className={cn('overflow-hidden border-t border-border bg-card md:hidden', open ? 'max-h-96' : 'max-h-0')}>
+        <nav className="container-responsive space-y-1 px-4 py-3" aria-label="Mobile primary">
+          {items.map(({ href, label, icon: Icon }) => {
+            const active = location.pathname === href
+            return (
+              <Link
+                key={href}
+                to={href}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  'flex items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium',
+                  active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </Link>
+            )
+          })}
+          {!user ? (
+            <Button asChild variant="gradient" className="mt-2 w-full">
+              <Link to="/auth/signup" onClick={() => setOpen(false)}>Start application</Link>
+            </Button>
+          ) : (
+            <Button variant="outline" className="mt-2 w-full" onClick={handleSignOut}>Sign out</Button>
+          )}
+        </nav>
+      </div>
+    </header>
+  )
 }
 
-export default ResponsiveHeader;
+export default ResponsiveHeader
