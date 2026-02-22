@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { analyticsService } from '@/services/analytics'
+import { analyticsService } from '@/services/analyticsService'
 import { adminDashboardService } from '@/services/admin/dashboard'
 import { apiClient } from '@/services/client'
 
