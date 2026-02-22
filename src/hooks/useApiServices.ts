@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import type { Application } from '@/types/database'
 import { applicationService } from '@/services/applications'
 import { documentService } from '@/services/documents'
-import { analyticsService } from '@/services/analytics'
+import { analyticsService } from '@/services/analyticsService'
 import { userService } from '@/services/admin/users'
 
 type UserUpdateInput = Parameters<typeof userService.update>[1]

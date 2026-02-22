@@ -144,3 +144,13 @@ export const dashboardAnalytics = {
     return {}
   }
 }
+
+/**
+ * Unified analytics service entrypoint used by generic hooks.
+ * Keeps compatibility while consolidating duplicate analytics modules.
+ */
+export const analyticsService = {
+  async getMetrics() {
+    return { success: true, data: await realtimeMetrics.getMetrics() }
+  },
+}
