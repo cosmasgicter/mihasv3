@@ -5,8 +5,8 @@ import { Header } from './Header'
 import { useAuth } from '@/contexts/AuthContext'
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext'
 import { useResponsive } from '@/hooks/useResponsive'
-import ParticlesBackground from '@/components/ui/ParticlesBackground'
 import { SkipLink } from '@/components/ui/SkipLink'
+import { RouteTransition } from '@/components/smoothui/page-transition'
 import { designTokens } from '@/design-system/tokens'
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils'
 
@@ -29,8 +29,6 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden">
       <SkipLink href={`#${APP_MAIN_CONTENT_ID}`}>Skip to main content</SkipLink>
-      {/* Decorative background particles - disabled on mobile inside component */}
-      <ParticlesBackground enabled={!isMobile} />
       <DesktopSidebar />
       <div className="flex flex-col flex-1 min-w-0">
         <Header />
@@ -43,7 +41,9 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
             width: isMobile ? '100%' : `calc(100% - ${collapsed ? collapsedWidth : expandedWidth}px)`
           }}
         >
-          {children}
+          <RouteTransition mode="fade">
+            {children}
+          </RouteTransition>
         </main>
       </div>
       <MobileBottomNav />

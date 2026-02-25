@@ -16,7 +16,7 @@ import { LoadingFallback } from '@/components/ui/LoadingFallback'
 import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
 import { SafeAreaProvider } from '@/components/ui/SafeAreaProvider'
 import { routes, type RouteConfig } from '@/routes/config'
-import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
+
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
@@ -102,7 +102,6 @@ function App() {
               <OfflineIndicator />
               <ServiceWorkerUpdatePrompt />
               <Router>
-                <AnalyticsTracker>
                   <SessionMonitor />
                   <SimpleErrorBoundary>
                     <Suspense
@@ -128,7 +127,6 @@ function App() {
                       </div>
                     </Suspense>
                   </SimpleErrorBoundary>
-                </AnalyticsTracker>
               </Router>
               </SafeAreaProvider>
             </RealtimeStatusProvider>

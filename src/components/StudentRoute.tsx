@@ -1,6 +1,6 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
+import { useSessionListener } from '@/hooks/auth/useSessionListener'
 import { StudentErrorBoundary } from '@/components/student/StudentErrorBoundary'
 
 interface StudentRouteProps {
@@ -14,7 +14,7 @@ interface StudentRouteProps {
  * Requirements: 4.5, 11.1, 11.5, 11.8
  */
 export function StudentRoute({ children }: StudentRouteProps) {
-  const { user, isAdmin, isLoading } = useOptimizedAuthState()
+  const { user, isAdmin, loading: isLoading } = useSessionListener()
   const location = useLocation()
 
   if (isLoading) {

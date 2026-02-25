@@ -8,7 +8,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Button } from '@/components/ui/Button'
-import { analyticsData } from '@/data/analytics'
+import { useQuery } from '@tanstack/react-query'
+import { adminDashboardService } from '@/services/admin/dashboard'
 import { 
   BarChart3, 
   Activity, 
@@ -31,7 +32,12 @@ export default function EnhancedAdminDashboard() {
   const [showNotifications, setShowNotifications] = useState(true)
   
   // Data hooks
-  const { data: dashboardData, isLoading: metricsLoading, isFetching, refetch: refetchMetrics } = analyticsData.useAdminMetrics()
+  const { data: dashboardData, isLoading: metricsLoading, isFetching, refetch: refetchMetrics } = useQuery({
+    queryKey: ['analytics', 'admin-metrics'],
+    queryFn: () => adminDashboardService.getMetrics(),
+    staleTime: 30000,
+    refetchInterval: 60000,
+  })
 
   const stats = dashboardData?.stats || {
     totalApplications: 0,

@@ -1,7 +1,6 @@
 import React from 'react'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { Button } from '@/components/ui/Button'
-import { AnimatedCard } from '@/components/ui/AnimatedCard'
 import { formatDate, getStatusColor } from '@/lib/utils'
 import { 
   Eye, CheckCircle, XCircle, Clock, AlertTriangle, FileText, 
@@ -74,14 +73,14 @@ export function ApplicationsCards({
               className="cursor-pointer"
               onClick={() => onToggleSelection(application.id)}
             >
-              <AnimatedCard 
-                className={`transition-all duration-300 card-mobile ${
+              <div 
+                className={`relative overflow-hidden rounded-xl shadow-lg transition-all duration-300 card-mobile ${
                   selectedApplications.includes(application.id) 
                     ? 'ring-2 ring-primary bg-blue-50' 
-                    : 'hover:shadow-xl'
+                    : 'hover:shadow-2xl hover:-translate-y-1'
                 }`}
-                hover3d
               >
+                <div className="relative z-10 p-6">
                 <div className="space-y-3 sm:space-y-4">
                   {/* Header - Mobile Optimized */}
                   <div className="flex items-start justify-between">
@@ -238,7 +237,8 @@ export function ApplicationsCards({
                     </div>
                   </div>
                 </div>
-              </AnimatedCard>
+                </div>
+              </div>
             </div>
           </div>
         ))}

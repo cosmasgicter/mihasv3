@@ -1,6 +1,6 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
+import { useSessionListener } from '@/hooks/auth/useSessionListener'
 import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary'
 
 interface AdminRouteProps {
@@ -14,7 +14,7 @@ interface AdminRouteProps {
  * Requirements: 4.5, 11.5
  */
 export function AdminRoute({ children }: AdminRouteProps) {
-  const { user, isAdmin, isLoading } = useOptimizedAuthState()
+  const { user, isAdmin, loading: isLoading } = useSessionListener()
   const location = useLocation()
   
   if (isLoading) {

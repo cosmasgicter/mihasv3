@@ -46,7 +46,8 @@ class OfflineStorageManager {
     const offlineData: OfflineQueueItem<TType> = {
       ...data,
       id,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      retryCount: 0
     }
 
     return new Promise((resolve, reject) => {
@@ -79,6 +80,29 @@ class OfflineStorageManager {
         request.onsuccess = () => resolve(request.result)
       } catch {
         resolve([])
+      }
+    })
+  }
+
+  async update(id: string, updates: Partial<Omit<OfflineQueueItem, 'id'>>): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized')
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['offlineData'], 'readwrite')
+      const store = transaction.objectStore('offlineData')
+      const getRequest = store.get(id)
+
+      getRequest.onerror = () => reject(getRequest.error)
+      getRequest.onsuccess = () => {
+        const existing = getRequest.result
+        if (!existing) {
+          resolve()
+          return
+        }
+        const updated = { ...existing, ...updates }
+        const putRequest = store.put(updated)
+        putRequest.onerror = () => reject(putRequest.error)
+        putRequest.onsuccess = () => resolve()
       }
     })
   }

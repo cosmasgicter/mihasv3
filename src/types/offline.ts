@@ -39,11 +39,12 @@ export type OfflineQueueItem<TType extends OfflineRecordType = OfflineRecordType
   data: OfflineDataPayloadMap[TType]
   timestamp: number
   userId: string
+  retryCount: number
 }
 
 export type NewOfflineQueueItem<TType extends OfflineRecordType = OfflineRecordType> = Omit<
   OfflineQueueItem<TType>,
-  'id' | 'timestamp'
+  'id' | 'timestamp' | 'retryCount'
 >
 
 export type OfflineQueuePayload = OfflineQueueItem['data']

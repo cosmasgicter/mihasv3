@@ -10,7 +10,7 @@
  * personalized improvement plans.
  */
 
-import { SubjectGrade } from '@/lib/eligibility'
+import { SubjectGrade } from '@/lib/eligibilityEngine'
 import { regulatoryEngine } from '@/lib/regulatoryGuidelines'
 
 export interface AlternativePathway {

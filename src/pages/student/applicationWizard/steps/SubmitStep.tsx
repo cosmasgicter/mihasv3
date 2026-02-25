@@ -1,7 +1,7 @@
 import type { UseFormReturn } from 'react-hook-form'
 
 import { animateClasses } from '@/lib/animations'
-import type { EligibilityResult } from '@/lib/eligibility'
+import type { EligibilityResult } from '@/lib/eligibilityEngine'
 
 import type { Grade12Subject, SubjectGrade, WizardFormData } from '../types'
 

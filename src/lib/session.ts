@@ -2,25 +2,12 @@
  * Session Manager - Uses HTTP-only cookie authentication
  * Replaces Supabase Auth SDK with custom JWT auth
  */
+import { apiClient } from '@/services/client'
 
 export interface SessionManager {
   refreshSession: () => Promise<boolean>
   isSessionValid: () => Promise<boolean>
   clearSession: () => Promise<void>
-}
-
-/**
- * Helper for authenticated API calls using HTTP-only cookies
- */
-async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
 }
 
 class SessionManagerImpl implements SessionManager {
@@ -43,17 +30,10 @@ class SessionManagerImpl implements SessionManager {
 
   private async performRefresh(): Promise<boolean> {
     try {
-      const response = await authFetch('/api/auth?action=refresh', {
+      await apiClient.request('/api/auth?action=refresh', {
         method: 'POST',
       })
-      
-      if (!response.ok) {
-        console.error('Session refresh failed:', response.statusText)
-        return false
-      }
-      
-      const data = await response.json()
-      return data.success === true
+      return true
     } catch (error) {
       console.error('Session refresh error:', error)
       return false
@@ -62,26 +42,21 @@ class SessionManagerImpl implements SessionManager {
 
   async isSessionValid(): Promise<boolean> {
     try {
-      const response = await authFetch('/api/auth?action=session')
-      
-      if (!response.ok) {
-        // Try to refresh if session check fails
-        if (response.status === 401) {
-          return await this.refreshSession()
-        }
-        return false
+      const data = await apiClient.request<{ user?: any }>('/api/auth?action=session')
+      return !!(data as any)?.user
+    } catch (error) {
+      const message = error instanceof Error ? error.message : ''
+      // Try to refresh if session check fails with 401
+      if (message.includes('401') || message.includes('Authentication required')) {
+        return await this.refreshSession()
       }
-      
-      const data = await response.json()
-      return data.success === true && !!data.user
-    } catch {
       return false
     }
   }
 
   async clearSession(): Promise<void> {
     try {
-      await authFetch('/api/auth?action=logout', {
+      await apiClient.request('/api/auth?action=logout', {
         method: 'POST',
       })
     } catch (error) {

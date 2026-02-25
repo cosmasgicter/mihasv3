@@ -11,20 +11,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToastStore } from '@/components/ui/Toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { apiClient } from '@/services/client'
 
-/**
- * Helper for authenticated API calls using HTTP-only cookies
- */
-async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
+import { apiClient } from '@/services/client'
 
 export interface StatusUpdateParams {
   /** The application ID to update */
@@ -113,34 +102,34 @@ export function useApplicationStatusUpdate(options: UseApplicationStatusUpdateOp
     mutationFn: async (params: StatusUpdateParams): Promise<StatusUpdateResult> => {
       const { applicationId, newStatus, currentUpdatedAt, adminFeedback } = params
 
-      // Call the API endpoint to update status
-      const response = await authFetch(`/api/applications?id=${applicationId}`, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'update_status',
-          status: newStatus,
-          notes: adminFeedback,
-          expected_updated_at: currentUpdatedAt // For optimistic locking
+      try {
+        const result = await apiClient.request<{
+          id: string
+          application_number: string
+          status: string
+          admin_feedback?: string
+          decision_date?: string
+          updated_at: string
+        }>(`/api/applications?id=${applicationId}`, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'update_status',
+            status: newStatus,
+            notes: adminFeedback,
+            expected_updated_at: currentUpdatedAt
+          })
         })
-      })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        // Check for conflict error
-        if (result.code === 'CONFLICT' || result.error?.includes('modified')) {
+        return {
+          application: result!,
+          conflictDetected: false
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message.includes('CONFLICT') || message.includes('modified')) {
           throw new ConcurrentModificationError()
         }
-        throw new Error(result.error || 'Failed to update application status')
-      }
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to update application status')
-      }
-
-      return {
-        application: result.data,
-        conflictDetected: false
+        throw error
       }
     },
 

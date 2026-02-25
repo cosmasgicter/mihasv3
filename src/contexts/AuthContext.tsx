@@ -2,7 +2,6 @@ import React, { createContext, useContext, useMemo, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 import { useSessionListener } from '@/hooks/auth/useSessionListener'
-import { useOptimizedAuthState } from '@/hooks/auth/useOptimizedAuthState'
 import { configureAuthController } from '@/services/authController'
 
 interface AuthContextType {
@@ -13,7 +12,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<SignInResult>
   signUp: (email: string, password: string, userData: any) => Promise<SignUpResult>
   signOut: () => Promise<void>
-  requestPasswordReset: (email: string, turnstileToken?: string) => Promise<PasswordResetResult>
+  requestPasswordReset: (email: string) => Promise<PasswordResetResult>
   updatePassword: (password: string) => Promise<PasswordResetResult>
 }
 
@@ -21,16 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient()
-
-  const {
-    signIn,
-    signUp,
-    signOut,
-    requestPasswordReset,
-    updatePassword,
-  } = useSessionListener()
-
-  const { user, profile, isLoading, isAdmin } = useOptimizedAuthState()
+  const auth = useSessionListener()
 
   useEffect(() => {
     configureAuthController({
@@ -45,16 +35,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [queryClient])
 
   const value = useMemo(() => ({
-    user,
-    profile,
-    loading: isLoading,
-    isAdmin,
-    signIn,
-    signUp,
-    signOut,
-    requestPasswordReset,
-    updatePassword,
-  }), [user, profile, isLoading, isAdmin, signIn, signUp, signOut, requestPasswordReset, updatePassword])
+    user: auth.user,
+    profile: auth.profile,
+    loading: auth.loading,
+    isAdmin: auth.isAdmin,
+    signIn: auth.signIn,
+    signUp: auth.signUp,
+    signOut: auth.signOut,
+    requestPasswordReset: auth.requestPasswordReset,
+    updatePassword: auth.updatePassword,
+  }), [auth])
 
   return (
     <AuthContext.Provider value={value}>

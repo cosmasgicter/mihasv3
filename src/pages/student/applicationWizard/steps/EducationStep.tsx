@@ -8,7 +8,7 @@ import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
 import { EligibilityNotification } from '@/components/application/EligibilityNotification'
 import { animateClasses, staggerChild } from '@/lib/animations'
 
-import type { EligibilityResult } from '@/lib/eligibility'
+import type { EligibilityResult } from '@/lib/eligibilityEngine'
 
 import type { Grade12Subject, SubjectGrade } from '../types'
 

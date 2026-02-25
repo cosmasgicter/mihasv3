@@ -24,7 +24,6 @@ import {
 } from 'lucide-react'
 import { animateClasses } from '@/lib/animations'
 import { Link } from 'react-router-dom'
-import { useAnalytics } from '@/hooks/useAnalytics'
 import { Seo } from '@/components/seo/Seo'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
@@ -64,7 +63,6 @@ export default function AdminDashboard() {
   const isMobile = useIsMobile()
   const { user } = useAuth()
   const { profile } = useProfileQuery()
-  const { trackPageView } = useAnalytics()
   const [stats, setStats] = useState<DashboardStats>({
     totalApplications: 0,
     pendingApplications: 0,
@@ -163,10 +161,6 @@ export default function AdminDashboard() {
   const handleManualRefresh = useCallback(async () => {
     await forceRefresh()
   }, [forceRefresh])
-
-  useEffect(() => {
-    trackPageView('admin_dashboard')
-  }, [trackPageView])
 
   useEffect(() => {
     logger.log('[Dashboard] useEffect triggered', { hasUser: !!user, hasProfile: !!profile, userId: user?.id, profileId: profile?.id })

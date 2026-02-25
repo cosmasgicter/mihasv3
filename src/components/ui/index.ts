@@ -70,7 +70,7 @@ export { Accordion } from './accordion'
 export { Separator } from './separator'
 export { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from './tooltip'
 export { Progress } from './progress'
-export { Skeleton, SkeletonText } from './skeleton'
+export { Skeleton, SkeletonText, SkeletonCard, SkeletonTable, SkeletonAvatar } from './skeleton'
 export { SkeletonDashboard } from './skeletons'
 
 // Loading Components (canonical)
@@ -91,8 +91,6 @@ export { LoadingSpinner } from './LoadingSpinner'
 export { LoadingButton } from './LoadingButton'
 /** @deprecated Prefer UnifiedLoader variant="overlay" from '@/components/ui'. */
 export { LoadingOverlay } from './LoadingOverlay'
-/** @deprecated Prefer UnifiedLoader variant="skeleton" from '@/components/ui'. */
-export { SkeletonLoader, SkeletonCard, SkeletonTable, SkeletonAvatar } from './SkeletonLoader'
 export { ProgressIndicator, CircularProgress, IndeterminateProgress } from './ProgressIndicator'
 
 // Form Components
@@ -125,16 +123,6 @@ export {
   VisuallyHidden 
 } from './HeadingHierarchy'
 
-// Touch Components
-/** @deprecated Prefer Button from '@/components/ui'. */
-export { TouchButton } from './TouchButton'
-/** @deprecated Prefer Button from '@/components/ui'. */
-export { TouchOptimizedButton, TouchOptimizedIconButton } from './TouchOptimizedButton'
-
-// Deprecated button/select wrappers
-/** @deprecated Prefer Button from '@/components/ui'. */
-export { LightweightButton } from './LightweightButton'
-/** @deprecated Prefer Button from '@/components/ui'. */
-export { MobileOptimizedButton, FloatingActionButton, MobileButtonGroup, QuickActionButton } from './MobileOptimizedButton'
+// Deprecated select wrapper
 /** @deprecated Prefer Select from '@/components/ui/select'. */
 export { StandaloneSelect } from './standalone-select'

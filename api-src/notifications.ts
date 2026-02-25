@@ -12,6 +12,23 @@ import { renderEmailTemplate } from '../lib/emailTemplates';
 export { MANDATORY_EMAIL_TYPES, isMandatoryEmailType } from '../lib/notificationPolicy';
 
 /**
+ * Generate a standardized idempotency key for notification deduplication.
+ *
+ * All notification creation paths MUST use this function so that dedup
+ * keys follow a single consistent format: `userId:type:entityType:entityId`.
+ *
+ * Requirements: 17.1, 17.2, 17.3
+ */
+export function generateIdempotencyKey(
+  userId: string,
+  type: string,
+  entityType: string,
+  entityId: string
+): string {
+  return `${userId}:${type}:${entityType}:${entityId}`;
+}
+
+/**
  * Consolidated Notifications API
  * 
  * MIGRATED: Uses custom auth middleware and database abstraction
@@ -255,11 +272,12 @@ async function handleDelete(req: VercelRequest, res: VercelResponse) {
 /**
  * Create a notification with deduplication via idempotency key.
  * 
- * Computes key as `event_type:entity_type:entity_id` and checks for an existing
- * notification with the same key within a 1-hour window. Skips creation if a
- * duplicate is found.
+ * Uses the shared `generateIdempotencyKey` to produce a key in the
+ * standardized format `userId:type:entityType:entityId` and checks for
+ * an existing notification with the same key within a 1-hour window.
+ * Skips creation if a duplicate is found.
  * 
- * Requirements: 13.1, 13.2
+ * Requirements: 13.1, 13.2, 17.1, 17.2, 17.3
  */
 async function createNotificationWithDedup(
   userId: string,
@@ -270,7 +288,7 @@ async function createNotificationWithDedup(
   channel: 'email' | 'in_app',
   extra?: { title?: string; action_url?: string | null }
 ): Promise<{ created: boolean; notificationId?: string; notification?: Record<string, unknown> }> {
-  const idempotencyKey = `${eventType}:${entityType}:${entityId}`;
+  const idempotencyKey = generateIdempotencyKey(userId, eventType, entityType, entityId);
 
   // Check for existing notification with same key in last hour
   const existing = await query<{ id: string }>(
@@ -323,7 +341,7 @@ async function handleCheckDuplicate(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
-  const { user_id, title, message, type } = req.body || {};
+  const { user_id, title, message, type, entity_type, entity_id } = req.body || {};
   const targetUserId = user_id || user.userId;
 
   if (!targetUserId || !title || !message) {
@@ -336,7 +354,12 @@ async function handleCheckDuplicate(req: VercelRequest, res: VercelResponse) {
   }
 
   const normalizedType = type || 'info';
-  const idempotencyKey = `${targetUserId}:${normalizedType}:${title}:${message}`;
+  const idempotencyKey = generateIdempotencyKey(
+    targetUserId,
+    normalizedType,
+    entity_type || 'notification',
+    entity_id || title
+  );
 
   const existing = await query<{ id: string }>(
     `SELECT id FROM notifications
@@ -359,7 +382,7 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
-  const { user_id, title, message, type, action_url } = req.body || {};
+  const { user_id, title, message, type, action_url, entity_type, entity_id } = req.body || {};
   const targetUserId = user_id || user.userId;
 
   if (!targetUserId || !title || !message) {
@@ -372,7 +395,12 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
   }
 
   const notificationType = type || 'info';
-  const idempotencyKey = `${targetUserId}:${notificationType}:${title}:${message}`;
+  const idempotencyKey = generateIdempotencyKey(
+    targetUserId,
+    notificationType,
+    entity_type || 'notification',
+    entity_id || title
+  );
 
   const existing = await query<{ id: string }>(
     `SELECT id FROM notifications

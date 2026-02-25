@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { cn } from '@/lib/utils'
 import { FormError, FormSuccess } from './EnhancedErrorHandling'
-import { MobileOptimizedButton } from './MobileOptimizedButton'
 import { Eye, EyeOff } from 'lucide-react'
 
 // Enhanced input component with mobile optimization

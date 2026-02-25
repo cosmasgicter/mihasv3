@@ -6,12 +6,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { detailedEligibilityService, type EligibilityServiceOptions } from '@/services/detailedEligibilityService'
-import type { 
-  DetailedEligibilityAssessment, 
-  ImprovementRecommendation 
-} from '@/lib/detailedEligibilityScoring'
-import type { SubjectGrade } from '@/lib/eligibility'
+import { detailedEligibilityService, type EligibilityServiceOptions, type DetailedEligibilityAssessment, type ImprovementRecommendation } from '@/services/detailedEligibilityService'
+import type { SubjectGrade } from '@/lib/eligibilityEngine'
 
 export interface UseDetailedEligibilityOptions extends EligibilityServiceOptions {
   autoCalculate?: boolean

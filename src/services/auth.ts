@@ -4,7 +4,6 @@ interface RegisterData {
   email: string
   password: string
   fullName: string
-  turnstileToken?: string
 }
 
 interface LoginData {
@@ -22,7 +21,6 @@ export const authService = {
         password: data.password,
         firstName: firstName || '',
         lastName: lastNameParts.join(' ') || '',
-        turnstileToken: data.turnstileToken
       })
     })
   },

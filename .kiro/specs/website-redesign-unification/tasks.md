@@ -1,0 +1,336 @@
+# Implementation Plan: Website Redesign & Unification
+
+## Overview
+
+This plan is structured in three phases: (1) Codebase unification first (removing duplicates, consolidating hooks, fixing API contracts), (2) Visual redesign (homepage, navigation, public pages, auth pages), (3) SmoothUI integration and polish. Each phase ends with a build verification checkpoint. Property-based tests and non-critical polish tasks are marked optional with `*`.
+
+## Tasks
+
+- [x] 1. Phase 1 — Codebase Unification: Dead Code Removal
+  - [x] 1.1 Remove analytics dead code modules
+    - Delete `src/lib/analytics.ts`, `src/services/analyticsService.ts`, `src/services/analytics.ts`, `src/components/analytics/AnalyticsTracker.tsx`, `src/hooks/useAnalytics.ts`
+    - Remove all `trackAction`, `trackPageView`, `useAnalytics` calls from LandingPage, ContactPage, admin Dashboard, and application wizard
+    - Update all barrel exports (`index.ts` files) to remove deleted module references
+    - _Requirements: 7.1, 7.2_
+  - [x] 1.2 Remove Turnstile and Cloudflare dead code
+    - Delete `src/components/ui/Turnstile.tsx` and `src/components/TurnstileBypass.tsx`
+    - Remove Turnstile imports and references from SignInPage, SignUpPage, and any other auth pages
+    - Remove any references to `VITE_TURNSTILE_SITE_KEY` from frontend code
+    - Update barrel exports
+    - _Requirements: 7.3, 4.7_
+  - [x] 1.3 Remove duplicate animation and particle components
+    - Delete `src/components/ui/ParticlesBackground.tsx`, `src/components/effects/ParticleBackground.tsx`, `src/components/ui/FloatingOrbs.tsx`, `src/components/ui/FloatingElements.tsx`
+    - Delete `src/components/ui/AnimatedCard.tsx`, `src/components/ui/AnimatedPage.tsx`, `src/components/ui/AnimatedSection.tsx`
+    - Delete `src/components/ui/PageTransition.tsx` (duplicate of SmoothUI version)
+    - Update all imports to use SmoothUI equivalents (`src/components/smoothui/page-transition.tsx`, `ScrollReveal`, etc.)
+    - Update barrel exports
+    - _Requirements: 7.4, 7.5, 7.6, 7.7_
+  - [x] 1.4 Remove deprecated button wrappers and duplicate loading components
+    - Delete `TouchButton.tsx`, `TouchOptimizedButton.tsx`, `LightweightButton.tsx`, `MobileOptimizedButton.tsx`
+    - Migrate all consumers of deprecated buttons to canonical `Button` component
+    - Remove `SkeletonLoader.tsx` if `skeleton.tsx` provides equivalent functionality
+    - Verify `LoadingSpinner`, `LoadingButton`, `LoadingOverlay` consumers are migrated to `UnifiedLoader`, then remove or keep as deprecated re-exports
+    - Update barrel exports in `src/components/ui/index.ts`
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
+  - [x] 1.5 Remove debug component
+    - Delete `src/components/AuthDebug.tsx` and remove any imports
+    - _Requirements: 7.5_
+
+- [x] 2. Phase 1 — Codebase Unification: Auth Hook Consolidation
+  - [x] 2.1 Merge useOptimizedAuthState into useSessionListener
+    - Refactor `src/hooks/auth/useSessionListener.ts` to use React Query for session and profile queries (replacing useState-based approach)
+    - Move profile fetching logic from `useOptimizedAuthState` into `useSessionListener`
+    - Implement `signIn` that atomically sets React Query cache at `['auth', 'session']` and `['user-profile', userId]`
+    - Implement `signOut` that clears `['auth', 'session']` and removes `['user-profile']` queries
+    - Ensure single token refresh attempt on 401 before redirect
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+  - [x] 2.2 Simplify AuthContext to thin wrapper
+    - Update `src/contexts/AuthContext.tsx` to use only the consolidated `useSessionListener` hook
+    - Remove import of `useOptimizedAuthState`
+    - Delete `src/hooks/auth/useOptimizedAuthState.ts`
+    - Verify all consumers of `useAuth()` context still receive correct shape (user, profile, loading, isAdmin, signIn, signUp, signOut)
+    - _Requirements: 5.1, 5.4_
+  - [ ]* 2.3 Write property test for auth state management (Property 8)
+    - **Property 8: Auth state management — login populates cache, logout clears it**
+    - Test: For any successful login result containing a user object, the React Query cache at `['auth', 'session']` should contain that user. After signOut, cache should be null.
+    - **Validates: Requirements 5.2, 5.3**
+
+- [x] 3. Phase 1 — Codebase Unification: Eligibility Logic Consolidation
+  - [x] 3.1 Merge eligibility modules into single engine
+    - Merge logic from `src/lib/eligibility.ts` into `src/lib/eligibilityEngine.ts` (canonical)
+    - Merge `src/hooks/useEligibilityCheckerFixed.ts` improvements into `src/hooks/useEligibilityChecker.ts`
+    - Delete `src/lib/eligibility.ts`, `src/hooks/useEligibilityCheckerFixed.ts`, and any `detailedEligibilityScoring.ts` or `eligibilityScoringEngine.ts` files
+    - Update all imports to use canonical modules
+    - Ensure external API failures (HPCZ, NMCZ, ECZ) return advisory result with fallback message
+    - _Requirements: 8.1, 8.2, 8.3, 8.4_
+  - [ ]* 3.2 Write property test for eligibility engine result shape (Property 9)
+    - **Property 9: Eligibility engine returns well-formed result**
+    - Test: For any valid application data object, the eligibility engine returns a result with `status` (one of 'eligible', 'ineligible', 'pending'), `score` (number), and `messages` (array of strings).
+    - **Validates: Requirements 8.2**
+
+- [x] 4. Phase 1 — Codebase Unification: Application Data & Submission Hook Consolidation
+  - [x] 4.1 Consolidate application data hooks
+    - Merge `useApplicationsWithCounts.ts` into `useApplicationsData.ts` (canonical)
+    - Delete `src/hooks/useApplicationsWithCounts.ts`
+    - Ensure React Query cache keys are consistent and stale time is configured
+    - Ensure cache invalidation on application mutations (create, update, submit)
+    - Update all consumers to use the canonical hook
+    - _Requirements: 9.1, 9.2, 9.3, 9.4_
+  - [x] 4.2 Consolidate application submission hooks
+    - Merge `useApplicationSubmitFixed.ts` improvements into `useApplicationSubmit.ts` (canonical)
+    - Delete `src/hooks/useApplicationSubmitFixed.ts`
+    - Ensure submit button disabling and loading indicator during submission
+    - Update all consumers
+    - _Requirements: 12.1, 12.2, 12.3_
+  - [ ]* 4.3 Write property test for application cache invalidation (Property 10)
+    - **Property 10: Application cache invalidation on mutation**
+    - Test: For any application mutation, React Query cache keys matching `['applications']` should be invalidated after the mutation completes.
+    - **Validates: Requirements 9.4**
+
+- [x] 5. Phase 1 — Codebase Unification: Offline System Consolidation
+  - [x] 5.1 Unify offline storage into single IndexedDB-based system
+    - Merge `offlineManager.ts` (localStorage-based request queue) into `offlineSync.ts` (IndexedDB-based)
+    - Delete `src/services/offlineManager.ts`
+    - Ensure FIFO ordering of queued operations during sync
+    - Ensure failed operations remain in queue with incremented retry count (max 3 retries)
+    - Update all consumers to use the unified offline system
+    - _Requirements: 10.1, 10.2, 10.3, 10.4_
+  - [ ]* 5.2 Write property test for offline queue ordering (Property 11)
+    - **Property 11: Offline queue preserves FIFO order and retains failed operations**
+    - Test: For any sequence of queued operations, sync processes them in FIFO order. Failed operations remain in queue with incremented retry count.
+    - **Validates: Requirements 10.3, 10.4**
+
+- [x] 6. Phase 1 — Codebase Unification: API Client Unification
+  - [x] 6.1 Fix API client cache property collision
+    - In `src/services/client.ts`, rename any `cache` boolean property to `enableClientCache` (or verify `useCache`/`skipCache` are already used consistently)
+    - Ensure `ApiRequestOptions` extends `Omit<RequestInit, 'cache'>` to avoid collision with `RequestInit.cache`
+    - Audit all callers for `cache: true/false` boolean usage and migrate to `useCache`/`skipCache`
+    - _Requirements: 13.4_
+  - [x] 6.2 Migrate remaining apiClient.ts consumers to services/client.ts
+    - Identify all imports of `src/lib/apiClient.ts` (`authFetch`, `apiClient`)
+    - Migrate each consumer to use `src/services/client.ts` (`ApiClient`)
+    - Delete `src/lib/apiClient.ts` after all consumers are migrated
+    - _Requirements: 13.1, 13.2, 13.3_
+  - [ ]* 6.3 Write property test for API envelope unwrap idempotence (Property 13)
+    - **Property 13: API envelope unwrap is idempotent**
+    - Test: For any response `{ success: true, data: T }`, `unwrapApiResponse` returns `T`. Calling it twice equals calling it once.
+    - **Validates: Requirements 13.3**
+
+- [x] 7. Phase 1 — Codebase Unification: Frontend-Backend API Contract Alignment
+  - [x] 7.1 Fix frontend service calls to use query-parameter routing
+    - Audit all files in `src/services/` for path-based API calls (e.g., `/api/admin/users`)
+    - For calls that go through `ApiClient.request()` (which uses `normalizeEndpoint`), verify the normalization produces correct query-parameter URLs
+    - For calls using raw `fetch()` or `authFetch()`, rewrite to use `ApiClient.request()` or fix URLs directly
+    - Remove or stub with TODO any service methods calling endpoints that don't exist in the backend
+    - _Requirements: 14.1, 14.2, 14.3_
+  - [x] 7.2 Fix pushNotificationManager auth credentials
+    - In `src/services/pushNotificationManager.ts`, ensure the `/api/notifications?action=push-subscribe` call includes `credentials: 'include'` for cookie-based auth
+    - _Requirements: 14.4_
+  - [ ]* 7.3 Write property test for API endpoint normalization (Property 14)
+    - **Property 14: API endpoint normalization produces valid query-parameter URLs**
+    - Test: For any path-based endpoint string, `normalizeEndpoint` produces a URL using query-parameter routing matching a known backend pattern.
+    - **Validates: Requirements 14.1, 14.2, 14.3**
+
+- [x] 8. Phase 1 — Codebase Unification: Notification Dedup Key Standardization
+  - [x] 8.1 Standardize notification idempotency key format
+    - In `api-src/notifications.ts`, create a shared `generateIdempotencyKey(userId, type, entityType, entityId)` function
+    - Update both `createNotificationWithDedup` and `handleCreate` to use this shared function
+    - Ensure all paths produce keys in format `userId:type:entityType:entityId`
+    - _Requirements: 17.1, 17.2, 17.3_
+  - [ ]* 8.2 Write property test for notification dedup key consistency (Property 17)
+    - **Property 17: Notification dedup key format is consistent**
+    - Test: For any notification creation parameters, the generated key follows `userId:type:entityType:entityId` format consistently across both code paths.
+    - **Validates: Requirements 17.1, 17.2, 17.3**
+
+- [x] 9. Phase 1 — Codebase Unification: Accessibility Fixes
+  - [x] 9.1 Fix input label association with htmlFor/id
+    - In `src/components/ui/input.tsx`, use `React.useId()` to generate stable IDs when no `id` prop is provided
+    - Add `htmlFor={inputId}` to `<label>` and `id={inputId}` to `<input>`
+    - Add `aria-describedby` for error messages and `aria-invalid` when error is truthy
+    - _Requirements: 15.1_
+  - [x] 9.2 Replace string-replacement sanitizer with DOMPurify
+    - Install `dompurify` and `@types/dompurify` (`bun add dompurify && bun add -d @types/dompurify`)
+    - Rewrite `src/lib/sanitizer.ts` to use `DOMPurify.sanitize()` with allowed tags whitelist
+    - Verify all `dangerouslySetInnerHTML` usages go through the new sanitizer
+    - _Requirements: 15.3_
+  - [x] 9.3 Add alt text to images and skip-to-content links
+    - Add `alt` attributes to user avatars in `UserMenu` and file upload previews in `EnhancedFileUpload`
+    - Add skip-to-content link as first focusable element in `ResponsiveHeader` and `PublicLayout`
+    - Verify heading hierarchy (h1 → h2 → h3) on key pages
+    - _Requirements: 15.2, 15.4, 15.5_
+  - [ ]* 9.4 Write property test for input label/id association (Property 15)
+    - **Property 15: Input label htmlFor matches input id**
+    - Test: For any Input rendered with a `label` prop, the `<label>` htmlFor equals the `<input>` id.
+    - **Validates: Requirements 15.1**
+  - [ ]* 9.5 Write property test for HTML sanitization (Property 16)
+    - **Property 16: HTML sanitization strips dangerous tags, preserves safe ones**
+    - Test: For any HTML string, `sanitizeHtml` strips `<script>`, `<iframe>`, `<object>`, `<embed>`, `onclick`/`onerror`. Safe tags are preserved.
+    - **Validates: Requirements 15.3**
+
+- [x] 10. Phase 1 Checkpoint — Build Verification
+  - Run `bunx --bun vite build` and verify zero build errors after all dead code removal and consolidation
+  - Run `bun run test` and verify existing tests still pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 11. Phase 2 — Visual Redesign: Shared Layout and Footer
+  - [x] 11.1 Extract shared constants from LandingPage
+    - Create `src/lib/constants/landing.ts` with `contactInfo`, `quickLinks`, `socialLinks`, `stats`, `features`, `accreditations`, `programs` data
+    - Update LandingPage to import from shared constants instead of inline data
+    - _Requirements: 16.4_
+  - [x] 11.2 Create SharedFooter component
+    - Create `src/components/layout/SharedFooter.tsx` that renders footer content using shared constants
+    - Include contact info with clickable `tel:` and `mailto:` links, quick links, social links, copyright
+    - _Requirements: 16.1, 16.3, 3.5, 3.6_
+  - [x] 11.3 Create PublicLayout wrapper component
+    - Create `src/components/layout/PublicLayout.tsx` with `ResponsiveHeader`, `SharedFooter`, and `PageTransition` (SmoothUI)
+    - Accept `showFooter` prop (default true) and `className` prop
+    - _Requirements: 16.2, 3.5_
+  - [x] 11.4 Migrate public pages to use PublicLayout
+    - Update LandingPage, ContactPage, NotFoundPage, PublicApplicationTracker to use `PublicLayout` instead of individual header/footer imports
+    - Remove per-page footer markup
+    - _Requirements: 16.2, 3.5, 3.6_
+
+- [ ] 12. Phase 2 — Visual Redesign: Homepage Redesign
+  - [x] 12.1 Redesign LandingPage hero section
+    - Implement full-width hero with gradient background, headline, subtitle, and two CTA buttons ("Start Your Application", "Learn More")
+    - Use `Button asChild` with `Link` child pattern, visible focus rings, min 48px touch targets
+    - Add authenticated user redirect to role-appropriate dashboard
+    - _Requirements: 1.1, 1.7, 1.8_
+  - [x] 12.2 Implement animated statistics section
+    - Use SmoothUI `AnimatedCounter` components for graduate count, job placement rate, training years, employer partners
+    - Wrap in `ScrollReveal` to trigger count-up on viewport intersection
+    - _Requirements: 1.2, 1.3_
+  - [x] 12.3 Implement remaining homepage sections
+    - Features section with `StaggerReveal` animation
+    - Accreditations section
+    - Programs section with program cards
+    - Final CTA section
+    - All sections use `ScrollReveal` for scroll-triggered animations
+    - Ensure single-column layout on mobile (<768px) with 44px+ touch targets
+    - _Requirements: 1.3, 1.4, 1.5_
+  - [x] 12.4 Add structured data (JSON-LD) to homepage
+    - Add Organization and EducationalOrganization JSON-LD schemas in a `<script type="application/ld+json">` tag
+    - _Requirements: 1.6_
+  - [ ]* 12.5 Write property test for authenticated user redirect (Property 1)
+    - **Property 1: Authenticated user redirect matches role**
+    - Test: For any user with role admin/super_admin, redirect is "/admin/dashboard". For student/reviewer, redirect is "/student/dashboard".
+    - **Validates: Requirements 1.7**
+
+- [ ] 13. Phase 2 — Visual Redesign: Mobile Navigation Redesign
+  - [x] 13.1 Enhance ResponsiveHeader with accessibility features
+    - Add skip-to-content link as first focusable element
+    - Add focus trap when mobile menu is open (using `useFocusTrap` hook or `FocusTrap` component)
+    - Add Escape key handler to close mobile menu
+    - Add `aria-current="page"` on active navigation link
+    - Ensure CSS-only transitions for menu open/close (max-height + opacity)
+    - Ensure all mobile links have min 44px touch targets
+    - _Requirements: 2.1, 2.2, 2.3, 2.5, 2.6, 2.7_
+  - [ ]* 13.2 Write property test for mobile menu close on navigation (Property 2)
+    - **Property 2: Mobile menu closes on navigation link activation**
+    - Test: For any navigation link in the mobile menu, clicking it sets menu open state to false.
+    - **Validates: Requirements 2.4**
+  - [ ]* 13.3 Write property test for active link aria-current (Property 3)
+    - **Property 3: Active navigation link has aria-current attribute**
+    - Test: For any route path matching a nav item's href, that link has `aria-current="page"`. Non-matching links do not.
+    - **Validates: Requirements 2.5**
+
+- [ ] 14. Phase 2 — Visual Redesign: Public Pages (Contact, Tracker, 404)
+  - [x] 14.1 Redesign Contact page
+    - Display contact info with clickable `tel:` and `mailto:` links (using shared constants)
+    - Add contact form with name, email, message fields validated by Zod schema
+    - Wrap in `PublicLayout`
+    - _Requirements: 3.1, 3.5_
+  - [x] 14.2 Redesign Application Tracker page
+    - Display search interface for application number or tracking code
+    - Wrap in `PublicLayout`
+    - _Requirements: 3.2, 3.5_
+  - [x] 14.3 Redesign 404 page
+    - Add "Go Home" button, "Go Back" button, and contextual page suggestions based on attempted URL path
+    - Wrap in `PublicLayout`
+    - _Requirements: 3.3, 3.5_
+  - [ ]* 14.4 Write property test for contact form Zod schema (Property 4)
+    - **Property 4: Contact form Zod schema validates correctly**
+    - Test: For any object with valid name (2+ chars), valid email (contains @), valid message (non-empty), schema passes. Invalid inputs fail with appropriate errors.
+    - **Validates: Requirements 3.1**
+  - [ ]* 14.5 Write property test for 404 page suggestions (Property 5)
+    - **Property 5: 404 page suggestions are contextual to attempted path**
+    - Test: For any URL path string, the suggestion function returns valid route suggestions. Paths with keywords produce relevant suggestions.
+    - **Validates: Requirements 3.3**
+
+- [ ] 15. Phase 2 — Visual Redesign: Auth Pages Polish
+  - [x] 15.1 Polish SignUpPage with Zod validation and type safety
+    - Remove `@ts-nocheck` directive from `SignUpPage.tsx`
+    - Implement Zod schema for all registration fields (full_name, email, password, confirmPassword, phone, date_of_birth, sex, residence_town, nationality, next_of_kin)
+    - Display inline validation errors adjacent to fields
+    - Add loading state on submit button with disable during submission
+    - _Requirements: 4.1, 4.3, 4.4, 4.8_
+  - [x] 15.2 Polish SignInPage with type safety
+    - Remove `@ts-nocheck` directive from `SignInPage.tsx`
+    - Resolve underlying type errors
+    - Ensure login form has email, password, "Forgot password?" link, and Sign Up link
+    - Add loading state on submit button
+    - _Requirements: 4.2, 4.3, 4.4, 4.8_
+  - [x] 15.3 Polish ForgotPasswordPage
+    - Ensure confirmation message is displayed after submission regardless of email existence (prevent enumeration)
+    - _Requirements: 4.6_
+  - [x] 15.4 Create or verify AuthLayout component
+    - Ensure shared AuthLayout provides consistent branding, responsive two-column layout (hero + form), and SmoothUI page transitions
+    - Apply to all auth pages
+    - _Requirements: 4.5_
+  - [ ]* 15.5 Write property test for signup form Zod schema (Property 6)
+    - **Property 6: Signup form Zod schema rejects invalid and accepts valid inputs**
+    - Test: For any valid signup data, schema passes. Mismatched passwords, short passwords, invalid emails fail with correct error paths.
+    - **Validates: Requirements 4.1, 4.3**
+  - [ ]* 15.6 Write property test for forgot password response (Property 7)
+    - **Property 7: Forgot password response is identical regardless of email existence**
+    - Test: For any email string, the response shape is identical whether the email exists or not.
+    - **Validates: Requirements 4.6**
+
+- [x] 16. Phase 2 Checkpoint — Build and Visual Verification
+  - Run `bunx --bun vite build` and verify zero build errors after all visual redesign changes
+  - Run `bun run test` and verify all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 17. Phase 3 — SmoothUI Integration and Polish
+  - [x] 17.1 Apply SmoothUI PageTransition to all route changes
+    - Ensure `PublicLayout` and `AuthLayout` wrap content in `PageTransition`
+    - Verify authenticated app routes also use `PageTransition`
+    - _Requirements: 11.1, 3.4_
+  - [x] 17.2 Apply ScrollReveal to public page content sections
+    - Add `ScrollReveal` to homepage sections (features, accreditations, programs, CTA)
+    - Add `ScrollReveal` to Contact page sections
+    - _Requirements: 11.2_
+  - [x] 17.3 Apply AnimatedInput and AnimatedSelect to auth forms
+    - Replace standard inputs with SmoothUI `AnimatedInput` and `AnimatedSelect` on auth pages where appropriate
+    - _Requirements: 11.3_
+  - [x] 17.4 Remove remaining framer-motion usage
+    - Search for `framer-motion` imports across the codebase
+    - Replace with CSS transitions or SmoothUI equivalents
+    - Remove `framer-motion` from `package.json` if no usages remain
+    - _Requirements: 11.4_
+  - [x] 17.5 Verify prefers-reduced-motion support
+    - Ensure all SmoothUI components (PageTransition, ScrollReveal, StaggerReveal, AnimatedCounter) respect `prefers-reduced-motion: reduce` by rendering content immediately without animation
+    - _Requirements: 11.5_
+  - [ ]* 17.6 Write property test for SmoothUI reduced motion (Property 12)
+    - **Property 12: SmoothUI respects prefers-reduced-motion**
+    - Test: For any SmoothUI component, when `prefers-reduced-motion: reduce` matches, content renders immediately without animation delays.
+    - **Validates: Requirements 11.5**
+
+- [-] 18. Phase 3 — Final Checkpoint
+  - Run `bunx --bun vite build` and verify zero build errors
+  - Run `bun run test` and verify all tests pass (including any new property tests)
+  - Verify no `framer-motion` imports remain in the codebase
+  - Verify no deleted module imports remain (analytics, Turnstile, duplicate hooks, old apiClient)
+  - Ensure all tests pass, ask the user if questions arise.
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Checkpoints at tasks 10, 16, and 18 ensure incremental validation
+- Phase 1 (tasks 1–10) creates a clean foundation before any visual changes
+- Phase 2 (tasks 11–16) builds the redesigned UI on the unified codebase
+- Phase 3 (tasks 17–18) applies SmoothUI polish and final verification
+- Property tests use fast-check in `tests/property/` directory with Vitest
+- Build command: `bunx --bun vite build`
+- Test command: `bun run test`

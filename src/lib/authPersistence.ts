@@ -1,21 +1,8 @@
 /**
  * Auth persistence utility to prevent automatic logout
- * Uses HTTP-only cookie authentication
+ * Uses HTTP-only cookie authentication via canonical ApiClient
  */
-
-/**
- * Helper for authenticated API calls using HTTP-only cookies
- */
-async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
+import { apiClient } from '@/services/client'
 
 class AuthPersistence {
   private static instance: AuthPersistence
@@ -58,22 +45,14 @@ class AuthPersistence {
     this.isChecking = true
 
     try {
-      // Check current session via API
-      const sessionResponse = await authFetch('/api/auth?action=session')
+      const sessionData = await apiClient.request<{ user?: any }>('/api/auth?action=session')
       
-      if (!sessionResponse.ok) {
-        // No valid session, nothing to refresh
-        return
-      }
-
-      const sessionData = await sessionResponse.json()
-      
-      if (sessionData.success && sessionData.user) {
+      if (sessionData && (sessionData as any)?.user) {
         // Session exists, proactively refresh to extend it
-        // The server handles token expiry checks
-        await authFetch('/api/auth?action=refresh', { method: 'POST' })
+        await apiClient.request('/api/auth?action=refresh', { method: 'POST' })
       }
     } catch (error) {
+      // No valid session or refresh failed — nothing to do
       console.error('Session refresh error:', error)
     } finally {
       this.isChecking = false

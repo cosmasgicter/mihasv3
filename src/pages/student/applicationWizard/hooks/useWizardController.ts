@@ -12,10 +12,10 @@ import { applicationsData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useProfileAutoPopulation, getBestValue, getUserMetadata } from '@/hooks/useProfileAutoPopulation'
-import { useApplicationSubmitFixed } from '@/hooks/useApplicationSubmitFixed'
-import { useEligibilityCheckerFixed } from '@/hooks/useEligibilityCheckerFixed'
+import { useApplicationSubmit } from '@/hooks/useApplicationSubmit'
+import { useEligibilityChecker } from '@/hooks/useEligibilityChecker'
 import { draftManager } from '@/lib/draftManager'
-import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibility'
+import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibilityEngine'
 import { createApplicationSlip } from '@/lib/slipService'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { sanitizeForLog } from '@/lib/security'
@@ -799,7 +799,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const getUsedSubjects = useCallback(() => selectedGrades.map(grade => grade.subject_id).filter(Boolean), [selectedGrades])
 
   // Use the fixed eligibility checker
-  const { assessment: eligibilityAssessment } = useEligibilityCheckerFixed({
+  const { assessment: eligibilityAssessment } = useEligibilityChecker({
     applicationId: applicationId || '',
     programId: selectedProgram || '',
     programName: selectedProgramDetails?.name,

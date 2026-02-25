@@ -10,6 +10,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { sanitizeForDisplay } from '@/lib/sanitize';
 import { preloadDashboardData } from './dashboardPreloader';
+import { apiClient } from '@/services/client';
 import type { UserProfile } from '@/types/database';
 
 export interface AuthUser {
@@ -49,7 +50,7 @@ function sanitizeProfile(data: any | null): UserProfile | null {
 
 /**
  * Track device session (non-blocking)
- * Uses HTTP-only cookies for authentication
+ * Uses ApiClient with HTTP-only cookies for authentication
  */
 function trackDeviceSession(): void {
   try {
@@ -64,12 +65,8 @@ function trackDeviceSession(): void {
     }
 
     // Fire and forget - don't await
-    fetch('/api/sessions?action=track', {
+    apiClient.request('/sessions?action=track', {
       method: 'POST',
-      credentials: 'include', // CRITICAL: Send HTTP-only cookies
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({
         device_id: deviceId,
         device_info: navigator.userAgent,
@@ -98,32 +95,14 @@ export async function optimizedLogin(
   queryClient?: QueryClient
 ): Promise<OptimizedLoginResponse> {
   try {
-    // Step 1: Authenticate user via custom API
-    const response = await fetch('/api/auth?action=login', {
+    // Step 1: Authenticate user via ApiClient (uses credentials: 'include' for cookies)
+    const result = await apiClient.request<{ user?: any; profile?: any }>('/auth?action=login', {
       method: 'POST',
-      credentials: 'include', // CRITICAL: Receive HTTP-only cookies
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ email, password }),
     });
 
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      const errorMessage = result.error || 'Unable to sign in. Please try again.';
-      
-      if (errorMessage.includes('Invalid') || errorMessage.includes('credentials')) {
-        return { error: 'Invalid email or password' };
-      }
-      if (errorMessage.includes('verify') || errorMessage.includes('confirmed')) {
-        return { error: 'Please verify your email address before signing in' };
-      }
-      return { error: errorMessage };
-    }
-
-    const userData = result.data?.user;
-    const profileData = result.data?.profile;
+    const userData = result?.user;
+    const profileData = result?.profile;
 
     if (!userData) {
       return { error: 'Unable to sign in. Please try again.' };
@@ -155,10 +134,17 @@ export async function optimizedLogin(
     return { user, profile };
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('fetch') || error.message.includes('network')) {
+      const msg = error.message;
+      if (msg.includes('Invalid') || msg.includes('credentials')) {
+        return { error: 'Invalid email or password' };
+      }
+      if (msg.includes('verify') || msg.includes('confirmed')) {
+        return { error: 'Please verify your email address before signing in' };
+      }
+      if (msg.includes('fetch') || msg.includes('network')) {
         return { error: 'Network error. Please check your connection.' };
       }
-      return { error: error.message };
+      return { error: msg };
     }
     return { error: 'An unexpected error occurred. Please try again.' };
   }
@@ -166,33 +152,23 @@ export async function optimizedLogin(
 
 /**
  * Validate session and fetch profile
- * Uses HTTP-only cookies for authentication
+ * Uses ApiClient with HTTP-only cookies for authentication
  */
 export async function validateSessionWithProfile(): Promise<{
   user: AuthUser | null;
   profile: UserProfile | null;
 }> {
   try {
-    const response = await fetch('/api/auth?action=session', {
+    const result = await apiClient.request<{ user?: any; profile?: any }>('/auth?action=session', {
       method: 'GET',
-      credentials: 'include', // CRITICAL: Send HTTP-only cookies
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
 
-    if (!response.ok) {
+    if (!result?.user) {
       return { user: null, profile: null };
     }
 
-    const result = await response.json();
-
-    if (!result.success || !result.data?.user) {
-      return { user: null, profile: null };
-    }
-
-    const userData = result.data.user;
-    const profileData = result.data.profile;
+    const userData = result.user;
+    const profileData = result.profile;
 
     const user: AuthUser = {
       id: userData.id,

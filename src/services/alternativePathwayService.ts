@@ -10,7 +10,7 @@
 
 import { alternativePathwayEngine, type AlternativePathway, type PersonalizedImprovementPlan } from '@/lib/alternativePathwayEngine'
 import { apiClient } from '@/services/client'
-import type { SubjectGrade } from '@/lib/eligibility'
+import type { SubjectGrade } from '@/lib/eligibilityEngine'
 
 export interface PathwayServiceOptions {
   includeFinancialAnalysis?: boolean
@@ -100,85 +100,48 @@ export class AlternativePathwayService {
   
   /**
    * Get improvement plan history for a student
+   * TODO: Backend endpoint /api/applications?action=improvement-plans does not exist yet.
    */
-  async getImprovementPlanHistory(applicationId: string): Promise<PersonalizedImprovementPlan[]> {
-    try {
-      const result = await apiClient.request<{ data: any[] }>(
-        `/applications/${applicationId}?action=improvement-plans`
-      )
-      
-      return result?.data?.map(this.parseImprovementPlan) || []
-    } catch (error) {
-      console.error('Error fetching improvement plan history:', error)
-      return []
-    }
+  async getImprovementPlanHistory(_applicationId: string): Promise<PersonalizedImprovementPlan[]> {
+    // No backend endpoint exists for improvement plan history.
+    return []
   }
   
   /**
    * Get pathway recommendations history
+   * TODO: Backend endpoint /api/applications?action=pathway-recommendations does not exist yet.
    */
-  async getPathwayRecommendationsHistory(applicationId: string): Promise<AlternativePathway[]> {
-    try {
-      const result = await apiClient.request<{ data: any[] }>(
-        `/applications/${applicationId}?action=pathway-recommendations`
-      )
-      
-      return result?.data?.map(this.parsePathwayRecommendation) || []
-    } catch (error) {
-      console.error('Error fetching pathway recommendations:', error)
-      return []
-    }
+  async getPathwayRecommendationsHistory(_applicationId: string): Promise<AlternativePathway[]> {
+    // No backend endpoint exists for pathway recommendations history.
+    return []
   }
   
   /**
    * Update improvement plan progress
+   * TODO: Backend endpoint /api/applications?action=update-plan-progress does not exist yet.
    */
   async updatePlanProgress(
-    applicationId: string,
-    planId: string,
-    completedActions: string[],
-    notes?: string
+    _applicationId: string,
+    _planId: string,
+    _completedActions: string[],
+    _notes?: string
   ): Promise<boolean> {
-    try {
-      await apiClient.request(`/applications/${applicationId}?action=update-plan-progress`, {
-        method: 'POST',
-        body: JSON.stringify({
-          planId,
-          completedActions,
-          notes,
-          updatedAt: new Date().toISOString()
-        })
-      })
-      
-      return true
-    } catch (error) {
-      console.error('Error updating plan progress:', error)
-      return false
-    }
+    // No backend endpoint exists for updating plan progress.
+    return false
   }
   
   /**
    * Get pathway success statistics
+   * TODO: Backend endpoint /api/admin?action=pathway-statistics does not exist yet.
    */
-  async getPathwayStatistics(pathwayId: string): Promise<{
+  async getPathwayStatistics(_pathwayId: string): Promise<{
     totalStudents: number
     completionRate: number
     progressionRate: number
     averageTimeToCompletion: number
   } | null> {
-    try {
-      const result = await apiClient.request<{
-        totalStudents: number
-        completionRate: number
-        progressionRate: number
-        averageTimeToCompletion: number
-      }>(`/admin?action=pathway-statistics&pathwayId=${encodeURIComponent(pathwayId)}`)
-      
-      return result || null
-    } catch (error) {
-      console.error('Error fetching pathway statistics:', error)
-      return null
-    }
+    // No backend endpoint exists for pathway statistics.
+    return null
   }
   
   /**
@@ -234,55 +197,20 @@ export class AlternativePathwayService {
    * Private helper methods
    */
   
+  // TODO: Backend endpoint /api/applications?action=store-pathway-recommendations does not exist yet.
   private async storePathwayRecommendations(
-    applicationId: string,
-    pathways: AlternativePathway[]
+    _applicationId: string,
+    _pathways: AlternativePathway[]
   ): Promise<void> {
-    try {
-      const records = pathways.map(pathway => ({
-        application_id: applicationId,
-        pathway_id: pathway.id,
-        pathway_name: pathway.name,
-        pathway_type: pathway.type,
-        suitability_score: pathway.suitabilityScore || 0,
-        reasons_for_recommendation: pathway.reasonsForRecommendation || [],
-        potential_challenges: pathway.potentialChallenges || [],
-        pathway_data: pathway,
-        created_at: new Date().toISOString()
-      }))
-      
-      await apiClient.request(`/applications/${applicationId}?action=store-pathway-recommendations`, {
-        method: 'POST',
-        body: JSON.stringify({ records })
-      })
-    } catch (error) {
-      console.error('Error storing pathway recommendations:', error)
-    }
+    // No-op: endpoint not implemented in backend.
   }
   
+  // TODO: Backend endpoint /api/applications?action=store-improvement-plan does not exist yet.
   private async storeImprovementPlan(
-    applicationId: string,
-    plan: PersonalizedImprovementPlan
+    _applicationId: string,
+    _plan: PersonalizedImprovementPlan
   ): Promise<void> {
-    try {
-      await apiClient.request(`/applications/${applicationId}?action=store-improvement-plan`, {
-        method: 'POST',
-        body: JSON.stringify({
-          student_id: plan.studentId,
-          target_program: plan.targetProgram,
-          current_status: plan.currentStatus,
-          recommended_pathways: plan.recommendedPathways,
-          short_term_actions: plan.shortTermActions,
-          long_term_strategy: plan.longTermStrategy,
-          support_resources: plan.supportResources,
-          review_schedule: plan.reviewSchedule,
-          plan_data: plan,
-          created_at: new Date().toISOString()
-        })
-      })
-    } catch (error) {
-      console.error('Error storing improvement plan:', error)
-    }
+    // No-op: endpoint not implemented in backend.
   }
   
   private parseImprovementPlan(data: any): PersonalizedImprovementPlan {

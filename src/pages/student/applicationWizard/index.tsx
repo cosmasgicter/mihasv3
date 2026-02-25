@@ -26,7 +26,6 @@ import { useStepValidation } from './hooks/useStepValidation'
 import { useOverallProgress } from './hooks/useOverallProgress'
 import { useSmartAutoSave } from './hooks/useSmartAutoSave'
 import { useEstimatedTime } from './hooks/useEstimatedTime'
-import { useAnalytics } from './hooks/useAnalytics'
 import { previousButtonLabel, saveNowLabel, wizardSteps } from './steps/config'
 import type { SubjectGrade } from './types'
 import { WIZARD_COPY } from './constants'
@@ -94,7 +93,6 @@ const ApplicationWizardContent = () => {
     enabled: !loading && !uploading
   })
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
-  useAnalytics(user?.id, null, currentStepIndex, currentStepConfig.key)
   const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
   const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
 

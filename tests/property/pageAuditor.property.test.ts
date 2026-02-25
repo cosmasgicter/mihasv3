@@ -76,7 +76,7 @@ const queryKeyArb = fc.array(
 const customHookNameArb = fc.constantFrom(
   'useAuth',
   'useProfileQuery',
-  'useApplicationsWithCounts',
+  'useApplicationsData',
   'useAnalytics',
   'useUsers',
   'useAdminDashboardPolling',
@@ -497,7 +497,7 @@ describe('Property 4: Page Data Load Path Tracing', () => {
     it('PROPERTY: Known data hooks have their endpoints mapped', async () => {
       await fc.assert(
         fc.asyncProperty(
-          fc.constantFrom('useAuth', 'useProfileQuery', 'useApplicationsWithCounts', 'useAnalytics'),
+          fc.constantFrom('useAuth', 'useProfileQuery', 'useApplicationsData', 'useAnalytics'),
           async (hookName) => {
             const config: PageComponentConfig = {
               componentName: 'KnownHookPage',

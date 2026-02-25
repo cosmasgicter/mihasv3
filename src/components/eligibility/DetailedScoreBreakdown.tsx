@@ -28,7 +28,7 @@ import type {
   DetailedEligibilityAssessment, 
   DetailedScoreBreakdown,
   ImprovementRecommendation 
-} from '@/lib/detailedEligibilityScoring'
+} from '@/services/detailedEligibilityService'
 
 interface DetailedScoreBreakdownProps {
   assessment: DetailedEligibilityAssessment

@@ -11,7 +11,13 @@ import {
  Clock
 } from 'lucide-react'
 
-import { analyticsData } from '@/data/analytics'
+// Traffic overview — analytics removed in migration. Static empty shape.
+const useTrafficOverview = () => ({
+  activeUsers: 0,
+  dailyCounts: [] as { date: string; count: number }[],
+  isLoading: false,
+  isError: false,
+})
 
 interface AnalyticsData {
  applications: {
@@ -39,7 +45,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  dailyCounts,
  isLoading: isAnalyticsLoading,
  isError: isAnalyticsError
- } = analyticsData.useTrafficOverview()
+ } = useTrafficOverview()
 
  const approvalRate = data.applications.total > 0
  ? Math.round((data.applications.approved / (data.applications.approved + data.applications.rejected)) * 100)

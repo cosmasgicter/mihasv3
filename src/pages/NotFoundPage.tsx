@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
+import { PublicLayout } from '@/components/layout/PublicLayout'
 import { Home, ArrowLeft, Search, FileText, User, Settings } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -161,82 +162,84 @@ export default function NotFoundPage() {
   }, [location.pathname, user, isAdmin])
 
   return (
-    <div className="page-container bg-muted flex flex-col justify-center py-6 sm:py-12">
-      <div className="content-wrapper">
-        <div className="mx-auto w-full max-w-2xl">
-          <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <div className="text-center mb-8">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-destructive/10 mb-4">
-                <span className="text-3xl font-bold text-destructive">404</span>
-              </div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">Page Not Found</h1>
-              <p className="text-sm text-muted-foreground mb-2">
-                The page you're looking for doesn't exist or has been moved.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Attempted path: <code className="bg-muted px-2 py-1 rounded">{location.pathname}</code>
-              </p>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="space-y-3 mb-8">
-              <Link to="/" className="block">
-                <Button className="w-full">
-                  <Home className="h-4 w-4 mr-2" />
-                  Go to Home
-                </Button>
-              </Link>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => window.history.back()}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Go Back
-              </Button>
-            </div>
-
-            {/* Suggested Pages */}
-            {suggestedPages.length > 0 && (
-              <div>
-                <h2 className="text-sm font-semibold text-foreground mb-3">
-                  You might be looking for:
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {suggestedPages.map((page) => (
-                    <Link
-                      key={page.path}
-                      to={page.path}
-                      className="block p-4 border border-border rounded-lg hover:border-primary hover:bg-accent transition-colors"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-0.5 text-primary">
-                          {page.icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium text-foreground mb-1">
-                            {page.label}
-                          </h3>
-                          <p className="text-xs text-muted-foreground">
-                            {page.description}
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+    <PublicLayout>
+      <div className="page-container bg-muted flex flex-col justify-center py-6 sm:py-12">
+        <div className="content-wrapper">
+          <div className="mx-auto w-full max-w-2xl">
+            <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">
+              <div className="text-center mb-8">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-destructive/10 mb-4">
+                  <span className="text-3xl font-bold text-destructive">404</span>
                 </div>
+                <h1 className="text-2xl font-bold text-foreground mb-2">Page Not Found</h1>
+                <p className="text-sm text-muted-foreground mb-2">
+                  The page you're looking for doesn't exist or has been moved.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Attempted path: <code className="bg-muted px-2 py-1 rounded">{location.pathname}</code>
+                </p>
               </div>
-            )}
 
-            {/* Help Text */}
-            <div className="mt-8 pt-6 border-t border-border text-center">
-              <p className="text-xs text-muted-foreground">
-                If you believe this is an error, please contact support or try refreshing the page.
-              </p>
+              {/* Quick Actions */}
+              <div className="space-y-3 mb-8">
+                <Link to="/" className="block">
+                  <Button className="w-full">
+                    <Home className="h-4 w-4 mr-2" />
+                    Go to Home
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => window.history.back()}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Go Back
+                </Button>
+              </div>
+
+              {/* Suggested Pages */}
+              {suggestedPages.length > 0 && (
+                <div>
+                  <h2 className="text-sm font-semibold text-foreground mb-3">
+                    You might be looking for:
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {suggestedPages.map((page) => (
+                      <Link
+                        key={page.path}
+                        to={page.path}
+                        className="block p-4 border border-border rounded-lg hover:border-primary hover:bg-accent transition-colors"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 mt-0.5 text-primary">
+                            {page.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-sm font-medium text-foreground mb-1">
+                              {page.label}
+                            </h3>
+                            <p className="text-xs text-muted-foreground">
+                              {page.description}
+                            </p>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Help Text */}
+              <div className="mt-8 pt-6 border-t border-border text-center">
+                <p className="text-xs text-muted-foreground">
+                  If you believe this is an error, please contact support or try refreshing the page.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </PublicLayout>
   )
 }

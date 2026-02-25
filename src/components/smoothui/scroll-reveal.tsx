@@ -12,6 +12,7 @@ import React, { useEffect, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { cn } from '@/lib/utils';
 import type { ScrollDirection } from '@/lib/animation-config';
+import { useReducedMotion } from '@/lib/animation-config';
 
 interface ScrollRevealProps {
   children: React.ReactNode;
@@ -51,10 +52,16 @@ export function ScrollReveal({
   className = '',
   once = true,
 }: ScrollRevealProps) {
+  const reducedMotion = useReducedMotion();
   const { ref, inView } = useInView({
     threshold,
     triggerOnce: once,
   });
+
+  // With reduced motion, render content immediately and visibly
+  if (reducedMotion) {
+    return <div ref={ref} className={className}>{children}</div>;
+  }
 
   const styles = directionStyles[direction];
   const durationMs = duration !== undefined ? duration * 1000 : 500;
@@ -93,10 +100,16 @@ export function StaggerReveal({
   className = '',
   once = true,
 }: StaggerRevealProps) {
+  const reducedMotion = useReducedMotion();
   const { ref, inView } = useInView({
     threshold,
     triggerOnce: once,
   });
+
+  // With reduced motion, render all children immediately without stagger delays
+  if (reducedMotion) {
+    return <div ref={ref} className={className}>{children}</div>;
+  }
 
   return (
     <div
