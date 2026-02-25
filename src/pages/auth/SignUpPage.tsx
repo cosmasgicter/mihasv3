@@ -1,10 +1,10 @@
-// @ts-nocheck
 /**
  * SignUpPage - Enhanced sign-up page with CSS animations
  * Uses Tailwind animation classes and shared animation utilities
  * 
  * @requirements 1.2 - CSS transitions/Tailwind instead of framer-motion
  * @requirements 1.5 - Preserve same visual transition behavior using CSS equivalents
+ * @requirements 4.1, 4.3, 4.4, 4.8 - Zod validation, inline errors, loading state, type safety
  */
 
 import { useState, useCallback } from 'react';
@@ -15,10 +15,9 @@ import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/services/client';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
+import { AnimatedInput } from '@/components/smoothui/animated-input';
 import { FormSelect } from '@/components/ui/form-select';
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { Turnstile } from '@/components/ui/Turnstile';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { NotificationService } from '@/lib/notificationService';
@@ -32,7 +31,12 @@ import {
   Users
 } from 'lucide-react';
 
-const signUpSchema = z.object({
+/** Email availability check response shape */
+interface EmailCheckResponse {
+  available: boolean;
+}
+
+export const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
@@ -66,8 +70,6 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [turnstileToken, setTurnstileToken] = useState('');
-  const [turnstileKey, setTurnstileKey] = useState(0);
   const [isRegistering, setIsRegistering] = useState(false);
   const [emailChecking, setEmailChecking] = useState(false);
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
@@ -81,22 +83,6 @@ export default function SignUpPage() {
     resolver: zodResolver(signUpSchema),
   });
 
-  const handleTurnstileVerify = useCallback((token: string) => {
-    setTurnstileToken(token);
-    setError('');
-  }, []);
-
-  const handleTurnstileError = useCallback(() => {
-    setTurnstileToken('');
-    setError('Security verification failed. Please try again.');
-    setTurnstileKey(prev => prev + 1);
-  }, []);
-
-  const handleTurnstileExpire = useCallback(() => {
-    setTurnstileToken('');
-    setError('Security verification expired. Please verify again.');
-  }, []);
-
   const checkEmailAvailability = useCallback(async (email: string) => {
     if (!email || !email.includes('@')) {
       setEmailAvailable(null);
@@ -106,9 +92,9 @@ export default function SignUpPage() {
     setEmailChecking(true);
     try {
       // MIGRATED: Using new API client instead of legacy authApi
-      const response = await apiClient.request<{ available: boolean }>(`/auth?action=check-email&email=${encodeURIComponent(email)}`);
+      const response = await apiClient.request<EmailCheckResponse>(`/auth?action=check-email&email=${encodeURIComponent(email)}`);
 
-      const isAvailable = (response as any)?.available ?? null;
+      const isAvailable = (response as EmailCheckResponse)?.available ?? null;
       setEmailAvailable(isAvailable);
       if (isAvailable === false) {
         setError('This email is already registered. Please sign in instead.');
@@ -124,11 +110,6 @@ export default function SignUpPage() {
   }, []);
 
   const onSubmit = async (data: SignUpForm) => {
-    if (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken && import.meta.env.PROD) {
-      setError('Please complete the security verification.');
-      return;
-    }
-
     if (emailAvailable === false) {
       setError('This email is already registered. Please sign in instead.');
       return;
@@ -140,12 +121,10 @@ export default function SignUpPage() {
     setIsRegistering(true);
 
     try {
-      const { confirmPassword, ...userData } = data;
-      void confirmPassword;
+      const { confirmPassword: _confirmPassword, ...userData } = data;
 
       const result = await signUp(data.email, data.password, {
         ...userData,
-        turnstileToken
       });
 
       if (result?.error) {
@@ -166,11 +145,9 @@ export default function SignUpPage() {
       setTimeout(() => {
         navigate('/student/dashboard');
       }, 1500);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create account. Please try again.';
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create account. Please try again.';
       setError(message.includes('already registered') ? 'This email is already registered. Please sign in instead.' : message);
-      setTurnstileToken('');
-      setTurnstileKey(prev => prev + 1);
       setLoading(false);
       setIsRegistering(false);
     }
@@ -237,7 +214,7 @@ export default function SignUpPage() {
             style={staggerChild(0, 100)}
           >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
+              <AnimatedInput
                 {...register('full_name')}
                 type="text"
                 label="Full Name"
@@ -246,7 +223,7 @@ export default function SignUpPage() {
               />
 
               <div className="relative">
-                <Input
+                <AnimatedInput
                   {...register('email', {
                     onBlur: (e) => checkEmailAvailability(e.target.value)
                   })}
@@ -318,7 +295,7 @@ export default function SignUpPage() {
             className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${animateClasses.slideUp}`}
             style={staggerChild(2, 100)}
           >
-            <Input
+            <AnimatedInput
               {...register('phone')}
               type="tel"
               label="Phone Number"
@@ -326,7 +303,7 @@ export default function SignUpPage() {
               required
             />
 
-            <Input
+            <AnimatedInput
               {...register('date_of_birth')}
               type="date"
               label="Date of Birth"
@@ -354,7 +331,7 @@ export default function SignUpPage() {
               required
             />
 
-            <Input
+            <AnimatedInput
               {...register('residence_town')}
               type="text"
               label="City/Town"
@@ -364,7 +341,7 @@ export default function SignUpPage() {
               required
             />
 
-            <Input
+            <AnimatedInput
               {...register('nationality')}
               type="text"
               label="Nationality"
@@ -388,7 +365,7 @@ export default function SignUpPage() {
               Provide the details of a trusted contact we can reach in case of emergencies.
             </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
+              <AnimatedInput
                 {...register('next_of_kin_name')}
                 type="text"
                 label="Next of Kin Name"
@@ -396,7 +373,7 @@ export default function SignUpPage() {
                 required
               />
 
-              <Input
+              <AnimatedInput
                 {...register('next_of_kin_phone')}
                 type="tel"
                 label="Next of Kin Phone"
@@ -405,28 +382,6 @@ export default function SignUpPage() {
               />
             </div>
           </div>
-
-          {/* Turnstile Verification */}
-          {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
-            <div
-              className={`rounded-xl border border-border bg-muted/30 p-5 ${animateClasses.slideUp}`}
-              style={staggerChild(5, 100)}
-            >
-              <h3 className="text-base font-semibold text-foreground mb-2">Security Verification</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Complete the verification step to keep your account secure.
-              </p>
-              <div className="flex justify-center">
-                <Turnstile
-                  key={turnstileKey}
-                  siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-                  onVerify={handleTurnstileVerify}
-                  onError={handleTurnstileError}
-                  onExpire={handleTurnstileExpire}
-                />
-              </div>
-            </div>
-          )}
 
           {/* Error Message */}
           {error && (
@@ -447,7 +402,6 @@ export default function SignUpPage() {
               type="submit"
               className="w-full"
               loading={loading}
-              disabled={import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken && import.meta.env.PROD}
               variant="gradient"
               size="lg"
             >

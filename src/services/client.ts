@@ -440,7 +440,7 @@ export function buildQueryString(params: QueryParams = {}) {
 
 export type ApiClientRequest = ApiClient['request'];
 
-export interface ApiRequestOptions extends RequestInit {
+export interface ApiRequestOptions extends Omit<RequestInit, 'cache'> {
   cacheTTL?: number;
   skipCache?: boolean;
   useCache?: boolean;

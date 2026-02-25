@@ -14,7 +14,6 @@ import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { designTokens } from '@/design-system/tokens';
 import { cn } from '@/lib/utils';
-import ParticlesBackground from '@/components/ui/ParticlesBackground';
 import { SkipLink } from '@/components/ui/SkipLink';
 
 interface AdminLayoutProps {
@@ -44,9 +43,6 @@ function AdminLayoutContent({ children, className }: AdminLayoutProps) {
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-background via-primary/5 to-secondary/5">
       <SkipLink href="#admin-main-content">Skip to main content</SkipLink>
-      
-      {/* Decorative background - disabled on mobile */}
-      <ParticlesBackground enabled={!isMobile} />
       
       {/* Desktop/Tablet Sidebar */}
       {!isMobile && <AdminSidebar />}

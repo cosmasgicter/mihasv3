@@ -11,7 +11,7 @@
  */
 
 import { apiClient } from '@/services/client'
-import type { SubjectGrade } from '@/lib/eligibility'
+import type { SubjectGrade } from '@/lib/eligibilityEngine'
 
 export interface EligibilityAppeal {
   id: string

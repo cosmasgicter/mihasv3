@@ -12,6 +12,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useReducedMotion } from '@/lib/animation-config';
 
 interface PageTransitionProps {
   children: React.ReactNode;
@@ -50,15 +51,17 @@ export function PageTransition({
   mode = 'fade',
   duration,
 }: PageTransitionProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const [isVisible, setIsVisible] = useState(reducedMotion);
 
   useEffect(() => {
+    if (reducedMotion) return;
     // Trigger animation on mount
     const frame = requestAnimationFrame(() => setIsVisible(true));
     return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [reducedMotion]);
 
-  if (mode === 'none') {
+  if (mode === 'none' || reducedMotion) {
     return <div className={className}>{children}</div>;
   }
 
@@ -97,15 +100,21 @@ export function RouteTransition({
   className = ''
 }: RouteTransitionProps) {
   const location = useLocation();
+  const reducedMotion = useReducedMotion();
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
+    if (reducedMotion) return;
     setIsVisible(false);
     const frame = requestAnimationFrame(() => {
       requestAnimationFrame(() => setIsVisible(true));
     });
     return () => cancelAnimationFrame(frame);
-  }, [location.pathname]);
+  }, [location.pathname, reducedMotion]);
+
+  if (reducedMotion) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
     <PageTransition mode={mode} className={className}>
@@ -129,15 +138,21 @@ interface AnimatedRoutesProps {
 }
 
 export function AnimatedRoutes({ children, locationKey, mode = 'fade' }: AnimatedRoutesProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const [isVisible, setIsVisible] = useState(reducedMotion);
 
   useEffect(() => {
+    if (reducedMotion) return;
     setIsVisible(false);
     const frame = requestAnimationFrame(() => {
       requestAnimationFrame(() => setIsVisible(true));
     });
     return () => cancelAnimationFrame(frame);
-  }, [locationKey]);
+  }, [locationKey, reducedMotion]);
+
+  if (reducedMotion) {
+    return <div>{children}</div>;
+  }
 
   const classes = modeClasses[mode || 'fade'] || modeClasses.fade;
 
@@ -194,15 +209,21 @@ export function ContentTransition({
   mode = 'fade',
   className = ''
 }: ContentTransitionProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const [isVisible, setIsVisible] = useState(reducedMotion);
 
   useEffect(() => {
+    if (reducedMotion) return;
     setIsVisible(false);
     const frame = requestAnimationFrame(() => {
       requestAnimationFrame(() => setIsVisible(true));
     });
     return () => cancelAnimationFrame(frame);
-  }, [contentKey]);
+  }, [contentKey, reducedMotion]);
+
+  if (reducedMotion) {
+    return <div className={className}>{children}</div>;
+  }
 
   const classes = modeClasses[mode || 'fade'] || modeClasses.fade;
 

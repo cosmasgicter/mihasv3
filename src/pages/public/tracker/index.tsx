@@ -11,7 +11,7 @@ import { logger } from '@/utils/logger'
 import { animateClasses } from '@/lib/animations'
 import { useApplicationTracker } from './hooks/useApplicationTracker'
 import { Seo } from '@/components/seo/Seo'
-import { ResponsiveHeader } from '@/components/navigation/ResponsiveHeader'
+import { PublicLayout } from '@/components/layout/PublicLayout'
 import {
   TrackerSearchSection,
   ApplicationStatusHeader,
@@ -244,15 +244,14 @@ export default function PublicApplicationTracker() {
   }
 
   return (
-    <div className="min-h-screen bg-background safe-area-top safe-area-bottom">
+    <PublicLayout>
       <Seo
         title="Track Your Application | MIHAS-KATC Admissions"
         description="Track your MIHAS-KATC application status in real time using your application number and view key admissions milestones."
         path="/track-application"
       />
-      <ResponsiveHeader />
 
-      <main className="py-6 sm:py-8 lg:py-12">
+      <div className="py-6 sm:py-8 lg:py-12">
         <Container size="lg" className="space-y-6 sm:space-y-8">
           {/* Page Header */}
           <PageHeader
@@ -319,7 +318,7 @@ export default function PublicApplicationTracker() {
             onCopyNumber={() => copyToClipboard(application?.application_number || '')}
           />
         </Container>
-      </main>
-    </div>
+      </div>
+    </PublicLayout>
   )
 }

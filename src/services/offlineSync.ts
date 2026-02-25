@@ -1,20 +1,13 @@
-// @ts-nocheck
 import { offlineStorage } from '@/lib/offlineStorage'
 import { sanitizeForLog } from '@/lib/security'
 import { apiClient } from '@/services/client'
 import {
   OfflineApplicationDraftData,
   OfflineDataPayloadMap,
-  OfflineDocumentUploadData,
   OfflineFormSubmissionData,
   OfflineQueueItem,
   OfflineRecordType
 } from '@/types/offline'
-
-type LocalStorageOfflineEntry<TType extends OfflineRecordType> = {
-  data: OfflineDataPayloadMap[TType]
-  timestamp: number
-}
 
 export interface OfflineSyncStatus {
   isPending: boolean
@@ -23,75 +16,31 @@ export interface OfflineSyncStatus {
   failedRequests: number
 }
 
-function isOfflineDraftPayload(value: unknown): value is OfflineApplicationDraftData {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-
-  const payload = value as Partial<OfflineApplicationDraftData>
-  return (
-    typeof payload.current_step === 'number' &&
-    typeof payload.version === 'number' &&
-    Array.isArray(payload.uploaded_files) &&
-    typeof payload.form_data === 'object'
-  )
-}
-
-function isOfflineSubmissionPayload(value: unknown): value is OfflineFormSubmissionData {
-  return typeof value === 'object' && value !== null
-}
-
-function isOfflineDocumentPayload(value: unknown): value is OfflineDocumentUploadData {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-
-  const payload = value as Partial<OfflineDocumentUploadData>
-  return typeof payload.application_id === 'string' && Array.isArray(payload.files)
-}
-
 /**
  * Get current user from cookie-based session
  */
 async function getCurrentUser(): Promise<{ id: string } | null> {
   try {
-    const response = await fetch('/api/auth?action=session', {
-      credentials: 'include',
-    })
-    if (!response.ok) return null
-    const data = await response.json()
-    return data.user || null
+    const data = await apiClient.request<{ user?: { id: string } }>('/auth?action=session')
+    return data?.user || null
   } catch {
     return null
   }
 }
 
+/**
+ * Unified offline sync service using IndexedDB exclusively.
+ *
+ * All queued operations are stored in IndexedDB via offlineStorage.
+ * Retry counts are persisted in the IndexedDB record itself.
+ * Sync processes items in FIFO order (sorted by timestamp).
+ * Failed items remain in the queue with an incremented retryCount (max 3).
+ */
 class OfflineSyncService {
-  private readonly LAST_SYNC_KEY = 'offline_last_sync'
   private isProcessing = false
-  private retryAttempts = new Map<string, number>()
   private maxRetries = 3
   private initialized = false
   private periodicSyncInterval: number | null = null
-
-  /**
-   * Retry rules:
-   * - Each queued item gets up to `maxRetries` attempts.
-   * - Retry attempts are tracked in-memory for IndexedDB records and in localStorage metadata for fallback records.
-   * - Items that hit max retries are treated as failed and excluded from automatic processing until explicitly cleared.
-   */
-  private isFailed(itemId: string): boolean {
-    return (this.retryAttempts.get(itemId) || 0) >= this.maxRetries
-  }
-
-  private markRetry(itemId: string): void {
-    const attempts = this.retryAttempts.get(itemId) || 0
-    this.retryAttempts.set(itemId, attempts + 1)
-  }
-
-  private clearRetry(itemId: string): void {
-    this.retryAttempts.delete(itemId)
-  }
 
   // Store data offline
   async storeOffline<TType extends OfflineRecordType>(
@@ -107,15 +56,10 @@ class OfflineSyncService {
       })
     } catch (error) {
       console.error('Failed to store data offline:', error)
-      // Fallback to localStorage
-      localStorage.setItem(`offline_${type}_${userId}`, JSON.stringify({
-        data,
-        timestamp: Date.now()
-      }))
     }
   }
 
-  // Process sync queue when online
+  // Process sync queue when online — FIFO order, retry with persisted count
   async processOfflineData() {
     if (this.isProcessing || !navigator.onLine) {
       return
@@ -129,28 +73,29 @@ class OfflineSyncService {
 
       const offlineData = await offlineStorage.getAll(user.id)
 
-      for (const item of offlineData) {
-        if (this.isFailed(item.id)) {
+      // Sort by timestamp for FIFO ordering
+      const sorted = offlineData.sort((a, b) => a.timestamp - b.timestamp)
+
+      for (const item of sorted) {
+        // Skip items that have exceeded max retries
+        if ((item.retryCount ?? 0) >= this.maxRetries) {
           continue
         }
 
         try {
           await this.syncToServer(item)
           await offlineStorage.remove(item.id)
-          this.clearRetry(item.id)
         } catch (error) {
           console.error('Failed to sync offline data:', error)
 
-          this.markRetry(item.id)
-          if (this.isFailed(item.id)) {
+          const newRetryCount = (item.retryCount ?? 0) + 1
+          await offlineStorage.update(item.id, { retryCount: newRetryCount })
+
+          if (newRetryCount >= this.maxRetries) {
             console.error('Max retries reached for item', sanitizeForLog(String(item.id)), 'keeping as failed')
           }
         }
       }
-
-      // Also process localStorage fallback data
-      await this.processLocalStorageData(user.id)
-      this.setLastSyncTime(new Date())
     } catch (error) {
       console.error('Error processing offline data:', error)
     } finally {
@@ -158,68 +103,19 @@ class OfflineSyncService {
     }
   }
 
-  // Process localStorage fallback data
-  private async processLocalStorageData(userId: string) {
-    const keys = Object.keys(localStorage).filter(key => key.startsWith(`offline_`) && key.includes(userId))
-
-    for (const key of keys) {
-      try {
-        const serializedEntry = localStorage.getItem(key)
-        if (!serializedEntry) {
-          continue
-        }
-
-        const type = key.split('_')[1] as OfflineRecordType
-        const parsedEntry = JSON.parse(serializedEntry) as Partial<LocalStorageOfflineEntry<typeof type>>
-
-        if (!parsedEntry || typeof parsedEntry.timestamp !== 'number') {
-          localStorage.removeItem(key)
-          continue
-        }
-
-        const payload = this.validateLocalStoragePayload(type, parsedEntry.data)
-        if (!payload) {
-          localStorage.removeItem(key)
-          continue
-        }
-
-        const retryCount = Number(localStorage.getItem(`offline_retry_${key}`) || '0')
-        if (retryCount >= this.maxRetries) {
-          continue
-        }
-
-        await this.syncToServer({
-          id: key,
-          type,
-          data: payload,
-          timestamp: parsedEntry.timestamp,
-          userId
-        })
-
-        localStorage.removeItem(key)
-        localStorage.removeItem(`offline_retry_${key}`)
-      } catch (error) {
-        console.error(`Failed to sync localStorage data ${key}:`, error)
-
-        const retryKey = `offline_retry_${key}`
-        const currentRetryCount = Number(localStorage.getItem(retryKey) || '0')
-        localStorage.setItem(retryKey, String(currentRetryCount + 1))
-      }
-    }
-  }
-
   // Sync data to server
   private async syncToServer(item: OfflineQueueItem) {
     switch (item.type) {
       case 'application_draft': {
+        const draftData = item.data as OfflineApplicationDraftData
         await apiClient.request('/applications', {
           method: 'POST',
           body: JSON.stringify({
             action: 'save_draft',
             user_id: item.userId,
-            form_data: item.data.form_data,
-            uploaded_files: item.data.uploaded_files,
-            current_step: item.data.current_step,
+            form_data: draftData.form_data,
+            uploaded_files: draftData.uploaded_files,
+            current_step: draftData.current_step,
             is_offline_sync: true,
             updated_at: new Date().toISOString()
           })
@@ -228,10 +124,11 @@ class OfflineSyncService {
       }
 
       case 'form_submission': {
+        const submissionData = item.data as OfflineFormSubmissionData
         await apiClient.request('/applications', {
           method: 'POST',
           body: JSON.stringify({
-            ...item.data,
+            ...submissionData,
             user_id: item.userId,
             is_offline_sync: true,
             created_at: new Date(item.timestamp).toISOString()
@@ -243,22 +140,6 @@ class OfflineSyncService {
       case 'document_upload':
         // Handle document uploads - would need to re-upload files
         break
-    }
-  }
-
-  private validateLocalStoragePayload<TType extends OfflineRecordType>(
-    type: TType,
-    payload: unknown
-  ): OfflineDataPayloadMap[TType] | null {
-    switch (type) {
-      case 'application_draft':
-        return isOfflineDraftPayload(payload) ? payload : null
-      case 'form_submission':
-        return isOfflineSubmissionPayload(payload) ? payload : null
-      case 'document_upload':
-        return isOfflineDocumentPayload(payload) ? payload : null
-      default:
-        return null
     }
   }
 
@@ -302,10 +183,7 @@ class OfflineSyncService {
   async getOfflineDataCount(userId: string): Promise<number> {
     try {
       const data = await offlineStorage.getAll(userId)
-      const localStorageCount = Object.keys(localStorage)
-        .filter(key => key.startsWith(`offline_`) && key.includes(userId))
-        .length
-      return data.length + localStorageCount
+      return data.length
     } catch (error) {
       console.error('Failed to get offline data count:', error)
       return 0
@@ -317,28 +195,19 @@ class OfflineSyncService {
     if (!user) {
       return {
         isPending: this.isProcessing,
-        lastSyncAt: this.getLastSyncTime(),
         pendingRequests: 0,
         failedRequests: 0
       }
     }
 
     const offlineData = await offlineStorage.getAll(user.id)
-    const pendingIndexedDbItems = offlineData.filter((item) => !this.isFailed(item.id)).length
-    const failedIndexedDbItems = offlineData.filter((item) => this.isFailed(item.id)).length
-
-    const fallbackKeys = Object.keys(localStorage).filter(key => key.startsWith('offline_') && key.includes(user.id))
-
-    const failedFallbackItems = fallbackKeys.filter((key) => {
-      const retryCount = Number(localStorage.getItem(`offline_retry_${key}`) || '0')
-      return retryCount >= this.maxRetries
-    }).length
+    const pendingItems = offlineData.filter((item) => (item.retryCount ?? 0) < this.maxRetries).length
+    const failedItems = offlineData.filter((item) => (item.retryCount ?? 0) >= this.maxRetries).length
 
     return {
       isPending: this.isProcessing,
-      lastSyncAt: this.getLastSyncTime(),
-      pendingRequests: pendingIndexedDbItems + (fallbackKeys.length - failedFallbackItems),
-      failedRequests: failedIndexedDbItems + failedFallbackItems
+      pendingRequests: pendingItems,
+      failedRequests: failedItems
     }
   }
 
@@ -350,19 +219,8 @@ class OfflineSyncService {
 
     const offlineData = await offlineStorage.getAll(user.id)
     for (const item of offlineData) {
-      if (this.isFailed(item.id)) {
+      if ((item.retryCount ?? 0) >= this.maxRetries) {
         await offlineStorage.remove(item.id)
-        this.clearRetry(item.id)
-      }
-    }
-
-    const fallbackKeys = Object.keys(localStorage).filter(key => key.startsWith('offline_') && key.includes(user.id))
-    for (const key of fallbackKeys) {
-      const retryKey = `offline_retry_${key}`
-      const retryCount = Number(localStorage.getItem(retryKey) || '0')
-      if (retryCount >= this.maxRetries) {
-        localStorage.removeItem(key)
-        localStorage.removeItem(retryKey)
       }
     }
   }
@@ -418,15 +276,6 @@ class OfflineSyncService {
     }
 
     return id
-  }
-
-  private getLastSyncTime(): Date | undefined {
-    const stored = localStorage.getItem(this.LAST_SYNC_KEY)
-    return stored ? new Date(stored) : undefined
-  }
-
-  private setLastSyncTime(date: Date): void {
-    localStorage.setItem(this.LAST_SYNC_KEY, date.toISOString())
   }
 }
 

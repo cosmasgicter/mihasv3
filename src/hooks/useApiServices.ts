@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import type { Application } from '@/types/database'
 import { applicationService } from '@/services/applications'
 import { documentService } from '@/services/documents'
-import { analyticsService } from '@/services/analyticsService'
 import { userService } from '@/services/admin/users'
 
 type UserUpdateInput = Parameters<typeof userService.update>[1]
@@ -76,15 +75,6 @@ export const useUpdateApplication = () => {
 export const useUploadDocument = () => {
   return useMutation({
     mutationFn: documentService.upload
-  })
-}
-
-// Analytics hooks
-export const useAnalytics = () => {
-  return useQuery({
-    queryKey: ['analytics'],
-    queryFn: analyticsService.getMetrics,
-    refetchInterval: 5 * 60 * 1000 // Refresh every 5 minutes
   })
 }
 

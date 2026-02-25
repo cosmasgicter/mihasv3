@@ -65,7 +65,7 @@ const KNOWN_DATA_HOOKS: Record<string, { endpoint: string; description: string }
   'useProfileQuery': { endpoint: '/api/auth?action=session', description: 'User profile data' },
   'useRoleQuery': { endpoint: '/api/auth?action=session', description: 'User role data' },
   'useActiveSessions': { endpoint: '/api/sessions?action=list', description: 'Active user sessions' },
-  'useApplicationsWithCounts': { endpoint: '/api/applications', description: 'Applications with counts' },
+  'useApplicationsData': { endpoint: '/api/applications', description: 'Applications data with counts' },
   'useAnalytics': { endpoint: '/api/admin?action=stats', description: 'Analytics metrics' },
   'useUsers': { endpoint: '/api/admin?action=users', description: 'User list' },
   'useUserPermissions': { endpoint: '/api/admin?action=users', description: 'User permissions' },

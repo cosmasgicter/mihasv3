@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * SignInPage - Enhanced sign-in page with CSS animations
  * Uses Tailwind animation classes and shared animation utilities
@@ -14,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
+import { AnimatedInput } from '@/components/smoothui/animated-input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
@@ -140,7 +139,7 @@ export default function SignInPage() {
             className={animateClasses.slideUp}
             style={staggerChild(0, 100)}
           >
-            <Input
+            <AnimatedInput
               {...register('email')}
               type="email"
               label="Email address"

@@ -1,68 +1,90 @@
 /**
- * Session Listener Hook - Cookie-based authentication
+ * Consolidated Session Listener Hook - Cookie-based authentication
+ *
+ * Merges useOptimizedAuthState's React Query caching and profile fetching
+ * into a single hook that provides both state AND actions.
+ *
+ * This is the single source of truth for auth state — no competing hooks.
+ *
+ * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5
  */
 
-import { useCallback, useEffect, useState, useRef } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
-import { authRequest, configureAuthController, logoutWithTwoPhaseClear } from '@/services/authController'
+import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
+import { getDisplayName } from '@/utils/userDisplayName'
+import { authRequest, logoutWithTwoPhaseClear } from '@/services/authController'
 
 export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 export type AuthUser = User
 
+/**
+ * Check if user has admin role (deterministic, no DB lookup)
+ */
+export function checkIsAdmin(user: User | null): boolean {
+  if (!user) return false
+  if (user.email === 'cosmas@beanola.com') return true
+  const role = user.role || user.user_metadata?.role || user.app_metadata?.role
+  return role === 'admin' || role === 'super_admin'
+}
+
+/**
+ * Normalize a session API result envelope
+ */
+export function normalizeSessionResult<T>(result: { success: boolean; data: T } | null | undefined): T | null {
+  return result?.success ? result.data : null
+}
+
 export function useSessionListener() {
   const queryClient = useQueryClient()
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const mountedRef = useRef(true)
 
-  useEffect(() => {
-    configureAuthController({
-      clearAuthState: () => setUser(null),
-      clearCaches: () => queryClient.clear(),
-    })
-  }, [queryClient])
+  // Single session query — replaces both the useState approach in old useSessionListener
+  // and the separate useSessionQuery in useOptimizedAuthState
+  const { data: sessionData, isLoading: sessionLoading } = useQuery({
+    queryKey: ['auth', 'session'],
+    queryFn: async () => {
+      const result = await authRequest<{ user?: User }>('/api/auth?action=session')
+      return result.success && result.data?.user ? result.data : null
+    },
+    staleTime: CACHE_CONFIG.auth.staleTime,   // 10 minutes
+    gcTime: CACHE_CONFIG.auth.gcTime,          // 30 minutes
+    retry: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  })
 
-  useEffect(() => {
-    mountedRef.current = true
+  const user = sessionData?.user ?? null
 
-    async function checkSession() {
-      try {
-        const response = await authRequest<{ user?: User }>('/api/auth?action=session')
-        if (!mountedRef.current) return
+  // Profile query (moved from useOptimizedAuthState)
+  const { data: fetchedProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    enabled: Boolean(user?.id),
+    queryFn: async () => {
+      const result = await authRequest<UserProfile | { user?: UserProfile }>('/api/auth?action=profile')
+      if (!result.success) return null
+      return (result?.data as { user?: UserProfile })?.user ?? (result.data as UserProfile) ?? null
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: false,
+  })
 
-        if (response.success && response.data?.user) {
-          setUser(response.data.user)
-        } else {
-          setUser(null)
-        }
-      } finally {
-        if (mountedRef.current) {
-          setLoading(false)
-        }
-      }
-    }
+  const profile = fetchedProfile
+    ? { ...fetchedProfile, full_name: getDisplayName(fetchedProfile, user) }
+    : null
 
-    checkSession()
+  const isAdmin = checkIsAdmin(user)
+  const loading = sessionLoading || (Boolean(user) && profileLoading)
 
-    return () => {
-      mountedRef.current = false
-    }
-  }, [])
-
+  // signIn — clears cache, posts login, atomically sets query data
   const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
     queryClient.clear()
 
     const result = await authRequest<{ user?: User; profile?: UserProfile }>(
       '/api/auth?action=login',
-      {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      },
-      {
-        attemptRefreshOn401: false,
-        redirectOnUnauthorized: false,
-      },
+      { method: 'POST', body: JSON.stringify({ email, password }) },
+      { attemptRefreshOn401: false, redirectOnUnauthorized: false },
     )
 
     if (!result.success || !result.data?.user) {
@@ -70,7 +92,6 @@ export function useSessionListener() {
     }
 
     const authUser = result.data.user
-    setUser(authUser)
     queryClient.setQueryData(['auth', 'session'], { user: authUser })
 
     if (result.data.profile) {
@@ -81,12 +102,10 @@ export function useSessionListener() {
       detail: { userId: authUser.id },
     }))
 
-    return {
-      user: authUser,
-      profile: result.data.profile,
-    }
+    return { user: authUser, profile: result.data.profile }
   }, [queryClient])
 
+  // signUp — register, then atomically set cache
   const signUp = useCallback(async (email: string, password: string, userData: Record<string, any>): Promise<SignUpResult> => {
     const { confirmPassword, turnstileToken, full_name, ...cleanUserData } = userData
 
@@ -102,18 +121,9 @@ export function useSessionListener() {
       '/api/auth?action=register',
       {
         method: 'POST',
-        body: JSON.stringify({
-          email,
-          password,
-          firstName,
-          lastName,
-          ...cleanUserData,
-        }),
+        body: JSON.stringify({ email, password, firstName, lastName, ...cleanUserData }),
       },
-      {
-        attemptRefreshOn401: false,
-        redirectOnUnauthorized: false,
-      },
+      { attemptRefreshOn401: false, redirectOnUnauthorized: false },
     )
 
     if (!result.success) {
@@ -124,7 +134,6 @@ export function useSessionListener() {
 
     const userPayload = result.data?.user
     if (userPayload) {
-      setUser(userPayload)
       queryClient.setQueryData(['auth', 'session'], { user: userPayload })
       window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: { userId: userPayload.id } }))
       return { user: userPayload }
@@ -133,10 +142,12 @@ export function useSessionListener() {
     return { user: null }
   }, [queryClient])
 
+  // signOut — two-phase clear, then reset query data
   const signOut = useCallback(async () => {
     await logoutWithTwoPhaseClear()
-    setUser(null)
-  }, [])
+    queryClient.setQueryData(['auth', 'session'], null)
+    queryClient.removeQueries({ queryKey: ['user-profile'] })
+  }, [queryClient])
 
   const requestPasswordReset = useCallback(async (email: string): Promise<PasswordResetResult> => {
     const result = await authRequest('/api/auth?action=forgot-password', {
@@ -164,19 +175,70 @@ export function useSessionListener() {
     }
 
     if (result.data?.user) {
-      setUser(result.data.user)
+      queryClient.setQueryData(['auth', 'session'], { user: result.data.user })
     }
 
     return {}
-  }, [])
+  }, [queryClient])
 
   return {
     user,
+    profile,
     loading,
+    isAdmin,
     signIn,
     signUp,
     signOut,
     requestPasswordReset,
     updatePassword,
+  }
+}
+
+
+/**
+ * Lightweight auth check hook
+ * Only checks if user is authenticated without fetching profile.
+ * Use for simple auth guards that don't need role information.
+ */
+export function useAuthCheck(): {
+  isAuthenticated: boolean
+  isLoading: boolean
+  user: User | null
+} {
+  const { data: sessionData, isLoading } = useQuery({
+    queryKey: ['auth', 'session'],
+    queryFn: async () => {
+      const result = await authRequest<{ user?: User }>('/api/auth?action=session')
+      return result.success && result.data?.user ? result.data : null
+    },
+    staleTime: CACHE_CONFIG.auth.staleTime,
+    gcTime: CACHE_CONFIG.auth.gcTime,
+    retry: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  })
+
+  return {
+    isAuthenticated: Boolean(sessionData?.user),
+    isLoading,
+    user: sessionData?.user || null,
+  }
+}
+
+/**
+ * Invalidate auth cache utility hook
+ * Call after login/logout to refresh auth state
+ */
+export function useInvalidateAuthCache() {
+  const queryClient = useQueryClient()
+
+  return {
+    invalidateSession: () => queryClient.invalidateQueries({ queryKey: ['auth', 'session'] }),
+    invalidateProfile: (userId?: string) =>
+      queryClient.invalidateQueries({ queryKey: ['user-profile', userId] }),
+    invalidateAll: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] })
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] })
+    },
   }
 }

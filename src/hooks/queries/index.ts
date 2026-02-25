@@ -1,6 +1,5 @@
 export * from './useQueryConfig'
 export * from './useApplicationQueries'
-export * from './useAnalyticsQueries'
 export * from './useNotificationQueries'
 export * from './useStorageQueries'
 export * from './useAuthMutations'

@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { alternativePathwayService, type PathwayServiceOptions } from '@/services/alternativePathwayService'
 import type { AlternativePathway, PersonalizedImprovementPlan } from '@/lib/alternativePathwayEngine'
-import type { SubjectGrade } from '@/lib/eligibility'
+import type { SubjectGrade } from '@/lib/eligibilityEngine'
 
 export interface UseAlternativePathwaysOptions extends PathwayServiceOptions {
   autoLoad?: boolean

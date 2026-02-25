@@ -5,11 +5,30 @@
  * @requirements 8.1, 8.6 - SmoothUI animation registry with reduced-motion support
  */
 
+import { useState, useEffect } from 'react';
+
 // Check for reduced motion preference
 export const prefersReducedMotion = (): boolean => {
   if (typeof window === 'undefined') return false;
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 };
+
+/**
+ * React hook that reactively tracks the prefers-reduced-motion media query.
+ * Returns true when the user prefers reduced motion.
+ */
+export function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(() => prefersReducedMotion());
+
+  useEffect(() => {
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
+  return reduced;
+}
 
 // Animation durations (in seconds)
 export const durations = {

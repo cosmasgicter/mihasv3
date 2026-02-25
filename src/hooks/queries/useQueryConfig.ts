@@ -2,23 +2,10 @@
 /**
  * Query cache configuration and auth query hooks.
  *
- * All queries go through cookie-based fetch or the ApiClient.
+ * All queries go through the canonical ApiClient from services/client.ts.
  */
 import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query'
-
-/**
- * Helper for authenticated API calls using HTTP-only cookies
- */
-async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
+import { apiClient } from '@/services/client'
 
 import { QUERY_CACHE_CONFIG } from '@/lib/queryCacheConfig'
 
@@ -57,13 +44,11 @@ export const useAuthSession = (options?: Partial<UseQueryOptions>) => {
   return useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const response = await authFetch('/api/auth?action=session')
-      if (!response.ok) {
-        if (response.status === 401) return null
-        throw new Error('Failed to get session')
+      try {
+        return await apiClient.request('/api/auth?action=session')
+      } catch {
+        return null
       }
-      const data = await response.json()
-      return data.success ? data : null
     },
     ...CACHE_CONFIG.auth,
     ...options
@@ -74,13 +59,12 @@ export const useAuthUser = (options?: Partial<UseQueryOptions>) => {
   return useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
-      const response = await authFetch('/api/auth?action=session')
-      if (!response.ok) {
-        if (response.status === 401) return null
-        throw new Error('Failed to get user')
+      try {
+        const data = await apiClient.request<{ user?: any }>('/api/auth?action=session')
+        return (data as any)?.user ?? null
+      } catch {
+        return null
       }
-      const data = await response.json()
-      return data.success ? data.user : null
     },
     ...CACHE_CONFIG.auth,
     ...options

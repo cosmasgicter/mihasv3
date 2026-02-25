@@ -300,7 +300,9 @@ class MetricsTrackingService {
     return result.data.conversionMetrics
   }
 
-  async trackApplicationEvent(event: {
+  // TODO: Backend endpoint for application event tracking does not exist yet.
+  // When added, use: POST /api/applications?action=track-event
+  async trackApplicationEvent(_event: {
     applicationId: string
     eventType: 'created' | 'submitted' | 'reviewed' | 'approved' | 'rejected'
     programId: string
@@ -308,27 +310,8 @@ class MetricsTrackingService {
     timestamp?: string
     metadata?: Record<string, unknown>
   }): Promise<void> {
-    try {
-      await apiClient.request('/applications/track-event', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...event,
-          timestamp: event.timestamp ?? new Date().toISOString(),
-        }),
-      })
-    } catch (error) {
-      if (isTransientNetworkError(error)) {
-        console.warn('Transient error tracking application event; ignoring event flush.', error)
-        return
-      }
-
-      if (error instanceof Error && error.message.toLowerCase().includes('not found')) {
-        console.warn('Application event tracking endpoint is unavailable; event tracking disabled until endpoint is added.')
-        return
-      }
-
-      throw error
-    }
+    // No-op: /api/applications?action=track-event is not implemented in the backend.
+    // Event data is silently discarded until the endpoint is added.
   }
 
   async getRealTimeMetrics(): Promise<{

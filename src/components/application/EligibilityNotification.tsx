@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle, Info } from 'lucide-react'
-import type { EligibilityResult } from '@/lib/eligibility'
+import type { EligibilityResult } from '@/lib/eligibilityEngine'
 
 interface EligibilityNotificationProps {
   eligibility: EligibilityResult

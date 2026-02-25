@@ -10,6 +10,7 @@ import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, GraduationCap, Shield, Clock, Users, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PageTransition } from '@/components/smoothui/page-transition';
 
 interface AuthLayoutProps {
   title: string;
@@ -217,35 +218,37 @@ export function AuthLayout({
   showBranding = true,
 }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex min-h-screen">
-        {/* Branding Panel - Hidden on mobile, visible on lg+ */}
-        {showBranding && (
-          <div className="hidden lg:flex lg:w-1/2 xl:w-[55%]">
-            <BrandingPanel />
-          </div>
-        )}
+    <PageTransition mode="fade">
+      <div className="min-h-screen bg-background">
+        <div className="flex min-h-screen">
+          {/* Branding Panel - Hidden on mobile, visible on lg+ */}
+          {showBranding && (
+            <div className="hidden lg:flex lg:w-1/2 xl:w-[55%]">
+              <BrandingPanel />
+            </div>
+          )}
 
-        {/* Form Panel */}
-        <div className={cn(
-          'flex-1 flex flex-col',
-          showBranding ? 'lg:w-1/2 xl:w-[45%]' : 'w-full'
-        )}>
-          {/* Mobile gradient header */}
-          <div className="lg:hidden h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800" />
-          
-          <FormPanel
-            title={title}
-            description={description}
-            footer={footer}
-            backLinkHref={backLinkHref}
-            backLinkLabel={backLinkLabel}
-          >
-            {children}
-          </FormPanel>
+          {/* Form Panel */}
+          <div className={cn(
+            'flex-1 flex flex-col',
+            showBranding ? 'lg:w-1/2 xl:w-[45%]' : 'w-full'
+          )}>
+            {/* Mobile gradient header */}
+            <div className="lg:hidden h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800" />
+            
+            <FormPanel
+              title={title}
+              description={description}
+              footer={footer}
+              backLinkHref={backLinkHref}
+              backLinkLabel={backLinkLabel}
+            >
+              {children}
+            </FormPanel>
+          </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }
 

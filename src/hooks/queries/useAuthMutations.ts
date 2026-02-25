@@ -1,34 +1,18 @@
-/**
- * Auth Mutations - Uses HTTP-only cookie authentication
- */
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiClient } from '@/services/client'
 
 /**
- * Helper for authenticated API calls using HTTP-only cookies
+ * Auth Mutations - Uses HTTP-only cookie authentication via canonical ApiClient
  */
-async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 export const useSignOut = () => {
   const queryClient = useQueryClient()
   
   return useMutation({
     mutationFn: async () => {
-      const response = await authFetch('/api/auth?action=logout', {
+      await apiClient.request('/api/auth?action=logout', {
         method: 'POST',
       })
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}))
-        throw new Error(error.error || 'Sign out failed')
-      }
     },
     onSuccess: () => {
       queryClient.clear()
@@ -41,14 +25,9 @@ export const useRefreshSession = () => {
   
   return useMutation({
     mutationFn: async () => {
-      const response = await authFetch('/api/auth?action=refresh', {
+      return await apiClient.request('/api/auth?action=refresh', {
         method: 'POST',
       })
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}))
-        throw new Error(error.error || 'Session refresh failed')
-      }
-      return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] })
@@ -63,15 +42,10 @@ export const useUpdateUser = () => {
     mutationFn: async (updates: { email?: string; password?: string; full_name?: string }) => {
       // For password updates, use the reset-password endpoint
       if (updates.password) {
-        const response = await authFetch('/api/auth?action=reset-password', {
+        return await apiClient.request('/api/auth?action=reset-password', {
           method: 'POST',
           body: JSON.stringify({ newPassword: updates.password }),
         })
-        if (!response.ok) {
-          const error = await response.json().catch(() => ({}))
-          throw new Error(error.error || 'Password update failed')
-        }
-        return response.json()
       }
       
       // For other updates, we'd need a profile update endpoint

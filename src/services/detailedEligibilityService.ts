@@ -8,14 +8,50 @@
  * Migrated from Supabase to API client.
  */
 
-import { eligibilityEngine } from '@/lib/eligibilityEngine'
-import { 
-  detailedEligibilityScoringEngine,
-  type DetailedEligibilityAssessment,
-  type ImprovementRecommendation
-} from '@/lib/detailedEligibilityScoring'
+import { eligibilityEngine, type SubjectGrade } from '@/lib/eligibilityEngine'
 import { apiClient } from '@/services/client'
-import type { SubjectGrade } from '@/lib/eligibility'
+
+// Re-define the detailed types locally since the detailed scoring engine is removed.
+// The service keeps its public API shape for backward compatibility.
+export interface DetailedScoreBreakdown {
+  subjectCountScore: { score: number; maxScore: number; weight: number; explanation: string; feedback: string }
+  gradeAverageScore: { score: number; maxScore: number; weight: number; explanation: string; feedback: string }
+  coreSubjectsScore: { score: number; maxScore: number; weight: number; explanation: string; feedback: string }
+  regulatoryComplianceScore: { score: number; maxScore: number; weight: number; explanation: string; feedback: string }
+  totalWeightedScore: number
+  maxPossibleScore: number
+  percentageScore: number
+  strengthAreas: string[]
+  improvementAreas: string[]
+  criticalGaps: string[]
+}
+
+export interface ImprovementRecommendation {
+  category: 'grade_improvement' | 'subject_addition' | 'regulatory_compliance' | 'alternative_pathway'
+  priority: 'high' | 'medium' | 'low'
+  title: string
+  description: string
+  actionSteps: string[]
+  expectedImpact: { scoreIncrease: number; eligibilityImprovement: string }
+  timeframe: string
+  resources?: string[]
+}
+
+export interface DetailedEligibilityAssessment {
+  applicationId: string
+  programId: string
+  programName: string
+  scoreBreakdown: DetailedScoreBreakdown
+  eligibilityStatus: 'excellent' | 'good' | 'conditional' | 'needs_improvement' | 'not_eligible'
+  competitivenessLevel: 'highly_competitive' | 'competitive' | 'minimum_requirements' | 'below_minimum'
+  overallFeedback: string
+  improvementRecommendations: ImprovementRecommendation[]
+  comparisonToTypicalAdmitted: { percentile: number; explanation: string }
+  alternativePathways: Array<{ name: string; description: string; requirements: string[]; timeToCompletion: string }>
+  assessmentDate: Date
+  canProceed: boolean
+  nextReviewDate?: Date
+}
 
 export interface EligibilityServiceOptions {
   includeDetailedBreakdown?: boolean
@@ -36,18 +72,19 @@ export class DetailedEligibilityService {
   ): Promise<DetailedEligibilityAssessment> {
     
     const {
-      includeDetailedBreakdown = true,
       includeRecommendations = true,
       includeAlternativePathways = true
     } = options
     
     try {
-      // Calculate the detailed assessment
-      const assessment = await eligibilityEngine.calculateDetailedEligibilityAssessment(
+      // Use the consolidated eligibility engine for assessment
+      const engineResult = await eligibilityEngine.assessEligibility(
         applicationId,
         programId,
         grades
       )
+
+      const assessment = this.buildDetailedFromEngine(applicationId, programId, engineResult)
       
       // Filter results based on options
       if (!includeRecommendations) {
@@ -73,18 +110,12 @@ export class DetailedEligibilityService {
   
   /**
    * Get detailed assessment history for an application
+   * TODO: Backend endpoint /api/applications?action=eligibility-assessments does not exist yet.
    */
-  async getAssessmentHistory(applicationId: string): Promise<DetailedEligibilityAssessment[]> {
-    try {
-      const result = await apiClient.request<{ data: any[] }>(
-        `/applications/${applicationId}?action=eligibility-assessments`
-      )
-      
-      return (result?.data || []).map(this.parseStoredAssessment)
-    } catch (error) {
-      console.error('Error fetching assessment history:', error)
-      return []
-    }
+  async getAssessmentHistory(_applicationId: string): Promise<DetailedEligibilityAssessment[]> {
+    // No backend endpoint exists for eligibility assessment history.
+    // Return empty array until the endpoint is implemented.
+    return []
   }
   
   /**
@@ -97,41 +128,25 @@ export class DetailedEligibilityService {
   
   /**
    * Track improvement recommendation actions
+   * TODO: Backend endpoint /api/applications?action=track-recommendation does not exist yet.
    */
   async trackRecommendationAction(
-    applicationId: string,
-    recommendation: ImprovementRecommendation,
-    action: 'viewed' | 'started' | 'completed' | 'dismissed'
+    _applicationId: string,
+    _recommendation: ImprovementRecommendation,
+    _action: 'viewed' | 'started' | 'completed' | 'dismissed'
   ): Promise<void> {
-    try {
-      await apiClient.request(`/applications/${applicationId}?action=track-recommendation`, {
-        method: 'POST',
-        body: JSON.stringify({
-          recommendation_category: recommendation.category,
-          recommendation_title: recommendation.title,
-          action_type: action,
-          action_date: new Date().toISOString()
-        })
-      })
-    } catch (error) {
-      console.error('Error tracking recommendation action:', error)
-    }
+    // No backend endpoint exists for tracking recommendation actions.
+    // Silently no-op until the endpoint is implemented.
   }
   
   /**
    * Get recommendation action history
+   * TODO: Backend endpoint /api/applications?action=recommendation-actions does not exist yet.
    */
-  async getRecommendationActions(applicationId: string): Promise<any[]> {
-    try {
-      const result = await apiClient.request<{ data: any[] }>(
-        `/applications/${applicationId}?action=recommendation-actions`
-      )
-      
-      return result?.data || []
-    } catch (error) {
-      console.error('Error fetching recommendation actions:', error)
-      return []
-    }
+  async getRecommendationActions(_applicationId: string): Promise<any[]> {
+    // No backend endpoint exists for recommendation action history.
+    // Return empty array until the endpoint is implemented.
+    return []
   }
 
   /**
@@ -276,30 +291,70 @@ export class DetailedEligibilityService {
   /**
    * Private helper methods
    */
-  
-  private async saveDetailedAssessment(assessment: DetailedEligibilityAssessment): Promise<void> {
-    try {
-      await apiClient.request(`/applications/${assessment.applicationId}?action=save-eligibility-assessment`, {
-        method: 'POST',
-        body: JSON.stringify({
-          program_id: assessment.programId,
-          program_name: assessment.programName,
-          overall_score: assessment.scoreBreakdown.percentageScore,
-          eligibility_status: assessment.eligibilityStatus,
-          competitiveness_level: assessment.competitivenessLevel,
-          score_breakdown: assessment.scoreBreakdown,
-          improvement_recommendations: assessment.improvementRecommendations,
-          alternative_pathways: assessment.alternativePathways,
-          overall_feedback: assessment.overallFeedback,
-          comparison_percentile: assessment.comparisonToTypicalAdmitted.percentile,
-          assessment_date: assessment.assessmentDate.toISOString(),
-          next_review_date: assessment.nextReviewDate?.toISOString(),
-          can_proceed: assessment.canProceed
-        })
-      })
-    } catch (error) {
-      console.error('Error saving detailed assessment:', error)
+
+  private buildDetailedFromEngine(
+    applicationId: string,
+    programId: string,
+    engineResult: import('@/lib/eligibilityEngine').EligibilityAssessment
+  ): DetailedEligibilityAssessment {
+    const bd = engineResult.detailed_breakdown
+    const pct = bd.total_weighted_score
+
+    const mkScore = (score: number, label: string) => ({
+      score,
+      maxScore: 100,
+      weight: 0.25,
+      explanation: label,
+      feedback: score >= 60 ? `✓ ${label} meets requirements` : `${label} needs improvement`,
+    })
+
+    const statusMap: Record<string, DetailedEligibilityAssessment['eligibilityStatus']> = {
+      eligible: 'good',
+      not_eligible: 'not_eligible',
+      conditional: 'conditional',
+      under_review: 'needs_improvement',
     }
+
+    return {
+      applicationId,
+      programId,
+      programName: programId,
+      scoreBreakdown: {
+        subjectCountScore: mkScore(bd.subject_count_score, 'Subject Count'),
+        gradeAverageScore: mkScore(bd.grade_average_score, 'Grade Average'),
+        coreSubjectsScore: mkScore(bd.core_subjects_score, 'Core Subjects'),
+        regulatoryComplianceScore: mkScore(100, 'Regulatory Compliance'),
+        totalWeightedScore: pct,
+        maxPossibleScore: 100,
+        percentageScore: pct,
+        strengthAreas: [],
+        improvementAreas: [],
+        criticalGaps: engineResult.missing_requirements
+          .filter(r => r.severity === 'critical')
+          .map(r => r.description),
+      },
+      eligibilityStatus: statusMap[engineResult.eligibility_status] ?? 'conditional',
+      competitivenessLevel: pct >= 80 ? 'competitive' : pct >= 60 ? 'minimum_requirements' : 'below_minimum',
+      overallFeedback: engineResult.recommendations.join('. ') || 'Assessment complete.',
+      improvementRecommendations: engineResult.missing_requirements.map(r => ({
+        category: 'grade_improvement' as const,
+        priority: r.severity === 'critical' ? 'high' as const : 'medium' as const,
+        title: r.description,
+        description: r.suggestion,
+        actionSteps: [r.suggestion],
+        expectedImpact: { scoreIncrease: 10, eligibilityImprovement: 'Improves eligibility' },
+        timeframe: '6-12 months',
+      })),
+      comparisonToTypicalAdmitted: { percentile: 50, explanation: 'Comparison data not available' },
+      alternativePathways: [],
+      assessmentDate: new Date(),
+      canProceed: true,
+    }
+  }
+
+  // TODO: Backend endpoint /api/applications?action=save-eligibility-assessment does not exist yet.
+  private async saveDetailedAssessment(_assessment: DetailedEligibilityAssessment): Promise<void> {
+    // No-op: endpoint not implemented in backend. Assessment data is not persisted.
   }
   
   private parseStoredAssessment(data: any): DetailedEligibilityAssessment {

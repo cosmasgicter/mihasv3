@@ -19,7 +19,6 @@ import {
 } from '@/lib/documentTemplates'
 import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { isReportManagerRole } from '@/lib/auth/roles'
-import { AnalyticsService } from '@/lib/analytics'
 import { applicationService } from '@/services/applications'
 import { toast } from '@/hooks/useToast'
 
@@ -390,8 +389,6 @@ export function ReportsGenerator() {
       }
 
       setLoading(true)
-
-      await AnalyticsService.ensureReportManagerAccess()
 
       // Fetch application data via new service
       const appsData = await applicationService.list({ pageSize: 1000 })

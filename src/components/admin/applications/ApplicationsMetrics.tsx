@@ -1,6 +1,5 @@
 import React from 'react'
 import { animateClasses, staggerChild } from '@/lib/animations'
-import { AnimatedCard } from '@/components/ui/AnimatedCard'
 import { Users, FileText, Send, Clock, CheckCircle, XCircle } from 'lucide-react'
 
 interface ApplicationStats {
@@ -24,7 +23,8 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
     <div 
       className={`${animateClasses.slideUp} opacity-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6 mb-6 sm:mb-8`}
     >
-      <AnimatedCard className="bg-gradient-to-br from-blue-500 to-blue-600 text-white col-span-2 sm:col-span-1" hover3d>
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-blue-500 to-blue-600 text-white col-span-2 sm:col-span-1">
+        <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-blue-100 text-xs sm:text-sm font-medium">Total</p>
@@ -32,9 +32,11 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
           </div>
           <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-200" />
         </div>
-      </AnimatedCard>
+        </div>
+      </div>
       
-      <AnimatedCard className="bg-gradient-to-br from-muted-foreground to-foreground text-white" hover3d delay={0.1}>
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-muted-foreground to-foreground text-white">
+        <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-foreground text-xs sm:text-sm font-medium">Draft</p>
@@ -42,9 +44,11 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
           </div>
           <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-foreground" />
         </div>
-      </AnimatedCard>
+        </div>
+      </div>
       
-      <AnimatedCard className="bg-gradient-to-br from-yellow-500 to-orange-500 text-white" hover3d delay={0.15}>
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-yellow-500 to-orange-500 text-white">
+        <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-yellow-100 text-xs sm:text-sm font-medium">Submitted</p>
@@ -52,9 +56,11 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
           </div>
           <Send className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-200" />
         </div>
-      </AnimatedCard>
+        </div>
+      </div>
       
-      <AnimatedCard className="bg-gradient-to-br from-purple-500 to-indigo-500 text-white" hover3d delay={0.25}>
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-purple-500 to-indigo-500 text-white">
+        <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-purple-100 text-xs sm:text-sm font-medium">Review</p>
@@ -62,9 +68,11 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
           </div>
           <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-purple-200" />
         </div>
-      </AnimatedCard>
+        </div>
+      </div>
       
-      <AnimatedCard className="bg-gradient-to-br from-green-500 to-emerald-500 text-white" hover3d delay={0.35}>
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-green-500 to-emerald-500 text-white">
+        <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-green-100 text-xs sm:text-sm font-medium">Approved</p>
@@ -72,9 +80,11 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
           </div>
           <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-200" />
         </div>
-      </AnimatedCard>
+        </div>
+      </div>
       
-      <AnimatedCard className="bg-gradient-to-br from-red-500 to-pink-500 text-white" hover3d delay={0.45}>
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-red-500 to-pink-500 text-white">
+        <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-red-100 text-xs sm:text-sm font-medium">Rejected</p>
@@ -82,7 +92,8 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
           </div>
           <XCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-200" />
         </div>
-      </AnimatedCard>
+        </div>
+      </div>
     </div>
   )
 }

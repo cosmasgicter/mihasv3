@@ -3,43 +3,25 @@
  * Replaces Supabase Auth SDK with custom JWT auth
  */
 import { logger } from '@/utils/logger'
-
-/**
- * Helper for authenticated API calls using HTTP-only cookies
- */
-async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
+import { apiClient } from '@/services/client'
 
 export async function refreshAuthSession() {
   try {
     // First, try to get the current session
-    const sessionResponse = await authFetch('/api/auth?action=session')
-    
-    logger.info('[AuthRefresh] Session check:', { 
-      ok: sessionResponse.ok, 
-      status: sessionResponse.status 
-    })
-    
-    if (!sessionResponse.ok) {
-      if (sessionResponse.status === 401) {
+    let sessionData: any
+    try {
+      sessionData = await apiClient.request<{ user?: any }>('/api/auth?action=session')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : ''
+      if (message.includes('401') || message.includes('Authentication required')) {
         logger.warn('[AuthRefresh] No active session found')
         return { success: false, error: 'No active session' }
       }
-      logger.error('[AuthRefresh] Session error:', sessionResponse.statusText)
-      return { success: false, error: sessionResponse.statusText }
+      logger.error('[AuthRefresh] Session error:', message)
+      return { success: false, error: message }
     }
     
-    const sessionData = await sessionResponse.json()
-    
-    if (!sessionData.success || !sessionData.user) {
+    if (!sessionData || !(sessionData as any)?.user) {
       logger.error('Invalid session structure')
       return { success: false, error: 'Invalid session' }
     }
@@ -47,23 +29,22 @@ export async function refreshAuthSession() {
     // Proactively refresh the token
     logger.info('Refreshing token...')
     
-    const refreshResponse = await authFetch('/api/auth?action=refresh', {
-      method: 'POST',
-    })
-    
-    if (!refreshResponse.ok) {
-      logger.error('Token refresh failed:', refreshResponse.statusText)
-      return { success: false, error: refreshResponse.statusText }
+    try {
+      const refreshData = await apiClient.request<{ user?: any }>('/api/auth?action=refresh', {
+        method: 'POST',
+      })
+      
+      if (refreshData) {
+        logger.info('Token refreshed successfully')
+        return { success: true, user: (refreshData as any)?.user }
+      }
+      
+      return { success: false, error: 'Refresh returned no session' }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Token refresh failed'
+      logger.error('Token refresh failed:', message)
+      return { success: false, error: message }
     }
-    
-    const refreshData = await refreshResponse.json()
-    
-    if (refreshData.success) {
-      logger.info('Token refreshed successfully')
-      return { success: true, user: refreshData.user }
-    }
-    
-    return { success: false, error: 'Refresh returned no session' }
   } catch (error) {
     logger.error('Auth refresh error:', error)
     return { 

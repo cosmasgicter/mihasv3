@@ -1,32 +1,17 @@
 import { apiClient } from '@/services/client'
 import { sanitizeForLog } from '@/lib/security'
 
-/**
- * Helper for authenticated API calls using HTTP-only cookies
- */
-async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
-
 export async function debugAuthState() {
   try {
     // Check current user via cookie-based auth
-    const response = await authFetch('/api/auth?action=session')
+    const sessionData = await apiClient.request<{ user?: any; role?: string }>('/api/auth?action=session')
     
-    if (!response.ok) {
+    if (!sessionData) {
       console.log('[AuthDebug] No active session')
       return null
     }
     
-    const sessionData = await response.json()
-    const user = sessionData.user
+    const user = (sessionData as any)?.user
     
     if (!user) {
       console.log('[AuthDebug] No user in session')
@@ -43,7 +28,7 @@ export async function debugAuthState() {
     }
     
     // Role is embedded in JWT — no separate lookup needed
-    const role = user.role || sessionData.role || null
+    const role = user.role || (sessionData as any)?.role || null
     
     return {
       user,

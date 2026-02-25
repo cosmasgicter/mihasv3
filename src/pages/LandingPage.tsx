@@ -5,117 +5,28 @@
  * Landing sections are intentionally defined in this page to avoid duplicate block patterns.
  */
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ResponsiveHeader } from '@/components/navigation/ResponsiveHeader';
+import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui';
 import { Badge } from '@/components/ui';
 import { Button } from '@/components/ui/Button';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
-import { PageTransition } from '@/components/smoothui';
 import { ScrollReveal, StaggerReveal, StaggerItem, AnimatedCounter } from '@/components/smoothui';
 import { 
-  GraduationCap, Users, Award, BookOpen, Star, ArrowRight, 
-  CheckCircle, Mail, Phone, MapPin, Facebook, 
-  Twitter, Linkedin 
+  Star, ArrowRight, 
+  CheckCircle
 } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { Seo } from '@/components/seo/Seo';
-import { useAnalytics } from '@/hooks/useAnalytics';
+import {
+  stats,
+  features,
+  accreditations,
+  programs,
+} from '@/lib/constants/landing';
 import '@/styles/accreditation.css';
-
-// ============================================================================
-// DATA DEFINITIONS - Preserving all existing content
-// ============================================================================
-
-const stats = [
-  { value: 300, suffix: '+', label: 'Graduates Employed' },
-  { value: 92, suffix: '%', label: 'Job Placement Rate' },
-  { value: 6, suffix: '+', label: 'Years Training Healthcare Workers' },
-  { value: 25, suffix: '+', label: 'Employer Partners Hiring Our Graduates' }
-];
-
-const features = [
-  {
-    icon: Users,
-    title: 'Career-Ready Training',
-    description: 'Learn from healthcare professionals actively working in Zambian hospitals and clinics. Get mentored by experts who understand the job market',
-    gradient: 'from-primary to-primary/60'
-  },
-  {
-    icon: Award,
-    title: 'Government Recognized Qualifications',
-    description: 'NMCZ, HPCZ & ECZ accredited programs accepted by employers across Zambia, SADC region, and internationally',
-    gradient: 'from-secondary to-secondary/60'
-  },
-  {
-    icon: BookOpen,
-    title: 'Guaranteed Job Placement Support',
-    description: '92% employment rate with direct connections to hospitals, clinics, and health organizations seeking qualified graduates',
-    gradient: 'from-accent to-accent/60'
-  }
-];
-
-const accreditations = [
-  { 
-    logo: 'GNCLogo.webp', 
-    title: 'NMCZ Accredited', 
-    org: 'Nursing and Midwifery Council of Zambia', 
-    desc: 'Graduates qualified for nursing jobs in all Zambian hospitals and clinics' 
-  },
-  { 
-    logo: 'hpc_logobig.webp', 
-    title: 'HPCZ Accredited', 
-    org: 'Health Professions Council of Zambia', 
-    desc: 'Graduates eligible for clinical officer positions nationwide' 
-  },
-  { 
-    logo: 'eczlogo.webp', 
-    title: 'ECZ Recognized', 
-    org: 'Examinations Council of Zambia', 
-    desc: 'Environmental health graduates work in government and private sectors' 
-  },
-  { 
-    logo: 'unza.webp', 
-    title: 'UNZA Affiliated', 
-    org: 'University of Zambia', 
-    desc: 'University-level qualifications recognized by international employers' 
-  }
-];
-
-const programs = [
-  {
-    institution: 'Kalulushi Training Centre',
-    courses: [
-      'Diploma in Clinical Medicine (HPCZ & UNZA Accredited)',
-      'Diploma in Environmental Health (ECZ Certified & UNZA Accredited)'
-    ],
-    highlight: 'Professional Excellence',
-    accreditation: 'HPCZ, ECZ & UNZA Certified',
-    image: '/images/programs/katc-campus.webp'
-  },
-  {
-    institution: 'Mukuba Institute of Health and Applied Sciences',
-    courses: ['Diploma in Registered Nursing (NMCZ Accredited)'],
-    highlight: 'NMCZ Certified',
-    accreditation: 'NMCZ Approved',
-    image: '/images/programs/mihas-campus.webp'
-  }
-];
-
-const quickLinks = [
-  { name: 'About Us', href: '#features', eventName: 'landing_footer_about_click' },
-  { name: 'Programs', href: '#programs', eventName: 'landing_footer_programs_click' },
-  { name: 'Track Application', href: '/track-application' },
-  { name: 'Contact', href: '/contact' }
-];
-
-const socialLinks = [
-  { name: 'Facebook', href: 'https://www.facebook.com/', icon: Facebook },
-  { name: 'Twitter', href: 'https://x.com/', icon: Twitter },
-  { name: 'LinkedIn', href: 'https://www.linkedin.com/', icon: Linkedin }
-];
 
 const landingStructuredData = [
   {
@@ -189,12 +100,11 @@ function smoothScrollToSection(sectionId: string) {
 // HERO SECTION COMPONENT
 // ============================================================================
 
-function HeroSection({ onTrackCta }: { onTrackCta: (eventName: string, destination: string) => void }) {
-  const handleInPageAnchor = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string, eventName: string) => {
+function HeroSection() {
+  const handleInPageAnchor = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     event.preventDefault();
     smoothScrollToSection(sectionId);
     window.history.replaceState({}, '', `#${sectionId}`);
-    onTrackCta(eventName, `#${sectionId}`);
   };
 
   return (
@@ -213,13 +123,13 @@ function HeroSection({ onTrackCta }: { onTrackCta: (eventName: string, destinati
         </p>
         <div className="flex flex-col xs:flex-row gap-4 sm:gap-6 justify-center items-center max-w-md xs:max-w-none mx-auto">
           <Button asChild variant="gradient" size="xl" className="w-full xs:w-auto min-h-[48px] px-6 sm:px-8">
-            <Link to="/auth/signup" onClick={() => onTrackCta('landing_hero_start_application_click', '/auth/signup')}>
+            <Link to="/auth/signup">
               <span className="mr-2">Start Your Application</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="xl" className="w-full xs:w-auto border-2 border-white bg-white/10 text-white hover:bg-white hover:text-primary font-semibold backdrop-blur-sm min-h-[48px] px-6 sm:px-8">
-            <a href="#features" onClick={(event) => handleInPageAnchor(event, 'features', 'landing_hero_learn_more_click')}>
+            <a href="#features" onClick={(event) => handleInPageAnchor(event, 'features')}>
               <span className="mr-2">Learn More</span>
               <Star className="w-5 h-5" />
             </a>
@@ -232,7 +142,7 @@ function HeroSection({ onTrackCta }: { onTrackCta: (eventName: string, destinati
         href="#stats"
         className="absolute bottom-8 sm:bottom-12 left-1/2 transform -translate-x-1/2 cursor-pointer animate-bounce touch-target z-20"
         aria-label="Scroll to graduate outcomes"
-        onClick={(event) => handleInPageAnchor(event, 'stats', 'landing_hero_scroll_indicator_click')}
+        onClick={(event) => handleInPageAnchor(event, 'stats')}
       >
         <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-border transition-colors shadow-sm">
           <div className="w-1 h-3 bg-card rounded-full mt-2" />
@@ -433,7 +343,7 @@ function ProgramsSection() {
 // CTA SECTION COMPONENT - Gradient background with animated button
 // ============================================================================
 
-function CTASection({ onTrackCta }: { onTrackCta: (eventName: string, destination: string) => void }) {
+function CTASection() {
   return (
     <section className="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary" />
@@ -446,148 +356,19 @@ function CTASection({ onTrackCta }: { onTrackCta: (eventName: string, destinatio
         <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 max-w-3xl mx-auto px-4">
           Applications open now! Join 300+ graduates working in hospitals, clinics, and health organizations
         </p>
-        <Link to="/auth/signup" onClick={() => onTrackCta('landing_midpage_apply_now_click', '/auth/signup')}>
-          <Button 
-            variant="outline" 
-            size="xl" 
-            className="border-2 border-white text-white hover:bg-white hover:text-primary min-h-[48px] px-6 sm:px-8 group"
-          >
+        <Button 
+          asChild
+          variant="outline" 
+          size="xl" 
+          className="border-2 border-white text-white hover:bg-white hover:text-primary min-h-[48px] px-6 sm:px-8 group"
+        >
+          <Link to="/auth/signup">
             <span className="mr-2">Apply Now</span>
             <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </ScrollReveal>
     </section>
-  );
-}
-
-// ============================================================================
-// FOOTER SECTION COMPONENT - Contact info, links, social icons
-// ============================================================================
-
-function FooterSection({ onTrackCta }: { onTrackCta: (eventName: string, destination: string) => void }) {
-  const handleInPageAnchor = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string, eventName: string) => {
-    event.preventDefault();
-    smoothScrollToSection(sectionId);
-    window.history.replaceState({}, '', `#${sectionId}`);
-    onTrackCta(eventName, `#${sectionId}`);
-  };
-
-  return (
-    <footer className="bg-foreground text-white py-12 sm:py-16">
-      <div className="container-responsive px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
-          {/* Contact Info */}
-          <div>
-            <div className="flex items-center space-x-2 mb-6">
-              <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-              <span className="text-xl sm:text-2xl font-bold gradient-text-primary">MIHAS-KATC</span>
-            </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-4">Apply Today - Contact Us</h3>
-            <div className="space-y-2 text-white/90 text-sm sm:text-base">
-              <p className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
-                <span>President Avenue, Kalulushi, 2-Shaft, Next to KMC</span>
-              </p>
-              <a
-                href="tel:+260966992299"
-                className="flex items-center gap-2 hover:text-primary transition-colors"
-                onClick={() => onTrackCta('landing_footer_phone_katc_click', 'tel:+260966992299')}
-              >
-                <Phone className="h-4 w-4 flex-shrink-0" />
-                <span><strong>KATC:</strong> +260 966 992 299</span>
-              </a>
-              <a
-                href="tel:+260961515151"
-                className="flex items-center gap-2 hover:text-primary transition-colors"
-                onClick={() => onTrackCta('landing_footer_phone_mihas_click', 'tel:+260961515151')}
-              >
-                <Phone className="h-4 w-4 flex-shrink-0" />
-                <span><strong>MIHAS:</strong> +260 961 515 151</span>
-              </a>
-              <a
-                href="mailto:info@mihas.edu.zm"
-                className="flex items-center gap-2 hover:text-primary transition-colors"
-                onClick={() => onTrackCta('landing_footer_email_click', 'mailto:info@mihas.edu.zm')}
-              >
-                <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>info@katc.edu.zm | info@mihas.edu.zm</span>
-              </a>
-            </div>
-          </div>
-          
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-6">Quick Links</h3>
-            <ul className="space-y-3">
-              {quickLinks.map((link) => (
-                <li key={link.name}>
-                  {link.href.startsWith('#') ? (
-                    <a
-                      href={link.href}
-                      className="text-white/90 hover:text-primary transition-colors flex items-center group text-sm sm:text-base"
-                      onClick={(event) => handleInPageAnchor(event, link.href.replace('#', ''), link.eventName ?? `landing_footer_${link.name.toLowerCase().replace(/\s+/g, '_')}_click`)}
-                    >
-                      <ArrowRight className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      {link.name}
-                    </a>
-                  ) : (
-                    <Link
-                      to={link.href}
-                      onClick={() => onTrackCta(`landing_footer_${link.name.toLowerCase().replace(/\s+/g, '_')}_click`, link.href)}
-                      className="text-white/90 hover:text-primary transition-colors flex items-center group text-sm sm:text-base"
-                    >
-                      <ArrowRight className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      {link.name}
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          {/* Social Links */}
-          <div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-6">Follow Us</h3>
-            <div className="flex flex-wrap gap-2 sm:gap-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => onTrackCta(`landing_footer_social_${social.name.toLowerCase()}_click`, social.href)}
-                  className="text-white/90 hover:text-primary transition-colors px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:bg-white/10 text-sm sm:text-base min-h-[44px] flex items-center gap-2"
-                  aria-label={`Follow us on ${social.name}`}
-                >
-                  <social.icon className="h-5 w-5" />
-                  {social.name}
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-        
-        {/* Copyright */}
-        <div className="border-t border-white/20 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center">
-          <p className="text-white/90 mb-2 text-sm sm:text-base">
-            &copy; 2025 MIHAS-KATC. All rights reserved.
-          </p>
-          <p className="text-white/70 text-sm">
-            Developed with ❤️ by{' '}
-            <a
-              href="https://beanola.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => onTrackCta('landing_footer_beanola_click', 'https://beanola.com')}
-              className="gradient-text-primary font-semibold hover:underline"
-            >
-              Beanola Technologies
-            </a>
-          </p>
-        </div>
-      </div>
-    </footer>
   );
 }
 
@@ -599,20 +380,16 @@ export default function LandingPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { trackAction } = useAnalytics();
 
-  const onTrackCta = useCallback((eventName: string, destination: string) => {
-    trackAction(eventName, {
-      page: 'landing',
-      destination,
-      cta_group: 'hero_footer'
-    });
-  }, [trackAction]);
-
-  // Redirect authenticated users to dashboard
+  // Redirect authenticated users to role-appropriate dashboard
   useEffect(() => {
     if (!loading && user) {
-      navigate('/student/dashboard');
+      const role = user.role;
+      if (role === 'admin' || role === 'super_admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/student/dashboard');
+      }
     }
   }, [user, loading, navigate]);
 
@@ -623,26 +400,19 @@ export default function LandingPage() {
   }, [location.hash]);
 
   return (
-    <PageTransition mode="fade">
+    <PublicLayout>
       <Seo
         title="MIHAS-KATC Admissions | Apply to Accredited Health Science Programs"
         description="Apply online to MIHAS-KATC accredited nursing and allied health diploma programs. Track admissions, deadlines, and enrollment updates in one portal."
         path="/"
         structuredData={landingStructuredData}
       />
-      <div className="min-h-screen bg-background overflow-x-hidden">
-        {/* Fixed Header with hide-on-scroll-down behavior */}
-        <ResponsiveHeader />
-
-        {/* Page Sections */}
-        <HeroSection onTrackCta={onTrackCta} />
-        <StatsSection />
-        <FeaturesSection />
-        <AccreditationSection />
-        <ProgramsSection />
-        <CTASection onTrackCta={onTrackCta} />
-        <FooterSection onTrackCta={onTrackCta} />
-      </div>
-    </PageTransition>
+      <HeroSection />
+      <StatsSection />
+      <FeaturesSection />
+      <AccreditationSection />
+      <ProgramsSection />
+      <CTASection />
+    </PublicLayout>
   );
 }
