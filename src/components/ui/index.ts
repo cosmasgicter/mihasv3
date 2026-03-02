@@ -85,6 +85,9 @@ export {
 export type { UnifiedLoaderProps } from './UnifiedLoader'
 
 // Loading Components (backward-compatible aliases)
+/** @deprecated Prefer skeleton primitives from '@/components/ui/skeleton'. */
+export { TableSkeleton, CardSkeleton } from './LoadingState'
+
 /** @deprecated Prefer UnifiedLoader variants from '@/components/ui'. */
 export { LoadingSpinner } from './LoadingSpinner'
 /** @deprecated Prefer Button loading prop from '@/components/ui'. */
