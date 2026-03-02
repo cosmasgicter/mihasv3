@@ -102,6 +102,12 @@
         "command": "uvx",
         "args": ["awslabs.amazon-bedrock-agentcore-mcp-server@latest"],
         "disabled": true
+      },
+      "power-neon-Neon": {
+        "command": "npx",
+        "args": ["-y", "mcp-remote", "https://mcp.neon.tech/sse"],
+        "disabled": false,
+        "autoApprove": []
       }
     }
   }
