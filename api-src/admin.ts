@@ -226,7 +226,7 @@ async function handleSettings(req: VercelRequest, res: VercelResponse, auth: Aut
 
 /**
  * GET - List all system settings
- * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
 async function handleGetSettings(res: VercelResponse): Promise<void> {
   try {
@@ -242,7 +242,7 @@ async function handleGetSettings(res: VercelResponse): Promise<void> {
 
 /**
  * POST - Create a new system setting
- * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
 async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
   const body = req.body as Partial<SystemSetting>;
@@ -290,7 +290,7 @@ async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth
 
 /**
  * PUT - Update an existing system setting
- * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
 async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
   const body = req.body as Partial<SystemSetting> & { id?: string };
@@ -356,7 +356,7 @@ async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth
 
 /**
  * DELETE - Delete a system setting
- * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
 async function handleDeleteSetting(req: VercelRequest, res: VercelResponse): Promise<void> {
   const body = req.body as { id?: string; key?: string };
@@ -393,7 +393,7 @@ async function handleDeleteSetting(req: VercelRequest, res: VercelResponse): Pro
 
 /**
  * Dashboard stats handler
- * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
 async function handleDashboard(res: VercelResponse): Promise<void> {
   try {
@@ -489,7 +489,7 @@ async function handleDashboard(res: VercelResponse): Promise<void> {
 
 /**
  * Users list handler
- * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * MIGRATED: Using direct SQL instead of legacy admin SDK
  * 
  * Supports optional query params:
  *   - page (default 1)
@@ -560,7 +560,7 @@ async function handleUsers(req: VercelRequest, res: VercelResponse): Promise<voi
 
 /**
  * Register new user (admin only)
- * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * MIGRATED: Using direct SQL instead of legacy admin SDK
  * Requirement: 8.6 - Admin can register new users
  */
 async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
@@ -828,7 +828,7 @@ async function handleErrorStatistics(res: VercelResponse): Promise<void> {
 
 /**
  * Set password for existing user (admin only)
- * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * MIGRATED: Using direct SQL instead of legacy admin SDK
  * Used to migrate legacy Supabase Auth users to custom auth
  * 
  * POST /api/admin?action=set-password
@@ -989,7 +989,7 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
 
 /**
  * Import settings from JSON
- * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * MIGRATED: Using direct SQL instead of legacy admin SDK
  * 
  * POST /api/admin?action=import-settings
  * Body: { settings: SystemSetting[] }
@@ -1067,7 +1067,7 @@ async function handleImportSettings(req: VercelRequest, res: VercelResponse, aut
 
 /**
  * Reset settings to defaults
- * MIGRATED: Using direct SQL instead of supabaseAdmin
+ * MIGRATED: Using direct SQL instead of legacy admin SDK
  * 
  * POST /api/admin?action=reset-settings
  * 

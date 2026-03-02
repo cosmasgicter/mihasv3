@@ -3,6 +3,21 @@
 
 import { getEnvVariable } from './env'
 
+function getAllowedRequestHosts(): string[] {
+  const hosts = new Set<string>(['apply.mihas.edu.zm', 'localhost', '127.0.0.1'])
+  const r2PublicUrl = getEnvVariable('VITE_R2_PUBLIC_URL', '')
+
+  if (r2PublicUrl) {
+    try {
+      hosts.add(new URL(r2PublicUrl).hostname)
+    } catch {
+      // Ignore invalid env values and keep safe defaults.
+    }
+  }
+
+  return Array.from(hosts)
+}
+
 interface CacheEntry<T> {
   data: T
   timestamp: number
@@ -180,7 +195,7 @@ export async function fetchWithCache<T>(
     try {
       // Validate URL to prevent SSRF attacks
       const urlObj = new URL(url)
-      const allowedHosts = ['apply.mihas.edu.zm', 'a3ba1959935abd8777e64caee46d1de1.r2.cloudflarestorage.com', 'localhost']
+      const allowedHosts = getAllowedRequestHosts()
       if (!allowedHosts.includes(urlObj.hostname)) {
         throw new Error('Invalid URL - host not allowed')
       }

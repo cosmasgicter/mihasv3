@@ -1,9 +1,9 @@
 /**
  * Centralized database type definitions.
  *
- * These interfaces were extracted from the deprecated `src/lib/supabase.ts` stub
- * so that every frontend file can import types from `@/types/database` instead of
- * the Supabase module.  Shapes match the existing interfaces exactly.
+ * These interfaces were extracted into a dedicated shared types module
+ * so every frontend file can import from `@/types/database`.
+ * Shapes match the existing interfaces exactly.
  */
 
 export interface Application {

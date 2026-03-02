@@ -1,17 +1,14 @@
 /**
- * Cloudflare R2 Storage Adapter
- * 
- * Replaces Supabase Storage with Cloudflare R2 for file storage.
- * Uses S3-compatible API for uploads, downloads, and signed URLs.
- * 
+ * R2 Storage Adapter
+ *
+ * Uses an S3-compatible API for uploads, downloads, and signed URLs.
+ *
  * Environment Variables Required:
- * - R2_ACCOUNT_ID: Cloudflare account ID
- * - R2_ACCESS_KEY_ID: R2 access key ID
- * - R2_SECRET_ACCESS_KEY: R2 secret access key
- * - R2_BUCKET_NAME: R2 bucket name (default: mihasapplication)
- * - R2_PUBLIC_URL: Public URL for the bucket (optional)
- * 
- * @see https://developers.cloudflare.com/r2/api/s3/
+ * - R2_ACCOUNT_ID: storage account ID
+ * - R2_ACCESS_KEY_ID: storage access key ID
+ * - R2_SECRET_ACCESS_KEY: storage secret access key
+ * - R2_BUCKET_NAME: storage bucket name (default: mihasapplication)
+ * - R2_PUBLIC_URL: public URL for the bucket (optional)
  */
 
 import { createHmac, createHash } from 'crypto';
@@ -21,8 +18,8 @@ const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || '';
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || '';
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY || '';
 const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'mihasapplication';
-const R2_ENDPOINT = `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
-const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || `https://a3ba1959935abd8777e64caee46d1de1.r2.cloudflarestorage.com/${R2_BUCKET_NAME}`;
+const R2_ENDPOINT = process.env.R2_ENDPOINT || '';
+const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || '';
 
 /**
  * Storage operation result

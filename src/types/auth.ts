@@ -1,7 +1,7 @@
 /**
  * Custom Auth Types for MIHAS Application System
  * 
- * These types replace @supabase/supabase-js User and Session types.
+ * These types define app-level User and Session contracts.
  * All authentication is handled via HTTP-only cookies and /api/auth endpoints.
  * 
  * @module types/auth
@@ -14,7 +14,6 @@ export type UserRole = 'student' | 'reviewer' | 'admin' | 'super_admin';
 
 /**
  * User type for custom JWT authentication
- * Replaces @supabase/supabase-js User type
  */
 export interface User {
   id: string;

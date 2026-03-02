@@ -15,7 +15,7 @@ const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'
  * 
  * MIGRATED: Uses custom auth middleware, ownership checks, and R2 storage
  * PROTECTED: Arcjet rate limiting (30 requests per 10 minutes)
- * STORAGE: Cloudflare R2 only (Supabase Storage removed)
+ * STORAGE: R2-backed object storage only
  * 
  * POST /api/documents?action=upload - Upload document
  * POST /api/documents?action=extract - Extract PDF metadata

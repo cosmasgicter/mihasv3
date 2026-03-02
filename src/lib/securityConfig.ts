@@ -13,8 +13,7 @@ export const CSP_CONFIG = {
   'default-src': ["'self'"],
   'script-src': [
     "'self'",
-    "'unsafe-inline'", // Required for Vite in development
-    "https://challenges.cloudflare.com" // Cloudflare Turnstile (optional CAPTCHA)
+    "'unsafe-inline'" // Required for Vite in development
   ],
   'style-src': [
     "'self'",
