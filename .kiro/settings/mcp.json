@@ -17,7 +17,7 @@
         "mcp-server-fetch"
       ],
       "env": {},
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
     "memory": {
@@ -113,7 +113,7 @@
         "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15bGdlZ2txb2RkY3J4dHdjY2xiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzUxMjA4MywiZXhwIjoyMDczMDg4MDgzfQ.FsspKE5bjcG4TW8IvG-N0o7W0E7ljxznwlzJCm50ZRE",
         "SUPABASE_ACCESS_TOKEN": "sbp_0902a41445fee09e732c26e3f32bca72484dbe7f"
       },
-      "disabled": false,
+      "disabled": true,
       "autoApprove": [
         "list_projects",
         "execute_sql",
