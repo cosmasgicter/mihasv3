@@ -90,7 +90,9 @@ function BrandingPanel() {
         <div className="mt-10 grid grid-cols-2 gap-4"
         >
           {brandingFeatures.map((feature, index) => (
-            <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm hover:bg-white/15 transition-colors animate-fade-in"
+            <div
+              key={feature.title}
+              className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm hover:bg-white/15 transition-colors animate-fade-in"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <feature.icon className="h-6 w-6 text-white/80 mb-2" />

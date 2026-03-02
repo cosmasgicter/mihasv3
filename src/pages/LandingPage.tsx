@@ -12,7 +12,7 @@ import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui';
 import { Badge } from '@/components/ui';
 import { Button } from '@/components/ui/Button';
-import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { OptimizedImage, ResponsiveImage } from '@/components/ui/OptimizedImage';
 import { ScrollReveal, StaggerReveal, StaggerItem, AnimatedCounter } from '@/components/smoothui';
 import { 
   Star, ArrowRight, 
@@ -112,28 +112,56 @@ function HeroSection() {
       {/* Gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-primary opacity-95" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-black/10" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_40%)]" />
 
       {/* Hero content with scroll-triggered animation */}
-      <ScrollReveal direction="up" className="relative z-10 container-responsive text-center text-white px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
-          Your Future Starts Here
-        </h1>
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 max-w-4xl mx-auto leading-relaxed text-white/95 font-medium">
-          Launch Your Healthcare Career in Zambia & Beyond – Apply for Accredited Health Sciences Programs with 92% Job Placement Success
-        </p>
-        <div className="flex flex-col xs:flex-row gap-4 sm:gap-6 justify-center items-center max-w-md xs:max-w-none mx-auto">
-          <Button asChild variant="gradient" size="xl" className="w-full xs:w-auto min-h-[48px] px-6 sm:px-8">
-            <Link to="/auth/signup">
-              <span className="mr-2">Start Your Application</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="xl" className="w-full xs:w-auto border-2 border-white bg-white/10 text-white hover:bg-white hover:text-primary font-semibold backdrop-blur-sm min-h-[48px] px-6 sm:px-8">
-            <a href="#features" onClick={(event) => handleInPageAnchor(event, 'features')}>
-              <span className="mr-2">Learn More</span>
-              <Star className="w-5 h-5" />
-            </a>
-          </Button>
+      <ScrollReveal direction="up" className="relative z-10 container-responsive px-4 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-10 py-24 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+          <div className="text-center text-white lg:text-left">
+            <p className="mb-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
+              Government Accredited Health Programs
+            </p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
+              Your Future Starts Here
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed text-white/95 font-medium">
+              Launch Your Healthcare Career in Zambia and beyond with MIHAS-KATC admissions, transparent application tracking, and high-demand accredited training.
+            </p>
+            <div className="flex flex-col xs:flex-row gap-4 sm:gap-6 justify-center lg:justify-start items-center max-w-md xs:max-w-none mx-auto lg:mx-0">
+              <Button asChild variant="gradient" size="xl" className="w-full xs:w-auto min-h-[48px] px-6 sm:px-8">
+                <Link to="/auth/signup">
+                  <span className="mr-2">Start Your Application</span>
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="xl" className="w-full xs:w-auto border-2 border-white bg-white/10 text-white hover:bg-white hover:text-primary font-semibold backdrop-blur-sm min-h-[48px] px-6 sm:px-8">
+                <a href="#features" onClick={(event) => handleInPageAnchor(event, 'features')}>
+                  <span className="mr-2">Learn More</span>
+                  <Star className="w-5 h-5" />
+                </a>
+              </Button>
+            </div>
+          </div>
+
+          <div className="mx-auto w-full max-w-xl">
+            <div className="relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-2 shadow-2xl backdrop-blur-sm">
+              <ResponsiveImage
+                basePath="/images/programs/mihas-campus"
+                alt="Students at MIHAS campus"
+                className="h-64 w-full rounded-2xl sm:h-80 lg:h-[420px]"
+                containerClassName="h-64 w-full rounded-2xl sm:h-80 lg:h-[420px]"
+                sizes="(max-width: 1024px) 92vw, 42vw"
+                widths={[320, 640, 768, 1024]}
+                objectFit="cover"
+                priority
+              />
+
+              <div className="pointer-events-none absolute inset-x-6 bottom-6 rounded-2xl border border-white/30 bg-black/40 p-4 backdrop-blur-md">
+                <p className="text-sm font-semibold text-white">92% Job Placement Rate</p>
+                <p className="text-xs text-white/80">Trusted by hospitals, clinics, and public health institutions.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </ScrollReveal>
 

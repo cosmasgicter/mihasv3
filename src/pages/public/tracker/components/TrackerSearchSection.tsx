@@ -3,7 +3,6 @@ import { Search, Mail, Hash, Zap, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { SectionCard } from '@/components/ui/SectionCard'
-import { animateClasses } from '@/lib/animations'
 
 interface TrackerSearchSectionProps {
   searchTerm: string
@@ -56,14 +55,14 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
                 onPaste={onPaste}
                 onKeyPress={onKeyPress}
                 placeholder="Enter application number..."
-                className="w-full pl-12 pr-4 py-3 text-base border-2 border-border focus:border-primary rounded-xl"
+                className="w-full min-h-[48px] pl-12 pr-4 py-3 text-base border-2 border-border focus:border-primary rounded-xl"
               />
             </div>
             <Button
               onClick={onSearch}
               loading={loading}
               size="lg"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl px-6 touch-target"
+              className="min-h-[48px] bg-gradient-to-r from-blue-600 to-secondary hover:from-blue-700 hover:to-secondary text-white font-semibold rounded-xl px-6 touch-target"
             >
               <Search className="h-5 w-5 mr-2" />
               {loading ? 'Searching...' : 'Search'}
@@ -92,8 +91,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <Mail className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-sm">Check Your Email</h3>
-              <p className="text-xs text-muted-foreground mt-1">Application number sent after submission</p>
+              <h3 className="font-semibold text-foreground text-base leading-tight">Check Your Email</h3>
+              <p className="text-sm text-muted-foreground mt-1">Application number sent after submission</p>
             </div>
           </div>
           
@@ -102,8 +101,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <Hash className="h-5 w-5 text-warning" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-sm">Format Example</h3>
-              <p className="text-xs font-mono text-muted-foreground mt-1">MIHAS123456</p>
+              <h3 className="font-semibold text-foreground text-base leading-tight">Format Example</h3>
+              <p className="text-sm font-mono text-muted-foreground mt-1">MIHAS123456</p>
             </div>
           </div>
           
@@ -112,8 +111,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <Zap className="h-5 w-5 text-success" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-sm">Instant Results</h3>
-              <p className="text-xs text-muted-foreground mt-1">Real-time updates without login</p>
+              <h3 className="font-semibold text-foreground text-base leading-tight">Instant Results</h3>
+              <p className="text-sm text-muted-foreground mt-1">Real-time updates without login</p>
             </div>
           </div>
         </div>

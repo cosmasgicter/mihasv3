@@ -10,7 +10,12 @@
  */
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { Loader2, RefreshCw } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import {
+  SkeletonCard as BaseSkeletonCard,
+  SkeletonTable as BaseSkeletonTable,
+  SkeletonForm as BaseSkeletonForm,
+} from './skeletons'
 
 /** @deprecated Use LoadingSpinner from '@/components/ui/LoadingSpinner' instead */
 interface LoadingSpinnerProps {
@@ -140,41 +145,15 @@ export function FullScreenLoader({
 
 // Skeleton components for better loading states
 export function SkeletonCard() {
-  return (
-    <div className="smooth-pulse">
-      <div className="smooth-skeleton rounded-lg h-48 w-full mb-4"></div>
-      <div className="space-y-2">
-        <div className="smooth-skeleton rounded h-4 w-3/4"></div>
-        <div className="smooth-skeleton rounded h-4 w-1/2"></div>
-      </div>
-    </div>
-  )
+  return <BaseSkeletonCard showAvatar={false} lines={2} />
 }
 
 export function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number, cols?: number }) {
-  return (
-    <div className="smooth-pulse">
-      <div className="smooth-skeleton rounded h-10 w-full mb-4"></div>
-      {[...Array(rows)].map((_, i) => (
-        <div key={i} className="flex space-x-4 mb-3">
-          {[...Array(cols)].map((_, j) => (
-            <div key={j} className="smooth-skeleton rounded h-8 flex-1"></div>
-          ))}
-        </div>
-      ))}
-    </div>
-  )
+  return <BaseSkeletonTable rows={rows} columns={cols} />
 }
 
 export function SkeletonForm() {
-  return (
-    <div className="smooth-pulse space-y-4">
-      <div className="smooth-skeleton rounded h-10 w-full"></div>
-      <div className="smooth-skeleton rounded h-10 w-full"></div>
-      <div className="smooth-skeleton rounded h-20 w-full"></div>
-      <div className="smooth-skeleton rounded h-10 w-32"></div>
-    </div>
-  )
+  return <BaseSkeletonForm />
 }
 
 // Loading button component

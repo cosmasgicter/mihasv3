@@ -8,7 +8,7 @@
  * @requirements 8.1, 8.6 - SmoothUI animations with reduced-motion support
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useInView } from 'react-intersection-observer';
 import { cn } from '@/lib/utils';
 import type { ScrollDirection } from '@/lib/animation-config';
@@ -42,6 +42,8 @@ const directionStyles: Record<ScrollDirection, { hidden: string; visible: string
     visible: 'opacity-100 translate-x-0',
   },
 };
+
+const StaggerRevealContext = React.createContext<boolean>(true);
 
 export function ScrollReveal({
   children,
@@ -112,24 +114,26 @@ export function StaggerReveal({
   }
 
   return (
-    <div
-      ref={ref}
-      className={cn(
-        'transition-opacity duration-300 ease-out motion-reduce:transition-none',
-        inView ? 'opacity-100' : 'opacity-0',
-        className
-      )}
-    >
-      {React.Children.map(children, (child, index) => {
-        if (!React.isValidElement(child)) return child;
-        return React.cloneElement(child as React.ReactElement<{ style?: React.CSSProperties }>, {
-          style: {
-            ...(child.props as { style?: React.CSSProperties }).style,
-            transitionDelay: inView ? `${index * staggerDelay * 1000}ms` : '0ms',
-          },
-        });
-      })}
-    </div>
+    <StaggerRevealContext.Provider value={inView}>
+      <div
+        ref={ref}
+        className={cn(
+          'transition-opacity duration-300 ease-out motion-reduce:transition-none',
+          inView ? 'opacity-100' : 'opacity-0',
+          className
+        )}
+      >
+        {React.Children.map(children, (child, index) => {
+          if (!React.isValidElement(child)) return child;
+          return React.cloneElement(child as React.ReactElement<{ style?: React.CSSProperties }>, {
+            style: {
+              ...(child.props as { style?: React.CSSProperties }).style,
+              transitionDelay: inView ? `${index * staggerDelay * 1000}ms` : '0ms',
+            },
+          });
+        })}
+      </div>
+    </StaggerRevealContext.Provider>
   );
 }
 
@@ -140,11 +144,15 @@ interface StaggerItemProps {
 }
 
 export function StaggerItem({ children, className = '' }: StaggerItemProps) {
+  const inView = React.useContext(StaggerRevealContext);
+  const reducedMotion = useReducedMotion();
+  const visible = reducedMotion || inView;
+
   return (
     <div
       className={cn(
         'transition-all duration-300 ease-out motion-reduce:transition-none',
-        'opacity-0 translate-y-5',
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5',
         className
       )}
       style={{ animationFillMode: 'forwards' }}

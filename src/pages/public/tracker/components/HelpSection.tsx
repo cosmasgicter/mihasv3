@@ -28,15 +28,15 @@ export const HelpSection: React.FC = () => {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">•</span>
-                  <span>Check your email confirmation after submitting</span>
+                  <span className="leading-relaxed">Check your email confirmation after submitting</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">•</span>
-                  <span>Look for format: <code className="bg-primary/10 px-1.5 py-0.5 rounded font-mono text-xs">MIHAS123456</code></span>
+                  <span className="leading-relaxed">Look for format: <code className="bg-primary/10 px-1.5 py-0.5 rounded font-mono text-xs">MIHAS123456</code></span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">•</span>
-                  <span>Contact admissions if you can't find it</span>
+                  <span className="leading-relaxed">Contact admissions if you can't find it</span>
                 </li>
               </ul>
             </div>
@@ -54,19 +54,19 @@ export const HelpSection: React.FC = () => {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <Rocket className="h-4 w-4 text-warning flex-shrink-0 mt-0.5" />
-                  <span><strong>Submitted:</strong> Application received and queued</span>
+                  <span className="leading-relaxed"><strong>Submitted:</strong> Application received and queued</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Clock className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                  <span><strong>Under Review:</strong> Being carefully evaluated</span>
+                  <span className="leading-relaxed"><strong>Under Review:</strong> Being carefully evaluated</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
-                  <span><strong>Approved:</strong> Congratulations! You're accepted</span>
+                  <span className="leading-relaxed"><strong>Approved:</strong> Congratulations! You're accepted</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <XCircle className="h-4 w-4 text-error flex-shrink-0 mt-0.5" />
-                  <span><strong>Rejected:</strong> Not accepted this time</span>
+                  <span className="leading-relaxed"><strong>Rejected:</strong> Not accepted this time</span>
                 </li>
               </ul>
             </div>
@@ -90,7 +90,7 @@ export const HelpSection: React.FC = () => {
                   <Mail className="h-4 w-4 text-primary" />
                   Email Support
                 </p>
-                <a href="mailto:info@mihas.edu.zm" className="text-primary font-medium hover:underline text-sm">
+                <a href="mailto:info@mihas.edu.zm" className="text-primary font-medium hover:underline text-sm min-h-[44px] inline-flex items-center">
                   info@mihas.edu.zm
                 </a>
               </div>
@@ -101,8 +101,8 @@ export const HelpSection: React.FC = () => {
                   Phone Support
                 </p>
                 <div className="space-y-1 text-sm">
-                  <p><strong>KATC:</strong> <a href="tel:0966992299" className="text-primary hover:underline">0966992299</a></p>
-                  <p><strong>MIHAS:</strong> <a href="tel:0961515151" className="text-primary hover:underline">0961515151</a></p>
+                  <p><strong>KATC:</strong> <a href="tel:0966992299" className="text-primary hover:underline inline-flex min-h-[44px] items-center">0966992299</a></p>
+                  <p><strong>MIHAS:</strong> <a href="tel:0961515151" className="text-primary hover:underline inline-flex min-h-[44px] items-center">0961515151</a></p>
                 </div>
               </div>
             </div>
