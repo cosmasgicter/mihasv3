@@ -43,7 +43,7 @@ export function SkeletonBase({
   
   const animationClasses = {
     pulse: 'animate-pulse',
-    wave: 'animate-shimmer',
+    wave: 'animate-pulse',
     none: ''
   }
   

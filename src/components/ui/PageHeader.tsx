@@ -24,7 +24,7 @@ export interface PageHeaderProps {
 }
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
- gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-foreground border-card/20 shadow-2xl',
+ gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-card/20 shadow-2xl',
  surface: 'bg-card text-foreground border border-border shadow-xl',
  subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg backdrop-blur-sm'
 }
@@ -60,7 +60,7 @@ export function PageHeader({
  const { label, value, icon: statIcon, accent = 'neutral' } = stat
 
  const baseClasses = isGradient
- ? 'bg-card/95 border-card/40 text-foreground backdrop-blur-md'
+ ? 'bg-white/95 border-white/40 text-slate-900 backdrop-blur-md'
  : statAccentStyles[accent]
 
  return (
@@ -73,10 +73,10 @@ export function PageHeader({
  >
  {statIcon && <span className="shrink-0 text-lg">{statIcon}</span>}
  <div className="space-y-1">
- <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-foreground/70' : 'text-foreground')}>
+ <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-slate-600' : 'text-foreground')}>
  {label}
  </p>
- <p className={cn('text-lg sm:text-xl md:text-2xl font-bold break-words', isGradient ? 'text-foreground' : '')}>{value}</p>
+ <p className={cn('text-lg sm:text-xl md:text-2xl font-bold break-words', isGradient ? 'text-slate-900' : '')}>{value}</p>
  </div>
  </div>
  )
@@ -100,7 +100,7 @@ export function PageHeader({
 				 <div className={cn('relative flex flex-col gap-6 sm:flex-row sm:justify-between', alignmentStyles[align])}>
 					 <div className="space-y-4 sm:max-w-2xl">
 						 {eyebrow && (
-							 <p className={cn('font-semibold uppercase tracking-wide', isGradient ? 'text-foreground/70' : 'text-primary')} style={{ fontSize: 'var(--type-xs)' }}>
+							 <p className={cn('font-semibold uppercase tracking-wide', isGradient ? 'text-white/80' : 'text-primary')} style={{ fontSize: 'var(--type-xs)' }}>
 								 {eyebrow}
 							 </p>
 						 )}
@@ -109,7 +109,7 @@ export function PageHeader({
 								 <div
 									 className={cn(
 										 'flex items-center justify-center rounded-2xl border shadow-inner',
-										 isGradient ? 'border-card/40 bg-card/95 text-foreground backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
+										 isGradient ? 'border-white/40 bg-white/95 text-slate-900 backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
 									 )}
 									 style={{ width: '3.5rem', height: '3.5rem', fontSize: 'var(--type-2xl)' }}
 								 >
@@ -119,7 +119,7 @@ export function PageHeader({
 							 <div className="space-y-3">
 								 <h1 style={{ fontSize: 'clamp(1.25rem, 1.8vw + 0.9rem, 2.5rem)', fontWeight: 700 }} className="tracking-tight break-words">{title}</h1>
 								 {description && (
-									 <p className={cn('', isGradient ? 'text-foreground/80' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
+									 <p className={cn('', isGradient ? 'text-white/90' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
 								 )}
 								 {children}
 							 </div>

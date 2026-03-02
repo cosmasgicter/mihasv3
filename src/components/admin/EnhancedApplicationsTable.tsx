@@ -3,7 +3,7 @@ import { Search, Filter, SortDesc, Download, RefreshCw, Users, FileText, Clock, 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
-import { SkeletonTable } from '../ui/EnhancedLoadingSpinner'
+import { SkeletonTable } from '@/components/ui'
 import { BulkOperations } from './BulkOperations'
 
 // Institution code to name mapping
@@ -240,7 +240,7 @@ export function EnhancedApplicationsTable({
     return (
       <div className="space-y-4">
         <div className="h-16 bg-accent rounded-lg animate-pulse" />
-        <SkeletonTable rows={10} cols={7} />
+        <SkeletonTable rows={10} columns={7} />
       </div>
     )
   }

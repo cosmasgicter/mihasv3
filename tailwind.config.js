@@ -76,8 +76,8 @@ module.exports = {
           foreground: '#0f172a',        /* 19.07:1 on card */
         },
         skeleton: {
-          DEFAULT: '#e2e8f0',           /* Skeleton background */
-          highlight: '#cbd5e1',         /* Skeleton highlight */
+          DEFAULT: '#f1f5f9',           /* Match muted for site-wide skeleton consistency */
+          highlight: '#e2e8f0',         /* Subtle highlight variant */
         },
         error: {
           DEFAULT: '#dc2626',           /* 5.25:1 on white - WCAG AA compliant */

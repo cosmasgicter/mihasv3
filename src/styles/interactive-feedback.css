@@ -117,12 +117,12 @@
   
   /* Skeleton loader */
   .skeleton {
-    @apply animate-pulse bg-slate-200 rounded;
+    @apply animate-pulse bg-muted rounded-md;
   }
   
   /* Skeleton text */
   .skeleton-text {
-    @apply h-4 bg-slate-200 rounded animate-pulse;
+    @apply h-4 bg-muted rounded-md animate-pulse;
   }
   
   /* ===== DISABLED STATES ===== */

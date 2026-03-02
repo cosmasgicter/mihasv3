@@ -1,6 +1,11 @@
 import React from 'react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  Skeleton as BaseSkeleton,
+  SkeletonTable as BaseSkeletonTable,
+  SkeletonCard as BaseSkeletonCard,
+} from './skeleton'
 
 interface LoadingStateProps {
   message?: string
@@ -36,42 +41,13 @@ export function LoadingState({ message = 'Loading...', size = 'md', fullScreen =
 }
 
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn('animate-shimmer rounded-md bg-muted/50', className)}
-      style={{
-        backgroundImage: 'linear-gradient(90deg, transparent, rgba(var(--color-card-rgb, 255, 255, 255), 0.1), transparent)',
-        backgroundSize: '200% 100%'
-      }}
-      {...props}
-    />
-  )
+  return <BaseSkeleton className={className} {...props} />
 }
 
 export function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="flex gap-4">
-          {Array.from({ length: columns }).map((_, j) => (
-            <Skeleton key={j} className="h-10 flex-1" />
-          ))}
-        </div>
-      ))}
-    </div>
-  )
+  return <BaseSkeletonTable rows={rows} columns={columns} />
 }
 
 export function CardSkeleton() {
-  return (
-    <div className="border border-border rounded-lg p-6 space-y-4">
-      <Skeleton className="h-6 w-3/4" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-5/6" />
-      <div className="flex gap-2 pt-2">
-        <Skeleton className="h-9 w-20" />
-        <Skeleton className="h-9 w-20" />
-      </div>
-    </div>
-  )
+  return <BaseSkeletonCard />
 }

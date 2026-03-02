@@ -75,11 +75,9 @@
 
 /* Skeleton loading improvements */
 .skeleton-text {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: smoothShimmer 1.5s infinite;
-  will-change: background-position;
-  transform: translateZ(0);
+  background: hsl(var(--muted));
+  border-radius: 0.375rem;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 /* Enhanced scrolling for mobile */
@@ -588,4 +586,3 @@ nav button[class*="text-red-"],
 .success-bounce {
   animation: success-bounce 0.6s ease;
 }
-
