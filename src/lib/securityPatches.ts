@@ -224,12 +224,12 @@ export class CSPHelper {
   static generateCSP(): string {
     const directives = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+      "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https: blob:",
-      "connect-src 'self' ***REMOVED*** https://*.r2.cloudflarestorage.com",
-      "frame-src 'self' https://challenges.cloudflare.com",
+      "connect-src 'self' ***REMOVED***",
+      "frame-src 'self'",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

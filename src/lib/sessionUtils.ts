@@ -12,6 +12,29 @@ export interface SessionResult {
   error: string | null;
 }
 
+function getAllowedHosts(): string[] {
+  const hosts = new Set<string>([
+    'apply.mihas.edu.zm',
+    'localhost',
+    '127.0.0.1',
+  ]);
+
+  if (typeof window !== 'undefined' && window.location.hostname) {
+    hosts.add(window.location.hostname);
+  }
+
+  const r2PublicUrl = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_R2_PUBLIC_URL;
+  if (r2PublicUrl) {
+    try {
+      hosts.add(new URL(r2PublicUrl).hostname);
+    } catch {
+      // Ignore invalid env values.
+    }
+  }
+
+  return Array.from(hosts);
+}
+
 /**
  * Checks if the current session is valid via API
  * Uses HTTP-only cookies for authentication
@@ -54,12 +77,7 @@ export async function makeAuthenticatedRequest(
 ): Promise<Response> {
   // Validate URL to prevent SSRF attacks
   const urlObj = new URL(url, window.location.origin);
-  const allowedHosts = [
-    'apply.mihas.edu.zm',
-    'a3ba1959935abd8777e64caee46d1de1.r2.cloudflarestorage.com',
-    'localhost',
-    window.location.hostname,
-  ];
+  const allowedHosts = getAllowedHosts();
   
   if (!allowedHosts.includes(urlObj.hostname)) {
     throw new Error('Invalid URL - host not allowed');

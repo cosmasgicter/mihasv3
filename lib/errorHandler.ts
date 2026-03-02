@@ -351,11 +351,9 @@ export function sanitizeError(message: string): string {
   // Remove database connection strings (PostgreSQL, MySQL, MongoDB, etc.)
   sanitized = sanitized.replace(/(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|mssql):\/\/[^\s"']+/gi, '[CONNECTION_STRING]');
   
-  // Remove Supabase URLs with keys
-  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.supabase\.co[^\s"']*/gi, '[SUPABASE_URL]');
-  
-  // Remove Neon URLs
-  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.neon\.tech[^\s"']*/gi, '[NEON_URL]');
+  // Remove database API and provider URLs
+  sanitized = sanitized.replace(/https?:\/\/[^\s"']+(?:\/auth\/v1|\/rest\/v1)[^\s"']*/gi, '[DB_API_URL]');
+  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.neon\.tech[^\s"']*/gi, '[DB_URL]');
   
   // Remove API keys and secrets (common patterns) - must be before phone numbers
   sanitized = sanitized.replace(/(?:api[_-]?key|secret|password|token|auth|bearer)[=:]\s*["']?[a-zA-Z0-9_\-./+=]{16,}["']?/gi, '[CREDENTIAL]');

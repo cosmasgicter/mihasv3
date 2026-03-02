@@ -1,7 +1,7 @@
 /**
  * Storage Utilities - Uses R2 via API
  * 
- * MIGRATION COMPLETE: Supabase Storage → Cloudflare R2
+ * MIGRATION COMPLETE: Legacy storage -> R2
  * All storage operations now go through /api/documents endpoint
  */
 

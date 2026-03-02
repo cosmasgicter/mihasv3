@@ -491,8 +491,8 @@ function sanitizeError(message) {
   sanitized = sanitized.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL]");
   sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g, "[TOKEN]");
   sanitized = sanitized.replace(/(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|mssql):\/\/[^\s"']+/gi, "[CONNECTION_STRING]");
-  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.supabase\.co[^\s"']*/gi, "[SUPABASE_URL]");
-  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.neon\.tech[^\s"']*/gi, "[NEON_URL]");
+  sanitized = sanitized.replace(/https?:\/\/[^\s"']+(?:\/auth\/v1|\/rest\/v1)[^\s"']*/gi, "[DB_API_URL]");
+  sanitized = sanitized.replace(/https?:\/\/[a-z0-9-]+\.neon\.tech[^\s"']*/gi, "[DB_URL]");
   sanitized = sanitized.replace(/(?:api[_-]?key|secret|password|token|auth|bearer)[=:]\s*["']?[a-zA-Z0-9_\-./+=]{16,}["']?/gi, "[CREDENTIAL]");
   sanitized = sanitized.replace(/eyJ[a-zA-Z0-9_-]{100,}/g, "[SERVICE_KEY]");
   sanitized = sanitized.replace(/\$2[aby]?\$\d{1,2}\$[./A-Za-z0-9]{53}/g, "[HASH]");
@@ -754,6 +754,9 @@ function renderEmailTemplate(templateName, data) {
 }
 
 // api-src/notifications.ts
+function generateIdempotencyKey(userId, type, entityType, entityId) {
+  return `${userId}:${type}:${entityType}:${entityId}`;
+}
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
@@ -914,7 +917,7 @@ async function handleDelete(req, res) {
   return sendSuccess(res, { deleted: true });
 }
 async function createNotificationWithDedup(userId, eventType, entityId, entityType, message, channel, extra) {
-  const idempotencyKey = `${eventType}:${entityType}:${entityId}`;
+  const idempotencyKey = generateIdempotencyKey(userId, eventType, entityType, entityId);
   const existing = await query(`SELECT id FROM notifications
      WHERE user_id = $1 AND idempotency_key = $2
      AND created_at > NOW() - INTERVAL '1 hour'
@@ -948,7 +951,7 @@ async function handleCheckDuplicate(req, res) {
   if (!user) {
     return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
-  const { user_id, title, message, type } = req.body || {};
+  const { user_id, title, message, type, entity_type, entity_id } = req.body || {};
   const targetUserId = user_id || user.userId;
   if (!targetUserId || !title || !message) {
     return sendError(res, "user_id, title, and message are required", HttpStatus.BAD_REQUEST);
@@ -958,7 +961,7 @@ async function handleCheckDuplicate(req, res) {
     return sendError(res, "Forbidden", HttpStatus.FORBIDDEN);
   }
   const normalizedType = type || "info";
-  const idempotencyKey = `${targetUserId}:${normalizedType}:${title}:${message}`;
+  const idempotencyKey = generateIdempotencyKey(targetUserId, normalizedType, entity_type || "notification", entity_id || title);
   const existing = await query(`SELECT id FROM notifications
      WHERE user_id = $1 AND idempotency_key = $2
      AND created_at > NOW() - INTERVAL '1 minute'
@@ -973,7 +976,7 @@ async function handleCreate(req, res) {
   if (!user) {
     return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
-  const { user_id, title, message, type, action_url } = req.body || {};
+  const { user_id, title, message, type, action_url, entity_type, entity_id } = req.body || {};
   const targetUserId = user_id || user.userId;
   if (!targetUserId || !title || !message) {
     return sendError(res, "user_id, title, and message are required", HttpStatus.BAD_REQUEST);
@@ -983,7 +986,7 @@ async function handleCreate(req, res) {
     return sendError(res, "Forbidden", HttpStatus.FORBIDDEN);
   }
   const notificationType = type || "info";
-  const idempotencyKey = `${targetUserId}:${notificationType}:${title}:${message}`;
+  const idempotencyKey = generateIdempotencyKey(targetUserId, notificationType, entity_type || "notification", entity_id || title);
   const existing = await query(`SELECT id FROM notifications
      WHERE user_id = $1 AND idempotency_key = $2
      AND created_at > NOW() - INTERVAL '1 minute'
@@ -1125,6 +1128,7 @@ async function handlePushSend(req, res) {
 var notifications_default = withArcjetProtection(handler, "general");
 export {
   isMandatoryEmailType,
+  generateIdempotencyKey,
   notifications_default as default,
   MANDATORY_EMAIL_TYPES
 };

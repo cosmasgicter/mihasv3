@@ -3,17 +3,42 @@
 // This file centralizes all security configurations and utilities
 
 import DOMPurify from 'dompurify'
+import { getEnvVariable } from '../utils/env'
+
+function getStorageHost(): string | null {
+  const r2PublicUrl = getEnvVariable('VITE_R2_PUBLIC_URL', '')
+  if (!r2PublicUrl) {
+    return null
+  }
+
+  try {
+    return new URL(r2PublicUrl).hostname
+  } catch {
+    return null
+  }
+}
+
+const storageHost = getStorageHost()
+const allowedHosts = [
+  'apply.mihas.edu.zm',
+  'mihas.vercel.app',
+  'localhost',
+  '127.0.0.1'
+]
+
+if (storageHost) {
+  allowedHosts.push(storageHost)
+}
+
+const connectSources = ["'self'", '***REMOVED***']
+if (storageHost) {
+  connectSources.push(`https://${storageHost}`)
+}
 
 // Security Configuration Constants
 export const SECURITY_CONFIG = {
   // Allowed hosts for API requests (prevents SSRF)
-  ALLOWED_HOSTS: [
-    'apply.mihas.edu.zm',
-    'mihas.vercel.app',
-    'a3ba1959935abd8777e64caee46d1de1.r2.cloudflarestorage.com',
-    'localhost',
-    '127.0.0.1'
-  ],
+  ALLOWED_HOSTS: allowedHosts,
   
   // File upload restrictions
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
@@ -42,11 +67,11 @@ export const SECURITY_CONFIG = {
   // Content Security Policy
   CSP_DIRECTIVES: {
     'default-src': ["'self'"],
-    'script-src': ["'self'", "'unsafe-inline'", 'https://challenges.cloudflare.com'],
+    'script-src': ["'self'", "'unsafe-inline'"],
     'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
     'font-src': ["'self'", 'https://fonts.gstatic.com'],
     'img-src': ["'self'", 'data:', 'https:', 'blob:'],
-    'connect-src': ["'self'", '***REMOVED***', '***REMOVED***'],
+    'connect-src': connectSources,
     'frame-src': ["'none'"],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
