@@ -8,9 +8,9 @@ import { apiClient } from '@/services/client'
 export async function refreshAuthSession() {
   try {
     // First, try to get the current session
-    let sessionData: any
+    let sessionData: { user?: { id: string; role?: string } } | null = null
     try {
-      sessionData = await apiClient.request<{ user?: any }>('/api/auth?action=session')
+      sessionData = await apiClient.request<{ user?: { id: string; role?: string } }>('/api/auth?action=session')
     } catch (error) {
       const message = error instanceof Error ? error.message : ''
       if (message.includes('401') || message.includes('Authentication required')) {
@@ -21,7 +21,7 @@ export async function refreshAuthSession() {
       return { success: false, error: message }
     }
     
-    if (!sessionData || !(sessionData as any)?.user) {
+    if (!sessionData?.user) {
       logger.error('Invalid session structure')
       return { success: false, error: 'Invalid session' }
     }
@@ -30,13 +30,13 @@ export async function refreshAuthSession() {
     logger.info('Refreshing token...')
     
     try {
-      const refreshData = await apiClient.request<{ user?: any }>('/api/auth?action=refresh', {
+      const refreshData = await apiClient.request<{ user?: { id: string; role?: string } }>('/api/auth?action=refresh', {
         method: 'POST',
       })
       
       if (refreshData) {
         logger.info('Token refreshed successfully')
-        return { success: true, user: (refreshData as any)?.user }
+        return { success: true, user: refreshData?.user }
       }
       
       return { success: false, error: 'Refresh returned no session' }

@@ -1,5 +1,3 @@
-import { monitoring } from '@/lib/monitoring'
-
 type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 interface LogEntry {
@@ -32,13 +30,8 @@ class Logger {
     }
   }
 
-  private sendToMonitoring(entry: LogEntry) {
-    // Send to monitoring service without duplicating console logs
-    monitoring.trackException('logger', entry.message, {
-      level: entry.level,
-      data: entry.data,
-      originalTimestamp: entry.timestamp
-    })
+  private sendToMonitoring(_entry: LogEntry) {
+    // monitoring service removed
   }
 
   debug(message: string, data?: any) {

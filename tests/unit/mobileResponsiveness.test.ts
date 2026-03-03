@@ -65,9 +65,9 @@ describe('Mobile Responsiveness - Requirement 22', () => {
     it.each(ALL_PAGES)('%s does not use fixed pixel widths that would overflow 375px', (pagePath) => {
       const content = readComponent(pagePath)
       // Check for dangerous fixed widths (w-[500px], w-[600px], etc.)
-      const dangerousWidths = content.match(/w-\[(\d+)px\]/g) || []
+      const dangerousWidths: string[] = content.match(/w-\[(\d+)px\]/g) ?? []
       const overflowWidths = dangerousWidths.filter((w) => {
-        const px = parseInt(w.match(/\d+/)?.[0] || '0')
+        const px = parseInt(w.match(/\d+/)?.[0] ?? '0')
         return px > 375
       })
       expect(overflowWidths).toEqual([])

@@ -107,7 +107,8 @@ export default function PaymentPage() {
 
       // The new client returns the unwrapped payload directly (PaginatedApplicationsResponse)
       // Defensive check: handle paginated object, plain array, or null/undefined
-      const payload = response as unknown as ApplicationsListPayload | ApplicationWithPayment[] | null | undefined
+      type ListPayload = ApplicationsListPayload | ApplicationWithPayment[] | null | undefined
+      const payload = response as ListPayload
       const listData = payload && !Array.isArray(payload) && Array.isArray(payload.applications)
         ? payload.applications
         : (Array.isArray(payload) ? payload : [])

@@ -125,6 +125,7 @@ export function FormSelect<T extends FieldValues>({
                 triggerClassName
               )}
               aria-invalid={!!error}
+              aria-required={required || undefined}
               aria-describedby={
                 error ? errorId : helperText ? helperId : undefined
               }

@@ -52,7 +52,7 @@ export const signUpSchema = z.object({
     }, {
       message: 'Please enter a valid date of birth (must be at least 16 years old)'
     }),
-  sex: z.enum(['Male', 'Female'], { required_error: 'Please select a sex' }),
+  sex: z.enum(['Male', 'Female'] as const, { error: 'Please select a sex' }),
   residence_town: z.string().min(2, 'City is required'),
   nationality: z.string().min(2, 'Nationality is required'),
   next_of_kin_name: z.string().min(2, 'Next of kin name is required'),

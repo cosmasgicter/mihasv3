@@ -3,6 +3,8 @@ import { CheckCircle, XCircle, AlertTriangle, TrendingUp, FileText, MessageSquar
 import { eligibilityEngine, EligibilityAssessment, MissingRequirement } from '../../lib/eligibilityEngine'
 import { Button } from '../ui/Button'
 import { toast } from '@/hooks/useToast'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface EligibilityCheckerProps {
   applicationId: string
@@ -25,6 +27,8 @@ export function EligibilityChecker({
   const [loading, setLoading] = useState(false)
   const [showAppealForm, setShowAppealForm] = useState(false)
   const [appealReason, setAppealReason] = useState('')
+  const focusTrapRef = useFocusTrap(showAppealForm)
+  useEscapeKey(showAppealForm, () => setShowAppealForm(false))
 
   useEffect(() => {
     if (grades.length > 0 && programId) {
@@ -260,7 +264,13 @@ export function EligibilityChecker({
       {/* Appeal Form Modal */}
       {showAppealForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-card rounded-lg max-w-md w-full p-6">
+          <div
+            ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Submit Eligibility Appeal"
+            className="bg-card rounded-lg max-w-md w-full p-6"
+          >
             <h3 className="text-lg font-semibold mb-4">Submit Eligibility Appeal</h3>
             <div className="space-y-4">
               <div>

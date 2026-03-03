@@ -4,14 +4,12 @@
  * GET/POST/PATCH /api/auth?action=login|logout|register|session|refresh|roles|profile
  * 
  * Custom Bun-Native Authentication System
- * REPLACES: Supabase Auth entirely
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { handleCors } from "../lib/cors";
 import { query } from "../lib/db";
-import { hashPassword, verifyPassword, needsPasswordUpgrade, upgradePasswordHash } from "../lib/auth/password";
-import type { UserRecord } from "../lib/queries";
+import { hashPassword, verifyPassword, isSha256Hash, verifySha256Password, migrateSha256ToBcrypt } from "../lib/auth/password";
 import { 
   generateAccessToken, 
   generateRefreshToken,
@@ -21,10 +19,14 @@ import {
 } from "../lib/auth/jwt";
 import { getPermissionsForRole } from "../lib/auth/permissions";
 import { setAuthCookies, clearAuthCookies, extractAccessTokenFromCookie, extractRefreshTokenFromCookie, extractBearerToken } from "../lib/auth/cookies";
-import { withArcjetProtection } from "../lib/arcjet";
-import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
-import { createHash, randomBytes, timingSafeEqual } from "crypto";
+import { withArcjetProtection, arcjetProtect } from "../lib/arcjet";
+import { handleError, sendSuccess, sendError, HttpStatus, logErrorAuditEvent } from "../lib/errorHandler";
+import { createHash, randomBytes } from "crypto";
 import { logAuditEvent, logAuthEvent } from "../lib/auditLogger";
+import { generateToken as generateCsrfToken, rotateToken as rotateCsrfToken } from "../lib/csrf";
+import { validateBody, validateQuery } from "../lib/validation/middleware";
+import { loginBodySchema, registerBodySchema, passwordResetRequestBodySchema, passwordResetBodySchema, profileUpdateBodySchema, checkEmailQuerySchema } from "../lib/validation/auth";
+import { validateServerEnv } from "../lib/envValidator";
 
 function deriveFullName(params: {
   full_name?: string | null;
@@ -65,7 +67,21 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   // Handle CORS
   if (handleCors(req, res)) return;
 
+  // Validate required environment variables (Req 25.3)
+  const envResult = validateServerEnv();
+  if (!envResult.valid) {
+    const details = envResult.errors.map((e) => e.message).join('; ');
+    return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+  }
+
   const action = req.query.action as string;
+
+  // CSRF validation for state-changing actions (skip login, register, forgot-password, reset-password, password-reset-request, password-reset — unauthenticated)
+  const csrfExemptActions = ['login', 'register', 'forgot-password', 'reset-password', 'password-reset-request', 'password-reset'];
+  if (!csrfExemptActions.includes(action)) {
+    const { requireCsrf } = await import('../lib/csrf');
+    if (await requireCsrf(req, res)) return;
+  }
 
   try {
     switch (action) {
@@ -86,11 +102,13 @@ async function handler(req: VercelRequest, res: VercelResponse) {
       case 'profile':
         return await handleProfile(req, res);
       case 'forgot-password':
-        return await handleForgotPassword(req, res);
+      case 'password-reset-request':
+        return await handlePasswordResetRequest(req, res);
       case 'reset-password':
-        return await handleResetPassword(req, res);
+      case 'password-reset':
+        return await handlePasswordReset(req, res);
       default:
-        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, check-email, roles, profile, forgot-password, reset-password', HttpStatus.BAD_REQUEST);
+        return sendError(res, 'Invalid action. Use: login, logout, register, session, refresh, check-email, roles, profile, forgot-password, reset-password, password-reset-request, password-reset', HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error);
@@ -159,28 +177,205 @@ async function sendPasswordResetEmail(email: string, fullName: string, resetLink
   return emailResponse.ok;
 }
 
+// ============================================================================
+// Login Attempt Tracking & Account Protection (Requirement 7)
+// ============================================================================
+
+/** Cooldown window: 15 minutes after 5 failures */
+const LOGIN_COOLDOWN_THRESHOLD = 5;
+const LOGIN_COOLDOWN_MINUTES = 15;
+
+/** Account lockout: 30 minutes after 10 consecutive failures */
+const LOGIN_LOCKOUT_THRESHOLD = 10;
+const LOGIN_LOCKOUT_MINUTES = 30;
+
+/** Registration rate limit: 3 per IP per 10 minutes */
+const REGISTRATION_RATE_LIMIT = 3;
+const REGISTRATION_RATE_WINDOW_MINUTES = 10;
+
 /**
- * Handle forgot-password
- * POST /api/auth?action=forgot-password
+ * Hash a value with SHA-256 for PII-safe storage.
+ * Used for email and IP addresses in login_attempts table.
+ */
+function hashForStorage(value: string): string {
+  return createHash('sha256').update(value.toLowerCase().trim()).digest('hex');
+}
+
+/**
+ * Extract client IP address from request headers.
+ */
+function getClientIp(req: VercelRequest): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string') {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.socket?.remoteAddress || 'unknown';
+}
+
+/**
+ * Record a login attempt (success or failure) in the login_attempts table.
+ * Never throws — failures are logged but do not block the login flow.
+ */
+async function recordLoginAttempt(emailHash: string, ipHash: string, success: boolean): Promise<void> {
+  try {
+    await query(
+      `INSERT INTO login_attempts (email_hash, ip_hash, attempted_at, success)
+       VALUES ($1, $2, NOW(), $3)`,
+      [emailHash, ipHash, success]
+    );
+  } catch (err) {
+    console.error('[AUTH] Failed to record login attempt:', (err as Error).message);
+    logErrorAuditEvent('auth/record-login-attempt', err).catch(() => {});
+  }
+}
+
+/**
+ * Check if an email is in cooldown (5+ failures in the last 15 minutes).
+ * Returns { blocked: true, retryAfterSeconds } if cooldown is active.
+ */
+async function checkLoginCooldown(emailHash: string): Promise<{ blocked: boolean; retryAfterSeconds: number }> {
+  try {
+    const result = await query<{ fail_count: string; oldest_failure: string }>(
+      `SELECT COUNT(*) AS fail_count, MIN(attempted_at) AS oldest_failure
+       FROM login_attempts
+       WHERE email_hash = $1
+         AND success = FALSE
+         AND attempted_at > NOW() - INTERVAL '${LOGIN_COOLDOWN_MINUTES} minutes'`,
+      [emailHash]
+    );
+
+    const failCount = parseInt(result.rows[0]?.fail_count || '0', 10);
+
+    if (failCount >= LOGIN_COOLDOWN_THRESHOLD) {
+      // Calculate retry-after from the oldest failure in the window
+      const oldestFailure = new Date(result.rows[0].oldest_failure);
+      const cooldownEnd = new Date(oldestFailure.getTime() + LOGIN_COOLDOWN_MINUTES * 60 * 1000);
+      const retryAfterSeconds = Math.max(1, Math.ceil((cooldownEnd.getTime() - Date.now()) / 1000));
+      return { blocked: true, retryAfterSeconds };
+    }
+
+    return { blocked: false, retryAfterSeconds: 0 };
+  } catch (err) {
+    console.error('[AUTH] Failed to check login cooldown:', (err as Error).message);
+    logErrorAuditEvent('auth/check-login-cooldown', err).catch(() => {});
+    // Fail open — don't block legitimate users if the check fails
+    return { blocked: false, retryAfterSeconds: 0 };
+  }
+}
+
+/**
+ * Check if an account should be locked (10+ consecutive failures).
+ * Returns { locked: true, retryAfterSeconds } if lockout is active.
+ */
+async function checkAccountLockout(emailHash: string): Promise<{ locked: boolean; retryAfterSeconds: number }> {
+  try {
+    // Get the last 10 attempts for this email, ordered by most recent
+    const result = await query<{ success: boolean; attempted_at: string }>(
+      `SELECT success, attempted_at
+       FROM login_attempts
+       WHERE email_hash = $1
+       ORDER BY attempted_at DESC
+       LIMIT $2`,
+      [emailHash, LOGIN_LOCKOUT_THRESHOLD]
+    );
+
+    if (result.rows.length < LOGIN_LOCKOUT_THRESHOLD) {
+      return { locked: false, retryAfterSeconds: 0 };
+    }
+
+    // Check if all of the last 10 attempts are failures
+    const allFailed = result.rows.every(row => !row.success);
+    if (!allFailed) {
+      return { locked: false, retryAfterSeconds: 0 };
+    }
+
+    // Check if the lockout window is still active (30 min from the 10th failure)
+    const tenthFailure = new Date(result.rows[result.rows.length - 1].attempted_at);
+    const lockoutEnd = new Date(tenthFailure.getTime() + LOGIN_LOCKOUT_MINUTES * 60 * 1000);
+
+    if (Date.now() < lockoutEnd.getTime()) {
+      const retryAfterSeconds = Math.max(1, Math.ceil((lockoutEnd.getTime() - Date.now()) / 1000));
+      return { locked: true, retryAfterSeconds };
+    }
+
+    return { locked: false, retryAfterSeconds: 0 };
+  } catch (err) {
+    console.error('[AUTH] Failed to check account lockout:', (err as Error).message);
+    logErrorAuditEvent('auth/check-account-lockout', err).catch(() => {});
+    return { locked: false, retryAfterSeconds: 0 };
+  }
+}
+
+/**
+ * Send account lockout notification email via Resend.
+ * Non-blocking — failures are logged but never thrown.
+ */
+async function sendLockoutNotificationEmail(email: string, fullName: string): Promise<void> {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('[AUTH] RESEND_API_KEY not configured, cannot send lockout notification');
+    return;
+  }
+
+  try {
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #dc2626;">MIHAS Account Security Alert</h2>
+        <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+          Hello ${fullName || 'Student'},
+        </p>
+        <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+          Your MIHAS account has been temporarily locked due to multiple failed login attempts.
+          The account will be automatically unlocked after ${LOGIN_LOCKOUT_MINUTES} minutes.
+        </p>
+        <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+          If this was not you, we recommend resetting your password immediately after the lockout period ends.
+        </p>
+        <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">
+          This is an automated security notification from the MIHAS Application System.
+        </p>
+      </div>
+    `;
+
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: process.env.EMAIL_FROM || 'noreply@mihas.edu.zm',
+        to: email,
+        subject: 'MIHAS Account Locked — Security Alert',
+        html: emailHtml,
+      }),
+    });
+  } catch (err) {
+    console.error('[AUTH] Failed to send lockout notification email:', (err as Error).message);
+    logErrorAuditEvent('auth/send-lockout-email', err).catch(() => {});
+  }
+}
+
+/**
+ * Handle password-reset-request (replaces forgot-password)
+ * POST /api/auth?action=password-reset-request (or forgot-password for backward compat)
  * Body: { email }
  *
- * Generates a random 32-byte hex token, stores its SHA-256 hash in the profiles
- * table with a 1-hour expiry, and sends a reset link via Resend.
+ * Rate-limited: 3 requests per email per 15-minute window.
+ * Generates a 32-byte random token, stores its SHA-256 hash in password_reset_tokens,
+ * and sends a reset link via Resend.
  * NEVER reveals whether the email exists in the system.
  *
- * Requirements: 6.1, 6.2, 6.3, 6.6
+ * Requirements: 3.1, 3.4, 3.5
  */
-async function handleForgotPassword(req: VercelRequest, res: VercelResponse) {
+async function handlePasswordResetRequest(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const { email } = req.body || {};
-  if (!email || typeof email !== 'string') {
-    return sendError(res, 'Email is required', HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR');
-  }
+  const parsed = validateBody(passwordResetRequestBodySchema, req, res);
+  if (!parsed) return;
 
-  const normalizedEmail = email.toLowerCase().trim();
+  const normalizedEmail = parsed.email.toLowerCase().trim();
 
   // Look up the profile — but always return the same response regardless
   const userResult = await query<{
@@ -197,37 +392,59 @@ async function handleForgotPassword(req: VercelRequest, res: VercelResponse) {
   if (userResult.rows.length > 0) {
     const user = userResult.rows[0];
 
+    // Rate limit: 3 requests per email per 15-minute window
+    const rateLimitResult = await query<{ request_count: string }>(
+      `SELECT COUNT(*) AS request_count FROM password_reset_tokens
+       WHERE user_id = $1 AND created_at > NOW() - INTERVAL '15 minutes'`,
+      [user.id]
+    );
+
+    const requestCount = parseInt(rateLimitResult.rows[0]?.request_count || '0', 10);
+    if (requestCount >= 3) {
+      // Calculate Retry-After: seconds remaining in the 15-min window
+      const oldestInWindowResult = await query<{ oldest: string }>(
+        `SELECT MIN(created_at) AS oldest FROM password_reset_tokens
+         WHERE user_id = $1 AND created_at > NOW() - INTERVAL '15 minutes'`,
+        [user.id]
+      );
+      const oldest = oldestInWindowResult.rows[0]?.oldest;
+      let retryAfterSeconds = 900; // default 15 min
+      if (oldest) {
+        const windowEnd = new Date(oldest).getTime() + 15 * 60 * 1000;
+        retryAfterSeconds = Math.max(1, Math.ceil((windowEnd - Date.now()) / 1000));
+      }
+      res.setHeader('Retry-After', String(retryAfterSeconds));
+      return sendError(res, 'Too many password reset requests. Please try again later.', HttpStatus.TOO_MANY_REQUESTS, 'RATE_LIMIT_EXCEEDED');
+    }
+
     // Generate 32 random bytes as hex — this is the raw token sent to the user
     const rawToken = randomBytes(32).toString('hex');
     // Store only the SHA-256 hash in the database
     const tokenHash = hashResetToken(rawToken);
 
-    // Store hash, set 1-hour expiry, mark as unused
+    // Insert into password_reset_tokens with 1-hour expiry
     await query(
-      `UPDATE profiles
-       SET reset_token_hash = $1,
-           reset_token_expires = NOW() + INTERVAL '1 hour',
-           reset_token_used = false,
-           updated_at = NOW()
-       WHERE id = $2`,
-      [tokenHash, user.id]
+      `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+       VALUES ($1, $2, NOW() + INTERVAL '1 hour')`,
+      [user.id, tokenHash]
     );
 
     const resetLink = buildResetPasswordLink(rawToken);
     const fullName = deriveFullName(user);
 
-    // Send email — on failure, log but don't expose to user (Req 6.6: queue with retry)
+    // Send email — on failure, log but don't expose to user
     try {
       const sent = await sendPasswordResetEmail(user.email, fullName, resetLink);
       if (!sent) {
         console.warn('[AUTH] Password reset email delivery failed, should be retried');
       }
-    } catch {
+    } catch (emailErr) {
       console.warn('[AUTH] Password reset email send threw, should be retried');
+      logErrorAuditEvent('auth/password-reset-email', emailErr).catch(() => {});
     }
   }
 
-  // Always return the same message — never reveal whether email exists (Req 6.1)
+  // Always return the same message — never reveal whether email exists
   return sendSuccess(res, {
     message: 'If an account with that email exists, a password reset link has been sent.',
   });
@@ -244,52 +461,65 @@ async function handleForgotPassword(req: VercelRequest, res: VercelResponse) {
  *
  * Requirements: 6.3, 6.4, 6.5
  */
-async function handleResetPassword(req: VercelRequest, res: VercelResponse) {
+/**
+ * Handle password-reset (replaces reset-password)
+ * POST /api/auth?action=password-reset (or reset-password for backward compat)
+ * Body: { token, newPassword }
+ *
+ * Validates the token against password_reset_tokens, changes the password,
+ * marks the token as used, and invalidates ALL outstanding tokens for the user.
+ *
+ * Requirements: 3.2, 3.3
+ */
+async function handlePasswordReset(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const { token, newPassword } = req.body || {};
-  if (!token || typeof token !== 'string' || !newPassword || typeof newPassword !== 'string') {
-    return sendError(res, 'Token and new password are required', HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR');
-  }
+  const parsed = validateBody(passwordResetBodySchema, req, res);
+  if (!parsed) return;
 
-  if (newPassword.length < 8) {
-    return sendError(res, 'Password must be at least 8 characters', HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR');
-  }
+  const { token, newPassword } = parsed;
 
   // Compute SHA-256 hash of the provided token
   const tokenHash = hashResetToken(token);
 
-  // Find profile with matching hash, not expired, not used
-  const profileResult = await query<{ id: string }>(
-    `SELECT id FROM profiles
-     WHERE reset_token_hash = $1
-       AND reset_token_expires > NOW()
-       AND reset_token_used = false
+  // Find a valid token: matching hash, not expired, not used
+  const tokenResult = await query<{ id: string; user_id: string }>(
+    `SELECT id, user_id FROM password_reset_tokens
+     WHERE token_hash = $1
+       AND expires_at > NOW()
+       AND used_at IS NULL
      LIMIT 1`,
     [tokenHash]
   );
 
-  if (profileResult.rows.length === 0) {
+  if (tokenResult.rows.length === 0) {
     return sendError(res, 'Invalid or expired reset token', HttpStatus.BAD_REQUEST, 'INVALID_TOKEN');
   }
 
-  const profileId = profileResult.rows[0].id;
+  const { id: tokenId, user_id: userId } = tokenResult.rows[0];
 
   // Hash new password with bcrypt (12 rounds)
   const hashedPassword = await hashPassword(newPassword);
 
-  // Update password, mark token as used, clear token fields
+  // Update password on the profiles table
   await query(
-    `UPDATE profiles
-     SET password_hash = $1,
-         reset_token_used = true,
-         reset_token_hash = NULL,
-         reset_token_expires = NULL,
-         updated_at = NOW()
-     WHERE id = $2`,
-    [hashedPassword, profileId]
+    `UPDATE profiles SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+    [hashedPassword, userId]
+  );
+
+  // Mark this specific token as used
+  await query(
+    `UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1`,
+    [tokenId]
+  );
+
+  // Invalidate ALL outstanding (unused) tokens for this user
+  await query(
+    `UPDATE password_reset_tokens SET used_at = NOW()
+     WHERE user_id = $1 AND used_at IS NULL`,
+    [userId]
   );
 
   return sendSuccess(res, {
@@ -301,16 +531,36 @@ async function handleResetPassword(req: VercelRequest, res: VercelResponse) {
  * Handle login
  * POST /api/auth?action=login
  * Body: { email, password }
+ *
+ * Requirement 7: Per-email progressive backoff and account lockout.
+ * - After 5 failures: 15-minute cooldown
+ * - After 10 consecutive failures: 30-minute lockout + notification email
+ * - All 429 responses include Retry-After header
  */
 async function handleLogin(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const { email, password } = req.body || {};
+  const parsed = validateBody(loginBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!email || !password) {
-    return sendError(res, 'Email and password required', HttpStatus.BAD_REQUEST);
+  const { email, password } = parsed;
+  const emailHash = hashForStorage(email);
+  const ipHash = hashForStorage(getClientIp(req));
+
+  // Check account lockout first (10 consecutive failures → 30 min lock)
+  const lockout = await checkAccountLockout(emailHash);
+  if (lockout.locked) {
+    res.setHeader('Retry-After', String(lockout.retryAfterSeconds));
+    return sendError(res, 'Account temporarily locked due to too many failed attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS, 'RATE_LIMIT_EXCEEDED');
+  }
+
+  // Check progressive cooldown (5 failures in 15 min window)
+  const cooldown = await checkLoginCooldown(emailHash);
+  if (cooldown.blocked) {
+    res.setHeader('Retry-After', String(cooldown.retryAfterSeconds));
+    return sendError(res, 'Too many login attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS, 'RATE_LIMIT_EXCEEDED');
   }
 
   // Find user by email
@@ -329,50 +579,48 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
   );
 
   if (result.rows.length === 0) {
+    // Record failed attempt even for non-existent emails (prevents email enumeration timing)
+    await recordLoginAttempt(emailHash, ipHash, false);
     return sendError(res, 'Invalid credentials', HttpStatus.UNAUTHORIZED);
   }
 
   const user = result.rows[0];
 
   if (!user.is_active) {
+    await recordLoginAttempt(emailHash, ipHash, false);
     return sendError(res, 'Account is disabled', HttpStatus.FORBIDDEN);
   }
 
-  // Branch for migrated/legacy accounts that don't have bcrypt hashes yet
-  if (needsPasswordUpgrade(toLegacyCompatibleUserRecord(user))) {
-    const legacyAuthResult = verifyLegacyPassword(password, user.password_hash);
+  // Password verification (with SHA-256→bcrypt migration support)
+  let passwordValid = false;
 
-    if (!legacyAuthResult.isValid) {
-      if (legacyAuthResult.requiresMigration) {
-        return sendError(
-          res,
-          'Password migration required. Use the forgot-password flow to reset your password.',
-          HttpStatus.UNAUTHORIZED,
-          'PASSWORD_MIGRATION_REQUIRED'
-        );
-      }
-
-      return sendError(res, 'Invalid credentials', HttpStatus.UNAUTHORIZED);
+  if (user.password_hash && isSha256Hash(user.password_hash)) {
+    // One-time SHA-256→bcrypt migration
+    const sha256Valid = verifySha256Password(password, user.password_hash);
+    if (sha256Valid) {
+      const migrated = await migrateSha256ToBcrypt(user.id, password);
+      passwordValid = migrated !== null;
     }
-
-    const upgraded = await upgradePasswordHash(user.id, password);
-    if (!upgraded) {
-      return sendError(
-        res,
-        'Password migration required. Use the forgot-password flow to reset your password.',
-        HttpStatus.UNAUTHORIZED,
-        'PASSWORD_MIGRATION_REQUIRED'
-      );
-    }
-
   } else {
-    // Standard bcrypt verification path
-    const isValid = await verifyPassword(password, user.password_hash as string);
-
-    if (!isValid) {
-      return sendError(res, 'Invalid credentials', HttpStatus.UNAUTHORIZED);
-    }
+    passwordValid = await verifyPassword(password, user.password_hash as string);
   }
+
+  if (!passwordValid) {
+    // Record failed attempt
+    await recordLoginAttempt(emailHash, ipHash, false);
+
+    // Check if this failure triggers account lockout (10 consecutive)
+    const postFailLockout = await checkAccountLockout(emailHash);
+    if (postFailLockout.locked) {
+      // Queue lockout notification email (non-blocking)
+      sendLockoutNotificationEmail(user.email, deriveFullName(user)).catch(() => {});
+    }
+
+    return sendError(res, 'Invalid credentials', HttpStatus.UNAUTHORIZED);
+  }
+
+  // Successful login — record success (resets consecutive failure count)
+  await recordLoginAttempt(emailHash, ipHash, true);
 
   // Generate tokens
   const permissions = getPermissionsForRole(user.role);
@@ -381,6 +629,10 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
 
   // Set cookies
   setAuthCookies(res, accessToken, refreshToken);
+
+  // Generate CSRF token and return in response header
+  const csrfToken = await generateCsrfToken(user.id);
+  res.setHeader('X-CSRF-Token', csrfToken);
 
   return sendSuccess(res, {
     user: {
@@ -396,69 +648,7 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
 }
 
 
-function toLegacyCompatibleUserRecord(user: {
-  id: string;
-  email: string;
-  password_hash: string | null;
-  role: UserRole;
-  is_active: boolean;
-}): UserRecord {
-  const now = new Date();
 
-  return {
-    id: user.id,
-    email: user.email,
-    password_hash: user.password_hash,
-    refresh_token_hash: null,
-    role: user.role,
-    first_name: null,
-    last_name: null,
-    full_name: null,
-    phone: null,
-    is_active: user.is_active,
-    failed_login_attempts: 0,
-    locked_until: null,
-    password_changed_at: null,
-    created_at: now,
-    updated_at: now,
-  };
-}
-
-function verifyLegacyPassword(password: string, storedHash: string | null): { isValid: boolean; requiresMigration: boolean } {
-  if (!storedHash) {
-    return { isValid: false, requiresMigration: true };
-  }
-
-  // Legacy plaintext format stored as plain:<password>
-  if (storedHash.startsWith('plain:')) {
-    const legacyPassword = storedHash.slice('plain:'.length);
-    const passwordBuffer = Buffer.from(password);
-    const legacyBuffer = Buffer.from(legacyPassword);
-
-    if (passwordBuffer.length !== legacyBuffer.length) {
-      return { isValid: false, requiresMigration: false };
-    }
-
-    return {
-      isValid: timingSafeEqual(passwordBuffer, legacyBuffer),
-      requiresMigration: false,
-    };
-  }
-
-  // Legacy SHA-256 format
-  if (/^[a-f0-9]{64}$/i.test(storedHash)) {
-    const passwordHash = createHash('sha256').update(password).digest('hex');
-    const passwordBuffer = Buffer.from(passwordHash, 'hex');
-    const legacyBuffer = Buffer.from(storedHash, 'hex');
-
-    return {
-      isValid: timingSafeEqual(passwordBuffer, legacyBuffer),
-      requiresMigration: false,
-    };
-  }
-
-  return { isValid: false, requiresMigration: true };
-}
 
 /**
  * Handle logout
@@ -487,8 +677,9 @@ async function handleLogout(req: VercelRequest, res: VercelResponse) {
           changes: { all_sessions_deactivated: true },
         });
       } catch { /* non-blocking */ }
-    } catch {
+    } catch (logoutErr) {
       // Token expired/invalid — still clear cookies, just can't deactivate sessions
+      logErrorAuditEvent('auth/logout-session-deactivation', logoutErr).catch(() => {});
     }
   }
 
@@ -497,20 +688,85 @@ async function handleLogout(req: VercelRequest, res: VercelResponse) {
 }
 
 /**
+ * Check registration rate limit per IP address.
+ * Returns { blocked: true, retryAfterSeconds } if limit exceeded.
+ * Uses login_attempts table with a special email_hash prefix for registration tracking.
+ */
+async function checkRegistrationRateLimit(ipHash: string): Promise<{ blocked: boolean; retryAfterSeconds: number }> {
+  try {
+    const result = await query<{ reg_count: string; oldest_reg: string }>(
+      `SELECT COUNT(*) AS reg_count, MIN(attempted_at) AS oldest_reg
+       FROM login_attempts
+       WHERE email_hash = $1
+         AND attempted_at > NOW() - INTERVAL '${REGISTRATION_RATE_WINDOW_MINUTES} minutes'`,
+      [`reg:${ipHash}`]
+    );
+
+    const regCount = parseInt(result.rows[0]?.reg_count || '0', 10);
+
+    if (regCount >= REGISTRATION_RATE_LIMIT) {
+      const oldestReg = new Date(result.rows[0].oldest_reg);
+      const windowEnd = new Date(oldestReg.getTime() + REGISTRATION_RATE_WINDOW_MINUTES * 60 * 1000);
+      const retryAfterSeconds = Math.max(1, Math.ceil((windowEnd.getTime() - Date.now()) / 1000));
+      return { blocked: true, retryAfterSeconds };
+    }
+
+    return { blocked: false, retryAfterSeconds: 0 };
+  } catch (err) {
+    console.error('[AUTH] Failed to check registration rate limit:', (err as Error).message);
+    logErrorAuditEvent('auth/check-registration-rate-limit', err).catch(() => {});
+    return { blocked: false, retryAfterSeconds: 0 };
+  }
+}
+
+/**
+ * Record a registration attempt for IP-based rate limiting.
+ */
+async function recordRegistrationAttempt(ipHash: string): Promise<void> {
+  try {
+    await query(
+      `INSERT INTO login_attempts (email_hash, ip_hash, attempted_at, success)
+       VALUES ($1, $2, NOW(), TRUE)`,
+      [`reg:${ipHash}`, ipHash]
+    );
+  } catch (err) {
+    console.error('[AUTH] Failed to record registration attempt:', (err as Error).message);
+    logErrorAuditEvent('auth/record-registration-attempt', err).catch(() => {});
+  }
+}
+
+/**
  * Handle registration
  * POST /api/auth?action=register
  * Body: { email, password, firstName, lastName }
+ *
+ * Requirement 7.5: Rate-limited to 3 registrations per IP per 10-minute window.
  */
 async function handleRegister(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const { email, password, firstName, lastName } = req.body || {};
+  const parsed = validateBody(registerBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!email || !password || !firstName || !lastName) {
-    return sendError(res, 'All fields required: email, password, firstName, lastName', HttpStatus.BAD_REQUEST);
+  // Arcjet registration rate limit: 3 per IP per 10 minutes (Requirement 7.5)
+  const arcjetResult = await arcjetProtect(req, 'registration');
+  if (!arcjetResult.allowed) {
+    res.setHeader('Retry-After', '600');
+    return sendError(res, 'Too many registration attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS, 'RATE_LIMIT_EXCEEDED');
   }
+
+  const ipHash = hashForStorage(getClientIp(req));
+
+  // DB-based registration rate limit fallback: 3 per IP per 10 minutes (Requirement 7.5)
+  const regLimit = await checkRegistrationRateLimit(ipHash);
+  if (regLimit.blocked) {
+    res.setHeader('Retry-After', String(regLimit.retryAfterSeconds));
+    return sendError(res, 'Too many registration attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS, 'RATE_LIMIT_EXCEEDED');
+  }
+
+  const { email, password, firstName, lastName } = parsed;
 
   // Check if email exists
   const existing = await query(
@@ -543,6 +799,9 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
   // Set cookies
   setAuthCookies(res, accessToken, refreshToken);
 
+  // Record registration attempt for IP-based rate limiting (Requirement 7.5)
+  await recordRegistrationAttempt(ipHash);
+
   // Audit trail for user registration (Requirement 21.2)
   try {
     await logAuditEvent({
@@ -554,6 +813,7 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
     });
   } catch (auditError) {
     console.error('[auth] Failed to create registration audit log:', auditError);
+    logErrorAuditEvent('auth/registration-audit', auditError).catch(() => {});
   }
 
   return sendSuccess(res, {
@@ -660,6 +920,10 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
 
     // Set new cookies
     setAuthCookies(res, newAccessToken, newRefreshToken);
+
+    // Rotate CSRF token alongside auth tokens
+    const newCsrfToken = await rotateCsrfToken(user.id);
+    res.setHeader('X-CSRF-Token', newCsrfToken);
 
     return sendSuccess(res, {
       user: {
@@ -808,13 +1072,14 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
     const isAllowedField = (key: string): key is AllowedField =>
       (allowedFields as readonly string[]).includes(key);
 
-    const updates = req.body || {};
+    const updates = validateBody(profileUpdateBodySchema, req, res);
+    if (!updates) return;
 
     // If full_name is provided, also split into first_name/last_name for backward compat
     if (updates.full_name && typeof updates.full_name === 'string') {
       const parts = updates.full_name.trim().split(/\s+/);
-      if (!updates.first_name) updates.first_name = parts[0] || null;
-      if (!updates.last_name) updates.last_name = parts.slice(1).join(' ') || null;
+      if (!updates.first_name) updates.first_name = parts[0] || undefined;
+      if (!updates.last_name) updates.last_name = parts.slice(1).join(' ') || undefined;
     }
 
     const providedFields = Object.keys(updates).filter(isAllowedField);
@@ -878,6 +1143,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
     }
     // For other errors (e.g., database), return 500
     console.error('[AUTH] Profile error:', msg);
+    logErrorAuditEvent('auth/profile', error).catch(() => {});
     return sendError(res, 'Internal error', HttpStatus.INTERNAL_SERVER_ERROR, 'INTERNAL_ERROR');
   }
 }
@@ -896,11 +1162,10 @@ async function handleCheckEmail(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const email = req.query.email as string;
+  const parsed = validateQuery(checkEmailQuerySchema, req, res);
+  if (!parsed) return;
 
-  if (!email) {
-    return sendError(res, 'Email is required', HttpStatus.BAD_REQUEST);
-  }
+  const email = parsed.email;
 
   // Check if email exists in profiles table
   const existing = await query<{ id: string }>(

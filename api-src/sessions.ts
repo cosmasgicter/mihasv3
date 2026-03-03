@@ -22,6 +22,11 @@ import {
   createSession
 } from "../lib/sessions";
 import { pollRealtimeEvents, recordDeliveryLatency } from '../lib/realtimeBroker';
+import { requireCsrf } from '../lib/csrf';
+import { validateServerEnv } from '../lib/envValidator';
+import { validateBody } from '../lib/validation/middleware';
+import { revokeSessionBodySchema, revokeAllSessionsBodySchema } from '../lib/validation/sessions';
+import { logAuditEvent } from '../lib/auditLogger';
 
 /**
  * Get user ID from request (cookie or bearer token)
@@ -44,6 +49,16 @@ async function getUserFromRequest(req: VercelRequest): Promise<{ userId: string;
  */
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
+
+  // Validate required environment variables (Req 25.3)
+  const envResult = validateServerEnv();
+  if (!envResult.valid) {
+    const details = envResult.errors.map((e) => e.message).join('; ');
+    return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+  }
+
+  // CSRF validation for state-changing requests
+  if (await requireCsrf(req, res)) return;
 
   const action = req.query.action as string;
 
@@ -83,20 +98,24 @@ async function handleConnect(req: VercelRequest, res: VercelResponse, userId: st
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const events = pollRealtimeEvents(userId);
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache, no-transform');
-  res.setHeader('Connection', 'keep-alive');
+  try {
+    const events = pollRealtimeEvents(userId);
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
 
-  for (const event of events) {
-    recordDeliveryLatency(event.created_at);
-    res.write(`id: ${event.event_id}\n`);
-    res.write(`event: ${event.event_type}\n`);
-    res.write(`data: ${JSON.stringify(event)}\n\n`);
+    for (const event of events) {
+      recordDeliveryLatency(event.created_at);
+      res.write(`id: ${event.event_id}\n`);
+      res.write(`event: ${event.event_type}\n`);
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    }
+
+    res.write(`event: ping\ndata: ${JSON.stringify({ created_at: new Date().toISOString() })}\n\n`);
+    res.end();
+  } catch (error) {
+    return handleError(res, error, 'sessions/connect');
   }
-
-  res.write(`event: ping\ndata: ${JSON.stringify({ created_at: new Date().toISOString() })}\n\n`);
-  res.end();
 }
 
 async function handlePoll(req: VercelRequest, res: VercelResponse, userId: string) {
@@ -116,8 +135,8 @@ async function handlePoll(req: VercelRequest, res: VercelResponse, userId: strin
  * GET /api/sessions?action=list
  */
 async function handleList(
-  req: VercelRequest, 
-  res: VercelResponse, 
+  req: VercelRequest,
+  res: VercelResponse,
   userId: string,
   currentSessionId?: string
 ) {
@@ -125,8 +144,12 @@ async function handleList(
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const result = await getActiveSessions(userId, currentSessionId);
-  return sendSuccess(res, { sessions: result.sessions, count: result.count });
+  try {
+    const result = await getActiveSessions(userId, currentSessionId);
+    return sendSuccess(res, { sessions: result.sessions, count: result.count });
+  } catch (error) {
+    return handleError(res, error, 'sessions/list');
+  }
 }
 
 /**
@@ -134,8 +157,8 @@ async function handleList(
  * POST /api/sessions?action=track
  */
 async function handleTrack(
-  req: VercelRequest, 
-  res: VercelResponse, 
+  req: VercelRequest,
+  res: VercelResponse,
   userId: string,
   ipAddress: string | null,
   userAgent: string | null
@@ -144,15 +167,19 @@ async function handleTrack(
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const deviceInfo = parseDeviceInfo(userAgent);
-  const session = await createSession({
-    userId,
-    deviceInfo,
-    ipAddress,
-    userAgent,
-  });
+  try {
+    const deviceInfo = parseDeviceInfo(userAgent);
+    const session = await createSession({
+      userId,
+      deviceInfo,
+      ipAddress,
+      userAgent,
+    });
 
-  return sendSuccess(res, { session }, HttpStatus.CREATED);
+    return sendSuccess(res, { session }, HttpStatus.CREATED);
+  } catch (error) {
+    return handleError(res, error, 'sessions/track');
+  }
 }
 
 /**
@@ -161,8 +188,8 @@ async function handleTrack(
  * Body: { sessionId: string }
  */
 async function handleRevoke(
-  req: VercelRequest, 
-  res: VercelResponse, 
+  req: VercelRequest,
+  res: VercelResponse,
   userId: string,
   ipAddress: string | null,
   userAgent: string | null
@@ -171,13 +198,28 @@ async function handleRevoke(
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const { sessionId } = req.body || {};
-  if (!sessionId) {
-    return sendError(res, 'sessionId is required', HttpStatus.BAD_REQUEST);
-  }
+  const parsed = validateBody(revokeSessionBodySchema, req, res);
+  if (!parsed) return;
 
-  const result = await deactivateSession(sessionId, userId, ipAddress, userAgent);
-  return sendSuccess(res, { revoked: result.success, sessionId: result.sessionId });
+  const { sessionId } = parsed;
+
+  try {
+    const result = await deactivateSession(sessionId, userId, ipAddress, userAgent);
+
+    await logAuditEvent({
+      actor_id: userId,
+      action: 'session_revoke',
+      entity_type: 'session',
+      entity_id: sessionId,
+      changes: { revoked: result.success },
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    });
+
+    return sendSuccess(res, { revoked: result.success, sessionId: result.sessionId });
+  } catch (error) {
+    return handleError(res, error, 'sessions/revoke');
+  }
 }
 
 /**
@@ -186,8 +228,8 @@ async function handleRevoke(
  * Body: { keepCurrent?: boolean }
  */
 async function handleRevokeAll(
-  req: VercelRequest, 
-  res: VercelResponse, 
+  req: VercelRequest,
+  res: VercelResponse,
   userId: string,
   currentSessionId: string | undefined,
   ipAddress: string | null,
@@ -197,20 +239,37 @@ async function handleRevokeAll(
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const { keepCurrent } = req.body || {};
+  const parsed = validateBody(revokeAllSessionsBodySchema, req, res);
+  if (!parsed) return;
 
-  let result;
-  if (keepCurrent && currentSessionId) {
-    result = await deactivateOtherSessions(userId, currentSessionId, ipAddress, userAgent);
-  } else {
-    result = await deactivateAllSessions(userId, ipAddress, userAgent);
+  const { keepCurrent } = parsed;
+
+  try {
+    let result;
+    if (keepCurrent && currentSessionId) {
+      result = await deactivateOtherSessions(userId, currentSessionId, ipAddress, userAgent);
+    } else {
+      result = await deactivateAllSessions(userId, ipAddress, userAgent);
+    }
+
+    await logAuditEvent({
+      actor_id: userId,
+      action: keepCurrent ? 'session_revoke_others' : 'session_revoke_all',
+      entity_type: 'session',
+      entity_id: userId,
+      changes: { revoked_count: result.deactivatedCount, keep_current: !!keepCurrent },
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    });
+
+    return sendSuccess(res, {
+      revoked: result.success,
+      count: result.deactivatedCount,
+      sessionIds: result.sessionIds
+    });
+  } catch (error) {
+    return handleError(res, error, 'sessions/revoke-all');
   }
-
-  return sendSuccess(res, { 
-    revoked: result.success, 
-    count: result.deactivatedCount,
-    sessionIds: result.sessionIds 
-  });
 }
 
 // Export with Arcjet protection (session rate limit: 30 requests per 10 minutes)

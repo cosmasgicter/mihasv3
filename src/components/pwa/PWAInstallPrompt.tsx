@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Download, Monitor, Smartphone, X } from 'lucide-react'
 import { usePWA } from '@/hooks/usePWA'
 import { cn } from '@/lib/utils'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 type PlatformHint = {
   title: string
@@ -107,7 +108,7 @@ export const PWAInstallPrompt: React.FC = () => {
       <div className="rounded-2xl border border-primary/20 bg-card/95 p-4 shadow-2xl backdrop-blur-sm">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <img src="/images/logos/mihas-logo.webp" alt="MIHAS" className="h-10 w-10 rounded-lg object-contain bg-white p-1" />
+            <OptimizedImage src="/images/logos/mihas-logo.webp" alt="Mukuba Institute of Health and Allied Sciences logo" width={40} height={40} className="h-10 w-10 rounded-lg object-contain bg-white p-1" lazy={false} />
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-primary">Mukuba Institute of Health & Allied Sciences</p>
               <h3 className="text-base font-bold text-foreground">Install MIHAS Student Portal</h3>

@@ -159,7 +159,7 @@ export function DashboardStatusOverview({
             if (app.status !== 'draft' && app.submitted_at) {
               return new Date(app.submitted_at).getTime();
             }
-            return new Date(app.created_at).getTime();
+            return new Date(app.created_at ?? 0).getTime();
           };
           return getRelevantDate(b) - getRelevantDate(a); // Most recent first
         })[0]

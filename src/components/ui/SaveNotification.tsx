@@ -67,8 +67,9 @@ export function SaveNotification({
             setTimeout(onClose, 300)
           }}
           className="ml-2 text-foreground hover:text-foreground"
+          aria-label="Dismiss save notification"
         >
-          <X className="h-4 w-4" />
+          <X className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
     </div>

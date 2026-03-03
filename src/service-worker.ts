@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
+import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from 'workbox-precaching'
 import { clientsClaim } from 'workbox-core'
 import { registerRoute, setCatchHandler } from 'workbox-routing'
 import { CacheFirst, NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies'
@@ -46,7 +46,13 @@ const resolveManifestFingerprint = (manifest: Array<unknown>): string | null => 
   return hashVersion(revisions.join('|'))
 }
 
-// Capture the manifest once — workbox injectManifest replaces this single reference
+// Capture the manifest once — workbox injectManifest replaces this single reference.
+// The vite-plugin-pwa globPatterns ('**/*.{js,css,html,ico,png,svg,webp}') ensure
+// ALL built assets are precached, including:
+//   - Wizard-related JS chunks (lazy-loaded via React.lazy)
+//   - Critical CSS bundles
+//   - index.html (SPA shell) and offline.html fallback
+// This guarantees the Application Wizard works offline after the initial load.
 const WB_MANIFEST = self.__WB_MANIFEST
 
 // Cache version for invalidation on deployment.
@@ -520,8 +526,13 @@ setCatchHandler(async ({ request }) => {
     return imageFallbackResponse()
   }
 
+  // For navigation/document requests that fail (e.g. offline), serve the
+  // precached offline page.  matchPrecache looks up the revisioned entry
+  // created by precacheAndRoute, which is more reliable than a plain
+  // caches.match against the un-revisioned URL.
   if (request.destination === 'document') {
-    return caches.match('/offline.html') || Response.error()
+    const offlinePage = await matchPrecache('/offline.html')
+    return offlinePage || Response.error()
   }
 
   return Response.error()

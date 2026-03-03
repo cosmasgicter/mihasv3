@@ -12,6 +12,8 @@ import { Plus, Edit, Trash2, Save, X, Settings, BarChart3, Users, AlertTriangle 
 import { RegulatoryGuidelinesTable } from '@/components/admin/RegulatoryGuidelinesTable'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface Program {
   id: string
@@ -29,6 +31,11 @@ export default function EligibilityManagement() {
   const [showRuleForm, setShowRuleForm] = useState(false)
   const [editingRule, setEditingRule] = useState<EligibilityRule | null>(null)
   const confirmDialog = useConfirmDialog()
+  const focusTrapRef = useFocusTrap(showRuleForm)
+  useEscapeKey(showRuleForm, () => {
+    setShowRuleForm(false)
+    setEditingRule(null)
+  })
   const { error: showError } = useToastStore()
 
   const [ruleForm, setRuleForm] = useState({
@@ -165,13 +172,13 @@ export default function EligibilityManagement() {
           <div className="border-b border-border">
             <nav className="-mb-px flex space-x-8 px-6">
               {[
-                { id: 'dashboard', name: 'Analytics Dashboard', icon: BarChart3 },
-                { id: 'rules', name: 'Eligibility Rules', icon: Settings },
-                { id: 'guidelines', name: 'Regulatory Guidelines', icon: AlertTriangle }
+                { id: 'dashboard' as const, name: 'Analytics Dashboard', icon: BarChart3 },
+                { id: 'rules' as const, name: 'Eligibility Rules', icon: Settings },
+                { id: 'guidelines' as const, name: 'Regulatory Guidelines', icon: AlertTriangle }
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     activeTab === tab.id
                       ? 'border-primary text-primary'
@@ -238,7 +245,7 @@ export default function EligibilityManagement() {
                         {rule.rule_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        {(rule as any).programs?.name}
+                        {rule.programs?.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         {rule.rule_type}
@@ -296,7 +303,13 @@ export default function EligibilityManagement() {
         {/* Rule Form Modal */}
         {showRuleForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-card rounded-lg max-w-2xl w-full mx-4 p-6">
+            <div
+              ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+              role="dialog"
+              aria-modal="true"
+              aria-label={editingRule ? 'Edit Rule' : 'Add New Rule'}
+              className="bg-card rounded-lg max-w-2xl w-full mx-4 p-6"
+            >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">
                   {editingRule ? 'Edit Rule' : 'Add New Rule'}

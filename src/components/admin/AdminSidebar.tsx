@@ -118,11 +118,11 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
         <div className={cn(
           "flex items-center",
           collapsed ? "justify-center" : "gap-2"
-        )}>
+        )} role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
           <div className={cn(
             "w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary",
             "flex items-center justify-center shrink-0"
-          )}>
+          )} aria-hidden="true">
             <span className="text-white font-bold text-sm">M</span>
           </div>
           
@@ -175,8 +175,9 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
             <span>System Online</span>
           </div>
         ) : (
-          <div className="flex justify-center transition-opacity duration-200">
-            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+          <div className="flex justify-center transition-opacity duration-200" title="System Online" role="status">
+            <div className="w-2 h-2 rounded-full bg-success animate-pulse" aria-hidden="true" />
+            <span className="sr-only">System Online</span>
           </div>
         )}
       </div>

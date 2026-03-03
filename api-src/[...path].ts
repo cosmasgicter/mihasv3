@@ -35,7 +35,7 @@ import { sendError, HttpStatus, ErrorCode } from '../lib/errorHandler';
  * 
  * Validates: Requirements 1.5, 2.5, 6.4
  */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Handle CORS preflight requests
   if (handleCors(req, res)) return;
 

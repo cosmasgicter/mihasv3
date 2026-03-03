@@ -1,16 +1,11 @@
 /**
  * Data Migration Script: Supabase → Neon Postgres
- * 
- * Uses pg (node-postgres) instead of @neondatabase/serverless
- * because pg supports regular SQL strings, not just tagged templates.
- * 
- * Usage:
- *   bun run scripts/migrate-data-to-neon.ts
- * 
- * Environment Variables Required:
- *   - SUPABASE_URL
- *   - SUPABASE_SERVICE_ROLE_KEY
- *   - DATABASE_URL (Neon connection string)
+ *
+ * MIGRATION STATUS: COMPLETE — This script has already been run.
+ * All data has been migrated to Neon Postgres. Do not run again.
+ *
+ * This file is retained for historical reference only.
+ * Supabase credentials are no longer required or used.
  */
 
 import { Client } from 'pg';
@@ -197,24 +192,22 @@ async function migrateTable(table: string, supabaseUrl: string, serviceKey: stri
 }
 
 async function main(): Promise<void> {
-  console.log('🚀 Supabase → Neon Data Migration (using pg)');
-  console.log('='.repeat(50));
-  console.log(`Date: ${new Date().toISOString()}`);
+  console.log('⚠️  Migration already complete — this script is archived and should not be run.');
+  console.log('All data has been migrated from Supabase to Neon Postgres.');
+  process.exit(0);
 
-  const SUPABASE_URL = process.env.SUPABASE_URL;
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // --- ARCHIVED CODE BELOW (never reached) ---
   const DATABASE_URL = process.env.DATABASE_URL;
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    console.error('❌ Missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
-    process.exit(1);
-  }
   if (!DATABASE_URL) {
     console.error('❌ Missing: DATABASE_URL');
     process.exit(1);
   }
 
-  console.log(`\nSource: ${SUPABASE_URL}`);
+  const SUPABASE_URL = '';
+  const SUPABASE_SERVICE_ROLE_KEY = '';
+
+  console.log(`\nSource: (archived)`);
   console.log(`Target: Neon`);
 
   const client = new Client({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } });

@@ -223,8 +223,9 @@ export default function AdminUsers() {
                     variant="ghost"
                     size="sm"
                     className="text-white hover:bg-white/20 border-white min-h-[44px]"
+                    aria-label="Export users"
                   >
-                    <Download className="h-4 w-4 sm:mr-2" />
+                    <Download className="h-4 w-4 sm:mr-2" aria-hidden="true" />
                     <span className="hidden sm:inline">Export</span>
                   </Button>
                   <Button
@@ -617,8 +618,9 @@ export default function AdminUsers() {
                 type="button"
                 className="absolute right-3 top-4 sm:p-8 text-foreground hover:text-foreground"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
               </button>
             </div>
             <Input

@@ -1,5 +1,4 @@
 import React from 'react'
-import { MonitoringDashboard } from '@/components/admin/MonitoringDashboard'
 import { MaintenancePanel } from '@/components/admin/MaintenancePanel'
 
 export default function MonitoringPage() {
@@ -7,7 +6,6 @@ export default function MonitoringPage() {
     <div className="min-h-screen bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
-          <MonitoringDashboard />
           <MaintenancePanel />
         </div>
       </div>

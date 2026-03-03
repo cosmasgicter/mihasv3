@@ -1,6 +1,8 @@
 import React from 'react'
 import { AlertTriangle, X } from 'lucide-react'
 import { Button } from './Button'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface ConfirmDialogProps {
  isOpen: boolean
@@ -23,6 +25,9 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
  cancelText = 'Cancel',
  variant = 'danger'
 }) => {
+ const focusTrapRef = useFocusTrap(isOpen)
+ useEscapeKey(isOpen, onClose)
+
  const handleConfirm = () => {
  onConfirm()
  onClose()
@@ -40,7 +45,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
  {/* Dialog */}
  <div className="fixed inset-0 flex items-center justify-center z-[201] p-4">
- <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in">
+ <div
+ ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+ role="dialog"
+ aria-modal="true"
+ aria-label={title}
+ className="bg-card rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in"
+ >
  {/* Header */}
  <div className={`p-6 ${
  variant === 'danger' ? 'bg-destructive/5' :
@@ -67,8 +78,9 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
  <button
  onClick={onClose}
  className="text-foreground hover:text-foreground hover:text-foreground transition-colors"
+ aria-label="Close dialog"
  >
- <X className="h-5 w-5" />
+ <X className="h-5 w-5" aria-hidden="true" />
  </button>
  </div>
  </div>

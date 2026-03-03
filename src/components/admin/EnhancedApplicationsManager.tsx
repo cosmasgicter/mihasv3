@@ -238,8 +238,14 @@ export function EnhancedApplicationsManager({
               value={`${sortBy}-${sortOrder}`}
               onChange={(e) => {
                 const [field, order] = e.target.value.split('-')
-                setSortBy(field as any)
-                setSortOrder(order as any)
+                const validFields = ['date', 'name', 'status'] as const
+                const validOrders = ['asc', 'desc'] as const
+                if (validFields.includes(field as typeof validFields[number])) {
+                  setSortBy(field as typeof validFields[number])
+                }
+                if (validOrders.includes(order as typeof validOrders[number])) {
+                  setSortOrder(order as typeof validOrders[number])
+                }
               }}
               className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
             >

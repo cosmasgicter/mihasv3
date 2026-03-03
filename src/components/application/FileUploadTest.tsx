@@ -168,8 +168,9 @@ export function FileUploadTest() {
                   size="sm"
                   onClick={() => removeFile(file.id)}
                   className="text-destructive hover:text-error hover:bg-destructive/5"
+                  aria-label={`Remove ${file.name}`}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             </div>

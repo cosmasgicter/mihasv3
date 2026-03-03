@@ -1,69 +1,6 @@
-// lib/cors.ts
-var ALLOWED_ORIGINS = [
-  "https://apply.mihas.edu.zm",
-  "https://mihas.vercel.app",
-  "http://localhost:5173",
-  "http://localhost:3000"
-];
-function getCorsHeaders(origin) {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Max-Age": "86400"
-  };
-}
-function handleCors(req, res) {
-  const origin = req.headers.origin;
-  const headers = getCorsHeaders(origin);
-  Object.entries(headers).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
-  if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return true;
-  }
-  return false;
-}
+var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 
 // lib/errorHandler.ts
-var HttpStatus = {
-  OK: 200,
-  CREATED: 201,
-  NO_CONTENT: 204,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  METHOD_NOT_ALLOWED: 405,
-  CONFLICT: 409,
-  UNPROCESSABLE_ENTITY: 422,
-  TOO_MANY_REQUESTS: 429,
-  INTERNAL_SERVER_ERROR: 500,
-  SERVICE_UNAVAILABLE: 503
-};
-var ErrorCode = {
-  VALIDATION_ERROR: "VALIDATION_ERROR",
-  INVALID_INPUT: "INVALID_INPUT",
-  MISSING_REQUIRED_FIELD: "MISSING_REQUIRED_FIELD",
-  AUTHENTICATION_ERROR: "AUTHENTICATION_ERROR",
-  AUTHENTICATION_REQUIRED: "AUTHENTICATION_REQUIRED",
-  INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
-  TOKEN_EXPIRED: "TOKEN_EXPIRED",
-  INVALID_TOKEN: "INVALID_TOKEN",
-  AUTHORIZATION_ERROR: "AUTHORIZATION_ERROR",
-  INSUFFICIENT_PERMISSIONS: "INSUFFICIENT_PERMISSIONS",
-  SECURITY_VIOLATION: "SECURITY_VIOLATION",
-  NOT_FOUND: "NOT_FOUND",
-  RESOURCE_NOT_FOUND: "RESOURCE_NOT_FOUND",
-  RATE_LIMITED: "RATE_LIMITED",
-  TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
-  INTERNAL_ERROR: "INTERNAL_ERROR",
-  DATABASE_ERROR: "DATABASE_ERROR",
-  SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE"
-};
 function sanitizeError(message) {
   if (!message || typeof message !== "string") {
     return "An error occurred";
@@ -95,8 +32,78 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   };
   return res.status(status).json(response);
 }
+var HttpStatus, ErrorCode;
+var init_errorHandler = __esm(() => {
+  HttpStatus = {
+    OK: 200,
+    CREATED: 201,
+    NO_CONTENT: 204,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    METHOD_NOT_ALLOWED: 405,
+    CONFLICT: 409,
+    UNPROCESSABLE_ENTITY: 422,
+    TOO_MANY_REQUESTS: 429,
+    INTERNAL_SERVER_ERROR: 500,
+    SERVICE_UNAVAILABLE: 503
+  };
+  ErrorCode = {
+    VALIDATION_ERROR: "VALIDATION_ERROR",
+    INVALID_INPUT: "INVALID_INPUT",
+    MISSING_REQUIRED_FIELD: "MISSING_REQUIRED_FIELD",
+    AUTHENTICATION_ERROR: "AUTHENTICATION_ERROR",
+    AUTHENTICATION_REQUIRED: "AUTHENTICATION_REQUIRED",
+    INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+    TOKEN_EXPIRED: "TOKEN_EXPIRED",
+    INVALID_TOKEN: "INVALID_TOKEN",
+    AUTHORIZATION_ERROR: "AUTHORIZATION_ERROR",
+    INSUFFICIENT_PERMISSIONS: "INSUFFICIENT_PERMISSIONS",
+    SECURITY_VIOLATION: "SECURITY_VIOLATION",
+    NOT_FOUND: "NOT_FOUND",
+    RESOURCE_NOT_FOUND: "RESOURCE_NOT_FOUND",
+    RATE_LIMITED: "RATE_LIMITED",
+    TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
+    INTERNAL_ERROR: "INTERNAL_ERROR",
+    DATABASE_ERROR: "DATABASE_ERROR",
+    SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE"
+  };
+});
+
+// lib/cors.ts
+var ALLOWED_ORIGINS = [
+  "https://apply.mihas.edu.zm",
+  "https://mihas.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000"
+];
+function getCorsHeaders(origin) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRF-Token",
+    "Access-Control-Expose-Headers": "X-CSRF-Token",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Max-Age": "86400"
+  };
+}
+function handleCors(req, res) {
+  const origin = req.headers.origin;
+  const headers = getCorsHeaders(origin);
+  Object.entries(headers).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return true;
+  }
+  return false;
+}
 
 // api-src/[...path].ts
+init_errorHandler();
 async function handler(req, res) {
   if (handleCors(req, res))
     return;

@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { sendSuccess, sendError, HttpStatus, logErrorAuditEvent } from '../lib/errorHandler';
+import { validateServerEnv } from '../lib/envValidator';
 
 /**
  * Health Check API - Simplified version with inline db code
@@ -8,7 +10,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
  * GET /api/health?action=db - Check database connectivity
  * GET /api/health?action=env - Check environment variables
  */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Set headers directly
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,41 +22,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method !== 'GET') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
   const action = req.query.action as string;
 
-  // Ping action (minimal response for uptime checks)
-  if (action === 'ping') {
-    return res.status(200).json({
-      success: true,
-      message: 'pong',
-      timestamp: new Date().toISOString(),
-    });
-  }
+  try {
+    // Ping action (minimal response for uptime checks)
+    if (action === 'ping') {
+      return sendSuccess(res, {
+        message: 'pong',
+        timestamp: new Date().toISOString(),
+      });
+    }
 
-  // Database health check
-  if (action === 'db') {
-    return handleDatabaseHealth(res);
-  }
+    // Database health check
+    if (action === 'db') {
+      return handleDatabaseHealth(res);
+    }
 
-  // Environment variable check (for debugging)
-  if (action === 'env') {
-    return handleEnvCheck(res);
-  }
+    // Environment variable check (for debugging)
+    if (action === 'env') {
+      return handleEnvCheck(res);
+    }
 
-  // Basic health check
-  return res.status(200).json({
-    success: true,
-    data: {
+    // Validate required environment variables for actions that need them (Req 25.3)
+    const envResult = validateServerEnv();
+    if (!envResult.valid) {
+      const details = envResult.errors.map((e) => e.message).join('; ');
+      return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+    }
+
+    // Basic health check
+    return sendSuccess(res, {
       status: 'ok',
       timestamp: new Date().toISOString(),
       environment: process.env.VERCEL_ENV || 'development',
       version: process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7),
       databaseType: 'neon',
-    }
-  });
+    });
+  } catch (error) {
+    logErrorAuditEvent('health', error).catch(() => {});
+    return sendError(res, 'Health check failed', HttpStatus.INTERNAL_SERVER_ERROR, 'INTERNAL_ERROR');
+  }
 }
 
 /**
@@ -70,14 +80,7 @@ async function handleDatabaseHealth(res: VercelResponse): Promise<void> {
     const connectionString = process.env.DATABASE_URL;
     
     if (!connectionString) {
-      res.status(503).json({
-        success: false,
-        data: {
-          status: 'unhealthy',
-          error: 'DATABASE_URL not configured',
-          timestamp: new Date().toISOString(),
-        }
-      });
+      sendError(res, 'DATABASE_URL not configured', HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
       return;
     }
 
@@ -119,25 +122,20 @@ async function handleDatabaseHealth(res: VercelResponse): Promise<void> {
 
     const overallStatus = hasErrors ? 'unhealthy' : allOk ? 'healthy' : 'degraded';
 
-    res.status(hasErrors ? 503 : 200).json({
-      success: !hasErrors,
-      data: {
+    if (hasErrors) {
+      sendError(res, `Database health: ${overallStatus}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+    } else {
+      sendSuccess(res, {
         status: overallStatus,
         databaseType: 'neon',
         checks,
         totalLatency,
         timestamp: new Date().toISOString(),
-      }
-    });
+      });
+    }
   } catch (error) {
-    res.status(503).json({
-      success: false,
-      data: {
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      }
-    });
+    logErrorAuditEvent('health/db', error).catch(() => {});
+    sendError(res, 'Database health check failed', HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
   }
 }
 
@@ -165,14 +163,15 @@ function handleEnvCheck(res: VercelResponse): void {
 
   const allRequired = missing.length === 0;
 
-  res.status(allRequired ? 200 : 503).json({
-    success: allRequired,
-    data: {
-      status: allRequired ? 'ok' : 'missing_env_vars',
-      environment: process.env.VERCEL_ENV || 'development',
-      envStatus,
-      missing: missing.length > 0 ? missing : undefined,
-      timestamp: new Date().toISOString(),
-    }
+  if (!allRequired) {
+    sendError(res, `Missing environment variables: ${missing.join(', ')}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+    return;
+  }
+
+  sendSuccess(res, {
+    status: 'ok',
+    environment: process.env.VERCEL_ENV || 'development',
+    envStatus,
+    timestamp: new Date().toISOString(),
   });
 }

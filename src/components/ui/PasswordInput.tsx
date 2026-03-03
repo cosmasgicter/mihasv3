@@ -9,14 +9,18 @@ export interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLI
 }
 
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, label, error, helperText, ...props }, ref) => {
+  ({ className, label, error, helperText, id, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false)
     const [isFocused, setIsFocused] = React.useState(false)
+    const generatedId = React.useId()
+    const inputId = id ?? generatedId
+    const errorId = `${inputId}-error`
+    const helperId = `${inputId}-helper`
 
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-foreground mb-1.5">
+          <label htmlFor={inputId} className="block text-sm font-medium text-foreground mb-1.5">
             {label}
             {props.required && <span className="text-destructive ml-1">*</span>}
           </label>
@@ -25,6 +29,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           <input
             {...props}
             ref={ref}
+            id={inputId}
             type={showPassword ? 'text' : 'password'}
             className={cn(
               'w-full h-10 px-3 pr-10 rounded-lg',
@@ -41,7 +46,8 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             aria-invalid={error ? 'true' : 'false'}
-            aria-describedby={error ? `${props.id}-error` : helperText ? `${props.id}-helper` : undefined}
+            aria-required={props.required || undefined}
+            aria-describedby={error ? errorId : helperText ? helperId : undefined}
           />
           <button
             type="button"
@@ -64,7 +70,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
         </div>
         {error && (
           <p
-            id={`${props.id}-error`}
+            id={errorId}
             className="mt-1.5 text-sm text-destructive animate-fade-in"
             role="alert"
           >
@@ -72,7 +78,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           </p>
         )}
         {helperText && !error && (
-          <p id={`${props.id}-helper`} className="mt-1.5 text-sm text-caption">
+          <p id={helperId} className="mt-1.5 text-sm text-caption">
             {helperText}
           </p>
         )}

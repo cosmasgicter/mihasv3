@@ -71,8 +71,8 @@ export function AuthLayout({
                   <ArrowLeft className="h-4 w-4" />
                   {backLinkLabel}
                 </Link>
-                <div className="flex items-center justify-center sm:justify-start">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white shadow-lg">
+                <div className="flex items-center justify-center sm:justify-start" role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white shadow-lg" aria-hidden="true">
                     <GraduationCap className="h-7 w-7" />
                   </div>
                 </div>

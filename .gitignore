@@ -22,6 +22,7 @@ api/*.bundle.js
 .env
 .env.*
 !.env.example
+!.env.scripts.example
 .env.local
 .env.development.local
 .env.test.local

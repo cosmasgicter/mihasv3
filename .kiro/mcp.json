@@ -77,9 +77,16 @@
       "disabled": true,
       "autoApprove": []
     },
+    "neon": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.neon.tech/sse"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": ["list_projects", "list_branches", "list_databases", "run_sql"]
+    },
     "supabase": {
       "url": "https://mcp.supabase.com/mcp",
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     }
   },
@@ -87,7 +94,7 @@
     "mcpServers": {
       "power-supabase-hosted-supabase": {
         "url": "https://mcp.supabase.com/mcp",
-        "disabled": false,
+        "disabled": true,
         "autoApprove": ["apply_migration", "list_tables", "list_projects", "execute_sql"]
       },
       "power-strands-strands-agents": {

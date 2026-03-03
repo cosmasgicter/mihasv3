@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Clock, AlertTriangle, RefreshCw } from 'lucide-react'
 import { SessionWarning as SessionWarningType } from '@/lib/applicationSession'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface SessionWarningProps {
   warning: SessionWarningType | null
@@ -12,6 +14,8 @@ interface SessionWarningProps {
 export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningProps) {
   const [timeLeft, setTimeLeft] = useState(0)
   const [extending, setExtending] = useState(false)
+  const focusTrapRef = useFocusTrap(!!warning)
+  useEscapeKey(!!warning, onDismiss)
 
   useEffect(() => {
     if (!warning) return
@@ -53,7 +57,13 @@ export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningP
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-card rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+      <div
+        ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Session ${warning.type === 'timeout' ? 'Timeout Warning' : 'Expired'}`}
+        className="bg-card rounded-lg p-6 max-w-md w-full mx-4 shadow-xl"
+      >
         <div className="flex items-center space-x-3 mb-4">
           {warning.type === 'timeout' ? (
             <Clock className="h-6 w-6 text-warning" />

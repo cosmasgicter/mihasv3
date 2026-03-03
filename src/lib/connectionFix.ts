@@ -60,7 +60,7 @@ export class ConnectionManager {
   async makeRequest<T>(
     endpoint: string,
     options: RequestInit & { retryKey?: string } = {}
-  ): Promise<T> {
+  ): Promise<T | null> {
     const { retryKey = endpoint, ...requestOptions } = options
     const attemptCount = this.retryAttempts.get(retryKey) || 0
 

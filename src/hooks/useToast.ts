@@ -13,6 +13,9 @@ import { useToastStore } from '@/components/ui/Toast'
 export const toast = {
   success: (title: string, message?: string) => useToastStore.getState().success(title, message),
   error: (title: string, message?: string) => useToastStore.getState().error(title, message),
+  errorWithRetry: (title: string, onRetry: () => void, message?: string) =>
+    useToastStore.getState().errorWithRetry(title, onRetry, message),
+  warning: (title: string, message?: string) => useToastStore.getState().warning(title, message),
   info: (title: string, message?: string) => useToastStore.getState().info(title, message),
 }
 

@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { FileText, Plus, Trash2, Edit2, Clock, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { animateClasses, staggerChild } from '@/lib/animations'
 import { useMultiDraft } from '../hooks/useMultiDraft'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface DraftManagerProps {
   userId: string | undefined
@@ -16,6 +18,8 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [newDraftName, setNewDraftName] = useState('')
+  const focusTrapRef = useFocusTrap(isOpen)
+  useEscapeKey(isOpen, () => setIsOpen(false))
   
   const { drafts, loading, createDraft, renameDraft, deleteDraft, loadDraft } = useMultiDraft(userId)
 
@@ -84,6 +88,10 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
             onClick={() => setIsOpen(false)}
           />
           <div
+            ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+            role="dialog"
+            aria-modal="true"
+            aria-label="My Drafts"
             className="fixed top-0 right-0 h-full w-full max-w-md bg-card border-l border-border shadow-xl z-50 overflow-y-auto animate-slide-in-right"
             style={{ animation: 'slideInRight 300ms ease-out' }}
           >
@@ -96,6 +104,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                 <button
                   onClick={() => setIsOpen(false)}
                   className="text-caption hover:text-foreground"
+                  aria-label="Close drafts panel"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -108,6 +117,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                     value={newDraftName}
                     onChange={(e) => setNewDraftName(e.target.value)}
                     placeholder="New draft name..."
+                    aria-label="New draft name"
                     className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
                     onKeyDown={(e) => e.key === 'Enter' && handleCreateDraft()}
                   />
@@ -116,6 +126,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                     onClick={handleCreateDraft}
                     disabled={!newDraftName.trim()}
                     size="sm"
+                    aria-label="Create new draft"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -149,6 +160,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
                             className="flex-1 rounded border border-input px-2 py-1 text-sm"
+                            aria-label="Edit draft name"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') handleRename(draft.id)
@@ -173,6 +185,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                                 setEditName(draft.draft_name)
                               }}
                               className="text-caption hover:text-foreground p-1"
+                              aria-label={`Rename draft ${draft.draft_name}`}
                             >
                               <Edit2 className="h-3.5 w-3.5" />
                             </button>
@@ -185,6 +198,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                                 }
                               }}
                               className="text-caption hover:text-destructive p-1"
+                              aria-label={`Delete draft ${draft.draft_name}`}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>

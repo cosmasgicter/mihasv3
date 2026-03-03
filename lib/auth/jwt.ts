@@ -383,7 +383,13 @@ export async function verifyRefreshToken(token: string): Promise<RefreshTokenPay
  * Get token configuration constants
  * Useful for testing and configuration verification
  */
-export function getTokenConfig() {
+export function getTokenConfig(): {
+  accessTokenExpiration: string;
+  refreshTokenExpiration: string;
+  issuer: string;
+  audience: string;
+  algorithm: string;
+} {
   return {
     accessTokenExpiration: ACCESS_TOKEN_EXPIRATION,
     refreshTokenExpiration: REFRESH_TOKEN_EXPIRATION,

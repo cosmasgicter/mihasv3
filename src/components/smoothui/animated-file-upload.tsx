@@ -8,7 +8,7 @@
  * @requirements 7.3, 7.4, 7.5 - SmoothUI form components with validation and auto-save status
  */
 
-import { forwardRef, useState, useCallback } from 'react';
+import { forwardRef, useState, useCallback, useId } from 'react';
 import { Upload, CheckCircle, AlertCircle, FileText, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -42,8 +42,8 @@ export const AnimatedFileUpload = forwardRef<HTMLInputElement, AnimatedFileUploa
   }, ref) => {
     const [isDragging, setIsDragging] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
-
-    const inputId = id || `file-upload-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const inputId = id || generatedId;
 
     const handleDragOver = useCallback((e: React.DragEvent) => {
       e.preventDefault();
@@ -106,6 +106,7 @@ export const AnimatedFileUpload = forwardRef<HTMLInputElement, AnimatedFileUploa
             onBlur={() => setIsFocused(false)}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             aria-invalid={!!error}
+            aria-required={required || undefined}
             aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
           />
 

@@ -75,7 +75,8 @@ export default function SignInPage() {
       setIsAuthenticating(true);
 
       // Redirect to intended destination when present; otherwise use role-based dashboard
-      const from = (location.state as any)?.from?.pathname;
+      const locationState = location.state as { from?: { pathname?: string } } | null
+      const from = locationState?.from?.pathname;
       const role = result?.user?.role;
       const defaultRedirect = role === 'admin' || role === 'super_admin'
         ? '/admin/dashboard'

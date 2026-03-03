@@ -152,6 +152,11 @@ const apiRequestArbitrary = fc.record({
   headers: Object.fromEntries(
     Object.entries(r.headers).filter(([_, v]) => v !== undefined)
   ) as Record<string, string>,
+  query: r.query
+    ? (Object.fromEntries(
+        Object.entries(r.query).filter(([_, v]) => v !== undefined)
+      ) as Record<string, string>)
+    : undefined,
 }));
 
 describe('Feature: bun-vercel-migration, Property 1: Function Conversion Equivalence', () => {

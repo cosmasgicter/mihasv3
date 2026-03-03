@@ -396,3 +396,142 @@ describe('Property 2: Password hash round-trip', () => {
     });
   });
 });
+
+// ============================================================================
+// Feature: website-quality-remediation
+// Property 10: Bcrypt-only password hashing
+// Property 11: SHA-256 to bcrypt migration correctness
+// ============================================================================
+
+import { isSha256Hash, verifySha256Password } from '../../lib/auth/password';
+import { createHash } from 'crypto';
+
+/**
+ * Helper: produce a SHA-256 hex hash of a password (simulates legacy storage).
+ */
+function sha256Hash(password: string): string {
+  return createHash('sha256').update(password).digest('hex');
+}
+
+// Feature: website-quality-remediation, Property 10: Bcrypt-only password hashing
+describe('Property 10: Bcrypt-only password hashing', () => {
+  /**
+   * **Validates: Requirements 4.3**
+   *
+   * *For any* non-empty password string, `hashPassword()` should produce a string
+   * matching the bcrypt format (`$2b$12$...`), and `verifyPassword(password, hash)`
+   * should return true for the original password and false for any different password.
+   */
+  it('PROPERTY: hashPassword always produces bcrypt $2b$12$ format and verifyPassword round-trips correctly', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.string({ minLength: 1, maxLength: 72 }),
+        async (password) => {
+          const hash = await hashPassword(password);
+
+          // Must be bcrypt format with 12 rounds
+          expect(hash).toMatch(/^\$2b\$12\$/);
+          expect(hash.length).toBe(60);
+
+          // Round-trip: original password verifies
+          expect(await verifyPassword(password, hash)).toBe(true);
+        }
+      ),
+      { numRuns: BCRYPT_NUM_RUNS }
+    );
+  });
+
+  it('PROPERTY: verifyPassword rejects any different password against a bcrypt hash', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.string({ minLength: 1, maxLength: 50 }),
+        fc.string({ minLength: 1, maxLength: 50 }),
+        async (original, other) => {
+          fc.pre(original !== other);
+
+          const hash = await hashPassword(original);
+          expect(await verifyPassword(other, hash)).toBe(false);
+        }
+      ),
+      { numRuns: BCRYPT_NUM_RUNS }
+    );
+  });
+});
+
+// Feature: website-quality-remediation, Property 11: SHA-256 to bcrypt migration correctness
+describe('Property 11: SHA-256 to bcrypt migration correctness', () => {
+  /**
+   * **Validates: Requirements 4.4**
+   *
+   * *For any* password, if it was previously hashed with SHA-256, the migration
+   * function should: (a) successfully verify the password against the SHA-256 hash,
+   * (b) produce a new bcrypt hash, and (c) the new bcrypt hash should verify
+   * correctly against the original password.
+   */
+  it('PROPERTY: SHA-256 hash is correctly detected by isSha256Hash', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.string({ minLength: 1, maxLength: 72 }),
+        async (password) => {
+          const legacyHash = sha256Hash(password);
+
+          // SHA-256 hash should be detected as legacy format
+          expect(isSha256Hash(legacyHash)).toBe(true);
+
+          // A bcrypt hash should NOT be detected as SHA-256
+          const bcryptHash = await hashPassword(password);
+          expect(isSha256Hash(bcryptHash)).toBe(false);
+        }
+      ),
+      { numRuns: BCRYPT_NUM_RUNS }
+    );
+  });
+
+  it('PROPERTY: verifySha256Password correctly verifies and rejects passwords', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.string({ minLength: 1, maxLength: 72 }),
+        fc.string({ minLength: 1, maxLength: 72 }),
+        async (password, wrongPassword) => {
+          fc.pre(password !== wrongPassword);
+
+          const legacyHash = sha256Hash(password);
+
+          // Correct password verifies against SHA-256 hash
+          expect(verifySha256Password(password, legacyHash)).toBe(true);
+
+          // Wrong password does not verify
+          expect(verifySha256Password(wrongPassword, legacyHash)).toBe(false);
+        }
+      ),
+      { numRuns: BCRYPT_NUM_RUNS }
+    );
+  });
+
+  it('PROPERTY: Full migration round-trip — SHA-256 verify then bcrypt re-hash verifies original password', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.string({ minLength: 1, maxLength: 72 }),
+        async (password) => {
+          // Step 1: Simulate legacy SHA-256 hash
+          const legacyHash = sha256Hash(password);
+
+          // Step 2: Verify password against SHA-256 hash (migration detection)
+          expect(isSha256Hash(legacyHash)).toBe(true);
+          expect(verifySha256Password(password, legacyHash)).toBe(true);
+
+          // Step 3: Re-hash with bcrypt (migration step)
+          const bcryptHash = await hashPassword(password);
+
+          // Step 4: New bcrypt hash verifies correctly
+          expect(bcryptHash).toMatch(/^\$2b\$12\$/);
+          expect(await verifyPassword(password, bcryptHash)).toBe(true);
+
+          // Step 5: The new hash is no longer detected as SHA-256
+          expect(isSha256Hash(bcryptHash)).toBe(false);
+        }
+      ),
+      { numRuns: BCRYPT_NUM_RUNS }
+    );
+  });
+});

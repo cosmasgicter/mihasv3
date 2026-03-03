@@ -360,7 +360,7 @@ export function ImagePreview({ file, className }: { file: File, className?: stri
     <div className={cn('aspect-square bg-accent rounded-lg overflow-hidden', className)}>
       <img
         src={preview}
-        alt={file.name}
+        alt={`Preview of uploaded document: ${file.name}`}
         className="w-full h-full object-cover"
         loading="lazy"
       />

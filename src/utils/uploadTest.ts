@@ -29,5 +29,6 @@ export async function testUploadSystem() {
 
 // Test function for browser console
 if (typeof window !== 'undefined') {
-  (window as any).testUpload = testUploadSystem
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dev utility exposed on window for console testing
+  (window as Window & { testUpload?: typeof testUploadSystem }).testUpload = testUploadSystem
 }

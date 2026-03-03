@@ -19,6 +19,10 @@ import {
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
 import { publishRealtimeEvent } from '../lib/realtimeBroker';
 import { logAuditEvent } from '../lib/auditLogger';
+import { requireCsrf } from '../lib/csrf';
+import { validateBody } from '../lib/validation/middleware';
+import { createApplicationBodySchema, reviewApplicationBodySchema } from '../lib/validation/applications';
+import { validateServerEnv } from '../lib/envValidator';
 
 /**
  * Consolidated Applications API
@@ -41,6 +45,13 @@ import { logAuditEvent } from '../lib/auditLogger';
 async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
+  // Validate required environment variables (Req 25.3)
+  const envResult = validateServerEnv();
+  if (!envResult.valid) {
+    const details = envResult.errors.map((e) => e.message).join('; ');
+    return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+  }
+
   const action = req.query.action as string;
 
   // Handle HEAD requests for health checks (no auth required)
@@ -52,6 +63,9 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   if (req.method === 'GET' && action === 'track') {
     return await handlePublicTracking(req, res);
   }
+
+  // CSRF validation for state-changing requests
+  if (await requireCsrf(req, res)) return;
 
   // Get authenticated user (supports both cookie and Bearer token)
   const user = await getAuthUser(req);
@@ -116,35 +130,39 @@ async function handlePublicTracking(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Invalid tracking code format', HttpStatus.BAD_REQUEST);
   }
 
-  // Track endpoint uses separate, stricter throttling from authenticated application flows
-  const rateLimitDecision = await arcjetProtect(req, 'session');
-  if (!rateLimitDecision.allowed) {
-    return sendError(res, 'Too many tracking requests. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
+  try {
+    // Track endpoint uses separate, stricter throttling from authenticated application flows
+    const rateLimitDecision = await arcjetProtect(req, 'session');
+    if (!rateLimitDecision.allowed) {
+      return sendError(res, 'Too many tracking requests. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    const result = await query<PublicTrackingResult>(
+      `SELECT
+        application_number,
+        status,
+        program AS program_name,
+        intake AS intake_name,
+        submitted_at,
+        updated_at,
+        LEFT(NULLIF(TRIM(admin_feedback), ''), 240) AS feedback_summary
+      FROM applications
+      WHERE public_tracking_code = $1 OR application_number = $1
+      ORDER BY updated_at DESC NULLS LAST
+      LIMIT 1`,
+      [code]
+    );
+
+    if (result.rowCount === 0) {
+      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+    }
+
+    return sendSuccess(res, {
+      application: result.rows[0]
+    });
+  } catch (error) {
+    return handleError(res, error, 'applications/track');
   }
-
-  const result = await query<PublicTrackingResult>(
-    `SELECT
-      application_number,
-      status,
-      program AS program_name,
-      intake AS intake_name,
-      submitted_at,
-      updated_at,
-      LEFT(NULLIF(TRIM(admin_feedback), ''), 240) AS feedback_summary
-    FROM applications
-    WHERE public_tracking_code = $1 OR application_number = $1
-    ORDER BY updated_at DESC NULLS LAST
-    LIMIT 1`,
-    [code]
-  );
-
-  if (result.rowCount === 0) {
-    return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
-  }
-
-  return sendSuccess(res, {
-    application: result.rows[0]
-  });
 }
 
 /**
@@ -156,19 +174,10 @@ async function handleCreate(
   res: VercelResponse,
   userId: string
 ) {
-  const body = req.body;
-  
-  // Validate required fields
-  const requiredFields = [
-    'application_number', 'full_name', 'date_of_birth', 'sex',
-    'phone', 'email', 'residence_town', 'program', 'intake', 'institution'
-  ];
-  
-  for (const field of requiredFields) {
-    if (!body[field]) {
-      return sendError(res, `Missing required field: ${field}`, HttpStatus.BAD_REQUEST);
-    }
-  }
+  const parsed = validateBody(createApplicationBodySchema, req, res);
+  if (!parsed) return;
+
+  const body = parsed;
 
   // Validate institution-program mapping
   const INSTITUTION_PROGRAMS: Record<string, string[]> = {
@@ -188,163 +197,183 @@ async function handleCreate(
     );
   }
 
-  // Build insert query
-  const fields = [
-    'user_id', 'application_number', 'public_tracking_code', 'full_name',
-    'nrc_number', 'passport_number', 'date_of_birth', 'sex', 'phone', 'email',
-    'residence_town', 'nationality', 'next_of_kin_name', 'next_of_kin_phone',
-    'program', 'intake', 'institution', 'status'
-  ];
-  
-  const values = [
-    userId,
-    body.application_number,
-    body.public_tracking_code || null,
-    body.full_name,
-    body.nrc_number || null,
-    body.passport_number || null,
-    body.date_of_birth,
-    body.sex,
-    body.phone,
-    body.email,
-    body.residence_town,
-    body.nationality || 'Zambian',
-    body.next_of_kin_name || null,
-    body.next_of_kin_phone || null,
-    body.program,
-    body.intake,
-    body.institution,
-    body.status || 'draft'
-  ];
+  try {
+    // Build insert query
+    const fields = [
+      'user_id', 'application_number', 'public_tracking_code', 'full_name',
+      'nrc_number', 'passport_number', 'date_of_birth', 'sex', 'phone', 'email',
+      'residence_town', 'nationality', 'next_of_kin_name', 'next_of_kin_phone',
+      'program', 'intake', 'institution', 'status'
+    ];
 
-  const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
-  
-  const result = await query<ApplicationRecord>(
-    `INSERT INTO applications (${fields.join(', ')})
-     VALUES (${placeholders})
-     RETURNING *`,
-    values
-  );
+    const values = [
+      userId,
+      body.application_number,
+      body.public_tracking_code || null,
+      body.full_name,
+      body.nrc_number || null,
+      body.passport_number || null,
+      body.date_of_birth,
+      body.sex,
+      body.phone,
+      body.email,
+      body.residence_town,
+      body.nationality || 'Zambian',
+      body.next_of_kin_name || null,
+      body.next_of_kin_phone || null,
+      body.program,
+      body.intake,
+      body.institution,
+      body.status || 'draft'
+    ];
 
-  if (result.rowCount === 0) {
-    return sendError(res, 'Failed to create application', HttpStatus.INTERNAL_SERVER_ERROR);
+    const placeholders = values.map((_, i) => `${i + 1}`).join(', ');
+
+    const result = await query<ApplicationRecord>(
+      `INSERT INTO applications (${fields.join(', ')})
+       VALUES (${placeholders})
+       RETURNING *`,
+      values
+    );
+
+    if (result.rowCount === 0) {
+      return sendError(res, 'Failed to create application', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    console.log('[applications] Created application:', result.rows[0].id);
+    return sendSuccess(res, result.rows[0], HttpStatus.CREATED);
+  } catch (error) {
+    return handleError(res, error, 'applications/create');
   }
-
-  console.log('[applications] Created application:', result.rows[0].id);
-  return sendSuccess(res, result.rows[0], HttpStatus.CREATED);
 }
 
 async function handleDetails(
-  req: VercelRequest, 
-  res: VercelResponse, 
-  userId: string, 
+  req: VercelRequest,
+  res: VercelResponse,
+  userId: string,
   isAdmin: boolean
 ) {
   if (req.method !== 'GET') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  // Parse pagination and filter params from query string
-  // Frontend sends 1-based pages; convert to 0-based for OFFSET calculation
-  const rawPage = parseInt(req.query.page as string || '1', 10);
-  const page = Math.max(rawPage, 1);
-  const pageSize = Math.max(parseInt(req.query.pageSize as string || '50', 10), 1);
-  const status = req.query.status as string | undefined;
-  const search = req.query.search as string | undefined;
-  const payment = req.query.payment as string | undefined;
-  const program = req.query.program as string | undefined;
-  const institution = req.query.institution as string | undefined;
-  const sortBy = req.query.sortBy as string || 'date';
-  const sortOrder = (req.query.sortOrder as string || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-  const mine = req.query.mine as string | undefined;
+  try {
+    // Parse pagination and filter params from query string
+    // Frontend sends 1-based pages; convert to 0-based for OFFSET calculation
+    const rawPage = parseInt(req.query.page as string || '1', 10);
+    const page = Math.max(rawPage, 1);
+    const pageSize = Math.max(parseInt(req.query.pageSize as string || '50', 10), 1);
+    const status = req.query.status as string | undefined;
+    const search = req.query.search as string | undefined;
+    const payment = req.query.payment as string | undefined;
+    const program = req.query.program as string | undefined;
+    const institution = req.query.institution as string | undefined;
+    const sortBy = req.query.sortBy as string || 'date';
+    const sortOrder = (req.query.sortOrder as string || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+    const mine = req.query.mine as string | undefined;
 
-  // Build dynamic query with filters
-  const conditions: string[] = [];
-  const values: (string | number)[] = [];
-  let paramIndex = 1;
+    // Build dynamic query with filters
+    const conditions: string[] = [];
+    const values: (string | number)[] = [];
+    let paramIndex = 1;
 
-  // Scope to user unless admin
-  if (!isAdmin || mine === 'true') {
-    conditions.push(`user_id = $${paramIndex}`);
-    values.push(userId);
-    paramIndex++;
+    // Scope to user unless admin
+    if (!isAdmin || mine === 'true') {
+      conditions.push(`user_id = $${paramIndex}`);
+      values.push(userId);
+      paramIndex++;
+    }
+
+    if (status) {
+      conditions.push(`status = $${paramIndex}`);
+      values.push(status);
+      paramIndex++;
+    }
+
+    if (search) {
+      const searchPattern = `%${search.replace(/[%_]/g, '\\$&')}%`;
+      conditions.push(`(full_name ILIKE $${paramIndex} OR email ILIKE $${paramIndex} OR application_number ILIKE $${paramIndex})`);
+      values.push(searchPattern);
+      paramIndex++;
+    }
+
+    if (payment) {
+      conditions.push(`payment_status = $${paramIndex}`);
+      values.push(payment);
+      paramIndex++;
+    }
+
+    if (program) {
+      conditions.push(`program = $${paramIndex}`);
+      values.push(program);
+      paramIndex++;
+    }
+
+    if (institution) {
+      conditions.push(`institution = $${paramIndex}`);
+      values.push(institution);
+      paramIndex++;
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // Sort column mapping
+    const sortColumn = sortBy === 'date' ? 'created_at' : sortBy === 'name' ? 'full_name' : 'created_at';
+
+    // Count total
+    const countResult = await query<{ count: string }>(
+      `SELECT COUNT(*) as count FROM applications ${whereClause}`,
+      values
+    );
+    const totalCount = parseInt(countResult.rows[0]?.count || '0', 10);
+
+    // Fetch page with LIMIT/OFFSET (1-based page → 0-based offset)
+    const offset = (page - 1) * pageSize;
+    const dataValues = [...values, pageSize, offset];
+    const result = await query<ApplicationRecord>(
+      `SELECT * FROM applications ${whereClause} ORDER BY ${sortColumn} ${sortOrder} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+      dataValues
+    );
+
+    return sendSuccess(res, {
+      applications: result.rows,
+      totalCount,
+      page,
+      pageSize
+    });
+  } catch (error) {
+    return handleError(res, error, 'applications/details');
   }
-
-  if (status) {
-    conditions.push(`status = $${paramIndex}`);
-    values.push(status);
-    paramIndex++;
-  }
-
-  if (search) {
-    const searchPattern = `%${search.replace(/[%_]/g, '\\$&')}%`;
-    conditions.push(`(full_name ILIKE $${paramIndex} OR email ILIKE $${paramIndex} OR application_number ILIKE $${paramIndex})`);
-    values.push(searchPattern);
-    paramIndex++;
-  }
-
-  if (payment) {
-    conditions.push(`payment_status = $${paramIndex}`);
-    values.push(payment);
-    paramIndex++;
-  }
-
-  if (program) {
-    conditions.push(`program = $${paramIndex}`);
-    values.push(program);
-    paramIndex++;
-  }
-
-  if (institution) {
-    conditions.push(`institution = $${paramIndex}`);
-    values.push(institution);
-    paramIndex++;
-  }
-
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-
-  // Sort column mapping
-  const sortColumn = sortBy === 'date' ? 'created_at' : sortBy === 'name' ? 'full_name' : 'created_at';
-
-  // Count total
-  const countResult = await query<{ count: string }>(
-    `SELECT COUNT(*) as count FROM applications ${whereClause}`,
-    values
-  );
-  const totalCount = parseInt(countResult.rows[0]?.count || '0', 10);
-
-  // Fetch page with LIMIT/OFFSET (1-based page → 0-based offset)
-  const offset = (page - 1) * pageSize;
-  const dataValues = [...values, pageSize, offset];
-  const result = await query<ApplicationRecord>(
-    `SELECT * FROM applications ${whereClause} ORDER BY ${sortColumn} ${sortOrder} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
-    dataValues
-  );
-
-  return sendSuccess(res, {
-    applications: result.rows,
-    totalCount,
-    page,
-    pageSize
-  });
 }
 
 async function handleDocuments(res: VercelResponse) {
-  const q = DocumentQueries.findAll();
-  const result = await query<DocumentRecord>(q.text, q.values);
-  return sendSuccess(res, result.rows);
+  try {
+    const q = DocumentQueries.findAll();
+    const result = await query<DocumentRecord>(q.text, q.values);
+    return sendSuccess(res, result.rows);
+  } catch (error) {
+    return handleError(res, error, 'applications/documents');
+  }
 }
 
 async function handleGrades(res: VercelResponse) {
-  const q = GradeQueries.findAll();
-  const result = await query<GradeRecord>(q.text, q.values);
-  return sendSuccess(res, result.rows);
+  try {
+    const q = GradeQueries.findAll();
+    const result = await query<GradeRecord>(q.text, q.values);
+    return sendSuccess(res, result.rows);
+  } catch (error) {
+    return handleError(res, error, 'applications/grades');
+  }
 }
 
 async function handleSummary(res: VercelResponse) {
-  const q = ApplicationQueries.getSummary();
-  const result = await query<{ id: string; status: string; created_at: string }>(q.text, q.values);
-  return sendSuccess(res, result.rows);
+  try {
+    const q = ApplicationQueries.getSummary();
+    const result = await query<{ id: string; status: string; created_at: string }>(q.text, q.values);
+    return sendSuccess(res, result.rows);
+  } catch (error) {
+    return handleError(res, error, 'applications/summary');
+  }
 }
 
 /**
@@ -360,35 +389,39 @@ async function handleInterviews(
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  // Query interviews for user's applications with application details joined
-  const result = await query<{
-    id: string;
-    application_id: string;
-    scheduled_at: string;
-    mode: 'in_person' | 'virtual' | 'phone';
-    location: string | null;
-    status: 'scheduled' | 'rescheduled' | 'completed' | 'cancelled';
-    notes: string | null;
-    program: string | null;
-    application_number: string | null;
-  }>(`
-    SELECT 
-      ai.id,
-      ai.application_id,
-      ai.scheduled_at,
-      ai.mode,
-      ai.location,
-      ai.status,
-      ai.notes,
-      a.program,
-      a.application_number
-    FROM application_interviews ai
-    INNER JOIN applications a ON ai.application_id = a.id
-    WHERE a.user_id = $1
-    ORDER BY ai.scheduled_at ASC
-  `, [userId]);
+  try {
+    // Query interviews for user's applications with application details joined
+    const result = await query<{
+      id: string;
+      application_id: string;
+      scheduled_at: string;
+      mode: 'in_person' | 'virtual' | 'phone';
+      location: string | null;
+      status: 'scheduled' | 'rescheduled' | 'completed' | 'cancelled';
+      notes: string | null;
+      program: string | null;
+      application_number: string | null;
+    }>(`
+      SELECT
+        ai.id,
+        ai.application_id,
+        ai.scheduled_at,
+        ai.mode,
+        ai.location,
+        ai.status,
+        ai.notes,
+        a.program,
+        a.application_number
+      FROM application_interviews ai
+      INNER JOIN applications a ON ai.application_id = a.id
+      WHERE a.user_id = $1
+      ORDER BY ai.scheduled_at ASC
+    `, [userId]);
 
-  return sendSuccess(res, { interviews: result.rows });
+    return sendSuccess(res, { interviews: result.rows });
+  } catch (error) {
+    return handleError(res, error, 'applications/interviews');
+  }
 }
 
 /**
@@ -421,71 +454,75 @@ async function handleScheduleInterview(
     return sendError(res, 'Invalid mode. Use: in-person, in_person, virtual, or phone', HttpStatus.BAD_REQUEST);
   }
 
-  const applicationResult = await query<{ id: string }>(
-    'SELECT id FROM applications WHERE id = $1 LIMIT 1',
-    [applicationId]
-  );
-
-  if (applicationResult.rowCount === 0) {
-    return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
-  }
-
-  const interviewResult = await query<{
-    id: string;
-    application_id: string;
-    scheduled_at: string;
-    mode: string;
-    location: string;
-    notes: string | null;
-    status: string;
-  }>(
-    `INSERT INTO application_interviews (
-      application_id, scheduled_at, mode, location, notes, status, created_by, created_at, updated_at
-    ) VALUES ($1, $2, $3, $4, $5, 'scheduled', $6, NOW(), NOW())
-    RETURNING id, application_id, scheduled_at, mode, location, notes, status`,
-    [applicationId, scheduled_at, normalizedMode, location, notes || null, userId]
-  );
-
-  // Create audit trail entry (Requirement 12.3)
   try {
-    await logAuditEvent({
-      actor_id: userId,
-      action: 'interview_scheduled',
-      entity_type: 'application',
-      entity_id: applicationId,
-      changes: { scheduled_at, mode: normalizedMode, interview_id: interviewResult.rows[0]?.id },
-    });
-  } catch (auditError) {
-    console.error('[applications] Failed to create interview audit log:', auditError);
-  }
+    const applicationResult = await query<{ id: string }>(
+      'SELECT id FROM applications WHERE id = $1 LIMIT 1',
+      [applicationId]
+    );
 
-  // Publish real-time event so student sees the update
-  try {
-    const appOwner = await query<{ user_id: string }>('SELECT user_id FROM applications WHERE id = $1', [applicationId]);
-    if (appOwner.rows[0]?.user_id) {
-      const now = new Date().toISOString();
-      const version = Date.now();
-      publishRealtimeEvent(appOwner.rows[0].user_id, {
-        event_id: `interview_scheduled:${applicationId}:${version}`,
-        event_type: 'interview_scheduled',
-        entity_id: applicationId,
-        version,
-        created_at: now,
-        payload: {
-          application_id: applicationId,
-          interview_id: interviewResult.rows[0]?.id,
-          scheduled_at,
-          mode: normalizedMode,
-          location,
-        },
-      });
+    if (applicationResult.rowCount === 0) {
+      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
     }
-  } catch (realtimeError) {
-    console.error('[applications] Failed to publish interview realtime event:', realtimeError);
-  }
 
-  console.log('[applications] Interview scheduled:', applicationId, interviewResult.rows[0]?.id);
-  return sendSuccess(res, { interview: interviewResult.rows[0] }, HttpStatus.CREATED);
+    const interviewResult = await query<{
+      id: string;
+      application_id: string;
+      scheduled_at: string;
+      mode: string;
+      location: string;
+      notes: string | null;
+      status: string;
+    }>(
+      `INSERT INTO application_interviews (
+        application_id, scheduled_at, mode, location, notes, status, created_by, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, 'scheduled', $6, NOW(), NOW())
+      RETURNING id, application_id, scheduled_at, mode, location, notes, status`,
+      [applicationId, scheduled_at, normalizedMode, location, notes || null, userId]
+    );
+
+    // Create audit trail entry (Requirement 12.3)
+    try {
+      await logAuditEvent({
+        actor_id: userId,
+        action: 'interview_scheduled',
+        entity_type: 'application',
+        entity_id: applicationId,
+        changes: { scheduled_at, mode: normalizedMode, interview_id: interviewResult.rows[0]?.id },
+      });
+    } catch (auditError) {
+      console.error('[applications] Failed to create interview audit log:', auditError);
+    }
+
+    // Publish real-time event so student sees the update
+    try {
+      const appOwner = await query<{ user_id: string }>('SELECT user_id FROM applications WHERE id = $1', [applicationId]);
+      if (appOwner.rows[0]?.user_id) {
+        const now = new Date().toISOString();
+        const version = Date.now();
+        publishRealtimeEvent(appOwner.rows[0].user_id, {
+          event_id: `interview_scheduled:${applicationId}:${version}`,
+          event_type: 'interview_scheduled',
+          entity_id: applicationId,
+          version,
+          created_at: now,
+          payload: {
+            application_id: applicationId,
+            interview_id: interviewResult.rows[0]?.id,
+            scheduled_at,
+            mode: normalizedMode,
+            location,
+          },
+        });
+      }
+    } catch (realtimeError) {
+      console.error('[applications] Failed to publish interview realtime event:', realtimeError);
+    }
+
+    console.log('[applications] Interview scheduled:', applicationId, interviewResult.rows[0]?.id);
+    return sendSuccess(res, { interview: interviewResult.rows[0] }, HttpStatus.CREATED);
+  } catch (error) {
+    return handleError(res, error, 'applications/schedule-interview');
+  }
 }
 
 /**
@@ -501,118 +538,126 @@ async function handleStats(
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  // Get application counts by status
-  const countResult = await query<{
-    total: string;
-    drafts: string;
-    completed: string;
-  }>(`
-    SELECT 
-      COUNT(*) as total,
-      COUNT(*) FILTER (WHERE status = 'draft') as drafts,
-      COUNT(*) FILTER (WHERE status != 'draft') as completed
-    FROM applications
-    WHERE user_id = $1
-  `, [userId]);
+  try {
+    // Get application counts by status
+    const countResult = await query<{
+      total: string;
+      drafts: string;
+      completed: string;
+    }>(`
+      SELECT
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE status = 'draft') as drafts,
+        COUNT(*) FILTER (WHERE status != 'draft') as completed
+      FROM applications
+      WHERE user_id = $1
+    `, [userId]);
 
-  // Get average time per step (based on updated_at - created_at for completed apps)
-  const avgTimeResult = await query<{ avg_time_hours: string | null }>(`
-    SELECT 
-      AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) / 3600) as avg_time_hours
-    FROM applications
-    WHERE user_id = $1 AND status != 'draft'
-  `, [userId]);
+    // Get average time per step (based on updated_at - created_at for completed apps)
+    const avgTimeResult = await query<{ avg_time_hours: string | null }>(`
+      SELECT
+        AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) / 3600) as avg_time_hours
+      FROM applications
+      WHERE user_id = $1 AND status != 'draft'
+    `, [userId]);
 
-  const stats = countResult.rows[0];
-  const avgTime = avgTimeResult.rows[0];
+    const stats = countResult.rows[0];
+    const avgTime = avgTimeResult.rows[0];
 
-  return sendSuccess(res, {
-    total_drafts: parseInt(stats?.drafts || '0', 10),
-    completed_applications: parseInt(stats?.completed || '0', 10),
-    total_applications: parseInt(stats?.total || '0', 10),
-    avg_time_hours: avgTime?.avg_time_hours ? parseFloat(avgTime.avg_time_hours) : 0,
-  });
+    return sendSuccess(res, {
+      total_drafts: parseInt(stats?.drafts || '0', 10),
+      completed_applications: parseInt(stats?.completed || '0', 10),
+      total_applications: parseInt(stats?.total || '0', 10),
+      avg_time_hours: avgTime?.avg_time_hours ? parseFloat(avgTime.avg_time_hours) : 0,
+    });
+  } catch (error) {
+    return handleError(res, error, 'applications/stats');
+  }
 }
 
 async function handleReview(
-  req: VercelRequest, 
-  res: VercelResponse, 
-  userId: string, 
+  req: VercelRequest,
+  res: VercelResponse,
+  userId: string,
   isAdmin: boolean
 ) {
   if (!isAdmin) {
     return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
   }
 
-  if (req.method === 'GET') {
-    const q = ApplicationQueries.findPendingReview();
-    const result = await query<ApplicationRecord>(q.text, q.values);
-    return sendSuccess(res, result.rows);
+  try {
+    if (req.method === 'GET') {
+      const q = ApplicationQueries.findPendingReview();
+      const result = await query<ApplicationRecord>(q.text, q.values);
+      return sendSuccess(res, result.rows);
+    }
+
+    if (req.method === 'POST') {
+      const parsed = validateBody(reviewApplicationBodySchema, req, res);
+      if (!parsed) return;
+
+      const { application_id, status, notes } = parsed;
+
+      const validStatuses: ApplicationStatus[] = ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'pending_documents'];
+      if (!validStatuses.includes(status as ApplicationStatus)) {
+        return sendError(res, `Invalid status. Must be one of: ${validStatuses.join(', ')}`, HttpStatus.BAD_REQUEST);
+      }
+
+      const existingAppQ = ApplicationQueries.findById(application_id);
+      const existingAppResult = await query<ApplicationRecord>(existingAppQ.text, existingAppQ.values);
+      const existingApp = existingAppResult.rows[0];
+
+      if (!existingApp) {
+        return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (status === 'approved' && existingApp.payment_status !== 'verified') {
+        return sendError(res, 'Cannot approve without verified payment', HttpStatus.BAD_REQUEST);
+      }
+
+      // Update application status
+      const updateQ = ApplicationQueries.updateStatus(
+        application_id,
+        status as ApplicationStatus,
+        userId,
+        notes
+      );
+      const updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
+
+      if (updateResult.rowCount === 0) {
+        return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Create status history entry
+      const historyQ = StatusHistoryQueries.create(
+        application_id,
+        status as ApplicationStatus,
+        userId,
+        notes
+      );
+      await query(historyQ.text, historyQ.values);
+
+      // Audit trail for application status change (Requirement 21.1)
+      try {
+        await logAuditEvent({
+          actor_id: userId,
+          action: 'application_status_changed',
+          entity_type: 'application',
+          entity_id: application_id,
+          changes: { new_status: status, review_action: true },
+        });
+      } catch (auditError) {
+        console.error('[applications/review] Failed to create audit log:', auditError);
+      }
+
+      console.log('[applications/review] Application reviewed:', application_id, status);
+      return sendSuccess(res, { application: updateResult.rows[0] });
+    }
+
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  } catch (error) {
+    return handleError(res, error, 'applications/review');
   }
-
-  if (req.method === 'POST') {
-    const { application_id, status, notes } = req.body;
-    if (!application_id || !status) {
-      return sendError(res, 'application_id and status are required', HttpStatus.BAD_REQUEST);
-    }
-
-    const validStatuses: ApplicationStatus[] = ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'pending_documents'];
-    if (!validStatuses.includes(status as ApplicationStatus)) {
-      return sendError(res, `Invalid status. Must be one of: ${validStatuses.join(', ')}`, HttpStatus.BAD_REQUEST);
-    }
-
-    const existingAppQ = ApplicationQueries.findById(application_id);
-    const existingAppResult = await query<ApplicationRecord>(existingAppQ.text, existingAppQ.values);
-    const existingApp = existingAppResult.rows[0];
-
-    if (!existingApp) {
-      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
-    }
-
-    if (status === 'approved' && existingApp.payment_status !== 'verified') {
-      return sendError(res, 'Cannot approve without verified payment', HttpStatus.BAD_REQUEST);
-    }
-
-    // Update application status
-    const updateQ = ApplicationQueries.updateStatus(
-      application_id, 
-      status as ApplicationStatus, 
-      userId, 
-      notes
-    );
-    const updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
-
-    if (updateResult.rowCount === 0) {
-      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
-    }
-
-    // Create status history entry
-    const historyQ = StatusHistoryQueries.create(
-      application_id,
-      status as ApplicationStatus,
-      userId,
-      notes
-    );
-    await query(historyQ.text, historyQ.values);
-
-    // Audit trail for application status change (Requirement 21.1)
-    try {
-      await logAuditEvent({
-        actor_id: userId,
-        action: 'application_status_changed',
-        entity_type: 'application',
-        entity_id: application_id,
-        changes: { new_status: status, review_action: true },
-      });
-    } catch (auditError) {
-      console.error('[applications/review] Failed to create audit log:', auditError);
-    }
-
-    console.log('[applications/review] Application reviewed:', application_id, status);
-    return sendSuccess(res, { application: updateResult.rows[0] });
-  }
-
-  return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
 }
 
 async function handleById(
@@ -622,6 +667,7 @@ async function handleById(
   isAdmin: boolean, 
   applicationId: string
 ) {
+  try {
   // GET - Fetch application details
   if (req.method === 'GET') {
     // Check ownership for non-admin users
@@ -1109,6 +1155,9 @@ async function handleById(
   }
 
   return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  } catch (error) {
+    return handleError(res, error, 'applications/by-id');
+  }
 }
 
 async function fetchApplicationDetails(id: string, include?: string) {
@@ -1202,7 +1251,8 @@ async function handleExport(
     return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
   }
 
-  const page = parseInt(req.query.page as string || '0', 10);
+  try {
+    const page = parseInt(req.query.page as string || '0', 10);
   const limit = Math.min(parseInt(req.query.limit as string || '500', 10), 1000);
   const offset = page * limit;
 
@@ -1305,6 +1355,9 @@ async function handleExport(
     limit,
     hasMore: result.rows.length === limit
   });
+  } catch (error) {
+    return handleError(res, error, 'applications/export');
+  }
 }
 
 /**

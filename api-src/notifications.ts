@@ -7,6 +7,12 @@ import { USER_ROLES } from '../lib/queries';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
 import { MANDATORY_EMAIL_TYPES, isMandatoryEmailType, getEmailMapping } from '../lib/notificationPolicy';
 import { renderEmailTemplate } from '../lib/emailTemplates';
+import { requireCsrf } from '../lib/csrf';
+import { validateBody } from '../lib/validation/middleware';
+import { markReadBodySchema, deleteNotificationBodySchema, createNotificationBodySchema, sendNotificationBodySchema } from '../lib/validation/notifications';
+import { logAuditEvent } from '../lib/auditLogger';
+import { validateServerEnv } from '../lib/envValidator';
+import { isSafeActionUrl } from '../src/lib/urlSafety';
 
 // Re-export for backward compatibility and testing convenience
 export { MANDATORY_EMAIL_TYPES, isMandatoryEmailType } from '../lib/notificationPolicy';
@@ -44,10 +50,20 @@ export function generateIdempotencyKey(
 async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
+  // Validate required environment variables (Req 25.3)
+  const envResult = validateServerEnv();
+  if (!envResult.valid) {
+    const details = envResult.errors.map((e) => e.message).join('; ');
+    return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+  }
+
   // Handle HEAD requests for health checks (no auth required)
   if (req.method === 'HEAD') {
     return res.status(200).end();
   }
+
+  // CSRF validation for state-changing requests
+  if (await requireCsrf(req, res)) return;
 
   const action = req.query.action as string || 'preferences';
 
@@ -94,57 +110,61 @@ async function handlePreferences(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
-  if (req.method === 'GET') {
-    const preferences = await getCanonicalPreferences(user.userId);
+  try {
+    if (req.method === 'GET') {
+      const preferences = await getCanonicalPreferences(user.userId);
 
-    return sendSuccess(res, { preferences });
+      return sendSuccess(res, { preferences });
+    }
+
+    if (req.method === 'POST') {
+      const { sms_enabled, whatsapp_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = req.body;
+
+      const upsertQ = {
+        text: `
+          INSERT INTO user_notification_preferences (
+            user_id, email_enabled, push_enabled, sms_enabled, whatsapp_enabled, in_app_enabled,
+            application_updates, payment_reminders, interview_reminders, marketing_emails,
+            quiet_hours_start, quiet_hours_end, updated_at, created_at
+          )
+          VALUES ($1, true, true, COALESCE($2, true), COALESCE($3, true), true, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+          ON CONFLICT (user_id) DO UPDATE SET
+            email_enabled = true,
+            push_enabled = true,
+            sms_enabled = COALESCE($2, user_notification_preferences.sms_enabled, true),
+            whatsapp_enabled = COALESCE($3, user_notification_preferences.whatsapp_enabled, true),
+            in_app_enabled = true,
+            application_updates = COALESCE($4, user_notification_preferences.application_updates, true),
+            payment_reminders = COALESCE($5, user_notification_preferences.payment_reminders, true),
+            interview_reminders = COALESCE($6, user_notification_preferences.interview_reminders, true),
+            marketing_emails = COALESCE($7, user_notification_preferences.marketing_emails, false),
+            quiet_hours_start = COALESCE($8, user_notification_preferences.quiet_hours_start),
+            quiet_hours_end = COALESCE($9, user_notification_preferences.quiet_hours_end),
+            updated_at = NOW()
+          RETURNING *
+        `,
+        values: [
+          user.userId,
+          sms_enabled ?? true,
+          whatsapp_enabled ?? true,
+          application_updates ?? true,
+          payment_reminders ?? true,
+          interview_reminders ?? true,
+          marketing_emails ?? false,
+          quiet_hours_start ?? null,
+          quiet_hours_end ?? null,
+        ],
+      };
+      const result = await query<Record<string, unknown>>(upsertQ.text, upsertQ.values);
+
+      console.log('[notifications/preferences] Updated for user:', user.userId.substring(0, 8) + '...');
+      return sendSuccess(res, { preferences: result.rows[0] });
+    }
+
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  } catch (error) {
+    return handleError(res, error, 'notifications/preferences');
   }
-
-  if (req.method === 'POST') {
-    const { sms_enabled, whatsapp_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = req.body;
-
-    const upsertQ = {
-      text: `
-        INSERT INTO user_notification_preferences (
-          user_id, email_enabled, push_enabled, sms_enabled, whatsapp_enabled, in_app_enabled,
-          application_updates, payment_reminders, interview_reminders, marketing_emails,
-          quiet_hours_start, quiet_hours_end, updated_at, created_at
-        )
-        VALUES ($1, true, true, COALESCE($2, true), COALESCE($3, true), true, $4, $5, $6, $7, $8, $9, NOW(), NOW())
-        ON CONFLICT (user_id) DO UPDATE SET
-          email_enabled = true,
-          push_enabled = true,
-          sms_enabled = COALESCE($2, user_notification_preferences.sms_enabled, true),
-          whatsapp_enabled = COALESCE($3, user_notification_preferences.whatsapp_enabled, true),
-          in_app_enabled = true,
-          application_updates = COALESCE($4, user_notification_preferences.application_updates, true),
-          payment_reminders = COALESCE($5, user_notification_preferences.payment_reminders, true),
-          interview_reminders = COALESCE($6, user_notification_preferences.interview_reminders, true),
-          marketing_emails = COALESCE($7, user_notification_preferences.marketing_emails, false),
-          quiet_hours_start = COALESCE($8, user_notification_preferences.quiet_hours_start),
-          quiet_hours_end = COALESCE($9, user_notification_preferences.quiet_hours_end),
-          updated_at = NOW()
-        RETURNING *
-      `,
-      values: [
-        user.userId,
-        sms_enabled ?? true,
-        whatsapp_enabled ?? true,
-        application_updates ?? true,
-        payment_reminders ?? true,
-        interview_reminders ?? true,
-        marketing_emails ?? false,
-        quiet_hours_start ?? null,
-        quiet_hours_end ?? null,
-      ],
-    };
-    const result = await query<Record<string, unknown>>(upsertQ.text, upsertQ.values);
-
-    console.log('[notifications/preferences] Updated for user:', user.userId.substring(0, 8) + '...');
-    return sendSuccess(res, { preferences: result.rows[0] });
-  }
-
-  return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
 }
 
 /**
@@ -161,34 +181,38 @@ async function handleList(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
-  const result = await query<{
-    id: string;
-    title: string;
-    message: string;
-    type: string;
-    is_read: boolean;
-    action_url: string | null;
-    created_at: string;
-    read_at: string | null;
-  }>(
-    `SELECT id, title, message, type, is_read, action_url, created_at, read_at
-     FROM notifications WHERE user_id = $1
-     ORDER BY created_at DESC LIMIT 50`,
-    [user.userId]
-  );
+  try {
+    const result = await query<{
+      id: string;
+      title: string;
+      message: string;
+      type: string;
+      is_read: boolean;
+      action_url: string | null;
+      created_at: string;
+      read_at: string | null;
+    }>(
+      `SELECT id, title, message, type, is_read, action_url, created_at, read_at
+       FROM notifications WHERE user_id = $1
+       ORDER BY created_at DESC LIMIT 50`,
+      [user.userId]
+    );
 
-  const notifications = result.rows.map(n => ({
-    id: n.id,
-    title: n.title,
-    content: n.message,
-    type: n.type || 'info',
-    read: n.is_read,
-    action_url: n.action_url,
-    created_at: n.created_at,
-    read_at: n.read_at,
-  }));
+    const notifications = result.rows.map(n => ({
+      id: n.id,
+      title: n.title,
+      content: n.message,
+      type: n.type || 'info',
+      read: n.is_read,
+      action_url: n.action_url,
+      created_at: n.created_at,
+      read_at: n.read_at,
+    }));
 
-  return sendSuccess(res, notifications);
+    return sendSuccess(res, notifications);
+  } catch (error) {
+    return handleError(res, error, 'notifications/list');
+  }
 }
 
 /**
@@ -206,17 +230,21 @@ async function handleMarkRead(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
-  const { notificationId } = req.body || {};
-  if (!notificationId) {
-    return sendError(res, 'notificationId is required', HttpStatus.BAD_REQUEST);
+  const parsed = validateBody(markReadBodySchema, req, res);
+  if (!parsed) return;
+
+  const { notificationId } = parsed;
+
+  try {
+    await query(
+      `UPDATE notifications SET is_read = true, read_at = NOW() WHERE id = $1 AND user_id = $2`,
+      [notificationId, user.userId]
+    );
+
+    return sendSuccess(res, { marked: true });
+  } catch (error) {
+    return handleError(res, error, 'notifications/mark-read');
   }
-
-  await query(
-    `UPDATE notifications SET is_read = true, read_at = NOW() WHERE id = $1 AND user_id = $2`,
-    [notificationId, user.userId]
-  );
-
-  return sendSuccess(res, { marked: true });
 }
 
 /**
@@ -233,12 +261,16 @@ async function handleMarkAllRead(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
-  await query(
-    `UPDATE notifications SET is_read = true, read_at = NOW() WHERE user_id = $1 AND is_read = false`,
-    [user.userId]
-  );
+  try {
+    await query(
+      `UPDATE notifications SET is_read = true, read_at = NOW() WHERE user_id = $1 AND is_read = false`,
+      [user.userId]
+    );
 
-  return sendSuccess(res, { marked: true });
+    return sendSuccess(res, { marked: true });
+  } catch (error) {
+    return handleError(res, error, 'notifications/mark-all-read');
+  }
 }
 
 /**
@@ -256,17 +288,28 @@ async function handleDelete(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
-  const { notificationId } = req.body || {};
-  if (!notificationId) {
-    return sendError(res, 'notificationId is required', HttpStatus.BAD_REQUEST);
+  const parsed = validateBody(deleteNotificationBodySchema, req, res);
+  if (!parsed) return;
+
+  const { notificationId } = parsed;
+
+  try {
+    await query(
+      `DELETE FROM notifications WHERE id = $1 AND user_id = $2`,
+      [notificationId, user.userId]
+    );
+
+    await logAuditEvent({
+      actor_id: user.userId,
+      action: 'notification_delete',
+      entity_type: 'notification',
+      entity_id: notificationId,
+    });
+
+    return sendSuccess(res, { deleted: true });
+  } catch (error) {
+    return handleError(res, error, 'notifications/delete');
   }
-
-  await query(
-    `DELETE FROM notifications WHERE id = $1 AND user_id = $2`,
-    [notificationId, user.userId]
-  );
-
-  return sendSuccess(res, { deleted: true });
 }
 
 /**
@@ -353,23 +396,27 @@ async function handleCheckDuplicate(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Forbidden', HttpStatus.FORBIDDEN);
   }
 
-  const normalizedType = type || 'info';
-  const idempotencyKey = generateIdempotencyKey(
-    targetUserId,
-    normalizedType,
-    entity_type || 'notification',
-    entity_id || title
-  );
+  try {
+    const normalizedType = type || 'info';
+    const idempotencyKey = generateIdempotencyKey(
+      targetUserId,
+      normalizedType,
+      entity_type || 'notification',
+      entity_id || title
+    );
 
-  const existing = await query<{ id: string }>(
-    `SELECT id FROM notifications
-     WHERE user_id = $1 AND idempotency_key = $2
-     AND created_at > NOW() - INTERVAL '1 minute'
-     LIMIT 1`,
-    [targetUserId, idempotencyKey]
-  );
+    const existing = await query<{ id: string }>(
+      `SELECT id FROM notifications
+       WHERE user_id = $1 AND idempotency_key = $2
+       AND created_at > NOW() - INTERVAL '1 minute'
+       LIMIT 1`,
+      [targetUserId, idempotencyKey]
+    );
 
-  return sendSuccess(res, { duplicate: existing.rows.length > 0 });
+    return sendSuccess(res, { duplicate: existing.rows.length > 0 });
+  } catch (error) {
+    return handleError(res, error, 'notifications/check-duplicate');
+  }
 }
 
 async function handleCreate(req: VercelRequest, res: VercelResponse) {
@@ -382,11 +429,15 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
-  const { user_id, title, message, type, action_url, entity_type, entity_id } = req.body || {};
+  const parsed = validateBody(createNotificationBodySchema, req, res);
+  if (!parsed) return;
+
+  const { user_id, title, message, type, action_url, entity_type, entity_id } = parsed;
   const targetUserId = user_id || user.userId;
 
-  if (!targetUserId || !title || !message) {
-    return sendError(res, 'user_id, title, and message are required', HttpStatus.BAD_REQUEST);
+  // Validate action_url to prevent open redirects (Req 27.3)
+  if (action_url && !isSafeActionUrl(action_url)) {
+    return sendError(res, 'action_url must be a relative path or an HTTPS URL on the application domain', HttpStatus.BAD_REQUEST, 'INVALID_ACTION_URL');
   }
 
   const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
@@ -394,41 +445,53 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Forbidden', HttpStatus.FORBIDDEN);
   }
 
-  const notificationType = type || 'info';
-  const idempotencyKey = generateIdempotencyKey(
-    targetUserId,
-    notificationType,
-    entity_type || 'notification',
-    entity_id || title
-  );
-
-  const existing = await query<{ id: string }>(
-    `SELECT id FROM notifications
-     WHERE user_id = $1 AND idempotency_key = $2
-     AND created_at > NOW() - INTERVAL '1 minute'
-     LIMIT 1`,
-    [targetUserId, idempotencyKey]
-  );
-
-  if (existing.rows.length > 0) {
-    return sendSuccess(res, { duplicate: true });
-  }
-
-  const created = await query<Record<string, unknown>>(
-    `INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at, idempotency_key, channel)
-     VALUES ($1, $2, $3, $4, $5, false, NOW(), $6, 'in_app')
-     RETURNING *`,
-    [targetUserId, title, message, notificationType, action_url || null, idempotencyKey]
-  );
-
-  // --- Email queuing (additive — never blocks in-app notification) ---
   try {
-    await queueEmailForNotification(targetUserId, notificationType, title, message, action_url);
-  } catch {
-    console.log('[notifications/create] Email queuing failed — in-app notification still created');
-  }
+    const notificationType = type || 'info';
+    const idempotencyKey = generateIdempotencyKey(
+      targetUserId,
+      notificationType,
+      entity_type || 'notification',
+      entity_id || title
+    );
 
-  return sendSuccess(res, { duplicate: false, notification: created.rows[0] });
+    const existing = await query<{ id: string }>(
+      `SELECT id FROM notifications
+       WHERE user_id = $1 AND idempotency_key = $2
+       AND created_at > NOW() - INTERVAL '1 minute'
+       LIMIT 1`,
+      [targetUserId, idempotencyKey]
+    );
+
+    if (existing.rows.length > 0) {
+      return sendSuccess(res, { duplicate: true });
+    }
+
+    const created = await query<Record<string, unknown>>(
+      `INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at, idempotency_key, channel)
+       VALUES ($1, $2, $3, $4, $5, false, NOW(), $6, 'in_app')
+       RETURNING *`,
+      [targetUserId, title, message, notificationType, action_url || null, idempotencyKey]
+    );
+
+    // --- Email queuing (additive — never blocks in-app notification) ---
+    try {
+      await queueEmailForNotification(targetUserId, notificationType, title, message, action_url);
+    } catch {
+      console.log('[notifications/create] Email queuing failed — in-app notification still created');
+    }
+
+    await logAuditEvent({
+      actor_id: user.userId,
+      action: 'notification_create',
+      entity_type: 'notification',
+      entity_id: (created.rows[0]?.id as string) || null,
+      changes: { type: notificationType, target_user: targetUserId !== user.userId ? targetUserId : undefined },
+    });
+
+    return sendSuccess(res, { duplicate: false, notification: created.rows[0] });
+  } catch (error) {
+    return handleError(res, error, 'notifications/create');
+  }
 }
 
 async function handleSend(req: VercelRequest, res: VercelResponse) {
@@ -447,66 +510,83 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
   }
 
-  const { user_id, title, message, type, action_url, entity_id, entity_type } = req.body;
+  const parsed = validateBody(sendNotificationBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!user_id || !title || !message) {
-    return sendError(res, 'user_id, title, and message are required', HttpStatus.BAD_REQUEST);
+  const { user_id, title, message, type, action_url, entity_id, entity_type } = parsed;
+
+  // Validate action_url to prevent open redirects (Req 27.3)
+  if (action_url && !isSafeActionUrl(action_url)) {
+    return sendError(res, 'action_url must be a relative path or an HTTPS URL on the application domain', HttpStatus.BAD_REQUEST, 'INVALID_ACTION_URL');
   }
 
-  const notificationType = type || 'info';
-  const mandatory = isMandatoryEmailType(notificationType);
-
-  // Use deduplication when entity context is provided, otherwise fall back to direct insert
-  let notificationRow: Record<string, unknown> | undefined;
-
-  if (entity_id && entity_type) {
-    const dedupResult = await createNotificationWithDedup(
-      user_id,
-      notificationType,
-      entity_id,
-      entity_type,
-      message,
-      'in_app',
-      { title, action_url: action_url || null }
-    );
-
-    if (!dedupResult.created) {
-      console.log('[notifications/send] Duplicate notification skipped for user:', user_id.substring(0, 8) + '...');
-      return sendSuccess(res, { duplicate: true, message: 'Notification already sent within deduplication window' });
-    }
-
-    notificationRow = dedupResult.notification;
-  } else {
-    // Legacy path: no entity context, insert directly (backward compatible)
-    const insertQ = {
-      text: `
-        INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
-        VALUES ($1, $2, $3, $4, $5, false, NOW())
-        RETURNING *
-      `,
-      values: [user_id, title, message, notificationType, action_url || null],
-    };
-    const result = await query<Record<string, unknown>>(insertQ.text, insertQ.values);
-    notificationRow = result.rows[0];
-  }
-
-  const recipientPreferences = await getCanonicalPreferences(user_id);
-
-  // For mandatory types, always queue email regardless of user preferences.
-  // For non-mandatory types, respect the user's email_enabled preference.
-  const shouldSendEmail = mandatory || Boolean(recipientPreferences.email_enabled);
-
-  let emailQueued = false;
   try {
-    if (shouldSendEmail) {
-      emailQueued = await queueEmailForNotification(user_id, notificationType, title, message, action_url);
-    }
-  } catch {
-    console.log('[notifications/send] Email queuing failed — in-app notification still created');
-  }
+    const notificationType = type || 'info';
+    const mandatory = isMandatoryEmailType(notificationType);
 
-  console.log('[notifications/send] Notification created for user:', user_id.substring(0, 8) + '...');
-  return sendSuccess(res, { notification: notificationRow, email_queued: emailQueued, mandatory });
+    // Use deduplication when entity context is provided, otherwise fall back to direct insert
+    let notificationRow: Record<string, unknown> | undefined;
+
+    if (entity_id && entity_type) {
+      const dedupResult = await createNotificationWithDedup(
+        user_id,
+        notificationType,
+        entity_id,
+        entity_type,
+        message,
+        'in_app',
+        { title, action_url: action_url || null }
+      );
+
+      if (!dedupResult.created) {
+        console.log('[notifications/send] Duplicate notification skipped for user:', user_id.substring(0, 8) + '...');
+        return sendSuccess(res, { duplicate: true, message: 'Notification already sent within deduplication window' });
+      }
+
+      notificationRow = dedupResult.notification;
+    } else {
+      // Legacy path: no entity context, insert directly (backward compatible)
+      const insertQ = {
+        text: `
+          INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+          VALUES ($1, $2, $3, $4, $5, false, NOW())
+          RETURNING *
+        `,
+        values: [user_id, title, message, notificationType, action_url || null],
+      };
+      const result = await query<Record<string, unknown>>(insertQ.text, insertQ.values);
+      notificationRow = result.rows[0];
+    }
+
+    const recipientPreferences = await getCanonicalPreferences(user_id);
+
+    // For mandatory types, always queue email regardless of user preferences.
+    // For non-mandatory types, respect the user's email_enabled preference.
+    const shouldSendEmail = mandatory || Boolean(recipientPreferences.email_enabled);
+
+    let emailQueued = false;
+    try {
+      if (shouldSendEmail) {
+        emailQueued = await queueEmailForNotification(user_id, notificationType, title, message, action_url);
+      }
+    } catch {
+      console.log('[notifications/send] Email queuing failed — in-app notification still created');
+    }
+
+    console.log('[notifications/send] Notification created for user:', user_id.substring(0, 8) + '...');
+
+    await logAuditEvent({
+      actor_id: user.userId,
+      action: 'admin_notification_send',
+      entity_type: 'notification',
+      entity_id: (notificationRow?.id as string) || null,
+      changes: { type: notificationType, target_user: user_id, mandatory },
+    });
+
+    return sendSuccess(res, { notification: notificationRow, email_queued: emailQueued, mandatory });
+  } catch (error) {
+    return handleError(res, error, 'notifications/send');
+  }
 }
 
 /**

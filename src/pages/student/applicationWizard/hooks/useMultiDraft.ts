@@ -69,10 +69,10 @@ export const useMultiDraft = (userId: string | undefined) => {
 
   const renameDraft = async (draftId: string, newName: string) => {
     try {
-      await applicationService.update(draftId, { draft_name: newName } as any)
+      await applicationService.update(draftId, { draft_name: newName })
       await fetchDrafts()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to rename draft')
     }
   }
 

@@ -129,8 +129,8 @@ export function useApplicationSubmit() {
       setError('')
 
       // Verify user authentication via cookie-based session
-      const sessionData = await apiClient.request<{ user?: any }>('/api/auth?action=session')
-      const user = (sessionData as any)?.user
+      const sessionData = await apiClient.request<{ user?: { id: string; role?: string } }>('/api/auth?action=session')
+      const user = sessionData?.user
       
       if (!user) {
         throw new Error('Authentication session expired. Please sign in again.')

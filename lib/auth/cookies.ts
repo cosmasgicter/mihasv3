@@ -290,7 +290,13 @@ export function extractRefreshTokenFromCookie(req: VercelRequest): string | null
  * Get cookie configuration constants
  * Useful for testing and configuration verification
  */
-export function getCookieConfig() {
+export function getCookieConfig(): {
+  accessTokenCookieName: string;
+  refreshTokenCookieName: string;
+  accessTokenMaxAge: number;
+  refreshTokenMaxAge: number;
+  refreshTokenPath: string;
+} {
   return {
     accessTokenCookieName: ACCESS_TOKEN_COOKIE,
     refreshTokenCookieName: REFRESH_TOKEN_COOKIE,

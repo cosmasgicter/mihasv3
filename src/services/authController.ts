@@ -1,6 +1,8 @@
 import { getApiBaseUrl } from '@/lib/apiConfig'
 import { logger } from '@/utils/logger'
 import { useToastStore } from '@/stores/toastStore'
+import { secureStorage } from '@/lib/secureStorage'
+import { getCsrfToken, setCsrfToken, clearCsrfToken } from '@/lib/csrfToken'
 
 export interface AuthApiEnvelope<T = unknown> {
   success: boolean
@@ -59,13 +61,25 @@ function hardClearAuthState() {
 }
 
 async function requestRefresh(baseUrl: string): Promise<boolean> {
+  const csrfToken = getCsrfToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (csrfToken) {
+    headers['X-CSRF-Token'] = csrfToken;
+  }
+
   const refreshResponse = await fetch(`${baseUrl}/api/auth?action=refresh`, {
     method: 'POST',
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
   })
+
+  // Capture rotated CSRF token from refresh response
+  const newCsrfToken = refreshResponse.headers.get('X-CSRF-Token');
+  if (newCsrfToken) {
+    setCsrfToken(newCsrfToken);
+  }
 
   return refreshResponse.ok
 }
@@ -97,17 +111,35 @@ export async function authRequest<T = unknown>(
 
   const baseUrl = getApiBaseUrl()
 
-  const performRequest = () => fetch(`${baseUrl}${path}`, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
+  const performRequest = () => {
+    const csrfHeaders: Record<string, string> = {};
+    const method = (options.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        csrfHeaders['X-CSRF-Token'] = csrfToken;
+      }
+    }
+
+    return fetch(`${baseUrl}${path}`, {
+      ...options,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+        ...options.headers,
+      },
+    })
+  }
 
   try {
     let response = await performRequest()
+
+    // Capture CSRF token from response (set on login/refresh)
+    const responseCsrfToken = response.headers.get('X-CSRF-Token');
+    if (responseCsrfToken) {
+      setCsrfToken(responseCsrfToken);
+    }
 
     if (response.status === 401 && attemptRefreshOn401) {
       const refreshSucceeded = await requestRefresh(baseUrl)
@@ -143,6 +175,12 @@ export async function authRequest<T = unknown>(
 export async function logoutWithTwoPhaseClear() {
   controllerConfig.clearAuthState?.()
   controllerConfig.clearCaches?.()
+  clearCsrfToken()
+
+  // Clear all encrypted session data from localStorage
+  await secureStorage.clearSession().catch((err) => {
+    logger.warn('Failed to clear secure storage on logout', err)
+  })
 
   const result = await authRequest('/api/auth?action=logout', { method: 'POST' }, {
     attemptRefreshOn401: false,

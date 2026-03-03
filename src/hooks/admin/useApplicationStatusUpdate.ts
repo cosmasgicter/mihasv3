@@ -13,8 +13,6 @@ import { useToastStore } from '@/components/ui/Toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiClient } from '@/services/client'
 
-import { apiClient } from '@/services/client'
-
 export interface StatusUpdateParams {
   /** The application ID to update */
   applicationId: string

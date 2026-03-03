@@ -9,6 +9,8 @@ import type { ApplicationInterview } from '@/types/database'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 import { SendNotificationModal } from './SendNotificationModal'
 import { CommunicationHistory } from '@/components/admin/CommunicationHistory'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -398,6 +400,8 @@ export function ApplicationDetailModal({
  const [adminFeedback, setAdminFeedback] = useState('')
  const [savingFeedback, setSavingFeedback] = useState(false)
  const [showNotificationModal, setShowNotificationModal] = useState(false)
+ const focusTrapRef = useFocusTrap(show && !!application)
+ useEscapeKey(show && !!application, onClose)
 
  // Client-side rendering guard to prevent hydration mismatch
  useEffect(() => {
@@ -745,7 +749,13 @@ export function ApplicationDetailModal({
 
  return (
  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
- <div className="bg-card w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full">
+ <div
+ ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+ role="dialog"
+ aria-modal="true"
+ aria-label={`Application details for ${application.full_name}`}
+ className="bg-card w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full"
+ >
  {/* Header */}
  <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
  <div className="flex items-center justify-between gap-2">

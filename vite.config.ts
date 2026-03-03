@@ -1,7 +1,55 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
+
+/**
+ * Build-time validation for required VITE_* environment variables.
+ * Fails the production build when any required variable is missing.
+ * In development mode it only warns so local dev isn't blocked.
+ *
+ * Validates: Requirement 25.5
+ */
+function envValidationPlugin(): Plugin {
+  return {
+    name: 'vite-plugin-env-validation',
+    configResolved(config) {
+      // Variables that MUST be set for a production build
+      const required: string[] = [
+        // Currently all VITE_* vars have fallbacks, but this list
+        // is the single place to add mandatory ones in the future.
+      ]
+
+      // Variables that SHOULD be set — warn if missing
+      const recommended: string[] = [
+        'VITE_APP_VERSION',
+        'VITE_APP_BASE_URL',
+      ]
+
+      const isProd = config.command === 'build'
+      const missing = required.filter(
+        (v) => !process.env[v] || process.env[v]!.trim().length === 0,
+      )
+      const missingRecommended = recommended.filter(
+        (v) => !process.env[v] || process.env[v]!.trim().length === 0,
+      )
+
+      if (missing.length > 0) {
+        const msg = `Missing required VITE_* environment variables: ${missing.join(', ')}`
+        if (isProd) {
+          throw new Error(`[env-validation] ${msg}`)
+        }
+        console.warn(`⚠️  [env-validation] ${msg}`)
+      }
+
+      if (missingRecommended.length > 0) {
+        console.warn(
+          `ℹ️  [env-validation] Recommended VITE_* variables not set: ${missingRecommended.join(', ')}. Defaults will be used.`,
+        )
+      }
+    },
+  }
+}
 
 /**
  * Vite Configuration for Bun + Vercel
@@ -18,6 +66,7 @@ import path from 'path'
  */
 export default defineConfig({
   plugins: [
+    envValidationPlugin(),
     react(),
     VitePWA({
       registerType: 'prompt',

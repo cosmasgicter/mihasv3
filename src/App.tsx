@@ -18,8 +18,9 @@ import { SafeAreaProvider } from '@/components/ui/SafeAreaProvider'
 import { routes, type RouteConfig } from '@/routes/config'
 
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt'
+import { InstallBanner } from '@/components/ui/InstallBanner'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
+import { OfflineBanner } from '@/components/ui/OfflineBanner'
 import { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerUpdatePrompt'
 import { cacheMonitor } from '@/services/cacheMonitor'
 
@@ -97,8 +98,9 @@ function App() {
           <AuthProvider>
             <RealtimeStatusProvider>
               <SafeAreaProvider>
+              <OfflineBanner />
               <ToastContainer />
-              <PWAInstallPrompt />
+              <InstallBanner />
               <OfflineIndicator />
               <ServiceWorkerUpdatePrompt />
               <Router>

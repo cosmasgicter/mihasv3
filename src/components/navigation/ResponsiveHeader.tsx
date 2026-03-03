@@ -83,8 +83,8 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
     <header className={cn('sticky top-0 z-50 border-b border-border/80 bg-card/95 backdrop-blur-xl', className)}>
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-3">
-          <Link to="/" className="inline-flex items-center gap-2 font-semibold text-foreground">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white">
+          <Link to="/" className="inline-flex items-center gap-2 font-semibold text-foreground" aria-label="Mukuba Institute of Health and Allied Sciences logo - Home">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white" aria-hidden="true">
               <GraduationCap className="h-5 w-5" />
             </span>
             <span className="hidden sm:inline">MIHAS Admissions</span>

@@ -56,7 +56,7 @@ module.exports = {
           foreground: '#1e293b',        /* 8.32:1 on secondary - WCAG AA compliant */
         },
         destructive: {
-          DEFAULT: '#dc2626',           /* 5.25:1 on white - improved */
+          DEFAULT: '#cc2424',           /* 5.46:1 on white, 4.99:1 on muted - WCAG AA compliant */
           foreground: '#ffffff',        /* 21:1 on destructive */
         },
         muted: {
@@ -80,7 +80,7 @@ module.exports = {
           highlight: '#e2e8f0',         /* Subtle highlight variant */
         },
         error: {
-          DEFAULT: '#dc2626',           /* 5.25:1 on white - WCAG AA compliant */
+          DEFAULT: '#cc2424',           /* 5.46:1 on white, 4.99:1 on muted - WCAG AA compliant */
           foreground: '#ffffff',        /* 21:1 on error */
         },
         warning: {
@@ -99,7 +99,7 @@ module.exports = {
         admin: {
           bg: '#f9fafb',                /* Admin background */
           card: '#ffffff',              /* Admin card */
-          border: '#d1d5db',            /* Admin border */
+          border: '#858c98',            /* Admin border - 3.39:1 on white, 3.24:1 on admin bg - WCAG AA compliant */
           text: '#111827',              /* 16.75:1 on admin bg */
           'text-secondary': '#374151',  /* 7.59:1 on admin bg */
           'text-muted': '#6b7280',      /* 4.69:1 on admin bg */

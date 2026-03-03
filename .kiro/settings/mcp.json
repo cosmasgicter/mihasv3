@@ -126,6 +126,22 @@
         "list_extensions"
       ]
     },
+    "neon": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp.neon.tech/sse"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "list_projects",
+        "list_branches",
+        "list_databases",
+        "run_sql"
+      ]
+    },
     "context7": {
       "url": "https://mcp.context7.com/mcp",
       "headers": {

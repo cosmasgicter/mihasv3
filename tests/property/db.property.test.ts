@@ -126,7 +126,7 @@ function isProperlyParameterized(queryConfig: QueryConfig, inputValue: unknown):
   // Query should use positional parameters ($1, $2, etc.)
   const usesPositionalParams = /\$\d+/.test(text);
   
-  return valueInArray && !rawInputInText && usesPositionalParams;
+  return (valueInArray ?? false) && !rawInputInText && usesPositionalParams;
 }
 
 /**
@@ -555,7 +555,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             const uniqueParams = new Set(paramMatches);
             
             // Values array should have at least as many values as unique parameters
-            expect(queryConfig.values?.length).toBeGreaterThanOrEqual(uniqueParams.size);
+            expect(queryConfig.values?.length ?? 0).toBeGreaterThanOrEqual(uniqueParams.size);
           }
         ),
         { numRuns: 100 }

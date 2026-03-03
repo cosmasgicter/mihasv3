@@ -6,8 +6,16 @@ import { withArcjetProtection } from '../lib/arcjet';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
 import { checkDocumentUploadAccess, isAdmin } from '../lib/auth/ownership';
 import { getR2Storage, isR2Available } from '../lib/storage';
+import { requireCsrf } from '../lib/csrf';
+import { validateBody } from '../lib/validation/middleware';
+import { uploadDocumentBodySchema, extractDocumentBodySchema, deleteDocumentBodySchema, resolveReferenceBodySchema, registerSlipBodySchema } from '../lib/validation/documents';
+import { logAuditEvent } from '../lib/auditLogger';
+import { validateServerEnv } from '../lib/envValidator';
+import { isAllowedUrl, isPrivateIP } from '../lib/urlValidator';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_EXTRACT_RESPONSE_SIZE = 20 * 1024 * 1024; // 20MB
+const FETCH_TIMEOUT_MS = 10_000; // 10 seconds
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 
 /**
@@ -25,10 +33,20 @@ const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'
 async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
+  // Validate required environment variables (Req 25.3)
+  const envResult = validateServerEnv();
+  if (!envResult.valid) {
+    const details = envResult.errors.map((e) => e.message).join('; ');
+    return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+  }
+
   // Handle HEAD requests for health checks (no auth required)
   if (req.method === 'HEAD') {
     return res.status(200).end();
   }
+
+  // CSRF validation for state-changing requests
+  if (await requireCsrf(req, res)) return;
 
   // Get authenticated user
   const user = await getAuthUser(req);
@@ -204,11 +222,10 @@ async function handleResolveReference(req: VercelRequest, res: VercelResponse, a
  * Upload document to R2
  */
 async function handleUpload(req: VercelRequest, res: VercelResponse, authUserId: string, userRole: string) {
-  const { file, fileName, fileType, contentType, userId, applicationId, applicationNumber, documentType } = req.body;
+  const parsed = validateBody(uploadDocumentBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!file || !fileName) {
-    return sendError(res, 'File and fileName are required', HttpStatus.BAD_REQUEST);
-  }
+  const { file, fileName, fileType, contentType, userId, applicationId, applicationNumber, documentType } = parsed;
 
   let resolvedApplicationId: string | undefined = applicationId;
   if (!resolvedApplicationId && applicationNumber) {
@@ -259,6 +276,18 @@ async function handleUpload(req: VercelRequest, res: VercelResponse, authUserId:
   }
 
   console.log('[documents/upload] Document uploaded to R2:', result.path);
+
+  // Audit trail for document upload (Requirement 8.4)
+  try {
+    await logAuditEvent({
+      actor_id: authUserId,
+      action: 'document_upload',
+      entity_type: 'document',
+      entity_id: result.path,
+      changes: { storage: 'r2', mime_type: mimeType, size: result.size },
+    });
+  } catch { /* non-blocking */ }
+
   return sendSuccess(res, { 
     path: result.path, 
     url: result.url,
@@ -347,6 +376,18 @@ async function handleDelete(req: VercelRequest, res: VercelResponse, authUserId:
   }
 
   console.log('[documents/delete] Document deleted from R2:', path);
+
+  // Audit trail for document deletion (Requirement 8.4)
+  try {
+    await logAuditEvent({
+      actor_id: authUserId,
+      action: 'document_delete',
+      entity_type: 'document',
+      entity_id: path,
+      changes: { storage: 'r2' },
+    });
+  } catch { /* non-blocking */ }
+
   return sendSuccess(res, { deleted: true, path });
 }
 
@@ -395,10 +436,24 @@ async function handleSignedUrl(req: VercelRequest, res: VercelResponse, authUser
  * Extract PDF metadata
  */
 async function handleExtract(req: VercelRequest, res: VercelResponse, authUserId: string, userRole: string) {
-  const { documentUrl, applicationId } = req.body;
+  const parsed = validateBody(extractDocumentBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!documentUrl) {
-    return sendError(res, 'Document URL is required', HttpStatus.BAD_REQUEST);
+  const { documentUrl, applicationId } = parsed;
+
+  // SSRF prevention: validate URL before fetching
+  if (!isAllowedUrl(documentUrl)) {
+    return sendError(res, 'Invalid or disallowed document URL', HttpStatus.BAD_REQUEST, 'INVALID_DOCUMENT_URL');
+  }
+
+  // Additional private IP check on parsed hostname
+  try {
+    const parsedUrl = new URL(documentUrl);
+    if (isPrivateIP(parsedUrl.hostname)) {
+      return sendError(res, 'Invalid or disallowed document URL', HttpStatus.BAD_REQUEST, 'INVALID_DOCUMENT_URL');
+    }
+  } catch {
+    return sendError(res, 'Invalid or disallowed document URL', HttpStatus.BAD_REQUEST, 'INVALID_DOCUMENT_URL');
   }
 
   // Ownership check: verify user can access this application's documents
@@ -411,12 +466,56 @@ async function handleExtract(req: VercelRequest, res: VercelResponse, authUserId
 
   let pdfBytes: ArrayBuffer;
   try {
-    const response = await fetch(documentUrl);
+    // AbortController with 10-second timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+    const response = await fetch(documentUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+
     if (!response.ok) {
       return sendError(res, 'Document not found', HttpStatus.NOT_FOUND);
     }
-    pdfBytes = await response.arrayBuffer();
-  } catch {
+
+    // Streaming response size check (20MB max)
+    const contentLength = response.headers.get('content-length');
+    if (contentLength && parseInt(contentLength, 10) > MAX_EXTRACT_RESPONSE_SIZE) {
+      return sendError(res, 'Document exceeds maximum allowed size (20MB)', HttpStatus.BAD_REQUEST, 'INVALID_DOCUMENT_URL');
+    }
+
+    // Read body with streaming size enforcement
+    const reader = response.body?.getReader();
+    if (!reader) {
+      return sendError(res, 'Failed to fetch document', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    const chunks: Uint8Array[] = [];
+    let totalSize = 0;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      totalSize += value.byteLength;
+      if (totalSize > MAX_EXTRACT_RESPONSE_SIZE) {
+        reader.cancel();
+        return sendError(res, 'Document exceeds maximum allowed size (20MB)', HttpStatus.BAD_REQUEST, 'INVALID_DOCUMENT_URL');
+      }
+      chunks.push(value);
+    }
+
+    // Combine chunks into a single ArrayBuffer
+    const combined = new Uint8Array(totalSize);
+    let offset = 0;
+    for (const chunk of chunks) {
+      combined.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    pdfBytes = combined.buffer;
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      return sendError(res, 'Document fetch timed out', HttpStatus.BAD_REQUEST, 'INVALID_DOCUMENT_URL');
+    }
     return sendError(res, 'Failed to fetch document', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 

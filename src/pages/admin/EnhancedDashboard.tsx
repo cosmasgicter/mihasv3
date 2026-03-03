@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 import { animateClasses } from '@/lib/animations'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
 import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
-import { SystemMonitoring } from '@/components/admin/SystemMonitoring'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
@@ -225,8 +224,9 @@ export default function EnhancedAdminDashboard() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowNotifications(false)}
+                    aria-label="Hide notifications"
                   >
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </div>
               </div>
@@ -257,10 +257,8 @@ export default function EnhancedAdminDashboard() {
           )}
 
           {activeTab === 'monitoring' && (
-            <div
-              className={animateClasses.fadeIn}
-            >
-              <SystemMonitoring />
+            <div className={animateClasses.fadeIn}>
+              <p className="text-muted-foreground text-sm">System monitoring has been removed.</p>
             </div>
           )}
 

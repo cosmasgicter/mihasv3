@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { Check, X, Mail, Users, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface BulkOperationsProps {
   selectedCount: number
@@ -25,6 +27,8 @@ export function BulkOperations({
     type: 'status' | 'payment' | 'email'
     action: string
   } | null>(null)
+  const focusTrapRef = useFocusTrap(!!showConfirmation)
+  useEscapeKey(!!showConfirmation, () => setShowConfirmation(null))
 
   const handleStatusUpdate = async () => {
     if (!selectedStatus || !onStatusUpdate) return
@@ -253,7 +257,13 @@ export function BulkOperations({
       {/* Confirmation Modal */}
       {showConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-card rounded-lg p-6 max-w-md w-full">
+          <div
+            ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirm Bulk Action"
+            className="bg-card rounded-lg p-6 max-w-md w-full"
+          >
             <div className="flex items-center space-x-3 mb-4">
               <AlertCircle className="w-6 h-6 text-accent" />
               <h3 className="text-lg font-medium text-foreground">

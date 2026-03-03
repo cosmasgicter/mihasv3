@@ -707,15 +707,17 @@ export default function AdminSettings() {
                                     size="sm"
                                     onClick={() => handleEditSave(setting.id)}
                                     loading={saving}
+                                    aria-label="Save setting"
                                   >
-                                    <Save className="h-4 w-4" />
+                                    <Save className="h-4 w-4" aria-hidden="true" />
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     onClick={handleEditCancel}
+                                    aria-label="Cancel editing"
                                   >
-                                    <X className="h-4 w-4" />
+                                    <X className="h-4 w-4" aria-hidden="true" />
                                   </Button>
                                 </div>
                               ) : (
@@ -724,16 +726,18 @@ export default function AdminSettings() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleEditStart(setting)}
+                                    aria-label={`Edit ${setting.key}`}
                                   >
-                                    <Edit2 className="h-4 w-4" />
+                                    <Edit2 className="h-4 w-4" aria-hidden="true" />
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleDelete(setting.id, setting.key)}
                                     className="text-destructive hover:text-error"
+                                    aria-label={`Delete ${setting.key}`}
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-4 w-4" aria-hidden="true" />
                                   </Button>
                                 </div>
                               )}

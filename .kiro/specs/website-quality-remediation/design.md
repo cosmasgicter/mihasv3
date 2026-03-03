@@ -207,6 +207,7 @@ lib/validation/
 ├── applications.ts   # application CRUD schemas
 ├── admin.ts          # admin action schemas
 ├── documents.ts      # upload, extract schemas
+├── email.ts          # send, process-queue, retry-failed, queue-status schemas
 ├── payments.ts       # payment schemas
 ├── sessions.ts       # session action schemas
 ├── notifications.ts  # notification schemas
@@ -501,13 +502,14 @@ The `transaction()` function in `lib/db.ts` already handles BEGIN/COMMIT/ROLLBAC
 
 ### 31. @ts-nocheck Removal Strategy (Req 31)
 
-**Approach:** Incremental removal, prioritized by criticality.
+**Approach:** Incremental removal across 6 phases, prioritized by criticality. Codebase audit found 48 files with `@ts-nocheck`.
 
 **Phase 1 — Critical path files (must fix first):**
-- `src/routes/config.tsx` — routing config, already has `@ts-nocheck`
+- `src/routes/config.tsx` — routing config
 - `src/hooks/usePWA.ts` — PWA functionality
 - `src/forms/applicationSchema.ts` — Zod form schemas
 - `src/data/applications.ts` — application data hooks
+- `src/hooks/queries/useQueryConfig.ts` — query cache config
 
 **Phase 2 — Admin hooks and services:**
 - `src/hooks/admin/useApplicationsData.ts`
@@ -518,11 +520,35 @@ The `transaction()` function in `lib/db.ts` already handles BEGIN/COMMIT/ROLLBAC
 - `src/services/alternativePathwayService.ts`
 - `src/services/autoScaling.ts`
 - `src/services/pushNotificationManager.ts`
+- `src/services/detailedEligibilityService.ts`
+- `src/services/eligibilityAppealsService.ts`
 
-**Phase 3 — Utility and component files:**
-- All remaining `src/lib/*.ts` files with `@ts-nocheck`
-- All remaining `src/components/**/*.tsx` files with `@ts-nocheck`
-- All remaining `src/hooks/*.ts` files with `@ts-nocheck`
+**Phase 3 — Remaining hooks:**
+- `src/hooks/useBulkOperations.ts`
+- `src/hooks/useUserManagement.ts`
+- `src/hooks/useApiServices.ts`
+- `src/hooks/useErrorHandler.ts`
+- `src/hooks/useProfileAutoPopulation.ts`
+- `src/hooks/useEnhancedResponsive.ts`
+- `src/hooks/useNotificationPreferences.ts`
+
+**Phase 4 — Lib/utility files:**
+- `src/lib/applicationFlowAnalyzer.ts`, `securityEnhancements.ts`, `multiChannelNotifications.ts`
+- `src/lib/exportUtils.ts`, `eligibilityAppealsEngine.ts`, `performance-utils.ts`
+- `src/lib/submissionUtils.ts`, `securityConfig.ts`, `maintenance.ts`
+- `src/lib/securityUtils.ts`, `adminNotifications.ts`, `applicationSession.ts`
+
+**Phase 5 — Components and pages:**
+- `src/pages/public/tracker/index.tsx`, `src/pages/admin/Programs.tsx`, `Users.tsx`, `Dashboard.tsx`, `EnhancedDashboard.tsx`
+- `src/components/notifications/PushNotificationSettings.tsx`, `NotificationAnalytics.tsx`, `NotificationPreferences.tsx`
+- `src/components/application/EligibilityDashboard.tsx`
+- `src/components/admin/TestNotifications.tsx`, `applications/ApplicationApprovalActions.tsx`, `applications/ApplicationDetailModal.tsx`
+
+**Phase 6 — Remaining files:**
+- `src/types/eligibility.ts`
+- `src/v2-improvements-index.ts`
+- `src/utils/smart-features.ts`
+- `src/utils/errorMessages.ts`
 
 **For each file:**
 1. Remove `@ts-nocheck`

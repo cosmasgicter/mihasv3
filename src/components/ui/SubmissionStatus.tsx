@@ -76,8 +76,9 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
             <button
               onClick={onCancel}
               className="p-1 text-foreground hover:text-foreground"
+              aria-label="Cancel submission"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           )}
         </div>

@@ -27,7 +27,7 @@ interface UseErrorHandlingReturn {
   ) => Promise<T | null>
   retryLastOperation: () => Promise<void>
   checkDataIntegrity: () => Promise<any>
-  getErrorLogs: () => Promise<any[]>
+  getErrorLogs: () => Promise<any[] | null>
 }
 
 export function useErrorHandling(): UseErrorHandlingReturn {

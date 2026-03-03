@@ -12,7 +12,7 @@ import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui';
 import { Badge } from '@/components/ui';
 import { Button } from '@/components/ui/Button';
-import { OptimizedImage, ResponsiveImage } from '@/components/ui/OptimizedImage';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { ScrollReveal, StaggerReveal, StaggerItem, AnimatedCounter } from '@/components/smoothui';
 import { 
   Star, ArrowRight, 
@@ -145,15 +145,12 @@ function HeroSection() {
 
           <div className="mx-auto w-full max-w-xl">
             <div className="relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-2 shadow-2xl backdrop-blur-sm">
-              <ResponsiveImage
-                basePath="/images/programs/mihas-campus"
-                alt="Students at MIHAS campus"
-                className="h-64 w-full rounded-2xl sm:h-80 lg:h-[420px]"
-                containerClassName="h-64 w-full rounded-2xl sm:h-80 lg:h-[420px]"
-                sizes="(max-width: 1024px) 92vw, 42vw"
-                widths={[320, 640, 768, 1024]}
-                objectFit="cover"
-                priority
+              <OptimizedImage
+                src="/images/programs/mihas-campus.jpg"
+                alt="Students studying at the Mukuba Institute of Health and Allied Sciences campus"
+                className="h-64 w-full rounded-2xl sm:h-80 lg:h-[420px] object-cover"
+                width={1024}
+                height={420}
               />
 
               <div className="pointer-events-none absolute inset-x-6 bottom-6 rounded-2xl border border-white/30 bg-black/40 p-4 backdrop-blur-md">
@@ -282,7 +279,6 @@ function AccreditationSection() {
                       src={`/images/accreditation/${accred.logo}`}
                       alt={`${accred.title} logo`}
                       className="h-full w-full object-contain"
-                      loading="lazy"
                       width={64}
                       height={64}
                     />
@@ -329,11 +325,10 @@ function ProgramsSection() {
                   <div className="relative mb-6 overflow-hidden rounded-lg">
                     <OptimizedImage
                       src={program.image}
-                      alt={`${program.institution} campus`}
-                      className="w-full h-48 sm:h-56 lg:h-64 group-hover:scale-105 transition-transform duration-500"
-                      containerClassName="w-full h-48 sm:h-56 lg:h-64"
-                      objectFit="cover"
-                      loading="lazy"
+                      alt={`Photo of ${program.institution} campus and facilities`}
+                      className="w-full h-48 sm:h-56 lg:h-64 group-hover:scale-105 transition-transform duration-500 object-cover"
+                      width={640}
+                      height={256}
                     />
                     <div className="absolute top-4 right-4 space-y-2">
                       <Badge className="bg-gradient-to-r from-primary to-secondary text-white text-xs sm:text-sm">

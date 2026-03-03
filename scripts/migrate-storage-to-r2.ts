@@ -1,27 +1,18 @@
 /**
  * Storage Migration Script: Supabase Storage → Cloudflare R2
- * 
- * Migrates all files from Supabase Storage to Cloudflare R2.
- * Updates file URLs in the database after migration.
- * 
- * Usage:
- *   bun run scripts/migrate-storage-to-r2.ts
- * 
- * Environment Variables Required:
- *   - SUPABASE_URL
- *   - SUPABASE_SERVICE_ROLE_KEY
- *   - R2_ACCOUNT_ID
- *   - R2_ACCESS_KEY_ID
- *   - R2_SECRET_ACCESS_KEY
- *   - R2_BUCKET_NAME (default: mihasapplication)
- *   - DATABASE_URL (Neon connection string)
+ *
+ * MIGRATION STATUS: COMPLETE — This script has already been run.
+ * All files have been migrated from Supabase Storage to R2.
+ * Do not run again. Supabase credentials are no longer required or used.
+ *
+ * This file is retained for historical reference only.
  */
 
 import { createHmac, createHash } from 'crypto';
 
-// Configuration
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+// Configuration (archived — migration complete, no longer reads env vars)
+const SUPABASE_URL = '';
+const SUPABASE_SERVICE_ROLE_KEY = '';
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || '';
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || '';
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY || '';
@@ -351,6 +342,11 @@ async function updateDatabaseUrls(): Promise<void> {
  * Main migration function
  */
 async function main(): Promise<void> {
+  console.log('⚠️  Migration already complete — this script is archived and should not be run.');
+  console.log('All files have been migrated from Supabase Storage to R2.');
+  process.exit(0);
+
+  // --- ARCHIVED CODE BELOW (never reached) ---
   console.log('🚀 Supabase Storage → Cloudflare R2 Migration');
   console.log('='.repeat(50));
 

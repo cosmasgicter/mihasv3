@@ -48,7 +48,7 @@ export function UserMenu() {
         {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
           <img
             src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string)}
-            alt={`${fullName}'s avatar`}
+            alt={`Profile photo for ${fullName}`}
             className="w-8 h-8 rounded-full border border-border"
           />
         ) : (

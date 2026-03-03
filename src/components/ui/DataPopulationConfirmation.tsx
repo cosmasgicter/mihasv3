@@ -2,6 +2,8 @@ import React from 'react'
 import { Button } from './Button'
 import { CheckCircle, Edit, X } from 'lucide-react'
 import { ProfileData } from '@/forms/applicationSchema'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface DataPopulationConfirmationProps {
   profileData: ProfileData
@@ -18,6 +20,9 @@ export function DataPopulationConfirmation({
   onSkip,
   isVisible
 }: DataPopulationConfirmationProps) {
+  const focusTrapRef = useFocusTrap(isVisible)
+  useEscapeKey(isVisible, onSkip)
+
   if (!isVisible) return null
 
   const populatedFields = [
@@ -31,7 +36,13 @@ export function DataPopulationConfirmation({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div
+        ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Auto-Fill Detected"
+        className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4"
+      >
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-4">
             <CheckCircle className="h-6 w-6 text-success" />
@@ -74,8 +85,9 @@ export function DataPopulationConfirmation({
               onClick={onSkip}
               variant="ghost"
               size="sm"
+              aria-label="Skip auto-fill"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>

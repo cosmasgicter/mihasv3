@@ -42,8 +42,9 @@ export function FeedbackWidget() {
  <Button
  onClick={() => setIsOpen(true)}
  className="rounded-full w-12 h-12 shadow-lg"
+ aria-label="Open feedback form"
  >
- <MessageSquare className="h-5 w-5" />
+ <MessageSquare className="h-5 w-5" aria-hidden="true" />
  </Button>
  </div>
  )
@@ -58,8 +59,9 @@ export function FeedbackWidget() {
  variant="ghost"
  size="sm"
  onClick={() => setIsOpen(false)}
+ aria-label="Close feedback form"
  >
- <X className="h-4 w-4" />
+ <X className="h-4 w-4" aria-hidden="true" />
  </Button>
  </div>
 
@@ -92,8 +94,9 @@ export function FeedbackWidget() {
  type="button"
  onClick={() => setFeedback(prev => ({ ...prev, rating: star }))}
  className={`p-1 ${star <= (feedback.rating || 0) ? 'text-warning' : 'text-foreground'}`}
+ aria-label={`Rate ${star} star${star !== 1 ? 's' : ''}`}
  >
- <Star className="h-4 w-4 fill-current" />
+ <Star className="h-4 w-4 fill-current" aria-hidden="true" />
  </button>
  ))}
  </div>

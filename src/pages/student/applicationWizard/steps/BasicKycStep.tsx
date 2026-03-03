@@ -108,6 +108,7 @@ const BasicKycStep = ({
           </div>
           <AnimatedInput
             {...register('nrc_number')}
+            aria-label="NRC Number"
             placeholder="e.g., 123456/78/9"
             error={errors.nrc_number?.message}
             helperText="Provide either NRC or Passport (one is sufficient)"
@@ -158,6 +159,7 @@ const BasicKycStep = ({
           </div>
           <AnimatedInput
             {...register('phone')}
+            aria-label="Phone Number"
             placeholder="e.g., +260 97 123 4567"
             error={errors.phone?.message}
           />

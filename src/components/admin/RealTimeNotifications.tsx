@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Bell, X, CheckCircle, AlertTriangle, Info } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface Notification {
   id: string
@@ -31,6 +33,8 @@ export function RealTimeNotifications() {
     }
   ])
   const [showPanel, setShowPanel] = useState(false)
+  const focusTrapRef = useFocusTrap(showPanel)
+  useEscapeKey(showPanel, () => setShowPanel(false))
 
   const unreadCount = notifications.filter(n => !n.read).length
 
@@ -78,8 +82,9 @@ export function RealTimeNotifications() {
         size="sm"
         onClick={() => setShowPanel(!showPanel)}
         className="relative"
+        aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="h-5 w-5" aria-hidden="true" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
             {unreadCount}
@@ -90,6 +95,10 @@ export function RealTimeNotifications() {
       {/* Notifications Panel */}
         {showPanel && (
           <div
+            ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Notifications"
             className="absolute right-0 top-full mt-2 w-80 bg-card rounded-xl shadow-xl border border-border z-50 animate-fade-in"
           >
             <div className="p-4 border-b border-border">
@@ -99,8 +108,9 @@ export function RealTimeNotifications() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPanel(false)}
+                  aria-label="Close notifications panel"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             </div>
@@ -143,8 +153,9 @@ export function RealTimeNotifications() {
                                 removeNotification(notification.id)
                               }}
                               className="p-1 h-auto"
+                              aria-label={`Dismiss notification: ${notification.title}`}
                             >
-                              <X className="h-3 w-3" />
+                              <X className="h-3 w-3" aria-hidden="true" />
                             </Button>
                           </div>
                         </div>
